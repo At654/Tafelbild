@@ -1,0 +1,2121 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Popcorn-Börse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#f1efe9;--surface:#fff;--surface2:#f7f5f0;--ink:#1f1d18;--muted:#5f5a4f;--line:#d9d3c6;
+  --brand:#7a3e00;--brand-ink:#fff;--ok:#1f7a3f;--bad:#b3261e;--warn:#a15c00;
+  --kauf:#1f5fae;--kauf-soft:#dde8f7;--verk:#c2410c;--verk-soft:#fbe6dc;--beob:#5b4b8a;--beob-soft:#e9e3f5;
+  --display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15130f;--surface:#1f1c17;--surface2:#191712;--ink:#efebe2;--muted:#b0a898;--line:#3a352c;
+  --brand:#f0a95a;--brand-ink:#1a1209;--ok:#6fcf8e;--bad:#ff8a80;--warn:#f0b35a;
+  --kauf:#7fb0ff;--kauf-soft:#1b2a40;--verk:#ff8a5c;--verk-soft:#3a2219;--beob:#b9a6f0;--beob-soft:#2a2340;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#15130f;--surface:#1f1c17;--surface2:#191712;--ink:#efebe2;--muted:#b0a898;--line:#3a352c;
+  --brand:#f0a95a;--brand-ink:#1a1209;--ok:#6fcf8e;--bad:#ff8a80;--warn:#f0b35a;
+  --kauf:#7fb0ff;--kauf-soft:#1b2a40;--verk:#ff8a5c;--verk-soft:#3a2219;--beob:#b9a6f0;--beob-soft:#2a2340;color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.4}
+h1,h2,h3{font-family:var(--display);font-stretch:112%;margin:0 0 .4em;line-height:1.1}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:.6em 1em}
+button.pri{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:700}
+button:disabled{opacity:.45;cursor:default}
+input,textarea{font:inherit;width:100%;padding:.6em .7em;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.muted{color:var(--muted)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.merk{border-left:6px solid var(--brand);background:var(--surface);border-radius:10px;padding:12px 14px;margin:8px 0}
+.merk b.k{color:var(--kauf)} .merk b.v{color:var(--verk)}
+.term{font-weight:700;border-bottom:3px solid var(--brand)}
+.alt{font-weight:400;color:var(--muted);font-size:.9em}
+/* ---------- Tafel ---------- */
+#tafel header{display:flex;align-items:center;gap:14px;padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap}
+#tafel header h1{font-size:1.35rem;margin:0}
+.steps{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.steps button{padding:.35em .8em;font-size:.9rem}
+.steps button.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.mini{display:flex;align-items:center;gap:10px;font-size:.9rem}
+.mini canvas{width:64px;height:64px;border-radius:6px;background:#fff}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bad);margin-right:4px}
+.dot.on{background:var(--ok)}
+#tMain{padding:20px 22px 40px;max-width:1400px;margin:0 auto}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.ctrl button{font-size:1.05rem}
+.big{font-size:clamp(1.6rem,3.2vw,2.6rem)}
+.join{display:grid;grid-template-columns:minmax(260px,420px) 1fr;gap:28px;align-items:start}
+.join canvas{width:100%;aspect-ratio:1;background:#fff;border-radius:14px}
+.code{font-family:var(--display);font-size:3rem;font-weight:800;letter-spacing:.12em}
+.nicks{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.nicks button{padding:.3em .7em;font-size:.95rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.clock{font-family:var(--display);font-size:3rem;font-weight:800}
+.chip{display:inline-block;border-radius:999px;padding:.2em .7em;margin:3px;font-weight:700;font-family:var(--display)}
+.chip.k{background:var(--kauf-soft);color:var(--kauf)} .chip.v{background:var(--verk-soft);color:var(--verk)}
+.banner{border-radius:12px;padding:12px 16px;margin-top:14px;font-size:1.2rem}
+.banner.ok{background:color-mix(in srgb,var(--ok) 15%,var(--surface));border:2px solid var(--ok)}
+.banner.nf{background:var(--kauf-soft);border:2px solid var(--kauf)}
+.banner.af{background:var(--verk-soft);border:2px solid var(--verk)}
+.banner.info{background:var(--surface);border:2px solid var(--brand)}
+.satz{display:block;margin-top:6px;font-size:1rem;color:var(--muted)}
+.hbar{display:grid;grid-template-columns:140px 1fr 60px;gap:10px;align-items:center;margin:10px 0;font-size:1.15rem}
+.hbar .t{height:34px;border-radius:8px;background:var(--surface2);overflow:hidden}
+.hbar .t i{display:block;height:100%;transition:width .4s}
+.hbar b{font-family:var(--display);font-size:1.8rem;text-align:right}
+table.mt{border-collapse:collapse;width:100%;background:var(--surface);border-radius:12px;overflow:hidden;font-size:1.05rem}
+table.mt th,table.mt td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:center}
+table.mt th{background:var(--surface2);font-size:.9rem}
+table.mt tr.cur td{outline:3px solid var(--brand);outline-offset:-3px}
+table.mt tr.eq td{background:color-mix(in srgb,var(--ok) 18%,var(--surface));font-weight:700}
+.pchips{display:flex;gap:6px;flex-wrap:wrap}
+.pchips button{font-family:var(--display);font-weight:800;font-size:1.1rem;padding:.4em .8em}
+.pchips button.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.pchips button.done{border-color:var(--ok);border-width:2px}
+.scen{text-align:left;padding:14px;border-radius:14px;border:2px solid var(--line)}
+.scen b{display:block;font-family:var(--display);font-size:1.3rem;margin-bottom:4px}
+svg text{font-family:var(--body)}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.timer{font-family:var(--display);font-size:3rem;font-weight:800;min-width:2.2em;text-align:center;border-radius:50%;background:var(--surface);border:4px solid var(--brand);aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.opt{border-radius:14px;padding:14px 16px;color:#fff;font-size:1.2rem;font-weight:700;position:relative}
+.o0{background:#b3261e}.o1{background:#1f5fae}.o2{background:#8a5300}.o3{background:#3a7a1c}.o4{background:#8537a3}
+.opt.wrong{opacity:.35}
+.opt .cnt{position:absolute;right:14px;top:10px;font-family:var(--display);font-size:1.6rem}
+.top{list-style:none;padding:0;margin:0}
+.top li{display:flex;justify-content:space-between;padding:8px 12px;border-radius:10px;background:var(--surface);margin-bottom:6px;font-size:1.15rem}
+.top li b{font-family:var(--display)}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:16px;margin-top:24px}
+.podium div{background:var(--brand);color:var(--brand-ink);border-radius:14px 14px 0 0;width:200px;text-align:center;padding:12px;font-family:var(--display);font-weight:800}
+.podium span{display:block;font-size:1.4rem}
+.pro{font-size:.75rem;font-weight:700;background:var(--brand);color:var(--brand-ink);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.qtab{border-collapse:collapse;margin:8px 0;background:var(--surface)}
+.qtab td,.qtab th{border:1px solid var(--line);padding:4px 10px;text-align:center}
+@media (max-width:900px){.two,.three,.join,.opts{grid-template-columns:1fr}}
+/* ---------- Handy ---------- */
+#phone{max-width:560px;margin:0 auto;padding:14px 16px 40px}
+#phone .ph-top{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;color:var(--muted);margin-bottom:10px}
+.card{border-radius:18px;padding:16px 18px;border:3px solid;margin-bottom:12px}
+.card.K{background:var(--kauf-soft);border-color:var(--kauf)} .card.V{background:var(--verk-soft);border-color:var(--verk)} .card.B{background:var(--beob-soft);border-color:var(--beob)}
+.card .role{font-family:var(--display);font-weight:800;font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase}
+.card.K .role{color:var(--kauf)} .card.V .role{color:var(--verk)} .card.B .role{color:var(--beob)}
+.card .val{font-family:var(--display);font-weight:800;font-size:2.6rem;line-height:1.05}
+.card .cd{margin-top:8px;font-size:1rem}
+.card .cd b{font-family:var(--display);font-size:1.8rem;letter-spacing:.1em}
+.step{display:flex;align-items:center;gap:8px;margin:8px 0}
+.step button{font-size:1.2rem;font-weight:800;padding:.5em .7em;min-width:3.2em}
+.step .pv{flex:1;text-align:center;font-family:var(--display);font-weight:800;font-size:2rem}
+.status{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--surface2)}
+.status.ok{background:color-mix(in srgb,var(--ok) 15%,var(--surface))}
+.status.bad{background:color-mix(in srgb,var(--bad) 15%,var(--surface))}
+.yn{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.yn button{padding:20px 10px;font-size:1.2rem;font-weight:700;border-radius:14px;border:3px solid var(--line)}
+.yn button.sel{outline:4px solid var(--ink);outline-offset:1px}
+.yn .y{background:color-mix(in srgb,var(--ok) 18%,var(--surface));border-color:var(--ok)}
+.yn .n{background:color-mix(in srgb,var(--bad) 12%,var(--surface));border-color:var(--bad)}
+.pbtn{display:block;width:100%;text-align:left;margin:8px 0;padding:14px;border-radius:14px;font-size:1.05rem}
+.pbtn.sel{outline:4px solid var(--ink);outline-offset:-2px}
+.popt{display:block;width:100%;margin:10px 0;padding:16px 14px;border-radius:14px;color:#fff;border:none;font-size:1.05rem;font-weight:700;text-align:left}
+.bigpts{font-family:var(--display);font-size:2.4rem;font-weight:800}
+.ansage{font-family:var(--display);font-weight:800;font-size:3rem;text-align:center;margin:6px 0}
+</style>
+</head>
+<body>
+<div id="tafel" hidden>
+  <header>
+    <h1>Popcorn-Börse</h1>
+    <nav class="steps" id="steps"></nav>
+    <div class="mini"><canvas id="qrSmall" width="128" height="128"></canvas><div><b id="miniCode"></b><br><span id="miniN"></span><br><span id="conn"></span></div></div>
+  </header>
+  <main id="tMain"></main>
+</div>
+<div id="phone" hidden></div>
+<script>
+var QRLib=(function(){var M={};function R(n){n=n.replace("./","");return M[n]();}
+M["QR8bitByte"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMode = R("./QRMode");
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+})(c,c.exports);return c.exports;};})();
+M["QRBitBuffer"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+})(c,c.exports);return c.exports;};})();
+M["QRErrorCorrectLevel"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+})(c,c.exports);return c.exports;};})();
+M["QRMaskPattern"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+})(c,c.exports);return c.exports;};})();
+M["QRMath"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+})(c,c.exports);return c.exports;};})();
+M["QRMode"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+})(c,c.exports);return c.exports;};})();
+M["QRPolynomial"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMath = R("./QRMath");
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+})(c,c.exports);return c.exports;};})();
+M["QRRSBlock"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRErrorCorrectLevel = R("./QRErrorCorrectLevel");
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+})(c,c.exports);return c.exports;};})();
+M["QRUtil"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMode = R("./QRMode");
+var QRPolynomial = R("./QRPolynomial");
+var QRMath = R("./QRMath");
+var QRMaskPattern = R("./QRMaskPattern");
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+})(c,c.exports);return c.exports;};})();
+M["index"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = R("./QR8bitByte");
+var QRUtil = R("./QRUtil");
+var QRPolynomial = R("./QRPolynomial");
+var QRRSBlock = R("./QRRSBlock");
+var QRBitBuffer = R("./QRBitBuffer");
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+})(c,c.exports);return c.exports;};})();
+return {QRCode:R("./index"),ECL:R("./QRErrorCorrectLevel")};})();
+</script>
+
+<script>
+/* =========================================================
+   Kleiner MQTT-3.1.1-Client über WebSocket (wie im Standort-Spiel)
+   ========================================================= */
+const TE=new TextEncoder(), TD=new TextDecoder();
+function mqStr(s){const b=TE.encode(s);return [b.length>>8,b.length&255,...b];}
+function mqLen(n){const o=[];do{let d=n%128;n=Math.floor(n/128);if(n>0)d|=128;o.push(d);}while(n>0);return o;}
+function mqPacket(h,body){return new Uint8Array([h,...mqLen(body.length),...body]);}
+class MqttLink{
+  constructor(url,cid,onMsg,onStatus){this.url=url;this.cid=cid;this.onMsg=onMsg;this.onStatus=onStatus;this.subs=new Set();this.up=false;this.buf=new Uint8Array(0);this.pid=1;this.tries=0;this.connect();}
+  connect(){
+    clearTimeout(this.rt);clearInterval(this.ping);let ws;
+    try{ws=new WebSocket(this.url,["mqtt"]);}catch(e){this.retry();return;}
+    this.ws=ws;ws.binaryType="arraybuffer";
+    const guard=setTimeout(()=>{if(!this.up){try{ws.close();}catch(e){}}},9000);
+    ws.onopen=()=>{ws.send(mqPacket(0x10,[...mqStr("MQTT"),4,0x02,0,30,...mqStr(this.cid+"-"+Math.random().toString(36).slice(2,6))]));};
+    ws.onmessage=(ev)=>{const d=new Uint8Array(ev.data);const nb=new Uint8Array(this.buf.length+d.length);nb.set(this.buf);nb.set(d,this.buf.length);this.buf=nb;this.parse();};
+    ws.onclose=()=>{clearTimeout(guard);this.up=false;clearInterval(this.ping);this.onStatus();this.retry();};
+    ws.onerror=()=>{};
+  }
+  retry(){this.tries++;this.rt=setTimeout(()=>this.connect(),Math.min(15000,800*Math.pow(1.6,this.tries)));}
+  parse(){
+    while(this.buf.length>=2){
+      let mult=1,len=0,i=1,b;
+      do{if(i>=this.buf.length)return;b=this.buf[i++];len+=(b&127)*mult;mult*=128;}while(b&128);
+      if(this.buf.length<i+len)return;
+      const type=this.buf[0]>>4,flags=this.buf[0]&15,body=this.buf.subarray(i,i+len);this.buf=this.buf.slice(i+len);
+      if(type===2){if(body[1]===0){this.up=true;this.tries=0;for(const t of this.subs)this.sendSub(t);
+          this.ping=setInterval(()=>{try{this.ws.send(new Uint8Array([0xC0,0]));}catch(e){}},20000);this.onStatus(true);}else{try{this.ws.close();}catch(e){}}}
+      else if(type===3){const tl=(body[0]<<8)|body[1];const topic=TD.decode(body.subarray(2,2+tl));let p=2+tl;const qos=(flags>>1)&3;
+        if(qos>0){const id=(body[p]<<8)|body[p+1];p+=2;if(qos===1){try{this.ws.send(new Uint8Array([0x40,2,id>>8,id&255]));}catch(e){}}}
+        let payload=null;try{payload=JSON.parse(TD.decode(body.subarray(p)));}catch(e){}
+        if(payload!==null)this.onMsg(topic,payload,(flags&1)===1);}
+    }
+  }
+  sendSub(t){const id=this.pid=(this.pid%60000)+1;try{this.ws.send(mqPacket(0x82,[id>>8,id&255,...mqStr(t),0]));}catch(e){}}
+  subscribe(t){this.subs.add(t);if(this.up)this.sendSub(t);}
+  publish(t,obj,retain){if(!this.up)return false;const body=[...mqStr(t),...TE.encode(obj===null?"":JSON.stringify(obj))];
+    try{this.ws.send(mqPacket(retain?0x31:0x30,body));return true;}catch(e){return false;}}
+}
+/* Lokaler Testbetrieb: ?bc=1 verbindet nur Tabs im selben Browser (zum Ausprobieren ohne Internet) */
+class LocalLink{
+  constructor(cid,onMsg,onStatus){this.up=true;this.subs=new Set();this.bc=new BroadcastChannel("popcorn-boerse");
+    this.bc.onmessage=e=>{const m=e.data;if(this.subs.has(m.t))onMsg(m.t,m.p,false);};setTimeout(()=>onStatus(true),50);}
+  subscribe(t){this.subs.add(t);}
+  publish(t,obj){this.bc.postMessage({t,p:JSON.parse(JSON.stringify(obj))});return true;}
+}
+const params=new URLSearchParams(location.search);
+const LOCAL=params.get("bc")==="1";
+const BROKERS=params.get("broker")?[params.get("broker")]:["wss://broker.hivemq.com:8884/mqtt","wss://broker.emqx.io:8084/mqtt"];
+const NS="popcornboerse1/";
+class Net{
+  constructor(onMsg,onStatus){
+    this.cid="p"+rnd(10);this.seen=new Map();this.onMsg=onMsg;
+    const st=()=>onStatus(this.count());
+    this.links=LOCAL?[new LocalLink(this.cid,(t,p,r)=>this.recv(t,p,r),st)]:BROKERS.map(u=>new MqttLink(u,this.cid,(t,p,r)=>this.recv(t,p,r),st));
+  }
+  count(){return {up:this.links.filter(l=>l.up).length,all:this.links.length};}
+  recv(t,p,r){
+    if(p&&typeof p==="object"&&p.mid){const now=Date.now();if(this.seen.has(p.mid))return;this.seen.set(p.mid,now);
+      if(this.seen.size>3000){for(const [k,v] of this.seen){if(now-v>600000)this.seen.delete(k);}}}
+    this.onMsg(t,p,r);
+  }
+  sub(t){this.links.forEach(l=>l.subscribe(NS+t));}
+  pub(t,obj,retain){obj.mid=rnd(12);let ok=false;this.links.forEach(l=>{if(l.publish(NS+t,obj,retain))ok=true;});return ok;}
+}
+function rnd(n){const a="abcdefghijkmnpqrstuvwxyz23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(n));for(const x of r)s+=a[x%a.length];return s;}
+function codeGen(){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(5));for(const x of r)s+=a[x%a.length];return s;}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k));localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+const $=id=>document.getElementById(id);
+function clean(s,max){return String(s==null?"":s).replace(/[\u0000-\u001f\u007f​-‏‪-‮]/g," ").trim().slice(0,max);}
+function h(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+const eur=c=>(c/100).toFixed(2).replace(".",",")+" €";
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* =========================================================
+   Inhalte: LF 1 · Modul 5 – Preisbildung auf dem Markt
+   Karten wie im Einstiegsmaterial: Käufer 0,80–3,50 €, Verkäufer 0,50–3,20 €.
+   Verkäufer = 4,00 € minus Käufer → Gleichgewicht immer bei 2,00 €.
+   ========================================================= */
+const B12=[350,320,300,280,250,220,200,180,150,120,100,80];
+const EXTRA=[[250,150],[300,100],[220,180],[280,120],[200,200],[320,80],[180,220],[150,250]];
+function makeCards(n){
+  const k=Math.floor(n/2),k1=Math.min(k,12);
+  /* von außen kürzen, abwechselnd oben und unten – so bleibt die Mitte (um 2,00 €) erhalten */
+  const drop=new Set([0,11,1,10,2,9,3,8,4,7,5,6].slice(0,12-k1));
+  const K=B12.filter((_,i)=>!drop.has(i)),V=K.map(b=>400-b).sort((a,b)=>a-b);
+  for(let i=0;i<k-12;i++){const e=EXTRA[i%EXTRA.length];K.push(e[0]);V.push(e[1]);}
+  return {K,V};
+}
+const ROUND_S=180;
+const SHOCKS=[
+ {t:"Missernte",x:"Ein Unwetter zerstört einen Teil der Maisernte. Popcorn herzustellen wird für alle Verkäufer teurer.",r:"V",d:100,w:"Das Angebot sinkt.",dir:1,m:"Verkäufermarkt"},
+ {t:"Kino-Sommer",x:"Ein riesiger Kinofilm läuft. Alle wollen Popcorn – und sind bereit, mehr zu zahlen.",r:"K",d:100,w:"Die Nachfrage steigt.",dir:1,m:"Verkäufermarkt"},
+ {t:"Gesundheits-Trend",x:"In den sozialen Medien heißt es plötzlich: Popcorn ist ungesund. Die Käufer wollen weniger zahlen.",r:"K",d:-100,w:"Die Nachfrage sinkt.",dir:-1,m:"Käufermarkt"},
+ {t:"Neue Maschine",x:"Eine neue Maschine macht Popcorn viel billiger. Alle Verkäufer können günstiger anbieten.",r:"V",d:-100,w:"Das Angebot steigt.",dir:-1,m:"Käufermarkt"}];
+const PRED=["Der Preis steigt.","Der Preis sinkt.","Der Preis bleibt gleich."];
+const WHY={K:["Mein Höchstpreis war zu niedrig. Alle wollten mehr.","Ich habe keinen Partner gefunden."],
+           V:["Mein Mindestpreis war zu hoch. Keiner wollte so viel zahlen.","Ich habe keinen Partner gefunden."]};
+const QUIZ=[
+ {q:"Wiederholung Modul 4: „Wir wollen 200 Stühle möglichst günstig einkaufen.“ Welches Prinzip ist das?",o:["Maximalprinzip","Minimalprinzip","Gleichgewichtsprinzip","Verkäufermarkt"],k:1,x:"Die Menge (200 Stühle) steht fest, die Kosten sollen möglichst klein sein → Minimalprinzip."},
+ {q:"Welche Größe wird in der Abbildung durch den Punkt X gekennzeichnet?",g:1,o:["Die Angebotsmenge","Die Nachfragemenge","Der Höchstpreis","Der Mindestpreis","Der Gleichgewichtspreis"],k:4,x:"Im Schnittpunkt von Angebots- und Nachfragekurve liegt der Gleichgewichtspreis. Genau diese Aufgabe kam in der WiSo-Prüfung schon mehrmals."},
+ {q:"Geben Sie an, wie der Begriff „Marktpreis“ richtig beschrieben wird!",o:["Die Höhe des Marktpreises wird allein durch die anfallenden Kosten bestimmt.","Wettbewerber vereinbaren für bestimmte Artikel einheitliche Preise.","Der Marktpreis bildet sich auf dem freien Markt im Zusammenspiel von Angebot und Nachfrage.","Der vom Hersteller empfohlene Verkaufspreis ist der Marktpreis.","Der Marktpreis wird von den Herstellern festgelegt."],k:2,x:"Marktpreis = bildet sich aus Angebot und Nachfrage. Niemand legt ihn allein fest – wie bei unserer Popcorn-Börse."},
+ {q:"Bei 3,00 € wollen 9 Verkäufer verkaufen, aber nur 4 Käufer kaufen. Was liegt vor?",o:["Nachfrageüberhang – der Preis steigt","Angebotsüberhang – der Preis sinkt","Gleichgewicht – der Preis bleibt","Verkäufermarkt – der Preis steigt","Angebotsüberhang – der Preis steigt"],k:1,x:"Mehr Angebot als Nachfrage = Angebotsüberhang (Angebotsüberschuss). Die Verkäufer bleiben auf Ware sitzen und senken den Preis.",pz:"Wie viele Tüten werden bei 3,00 € verkauft? Begründe."},
+ {q:"Popcorn auf dem Großmarkt: Bei 10,00 € je kg werden 25 kg nachgefragt, aber nur 5 kg angeboten. Was stimmt?",o:["Es besteht ein Angebotsüberhang von 20 kg.","Es besteht ein Nachfrageüberhang von 20 kg – der Preis wird steigen.","Es werden 25 kg verkauft.","10,00 € ist der Gleichgewichtspreis.","Der Preis wird sinken."],k:1,x:"Verkauft werden nur 5 kg (die kleinere Menge). 20 kg Nachfrage bleiben offen → Käufer bieten mehr → der Preis steigt."},
+ {q:"Popcorn am Stadion-Kiosk. Wie hoch ist die Gleichgewichtsmenge?",tab:[["Preis je Tüte","3 €","4 €","5 €","6 €"],["Nachfrage","70","55","40","25"],["Angebot","10","25","40","55"]],o:["25 Tüten","40 Tüten","55 Tüten","70 Tüten","80 Tüten"],k:1,x:"Bei 5 € sind Angebot und Nachfrage gleich groß: 40 Tüten. Gleichgewichtspreis 5 €, Gleichgewichtsmenge 40 Tüten.",pz:"Wie viele Tüten werden bei 4 € verkauft – und warum nicht 55?"},
+ {q:"Geben Sie an, welches Beispiel einen Käufermarkt beschreibt!",o:["Für ein Fußballspiel bekommen wegen der hohen Nachfrage nicht alle Fans eine Karte.","Der Rückgang der Nachfrage bei Digitalkameras zwingt die Hersteller zu Sonderangeboten.","Drei Monate vor einer Messe sind fast alle Hotels ausgebucht.","Modellkleider eines Designers gibt es nur in kleiner Stückzahl.","Die Nachfrage nach Fernreisen kann trotz zusätzlicher Angebote nicht befriedigt werden."],k:1,x:"Käufermarkt: Das Angebot ist größer als die Nachfrage, der Käufer ist in der starken Position, die Preise fallen. Alle anderen Beispiele sind Verkäufermärkte."},
+ {q:"Die Preise auf einem Markt fallen, wenn …",o:["… die Nachfrage stärker steigt als das Angebot.","… das Angebot sinkt und die Nachfrage steigt.","… die Nachfrage stärker sinkt als das Angebot.","… das Angebot stärker sinkt als die Nachfrage.","… Angebot und Nachfrage gleich bleiben."],k:2,x:"Prüfungsregel: Die Preise fallen, wenn die Nachfrage stärker sinkt als das Angebot – oder wenn das Angebot stärker steigt als die Nachfrage."},
+ {q:"Sie legen für die Kaufhaus Hansa GmbH die Preise von Aktionsartikeln fest. Welche beiden Kriterien berücksichtigen Sie?",o:["die Öffnungszeiten und die Ladengröße","die Preise der Mitbewerber und die eigenen Kosten","die Zahl der Auszubildenden und das Wetter","das Alter der Kunden und die Zahl der Kassen","die Farbe der Verpackung und den Werbeslogan"],k:1,x:"In der Prüfung offen gefragt: „Geben Sie 2 Kriterien an, die Sie bei der Preisbildung berücksichtigen!“ Gute Antworten: Nachfrageverhalten der Kunden · Kosten (Bezugspreis, Handlungskosten) · Gewinn/Spanne · Preise der Mitbewerber.",pz:"Nenne zwei weitere Kriterien aus der Erklärung."},
+ {q:"Die Kaufhaus Hansa GmbH erhöht die Verkaufspreise. Einige Kunden halten sich beim Kauf zurück. Welche Folge kann das haben?",o:["Die Umschlagshäufigkeit steigt.","Die Lagerdauer sinkt.","Der Absatz geht zurück.","Das Lagerrisiko nimmt ab.","Die Nachfrage steigt."],k:2,x:"Höherer Preis → weniger Nachfrage → weniger Absatz. Genau das zeigt die fallende Nachfragekurve."},
+ {pro:1,q:"Frost zerstört einen Teil der Apfelernte. Was passiert auf dem Apfelmarkt?",o:["Das Angebot steigt, der Preis sinkt, die Menge steigt.","Das Angebot sinkt, der Gleichgewichtspreis steigt, die gehandelte Menge sinkt.","Die Nachfrage sinkt, der Preis sinkt.","Das Angebot sinkt, der Preis sinkt, die Menge steigt.","Nichts – der Preis ist festgelegt."],k:1,x:"Weniger Angebot → beim alten Preis Nachfrageüberhang → der Preis steigt. Weil weniger Äpfel da sind, wird weniger gehandelt."},
+ {pro:1,q:"Warum wird beim Gleichgewichtspreis die größte Menge gehandelt?",o:["Weil dort der Preis am niedrigsten ist.","Weil dort die meisten Käufer kaufen wollen.","Weil immer nur die kleinere Menge von Angebot und Nachfrage gehandelt wird – und die ist dort am größten.","Weil der Staat den Preis so festlegt.","Weil dort die meisten Verkäufer verkaufen wollen."],k:2,x:"Unter dem Gleichgewichtspreis fehlt Angebot, darüber fehlen Käufer. Umsetzbar ist immer nur die kleinere Menge – am größten ist sie dort, wo Angebot und Nachfrage gleich sind."}];
+const DUR=30,DURPRO=45;
+const PHASES=["Start","Handeln","Preisansage","Schock","Merken","Prüfungs-Check","Sieger"];
+
+/* Merk-Inhalte (Tafel und Handy) */
+const MERK=`
+<div class="merk"><b>Markt:</b> Angebot und Nachfrage treffen zusammen. Der <span class="term">Marktpreis</span> bildet sich aus Angebot und Nachfrage – nicht aus den Kosten allein, nicht durch den Hersteller.</div>
+<div class="merk"><b class="k">Nachfrage:</b> Steigt der Preis, sinkt die Nachfrage. &nbsp; <b class="v">Angebot:</b> Steigt der Preis, steigt das Angebot.</div>
+<div class="merk"><span class="term">Gleichgewichtspreis</span>: Angebot = Nachfrage. Hier wird die größte Menge gehandelt, die <span class="term">Gleichgewichtsmenge</span>. Im Schaubild: Schnittpunkt der Kurven (Punkt X).</div>
+<div class="merk"><b>Preis über dem Gleichgewichtspreis</b> → <span class="term">Angebotsüberhang</span> <span class="alt">(Angebotsüberschuss)</span> → Ware bleibt liegen → der Preis sinkt.<br>
+<b>Preis unter dem Gleichgewichtspreis</b> → <span class="term">Nachfrageüberhang</span> <span class="alt">(Nachfrageüberschuss)</span> → Käufer gehen leer aus → der Preis steigt.</div>
+<div class="merk"><span class="term">Käufermarkt</span>: Angebot größer als Nachfrage, Preise fallen.<br><span class="term">Verkäufermarkt</span>: Nachfrage größer als Angebot, Preise steigen.</div>
+<div class="merk"><b>Prüfung:</b> Die Preise fallen, wenn die Nachfrage stärker sinkt als das Angebot – oder das Angebot stärker steigt als die Nachfrage.</div>
+<div class="merk"><b>Preisbildung im eigenen Betrieb</b> (2 Kriterien nennen): Nachfrage der Kunden · Kosten (Bezugspreis, Handlungskosten) · Gewinn · Preise der Mitbewerber.</div>`;
+
+/* Schaubild „Punkt X“ wie in der Prüfung */
+function graphX(){return `<svg viewBox="0 0 320 220" style="width:100%;max-width:380px;background:var(--surface);border-radius:10px" role="img" aria-label="Schaubild mit Angebots- und Nachfragekurve und Punkt X">
+<line x1="40" y1="190" x2="300" y2="190" stroke="currentColor" stroke-width="2"/><line x1="40" y1="190" x2="40" y2="15" stroke="currentColor" stroke-width="2"/>
+<text x="44" y="16" font-size="13" fill="currentColor">Preis</text><text x="300" y="210" font-size="13" text-anchor="end" fill="currentColor">Menge</text>
+<line x1="60" y1="40" x2="280" y2="175" stroke="var(--kauf)" stroke-width="3"/><line x1="60" y1="175" x2="280" y2="40" stroke="var(--verk)" stroke-width="3"/>
+<text x="282" y="36" font-size="13" text-anchor="end" fill="var(--verk)">Angebot</text><text x="282" y="170" font-size="13" text-anchor="end" fill="var(--kauf)">Nachfrage</text>
+<line x1="40" y1="107.5" x2="170" y2="107.5" stroke="currentColor" stroke-dasharray="4 4"/><text x="28" y="112" font-size="16" font-weight="700" fill="currentColor">X</text></svg>`;}
+function qTab(t){return `<table class="qtab">${t.map((r,i)=>`<tr>${r.map(c=>i===0?`<th>${h(c)}</th>`:`<td>${h(c)}</td>`).join("")}</tr>`).join("")}</table>`;}
+
+/* Angebot und Nachfrage aus Karten */
+function curve(cards,p){let N=0,A=0;for(const c of cards){if(c.r==="K"&&c.v>=p)N++;if(c.r==="V"&&c.v<=p)A++;}return {N,A};}
+function equilibrium(cards){let best=null;
+  for(let p=0;p<=600;p+=10){const {N,A}=curve(cards,p),m=Math.min(N,A),d=Math.abs(N-A);
+    if(!best||m>best.q||(m===best.q&&d<best.d)){best={p,q:m,d,ps:[p]};}else if(m===best.q&&d===best.d)best.ps.push(p);}
+  if(!best||best.q===0)return null;const ps=best.ps;return {p:ps[Math.floor((ps.length-1)/2)],q:best.q};}
+function verdict(p,N,A){
+  if(N===A&&N>0)return {c:"ok",t:`Gleichgewicht! Bei ${eur(p)} wollen gleich viele kaufen wie verkaufen.`,s:`Gleichgewichtspreis ${eur(p)} · Gleichgewichtsmenge ${N}. Der Markt wird geräumt.`};
+  if(N>A)return {c:"nf",t:`Nachfrageüberhang von ${N-A} <span class="alt">(Nachfrageüberschuss)</span>`,s:`Bei ${eur(p)} wollen ${N} kaufen, aber nur ${A} verkaufen. ${N-A} Käufer gehen leer aus – der Preis steigt.`};
+  if(A>N)return {c:"af",t:`Angebotsüberhang von ${A-N} <span class="alt">(Angebotsüberschuss)</span>`,s:`Bei ${eur(p)} wollen ${A} verkaufen, aber nur ${N} kaufen. ${A-N} Verkäufer bleiben auf ihrer Ware sitzen – der Preis sinkt.`};
+  return {c:"info",t:"Niemand will handeln.",s:"Weder Käufer noch Verkäufer sagen Ja."};}
+
+/* Schaubild Preis (senkrecht) / Menge (waagerecht) */
+function chartSVG(o){
+  const W=560,H=430,L=62,R=20,Tp=18,Bt=50,maxQ=Math.max(4,o.maxQ),maxP=o.maxP;
+  const X=q=>L+(W-L-R)*q/maxQ,Y=p=>H-Bt-(H-Bt-Tp)*p/maxP;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;background:var(--surface);border-radius:12px" role="img" aria-label="Schaubild Angebot und Nachfrage">`;
+  for(let p=0;p<=maxP;p+=50){s+=`<line x1="${L}" x2="${W-R}" y1="${Y(p)}" y2="${Y(p)}" stroke="var(--line)" stroke-width="1"/><text x="${L-8}" y="${Y(p)+5}" font-size="13" text-anchor="end" fill="currentColor">${(p/100).toFixed(2).replace(".",",")}</text>`;}
+  const st=maxQ>12?2:1;for(let q=0;q<=maxQ;q+=st){s+=`<text x="${X(q)}" y="${H-Bt+20}" font-size="13" text-anchor="middle" fill="currentColor">${q}</text>`;}
+  s+=`<line x1="${L}" y1="${H-Bt}" x2="${W-R}" y2="${H-Bt}" stroke="currentColor" stroke-width="2"/><line x1="${L}" y1="${H-Bt}" x2="${L}" y2="${Tp}" stroke="currentColor" stroke-width="2"/>`;
+  s+=`<text x="${L}" y="${Tp-4}" font-size="13" fill="currentColor">Preis in €</text><text x="${W-R}" y="${H-8}" font-size="13" text-anchor="end" fill="currentColor">Menge (Tüten)</text>`;
+  const line=(pts,col,dash,w)=>pts.length>1?`<polyline points="${pts.map(([q,p])=>X(q)+","+Y(p)).join(" ")}" fill="none" stroke="${col}" stroke-width="${w||3}" ${dash?`stroke-dasharray="${dash}"`:""} stroke-linejoin="round"/>`:"";
+  const cardPts=(cards,key)=>{const vs=cards.map(c=>c.v),lo=Math.max(0,Math.min(...vs)-30),hi=Math.min(maxP,Math.max(...vs)+30),a=[];
+    for(let p=Math.floor(lo/10)*10;p<=hi;p+=10){const c=curve(cards,p);a.push([c[key],p]);}return a;};
+  if(o.old){s+=line(cardPts(o.old,"N"),"var(--kauf)","6 6",2)+line(cardPts(o.old,"A"),"var(--verk)","6 6",2);}
+  if(o.cards){s+=line(cardPts(o.cards,"N"),"var(--kauf)",null,3)+line(cardPts(o.cards,"A"),"var(--verk)",null,3);
+    const n0=cardPts(o.cards,"N"),a0=cardPts(o.cards,"A");
+    s+=`<text x="${X(n0[0][0])-6}" y="${Y(n0[0][1])+18}" text-anchor="end" font-size="14" font-weight="700" fill="var(--kauf)">Nachfrage</text>`;
+    s+=`<text x="${X(a0[a0.length-1][0])-6}" y="${Y(a0[a0.length-1][1])-8}" text-anchor="end" font-size="14" font-weight="700" fill="var(--verk)">Angebot</text>`;}
+  const rows=(o.rows||[]).slice().sort((a,b)=>a.p-b.p);
+  if(!o.cards){s+=line(rows.map(r=>[r.N,r.p]),"var(--kauf)",null,2)+line(rows.map(r=>[r.A,r.p]),"var(--verk)",null,2);}
+  for(const r of rows){s+=`<circle cx="${X(r.N)}" cy="${Y(r.p)}" r="7" fill="var(--kauf)"><title>Nachfrage ${r.N}</title></circle><rect x="${X(r.A)-6}" y="${Y(r.p)-6}" width="12" height="12" fill="var(--verk)"><title>Angebot ${r.A}</title></rect>`;}
+  if(o.eq){const ex=X(o.eq.q),ey=Y(o.eq.p);
+    s+=`<line x1="${L}" y1="${ey}" x2="${ex}" y2="${ey}" stroke="var(--ok)" stroke-width="2" stroke-dasharray="5 4"/><line x1="${ex}" y1="${ey}" x2="${ex}" y2="${H-Bt}" stroke="var(--ok)" stroke-width="2" stroke-dasharray="5 4"/>`;
+    s+=`<circle cx="${ex}" cy="${ey}" r="11" fill="none" stroke="var(--ok)" stroke-width="4"/><text x="${ex+14}" y="${ey-12}" font-size="20" font-weight="800" fill="var(--ok)">X</text>`;
+    s+=`<text x="${ex+14}" y="${ey+20}" font-size="13" fill="var(--ok)">${eur(o.eq.p)} · ${o.eq.q} Tüten</text>`;}
+  return s+`</svg>`;}
+</script>
+<script>
+
+/* =========================================================
+   TAFEL (Lehrkraft, Beamer)
+   ========================================================= */
+function tafelApp(){
+  $("tafel").hidden=false;
+  const KEY="popcorn_tafel";
+  const fresh=()=>({code:codeGen(),ph:0,pl:{},dealt:false,round:0,rOpen:false,rEnd:0,deals:[],off:{},sst:{},why:{},showLeer:false,
+    an:{st:"n",p:-1,open:false},ans:{},curves:false,shock:-1,s3:0,pred:{},done3:[],q:-1,qOpen:false,qStart:0,qAns:{},kick:[],url:""});
+  let T=store(KEY);if(!T||!T.code)T=fresh();
+  let conn={up:0,all:2},pubT=null,subbed="";
+  const net=new Net(onMsg,c=>{conn=c;if(c.up)pub();renderHead();});
+  function sub(){if(subbed!==T.code){subbed=T.code;net.sub(T.code+"/in");}}
+  sub();
+  const save=()=>store(KEY,T);
+  const players=()=>Object.keys(T.pl);
+  const stageKey=()=>T.ph===3&&T.shock>=0?"s"+T.shock:"n";
+  const ansKey=()=>stageKey()+":"+T.an.p;
+  function effV(pid,st){const P=T.pl[pid];if(!P||P.r==="B"||P.v==null)return null;let v=P.v;
+    if(st&&st[0]==="s"){const S=SHOCKS[+st.slice(1)];if(S&&S.r===P.r)v=Math.max(10,v+S.d);}return v;}
+  function cardsFor(st){return players().filter(id=>T.pl[id].r==="K"||T.pl[id].r==="V").map(id=>({r:T.pl[id].r,v:effV(id,st)}));}
+  const dealOf=(pid,r)=>T.deals.find(d=>d.r===r&&(d.s===pid||d.b===pid));
+  const byCode=c=>players().find(id=>T.pl[id].c===c);
+
+  function onMsg(t,p){
+    if(t!==NS+T.code+"/in"||!p||!p.p)return;
+    const pid=clean(p.p,12);if(T.kick.includes(pid))return;
+    if(p.k==="hi"){const n=clean(p.n,16)||"?";
+      if(!T.pl[pid]){T.pl[pid]={n,r:T.dealt?"B":null,v:null,c:newCode(),pts:0};}else T.pl[pid].n=n;}
+    else if(!T.pl[pid])return;
+    else if(p.k==="o")onOffer(pid,p);
+    else if(p.k==="c")onConfirm(pid,p);
+    else if(p.k==="w"&&T.ph===1&&!T.rOpen&&p.r===T.round&&Number.isInteger(p.c)&&p.c>=0&&p.c<2){(T.why[T.round]=T.why[T.round]||{})[pid]=p.c;}
+    else if(p.k==="y"&&(T.ph===2||T.ph===3)&&T.an.open&&p.key===ansKey()&&typeof p.y==="boolean"){(T.ans[ansKey()]=T.ans[ansKey()]||{})[pid]=p.y;}
+    else if(p.k==="pr"&&T.ph===3&&T.s3===1&&p.s===T.shock&&Number.isInteger(p.c)&&p.c>=0&&p.c<3){(T.pred[T.shock]=T.pred[T.shock]||{})[pid]=p.c;}
+    else if(p.k==="a"&&T.ph===5&&T.qOpen&&p.q===T.q){
+      const A=(T.qAns[T.q]=T.qAns[T.q]||{});if(A[pid])return;
+      const c=p.c;if(!Number.isInteger(c)||c<0||c>=QUIZ[T.q].o.length)return;
+      const dur=QUIZ[T.q].pro?DURPRO:DUR,s=(Date.now()-T.qStart)/1000;
+      A[pid]={c,g:c===QUIZ[T.q].k?1000+Math.round(500*Math.max(0,1-s/dur)):0};
+      if(Object.keys(A).length>=players().length)T.qOpen=false;}
+    else return;
+    save();pub();render();
+  }
+  function newCode(){const used=new Set(Object.values(T.pl).map(x=>x.c));let c;do{c=10+Math.floor(Math.random()*90);}while(used.has(c));return c;}
+
+  /* ---------- Handel ---------- */
+  function onOffer(pid,p){
+    const S=T.pl[pid];if(T.ph!==1||!T.rOpen||S.r!=="V")return;
+    for(const b in T.off){if(T.off[b].s===pid)delete T.off[b];}
+    if(p.b==null){T.sst[pid]="";return;}
+    if(dealOf(pid,T.round)){T.sst[pid]="Du hast in dieser Runde schon verkauft.";return;}
+    const pr=Math.round(+p.pr);if(!Number.isFinite(pr)||pr<10||pr>600)return;
+    if(pr<S.v){T.sst[pid]="Unter deinem Mindestpreis – so billig darfst du nicht verkaufen.";return;}
+    const bid=byCode(+p.b);
+    if(!bid||bid===pid){T.sst[pid]="Diesen Code gibt es nicht. Frag noch einmal nach.";return;}
+    if(T.pl[bid].r!=="K"){T.sst[pid]="Das ist kein Käufer-Code.";return;}
+    if(dealOf(bid,T.round)){T.sst[pid]="Dieser Käufer hat schon gekauft.";return;}
+    if(T.off[bid]&&T.off[bid].s!==pid){T.sst[pid]="Dieser Käufer prüft gerade ein anderes Angebot. Versuch es gleich noch einmal.";return;}
+    T.off[bid]={id:rnd(6),s:pid,pr};T.sst[pid]="wait:"+bid;
+  }
+  function onConfirm(pid,p){
+    const O=T.off[pid];if(T.ph!==1||!T.rOpen||!O||O.id!==p.id)return;
+    const B=T.pl[pid],S=T.pl[O.s];delete T.off[pid];
+    if(!p.ok){T.sst[O.s]=`${B.n} hat abgelehnt.`;return;}
+    if(O.pr>B.v){T.sst[O.s]=`${B.n} darf so viel nicht zahlen.`;return;}
+    if(dealOf(pid,T.round)||dealOf(O.s,T.round))return;
+    T.deals.push({r:T.round,pr:O.pr,s:O.s,b:pid});B.pts+=B.v-O.pr;S.pts+=O.pr-S.v;T.sst[O.s]="";
+  }
+  function deal(){
+    const ids=shuffle(players()),C=makeCards(ids.length),cards=shuffle([...C.K.map(v=>({r:"K",v})),...C.V.map(v=>({r:"V",v}))]);
+    ids.forEach((id,i)=>{const c=cards[i];Object.assign(T.pl[id],c?{r:c.r,v:c.v}:{r:"B",v:null},{pts:0});});
+    T.dealt=true;T.round=0;T.deals=[];T.off={};T.sst={};T.why={};T.showLeer=false;
+  }
+  function startRound(){T.round++;T.rOpen=true;T.rEnd=Date.now()+ROUND_S*1000;T.off={};T.sst={};T.showLeer=false;}
+  function endRound(){T.rOpen=false;T.off={};T.sst={};}
+  setInterval(()=>{if(T.ph===1&&T.rOpen){if(Date.now()>T.rEnd){endRound();save();pub();render();}else{const el=$("clk");if(el)el.textContent=clock();}}},500);
+  const clock=()=>{const s=Math.max(0,Math.ceil((T.rEnd-Date.now())/1000));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");};
+
+  /* ---------- Quiz ---------- */
+  function points(pid){let s=0;for(const qi in T.qAns){if(+qi<T.q||(+qi===T.q&&!T.qOpen)){const a=T.qAns[qi][pid];if(a)s+=a.g;}}return s;}
+  function ranking(){return players().map(id=>({id,n:T.pl[id].n,s:points(id)})).sort((a,b)=>b.s-a.s);}
+  function traders(){return players().filter(id=>T.pl[id].r==="K"||T.pl[id].r==="V").map(id=>({n:T.pl[id].n,r:T.pl[id].r,s:T.pl[id].pts})).sort((a,b)=>b.s-a.s);}
+
+  /* ---------- Zustand an alle Handys ---------- */
+  function pub(){clearTimeout(pubT);pubT=setTimeout(()=>{
+    const st=stageKey(),pp={};
+    for(const id of players()){const P=T.pl[id],d=T.round?dealOf(id,T.round):null,o=T.off[id];
+      pp[id]={r:P.r,v:P.v,v2:effV(id,st),c:P.c,pts:P.pts,d:d?d.pr:null,
+        o:o?{id:o.id,pr:o.pr,sn:T.pl[o.s]?T.pl[o.s].n:"?"}:null,st:(T.sst[id]||"").startsWith("wait:")?"Warte auf "+(T.pl[T.sst[id].slice(5)]||{n:"?"}).n+" …":(T.sst[id]||"")};}
+    const S={ph:T.ph,dealt:T.dealt,round:T.round,rOpen:T.rOpen,rem:T.rOpen?Math.max(0,(T.rEnd-Date.now())/1000):0,pp,kick:T.kick,j:players(),
+      dl:T.deals.filter(d=>d.r===T.round).map(d=>d.pr),
+      wy:Object.keys(T.why[T.round]||{}),
+      an:{st:T.an.st,p:T.an.p,open:T.an.open},yd:Object.keys(T.ans[ansKey()]||{}),
+      shock:T.shock,s3:T.s3,pd:T.shock>=0?Object.keys(T.pred[T.shock]||{}):[],q:T.q,qOpen:T.qOpen,ans:[]};
+    if(!T.an.open&&T.an.p>=0&&T.ans[ansKey()]){const A=T.ans[ansKey()];let N=0,V=0;for(const id in A){if(!A[id])continue;if(T.pl[id]&&T.pl[id].r==="K")N++;if(T.pl[id]&&T.pl[id].r==="V")V++;}S.res={N,A:V};}
+    if(T.ph===3&&T.s3===3&&T.shock>=0){S.eq0=equilibrium(cardsFor("n"));S.eq1=equilibrium(cardsFor("s"+T.shock));}
+    if(T.ph===5&&T.q>=0){S.ans=Object.keys(T.qAns[T.q]||{});S.rem=T.qOpen?Math.max(0,(QUIZ[T.q].pro?DURPRO:DUR)-(Date.now()-T.qStart)/1000):0;}
+    if(T.ph>=5){const r=ranking();S.sc={};let rank=0,last=-1;
+      r.forEach((x,i)=>{if(x.s!==last){rank=i+1;last=x.s;}const a=(T.qAns[T.q]||{})[x.id];S.sc[x.id]=[x.s,rank,T.qOpen?0:(a?a.g:0)];});S.np=r.length;}
+    net.pub(T.code+"/st",S,true);},120);}
+  setInterval(pub,5000);
+
+  function go(ph){T.ph=ph;if(ph===2||ph===3){T.an={st:stageKey(),p:-1,open:false};}save();pub();render();}
+
+  /* ---------- Kopfzeile ---------- */
+  function joinUrl(){
+    const extra=(params.get("broker")?"&broker="+encodeURIComponent(params.get("broker")):"")+(LOCAL?"&bc=1":"");
+    if(location.protocol.startsWith("http"))return location.origin+location.pathname+"?s="+T.code+extra;
+    if(T.url){const u=T.url.trim();return u+(u.includes("?")?"&":"?")+"s="+T.code+extra;}
+    if(LOCAL)return location.href.split("?")[0]+"?s="+T.code+extra;return "";}
+  function drawQR(canvas,text){
+    const ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+    if(!text||typeof QRLib==="undefined"){ctx.fillStyle="#999";ctx.font="bold 16px sans-serif";ctx.textAlign="center";ctx.fillText("keine Adresse",canvas.width/2,canvas.height/2);return;}
+    const q=new QRLib.QRCode(-1,QRLib.ECL.M);q.addData(text);q.make();
+    const n=q.getModuleCount(),cell=Math.floor(canvas.width/(n+4)),off=Math.floor((canvas.width-cell*n)/2);
+    ctx.fillStyle="#000";for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))ctx.fillRect(off+c*cell,off+r*cell,cell,cell);}
+  function renderHead(){
+    $("steps").innerHTML=PHASES.map((p,i)=>`<button data-ph="${i}" class="${i===T.ph?"on":""}">${i} ${p}</button>`).join("");
+    $("steps").querySelectorAll("button").forEach(b=>b.onclick=()=>go(+b.dataset.ph));
+    $("miniCode").textContent="Code "+T.code;$("miniN").textContent=players().length+" dabei";
+    $("conn").innerHTML=`<span class="dot ${conn.up?"on":""}"></span>${conn.up?"verbunden":"keine Verbindung"}`;
+    drawQR($("qrSmall"),joinUrl());}
+  function render(){renderHead();const M=$("tMain");[rStart,rTrade,rAnsage,rShock,rMerk,rQuiz,rWin][T.ph](M);}
+
+  /* ---------- 0 Start ---------- */
+  function rStart(M){
+    const pl=Object.entries(T.pl);
+    M.innerHTML=`<div class="join"><div><canvas id="qrBig" width="600" height="600"></canvas></div>
+      <div><h2 class="big">Willkommen an der Popcorn-Börse!</h2>
+      <p style="font-size:1.25rem">1. QR-Code mit dem Handy scannen.<br>2. Einen Spitznamen eingeben.<br>3. Gleich bekommt jeder eine geheime Karte: Käufer oder Verkäufer.</p>
+      <p class="muted">Code: <span class="code">${T.code}</span><br><span id="jU" style="word-break:break-all"></span></p>
+      ${location.protocol.startsWith("http")||LOCAL?"":`<label>Internetadresse dieser Seite (nur nötig, wenn die Datei lokal geöffnet ist)<input id="tUrl" value="${h(T.url)}" placeholder="https://…/popcorn-boerse/"></label>`}
+      <h3 style="margin-top:16px">${pl.length} dabei <span class="muted" style="font-size:.9rem;font-weight:400">· Antippen entfernt einen Namen</span></h3>
+      <div class="nicks">${pl.map(([id,x])=>`<button data-id="${h(id)}">${h(x.n)}</button>`).join("")}</div>
+      <div class="ctrl"><button class="pri" id="bGo">Los: Handeln →</button><button id="bNew">Neue Sitzung (alles löschen)</button></div></div></div>`;
+    drawQR($("qrBig"),joinUrl());$("jU").textContent=joinUrl();
+    if($("tUrl"))$("tUrl").onchange=e=>{T.url=e.target.value;save();render();};
+    M.querySelectorAll(".nicks button").forEach(b=>b.onclick=()=>{const id=b.dataset.id;delete T.pl[id];T.kick.push(id);save();pub();render();});
+    $("bGo").onclick=()=>go(1);
+    $("bNew").onclick=()=>{if(window.confirm("Neue Sitzung starten? Alle Namen und Ergebnisse werden gelöscht.")){const u=T.url;T=fresh();T.url=u;save();sub();pub();render();}};
+  }
+
+  /* ---------- 1 Handeln ---------- */
+  function dotPlot(){
+    const R=Math.max(3,T.round),W=1000,rowH=70,H=R*rowH+50,L=110,Rm=30,X=c=>L+(W-L-Rm)*c/400;
+    let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;background:var(--surface);border-radius:12px" role="img" aria-label="Abschlusspreise je Runde">`;
+    for(let c=0;c<=400;c+=50){s+=`<line x1="${X(c)}" x2="${X(c)}" y1="10" y2="${H-36}" stroke="var(--line)"/><text x="${X(c)}" y="${H-14}" font-size="15" text-anchor="middle" fill="currentColor">${eur(c)}</text>`;}
+    for(let r=1;r<=R;r++){const y=10+(r-0.5)*rowH,ds=T.deals.filter(d=>d.r===r).map(d=>d.pr).sort((a,b)=>a-b);
+      s+=`<text x="10" y="${y+6}" font-size="17" font-weight="700" fill="currentColor">Runde ${r}</text>`;
+      const cnt={};for(const pr of ds){const k=pr;cnt[k]=(cnt[k]||0)+1;const off=(cnt[k]-1)*12;s+=`<circle cx="${X(pr)}" cy="${y-off+10}" r="8" fill="var(--brand)" opacity=".85"><title>${eur(pr)}</title></circle>`;}
+      if(ds.length){const avg=Math.round(ds.reduce((a,b)=>a+b,0)/ds.length);s+=`<line x1="${X(avg)}" x2="${X(avg)}" y1="${y-26}" y2="${y+24}" stroke="var(--ink)" stroke-width="3"/><text x="${X(avg)+6}" y="${y-14}" font-size="14" fill="currentColor">Ø ${eur(avg)}</text>`;}
+    }
+    return s+`</svg>`;}
+  function rTrade(M){
+    const ids=players(),nK=ids.filter(i=>T.pl[i].r==="K").length,nV=ids.filter(i=>T.pl[i].r==="V").length,nB=ids.filter(i=>T.pl[i].r==="B").length;
+    if(!T.dealt){const C=makeCards(ids.length);
+      M.innerHTML=`<h2 class="big">Gleich wird gehandelt!</h2>
+      <div class="three"><div class="box"><h3 style="color:var(--kauf)">Käufer</h3>Ihr wollt Popcorn kaufen – möglichst billig. Auf eurer Karte steht, wie viel ihr <b>höchstens</b> zahlen dürft.</div>
+      <div class="box"><h3 style="color:var(--verk)">Verkäufer</h3>Ihr wollt Popcorn verkaufen – möglichst teuer. Auf eurer Karte steht, wie viel ihr <b>mindestens</b> bekommen müsst.</div>
+      <div class="box"><h3>Regeln</h3>Die Karte bleibt geheim. Pro Runde höchstens <b>ein</b> Abschluss. Seid ihr euch einig, tippt der Verkäufer den Code des Käufers und den Preis ein, der Käufer bestätigt. Dann setzt euch.</div></div>
+      <p class="muted">${ids.length} dabei → ${C.K.length} Käufer, ${C.V.length} Verkäufer${ids.length%2?", 1 Marktbeobachter":""}.</p>
+      <div class="ctrl"><button class="pri" id="bDeal">Karten verteilen</button></div>`;
+      $("bDeal").onclick=()=>{deal();save();pub();render();};return;}
+    const cur=T.deals.filter(d=>d.r===T.round),late=ids.filter(i=>T.pl[i].r==="B").length;
+    let html=`<div class="row" style="justify-content:space-between"><h2 class="big" style="margin:0">${T.rOpen?`Runde ${T.round} läuft – handelt!`:T.round?`Runde ${T.round} ist vorbei`:"Bereit für Runde 1"}</h2>
+      ${T.rOpen?`<div class="clock" id="clk">${clock()}</div>`:""}</div>
+      <p class="muted">${nK} Käufer · ${nV} Verkäufer${nB?` · ${nB} Marktbeobachter`:""}${T.rOpen?` · <b>${cur.length} Abschlüsse</b>`:""}</p>
+      ${dotPlot()}`;
+    if(!T.rOpen&&T.round>0){
+      const W=T.why[T.round]||{},cnt=[[0,0],[0,0]];for(const id in W){const r=T.pl[id]&&T.pl[id].r;if(r==="K")cnt[0][W[id]]++;if(r==="V")cnt[1][W[id]]++;}
+      const leer=ids.filter(i=>(T.pl[i].r==="K"||T.pl[i].r==="V")&&!dealOf(i,T.round));
+      html+=`<div class="two" style="margin-top:14px"><div class="box"><h3>Warum hattest du keinen Abschluss? (${leer.length} ohne Abschluss)</h3>
+        <p><span class="chip k">Käufer</span> Höchstpreis zu niedrig: <b>${cnt[0][0]}</b> · keinen Partner: <b>${cnt[0][1]}</b></p>
+        <p><span class="chip v">Verkäufer</span> Mindestpreis zu hoch: <b>${cnt[1][0]}</b> · keinen Partner: <b>${cnt[1][1]}</b></p>
+        <button id="bLeer">${T.showLeer?"Karten verbergen":"Karten der Leer-Ausgegangenen zeigen"}</button>
+        ${T.showLeer?`<p>${leer.filter(i=>T.pl[i].r==="K").map(i=>T.pl[i].v).sort((a,b)=>b-a).map(v=>`<span class="chip k">höchstens ${eur(v)}</span>`).join("")}</p>
+          <p>${leer.filter(i=>T.pl[i].r==="V").map(i=>T.pl[i].v).sort((a,b)=>a-b).map(v=>`<span class="chip v">mindestens ${eur(v)}</span>`).join("")}</p>
+          <p class="muted">Was fällt auf? Wer wenig zahlen will oder teuer verkaufen muss, geht leer aus.</p>`:""}</div>
+        <div class="box"><h3>Was fällt euch an den Preisen auf?</h3>
+        ${T.round>=2?`<p style="font-size:1.15rem">Niemand hat den Preis festgelegt – und trotzdem pendeln sich die Preise ein. <b>Bei welchem Preis?</b></p>`:`<p>Vergleicht die Preise. Liegen sie weit auseinander?</p>`}
+        ${T.deals.length?`<h3 style="margin-top:12px">Beste Händler</h3>`:""}<ol class="top">${traders().filter(x=>x.s>0).slice(0,3).map(x=>`<li><span><span class="chip ${x.r==="K"?"k":"v"}">${x.r==="K"?"K":"V"}</span>${h(x.n)}</span><b>+${eur(x.s)}</b></li>`).join("")}</ol></div></div>`;}
+    html+=`<div class="ctrl">${T.rOpen?`<button class="pri" id="bEnd">Runde beenden</button><button id="bMore">+1 Minute</button>`:
+      `<button class="pri" id="bStart">Runde ${T.round+1} starten (3 Min.)</button>${T.round>=2?`<button class="pri" id="bNext">Weiter: Preisansage →</button>`:""}
+       ${T.round===0||late?`<button id="bRe">Karten neu verteilen${late?` (${late} ohne Karte)`:""}</button>`:""}`}</div>
+      ${!T.rOpen?`<p class="muted">Tipp: Spitznamen, die nach dem Verteilen kommen, werden Marktbeobachter. „Karten neu verteilen“ setzt die Runden zurück.</p>`:""}`;
+    M.innerHTML=html;
+    const on=(id,f)=>{if($(id))$(id).onclick=()=>{f();save();pub();render();};};
+    on("bStart",startRound);on("bEnd",endRound);on("bMore",()=>{T.rEnd+=60000;});on("bNext",()=>go(2));
+    on("bLeer",()=>{T.showLeer=!T.showLeer;});
+    if($("bRe"))$("bRe").onclick=()=>{if(T.round===0||window.confirm("Karten neu verteilen? Die bisherigen Runden werden gelöscht.")){deal();save();pub();render();}};
+  }
+
+  /* ---------- 2 Preisansage (auch für 3 Schock) ---------- */
+  function rowsFor(st){const out=[];for(const key in T.ans){const [s,p]=key.split(":");if(s!==st)continue;
+      if(T.an.open&&key===ansKey())continue;let N=0,A=0;const R=T.ans[key];
+      for(const id in R){if(!R[id]||!T.pl[id])continue;if(T.pl[id].r==="K")N++;if(T.pl[id].r==="V")A++;}out.push({p:+p,N,A});}
+    return out.sort((a,b)=>a.p-b.p);}
+  function ansageBlock(intro){
+    const st=stageKey(),rows=rowsFor(st),cards=cardsFor(st),nK=cards.filter(c=>c.r==="K").length,nV=cards.filter(c=>c.r==="V").length;
+    const eq=equilibrium(cards),shock=T.ph===3;
+    const prices=shock?[100,150,200,250,300,350]:[50,100,150,200,250,300,350];
+    const cur=T.an.p>=0?rows.find(r=>r.p===T.an.p):null,live=T.an.open?(T.ans[ansKey()]||{}):null;
+    let liveN=0,liveA=0;if(live){for(const id in live){if(!live[id]||!T.pl[id])continue;if(T.pl[id].r==="K")liveN++;if(T.pl[id].r==="V")liveA++;}}
+    const nAns=live?Object.keys(live).length:0,nAll=nK+nV;
+    const N=live?liveN:cur?cur.N:0,A=live?liveA:cur?cur.A:0,mx=Math.max(1,nK,nV);
+    const v=(!T.an.open&&cur)?verdict(cur.p,cur.N,cur.A):null;
+    const maxEqRow=rows.reduce((b,r)=>Math.min(r.N,r.A)>(b?Math.min(b.N,b.A):-1)?r:b,null);
+    const showEq=T.curves&&eq;
+    return `${intro||""}
+    <div class="two"><div>
+      <div class="box"><div class="row" style="justify-content:space-between"><b>Preis ausrufen:</b><span class="muted">${T.an.open?`${nAns} von ${nAll} haben geantwortet`:""}</span></div>
+        <div class="pchips" style="margin-top:8px">${prices.map(p=>`<button data-p="${p}" class="${p===T.an.p?"on":""} ${rows.some(r=>r.p===p)?"done":""}">${eur(p)}</button>`).join("")}</div>
+        ${T.an.p>=0?`<div class="ansage">${eur(T.an.p)}</div>
+        <div class="hbar"><span style="color:var(--kauf);font-weight:700">Nachfrage<br><small class="muted">Käufer sagen Ja</small></span><div class="t"><i style="width:${100*N/mx}%;background:var(--kauf)"></i></div><b>${T.an.open&&!T.peek?"?":N}</b></div>
+        <div class="hbar"><span style="color:var(--verk);font-weight:700">Angebot<br><small class="muted">Verkäufer sagen Ja</small></span><div class="t"><i style="width:${100*A/mx}%;background:var(--verk)"></i></div><b>${T.an.open&&!T.peek?"?":A}</b></div>
+        ${v?`<div class="banner ${v.c}"><b>${v.t}</b><span class="satz">${v.s}</span><span class="satz">Umsetzbare Menge: <b>${Math.min(cur.N,cur.A)}</b> Tüten – es kann nur so viel gehandelt werden, wie die kleinere Seite will.</span></div>`:""}
+        <div class="ctrl">${T.an.open?`<button class="pri" id="bClose">Auswerten</button><button id="bPeek">${T.peek?"Zahlen verbergen":"Zahlen live zeigen"}</button>`:""}</div>`:`<p class="muted" style="margin-top:12px">Tippe einen Preis an. Alle Handys fragen dann: Kaufst du – verkaufst du – zu diesem Preis?</p>`}
+      </div>
+      ${rows.length?`<table class="mt" style="margin-top:14px"><tr><th>Preis je Tüte</th><th style="color:var(--kauf)">Nachfrage</th><th style="color:var(--verk)">Angebot</th><th>umsetzbare Menge</th><th>Ergebnis</th></tr>
+        ${rows.map(r=>`<tr class="${r===maxEqRow&&r.N===r.A&&r.N>0?"eq":""} ${r.p===T.an.p?"cur":""}"><td><b>${eur(r.p)}</b></td><td>${r.N}</td><td>${r.A}</td><td><b>${Math.min(r.N,r.A)}</b></td><td>${r.N===r.A&&r.N>0?"Gleichgewicht":r.N>r.A?"Nachfrageüberhang "+(r.N-r.A):r.A>r.N?"Angebotsüberhang "+(r.A-r.N):"–"}</td></tr>`).join("")}</table>`:""}
+    </div><div>
+      ${chartSVG({rows,maxQ:Math.max(nK,nV),maxP:shock?450:400,cards:T.curves?cards:null,old:shock&&T.curves?cardsFor("n"):null,eq:showEq?eq:null})}
+      <div class="ctrl"><button id="bCurve">${T.curves?"Kurven ausblenden":"Kurven aus allen Karten zeichnen"}</button></div>
+      ${showEq?`<div class="banner ok"><b>Gleichgewichtspreis ${eur(eq.p)} · Gleichgewichtsmenge ${eq.q} Tüten</b>
+        <span class="satz">Satzbaustein: „Der Gleichgewichtspreis liegt bei ${eur(eq.p)}, weil hier Angebot und Nachfrage gleich groß sind. Es werden ${eq.q} Tüten gehandelt – so viele wie bei keinem anderen Preis.“</span>
+        ${!shock&&T.deals.length?`<span class="satz">Und beim Handeln? Durchschnitt der letzten Runde: <b>${eur(Math.round(T.deals.filter(d=>d.r===T.round).reduce((a,d)=>a+d.pr,0)/Math.max(1,T.deals.filter(d=>d.r===T.round).length)))}</b></span>`:""}</div>`:""}
+    </div></div>`;}
+  function bindAnsage(M){
+    M.querySelectorAll(".pchips button").forEach(b=>b.onclick=()=>{const p=+b.dataset.p;T.an={st:stageKey(),p,open:true};T.peek=false;T.ans[ansKey()]={};save();pub();render();});
+    if($("bClose"))$("bClose").onclick=()=>{T.an.open=false;save();pub();render();};
+    if($("bPeek"))$("bPeek").onclick=()=>{T.peek=!T.peek;render();};
+    $("bCurve").onclick=()=>{T.curves=!T.curves;save();render();};
+  }
+  function rAnsage(M){
+    M.innerHTML=ansageBlock(`<h2 class="big">Preisansage: Wer handelt zu diesem Preis?</h2>`)+
+      `<div class="ctrl"><button class="pri" id="bNext">Weiter: Schock →</button></div>`;
+    bindAnsage(M);$("bNext").onclick=()=>go(3);
+  }
+
+  /* ---------- 3 Schock ---------- */
+  function rShock(M){
+    if(T.s3===0||T.shock<0){
+      M.innerHTML=`<h2 class="big">Plötzlich ändert sich etwas auf dem Popcorn-Markt …</h2><p class="muted">Wähle ein Ereignis. Die Karten der Betroffenen ändern sich dann.</p>
+        <div class="two">${SHOCKS.map((S,i)=>`<button class="scen" data-i="${i}"><b>${h(S.t)}</b>${h(S.x)}${T.done3.includes(i)?` <span class="pro">schon gespielt</span>`:""}</button>`).join("")}</div>
+        <div class="ctrl"><button id="bSkip">Überspringen: Merken →</button></div>`;
+      M.querySelectorAll(".scen").forEach(b=>b.onclick=()=>{T.shock=+b.dataset.i;T.s3=1;T.curves=false;T.an={st:"s"+T.shock,p:-1,open:false};save();pub();render();});
+      $("bSkip").onclick=()=>go(4);return;}
+    const S=SHOCKS[T.shock],P=T.pred[T.shock]||{},cnt=[0,0,0];for(const id in P)cnt[P[id]]++;
+    const head=`<div class="banner info"><b>${h(S.t)}:</b> ${h(S.x)}</div>`;
+    if(T.s3===1){
+      M.innerHTML=head+`<h2 class="big" style="margin-top:16px">Was passiert mit dem Preis? Stimmt am Handy ab!</h2>
+        <div class="three">${PRED.map((t,i)=>`<div class="box"><h3>${t}</h3><div class="clock">${cnt[i]}</div></div>`).join("")}</div>
+        <div class="ctrl"><button class="pri" id="bTest">Prüfen: Preisansage zum alten Preis 2,00 € →</button></div>`;
+      $("bTest").onclick=()=>{T.s3=2;T.an={st:"s"+T.shock,p:200,open:true};T.peek=false;T.ans[ansKey()]={};save();pub();render();};return;}
+    if(T.s3===2){
+      M.innerHTML=ansageBlock(head)+`<div class="ctrl"><button class="pri" id="bSolve">Auflösen →</button></div>`;
+      bindAnsage(M);$("bSolve").onclick=()=>{T.s3=3;T.curves=true;T.an.open=false;if(!T.done3.includes(T.shock))T.done3.push(T.shock);save();pub();render();};return;}
+    const e0=equilibrium(cardsFor("n")),e1=equilibrium(cardsFor("s"+T.shock)),right=S.dir>0?0:1;
+    M.innerHTML=head+`<div class="two" style="margin-top:14px"><div>
+      <div class="merk" style="font-size:1.2rem"><b>${h(S.w)}</b><br>Beim alten Preis ${e0?eur(e0.p):"2,00 €"} entsteht ein <span class="term">${S.dir>0?"Nachfrageüberhang":"Angebotsüberhang"}</span>.<br>
+        → Der Preis ${S.dir>0?"steigt":"sinkt"}${e1?` auf ${eur(e1.p)}. Neue Gleichgewichtsmenge: ${e1.q} Tüten (vorher ${e0?e0.q:"?"})`:" so stark, dass kein Handel mehr zustande kommt (zu wenige Karten in dieser Gruppe)"}.</div>
+      <div class="merk" style="font-size:1.2rem">Das ist ein <span class="term">${S.m}</span>: ${S.m==="Käufermarkt"?"Das Angebot ist größer als die Nachfrage. Die Käufer sind in der starken Position, die Preise fallen.":"Die Nachfrage ist größer als das Angebot. Die Verkäufer sind in der starken Position, die Preise steigen."}</div>
+      <p>Eure Vermutung: <b>${cnt[right]}</b> von ${cnt[0]+cnt[1]+cnt[2]} lagen richtig.</p>
+      <p class="muted">Gestrichelt: die Kurven vor dem Ereignis. Durchgezogen: danach.</p></div>
+      <div>${chartSVG({rows:rowsFor("s"+T.shock),maxQ:Math.max(...["K","V"].map(r=>cardsFor("n").filter(c=>c.r===r).length)),maxP:450,cards:cardsFor("s"+T.shock),old:cardsFor("n"),eq:e1})}</div></div>
+      <div class="ctrl"><button id="bAgain">Anderes Ereignis</button><button class="pri" id="bNext">Weiter: Merken →</button></div>`;
+    $("bAgain").onclick=()=>{T.s3=0;T.shock=-1;T.curves=false;save();pub();render();};$("bNext").onclick=()=>go(4);
+  }
+
+  /* ---------- 4 Merken ---------- */
+  function rMerk(M){
+    M.innerHTML=`<h2 class="big">Das merken wir uns</h2><div class="two"><div>${MERK}</div><div>${chartSVG({rows:[],maxQ:Math.max(4,...["K","V"].map(r=>cardsFor("n").filter(c=>c.r===r).length)),maxP:400,cards:cardsFor("n"),eq:equilibrium(cardsFor("n"))})}
+      <p class="muted">Weiter im Arbeitsblatt: Aufgabe 3 (Vorgemacht) und Aufgabe 4 (Erdbeeren).</p></div></div>
+      <div class="ctrl"><button class="pri" id="bNext">Weiter: Prüfungs-Check →</button></div>`;
+    $("bNext").onclick=()=>go(5);
+  }
+
+  /* ---------- 5 Prüfungs-Check ---------- */
+  function rQuiz(M){
+    if(T.q<0){M.innerHTML=`<h2 class="big">Prüfungs-Check</h2><p style="font-size:1.25rem">${QUIZ.length} Fragen im Stil der IHK-Prüfung, die letzten beiden für Profis <span class="pro">Profi</span>. Richtig ist wichtiger als schnell.</p>
+      <div class="ctrl"><button class="pri" id="bQ">Erste Frage →</button></div>`;$("bQ").onclick=()=>openQ(0);return;}
+    const Q=QUIZ[T.q],A=T.qAns[T.q]||{},cnt=Q.o.map((_,i)=>Object.values(A).filter(a=>a.c===i).length),n=Object.keys(A).length,dur=Q.pro?DURPRO:DUR;
+    M.innerHTML=`<div class="qhead"><div><p class="muted">Frage ${T.q+1} von ${QUIZ.length}${Q.pro?' <span class="pro">Profi</span>':""} · ${n} von ${players().length} geantwortet</p><h2 class="big">${h(Q.q)}</h2></div>
+      ${T.qOpen?`<div class="timer" id="tm">${dur}</div>`:""}</div>
+      ${Q.g?graphX():""}${Q.tab?qTab(Q.tab):""}
+      <div class="opts">${Q.o.map((o,i)=>`<div class="opt o${i} ${!T.qOpen&&i!==Q.k?"wrong":""}">${"ABCDE"[i]}: ${h(o)}${T.qOpen?"":`<span class="cnt">${cnt[i]}</span>`}</div>`).join("")}</div>
+      ${T.qOpen?"":`<div class="merk" style="font-size:1.15rem;margin-top:14px">${h(Q.x)}</div>`}
+      <div class="ctrl">${T.qOpen?`<button class="pri" id="bR">Auflösen</button>`:T.q<QUIZ.length-1?`<button class="pri" id="bN">Nächste Frage →</button>`:""}<button id="bW">Zur Siegerehrung</button></div>`;
+    if($("bR"))$("bR").onclick=()=>{T.qOpen=false;save();pub();render();};
+    if($("bN"))$("bN").onclick=()=>openQ(T.q+1);
+    $("bW").onclick=()=>{T.qOpen=false;go(6);};
+    if(T.qOpen){clearInterval(window._qt);window._qt=setInterval(()=>{const s=Math.max(0,Math.ceil(dur-(Date.now()-T.qStart)/1000));if($("tm"))$("tm").textContent=s;
+      if(s<=0&&T.qOpen){T.qOpen=false;save();pub();render();}if(!T.qOpen)clearInterval(window._qt);},250);}
+  }
+  function openQ(i){T.q=i;T.qOpen=true;T.qStart=Date.now();save();pub();render();}
+
+  /* ---------- 6 Sieger ---------- */
+  function rWin(M){
+    const r=ranking(),tr=traders();
+    M.innerHTML=`<h2 class="big">Siegerehrung</h2><div class="two"><div><h3>Prüfungs-Check</h3>
+      <div class="podium">${[1,0,2].filter(i=>r[i]).map(i=>`<div style="height:${[190,150,120][i]}px"><span>${i+1}.</span>${h(r[i].n)}<br>${r[i].s}</div>`).join("")}</div>
+      <ol class="top" style="margin-top:14px">${r.slice(3,10).map((x,i)=>`<li><span>${i+4}. ${h(x.n)}</span><b>${x.s}</b></li>`).join("")}</ol></div>
+      <div><h3>Beste Händler an der Popcorn-Börse</h3><ol class="top">${tr.slice(0,5).map((x,i)=>`<li><span>${i+1}. <span class="chip ${x.r==="K"?"k":"v"}">${x.r==="K"?"Käufer":"Verkäufer"}</span>${h(x.n)}</span><b>+${eur(x.s)}</b></li>`).join("")}</ol>
+      <p class="muted">Vorteil = beim Käufer: Höchstpreis minus gezahlter Preis · beim Verkäufer: Preis minus Mindestpreis.</p></div></div>`;
+  }
+  render();
+}
+</script>
+<script>
+/* =========================================================
+   HANDY (Schülerinnen und Schüler)
+   ========================================================= */
+function phoneApp(){
+  $("phone").hidden=false;
+  const KEY="popcorn_p_"+roomCode+(params.get("t")||"");
+  let me=store(KEY)||{};if(!me.pid){me.pid=rnd(8);store(KEY,me);}
+  let S=null,lastKey="",pending=null,qEnd=0,rEnd=0,qSel={},ySel={},pSel={},wSel={},draft={b:"",pr:null},conn={up:0};
+  const net=new Net((t,p)=>{if(t===NS+roomCode+"/st"&&p&&typeof p==="object")onState(p);},c=>{conn=c;if(c.up)hello();});
+  net.sub(roomCode+"/st");
+  const send=o=>{o.p=me.pid;net.pub(roomCode+"/in",o,false);};
+  function hello(){if(me.nick)send({k:"hi",n:me.nick});}
+  setInterval(()=>{if(!S)return;
+    if(me.nick&&!(S.j||[]).includes(me.pid))hello();
+    else if(pending&&pending.done&&!pending.done())send(pending.msg);},2500);
+  setInterval(()=>{const el=$("prc");if(el&&S&&S.rOpen){const s=Math.max(0,Math.ceil((rEnd-Date.now())/1000));el.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}},500);
+  function onState(p){
+    if(p.rOpen&&(!S||!S.rOpen||S.round!==p.round))rEnd=Date.now()+p.rem*1000;
+    if(p.qOpen&&(!S||!S.qOpen||S.q!==p.q))qEnd=Date.now()+p.rem*1000;
+    S=p;
+    if((S.kick||[]).includes(me.pid)&&me.nick){me={pid:rnd(8)};store(KEY,me);lastKey="";}
+    render();
+  }
+  const mine=()=>(S&&S.pp&&S.pp[me.pid])||null;
+  function keyOf(){if(!me.nick)return "join";if(!S)return "wait";const m=mine();
+    return JSON.stringify([S.ph,S.dealt,S.round,S.rOpen,m,S.an,S.yd.includes(me.pid),S.res,S.shock,S.s3,S.pd.includes(me.pid),(S.wy||[]).includes(me.pid),
+      S.q,S.qOpen,(S.ans||[]).includes(me.pid),S.ph>=5&&S.sc?S.sc[me.pid]:0,m&&m.r==="B"&&S.ph===1?S.dl:0,S.eq1]);}
+  function cardHtml(m,v,note){
+    if(!m||!m.r)return `<div class="card B"><div class="role">Noch keine Karte</div>Gleich verteilt die Lehrkraft die Karten.</div>`;
+    if(m.r==="B")return `<div class="card B"><div class="role">Marktbeobachter</div><div class="cd">Du handelst nicht. Du beobachtest den Markt wie eine Reporterin oder ein Reporter.</div></div>`;
+    const val=v==null?m.v:v;
+    return `<div class="card ${m.r}"><div class="role">${m.r==="K"?"Käufer":"Verkäufer"}</div>
+      <div>${m.r==="K"?"Ich zahle höchstens":"Ich verkaufe für mindestens"}</div><div class="val">${eur(val)}</div>${note||""}
+      ${m.r==="K"&&S.ph===1?`<div class="cd">Dein Code: <b>${m.c}</b><br><small>Sag ihn dem Verkäufer, wenn ihr euch einig seid.</small></div>`:""}</div>`;}
+  function render(){const k=keyOf();if(k===lastKey)return;lastKey=k;const P=$("phone");
+    const top=`<div class="ph-top"><span>Popcorn-Börse · ${roomCode}</span><span>${h(me.nick||"")}${S&&mine()?` · +${eur(mine().pts||0)}`:""}</span></div>`;
+    if(!me.nick){P.innerHTML=top+`<h2>Willkommen an der Popcorn-Börse!</h2><p>Gib einen Spitznamen ein.</p>
+      <input id="nk" maxlength="16" placeholder="Spitzname" autocomplete="off"><div style="height:10px"></div><button class="pri" id="bJ" style="width:100%">Mitmachen</button>`;
+      $("bJ").onclick=()=>{const n=clean($("nk").value,16);if(!n)return;me.nick=n;store(KEY,me);hello();lastKey="";render();};return;}
+    if(!S){P.innerHTML=top+`<p>Verbinde mit der Tafel …</p>`;return;}
+    const m=mine();
+    if(S.ph===0){P.innerHTML=top+`<h2>Du bist drin!</h2><p>Warte, bis es an der Tafel losgeht.</p>`;return;}
+    if(S.ph===1)return rTrade(P,top,m);
+    if(S.ph===2)return rAns(P,top,m,`<h2>Preisansage</h2>`);
+    if(S.ph===3)return rShock(P,top,m);
+    if(S.ph===4){P.innerHTML=top+`<h2>Das merken wir uns</h2>${MERK}`;return;}
+    if(S.ph===5)return rQuiz(P,top);
+    const sc=(S.sc&&S.sc[me.pid])||[0,"–",0];
+    P.innerHTML=top+`<h2>Geschafft!</h2><div class="box"><div class="bigpts">Platz ${sc[1]}</div>${sc[0]} Punkte im Prüfungs-Check · ${S.np||"?"} haben mitgespielt</div>
+      ${m&&m.r!=="B"?`<p>An der Börse hast du <b>+${eur(m.pts||0)}</b> Vorteil erhandelt.</p>`:""}<p>Danke fürs Mitmachen!</p>`;
+  }
+
+  /* ---------- 1 Handeln ---------- */
+  function rTrade(P,top,m){
+    if(!S.dealt||!m||!m.r){P.innerHTML=top+cardHtml(m)+`<p>Gleich bekommst du deine geheime Karte. Zeig sie niemandem!</p>`;return;}
+    if(m.r==="B"){P.innerHTML=top+cardHtml(m)+(S.rOpen?`<p><b>Runde ${S.round} läuft – <span id="prc"></span></b></p>`:"")+
+      `<p>Abschlüsse dieser Runde:</p><p>${(S.dl||[]).slice().sort((a,b)=>a-b).map(p=>`<span class="chip k">${eur(p)}</span>`).join("")||"noch keine"}</p>
+      <div class="merk">Dein Auftrag: Welcher Preis kommt am häufigsten vor? Wird es von Runde zu Runde ähnlicher? Du berichtest gleich der Klasse.</div>`;return;}
+    if(!S.rOpen&&S.round===0){P.innerHTML=top+cardHtml(m)+`<p><b>Zeig deine Karte niemandem!</b></p>
+      <div class="merk">${m.r==="K"?"Du willst möglichst <b>billig</b> kaufen. Mehr als auf der Karte darfst du nie zahlen.":"Du willst möglichst <b>teuer</b> verkaufen. Billiger als auf der Karte darfst du nie verkaufen."}</div>
+      <p class="muted">Warte auf den Start von Runde 1.</p>`;return;}
+    if(!S.rOpen){
+      if(m.d!=null){P.innerHTML=top+cardHtml(m)+`<div class="status ok">Runde ${S.round}: Abschluss für <b>${eur(m.d)}</b>.</div><p class="muted">Warte auf die nächste Runde oder schau an die Tafel.</p>`;return;}
+      const sent=(S.wy||[]).includes(me.pid),sel=wSel[S.round];
+      P.innerHTML=top+cardHtml(m)+`<div class="status bad">Runde ${S.round}: kein Abschluss.</div><p><b>Warum nicht?</b> Tippe an.</p>
+        ${WHY[m.r].map((t,i)=>`<button class="pbtn ${sel===i?"sel":""}" data-i="${i}">${t}</button>`).join("")}${sent?`<div class="status ok">Angekommen ✓</div>`:""}`;
+      P.querySelectorAll(".pbtn").forEach(b=>b.onclick=()=>{const i=+b.dataset.i,r=S.round;wSel[r]=i;pending={msg:{k:"w",r,c:i},done:()=>!S||S.round!==r||S.rOpen||(S.wy||[]).includes(me.pid)};send(pending.msg);lastKey="";render();});return;}
+    const head=top+`<p><b>Runde ${S.round} läuft – <span id="prc"></span></b></p>`+cardHtml(m);
+    if(m.d!=null){const adv=m.r==="K"?m.v-m.d:m.d-m.v;
+      P.innerHTML=head+`<div class="status ok"><b>Abschluss!</b> ${m.r==="K"?"Gekauft":"Verkauft"} für <b>${eur(m.d)}</b>. Dein Vorteil: <b>+${eur(adv)}</b></div><p>Setz dich hin und warte auf die nächste Runde.</p>`;return;}
+    if(m.r==="K"){
+      if(m.o){const ok=m.o.pr<=m.v;
+        P.innerHTML=head+`<div class="box"><h2>${h(m.o.sn)} will dir Popcorn verkaufen</h2><div class="ansage">${eur(m.o.pr)}</div>
+          ${ok?"":`<div class="status bad">Zu teuer! Das ist mehr als dein Höchstpreis.</div>`}
+          <div class="yn"><button class="y" id="bY" ${ok?"":"disabled"}>Ja, Abschluss</button><button class="n" id="bN">Nein</button></div></div>`;
+        $("bY").onclick=()=>{send({k:"c",id:m.o.id,ok:true});$("bY").textContent="Gesendet …";};
+        $("bN").onclick=()=>{send({k:"c",id:m.o.id,ok:false});$("bN").textContent="Gesendet …";};return;}
+      P.innerHTML=head+`<div class="merk">Geh herum und verhandle. Seid ihr euch einig, sagst du dem Verkäufer deinen Code. Dann bestätigst du hier.</div>`;return;}
+    /* Verkäufer */
+    if(draft.pr==null||draft.pr<m.v)draft.pr=m.v;
+    const waiting=m.st&&m.st.startsWith("Warte");
+    P.innerHTML=head+`<div class="box"><b>Einig geworden?</b> Trag den Abschluss ein.
+      <label style="display:block;margin-top:8px">Code des Käufers<input id="bc" inputmode="numeric" maxlength="2" value="${h(draft.b)}" placeholder="z. B. 47" ${waiting?"disabled":""}></label>
+      <div style="margin-top:8px">Preis je Tüte</div>
+      <div class="step"><button data-d="-50">−50</button><button data-d="-10">−10</button><div class="pv" id="pv">${eur(draft.pr)}</div><button data-d="10">+10</button><button data-d="50">+50</button></div>
+      <button class="pri" id="bS" style="width:100%" ${waiting?"disabled":""}>Abschluss senden</button>
+      ${m.st?`<div class="status ${waiting?"":"bad"}">${h(m.st)}</div>`:""}
+      ${waiting?`<button id="bX" style="width:100%;margin-top:8px">Zurückziehen</button>`:""}</div>
+      <p class="muted">Billiger als ${eur(m.v)} geht nicht – das ist dein Mindestpreis.</p>`;
+    $("bc").oninput=e=>{draft.b=e.target.value.replace(/\D/g,"").slice(0,2);};
+    P.querySelectorAll(".step button").forEach(b=>b.onclick=()=>{draft.pr=Math.min(600,Math.max(m.v,draft.pr+ +b.dataset.d));$("pv").textContent=eur(draft.pr);});
+    $("bS").onclick=()=>{const b=parseInt(draft.b,10);if(!(b>=10&&b<=99)){$("bc").focus();return;}send({k:"o",b,pr:draft.pr});$("bS").textContent="Gesendet …";};
+    if($("bX"))$("bX").onclick=()=>send({k:"o",b:null});
+  }
+
+  /* ---------- 2/3 Preisansage ---------- */
+  function rAns(P,top,m,head,note){
+    const A=S.an;
+    if(A.p<0){P.innerHTML=top+head+cardHtml(m,m&&m.v2,note)+`<p>Gleich ruft die Lehrkraft einen Preis aus.</p>`;return;}
+    const key=A.st+":"+A.p,my=ySel[key],v=m&&m.v2;
+    if(!m||m.r==="B"||!m.r){P.innerHTML=top+head+`<div class="ansage">${eur(A.p)}</div>`+cardHtml(m)+`<div class="merk">Schätze: Sagen mehr Käufer oder mehr Verkäufer Ja? Vergleiche dann mit der Tafel.</div>`;return;}
+    if(A.open){const ans=S.yd.includes(me.pid);
+      P.innerHTML=top+head+`<div class="ansage">${eur(A.p)}</div>`+cardHtml(m,v,note)+
+        `<p><b>${m.r==="K"?"Kaufst du zu diesem Preis?":"Verkaufst du zu diesem Preis?"}</b> Schau auf deine Karte.</p>
+        <div class="yn"><button class="y ${my===true?"sel":""}" data-y="1">${m.r==="K"?"Ja, ich kaufe":"Ja, ich verkaufe"}</button><button class="n ${my===false?"sel":""}" data-y="0">${m.r==="K"?"Nein, zu teuer":"Nein, zu billig"}</button></div>
+        ${ans?`<div class="status ok">Gespeichert ✓ Schau an die Tafel.</div>`:""}`;
+      P.querySelectorAll(".yn button").forEach(b=>b.onclick=()=>{const y=b.dataset.y==="1";ySel[key]=y;pending={msg:{k:"y",key,y},done:()=>!S.an.open||S.an.st+":"+S.an.p!==key||S.yd.includes(me.pid)};send(pending.msg);lastKey="";render();});return;}
+    const R=S.res,ok=my==null?null:(m.r==="K"?(v>=A.p)===my:(v<=A.p)===my);
+    const vd=R?verdict(A.p,R.N,R.A):null;
+    P.innerHTML=top+head+`<div class="ansage">${eur(A.p)}</div>`+
+      (vd?`<div class="banner ${vd.c}"><b>${vd.t}</b><span class="satz">${vd.s}</span></div>`:"")+
+      (ok===false?`<div class="status bad">Schau noch einmal auf deine Karte: ${m.r==="K"?`Du zahlst höchstens ${eur(v)}.`:`Du verkaufst für mindestens ${eur(v)}.`}</div>`:"")+
+      `<p class="muted">Warte auf den nächsten Preis.</p>`;
+  }
+
+  /* ---------- 3 Schock ---------- */
+  function rShock(P,top,m){
+    if(S.shock<0||S.s3===0){P.innerHTML=top+`<h2>Achtung …</h2><p>Gleich passiert etwas auf dem Popcorn-Markt. Schau an die Tafel.</p>`;return;}
+    const Sh=SHOCKS[S.shock],head=`<div class="banner info"><b>${h(Sh.t)}:</b> ${h(Sh.x)}</div>`;
+    const changed=m&&m.r===Sh.r&&m.v2!==m.v;
+    const note=m&&(m.r==="K"||m.r==="V")?`<div class="cd">${changed?`<strong>Deine Karte hat sich geändert!</strong> Vorher: ${eur(m.v)}`:"Deine Karte bleibt gleich."}</div>`:"";
+    if(S.s3===1){const sent=S.pd.includes(me.pid),sel=pSel[S.shock];
+      P.innerHTML=top+head+cardHtml(m,m&&m.v2,note)+`<p><b>Was passiert mit dem Preis?</b> Vermute!</p>
+        ${PRED.map((t,i)=>`<button class="pbtn ${sel===i?"sel":""}" data-i="${i}">${t}</button>`).join("")}${sent?`<div class="status ok">Angekommen ✓</div>`:""}`;
+      P.querySelectorAll(".pbtn").forEach(b=>b.onclick=()=>{const i=+b.dataset.i,s=S.shock;pSel[s]=i;pending={msg:{k:"pr",s,c:i},done:()=>S.shock!==s||S.s3!==1||S.pd.includes(me.pid)};send(pending.msg);lastKey="";render();});return;}
+    if(S.s3===2)return rAns(P,top,m,head,note);
+    const right=Sh.dir>0?0:1,sel=pSel[S.shock];
+    P.innerHTML=top+head+`${sel!=null?`<div class="status ${sel===right?"ok":"bad"}">${sel===right?"Deine Vermutung war richtig!":"Deine Vermutung war: "+PRED[sel]}</div>`:""}
+      <div class="merk"><b>${h(Sh.w)}</b> Beim alten Preis entsteht ein <span class="term">${Sh.dir>0?"Nachfrageüberhang":"Angebotsüberhang"}</span> → der Preis ${Sh.dir>0?"steigt":"sinkt"}${S.eq1?` auf <b>${eur(S.eq1.p)}</b>`:""}.</div>
+      <div class="merk">Das ist ein <span class="term">${Sh.m}</span>: ${Sh.m==="Käufermarkt"?"Angebot größer als Nachfrage, die Preise fallen.":"Nachfrage größer als Angebot, die Preise steigen."}</div>
+      <details><summary>Profi-Frage</summary><p>Erkläre mit den Fachbegriffen, warum sich auch die gehandelte Menge verändert${S.eq0&&S.eq1?` (vorher ${S.eq0.q}, jetzt ${S.eq1.q} Tüten)`:""}.</p></details>`;
+  }
+
+  /* ---------- 5 Prüfungs-Check ---------- */
+  function rQuiz(P,top){
+    const sc=(S.sc&&S.sc[me.pid])||[0,"–",0];
+    if(S.q<0){P.innerHTML=top+`<h2>Prüfungs-Check</h2><p>Gleich geht es los. Lies jede Frage genau. Richtig ist wichtiger als schnell!</p>`;return;}
+    const Q=QUIZ[S.q],answered=(S.ans||[]).includes(me.pid),extra=(Q.g?graphX():"")+(Q.tab?qTab(Q.tab):"");
+    if(S.qOpen){
+      if(answered||qSel[S.q]!=null){P.innerHTML=top+`<p class="muted">Frage ${S.q+1}</p><h2>${h(Q.q)}</h2><div class="status ${answered?"ok":""}">${answered?"Antwort gespeichert ✓":"Wird gesendet …"} Warte auf die Auflösung.</div>
+        ${Q.pz?`<div class="merk"><b>Profi-Zusatz:</b> ${h(Q.pz)}</div>`:""}`;return;}
+      P.innerHTML=top+`<div class="row" style="justify-content:space-between"><span class="muted">Frage ${S.q+1} von ${QUIZ.length}${Q.pro?' <span class="pro">Profi</span>':""}</span><b id="ptm"></b></div><h2>${h(Q.q)}</h2>${extra}
+        ${Q.o.map((o,i)=>`<button class="popt o${i}" data-i="${i}">${"ABCDE"[i]}: ${h(o)}</button>`).join("")}`;
+      P.querySelectorAll(".popt").forEach(b=>b.onclick=()=>{const q=S.q;qSel[q]=+b.dataset.i;pending={msg:{k:"a",q,c:+b.dataset.i},done:()=>S.q!==q||!S.qOpen||(S.ans||[]).includes(me.pid)};send(pending.msg);lastKey="";render();});
+      const t=()=>{const s=Math.max(0,Math.ceil((qEnd-Date.now())/1000));if($("ptm"))$("ptm").textContent=s+" s";};t();clearInterval(window._pt);window._pt=setInterval(t,250);return;}
+    const my=qSel[S.q],ok=my===Q.k;
+    P.innerHTML=top+`<p class="muted">Frage ${S.q+1} von ${QUIZ.length}</p>
+      <div class="status ${my==null?"":ok?"ok":"bad"}">${my==null?"Keine Antwort.":ok?"<b>Richtig!</b> +"+sc[2]+" Punkte":"<b>Leider falsch.</b>"}</div>
+      <p><b>Richtig: ${h(Q.o[Q.k])}</b><br>${h(Q.x)}</p>
+      <div class="box"><div class="bigpts">${sc[0]} Punkte</div>Platz ${sc[1]} von ${S.np||"?"}</div>`;
+  }
+  render();
+}
+const roomCode=(params.get("s")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);
+if(roomCode)phoneApp();else tafelApp();
+</script>
+<script>
+/* =========================================================
+   QUIZ-MUSIK v2 (Skill live-klassen-app) – eigene Kompositionen, live per WebAudio erzeugt,
+   keine Musikdatei, keine Rechte Dritter. Jede Abfrage bekommt ein ANDERES Stück aus dem Pool
+   (gemischt, nie zweimal hintereinander). Läuft nur auf der Tafel.
+   Ablauf: Loop während der Frage · letzte 10 s schneller · Ticks in den letzten 5 s · Jingle beim Auflösen · Fanfare beim Sieger
+   ========================================================= */
+const MUSIK_POOL=[
+  {name:"Spannung",bpm:124,fast:156,bass:[45,45,41,40],ch:[[69,72,76],[69,72,76],[65,69,72],[64,68,71]],ap:[0,1,2,1,0,2,1,2],arp:"square",kick:[0,4,8,12],snare:[4,12],hat:"off"},
+  {name:"Funk",bpm:104,fast:132,swing:.16,bass:[40,40,43,45],bp:[0,3,6,8,10,11,14],bt:"sawtooth",ch:[[64,67,71,74],[64,67,71,74],[67,71,74,77],[69,72,76,79]],ap:[0,2,1,3],as:[2,6,10,13],ad:.07,arp:"sawtooth",kick:[0,6,8],snare:[4,12],hat:"all"},
+  {name:"Marimba",bpm:116,fast:144,bass:[48,45,41,43],ch:[[72,76,79],[69,72,76],[65,69,72],[67,71,74]],ap:[0,1,2,1,2,1,0,1],ad:.22,arp:"sine",oct:1,kick:[0,8],snare:[],hat:"none",cl:[3,11]},
+  {name:"Chiptune",bpm:144,fast:176,bass:[43,43,40,38],bt:"square",ch:[[67,71,74],[67,71,74],[64,67,71],[62,66,69]],ap:[0,1,2,3,2,1],arp:"square",oct:1,ad:.06,kick:[0,8],snare:[4,12],hat:"none"},
+  {name:"Latin",bpm:112,fast:140,bass:[38,38,43,45],bp:[0,3,8,11],ch:[[62,65,69],[62,65,69],[67,70,74],[69,73,76]],ap:[0,2,1,2],as:[0,2,3,6,8,10,11,14],arp:"triangle",kick:[0,6,8,14],snare:[],hat:"off",cl:[0,3,6,10,12]},
+  {name:"Jazz",bpm:132,fast:164,swing:.3,walk:1,bass:[41,38,43,36],bp:[0,4,8,12],ch:[[65,69,72,76],[62,65,69,72],[67,70,74,77],[60,64,67,70]],ap:[0,2,1,3],as:[0,6,10],ad:.18,arp:"triangle",kick:[],snare:[],hat:"jazz"},
+  {name:"Synthwave",bpm:100,fast:128,bass:[47,43,38,45],bp:[0,2,4,6,8,10,12,14],bt:"sawtooth",ch:[[71,74,78],[67,71,74],[62,66,69],[69,73,76]],ap:[0,1,2,1],arp:"sawtooth",ad:.14,kick:[0,4,8,12],snare:[4,12],hat:"all"},
+  {name:"Detektiv",bpm:92,fast:120,bass:[37,37,42,44],bp:[0,3,8,10],ch:[[61,64,68],[61,64,68],[66,69,73],[68,72,75]],ap:[0,1,2,1,2,0],as:[0,2,4,7,8,10,12,15],ad:.12,arp:"triangle",kick:[0],snare:[8],hat:"off"}
+];
+const Music=(()=>{
+  const ls=(k,v)=>{try{if(v===undefined){const x=localStorage.getItem(k);return x==null?null:JSON.parse(x);}localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}};
+  let ctx=null,master=null,timer=null,next=0,step=0,fast=false,nbuf=null,on=ls("quizmusik")!==false;
+  let order=[],last=-1,S=MUSIK_POOL[0];
+  const mf=m=>440*Math.pow(2,(m-69)/12),AV={square:.04,sawtooth:.03,triangle:.08,sine:.1};
+  function pick(){if(!order.length){order=MUSIK_POOL.map((_,i)=>i);for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+      if(order[0]===last&&order.length>1)order.push(order.shift());}
+    last=order.shift();S=MUSIK_POOL[last];return last;}
+  function init(){try{if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;ctx=new AC();
+      master=ctx.createGain();master.gain.value=.24;master.connect(ctx.destination);}
+    if(ctx.state==="suspended")ctx.resume();return true;}catch(e){return false;}}
+  function tone(f,t,d,type,v){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.05);}
+  function noise(t,d,v,hp){if(!nbuf){nbuf=ctx.createBuffer(1,ctx.sampleRate*.3,ctx.sampleRate);const a=nbuf.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1;}
+    const s=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();s.buffer=nbuf;f.type="highpass";f.frequency.value=hp;
+    g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(master);s.start(t);s.stop(t+d+.02);}
+  function kick(t){const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(45,t+.13);
+    g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.0001,t+.18);o.connect(g);g.connect(master);o.start(t);o.stop(t+.2);}
+  function play(st,t){const bar=Math.floor(st/16)%S.bass.length,s=st%16,ch=S.ch[bar%S.ch.length];
+    const bp=S.bp||[0,2,4,6,8,10,12,14];
+    if(bp.includes(s)){const off=S.walk?[0,4,7,9][Math.floor(s/4)%4]:(s%4===0?0:12);tone(mf(S.bass[bar]+off),t,S.walk?.3:.16,S.bt||"triangle",S.bt==="sawtooth"?.12:S.bt==="square"?.1:.32);}
+    if(!S.as||S.as.includes(s))tone(mf(ch[S.ap[s%S.ap.length]%ch.length]+12*(S.oct||0)+(fast?12:0)),t,S.ad||.09,S.arp,AV[S.arp]||.05);
+    if(S.kick.includes(s))kick(t);
+    if(S.snare.includes(s))noise(t,.12,.25,1800);
+    if(S.cl&&S.cl.includes(s))tone(1250,t,.04,"sine",.18);
+    const hat=S.hat;
+    if(hat==="all"||fast||(hat==="off"&&s%2===1)||(hat==="jazz"&&(s%4===0||s%8===6)))noise(t,.03,.07,7000);}
+  function sched(){const d=60/(fast?S.fast:S.bpm)/4;
+    if(next<ctx.currentTime-.05)next=ctx.currentTime+.02;
+    while(next<ctx.currentTime+.12){play(step,next+(step%2?d*(S.swing||0):0));next+=d;step++;}}
+  const root=()=>S.ch[0][0]%12+60;
+  return {
+    pool:MUSIK_POOL,
+    current(){return S.name;},
+    unlock(){if(on)init();},
+    isOn(){return on;},
+    toggle(){on=!on;ls("quizmusik",on);if(!on)this.stop();return on;},
+    start(){if(!on||timer||!init())return;pick();fast=false;step=0;next=ctx.currentTime+.06;timer=setInterval(sched,25);
+      try{console.log("[Quiz-Musik] Stück",last,S.name);}catch(e){}},
+    hurry(){fast=true;},
+    tick(){if(!on||!init())return;tone(1760,ctx.currentTime,.06,"sine",.25);},
+    stop(){clearInterval(timer);timer=null;fast=false;},
+    reveal(){this.stop();if(!on||!init())return;const t=ctx.currentTime+.03,r=root();
+      [0,4,7].forEach((m,i)=>tone(mf(r+m),t+i*.09,.25,"square",.08));
+      [0,4,7,12].forEach(m=>tone(mf(r+m),t+.3,.9,"triangle",.14));kick(t+.3);noise(t+.3,.25,.25,3000);},
+    fanfare(){this.stop();if(!on||!init())return;const t=ctx.currentTime+.05,r=60;
+      [[-5,0],[0,.15],[4,.3],[7,.45],[4,.7],[7,.85]].forEach(([m,d])=>tone(mf(r+m),t+d,.22,"square",.09));
+      [0,4,7,12].forEach(m=>tone(mf(r+m),t+1.05,1.6,"triangle",.15));[0,.45,1.05].forEach(d=>kick(t+d));noise(t+1.05,.5,.3,2500);}
+  };})();
+/* Quiz-Musik automatisch an die Tafel koppeln: Timer #tm sichtbar = Abfrage läuft (Quiz, Prüfungs-Check, Abstimmung) */
+(function MusicAuto(){
+  if(new URLSearchParams(location.search).get("s"))return;
+  const tf=document.getElementById("tafel"),st=document.getElementById("steps");
+  let was=false,lastS=-1,pod=false;
+  function btn(){if(!st||document.getElementById("bMus"))return;const b=document.createElement("button");b.id="bMus";b.type="button";
+    b.title="Quiz-Musik an oder aus";b.style.cssText="padding:.25em .7em;font-weight:700;border-radius:999px;white-space:nowrap";
+    b.onclick=()=>{Music.toggle();if(Music.isOn()&&was)Music.start();lab();};st.after(b);lab();}
+  function lab(){const b=document.getElementById("bMus");if(b)b.textContent=Music.isOn()?"Musik: an":"Musik: aus";}
+  document.addEventListener("pointerdown",()=>Music.unlock(),true);
+  btn();
+  setInterval(()=>{if(!tf||tf.hidden)return;btn();
+    const tm=document.getElementById("tm"),vis=!!(tm&&tm.offsetParent!==null);
+    if(vis){if(!was){was=true;lastS=-1;Music.start();}
+      const s=parseInt(tm.textContent,10);if(!isNaN(s)&&s!==lastS){lastS=s;if(s<=10&&s>0)Music.hurry();if(s<=5&&s>0)Music.tick();}}
+    else if(was){was=false;Music.reveal();}
+    const p=document.querySelector("#tMain .podium"),pv=!!(p&&p.offsetParent!==null);
+    if(pv&&!pod){pod=true;Music.fanfare();}if(!pv)pod=false;
+  },200);
+})();
+</script>
+</body>
+</html>

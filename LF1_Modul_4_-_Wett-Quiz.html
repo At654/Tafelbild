@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wett-Quiz Ökonomisches Prinzip</title>
+<style>
+:root{
+  --bg:#f4f1ea; --card:#ffffff; --ink:#1d2a24; --muted:#5d6b64;
+  --felt:#1f5c45; --felt2:#174836; --gold:#e0a526; --ok:#2e8b57; --bad:#c0392b;
+  --line:#d9d3c5; --sel:#1f5c45;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:20px;line-height:1.35}
+header{background:linear-gradient(90deg,var(--felt2),var(--felt));color:#fff;padding:12px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px}
+header h1{font-size:24px;margin:0;font-weight:700;letter-spacing:.3px}
+header .sub{opacity:.8;font-size:17px}
+header .sp{flex:1}
+header button{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:6px 12px;font-size:15px;cursor:pointer}
+main{max-width:1400px;margin:0 auto;padding:20px 24px 40px}
+.card{background:var(--card);border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.07);padding:24px 28px}
+.btn{background:var(--felt);color:#fff;border:0;border-radius:12px;padding:14px 26px;font-size:22px;font-weight:700;cursor:pointer}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.gold{background:var(--gold);color:#2a1d00}
+.btn.ghost{background:#fff;color:var(--felt);border:2px solid var(--felt)}
+.row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.center{text-align:center}
+h2{font-size:34px;margin:0 0 10px}
+.tag{display:inline-block;background:#e8efe9;color:var(--felt);border-radius:999px;padding:4px 14px;font-size:16px;font-weight:700}
+.src{color:var(--muted);font-size:15px;margin-top:6px}
+/* Frage */
+.qtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px}
+.timer{font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--felt);min-width:90px;text-align:right}
+.timer.low{color:var(--bad)}
+.question{font-size:32px;font-weight:700;margin:6px 0 16px}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:16px;align-items:flex-start;border:2px solid var(--line);border-radius:12px;padding:12px 16px;font-size:25px;background:#fff}
+.opt .n{flex:none;width:44px;height:44px;border-radius:50%;background:#efe9dc;display:flex;align-items:center;justify-content:center;font-weight:800}
+.opt.right{border-color:var(--ok);background:#e6f4ec}
+.opt.right .n{background:var(--ok);color:#fff}
+.opt.dim{opacity:.4}
+.abc{grid-template-columns:repeat(3,1fr)}
+.abc .opt{flex-direction:column;align-items:center;text-align:center;font-size:27px;font-weight:700}
+.why{margin-top:16px;border-left:6px solid var(--gold);background:#fff8e6;padding:12px 18px;border-radius:8px;font-size:24px}
+.why b{color:var(--felt)}
+/* Teams */
+.teams{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.team{background:var(--card);border-radius:14px;padding:12px 14px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:3px solid transparent}
+.team.win{border-color:var(--ok)}
+.team.lose{border-color:var(--bad)}
+.team .head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:21px;margin-bottom:8px}
+.chips{display:inline-flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.chip{width:22px;height:22px;border-radius:50%;background:var(--gold);border:3px dashed #fff;box-shadow:0 0 0 2px var(--gold)}
+.lbl{font-size:14px;color:var(--muted);margin:4px 0 3px}
+.pick{display:flex;gap:6px;flex-wrap:wrap}
+.pick button{min-width:46px;height:42px;border-radius:9px;border:2px solid var(--line);background:#fff;font-size:19px;font-weight:700;cursor:pointer;color:var(--ink)}
+.pick button.on{background:var(--sel);color:#fff;border-color:var(--sel)}
+.pick button.wide{padding:0 10px}
+.delta{font-weight:800;font-size:22px}
+.delta.p{color:var(--ok)} .delta.m{color:var(--bad)}
+.bonus{margin-top:6px;font-size:15px;border:1px dashed var(--felt);background:#fff;color:var(--felt);border-radius:8px;padding:4px 10px;cursor:pointer}
+.bonus.done{background:var(--felt);color:#fff}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:12px;flex-wrap:wrap}
+.hint{color:var(--muted);font-size:16px}
+/* Setup */
+.setup input{font-size:20px;padding:8px 10px;border:2px solid var(--line);border-radius:8px;width:100%}
+.namegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:14px 0}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.rules div{background:#f8f6f0;border-radius:12px;padding:14px 16px;font-size:19px}
+.rules b{display:block;font-size:21px;margin-bottom:4px;color:var(--felt)}
+/* Rangliste */
+.rank{display:grid;gap:10px;max-width:800px;margin:20px auto}
+.rank .r{display:flex;align-items:center;gap:16px;background:#fff;border-radius:12px;padding:12px 18px;font-size:26px;font-weight:700}
+.rank .r .pl{width:48px;height:48px;border-radius:50%;background:#efe9dc;display:flex;align-items:center;justify-content:center}
+.rank .r:first-child{background:#fff4d6;border:3px solid var(--gold)}
+.rank .r .nm{flex:1}
+.big{font-size:60px}
+.roll{position:fixed;inset:0;background:rgba(23,72,54,.82);display:flex;align-items:center;justify-content:center;z-index:9;color:#fff;font-size:64px;font-weight:800;letter-spacing:2px}
+.roll span{animation:pulse .18s infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+@media (max-width:800px){body{font-size:17px}.question{font-size:24px}.opt{font-size:19px}.abc{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Wett-Quiz: Das ökonomische Prinzip</h1>
+  <span class="sub">LF 1 · Modul 4</span>
+  <span class="sp"></span>
+  <span class="sub" id="prog"></span>
+  <button id="mbtn" onclick="toggleMusic()" title="Musik an/aus">♪ Musik an</button>
+  <button onclick="resetGame()" title="Spiel neu starten">Neu starten</button>
+</header>
+<main id="app"></main>
+
+<script>
+/* ===================== INHALT ===================== */
+const ABC = ["Maximalprinzip","Minimalprinzip","Unsinn – nichts steht fest"];
+const ROUNDS = [
+ {name:"Runde 1: Was steht fest?", type:"abc", betMax:2, timer:25,
+  intro:"Kurze Fälle. Jeder Tisch entscheidet: <b>A</b> Maximalprinzip, <b>B</b> Minimalprinzip oder <b>C</b> Unsinn. Einsatz: 1 oder 2 Chips.",
+  items:[
+   {q:"Die Filiale hat am Samstag 3 Aushilfen. Mit ihnen soll möglichst viel Ware verräumt werden.", c:0,
+    why:"<b>Fest steht:</b> 3 Aushilfen (Mittel). Gesucht: möglichst viel verräumte Ware → Maximalprinzip."},
+   {q:"Die Kaufhaus Hansa GmbH will 500 Weihnachtsflyer möglichst günstig drucken lassen.", c:1,
+    why:"<b>Fest steht:</b> 500 Flyer (Ziel). Gesucht: möglichst geringe Kosten → Minimalprinzip."},
+   {q:"Mit möglichst wenig Personal soll ein möglichst hoher Umsatz erzielt werden.", c:2,
+    why:"<b>Nichts steht fest.</b> Zweimal „möglichst“ – weder Personal noch Umsatz sind vorgegeben. Das geht nicht."},
+   {q:"Mit einem Dekobudget von 300 € soll das Schaufenster möglichst ansprechend gestaltet werden.", c:0,
+    why:"<b>Fest steht:</b> 300 € (Mittel). Gesucht: größtmögliche Wirkung → Maximalprinzip."},
+   {q:"Der Markt will den Umsatz des Vorjahres halten und dafür möglichst wenig für Werbung ausgeben.", c:1,
+    why:"<b>Fest steht:</b> der Vorjahresumsatz (Ziel). Gesucht: möglichst geringe Werbekosten → Minimalprinzip."},
+   {q:"Ein Umsatz von 2 Mio. € soll mit einem maximal sparsamen Personaleinsatz erreicht werden.", c:1,
+    why:"<b>Falle!</b> „maximal“ verrät nichts. <b>Fest steht:</b> 2 Mio. € Umsatz (Ziel). Personal möglichst wenig → Minimalprinzip."},
+   {q:"Eine Auszubildende hat 2 Stunden Zeit und will darin möglichst viele Preisschilder austauschen.", c:0,
+    why:"<b>Fest steht:</b> 2 Stunden (Mittel: Zeit). Gesucht: möglichst viele Schilder → Maximalprinzip."},
+   {q:"Für möglichst wenig Geld sollen möglichst viele neue Kunden gewonnen werden.", c:2,
+    why:"<b>Nichts steht fest.</b> Mit 0 € gewinnt man keine Kunden – eine Größe muss vorgegeben sein."}
+  ]},
+ {name:"Runde 2: IHK-Runde", type:"five", betMax:3, timer:60,
+  intro:"Jetzt wie in der Abschlussprüfung: fünf Antworten, eine ist richtig. Einsatz: 1, 2 oder 3 Chips. Tipp: Erst bei jeder Antwort fragen: <b>Was steht fest?</b>",
+  items:[
+   {q:"Stellen Sie fest, in welchem Fall die Kaufhaus Hansa GmbH nach dem Maximalprinzip handelt!",
+    o:["Sie will die neue Kassenzone mit möglichst geringen Kosten einrichten.",
+       "Sie will mit dem vorhandenen Verkaufspersonal in der Weihnachtszeit einen möglichst hohen Umsatz erzielen.",
+       "Sie bestellt 1.000 Adventskalender beim preisgünstigsten Lieferer.",
+       "Sie stellt zwei Aushilfen ein, um die Wartezeiten an den Kassen zu verringern.",
+       "Sie will mit möglichst wenig Werbung möglichst viele Neukunden gewinnen."], c:1,
+    why:"<b>Fest steht</b> das vorhandene Personal (Mittel), gesucht ist der höchste Umsatz → 2. 1 und 3 sind Minimalprinzip, 5 ist Unsinn, bei 4 steht nichts fest."},
+   {q:"Prüfen Sie, welche Vorgabe dem ökonomischen Prinzip als Minimalprinzip entspricht!",
+    o:["Mit einem Werbeetat von 20.000 € soll ein möglichst hoher Bekanntheitsgrad erreicht werden.",
+       "Mit den vorhandenen Regalflächen soll ein möglichst hoher Umsatz erzielt werden.",
+       "Die Inventur in der Abteilung Haushaltswaren soll mit möglichst wenigen Arbeitsstunden durchgeführt werden.",
+       "Der Umsatz soll im kommenden Jahr gesteigert werden.",
+       "Der Werbeetat wird im Dezember um 10 % erhöht."], c:2,
+    why:"<b>Fest steht</b> die Inventur der Abteilung (Ziel), die Arbeitsstunden sollen möglichst gering sein → 3. 1 und 2 sind Maximalprinzip."},
+   {q:"Welche Zielsetzung ist nach dem ökonomischen Prinzip nicht erfüllbar?",
+    o:["Mit den vorhandenen 5 Lkw sollen möglichst viele Filialen beliefert werden.",
+       "Ein Umsatz von 3 Mio. € soll mit möglichst geringen Personalkosten erreicht werden.",
+       "Mit möglichst geringen Kosten soll ein möglichst hoher Gewinn erzielt werden.",
+       "Mit einem Schulungsbudget von 2.000 € sollen möglichst viele Mitarbeiter geschult werden.",
+       "Die 40 neuen Auszubildenden sollen mit möglichst geringem Aufwand eingearbeitet werden."], c:2,
+    why:"Bei 3 steht <b>nichts fest</b> – Kosten gegen null und Gewinn gegen unendlich gleichzeitig geht nicht. Alle anderen haben eine feste Größe."},
+   {q:"Entscheiden Sie, in welchem Fall die Zielsetzung der Kaufhaus Hansa GmbH dem Minimalprinzip entspricht!",
+    o:["Der Abteilungsleiter will mit dem vorgegebenen Dekorationsbudget eine maximale Wirkung erzielen.",
+       "Die Kaufhaus Hansa GmbH will mit 12 Verkäufern einen möglichst hohen Umsatz in der Elektroabteilung erzielen.",
+       "Die geplante Umsatzsteigerung von 4 % soll mit möglichst geringem Werbeaufwand erreicht werden.",
+       "Die Kaufhaus Hansa GmbH kauft für die Heizperiode 5.000 Liter Heizöl.",
+       "Die Kaufhaus Hansa GmbH eröffnet eine neue Filiale, um neue Kunden zu gewinnen."], c:2,
+    why:"<b>Fest steht</b> die Umsatzsteigerung von 4 % (Ziel), Werbeaufwand möglichst gering → 3. Bei 4 und 5 fehlt das „möglichst“ – das ist gar kein ökonomisches Prinzip."},
+   {q:"In welchem Fall handelt das Kaufhaus Hansa GmbH nach dem Minimalprinzip?",
+    o:["Das Kaufhaus Hansa GmbH richtet einen Ruheraum ein, damit die Mitarbeiter zufriedener sind.",
+       "Das Kaufhaus Hansa GmbH kauft für den Winter 5 000 Liter Heizöl.",
+       "Das Kaufhaus Hansa GmbH bestellt 150 Regale bei dem Anbieter, der im Angebotsvergleich am günstigsten ist.",
+       "Das Kaufhaus Hansa GmbH stellt eine weitere Verkäuferin ein, um mehr Lampen zu verkaufen.",
+       "Das Kaufhaus Hansa GmbH mietet eine zusätzliche Halle, um von einem Lieferanten unabhängiger zu werden."], c:2,
+    src:"Wiedersehen",
+    why:"<b>Fest steht</b>: 200 Stehleuchten (Ziel), gesucht der günstigste Preis → 3."},
+   {q:"Die Kaufhaus Hansa GmbH hat für die Aktionswoche „Gesund frühstücken“ 1.500 € zur Verfügung. Welche Aussage beschreibt die Planung richtig?",
+    o:["Minimalprinzip, weil die Kosten möglichst gering sein sollen.",
+       "Maximalprinzip, weil das Budget feststeht und damit eine möglichst große Werbewirkung erzielt werden soll.",
+       "Minimalprinzip, weil ein bestimmtes Ziel festgelegt ist.",
+       "Maximalprinzip, weil der Gewinn möglichst hoch und die Kosten möglichst niedrig sein sollen.",
+       "Kein ökonomisches Prinzip, weil man Werbewirkung nicht messen kann."], c:1,
+    why:"<b>Fest stehen</b> 1.500 € (Mittel) → Maximalprinzip, richtig begründet nur in 2. Antwort 4 nennt zwar „Maximal“, begründet aber mit Unsinn."}
+  ]},
+ {name:"Finale: Alles oder nichts", type:"abc", betMax:"all", timer:45,
+  intro:"Eine letzte Frage. Jeder Tisch darf <b>beliebig viele Chips</b> setzen – bis zu allen. Wer richtig liegt, bekommt den Einsatz dazu. Wer falsch liegt, verliert ihn.",
+  items:[
+   {q:"Ein Händler hat durch geschickte Verhandlung beim Autohaus für den gleichen Preis 7 statt 6 Kleintransporter bekommen. Nach welchem Prinzip hat er gehandelt?", c:0,
+    src:"Ablenker aus der IHK",
+    why:"<b>Fest steht</b> der Preis (Mittel). Für dasselbe Geld bekommt er mehr → Maximalprinzip. Viele tippen hier auf „sparen“ = Minimal – aber gespart hat er nichts."}
+  ]}
+];
+
+/* ===================== STATE ===================== */
+const KEY="wettquiz_lf1m4_v1";
+let S = load() || fresh();
+let tick=null;
+function fresh(){return {screen:"setup",teams:[],r:0,i:0,entries:{},revealed:false,bonus:{},time:null,history:[]};}
+function load(){try{return JSON.parse(localStorage.getItem(KEY));}catch(e){return null;}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function resetGame(){ if(S.screen!=="setup" && !confirmReset()) return; stopTimer(); musicStop(); S=fresh(); save(); render(); }
+function confirmReset(){ // kein window.confirm, eigener Doppelklick-Schutz
+  const b=event&&event.target; if(!b) return true;
+  if(b.dataset.arm){return true;} b.dataset.arm="1"; b.textContent="Wirklich? Nochmal klicken"; setTimeout(()=>{b.dataset.arm="";b.textContent="Neu starten";},2500); return false;}
+
+const R=()=>ROUNDS[S.r], Q=()=>R().items[S.i];
+const totalQ=ROUNDS.reduce((a,r)=>a+r.items.length,0);
+function qNo(){let n=0;for(let k=0;k<S.r;k++)n+=ROUNDS[k].items.length;return n+S.i+1;}
+const L5=["1","2","3","4","5"], LABC=["A","B","C"];
+
+/* ===================== RENDER ===================== */
+const app=document.getElementById("app");
+function render(){
+  document.getElementById("prog").textContent = (S.screen==="q")?`Frage ${qNo()} von ${totalQ}`:"";
+  if(S.screen==="setup") return renderSetup();
+  if(S.screen==="intro") return renderIntro();
+  if(S.screen==="q") return renderQ();
+  if(S.screen==="end") return renderEnd();
+}
+function renderSetup(){
+  const n = S._n || 6;
+  let names=""; for(let k=0;k<n;k++){ names+=`<input id="tn${k}" value="${(S._names&&S._names[k])||"Tisch "+(k+1)}">`; }
+  app.innerHTML=`<div class="card setup">
+   <h2>Wer wettet am klügsten?</h2>
+   <div class="rules">
+     <div><b>10 Chips</b>Jeder Tisch startet mit 10 Chips. Am Ende gewinnt der Tisch mit den meisten.</div>
+     <div><b>Antworten + Einsatz</b>Jeder Tisch schreibt Antwort und Einsatz auf einen Zettel und hält ihn hoch, wenn die Zeit um ist.</div>
+     <div><b>Richtig = Einsatz dazu</b>Falsch = Einsatz weg. Wer sich sicher ist, setzt viel. Wer rät, setzt wenig.</div>
+     <div><b>+1 Begründungs-Bonus</b>Ein richtiger Tisch kann einen Extra-Chip holen: „Fest steht …, deshalb …“</div>
+   </div>
+   <div class="row"><span>Anzahl Tische:</span>
+     <div class="pick">${[2,3,4,5,6,7,8].map(k=>`<button class="${k===n?"on":""}" onclick="setN(${k})">${k}</button>`).join("")}</div></div>
+   <div class="namegrid">${names}</div>
+   <div class="row"><button class="btn" onclick="start()">Spiel starten</button>
+   <span class="hint">Tastatur: Leertaste = Auflösen / Weiter</span></div>
+  </div>`;
+}
+function grabNames(){const n=S._n||6;S._names=[];for(let k=0;k<n;k++){const el=document.getElementById("tn"+k);S._names.push(el?el.value:"Tisch "+(k+1));}}
+function setN(k){grabNames();S._n=k;render();}
+function start(){fanfare();grabNames();const n=S._n||6;S.teams=S._names.slice(0,n).map(x=>({name:x.trim()||"Tisch",chips:10}));S.r=0;S.i=0;S.screen="intro";save();render();}
+
+function renderIntro(){
+  const r=R();
+  app.innerHTML=`<div class="card center" style="padding:48px">
+    <span class="tag">${r.items.length} ${r.items.length===1?"Frage":"Fragen"} · ${r.timer} Sekunden Bedenkzeit</span>
+    <h2 style="font-size:46px;margin:18px 0">${r.name}</h2>
+    <p style="font-size:26px;max-width:900px;margin:0 auto 28px">${r.intro}</p>
+    <button class="btn gold" onclick="beginQ()">Los geht's</button>
+  </div>${scoreStrip()}`;
+}
+function scoreStrip(){
+  const sorted=[...S.teams].map((t,k)=>({...t,k})).sort((a,b)=>b.chips-a.chips);
+  return `<div class="teams">${sorted.map(t=>`<div class="team"><div class="head"><span>${esc(t.name)}</span><span class="chips"><span class="chip"></span>${t.chips}</span></div></div>`).join("")}</div>`;
+}
+function beginQ(){
+  S.screen="q";S.entries={};S.revealed=false;S.bonus={};
+  // Rettungschip
+  S.teams.forEach(t=>{if(t.chips<=0){t.chips=1;t.rescued=true;}else t.rescued=false;});
+  S.teams.forEach((t,k)=>{S.entries[k]={ans:null,bet:defaultBet(t)};});
+  S.time=R().timer; save(); render(); startTimer(); musicStart();
+}
+function defaultBet(t){return 1;}
+function maxBet(t){const m=R().betMax;return m==="all"?t.chips:Math.min(m,t.chips);}
+
+function renderQ(){
+  const r=R(),q=Q(),rev=S.revealed;
+  const labels = r.type==="abc"?LABC:L5;
+  const opts = r.type==="abc"?ABC:q.o;
+  const optHtml = opts.map((o,k)=>{
+    let cls="opt"; if(rev){cls+= k===q.c?" right":" dim";}
+    return `<div class="${cls}"><span class="n">${labels[k]}</span><span>${o}</span></div>`;}).join("");
+  const teamsHtml=S.teams.map((t,k)=>{
+    const e=S.entries[k]; const mb=maxBet(t);
+    let cls="team", delta="";
+    if(rev && e.ans!==null){cls+= e.res>0?" win":" lose"; delta=`<span class="delta ${e.res>0?"p":"m"}">${e.res>0?"+":""}${e.res}</span>`;}
+    let betUI;
+    if(r.betMax==="all"){
+      betUI=`<div class="pick"><button onclick="bet(${k},-1,true)" ${rev?"disabled":""}>−</button><button class="on wide" style="min-width:64px">${e.bet}</button><button onclick="bet(${k},1,true)" ${rev?"disabled":""}>+</button><button class="wide" onclick="bet(${k},${mb})" ${rev?"disabled":""}>Alles</button></div>`;
+    } else {
+      const arr=[];for(let b=1;b<=r.betMax;b++)arr.push(b);
+      betUI=`<div class="pick">${arr.map(b=>`<button class="${e.bet===b?"on":""}" onclick="bet(${k},${b})" ${rev||b>mb?"disabled":""}>${b}</button>`).join("")}</div>`;
+    }
+    const bonusBtn = (rev && e.res>0)?`<button class="bonus ${S.bonus[k]?"done":""}" onclick="giveBonus(${k})">${S.bonus[k]?"✓ Begründungs-Bonus +1":"+1 Begründung: „Fest steht …, deshalb …“"}</button>`:"";
+    return `<div class="${cls}">
+      <div class="head"><span>${esc(t.name)}${t.rescued?' <span class="hint">(Rettungschip)</span>':""}</span><span>${delta} <span class="chips"><span class="chip"></span>${t.chips}</span></span></div>
+      <div class="lbl">Antwort</div>
+      <div class="pick">${labels.map((l,a)=>`<button class="${e.ans===a?"on":""}" onclick="ans(${k},${a})" ${rev?"disabled":""}>${l}</button>`).join("")}</div>
+      <div class="lbl">Einsatz</div>${betUI}${bonusBtn}</div>`;}).join("");
+  const missing=S.teams.filter((t,k)=>S.entries[k].ans===null).length;
+  app.innerHTML=`<div class="card">
+     <div class="qtop"><span class="tag">${r.name}</span><span class="timer ${S.time!==null&&S.time<=5?"low":""}" id="tm">${S.time===null?"":S.time}</span></div>
+     <div class="question">${q.q}</div>
+     <div class="opts ${r.type==="abc"?"abc":""}">${optHtml}</div>
+     ${q.src?`<div class="src">${q.src}</div>`:""}
+     ${rev?`<div class="why">${q.why}</div>`:""}
+   </div>
+   <div class="teams">${teamsHtml}</div>
+   <div class="bar">
+     <span class="hint">${rev?"Richtig liegende Tische: Wer kann begründen? Dann +1 klicken.":(missing?`Noch ${missing} ${missing===1?"Tisch":"Tische"} ohne Antwort – wer nichts angibt, setzt nichts.`:"Alle Tische haben getippt.")}</span>
+     <span class="row">${rev?"":`<button class="btn ghost" onclick="addTime()">+15 Sek.</button>`}
+     ${rev?`<button class="btn gold" onclick="next()">${isLast()?"Zur Siegerehrung":"Weiter"}</button>`:`<button class="btn" onclick="reveal()">Auflösen</button>`}</span>
+   </div>`;
+}
+function ans(k,a){S.entries[k].ans=a;save();render();}
+function bet(k,v,rel){const t=S.teams[k],e=S.entries[k];const mb=maxBet(t);e.bet=rel?Math.max(1,Math.min(mb,e.bet+v)):Math.max(1,Math.min(mb,v));save();render();}
+let rolling=false;
+function reveal(){
+  if(rolling||S.revealed)return; stopTimer(); musicStop();
+  if(M.on){rolling=true;const ov=document.createElement("div");ov.className="roll";ov.innerHTML="<span>Und die richtige Antwort ist …</span>";document.body.appendChild(ov);drumroll();setTimeout(()=>{ov.remove();rolling=false;doReveal();},1700);}
+  else doReveal();
+}
+function doReveal(){
+  const q=Q();
+  S.teams.forEach((t,k)=>{const e=S.entries[k];
+    if(e.ans===null){e.res=undefined;return;}
+    e.res = e.ans===q.c? e.bet : -e.bet;
+    t.chips=Math.max(0,t.chips+e.res);});
+  S.revealed=true; save(); render(); tada();
+}
+function giveBonus(k){ if(S.bonus[k])return; S.bonus[k]=true; S.teams[k].chips+=1; save(); render(); }
+function isLast(){return S.r===ROUNDS.length-1 && S.i===R().items.length-1;}
+function next(){
+  if(rolling)return;
+  if(isLast()){S.screen="end";save();render();victory();return;}
+  if(S.i<R().items.length-1){S.i++;beginQ();}
+  else{S.r++;S.i=0;S.screen="intro";save();render();fanfare();}
+}
+function renderEnd(){
+  const sorted=[...S.teams].sort((a,b)=>b.chips-a.chips);
+  const medal=["🥇","🥈","🥉"];
+  app.innerHTML=`<div class="card center" style="padding:40px">
+    <div class="big">🏆</div>
+    <h2 style="font-size:44px">${esc(sorted[0].name)} gewinnt!</h2>
+    <div class="rank">${sorted.map((t,k)=>`<div class="r"><span class="pl">${medal[k]||k+1}</span><span class="nm">${esc(t.name)}</span><span class="chips"><span class="chip"></span>${t.chips}</span></div>`).join("")}</div>
+    <div class="why" style="text-align:left;max-width:900px;margin:24px auto 0">
+      <b>Die eine Frage für die Prüfung:</b> Was steht fest?<br>
+      Mittel fest (Geld, Zeit, Personal) → <b>Maximalprinzip</b> · Ziel fest (Menge, Umsatz) → <b>Minimalprinzip</b> · nichts fest → <b>Unsinn</b>.<br>
+      Signalwörter wie „maximal“ oder „möglichst“ allein verraten nichts.
+    </div>
+    <div class="row" style="justify-content:center;margin-top:24px"><button class="btn ghost" onclick="S=fresh();save();render()">Neues Spiel</button></div>
+  </div>`;
+}
+
+/* ===================== TIMER & TON ===================== */
+function startTimer(){stopTimer();tick=setInterval(()=>{if(S.time===null||S.revealed)return;if(S.time>0){S.time--;save();const el=document.getElementById("tm");if(el){el.textContent=S.time;el.classList.toggle("low",S.time<=5);} M.intense=S.time<=5?2:S.time<=10?1:0; if(S.time<=5&&S.time>0)clockTick(); if(S.time===0){musicStop();buzzer();}}},1000);}
+function stopTimer(){if(tick)clearInterval(tick);tick=null;}
+function addTime(){S.time=(S.time||0)+15;M.intense=0;save();render();if(!M.playing)musicStart();}
+/* ===================== MUSIK (selbst erzeugt, lizenzfrei) ===================== */
+const M={on:true,ctx:null,out:null,noise:null,playing:false,step:0,next:0,iv:null,intense:0};
+try{if(localStorage.getItem(KEY+"_music")==="0")M.on=false;}catch(e){}
+function ac(){
+  if(!M.ctx){const A=window.AudioContext||window.webkitAudioContext;M.ctx=new A();
+    const comp=M.ctx.createDynamicsCompressor();M.out=M.ctx.createGain();M.out.gain.value=.55;M.out.connect(comp);comp.connect(M.ctx.destination);
+    const len=M.ctx.sampleRate;const b=M.ctx.createBuffer(1,len,M.ctx.sampleRate);const d=b.getChannelData(0);for(let k=0;k<len;k++)d[k]=Math.random()*2-1;M.noise=b;}
+  if(M.ctx.state==="suspended")M.ctx.resume();return M.ctx;}
+function tone(f,t,dur,type,vol,cut){const c=M.ctx,o=c.createOscillator(),g=c.createGain();o.type=type||"sine";o.frequency.setValueAtTime(f,t);
+  let node=o; if(cut){const fl=c.createBiquadFilter();fl.type="lowpass";fl.frequency.value=cut;o.connect(fl);node=fl;}
+  node.connect(g);g.connect(M.out);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.008);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+function noiseHit(t,dur,vol,type,freq){const c=M.ctx,s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=M.noise;f.type=type;f.frequency.value=freq;s.connect(f);f.connect(g);g.connect(M.out);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);s.start(t);s.stop(t+dur+0.05);}
+function kick(t,v){const c=M.ctx,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(40,t+0.14);o.connect(g);g.connect(M.out);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.3);o.start(t);o.stop(t+0.35);}
+// Am – Am – F – E (klassische Quiz-Spannung)
+const BASS=[110,110,87.31,82.41], ARP=[[440,523.25,659.25],[440,523.25,659.25],[349.23,440,523.25],[329.63,415.3,493.88]];
+function bpm(){return [100,122,140][M.intense];}
+function playStep(st,t){
+  const bar=Math.floor(st/16)%4, s16=st%16, I=M.intense, sd=60/bpm()/4;
+  if(s16===0||s16===8||(I>0&&(s16===4||s16===12)))kick(t,.7);
+  if([0,3,6,8,11,14].includes(s16))tone(s16===8?BASS[bar]*2:BASS[bar],t,sd*1.8,"sawtooth",.22,600);
+  if(I>0||s16%2===0)noiseHit(t,.04,I>0?.09:.06,"highpass",7000);
+  if(I>0&&(s16===4||s16===12)){noiseHit(t,.14,.25,"bandpass",1800);tone(190,t,.08,"triangle",.12);}
+  const ch=ARP[bar];tone(ch[s16%3]*(s16>=8?2:1),t,sd*.9,"triangle",.07);
+  if(s16===0){ch.forEach(f=>tone(f/2,t,sd*16,"sawtooth",.035,900));}   // Flächenklang
+  if(I===2)tone(1318.5,t,sd*.5,"square",.025,4000);                        // Alarmton bei < 5 Sek.
+}
+function sched(){const c=M.ctx;while(M.next<c.currentTime+0.12){playStep(M.step,M.next);M.next+=60/bpm()/4;M.step=(M.step+1)%64;}}
+function musicStart(){if(!M.on)return;try{ac();musicStop();M.playing=true;M.step=0;M.intense=0;M.next=M.ctx.currentTime+0.05;M.iv=setInterval(sched,25);}catch(e){}}
+function musicStop(){if(M.iv)clearInterval(M.iv);M.iv=null;M.playing=false;}
+function clockTick(){if(!M.on)return;try{ac();const t=M.ctx.currentTime;tone(1760,t,.05,"square",.12,5000);}catch(e){}}
+function buzzer(){if(!M.on)return;try{ac();const t=M.ctx.currentTime;tone(110,t,.7,"square",.18,1200);tone(116,t,.7,"square",.18,1200);}catch(e){}}
+function drumroll(){if(!M.on)return;try{ac();const t0=M.ctx.currentTime;let t=t0,k=0;while(t<t0+1.55){const p=(t-t0)/1.55;noiseHit(t,.06,.08+.3*p,"bandpass",1500+800*p);t+=0.07-0.04*p;k++;}
+  tone(55,t0,1.6,"sawtooth",.12,300);}catch(e){}}
+function tada(){if(!M.on)return;try{ac();const t=M.ctx.currentTime;noiseHit(t,1.4,.35,"highpass",5000);kick(t,.9);
+  [440,554.37,659.25,880].forEach((f,k)=>{tone(f,t+k*0.06,1.2,"sawtooth",.08,2500);tone(f,t+k*0.06,1.2,"triangle",.08);});}catch(e){}}
+function fanfare(){if(!M.on)return;try{ac();const t=M.ctx.currentTime;[[392,0],[523.25,.14],[659.25,.28],[783.99,.42]].forEach(([f,d])=>{tone(f,t+d,d===.42?.9:.16,"square",.08,3000);tone(f,t+d,d===.42?.9:.16,"triangle",.1);});kick(t+.42,.8);}catch(e){}}
+function victory(){if(!M.on)return;try{ac();const t=M.ctx.currentTime;const n=[[523.25,0,.15],[523.25,.18,.15],[523.25,.36,.15],[659.25,.54,.45],[587.33,1.0,.15],[659.25,1.18,.15],[783.99,1.36,1.4]];
+  n.forEach(([f,d,l])=>{tone(f,t+d,l,"square",.08,3000);tone(f,t+d,l,"triangle",.1);});[261.63,329.63,392].forEach(f=>tone(f,t+1.36,1.6,"sawtooth",.06,1500));noiseHit(t+1.36,1.5,.3,"highpass",5000);kick(t+1.36,.9);}catch(e){}}
+function toggleMusic(){M.on=!M.on;try{localStorage.setItem(KEY+"_music",M.on?"1":"0");}catch(e){}
+  if(!M.on)musicStop();else if(S.screen==="q"&&!S.revealed&&S.time>0)musicStart();updM();}
+function updM(){const b=document.getElementById("mbtn");if(b)b.textContent=M.on?"♪ Musik an":"♪ Musik aus";}
+updM();
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+document.addEventListener("keydown",ev=>{
+  if(ev.target.tagName==="INPUT")return;
+  if(ev.code==="Space"){ev.preventDefault();
+    if(S.screen==="intro")beginQ();
+    else if(S.screen==="q"){S.revealed?next():reveal();}}
+});
+if(S.screen==="q"&&!S.revealed)startTimer();
+render();
+</script>
+</body>
+</html>

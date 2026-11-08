@@ -1,0 +1,925 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><title>Escape Room Neue Filiale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --floor:#EDF0EA; --surface:#FFFFFF; --surface-2:#F4F6F1; --ink:#16201B; --ink-soft:#4A5850; --ink-faint:#76837B;
+  --line:#D3DAD0; --green:#1E6B45; --green-ink:#FFFFFF; --green-soft:#DCEDDF;
+  --yellow:#F2C230; --yellow-ink:#2B2200; --yellow-soft:#FBF0C6;
+  --red:#B8322A; --red-soft:#F8E1DE; --money:#B8322A; --goods:#1E6B45;
+  --shadow:0 1px 2px rgba(22,32,27,.06),0 6px 18px rgba(22,32,27,.08);
+  --r:8px;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --floor:#101613; --surface:#18201C; --surface-2:#1F2924; --ink:#E6EDE8; --ink-soft:#A5B4AB; --ink-faint:#7C8B82;
+    --line:#2E3A33; --green:#5FC08A; --green-ink:#0B1A12; --green-soft:#1C3326;
+    --yellow:#F2C230; --yellow-ink:#2B2200; --yellow-soft:#3A3113;
+    --red:#F0877E; --red-soft:#3A1E1B; --money:#F0877E; --goods:#5FC08A;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --floor:#101613; --surface:#18201C; --surface-2:#1F2924; --ink:#E6EDE8; --ink-soft:#A5B4AB; --ink-faint:#7C8B82;
+  --line:#2E3A33; --green:#5FC08A; --green-ink:#0B1A12; --green-soft:#1C3326;
+  --yellow:#F2C230; --yellow-ink:#2B2200; --yellow-soft:#3A3113;
+  --red:#F0877E; --red-soft:#3A1E1B; --money:#F0877E; --goods:#5FC08A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{background:var(--floor)}
+body{color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding-inline:16px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.1;text-wrap:balance;margin:0}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.55}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px;border-radius:4px}
+.mono{font-family:var(--f-mono)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:6px;padding:12px 20px;font-weight:700;font-size:16px;background:var(--green);color:var(--green-ink)}
+.btn:hover:not(:disabled){filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.ghost:hover:not(:disabled){border-color:var(--ink-soft)}
+.btn.yellow{background:var(--yellow);color:var(--yellow-ink)}
+.btn.small{padding:8px 12px;font-size:14px}
+.linkbtn{background:none;border:0;padding:4px 2px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;font-size:14px}
+
+/* ---------- Kopfleiste ---------- */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--green);color:var(--green-ink)}
+.topbar .wrap{display:flex;align-items:center;gap:12px 18px;flex-wrap:wrap;padding-block:10px}
+.brand{font-family:var(--f-display);font-weight:800;font-size:24px;letter-spacing:.04em;text-transform:uppercase}
+.brand small{display:block;font-family:var(--f-body);font-weight:400;font-size:12px;letter-spacing:.02em;text-transform:none;opacity:.85}
+.clock{margin-left:auto;display:flex;align-items:center;gap:10px}
+.clock[hidden]{display:none}
+.lcd{font-family:var(--f-mono);font-weight:600;font-size:22px;background:#0E1511;color:#7CF0A6;padding:4px 10px;border-radius:4px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.lcd.late{color:#FF8A7E}
+.clock .lbl{font-size:12px;line-height:1.2;opacity:.9;text-align:right}
+
+/* ---------- Start ---------- */
+.hero{padding-block:34px 10px;display:grid;gap:22px}
+.eyebrow{font-family:var(--f-mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);font-weight:600}
+.hero h1{font-size:clamp(40px,8vw,64px);text-transform:uppercase;letter-spacing:.01em}
+.hero .lead{font-size:19px;max-width:62ch}
+.notice{background:var(--surface);border:2px dashed var(--red);border-radius:var(--r);padding:18px 20px;display:grid;gap:8px;max-width:640px}
+.notice b{color:var(--red)}
+.startform{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.field{display:grid;gap:6px}
+.field label{font-weight:700;font-size:15px}
+input[type=text],input[type=password],textarea{font:inherit;font-size:17px;padding:10px 12px;border:2px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:100%}
+input:focus,textarea:focus{outline:none;border-color:var(--green)}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:6px}
+.rule{background:var(--surface);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow)}
+.rule h3{font-size:20px;margin-bottom:4px}
+.rule p{font-size:15px;color:var(--ink-soft)}
+.teacherlinks{display:flex;flex-wrap:wrap;gap:6px 18px;padding-block:24px 40px;border-top:1px solid var(--line);margin-top:30px}
+
+/* ---------- Marktplan ---------- */
+.planhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-block:22px 10px}
+.planhead h2{font-size:26px;text-transform:uppercase}
+.planhead .stat{font-size:14px;color:var(--ink-soft)}
+.plan{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--ink);padding:6px;border-radius:10px}
+.tile{position:relative;border:0;border-radius:5px;background:var(--surface-2);color:var(--ink);text-align:left;padding:10px 10px 12px;min-height:96px;display:flex;flex-direction:column;gap:4px}
+.tile .no{font-family:var(--f-mono);font-size:12px;color:var(--ink-faint)}
+.tile .room{font-family:var(--f-display);font-weight:700;font-size:19px;line-height:1.05;padding-right:36px;overflow-wrap:anywhere}
+.tile:disabled{opacity:1;cursor:default}
+.tile .state{margin-top:auto;font-size:13px;color:var(--ink-soft)}
+.tile.locked{background:repeating-linear-gradient(135deg,var(--surface-2),var(--surface-2) 8px,var(--floor) 8px,var(--floor) 16px);color:var(--ink-faint)}
+.tile.locked .room{color:var(--ink-faint)}
+.tile.open{background:var(--yellow);color:var(--yellow-ink)}
+.tile.open .no,.tile.open .state{color:var(--yellow-ink)}
+.tile.done{background:var(--green-soft)}
+.tile .letter{position:absolute;top:8px;right:8px;font-family:var(--f-mono);font-weight:600;font-size:20px;background:var(--surface);color:var(--green);border:2px solid var(--green);border-radius:4px;width:34px;height:34px;display:grid;place-items:center}
+.tile.current{outline:3px solid var(--yellow);outline-offset:-3px}
+.tile.done.current{outline-color:var(--green)}
+@media (max-width:620px){.plan{grid-template-columns:repeat(2,1fr)}.tile{min-height:84px}}
+
+/* ---------- Station ---------- */
+.station{margin-block:22px 50px;background:var(--surface);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.st-head{padding:18px 22px 16px;border-bottom:1px solid var(--line);display:grid;gap:6px}
+.st-head .eyebrow{color:var(--green)}
+.st-head h2{font-size:clamp(26px,5vw,36px);text-transform:uppercase;overflow-wrap:anywhere;hyphens:auto}
+.story{font-size:17px;max-width:66ch}
+.st-body{padding:18px 22px 22px;display:grid;gap:22px}
+.part h3{font-size:22px;margin-bottom:4px}
+.part .intro{color:var(--ink-soft);font-size:16px;margin-bottom:10px;max-width:66ch}
+.items{display:grid;gap:10px;counter-reset:it}
+.item{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;gap:10px;background:var(--surface-2)}
+.item .q{font-size:17px}
+.item .q::before{counter-increment:it;content:counter(it,lower-alpha) ") ";font-family:var(--f-mono);font-weight:600;color:var(--ink-faint)}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:15px;font-weight:700;color:var(--ink-soft)}
+.opt:hover{border-color:var(--ink-soft);color:var(--ink)}
+.opt[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--floor)}
+.lockbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:16px;border-radius:var(--r);background:var(--ink);color:var(--floor)}
+.lockbar .btn{background:var(--yellow);color:var(--yellow-ink)}
+.lockmsg{font-size:15px}
+.lockmsg b{font-family:var(--f-mono)}
+.figure{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.figure svg{display:block;width:100%;min-width:520px;height:auto}
+.figure svg text{fill:var(--ink);font-family:var(--f-body)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--ink-soft);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:30px;height:0;border-top:3px solid}
+table.data{border-collapse:collapse;width:100%;font-size:16px;background:var(--surface)}
+table.data th,table.data td{border-bottom:1px solid var(--line);padding:7px 10px;text-align:right;font-variant-numeric:tabular-nums}
+table.data th{font-size:14px;background:var(--green-soft);text-align:right}
+table.data th:first-child,table.data td:first-child{text-align:left}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:700px){.twocol{grid-template-columns:1fr}}
+
+.hints{display:grid;gap:8px}
+.hintrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hint{background:var(--yellow-soft);border-left:4px solid var(--yellow);padding:10px 14px;border-radius:4px;font-size:16px}
+.profi{border:2px solid var(--green);border-radius:var(--r);background:var(--surface)}
+.profi summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:center}
+.profi summary::-webkit-details-marker{display:none}
+.profi summary::before{content:"+";font-family:var(--f-mono);font-size:20px;color:var(--green);width:18px}
+.profi[open] summary::before{content:"–"}
+.profi .tag{font-family:var(--f-mono);font-size:12px;background:var(--green);color:var(--green-ink);padding:2px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:.06em}
+.profi .inner{padding:0 16px 16px;display:grid;gap:10px}
+.muster{background:var(--green-soft);padding:12px 14px;border-radius:6px;font-size:16px}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.compare .mine{background:var(--surface-2);border:1px solid var(--line);padding:12px 14px;border-radius:6px;font-size:16px;white-space:pre-wrap}
+.compare b{display:block;margin-bottom:4px;white-space:normal}
+.checkq{font-size:15px;color:var(--ink-soft);margin-top:8px}
+@media (max-width:640px){.compare{grid-template-columns:1fr}}
+.profilist{max-width:760px;margin:0 auto 30px;display:grid;gap:10px}
+.profilist h2{font-size:28px;text-transform:uppercase}
+.muster b{display:block;margin-bottom:4px}
+
+.solved{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;background:var(--green-soft);border-radius:var(--r);padding:16px}
+.note{width:86px;height:86px;background:var(--yellow);color:var(--yellow-ink);display:grid;place-items:center;font-family:var(--f-mono);font-weight:600;font-size:44px;transform:rotate(-4deg);box-shadow:var(--shadow);border-radius:2px}
+.solved h3{font-size:24px}
+
+/* ---------- Tresor ---------- */
+.vault{display:grid;gap:18px}
+.tiles{display:flex;flex-wrap:wrap;gap:8px}
+.ltile{width:54px;height:62px;background:var(--yellow);color:var(--yellow-ink);font-family:var(--f-mono);font-weight:600;font-size:30px;display:grid;place-items:center;border-radius:3px;box-shadow:var(--shadow)}
+.ltile:nth-child(odd){transform:rotate(-3deg)}.ltile:nth-child(even){transform:rotate(2deg)}
+.codein{font-family:var(--f-mono)!important;font-size:30px!important;letter-spacing:.3em;text-transform:uppercase;max-width:360px}
+
+/* ---------- Ergebnis / Kassenbon ---------- */
+.receipt{max-width:380px;margin:26px auto 60px;background:#FFFFFF;color:#1A1A1A;font-family:var(--f-mono);font-size:15px;padding:24px 22px 30px;box-shadow:var(--shadow);position:relative}
+.receipt::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:10px;background:linear-gradient(-45deg,transparent 7px,#FFFFFF 0) 0 0/14px 10px,linear-gradient(45deg,transparent 7px,#FFFFFF 0) 0 0/14px 10px}
+.receipt h2{font-family:var(--f-display);text-align:center;font-size:30px;letter-spacing:.06em}
+.receipt .c{text-align:center}
+.receipt hr{border:0;border-top:1px dashed #999;margin:12px 0}
+.receipt .row{display:flex;justify-content:space-between;gap:10px}
+.receipt .big{font-size:20px;font-weight:600}
+@media (prefers-reduced-motion:no-preference){.receipt{animation:print 1.2s ease-out both}@keyframes print{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 -20px 0)}}}
+
+/* ---------- Teamquiz ---------- */
+.quiz{padding-block:22px 60px;display:grid;gap:18px}
+.quiz h2{font-size:clamp(30px,5vw,44px)}
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:640px){.qgrid{grid-template-columns:1fr}}
+.qopt{display:flex;gap:14px;align-items:center;padding:18px;border-radius:var(--r);background:var(--surface);border:3px solid var(--line);font-size:clamp(18px,2.6vw,24px);font-weight:700;text-align:left}
+.qopt .k{font-family:var(--f-mono);font-size:26px;width:44px;height:44px;border-radius:6px;display:grid;place-items:center;background:var(--ink);color:var(--floor);flex:none}
+.qopt.right{border-color:var(--green);background:var(--green-soft)}
+.qopt.wrong{opacity:.4}
+.timerbar{height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.timerbar i{display:block;height:100%;background:var(--yellow);width:100%}
+.teams{display:flex;flex-wrap:wrap;gap:8px}
+.team{border:2px solid var(--line);background:var(--surface);border-radius:6px;padding:8px 14px;font-weight:700}
+.team[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--green-ink)}
+.score{display:grid;gap:6px}
+.srow{display:grid;grid-template-columns:1.2fr 3fr auto;gap:10px;align-items:center}
+.srow .bar{height:22px;background:var(--line);border-radius:3px;overflow:hidden}
+.srow .bar i{display:block;height:100%;background:var(--green)}
+.srow .pts{font-family:var(--f-mono);font-weight:600;min-width:2.5em;text-align:right}
+.setupgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.setupgrid .card{background:var(--surface);padding:12px;border-radius:var(--r);display:grid;gap:8px;box-shadow:var(--shadow)}
+.num{width:80px!important}
+.podium{font-size:clamp(28px,5vw,44px);font-family:var(--f-display);font-weight:800}
+
+/* ---------- Lehrkraft ---------- */
+.teacher{padding-block:24px 60px;display:grid;gap:18px}
+.tsec{background:var(--surface);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
+.tsec h3{font-size:22px;margin-bottom:8px}
+.tsec ul,.tsec ol{margin:0;padding-left:20px}
+.tsec table{border-collapse:collapse;width:100%;font-size:15px}
+.tsec td,.tsec th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.tsec th{background:var(--surface-2)}
+.sol{font-weight:700;color:var(--green)}
+footer.foot{padding-block:10px 40px;color:var(--ink-faint);font-size:13px}
+@media print{.topbar,.noprint{display:none!important}body{background:#fff}.tsec{box-shadow:none;border:1px solid #ccc;break-inside:avoid}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- Kahoot-Quiz ---------- */
+.qtop{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.double{background:var(--yellow);color:var(--yellow-ink);padding:1px 8px;border-radius:3px}
+.count{font-family:var(--f-display);font-weight:800;font-size:46px;width:78px;height:78px;border-radius:50%;background:#46178F;color:#fff;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.kq{font-size:clamp(28px,4.6vw,44px)!important;background:var(--surface);padding:18px 20px;border-radius:var(--r);box-shadow:var(--shadow);text-align:center}
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:640px){.kgrid{grid-template-columns:1fr}}
+.kopt{position:relative;display:flex;gap:16px;align-items:center;padding:20px 18px;border-radius:var(--r);border:0;color:#fff;font-size:clamp(18px,2.6vw,26px);font-weight:700;text-align:left;min-height:92px;box-shadow:0 4px 0 rgba(0,0,0,.25);transition:opacity .2s}
+.kopt .shape{font-size:36px;line-height:1;width:44px;text-align:center;flex:none}
+.kopt .kt b{font-family:var(--f-mono);margin-right:6px}
+.kopt.wrong{opacity:.28}
+.kopt.right{outline:5px solid var(--ink);outline-offset:3px}
+.kopt .ok{margin-left:auto;font-size:40px}
+.team.mark.m1{background:var(--green);border-color:var(--green);color:var(--green-ink)}
+.team.mark.m2{background:var(--yellow);border-color:var(--yellow);color:var(--yellow-ink)}
+.leader{display:grid;gap:8px}
+.lrow{display:grid;grid-template-columns:2.2em minmax(7em,1.2fr) 3fr 4em 4.5em;gap:10px;align-items:center;background:var(--surface);padding:10px 14px;border-radius:var(--r);box-shadow:var(--shadow);font-size:20px;font-weight:700}
+.lrow .rk{font-family:var(--f-mono)}
+.lrow .bar{height:22px;background:var(--line);border-radius:3px;overflow:hidden}.lrow .bar i{display:block;height:100%;background:#46178F}
+.lrow .pts{font-family:var(--f-mono);text-align:right}.lrow .gn{font-family:var(--f-mono);font-size:15px;color:var(--green)}
+.up{color:var(--green);font-size:14px}.down{color:var(--red);font-size:14px}
+@media (max-width:640px){.lrow{grid-template-columns:2em 1fr 4em;font-size:17px}.lrow .bar,.lrow .gn{display:none}}
+.podiumrow{display:flex;justify-content:center;align-items:flex-end;gap:12px;margin-top:10px}
+.pcol{display:grid;justify-items:center;gap:6px;width:min(30%,200px)}
+.pname{font-family:var(--f-display);font-weight:800;font-size:clamp(20px,3.4vw,32px);text-align:center;overflow-wrap:anywhere}
+.ppts{font-family:var(--f-mono);font-weight:600}
+.pblock{width:100%;background:#46178F;color:#fff;border-radius:6px 6px 0 0;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:56px}
+@media (prefers-reduced-motion:no-preference){.pblock{animation:rise .9s ease-out both}@keyframes rise{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1);transform-origin:bottom}}}
+.rest{list-style:none;padding:0;text-align:center;font-weight:700}
+.cardsheet{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pcard{aspect-ratio:1.3;border-radius:10px;color:#fff;display:grid;place-items:center;align-content:center;gap:4px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pcard span{font-size:110px;line-height:1}.pcard b{font-family:var(--f-mono);font-size:60px}
+.remotefull{position:fixed;inset:0;z-index:50;border:0;color:#fff;display:grid;place-items:center;align-content:center;gap:6px;width:100%}
+.remotefull span{font-size:min(50vw,260px);line-height:1}.remotefull b{font-family:var(--f-mono);font-size:72px}.remotefull small{font-size:16px;opacity:.9}
+@media print{.pcard{break-inside:avoid}.cardsheet{gap:6mm}}
+</style>
+
+<header class="topbar"><div class="wrap">
+  <div class="brand">Frischmarkt<small>Bremerhaven · neue Filiale Lehe</small></div>
+  <div class="clock" id="clockbox" hidden>
+    <div class="lbl">Eröffnung 10:00<br><span id="remain">noch 35:00</span></div>
+    <div class="lcd" id="lcd">09:25</div>
+  </div>
+</div></header>
+
+<main id="app"></main>
+
+<script>
+/* =========================================================
+   INHALT – Stationen (LF 1, Modul 8–12, Lehrbuch S. 64–83)
+   ========================================================= */
+const FIG_ORGA = `
+<svg viewBox="0 0 660 270" role="img" aria-label="Organigramm der neuen Filiale: Filialleitung oben, darunter vier Abteilungen, unter Verkauf Food die Stellen Kasse und Frischetheke">
+  <g style="stroke:var(--ink-soft);stroke-width:2;fill:none">
+    <line x1="330" y1="62" x2="330" y2="88"/><line x1="87" y1="88" x2="573" y2="88"/>
+    <line x1="87" y1="88" x2="87" y2="108"/><line x1="249" y1="88" x2="249" y2="108"/><line x1="411" y1="88" x2="411" y2="108"/><line x1="573" y1="88" x2="573" y2="108"/>
+    <line x1="87" y1="168" x2="87" y2="190"/><line x1="30" y1="190" x2="150" y2="190"/><line x1="30" y1="190" x2="30" y2="206"/><line x1="150" y1="190" x2="150" y2="206"/>
+  </g>
+  <rect x="235" y="12" width="190" height="50" rx="6" style="fill:var(--green);stroke:var(--green)"/>
+  <text x="330" y="34" text-anchor="middle" style="font-weight:700;font-size:16px;fill:var(--green-ink)">Filialleitung</text>
+  <text x="330" y="53" text-anchor="middle" style="font-size:13px;fill:var(--green-ink)">Frau Okafor</text>
+  <g style="font-size:14px">
+    <rect x="12" y="108" width="150" height="60" rx="6" style="fill:var(--green-soft);stroke:var(--green);stroke-width:2"/>
+    <text x="87" y="133" text-anchor="middle" style="font-weight:700">Verkauf Food</text><text x="87" y="153" text-anchor="middle" style="font-size:13px;fill:var(--ink-soft)">Leitung: Herr Brandt</text>
+    <rect x="174" y="108" width="150" height="60" rx="6" style="fill:var(--green-soft);stroke:var(--green);stroke-width:2"/>
+    <text x="249" y="133" text-anchor="middle" style="font-weight:700">Verkauf Non-Food</text><text x="249" y="153" text-anchor="middle" style="font-size:13px;fill:var(--ink-soft)">Leitung: Frau Weiß</text>
+    <rect x="336" y="108" width="150" height="60" rx="6" style="fill:var(--green-soft);stroke:var(--green);stroke-width:2"/>
+    <text x="411" y="133" text-anchor="middle" style="font-weight:700">Lager</text><text x="411" y="153" text-anchor="middle" style="font-size:13px;fill:var(--ink-soft)">Leitung: Emre</text>
+    <rect x="498" y="108" width="150" height="60" rx="6" style="fill:var(--green-soft);stroke:var(--green);stroke-width:2"/>
+    <text x="573" y="133" text-anchor="middle" style="font-weight:700">Verwaltung</text><text x="573" y="153" text-anchor="middle" style="font-size:13px;fill:var(--ink-soft)">Leitung: Frau Demir</text>
+    <rect x="0" y="206" width="72" height="50" rx="6" style="fill:var(--surface-2);stroke:var(--ink-soft);stroke-width:1.5"/>
+    <text x="36" y="227" text-anchor="middle" style="font-weight:700;font-size:13px">Kasse</text><text x="36" y="245" text-anchor="middle" style="font-size:12px;fill:var(--ink-soft)">Lena</text>
+    <rect x="108" y="206" width="96" height="50" rx="6" style="fill:var(--surface-2);stroke:var(--ink-soft);stroke-width:1.5"/>
+    <text x="156" y="227" text-anchor="middle" style="font-weight:700;font-size:13px">Frischetheke</text><text x="156" y="245" text-anchor="middle" style="font-size:12px;fill:var(--ink-soft)">Jonas</text>
+  </g>
+</svg>`;
+
+const FIG_STANDORT = `
+<div class="twocol">
+ <div class="tablewrap"><table class="data"><thead><tr><th>Standort A</th></tr></thead><tbody>
+  <tr><td><b>Fußgängerzone Lehe</b><br>zwischen Bäckerei, Apotheke und Modegeschäft · Bushaltestelle vor der Tür · Ladenfläche 900 m² · Miete 24 € je m²</td></tr></tbody></table></div>
+ <div class="tablewrap"><table class="data"><thead><tr><th>Standort B</th></tr></thead><tbody>
+  <tr><td><b>Gewerbegebiet am Stadtrand</b><br>direkt an der Autobahnabfahrt · 250 Parkplätze · Ladenfläche 3.000 m² · Miete 9 € je m²</td></tr></tbody></table></div>
+</div>`;
+
+const STATIONS = [
+{
+  id:"s1", room:"Süßwarengang", letter:"L",
+  title:"Die Sortimentspyramide",
+  story:"09:25 Uhr. Im Süßwarengang der neuen Filiale liegen sechs Regaletiketten auf dem Boden. Frau Okafor hat einen Zettel daneben gelegt: „Jedes Etikett gehört auf eine Stufe der Sortimentspyramide. Erst wenn alles stimmt, geht es weiter.“",
+  klausur:"Modul 8 · Buch S. 64–66",
+  parts:[
+    {h:"Teil A: Auf welche Stufe gehört das Etikett?", intro:"Von oben (groß) nach unten (klein): Warenbereich – Warenart – Warengruppe – Artikelgruppe – Artikel – Sorte.",
+     options:["Warenbereich","Warenart","Warengruppe","Artikelgruppe","Artikel","Sorte"],
+     items:[
+      {q:"Schokolade", a:"Warengruppe"},
+      {q:"Marke Hafenfrisch, Vollmilch-Nuss, 100-g-Tafel", a:"Sorte"},
+      {q:"Lebensmittel", a:"Warenbereich"},
+      {q:"Tafelschokolade", a:"Artikelgruppe"},
+      {q:"Süßwaren", a:"Warenart"},
+      {q:"Vollmilch-Nuss-Schokolade", a:"Artikel"}
+     ]},
+    {h:"Teil B: Breit oder schmal? Tief oder flach?", intro:"Frau Okafor hat vier Geschäfte aus Bremerhaven notiert. Welche Beschreibung passt?",
+     options:["schmal und tief","schmal und flach","breit und tief","breit und flach"],
+     items:[
+      {q:"„Teezeit“ verkauft nur Tee und Teezubehör – aber 180 Teesorten aus 25 Ländern.", a:"schmal und tief"},
+      {q:"Der Discounter „Preisfuchs“ hat wenige Warengruppen und von jedem Artikel meist nur eine Sorte.", a:"schmal und flach"},
+      {q:"Ein großes Warenhaus mit Mode, Spielwaren, Haushalt und Elektro – in jeder Abteilung eine riesige Auswahl.", a:"breit und tief"},
+      {q:"Ein Supermarkt mit vielen Warengruppen, aber von jedem Artikel nur zwei oder drei Sorten.", a:"breit und flach"}
+     ]}
+  ],
+  hints:[
+    "Die Sorte ist genau dieses eine Produkt (Marke, Größe, Verpackung). Mehrere Sorten ergeben einen Artikel, mehrere Artikel eine Artikelgruppe. Ganz oben steht der Warenbereich (z. B. Lebensmittel).",
+    "Breite = Anzahl der Warengruppen (viele = breit). Tiefe = Auswahl innerhalb einer Warengruppe (viel = tief)."
+  ],
+  profi:{q:"Der Discounter „Preisfuchs“ hat ein schmales und flaches Sortiment. Begründet, warum er damit besonders günstige Preise anbieten kann.",
+    m:"Wenige Artikel bedeuten niedrige Lagerkosten, wenig Platzbedarf und kaum verdorbene Ware. Von jedem Artikel kauft der Discounter sehr große Mengen ein und bekommt deshalb günstige Einkaufspreise. Die Ersparnis gibt er über niedrige Verkaufspreise an die Kunden weiter."}
+},
+{
+  id:"s2", room:"Aktionsfläche", letter:"I",
+  title:"Die Regalschilder",
+  story:"Auf der Aktionsfläche am Eingang stapeln sich Regalschilder. Die Aushilfe weiß nicht, wohin damit. Auf jedem Schild fehlt der Vermerk, zu welchem Teil des Sortiments die Ware gehört – und welche Art von Artikel es ist.",
+  klausur:"Modul 8 · Buch S. 66–68",
+  parts:[
+    {h:"Teil A: Welcher Teil des Sortiments?", intro:"",
+     options:["Kernsortiment","Zusatzsortiment","Randsortiment","Saisonsortiment","Aktionssortiment"],
+     items:[
+      {q:"Obst, Gemüse, Milchprodukte und Brot – immer vorrätig, sie bringen den meisten Umsatz.", a:"Kernsortiment"},
+      {q:"Korkenzieher und Weinkühler direkt neben dem Weinregal", a:"Zusatzsortiment"},
+      {q:"Lebkuchen und Schoko-Nikoläuse von September bis Dezember", a:"Saisonsortiment"},
+      {q:"Ein kleines Regal mit Socken und Bettwäsche, selten verlangt", a:"Randsortiment"},
+      {q:"Kaffee nur diese Woche 30 % billiger", a:"Aktionssortiment"}
+     ]},
+    {h:"Teil B: Welche Artikelart?", intro:"",
+     options:["Markenartikel","Handelsmarke","Me-too-Artikel","No-Name-Artikel","Trendartikel"],
+     items:[
+      {q:"Butter „Hafenfrisch“ – die gibt es nur in den Filialen vom Frischmarkt.", a:"Handelsmarke"},
+      {q:"Eine Haselnusscreme einer bekannten Marke: im Fernsehen beworben, überall erhältlich, gleichbleibende Qualität", a:"Markenartikel"},
+      {q:"Eine Haselnusscreme im fast gleichen Glas und mit ähnlichem Namen wie die bekannte Marke – nur günstiger", a:"Me-too-Artikel"},
+      {q:"Spülschwämme im 10er-Pack ohne Markennamen, die Qualität schwankt", a:"No-Name-Artikel"},
+      {q:"Ein Proteinpudding, den seit einem Social-Media-Video alle haben wollen", a:"Trendartikel"}
+     ]}
+  ],
+  hints:[
+    "Kern = Hauptumsatz, immer da. Zusatz = passt direkt zum Kernsortiment, damit der Kunde alles bekommt. Rand = selten verlangt, oft branchenfremd. Saison = nur zu bestimmten Zeiten. Aktion = kurz und billig.",
+    "Handelsmarke = trägt den Namen des Händlers, gibt es nur dort. Me-too = ahmt eine bekannte Marke nach. No-Name = ganz ohne Markennamen. Trend = wird eine Zeit lang besonders stark nachgefragt."
+  ],
+  profi:{q:"Der Frischmarkt bringt seine Handelsmarke „Hafenfrisch“ in die neue Filiale. Erläutert zwei Vorteile der Handelsmarke für den Frischmarkt.",
+    m:"Kundenbindung: Die Ware gibt es nur beim Frischmarkt, wer sie mag, kommt wieder. Abgrenzung: Der Frischmarkt unterscheidet sich von den Mitbewerbern. Kalkulation: Der Einkaufspreis ist niedrig, deshalb kann der Frischmarkt freier kalkulieren und hat eine höhere Spanne. Außerdem wird er unabhängiger von den Markenherstellern."}
+},
+{
+  id:"s3", room:"Parkplatz", letter:"E",
+  title:"Der Standort-Vergleich",
+  story:"Auf dem Parkplatz flattert ein Blatt im Wind: Frau Okafors alter Standort-Vergleich. Bevor sie sich für Lehe entschieden hat, hat sie zwei Standorte verglichen. Ordnet jede Notiz dem passenden Standort zu.",
+  klausur:"Modul 9 · Buch S. 69",
+  parts:[
+    {h:"Standort A oder Standort B?", intro:"Lest beide Steckbriefe genau.", figure:FIG_STANDORT,
+     options:["A Innenstadt","B Stadtrand"],
+     items:[
+      {q:"Viele Passanten kommen vorbei, die Kunden machen hier Kopplungskäufe mit anderen Geschäften.", a:"A Innenstadt"},
+      {q:"Die Kunden kommen fast nur mit dem Auto.", a:"B Stadtrand"},
+      {q:"Die Miete ist hoch, die Anlieferung mit dem LKW ist schwierig.", a:"A Innenstadt"},
+      {q:"Hier ist genug Platz für einen großen Verbrauchermarkt.", a:"B Stadtrand"},
+      {q:"Kunden ohne Auto erreichen den Markt gut mit dem Bus.", a:"A Innenstadt"},
+      {q:"Es gibt kaum Laufkundschaft.", a:"B Stadtrand"},
+      {q:"Ein Juwelier würde lieber hierhin ziehen.", a:"A Innenstadt"}
+     ]}
+  ],
+  hints:[
+    "Innenstadt: viele Menschen zu Fuß, Bus und Bahn, andere Geschäfte nebenan – aber teuer und eng. Stadtrand: viel Platz, billig, Parkplätze – aber man braucht ein Auto.",
+    "Ein Juwelier braucht wenig Fläche, aber viele Passanten und ein hochwertiges Umfeld."
+  ],
+  profi:{q:"Ein Fachgeschäft in der Fußgängerzone verliert Kunden an den Onlinehandel und an ein Einkaufszentrum am Stadtrand. Entwickelt zwei Ideen, wie es seine Standortnachteile ausgleichen kann.",
+    m:"Zum Beispiel: Click & Collect und einen Lieferservice anbieten; Parkgebühren erstatten oder Parkchips ausgeben; Beratung, Service und Events als Stärke betonen, die es online nicht gibt; gemeinsame Aktionen mit anderen Händlern der Innenstadt (z. B. verkaufsoffener Sonntag, gemeinsame Werbung)."}
+},
+{
+  id:"s4", room:"Bauleitungs-Container", letter:"F",
+  title:"Die Konkurrenz-Liste",
+  story:"Im Container der Bauleitung hängt eine Pinnwand: Frau Okafor hat alle Mitbewerber in der Nähe aufgeschrieben. Neben jedem Namen fehlt die Betriebsform.",
+  klausur:"Modul 9 · Buch S. 69–75",
+  parts:[
+    {h:"Welche Betriebsform ist das?", intro:"Achtet auf Sortiment, Preis, Verkaufsform und Standort.",
+     items:[
+      {q:"„Käse-Kontor“ in der Fußgängerzone verkauft nur Käse – 250 Sorten, mit Probierstücken und Beratung.", options:["Fachgeschäft","Spezialgeschäft","Supermarkt"], a:"Spezialgeschäft"},
+      {q:"„Preisfuchs“ am Stadtrand: 1.500 Artikel auf Paletten, kaum Dekoration, sehr niedrige Preise.", options:["Supermarkt","Discounter","Verbrauchermarkt"], a:"Discounter"},
+      {q:"„Mega-Markt“ an der Autobahnabfahrt: 60.000 Artikel, Lebensmittel und Gebrauchsgüter, Selbstbedienung.", options:["Warenhaus","Verbrauchermarkt","Fachmarkt"], a:"Verbrauchermarkt"},
+      {q:"„Technik-Welt“ am Stadtrand: nur Elektrogeräte, 4.000 m², große Auswahl, niedrige Preise.", options:["Fachgeschäft","Fachmarkt","Warenhaus"], a:"Fachmarkt"},
+      {q:"„Kaufhaus Hafenlicht“ in der Innenstadt: Mode, Kosmetik, Spielwaren und Haushalt auf vier Etagen.", options:["Warenhaus","Verbrauchermarkt","Spezialgeschäft"], a:"Warenhaus"},
+      {q:"Familie Lüders verkauft mittwochs und samstags Gemüse an ihrem Stand auf dem Wochenmarkt.", options:["Versandhandel","ambulanter Handel","Fachmarkt"], a:"ambulanter Handel"},
+      {q:"Ayla bestellt Grillfleisch in der App vom Frischmarkt und holt es um 17 Uhr an der Theke ab.", options:["Versandhandel","Click & Collect","Tele-Shopping"], a:"Click & Collect"}
+     ]}
+  ],
+  hints:[
+    "Fachgeschäft = eine Branche. Spezialgeschäft = nur ein kleiner Ausschnitt einer Branche, sehr tief. Fachmarkt = eine Branche, aber riesige Fläche am Stadtrand und günstig. Warenhaus = sehr breit, viele Abteilungen, Innenstadt.",
+    "Discounter: eng und flach, 600–2.500 Artikel, sehr billig. Verbrauchermarkt: breit und tief, Lebensmittel und Gebrauchsgüter, Stadtrand. Ambulanter Handel = ohne festes Geschäft (Markt, Straße)."
+  ],
+  profi:{q:"In den letzten Jahren sind viele neue Betriebsformen entstanden (z. B. Click & Collect). Erklärt, warum das so ist, und nennt ein Beispiel.",
+    m:"Neue Betriebsformen entstehen, weil die Kunden ihre Erwartungen und ihr Kaufverhalten verändern. Beispiel 1: Viele Kunden kaufen preisbewusster ein – davon profitieren die Discounter. Beispiel 2: Viele Kunden bestellen gern online, wollen aber keine Versandkosten zahlen oder die Ware schnell haben – deshalb bieten Geschäfte Click & Collect an."}
+},
+{
+  id:"s5", room:"Verkaufsfläche", letter:"A",
+  title:"Die Abteilungsschilder",
+  story:"Auf der Verkaufsfläche hängen schon die Abteilungsschilder, aber auf keinem steht, wie dort verkauft wird. Der Ladenbauer braucht die Angabe, sonst baut er die falschen Theken und Regale.",
+  klausur:"Modul 10 · Buch S. 75–76",
+  parts:[
+    {h:"Teil A: Welche Verkaufsform passt?", intro:"Bedienung = die Verkäuferin gibt die Ware · Vorwahl = selbst umschauen, Beratung auf Wunsch · Selbstbedienung = selbst nehmen, zur Kasse",
+     options:["Bedienung","Vorwahl","Selbstbedienung"],
+     items:[
+      {q:"Die Frischfisch-Theke", a:"Bedienung"},
+      {q:"Mehl, Nudeln und Reis im Regal", a:"Selbstbedienung"},
+      {q:"Die Kaffeevollautomaten: Kunden probieren selbst aus, ein Mitarbeiter erklärt nur, wenn sie fragen.", a:"Vorwahl"},
+      {q:"Teure Parfüms im abgeschlossenen Glasschrank", a:"Bedienung"},
+      {q:"Zahnpasta und Duschgel", a:"Selbstbedienung"},
+      {q:"Pflanzenschutzmittel in der kleinen Gartenabteilung", a:"Bedienung"}
+     ]},
+    {h:"Teil B: Die Weinabteilung", intro:"In der alten Filiale wurde Wein in Bedienung verkauft. In der neuen Filiale soll es Vorwahl werden.",
+     items:[
+      {q:"Was braucht die Weinabteilung für die Vorwahl vor allem?", options:["einen übersichtlichen Warenaufbau mit Produktbeschreibungen","eine Verkäuferin, die jeden Kunden sofort beim Betreten anspricht","eine Theke, hinter der alle Flaschen stehen"], a:"einen übersichtlichen Warenaufbau mit Produktbeschreibungen"}
+     ]}
+  ],
+  hints:[
+    "Bedienung bei Waren, die teuer, diebstahlgefährdet oder erklärungsbedürftig sind – oder wenn Hygiene oder ein Gesetz es verlangen.",
+    "Bei der Vorwahl orientieren sich die Kunden zuerst selbst. Sie sofort anzusprechen widerspricht der Vorwahl."
+  ],
+  profi:{q:"Die neue Filiale bekommt vier Self-Checkout-Kassen. Beurteilt diese Entscheidung aus Sicht des Betriebs und aus Sicht der Kunden.",
+    m:"Betrieb: spart Personal an der Kasse, die Mitarbeiter haben mehr Zeit für Beratung und Warenpflege – aber die Technik kostet Geld und es kann mehr gestohlen werden. Kunden: schneller bei wenigen Artikeln, kürzere Schlangen – aber weniger persönlicher Kontakt und Hilfe; ältere Kunden kommen oft schlechter zurecht. Fazit: sinnvoll als Ergänzung, wenn daneben noch normale Kassen offen sind."}
+},
+{
+  id:"s6", room:"Eingangshalle", letter:"L",
+  title:"Das Leitbild an der Wand",
+  story:"In der Eingangshalle wird gerade das Leitbild an die Wand geklebt. Die Folie mit den Überschriften fehlt noch: Welche Ziele sind ökonomisch, welche sozial, welche ökologisch?",
+  klausur:"Modul 11 · Buch S. 77–79",
+  parts:[
+    {h:"Teil A: Welches Unternehmensziel?", intro:"Achtung: Eine Maßnahme kann zwei Ziele zugleich erfüllen.",
+     options:["ökonomisch","sozial","ökologisch","ökonomisch und ökologisch"],
+     items:[
+      {q:"Die neue Filiale soll im ersten Jahr 4 Millionen € Umsatz machen.", a:"ökonomisch"},
+      {q:"Alle Mitarbeitenden bekommen einen Zuschuss zu den Fahrtkosten.", a:"sozial"},
+      {q:"Alle Tiefkühltruhen bekommen Glasdeckel, um Strom zu sparen.", a:"ökonomisch und ökologisch"},
+      {q:"Obst und Gemüse gibt es ohne Plastikverpackung.", a:"ökologisch"},
+      {q:"Ständige Absatzsteigerung zur Sicherung der Arbeitsplätze", a:"ökonomisch"},
+      {q:"Für die Kinder der Beschäftigten gibt es Plätze im Betriebskindergarten.", a:"sozial"}
+     ]},
+    {h:"Teil B: Zielharmonie oder Zielkonflikt?", intro:"",
+     options:["Zielharmonie","Zielkonflikt"],
+     items:[
+      {q:"LED-Lampen schonen die Umwelt und senken die Stromkosten.", a:"Zielharmonie"},
+      {q:"Mehr Urlaubsgeld für alle – dadurch steigen die Kosten und der Gewinn sinkt.", a:"Zielkonflikt"}
+     ]}
+  ],
+  hints:[
+    "Ökonomisch = Geld: Umsatz, Gewinn, Kosten, Marktanteil. Sozial = gut für die Mitarbeiter. Ökologisch = gut für die Umwelt.",
+    "Prüfungsfalle: Bei „Absatzsteigerung zur Sicherung der Arbeitsplätze“ zählt die Maßnahme selbst (Absatz steigern), nicht die Folge. Zielharmonie = beide Ziele gewinnen, Zielkonflikt = ein Ziel schadet dem anderen."
+  ],
+  profi:{q:"Der Frischmarkt hat 400.000 € Kapital eingesetzt und 30.000 € Gewinn gemacht. Berechnet die Rentabilität. Erklärt dann, was das Ergebnis aussagt.",
+    m:"Rentabilität = Gewinn · 100 : Kapital = 30.000 · 100 : 400.000 = 7,5 %. Das eingesetzte Kapital hat sich mit 7,5 % verzinst. Je höher die Rentabilität, desto besser lohnt sich das Geschäft für den Inhaber – zum Vergleich: Auf dem Sparbuch bekäme er deutlich weniger."}
+},
+{
+  id:"s7", room:"Personalraum", letter:"I",
+  title:"Das Organigramm",
+  story:"Letzter Raum vor dem Büro: der Personalraum. Am Schwarzen Brett hängen das neue Organigramm und ein paar Notizzettel. Frau Okafor hat darunter geschrieben: „Wer den Aufbau versteht, findet den Weg ins Büro.“",
+  klausur:"Modul 12 · Buch S. 79–83",
+  parts:[
+    {h:"Teil A: Stelle, Instanz, Abteilung oder Organigramm?", intro:"Schaut euch das Organigramm an.", figure:FIG_ORGA,
+     options:["Stelle","Instanz","Abteilung","Organigramm"],
+     items:[
+      {q:"Herr Brandt leitet den Verkauf Food und gibt Lena und Jonas Anweisungen.", a:"Instanz"},
+      {q:"Lena sitzt an der Kasse. Sie führt Aufgaben aus, gibt aber keine Anweisungen.", a:"Stelle"},
+      {q:"Kasse und Frischetheke arbeiten zusammen unter der Leitung von Herrn Brandt.", a:"Abteilung"},
+      {q:"Die ganze Grafik am Schwarzen Brett, die die Abteilungsgliederung zeigt", a:"Organigramm"}
+     ]},
+    {h:"Teil B: Aufbau- oder Ablauforganisation?", intro:"Aufbau = Wer ist zuständig? · Ablauf = Wie wird gearbeitet?",
+     options:["Aufbauorganisation","Ablauforganisation"],
+     items:[
+      {q:"Emre ist ab Montag Leiter des Lagers, ihm unterstehen zwei Mitarbeiter.", a:"Aufbauorganisation"},
+      {q:"Eine Checkliste legt fest, in welcher Reihenfolge die Kasse abends abgerechnet wird.", a:"Ablauforganisation"},
+      {q:"Morgens gilt immer: Licht an, Kassen hochfahren, Türen öffnen – in genau dieser Reihenfolge.", a:"Ablauforganisation"},
+      {q:"Die Abteilung Verwaltung steht im Organigramm direkt unter der Filialleitung.", a:"Aufbauorganisation"}
+     ]}
+  ],
+  hints:[
+    "Stelle = kleinste Einheit, Aufgaben für eine Person. Instanz = Stelle mit Leitungs- und Weisungsbefugnis. Abteilung = mehrere Stellen unter einer Leitung. Organigramm = die Grafik.",
+    "Geht es um Zuständigkeit und Leitung, ist es Aufbau. Geht es um Reihenfolge und Arbeitsschritte (Arbeitsanweisung, Checkliste), ist es Ablauf."
+  ],
+  profi:{q:"Die neue Filiale ist teils nach Funktionen (Lager, Verwaltung), teils nach Objekten (Food, Non-Food) gegliedert. Erläutert, warum größere Betriebe eher nach Objekten und kleinere eher nach Funktionen gegliedert sind.",
+    m:"Ein großer Betrieb hat viele Warengruppen. Fachleute für eine Warengruppe kennen ihre Ware und ihre Kunden am besten – deshalb gliedert man nach Objekten (Warengruppen). In einem kleinen Betrieb erledigen wenige Personen die Arbeit für alle Warengruppen. Dort teilt man die Arbeit besser nach Aufgaben (Funktionen) auf: Einkauf, Lager, Verkauf, Verwaltung."}
+}
+];
+const VAULT_WORD = "FILIALE";
+
+/* Teamquiz: a = Index der richtigen Antwort (0–3). Die letzte Frage zählt doppelt. */
+const QUIZ = [
+ {q:"Was bedeutet „tiefes Sortiment“?", o:["viele verschiedene Warengruppen","viel Auswahl innerhalb einer Warengruppe","wenige Warengruppen","wenig Auswahl innerhalb einer Warengruppe"], a:1},
+ {q:"Was ist die kleinste Stufe der Sortimentspyramide?", o:["der Artikel","die Warengruppe","die Sorte","die Warenart"], a:2},
+ {q:"Was ist das Kernsortiment?", o:["Waren nur zu Weihnachten","ständig vorrätig, bringt den Hauptumsatz","selten verlangte Artikel","Waren, die diese Woche billiger sind"], a:1},
+ {q:"Bett- und Tischwäsche in der Möbelabteilung sind …", o:["Kernsortiment","Saisonsortiment","Aktionssortiment","Randsortiment"], a:3},
+ {q:"Eine Ware trägt den Namen des Händlers und ist nur dort erhältlich. Das ist …", o:["ein Markenartikel","eine Handelsmarke","ein No-Name-Artikel","ein Trendartikel"], a:1},
+ {q:"Was ist für ein Geschäft in der Innenstadt typisch?", o:["viele kostenlose Parkplätze","niedrige Miete","viele Passanten","riesige Verkaufsfläche"], a:2},
+ {q:"Wo spielen Schaufenster und Dekoration die geringste Rolle?", o:["im Warenhaus","im Spezialgeschäft","im Fachgeschäft","im Discounter"], a:3},
+ {q:"Was bedeutet Click & Collect?", o:["online bestellen, im Geschäft abholen","die Ware wird nach Hause geliefert","an der Selbstbedienungskasse zahlen","auf dem Wochenmarkt kaufen"], a:0},
+ {q:"Was widerspricht der Vorwahl?", o:["ein übersichtlicher Warenaufbau","Produktbeschreibungen am Regal","Kunden sofort beim Betreten ansprechen","Beratung, wenn der Kunde fragt"], a:2},
+ {q:"Der Betrieb zahlt einen Fahrtkostenzuschuss. Welches Ziel ist das?", o:["ein ökonomisches Ziel","ein soziales Ziel","ein ökologisches Ziel","gar kein Ziel"], a:1},
+ {q:"Das erwerbswirtschaftliche Prinzip heißt:", o:["möglichst viel Gewinn erzielen","möglichst viele Mitarbeiter einstellen","möglichst umweltfreundlich arbeiten","möglichst niedrige Preise anbieten"], a:0},
+ {q:"FINALE: Was ist eine Instanz?", o:["die kleinste Einheit im Betrieb","eine Stelle mit Leitungs- und Weisungsbefugnis","eine Arbeitsanweisung für die Kasse","die Grafik des Betriebsaufbaus"], a:1}
+];
+</script>
+
+<script>
+/* =========================================================
+   SPIELLOGIK
+   ========================================================= */
+const LIMIT = 35*60*1000;          // 35 Minuten Spielzeit (09:25 – 10:00)
+const HINT_PENALTY = 60*1000;      // +1 Minute je Tipp
+const LOCK_MS = 15*1000;           // Sperre nach falschem Versuch
+const PIN = "8412";
+const KEY = "lf1-neue-filiale-escape-v1";
+const app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let S = load() || fresh();
+let view = S.start ? (S.end ? "result" : (S.solved.length===STATIONS.length ? "vault" : "game")) : "start";
+let lockUntil = {};
+let lockMsg = {};
+let tick = null;
+
+function fresh(){ return {team:"", start:0, penalty:0, solved:[], hints:{}, attempts:{}, answers:{}, profi:{}, profiOpen:{}, current:0, end:0, vaultTries:0}; }
+function load(){ try{ const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+function elapsed(){ const now = S.end || Date.now(); return S.start ? (now - S.start + S.penalty) : 0; }
+function fmt(ms){ const t = Math.max(0, Math.round(ms/1000)); return String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0"); }
+function gameClock(ms){ const m = 9*60+25 + Math.floor(ms/60000); return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"); }
+
+function updateClock(){
+  const box = document.getElementById("clockbox");
+  const show = S.start && (view==="game"||view==="vault"||view==="result");
+  box.hidden = !show;
+  if(!show) return;
+  const e = elapsed();
+  const lcd = document.getElementById("lcd");
+  lcd.textContent = gameClock(e);
+  lcd.classList.toggle("late", e > LIMIT);
+  document.getElementById("remain").textContent = e > LIMIT ? "Überzogen: +" + fmt(e - LIMIT) : "noch " + fmt(LIMIT - e);
+  // Sperrtimer aktualisieren
+  const lm = document.getElementById("lockmsg");
+  if(lm && view==="game"){
+    const st = STATIONS[S.current], left = (lockUntil[st.id]||0) - Date.now();
+    const btn = document.getElementById("checkbtn");
+    if(left > 0){ lm.innerHTML = lockMsg[st.id] + ` Das Schloss ist noch <b>${Math.ceil(left/1000)} s</b> gesperrt.`; if(btn) btn.disabled = true; }
+    else if(lockUntil[st.id]){ lm.innerHTML = lockMsg[st.id] + " Ihr könnt es erneut versuchen."; lockUntil[st.id]=0; if(btn) btn.disabled = false; }
+  }
+}
+function startTick(){ if(!tick) tick = setInterval(updateClock, 500); }
+
+/* ---------------- Ansichten ---------------- */
+function render(){
+  window.scrollTo({top:0});
+  if(view==="start") app.innerHTML = vStart();
+  else if(view==="game") app.innerHTML = vPlan() + vStation() + vFootLinks();
+  else if(view==="vault") app.innerHTML = vPlan() + vVault() + vFootLinks();
+  else if(view==="result") app.innerHTML = vResult();
+  else if(view==="quizsetup") app.innerHTML = vQuizSetup();
+  else if(view==="quiz") app.innerHTML = vQuiz();
+  else if(view==="pin") app.innerHTML = vPin();
+  else if(view==="teacher") app.innerHTML = vTeacher();
+  else if(view==="cards") app.innerHTML = vCards();
+  else if(view==="remote") app.innerHTML = vRemote();
+  updateClock();
+}
+
+function profiBlock(st, open, sub){
+  const pv = S.profi[st.id]||"";
+  const shown = S.profiOpen[st.id]==="m";
+  return `<details class="profi" ${open?"open":""} data-sid="${st.id}">
+    <summary><span class="tag">Profi-Akte</span> ${esc(sub)}${shown?' · <span style="color:var(--green)">verglichen ✓</span>':""}</summary>
+    <div class="inner"><p>${esc(st.profi.q)}</p>
+      <label for="profi-${st.id}" class="mono" style="font-size:13px;color:var(--ink-soft)">Eure Antwort</label>
+      <textarea id="profi-${st.id}" rows="4" data-act="profitext" data-sid="${st.id}">${esc(pv)}</textarea>
+      <div><button class="btn small" data-act="muster" data-sid="${st.id}" ${pv.trim()?"":"disabled"}>Mit Musterlösung vergleichen</button></div>
+      <div id="muster-${st.id}" ${shown?"":"hidden"}>
+        <div class="compare">
+          <div class="mine"><b>Eure Antwort</b><span id="mine-${st.id}">${esc(pv)}</span></div>
+          <div class="muster"><b>Musterlösung</b>${esc(st.profi.m)}</div>
+        </div>
+        <p class="checkq">Vergleicht: Welche Punkte aus der Musterlösung habt ihr auch? Was fehlt euch noch? Ergänzt eure Antwort oben.</p>
+      </div>
+    </div></details>`;
+}
+function vFootLinks(){
+  return `<div class="wrap"><nav class="teacherlinks noprint" aria-label="Für die Lehrkraft" style="margin-top:0">
+    <button class="linkbtn" data-act="quizsetup">Lehrkraft: Teamquiz am Beamer starten</button>
+    <button class="linkbtn" data-act="pin">Lehrkraft: Lösungen und Ablauf</button>
+    <button class="linkbtn" data-act="reset1">Neues Spiel auf diesem Gerät</button></nav></div>`;
+}
+function vStart(){
+  return `<div class="wrap">
+  <section class="hero">
+    <p class="eyebrow">Samstag · 09:25 Uhr · noch 35 Minuten bis zur Eröffnung</p>
+    <h1>Der Schlüssel zur neuen Filiale</h1>
+    <p class="lead">Heute um 10:00 Uhr eröffnet der Frischmarkt seine zweite Filiale in Bremerhaven-Lehe. Draußen warten schon die Presse und 200 Kundinnen und Kunden. Nur: Der Generalschlüssel für die Eingangstür liegt im Schlüsseltresor im Büro. Frau Okafor steckt im Stau – und hat den Code in sieben Räumen der neuen Filiale versteckt.</p>
+    <div class="notice">
+      <p><b>Euer Auftrag:</b> Löst die sieben Stationen im Markt. Jede geöffnete Station verrät einen Buchstaben. Mit allen sieben Buchstaben öffnet ihr den Schlüsseltresor im Büro – und die Filiale kann pünktlich eröffnen.</p>
+    </div>
+    <div class="startform">
+      <div class="field" style="flex:1;min-width:220px">
+        <label for="teamname">Teamname oder Tischnummer</label>
+        <input type="text" id="teamname" maxlength="30" placeholder="z. B. Tisch 3" value="${esc(S.team)}">
+      </div>
+      <button class="btn yellow" data-act="start">Start – die Uhr läuft</button>
+    </div>
+    <div class="rules">
+      <div class="rule"><h3>Schloss prüfen</h3><p>Wählt bei jeder Station alle Antworten und prüft dann das Schloss. Ihr seht nur, wie viele Antworten stimmen – nicht welche. Nach einem Fehlversuch ist das Schloss 15 Sekunden gesperrt.</p></div>
+      <div class="rule"><h3>Tipps</h3><p>Jede Station hat zwei Tipps. Jeder Tipp kostet eine Minute auf eurer Uhr.</p></div>
+      <div class="rule"><h3>Profi-Akte</h3><p>Für Schnelle: Zu jeder Station gibt es eine freiwillige Begründungsaufgabe mit Musterlösung. Genau so fragt auch die Klausur.</p></div>
+    </div>
+  </section>
+  <nav class="teacherlinks noprint" aria-label="Für die Lehrkraft">
+    <button class="linkbtn" data-act="quizsetup">Lehrkraft: Teamquiz am Beamer starten</button>
+    <button class="linkbtn" data-act="pin">Lehrkraft: Lösungen und Ablauf</button>
+  </nav>
+  </div>`;
+}
+
+function vPlan(){
+  const tiles = STATIONS.map((st,i)=>{
+    const done = S.solved.includes(st.id);
+    const open = !done && i===S.solved.length;
+    const cls = done ? "done" : open ? "open" : "locked";
+    const cur = (view==="game" && S.current===i) ? " current" : "";
+    const state = done ? "geöffnet" : open ? "jetzt lösen" : "verschlossen";
+    return `<button class="tile ${cls}${cur}" data-act="goto" data-i="${i}" ${(!done&&!open)?"disabled":""} aria-label="${esc(st.room)}, ${state}">
+      <span class="no">Raum ${i+1}</span><span class="room">${esc(st.room)}</span><span class="state">${state}</span>
+      ${done?`<span class="letter">${st.letter}</span>`:""}</button>`;
+  }).join("");
+  const all = S.solved.length===STATIONS.length;
+  const vault = `<button class="tile ${all?"open":"locked"}${view==="vault"?" current":""}" data-act="vault" ${all?"":"disabled"}>
+      <span class="no">Raum 8</span><span class="room">Büro · Schlüsseltresor</span><span class="state">${all?"Code eingeben":"braucht 7 Buchstaben"}</span></button>`;
+  const hints = Object.values(S.hints).reduce((a,b)=>a+b,0);
+  return `<div class="wrap"><div class="planhead"><h2>Marktplan · Team ${esc(S.team)}</h2>
+    <span class="stat">${S.solved.length} von 7 Räumen offen · ${hints} ${hints===1?"Tipp":"Tipps"} genutzt</span></div>
+    <div class="plan">${tiles}${vault}</div></div>`;
+}
+
+function vStation(){
+  const st = STATIONS[S.current];
+  const done = S.solved.includes(st.id);
+  const ans = S.answers[st.id] || {};
+  const parts = st.parts.map((p,pi)=>{
+    const items = p.items.map((it,ii)=>{
+      const k = `p${pi}i${ii}`, opts = it.options || p.options;
+      const val = done ? it.a : ans[k];
+      const btns = opts.map(o=>`<button class="opt" data-act="pick" data-k="${k}" data-v="${esc(o)}" aria-pressed="${val===o}" ${done?"disabled":""}>${esc(o)}</button>`).join("");
+      return `<div class="item"><p class="q">${esc(it.q)}</p><div class="opts" role="group">${btns}</div></div>`;
+    }).join("");
+    return `<section class="part"><h3>${esc(p.h)}</h3>${p.intro?`<p class="intro">${esc(p.intro)}</p>`:""}
+      ${p.figure?`<div class="figure" style="margin-bottom:12px">${p.figure}</div>`:""}
+      <div class="items">${items}</div></section>`;
+  }).join("");
+
+  const nHint = S.hints[st.id]||0;
+  const hintHtml = st.hints.slice(0,nHint).map((h,i)=>`<p class="hint"><b>Tipp ${i+1}:</b> ${esc(h)}</p>`).join("");
+  const hintBtn = (!done && nHint<2) ? `<button class="btn ghost small" data-act="hint">Tipp ${nHint+1} ansehen (+1 Minute)</button>` : "";
+
+  const total = st.parts.reduce((a,p)=>a+p.items.length,0);
+  const filled = Object.keys(ans).length;
+  const locked = (lockUntil[st.id]||0) > Date.now();
+  const lock = done
+    ? `<div class="solved"><div class="note" aria-hidden="true">${st.letter}</div><div><h3>Schloss offen!</h3><p>Hinter dem letzten Schild klebt ein gelber Notizzettel mit dem Buchstaben <b class="mono">${st.letter}</b>. Merkt ihn euch – er steht jetzt auch auf dem Marktplan.</p>
+       <div style="margin-top:10px">${S.solved.length===STATIONS.length?`<button class="btn" data-act="vault">Zum Schlüsseltresor im Büro</button>`:`<button class="btn" data-act="goto" data-i="${S.solved.length}">Weiter: ${esc(STATIONS[S.solved.length].room)}</button>`}</div></div></div>`
+    : `<div class="lockbar"><button class="btn" id="checkbtn" data-act="check" ${locked||filled<total?"disabled":""}>Schloss prüfen</button>
+       <p class="lockmsg" id="lockmsg">${lockMsg[st.id] ? lockMsg[st.id] : `${filled} von ${total} Antworten gewählt.`}</p></div>`;
+
+  const profi = profiBlock(st, !!S.profiOpen[st.id], "freiwillig · für Schnelle");
+
+  return `<div class="wrap"><article class="station" id="station">
+    <header class="st-head"><p class="eyebrow">Raum ${S.current+1} · ${esc(st.room)}</p><h2>${esc(st.title)}</h2><p class="story">${esc(st.story)}</p></header>
+    <div class="st-body">${parts}
+      <div class="hints">${hintHtml}<div class="hintrow">${hintBtn}</div></div>
+      ${lock}
+      ${profi}
+    </div></article></div>`;
+}
+
+function vVault(){
+  const letters = STATIONS.map(s=>`<div class="ltile">${s.letter}</div>`).join("");
+  const n = S.vaultTries||0;
+  return `<div class="wrap"><article class="station"><header class="st-head"><p class="eyebrow">Raum 8 · Büro</p><h2>Der Schlüsseltresor</h2>
+    <p class="story">Alle sieben Notizzettel liegen vor euch. Die Buchstaben sind durcheinander. Auf dem Tresor klebt Frau Okafors letzter Hinweis: „Das Codewort ist das, was heute um 10 Uhr zum ersten Mal seine Türen öffnet.“</p></header>
+    <div class="st-body vault"><div class="tiles">${letters}</div>
+      <div class="field"><label for="vaultin">Codewort (7 Buchstaben)</label>
+        <input type="text" id="vaultin" class="codein" maxlength="7" autocomplete="off" spellcheck="false"></div>
+      <div class="lockbar"><button class="btn" data-act="vaultcheck">Tresor öffnen</button><p class="lockmsg" id="vaultmsg">${n?"Das war es nicht. Stellt die Buchstaben anders zusammen.":"Alle sieben Notizzettel werden genau einmal gebraucht."}</p></div>
+    </div></article></div>`;
+}
+
+function vResult(){
+  const e = elapsed();
+  const hints = Object.values(S.hints).reduce((a,b)=>a+b,0);
+  const tries = Object.values(S.attempts).reduce((a,b)=>a+b,0);
+  const profi = Object.values(S.profiOpen).filter(v=>v==="m").length;
+  const inTime = e <= LIMIT;
+  const firstOpen = STATIONS.findIndex(st=>S.profiOpen[st.id]!=="m");
+  return `<div class="wrap"><div class="receipt" role="region" aria-label="Ergebnis">
+    <h2>FRISCHMARKT</h2><p class="c">Neue Filiale Lehe<br>Kasse 1 · Eröffnungstag</p><hr>
+    <p class="c big">${inTime?"PÜNKTLICH ERÖFFNET!":"ERÖFFNET – MIT VERSPÄTUNG"}</p><hr>
+    <div class="row"><span>Team</span><span>${esc(S.team)}</span></div>
+    <div class="row"><span>Tür offen um</span><span>${gameClock(e)} Uhr</span></div>
+    <div class="row"><span>Spielzeit gesamt</span><span>${fmt(e)}</span></div>
+    <div class="row"><span>  davon Tipp-Minuten</span><span>${fmt(S.penalty)}</span></div>
+    <div class="row"><span>Tipps genutzt</span><span>${hints}</span></div>
+    <div class="row"><span>Fehlversuche Schloss</span><span>${tries}</span></div>
+    <div class="row"><span>Profi-Akten</span><span>${profi} / 7</span></div>
+    <hr><div class="row big"><span>CODE</span><span>${VAULT_WORD}</span></div><hr>
+    <p class="c">Zeigt diesen Bon eurer Lehrkraft.<br>Gleich folgt das Eröffnungs-Duell!</p>
+    <p class="c noprint" style="margin-top:12px"><button class="btn yellow small" data-act="remote">Antwortkarten fürs Quiz</button></p>
+  </div>
+  <section class="profilist noprint"><h2>Weiter mit den Profi-Akten</h2>
+    <p style="color:var(--ink-soft)">Bon abgegeben? Dann bearbeitet jetzt die Profi-Akten. Schreibt eure Antwort und vergleicht sie danach mit der Musterlösung. Genau solche Begründungen kommen in der Klausur.</p>
+    ${STATIONS.map((st,i)=>profiBlock(st, i===firstOpen, "Raum "+(i+1)+" · "+st.room)).join("")}
+  </section>
+  <div class="teacherlinks noprint"><button class="linkbtn" data-act="quizsetup">Lehrkraft: Teamquiz am Beamer starten</button><button class="linkbtn" data-act="pin">Lehrkraft: Lösungen und Ablauf</button><button class="linkbtn" data-act="reset1" id="resetbtn">Neues Spiel auf diesem Gerät</button></div></div>`;
+}
+
+/* ---------------- Teamquiz (Kahoot-Stil) ---------------- */
+const KC = [{c:"#E21B3C",s:"▲",n:"Rot"},{c:"#1368CE",s:"◆",n:"Blau"},{c:"#C68A00",s:"●",n:"Gelb"},{c:"#26890C",s:"■",n:"Grün"}];
+const QTIME = 20*1000, PTS = 1000, FAST = 250;
+let Q = {n:4, teams:[], idx:0, phase:"setup", marks:{}, tStart:0, gain:[], prev:[]};
+function qMult(){ return Q.idx===QUIZ.length-1 ? 2 : 1; }
+function ranked(){ return Q.teams.map((t,i)=>({...t,i,p:t.pts+t.bonus})).sort((a,b)=>b.p-a.p); }
+
+function vQuizSetup(){
+  if(Q.teams.length!==Q.n){ const old=Q.teams; Q.teams = Array.from({length:Q.n},(_,i)=>old[i]||{name:"Tisch "+(i+1), pts:0, bonus:0}); }
+  const cards = Q.teams.map((t,i)=>`<div class="card"><div class="field"><label for="qt${i}">Team ${i+1}</label><input type="text" id="qt${i}" data-qt="${i}" value="${esc(t.name)}"></div>
+    <div class="field"><label for="qb${i}">Platz im Escape Room</label><div class="teams">${[["–",0],["1.",600],["2.",400],["3.",200]].map(([l,v])=>`<button class="team" data-act="qbonus" data-i="${i}" data-v="${v}" aria-pressed="${t.bonus===v}">${l}</button>`).join("")}</div></div></div>`).join("");
+  return `<div class="wrap quiz"><p class="eyebrow">Teamquiz · für den Beamer</p><h2>Eröffnungs-Duell: Wer kennt die neue Filiale am besten?</h2>
+   <p style="max-width:70ch">12 Fragen, je 20 Sekunden. Jeder Tisch zeigt seine Antwort mit einer Farbkarte (oder mit dem Handy: „Antwortkarten“ auf dem Kassenbon). Hochgehaltene Karten dürfen nicht mehr gewechselt werden. Richtig = <b>1000 Punkte</b>, der erste Tisch mit der richtigen Antwort bekommt den <b>⚡ Blitz-Bonus +250</b>. Die letzte Frage zählt doppelt.</p>
+   <div class="field"><span style="font-weight:700;font-size:15px">Anzahl Tische</span><div class="teams">${[2,3,4,5,6,7,8].map(n=>`<button class="team" data-act="qn" data-n="${n}" aria-pressed="${Q.n===n}">${n}</button>`).join("")}</div></div>
+   <div class="setupgrid">${cards}</div>
+   <p style="font-size:15px;color:var(--ink-soft)">Startbonus aus dem Escape Room: 1. Platz +600, 2. Platz +400, 3. Platz +200 (schnellstes Team zuerst).</p>
+   <div><button class="btn yellow" data-act="qstart">Quiz starten</button> <button class="linkbtn" data-act="cards">Antwortkarten drucken</button> <button class="linkbtn" data-act="home">Zurück</button></div></div>`;
+}
+function vQuiz(){
+  if(Q.phase==="end") return vPodium();
+  if(Q.phase==="board") return vBoard();
+  const item = QUIZ[Q.idx], rev = Q.phase==="reveal", fin = qMult()===2;
+  const opts = item.o.map((o,i)=>`<div class="kopt ${rev?(i===item.a?"right":"wrong"):""}" style="background:${KC[i].c}"><span class="shape" aria-hidden="true">${KC[i].s}</span><span class="kt"><b>${"ABCD"[i]}</b> ${esc(o)}</span>${rev&&i===item.a?'<span class="ok" aria-label="richtig">✓</span>':""}</div>`).join("");
+  const marks = Q.teams.map((t,i)=>{const m=Q.marks[i]||0;return `<button class="team mark m${m}" data-act="qmark" data-i="${i}">${m===2?"⚡ ":m===1?"✓ ":""}${esc(t.name)}</button>`;}).join("");
+  return `<div class="wrap quiz"><div class="qtop"><p class="eyebrow">Frage ${Q.idx+1} von ${QUIZ.length}${fin?' · <span class="double">doppelte Punkte</span>':""}</p>
+    ${rev?"":`<div class="count" id="qcount">${Math.ceil(QTIME/1000)}</div>`}</div>
+    <h2 class="kq">${esc(item.q)}</h2>
+    ${rev?"":`<div class="timerbar" aria-hidden="true"><i id="qbar"></i></div>`}
+    <div class="kgrid">${opts}</div>
+    ${rev?`<div class="field"><span style="font-weight:700">Welche Tische lagen richtig? Einmal tippen = ✓ richtig, zweimal = ⚡ richtig und zuerst, dreimal = zurücksetzen.</span><div class="teams">${marks}</div></div>
+      <div><button class="btn yellow" data-act="qaward">Punkte vergeben</button></div>`
+      :`<div><button class="btn" data-act="qreveal">Zeit stoppen – Lösung zeigen</button></div>`}
+    <div class="noprint"><button class="linkbtn" data-act="home">Quiz beenden</button></div></div>`;
+}
+function vBoard(){
+  const r = ranked(), max = Math.max(1, r[0].p), last = Q.idx>=QUIZ.length-1;
+  const rows = r.map((t,k)=>{const old=Q.prev.indexOf(t.i), mv = old<0?"":old>k?'<span class="up">▲</span>':old<k?'<span class="down">▼</span>':"";
+    return `<div class="lrow"><span class="rk">${k+1}.</span><span class="nm">${esc(t.name)} ${mv}</span><span class="bar"><i style="width:${t.p/max*100}%"></i></span><span class="pts">${t.p}</span><span class="gn">${Q.gain[t.i]?"+"+Q.gain[t.i]:""}</span></div>`;}).join("");
+  return `<div class="wrap quiz"><p class="eyebrow">Nach Frage ${Q.idx+1} von ${QUIZ.length}</p><h2>Zwischenstand</h2><div class="leader">${rows}</div>
+    <div><button class="btn yellow" data-act="qnext">${last?"Zum Siegertreppchen":(Q.idx+2===QUIZ.length?"Zum Finale (doppelte Punkte)":"Nächste Frage")}</button></div></div>`;
+}
+function vPodium(){
+  const r = ranked(), top = r.slice(0,3), order = [1,0,2].filter(k=>top[k]);
+  const hs = {0:200,1:150,2:110};
+  const pod = order.map(k=>`<div class="pcol"><div class="pname">${esc(top[k].name)}</div><div class="ppts">${top[k].p}</div><div class="pblock" style="height:${hs[k]}px"><span>${k+1}</span></div></div>`).join("");
+  const rest = r.slice(3).map((t,k)=>`<li>${k+4}. ${esc(t.name)} – ${t.p}</li>`).join("");
+  return `<div class="wrap quiz"><p class="eyebrow">Endstand</p><h2>Die Filiale ist eröffnet!</h2>
+    <div class="podiumrow">${pod}</div>${rest?`<ul class="rest">${rest}</ul>`:""}
+    <div><button class="btn ghost" data-act="quizsetup">Neues Quiz</button> <button class="linkbtn" data-act="home">Zur Startseite</button></div></div>`;
+}
+let qTimer=null;
+function runQTimer(){
+  clearInterval(qTimer);
+  qTimer = setInterval(()=>{
+    const bar = document.getElementById("qbar"), cnt = document.getElementById("qcount");
+    if(!bar || view!=="quiz" || Q.phase!=="q"){ clearInterval(qTimer); return; }
+    const left = Math.max(0, QTIME-(Date.now()-Q.tStart));
+    bar.style.width = (left/QTIME*100)+"%";
+    if(cnt) cnt.textContent = Math.ceil(left/1000);
+    if(left<=0){ clearInterval(qTimer); Q.phase="reveal"; render(); }
+  }, 100);
+}
+
+/* ---------------- Antwortkarten ---------------- */
+function vCards(){
+  return `<div class="wrap teacher"><p class="eyebrow noprint">Antwortkarten · pro Tisch einmal drucken (Farbdruck) und in vier Karten schneiden</p>
+    <div class="cardsheet">${KC.map((k,i)=>`<div class="pcard" style="background:${k.c}"><span>${k.s}</span><b>${"ABCD"[i]}</b></div>`).join("")}</div>
+    <div class="noprint"><button class="btn ghost" data-act="print">Drucken</button> <button class="linkbtn" data-act="quizsetup">Zurück zum Quiz</button></div></div>`;
+}
+let remotePick = -1;
+function vRemote(){
+  if(remotePick>=0){ const k=KC[remotePick]; return `<button class="remotefull" data-act="rback" style="background:${k.c}" aria-label="${k.n}, ${"ABCD"[remotePick]} – tippen zum Zurückgehen"><span>${k.s}</span><b>${"ABCD"[remotePick]}</b><small>Hochhalten! · tippen = zurück</small></button>`; }
+  return `<div class="wrap quiz"><p class="eyebrow">Antwortkarten für euren Tisch</p><h2>Tippt eure Antwort an und haltet das Handy hoch</h2>
+    <div class="kgrid">${KC.map((k,i)=>`<button class="kopt" data-act="rpick" data-i="${i}" style="background:${k.c}"><span class="shape">${k.s}</span><span class="kt"><b>${"ABCD"[i]}</b> ${k.n}</span></button>`).join("")}</div>
+    <div><button class="linkbtn" data-act="home">Zurück</button></div></div>`;
+}
+
+/* ---------------- Lehrkraft ---------------- */
+function vPin(){
+  return `<div class="wrap teacher"><p class="eyebrow">Nur für die Lehrkraft</p><h2 style="font-size:36px">Lösungen und Ablauf</h2>
+   <div class="field" style="max-width:260px"><label for="pinin">PIN</label><input type="password" id="pinin" inputmode="numeric" maxlength="4"></div>
+   <p id="pinmsg" style="color:var(--ink-soft);font-size:15px">Die PIN steht in der Nachricht von Claude.</p>
+   <div><button class="btn" data-act="pincheck">Öffnen</button> <button class="linkbtn" data-act="home">Zurück</button></div></div>`;
+}
+function vTeacher(){
+  const rows = STATIONS.map((st,i)=>{
+    const sol = st.parts.map(p=>p.items.map((it,ii)=>`${"abcdefghij"[ii]}) ${esc(it.q)} → <span class="sol">${esc(it.a)}</span>`).join("<br>")).join("<br><br>");
+    return `<div class="tsec"><h3>Raum ${i+1} · ${esc(st.room)} – Buchstabe ${st.letter} <span style="font-size:15px;color:var(--ink-soft);font-family:var(--f-body);font-weight:400">(${esc(st.klausur)})</span></h3>
+      <p style="font-size:15px">${sol}</p>
+      <p style="margin-top:10px;font-size:15px"><b>Profi-Akte:</b> ${esc(st.profi.q)}<br><i>Muster:</i> ${esc(st.profi.m)}</p></div>`;
+  }).join("");
+  const quiz = QUIZ.map((q,i)=>`<li>${esc(q.q)} → <span class="sol">${"ABCD"[q.a]} (${KC[q.a].n}): ${esc(q.o[q.a])}</span></li>`).join("");
+  return `<div class="wrap teacher"><p class="eyebrow">Nur für die Lehrkraft</p><h2 style="font-size:36px">Lösungen und Ablauf</h2>
+   <div class="tsec"><h3>Ablauf (45 Minuten)</h3><table><tbody>
+     <tr><th>0–3 min</th><td>4er-Tische, ein Gerät pro Tisch, Link öffnen, Teamnamen eingeben (am besten „Tisch 1“ … „Tisch 4“). Gemeinsam „Start“ drücken.</td></tr>
+     <tr><th>3–35 min</th><td>Escape Room: 7 Räume, dann Schlüsseltresor (Codewort <span class="sol">${VAULT_WORD}</span>). Die Uhr zeigt 09:25 bis 10:00 (35 Minuten). Tipps kosten je 1 Minute. Fertige Teams zeigen den Kassenbon (Reihenfolge notieren!) und bearbeiten die Profi-Akten.</td></tr>
+     <tr><th>35–45 min</th><td>Eröffnungs-Duell am Beamer (Link „Teamquiz“). Startbonus nach Platz im Escape Room setzen. 12 Fragen à 20 Sekunden, Antwort per Farbkarte oder Handy („Antwortkarten“ auf dem Kassenbon). Letzte Frage doppelte Punkte, danach Siegertreppchen.</td></tr>
+   </tbody></table>
+   <p style="margin-top:10px;font-size:15px">Der Fortschritt bleibt auf dem Gerät gespeichert, auch nach dem Neuladen. „Neues Spiel auf diesem Gerät“ steht auf dem Kassenbon. Ohne Kassenbon: Gerät im privaten Fenster öffnen. Inhalt: Modul 8 bis 12 = Stoff der Klausur 2.</p></div>
+   ${rows}
+   <div class="tsec"><h3>Eröffnungs-Duell – Lösungen</h3><ol>${quiz}</ol></div>
+   <div class="noprint"><button class="btn ghost" data-act="print">Drucken</button> <button class="linkbtn" data-act="cards">Antwortkarten drucken</button> <button class="linkbtn" data-act="home">Zur Startseite</button></div></div>`;
+}
+
+/* ---------------- Ereignisse ---------------- */
+app.addEventListener("click", ev=>{
+  const b = ev.target.closest("[data-act]"); if(!b || b.disabled) return;
+  const act = b.dataset.act;
+  if(act==="start"){
+    const name = document.getElementById("teamname").value.trim();
+    if(!name){ document.getElementById("teamname").focus(); document.getElementById("teamname").placeholder="Bitte zuerst einen Teamnamen eingeben"; return; }
+    S = fresh(); S.team = name; S.start = Date.now(); save(); view="game"; render(); startTick();
+  }
+  else if(act==="goto"){ S.current = +b.dataset.i; save(); view="game"; render(); document.getElementById("station")?.scrollIntoView({behavior:"smooth"}); }
+  else if(act==="pick"){
+    const st = STATIONS[S.current]; S.answers[st.id] = S.answers[st.id]||{};
+    S.answers[st.id][b.dataset.k] = b.dataset.v; save();
+    b.parentElement.querySelectorAll(".opt").forEach(o=>o.setAttribute("aria-pressed", o===b));
+    const total = st.parts.reduce((a,p)=>a+p.items.length,0), filled = Object.keys(S.answers[st.id]).length;
+    const btn = document.getElementById("checkbtn"), lm = document.getElementById("lockmsg");
+    if(btn && !((lockUntil[st.id]||0)>Date.now())){ btn.disabled = filled<total; if(!lockMsg[st.id]) lm.textContent = `${filled} von ${total} Antworten gewählt.`; }
+  }
+  else if(act==="check"){
+    const st = STATIONS[S.current], ans = S.answers[st.id]||{};
+    let right=0,total=0;
+    st.parts.forEach((p,pi)=>p.items.forEach((it,ii)=>{ total++; if(ans[`p${pi}i${ii}`]===it.a) right++; }));
+    if(right===total){ if(!S.solved.includes(st.id)) S.solved.push(st.id); lockMsg[st.id]=""; save(); render(); document.getElementById("station")?.scrollIntoView({behavior:"smooth"}); }
+    else{
+      S.attempts[st.id]=(S.attempts[st.id]||0)+1; save();
+      lockMsg[st.id] = `Falsch: <b>${right} von ${total}</b> Antworten stimmen.`;
+      lockUntil[st.id] = Date.now()+LOCK_MS; updateClock();
+    }
+  }
+  else if(act==="hint"){ const st=STATIONS[S.current]; S.hints[st.id]=(S.hints[st.id]||0)+1; S.penalty+=HINT_PENALTY; save(); render(); document.querySelector(".hints")?.scrollIntoView({behavior:"smooth",block:"center"}); }
+  else if(act==="muster"){ const sid=b.dataset.sid; S.profiOpen[sid]="m"; save(); const box=document.getElementById("muster-"+sid); box.hidden=false; document.getElementById("mine-"+sid).textContent=S.profi[sid]||""; box.scrollIntoView({behavior:"smooth",block:"nearest"}); }
+  else if(act==="vault"){ view="vault"; render(); }
+  else if(act==="vaultcheck"){
+    const v = document.getElementById("vaultin").value.trim().toUpperCase();
+    if(v===VAULT_WORD){ S.end = Date.now(); save(); view="result"; render(); }
+    else{ S.vaultTries=(S.vaultTries||0)+1; save(); document.getElementById("vaultmsg").textContent = "Das war es nicht. Stellt die Buchstaben anders zusammen."; }
+  }
+  else if(act==="reset1"){ b.dataset.act="reset2"; b.textContent="Wirklich alles löschen? Nochmal tippen."; }
+  else if(act==="reset2"){ S=fresh(); save(); lockUntil={}; lockMsg={}; view="start"; render(); }
+  else if(act==="home"){ clearInterval(qTimer); remotePick=-1; view = S.start ? (S.end?"result":(S.solved.length===STATIONS.length?"vault":"game")) : "start"; render(); }
+  else if(act==="quizsetup"){ Q.phase="setup"; view="quizsetup"; render(); }
+  else if(act==="qn"){ readSetup(); Q.n=+b.dataset.n; render(); }
+  else if(act==="qbonus"){ readSetup(); Q.teams[+b.dataset.i].bonus=+b.dataset.v; render(); }
+  else if(act==="qstart"){ readSetup(); Q.teams.forEach(t=>t.pts=0); Q.idx=0; Q.phase="q"; Q.marks={}; Q.gain=[]; Q.prev=ranked().map(t=>t.i); Q.tStart=Date.now(); view="quiz"; render(); runQTimer(); }
+  else if(act==="qreveal"){ clearInterval(qTimer); Q.phase="reveal"; render(); }
+  else if(act==="qmark"){
+    const i=+b.dataset.i, m=((Q.marks[i]||0)+1)%3;
+    if(m===2) Object.keys(Q.marks).forEach(k=>{ if(Q.marks[k]===2) Q.marks[k]=1; });
+    Q.marks[i]=m; render();
+  }
+  else if(act==="qaward"){
+    Q.prev = ranked().map(t=>t.i); const mult=qMult(); Q.gain=[];
+    Q.teams.forEach((t,i)=>{ const m=Q.marks[i]||0; const g = m ? (PTS + (m===2?FAST:0))*mult : 0; t.pts+=g; Q.gain[i]=g; });
+    Q.marks={}; Q.phase="board"; render();
+  }
+  else if(act==="qnext"){ Q.idx++; if(Q.idx>=QUIZ.length){ Q.phase="end"; } else { Q.phase="q"; Q.tStart=Date.now(); } render(); if(Q.phase==="q") runQTimer(); }
+  else if(act==="cards"){ view="cards"; render(); }
+  else if(act==="remote"){ remotePick=-1; view="remote"; render(); }
+  else if(act==="rpick"){ remotePick=+b.dataset.i; render(); }
+  else if(act==="rback"){ remotePick=-1; render(); }
+  else if(act==="pin"){ view="pin"; render(); document.getElementById("pinin")?.focus(); }
+  else if(act==="pincheck"){ if(document.getElementById("pinin").value===PIN){ view="teacher"; render(); } else document.getElementById("pinmsg").textContent="Falsche PIN."; }
+  else if(act==="print"){ try{ window.print(); }catch(e){} }
+});
+function readSetup(){
+  document.querySelectorAll("[data-qt]").forEach(inp=>{ const t=Q.teams[+inp.dataset.qt]; if(t) t.name = inp.value.trim()||("Tisch "+(+inp.dataset.qt+1)); });
+}
+app.addEventListener("input", ev=>{
+  const t = ev.target;
+  if(t.dataset.act==="profitext"){ S.profi[t.dataset.sid]=t.value; save(); const btn=t.closest(".inner").querySelector('[data-act="muster"]'); btn.disabled = !t.value.trim(); const m=document.getElementById("mine-"+t.dataset.sid); if(m) m.textContent=t.value; }
+});
+app.addEventListener("toggle", ev=>{
+  const d = ev.target; if(!d.classList || !d.classList.contains("profi")) return;
+  const sid = d.dataset.sid; if(S.profiOpen[sid]!=="m"){ S.profiOpen[sid] = d.open ? "o" : ""; save(); }
+}, true);
+app.addEventListener("keydown", ev=>{
+  if(ev.key!=="Enter") return;
+  if(ev.target.id==="teamname") app.querySelector('[data-act="start"]').click();
+  if(ev.target.id==="vaultin") app.querySelector('[data-act="vaultcheck"]').click();
+  if(ev.target.id==="pinin") app.querySelector('[data-act="pincheck"]').click();
+});
+
+render();
+if(S.start && !S.end) startTick();
+</script>
+</body></html>
