@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Werbe-Trainer LF 5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800;125,900&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: Handy zuerst. Oben Trainingsarten als Etiketten, darunter eine Aufgabenkarte im Prospektstil; Nachweis nach 30 richtigen Antworten. */
+:root{
+  --bg:#f1efe8; --paper:#ffffff; --paper2:#f7f5ef; --ink:#1d1b17; --muted:#5f5a50; --line:#d9d4c7;
+  --tag:#ffd23f; --tag-ink:#1d1b17; --red:#c8251d; --red-ink:#ffffff; --ok:#1e6e3c; --ok-soft:#e1f1e5; --no:#a3271f; --no-soft:#f8e2df;
+  --display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#16150f; --paper:#211f19; --paper2:#1b1a15; --ink:#f1ede2; --muted:#b0a999; --line:#3a372e;
+  --red:#ff6b5e; --red-ink:#1d1b17; --ok:#7dd69a; --ok-soft:#1d3324; --no:#ff8a7f; --no-soft:#3a1f1c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#16150f; --paper:#211f19; --paper2:#1b1a15; --ink:#f1ede2; --muted:#b0a999; --line:#3a372e;
+  --red:#ff6b5e; --red-ink:#1d1b17; --ok:#7dd69a; --ok-soft:#1d3324; --no:#ff8a7f; --no-soft:#3a1f1c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.5;margin:0}
+.wrap{max-width:42rem;margin:0 auto;padding-inline:16px;padding-block:18px 48px;display:flex;flex-direction:column;gap:16px}
+h1,h2{font-family:var(--display);font-stretch:112%;line-height:1.1;text-wrap:balance;margin:0}
+h1{font-size:clamp(1.9rem,7vw,2.6rem);font-weight:900;font-stretch:125%;text-transform:uppercase}
+h1 span{background:var(--tag);color:var(--tag-ink);padding:0 .15em}
+.eyebrow{font-family:var(--display);font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.note{color:var(--muted);font-size:.92rem;margin:0}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.modes{display:flex;flex-wrap:wrap;gap:8px}
+.mode{background:var(--paper);border:2px solid var(--ink);padding:.45rem .8rem;font-family:var(--display);font-weight:800;font-size:.9rem}
+.mode[aria-pressed="true"]{background:var(--tag);color:var(--tag-ink)}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:var(--paper);border-top:4px solid var(--ink);padding:8px 12px;flex:1;min-width:6.5rem}
+.stat b{display:block;font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.stat small{color:var(--muted);font-size:.82rem}
+.meter{height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--red);width:0}
+.card{background:var(--paper);border:2px solid var(--ink)}
+.card-head{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 14px;border-bottom:2px solid var(--ink)}
+.chip{background:var(--tag);color:var(--tag-ink);font-family:var(--display);font-weight:800;font-size:.78rem;padding:.2rem .5rem;text-transform:uppercase;letter-spacing:.04em}
+.body{padding:16px;display:flex;flex-direction:column;gap:12px}
+.item{background:var(--paper2);border:1.5px solid var(--line);padding:14px;font-size:1.05rem}
+.item .big{font-family:var(--display);font-weight:800;font-stretch:112%;font-size:1.25rem;line-height:1.2}
+.q{font-family:var(--display);font-weight:800;font-size:1.1rem}
+.opts{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr))}
+.opt{text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:.7rem .85rem;line-height:1.3}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)} .opt.wrong{border-color:var(--no);background:var(--no-soft)}
+.calc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.calc input{width:9rem;padding:.6rem .7rem;border:2px solid var(--ink);border-radius:8px;background:var(--paper);font-variant-numeric:tabular-nums}
+.btn{background:var(--ink);color:var(--paper);border:0;border-radius:999px;padding:.7rem 1.3rem;font-family:var(--display);font-weight:800;font-stretch:112%}
+.fb{border-top:2px solid var(--ink);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.verdict{font-family:var(--display);font-weight:800;font-size:1.05rem}
+.verdict.ok{color:var(--ok)} .verdict.no{color:var(--no)}
+.exam{background:var(--tag);color:var(--tag-ink);padding:8px 10px;font-size:.95rem}
+.proof{background:var(--paper);border:3px double var(--ink);padding:18px;display:flex;flex-direction:column;gap:8px}
+.proof .big{font-family:var(--display);font-weight:900;font-stretch:125%;font-size:2rem}
+.row{display:flex;justify-content:flex-end}
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow">Lernfeld 5 · Werben und den Verkauf fördern</p>
+    <h1 style="margin-top:6px">Der <span>Werbe-Trainer</span></h1>
+    <p class="note" style="margin-top:8px">Sechs Trainingsarten zu den Themen, die in der Prüfung immer wieder kommen. Nach 30 richtigen Antworten bekommst du einen Nachweis für deine Lehrkraft.</p>
+  </header>
+  <nav class="modes" id="modes" aria-label="Trainingsart"></nav>
+  <section class="stats">
+    <div class="stat"><b id="sRight">0</b><small>richtig</small></div>
+    <div class="stat"><b id="sTotal">0</b><small>bearbeitet</small></div>
+    <div class="stat"><b id="sStreak">0</b><small>in Folge richtig</small></div>
+  </section>
+  <div><div class="meter" aria-hidden="true"><i id="meter"></i></div><p class="note" id="meterTxt" style="margin-top:6px"></p></div>
+  <section id="stage"></section>
+  <section id="proof" hidden></section>
+</main>
+
+<script>
+const MODES={
+ mt:{name:"Mittel oder Träger?",modul:"Modul 3",q:"Was ist das Werbemittel – und was der Werbeträger?",type:"pair",items:[
+  ["Plakat","Litfaßsäule"],["Anzeige","Tageszeitung"],["Radiospot","Radiosender"],["Firmenaufdruck","Einkaufstasche"],["Werbefilm","Kinosaal"],
+  ["Schaufensterdekoration","Schaufenster"],["Werbebanner","Website des Betriebs"],["Werbebrief","Post an die Stammkunden"],["Logo auf dem Trikot","Fußballverein"],
+  ["Prospekt","Anzeigenblatt"],["Aufschrift auf dem Lieferwagen","Lieferwagen"],["Video-Beitrag","Social-Media-Kanal"],["Bandenwerbung","Stadion"],["Kugelschreiber-Aufdruck","Kugelschreiber"]],
+  why:"Das Werbemittel vermittelt die Werbebotschaft. Der Werbeträger bringt sie zu den Menschen."},
+ wp:{name:"Werbeplan-Begriffe",modul:"Modul 4",q:"Welcher Begriff aus dem Werbeplan ist gemeint?",opts:["Werbeetat","Streuzeit","Streukreis","Streugebiet"],items:[
+  ["Für das ganze Jahr stehen 12.000 € zur Verfügung.",0,"Wie viel Geld?"],["Vier Anzeigen in den Kalenderwochen 5 bis 8.",1,"Wann und wie oft?"],
+  ["Frauen zwischen 25 und 45 Jahren mit mittlerer Kaufkraft.",2,"Wer wird umworben?"],["Bremerhaven und der Landkreis Cuxhaven.",3,"Wo wird geworben?"],
+  ["Die Flyer werden nur in Lehe und Geestemünde verteilt.",3,"Wo wird geworben?"],["Heimwerker, die ein eigenes Haus haben.",2,"Wer wird umworben?"],
+  ["Rund um die Eröffnung zwei Wochen lang täglich.",1,"Wann und wie oft?"],["Im Februar fließen davon 2.000 € in Radiospots.",0,"Wie viel Geld?"],
+  ["Jeden ersten Samstag im Monat erscheint eine Anzeige.",1,"Wann und wie oft?"],["Schülerinnen und Schüler mit ihren Eltern.",2,"Wer wird umworben?"]],
+  why:"Werbeetat = wie viel Geld · Streuzeit = wann und wie oft · Streukreis = wer · Streugebiet = wo."},
+ wa:{name:"Werbearten",modul:"Modul 1",q:"Welche Werbeart passt zu der genannten Frage?",type:"wa",items:[
+  ["Das Modehaus schickt seiner Stammkundin einen Geburtstagsgutschein.","Wen sprechen wir an?",["Direktwerbung","Massenwerbung"],0,"Bestimmte Personen werden persönlich angesprochen."],
+  ["Ein Radiospot für den Sommerschlussverkauf.","Wen sprechen wir an?",["Direktwerbung","Massenwerbung"],1,"Die Werbung richtet sich an die Allgemeinheit."],
+  ["Zwölf Geschäfte eines Einkaufszentrums werben gemeinsam und nennen ihre Namen.","Wer wirbt?",["Alleinwerbung","Gemeinschaftswerbung","Sammelwerbung"],1,"Mehrere Betriebe werben zusammen, die Namen werden genannt."],
+  ["Die deutsche Milchwirtschaft wirbt für Milch, ohne einzelne Molkereien zu nennen.","Wer wirbt?",["Alleinwerbung","Gemeinschaftswerbung","Sammelwerbung"],2,"Ein ganzer Wirtschaftszweig wirbt, ohne Namen einzelner Betriebe."],
+  ["Das Spielwarengeschäft Kinderglück schaltet eine eigene Anzeige.","Wer wirbt?",["Alleinwerbung","Gemeinschaftswerbung","Sammelwerbung"],0,"Ein Betrieb wirbt allein mit seinem eigenen Namen."],
+  ["„Über 300 Teesorten bei uns im Haus.“","Wofür wird geworben?",["Warenwerbung","Sortimentswerbung","Firmenwerbung","Aktionswerbung"],1,"Die Breite und Tiefe des Sortiments wird gezeigt."],
+  ["„Nur am Samstag: 20 % auf alle Winterjacken.“","Wofür wird geworben?",["Warenwerbung","Sortimentswerbung","Firmenwerbung","Aktionswerbung"],3,"Ein befristetes Angebot soll kurzfristig abverkauft werden."],
+  ["„Seit 1954 Ihr Fachgeschäft in Bremerhaven – Beratung, die weiterhilft.“","Wofür wird geworben?",["Warenwerbung","Sortimentswerbung","Firmenwerbung","Aktionswerbung"],2,"Der Betrieb selbst steht im Mittelpunkt."],
+  ["Eine Anzeige für eine bestimmte Bohrmaschine mit Preis.","Wofür wird geworben?",["Warenwerbung","Sortimentswerbung","Firmenwerbung","Aktionswerbung"],0,"Ein einzelner Artikel wird herausgestellt."]],
+  why:"Jede Werbung beantwortet drei Fragen: Wen? Wer? Wofür?"},
+ re:{name:"Rechnen",modul:"Modul 5",q:"Rechne aus. Ergebnis in Prozent, auf eine Stelle nach dem Komma.",type:"calc"},
+ vk:{name:"Werbung, VKF oder PR?",modul:"Modul 6",q:"Was ist das?",opts:["Werbung","Verkaufsförderung","Öffentlichkeitsarbeit"],items:[
+  ["Verkostung von Bergkäse am Kühlregal.",1,"Kundenpromotion am Point of Sale."],["Ein Sportgeschäft stattet den Fußballverein mit Trikots aus, darauf das Firmenlogo.",2,"Sponsoring: Förderung gegen Gegenleistung, für Ansehen und Vertrauen."],
+  ["Eine Anzeige in der Tageszeitung für den Sommerschlussverkauf.",0,"Werbung über einen Werbeträger außerhalb des Ladens."],["Der Hersteller schult das Verkaufspersonal an der neuen Kaffeemaschine.",1,"Mitarbeiterpromotion."],
+  ["Ein Einkaufszentrum spendet einer Schule 15 PCs und lädt die Presse ein.",2,"Spende ohne Gegenleistung, öffentlich gemacht."],["Der Hersteller gibt dem Händler einen Einführungsrabatt und ein Display.",1,"Händlerpromotion."],
+  ["Ein Radiospot für die Neueröffnung.",0,"Werbung über einen Werbeträger."],["Malwettbewerb für Kinder im Laden am Samstag.",1,"Kundenpromotion im Verkaufsraum."],
+  ["Familientag im Autohaus mit Band, Essen und Probefahrten.",2,"Eventmarketing als Öffentlichkeitsarbeit."]],
+  why:"Werbung will informieren und Kunden gewinnen. Verkaufsförderung will heute am Verkaufsort verkaufen. Öffentlichkeitsarbeit will langfristig Vertrauen."},
+ uw:{name:"Erlaubt oder nicht?",modul:"Modul 8",q:"Ist die Werbung erlaubt?",opts:["erlaubt","nicht erlaubt"],items:[
+  ["Ein Fernseher kostete den ganzen Mai 499 €, am 1. Juni 599 €. Am 10. Juni: „statt 599 € jetzt 499 €“.",1,"Bei Preisermäßigungen gilt der niedrigste Preis der letzten 30 Tage (§ 11 PAngV) – hier 499 €."],
+  ["Pfifferlinge im Angebot, aber nur 10 Körbchen je Filiale – nach einer halben Stunde ausverkauft.",1,"Lockangebot: Der Vorrat sollte im Regelfall zwei Tage reichen."],
+  ["Werbe-E-Mail an einen Kunden, der sich für den Newsletter angemeldet und zugestimmt hat.",0,"Mit Einwilligung ist die E-Mail erlaubt."],
+  ["Werbe-E-Mails an alle Adressen aus dem Kassensystem, ohne zu fragen.",1,"Unzumutbare Belästigung: Werbe-E-Mails nur mit Einwilligung."],
+  ["„Bei uns 0,65 € – beim Discounter 0,70 €.“ Gleiche Flasche, gleiche Menge.",0,"Vergleichende Werbung ist erlaubt, wenn gleiche Waren und Mengen verglichen werden."],
+  ["„Bei uns 0,65 € (0,75 l) – beim Discounter 0,70 € (1,0 l).“",1,"Unlauterer Vergleich: unterschiedliche Mengen."],
+  ["Werbeprospekt im Briefkasten mit dem Aufkleber „Keine Werbung“.",1,"Unzumutbare Belästigung."],
+  ["„Größte Goldschmiede Deutschlands“ – und das stimmt nachweislich.",0,"Eine wahre Angabe über das eigene Unternehmen ist erlaubt."],
+  ["Ein Autohändler erzählt, beim Autohaus gegenüber sitze der Pleitegeier auf dem Dach.",1,"Herabsetzung eines Mitbewerbers."],
+  ["„Nur am Samstag: 20 % auf alle Winterjacken“ – der Preis galt die 30 Tage davor unverändert.",0,"Echte Preissenkung mit korrektem Vergleichspreis."]],
+  why:"Das UWG schützt Mitbewerber, Verbraucher und sonstige Marktteilnehmer vor unlauterem Wettbewerb."}
+};
+const GOAL=30, KEY="lf5-werbetrainer-v1";
+let S={right:0,total:0,streak:0,best:0,done:false,date:null};
+try{const x=JSON.parse(localStorage.getItem(KEY)||"null");if(x)S=Object.assign(S,x)}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let mode="mt",bag={},answered=false;
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmt=n=>n.toLocaleString("de-DE",{maximumFractionDigits:2});
+function next(m){if(!bag[m]||!bag[m].length)bag[m]=shuffle(MODES[m].items.map((_,i)=>i));return bag[m].pop()}
+function stats(){$("sRight").textContent=S.right;$("sTotal").textContent=S.total;$("sStreak").textContent=S.streak;
+ const p=Math.min(1,S.right/GOAL);$("meter").style.width=(p*100)+"%";
+ $("meterTxt").textContent=S.done?"Nachweis erreicht – du kannst weiter üben.":`Noch ${GOAL-Math.min(GOAL,S.right)} richtige Antworten bis zum Nachweis.`}
+function nav(){$("modes").innerHTML=Object.entries(MODES).map(([k,v])=>`<button class="mode" data-m="${k}" aria-pressed="${k===mode}">${v.name}</button>`).join("");
+ $("modes").querySelectorAll(".mode").forEach(b=>b.onclick=()=>{mode=b.dataset.m;nav();task()})}
+function shell(inner){const M=MODES[mode];
+ $("stage").innerHTML=`<article class="card"><div class="card-head"><span class="eyebrow">${M.name}</span><span class="chip">${M.modul}</span></div>
+ <div class="body">${inner}</div><div class="fb" id="fb" hidden></div></article>`}
+function result(ok,text,exam){answered=true;S.total++;if(ok){S.right++;S.streak++;S.best=Math.max(S.best,S.streak)}else S.streak=0;
+ if(!S.done&&S.right>=GOAL){S.done=true;S.date=new Date().toLocaleDateString("de-DE")}
+ save();stats();const fb=$("fb");fb.hidden=false;
+ fb.innerHTML=`<div class="verdict ${ok?"ok":"no"}">${ok?"Richtig!":"Noch nicht."}</div><div>${text}</div>${exam?`<div class="exam">${exam}</div>`:""}<div class="row"><button class="btn" id="nx">Nächste Aufgabe</button></div>`;
+ $("nx").onclick=task;$("nx").focus({preventScroll:true});proof()}
+function mark(btns,right,picked){btns.forEach((b,i)=>{b.disabled=true;if(i===right)b.classList.add("right");else if(i===picked)b.classList.add("wrong")})}
+function task(){answered=false;const M=MODES[mode];
+ if(M.type==="calc")return calc();
+ if(M.type==="pair"){const [mi,tr]=M.items[next(mode)];const askMittel=Math.random()<.5;const two=shuffle([mi,tr]);
+  shell(`<div class="item"><div class="big">${two[0]} · ${two[1]}</div></div><div class="q">Was davon ist der <u>${askMittel?"Werbemittel":"Werbeträger"}</u>?</div>
+  <div class="opts">${two.map(o=>`<button class="opt">${o}</button>`).join("")}</div>`);
+  const bs=[...document.querySelectorAll(".opt")];const right=two.indexOf(askMittel?mi:tr);
+  bs.forEach((b,i)=>b.onclick=()=>{if(answered)return;mark(bs,right,i);result(i===right,`${mi} = Werbemittel · ${tr} = Werbeträger.`,M.why)});return}
+ if(M.type==="wa"){const [txt,frage,opts,r,why]=M.items[next(mode)];
+  shell(`<div class="item"><div class="big">${txt}</div></div><div class="q">${frage}</div><div class="opts">${opts.map(o=>`<button class="opt">${o}</button>`).join("")}</div>`);
+  const bs=[...document.querySelectorAll(".opt")];bs.forEach((b,i)=>b.onclick=()=>{if(answered)return;mark(bs,r,i);result(i===r,`<b>${opts[r]}:</b> ${why}`,M.why)});return}
+ const [txt,r,why]=M.items[next(mode)];
+ shell(`<div class="item"><div class="big">${txt}</div></div><div class="q">${M.q}</div><div class="opts">${M.opts.map(o=>`<button class="opt">${o}</button>`).join("")}</div>`);
+ const bs=[...document.querySelectorAll(".opt")];bs.forEach((b,i)=>b.onclick=()=>{if(answered)return;mark(bs,r,i);result(i===r,`<b>${M.opts[r]}.</b> ${why}`,M.why)});
+}
+function calc(){const t=Math.random()<.5?"erfolg":"rendite";let txt,exact,way;
+ if(t==="erfolg"){const inv=[40,50,60,80,100,120,150,200,250][Math.floor(Math.random()*9)];const k=Math.max(1,Math.round(inv*(0.1+Math.random()*0.4)));
+  exact=k*100/inv;txt=`Der Betrieb hat <b>${inv}</b> Stammkunden zu einem Aktionsabend eingeladen. <b>${k}</b> von ihnen haben gekauft.<br>Berechne den <b>Erfolg der Werbung</b>.`;
+  way=`Erfolg der Werbung = Zahl der Käufer × 100 ÷ Zahl der eingeladenen Kunden = ${k} × 100 ÷ ${inv} = <b>${fmt(Math.round(exact*10)/10)} %</b>`}
+ else{const kosten=[500,800,1000,1200,1500,2000,2500,4000][Math.floor(Math.random()*8)];const f=[0.5,0.8,1.2,1.5,2,2.5,3,4,5][Math.floor(Math.random()*9)];const zu=Math.round(kosten*f/50)*50;
+  exact=zu*100/kosten;txt=`Eine Werbeaktion hat <b>${fmt(kosten)} €</b> gekostet. Der Umsatz ist danach um <b>${fmt(zu)} €</b> gestiegen.<br>Berechne die <b>Werberendite</b>.`;
+  way=`Werberendite = Umsatzzuwachs × 100 ÷ Werbekosten = ${fmt(zu)} × 100 ÷ ${fmt(kosten)} = <b>${fmt(Math.round(exact*10)/10)} %</b>`+(exact<100?"<br>Unter 100 %: Der Umsatzzuwachs deckt nicht einmal die Werbekosten.":"")}
+ shell(`<div class="item">${txt}</div><div class="q">Dein Ergebnis in %</div><form class="calc" id="cf"><input id="ci" inputmode="decimal" autocomplete="off" aria-label="Ergebnis in Prozent"><span>%</span><button class="btn" type="submit">Prüfen</button></form><p class="note">Komma oder Punkt sind beide in Ordnung.</p>`);
+ $("ci").focus({preventScroll:true});
+ $("cf").onsubmit=e=>{e.preventDefault();if(answered)return;const v=parseFloat($("ci").value.trim().replace(",","."));if(isNaN(v))return;
+  $("ci").disabled=true;result(Math.abs(v-exact)<=0.06,way,"Erst mal 100 nehmen, dann teilen. Beide Formeln geben ein Ergebnis in Prozent.")}}
+function proof(){const p=$("proof");if(!S.done){p.hidden=true;return}p.hidden=false;
+ p.innerHTML=`<div class="proof"><p class="eyebrow">Nachweis Werbe-Trainer · Lernfeld 5</p><div class="big">${S.right} richtige Antworten</div>
+ <p style="margin:0">Ziel von ${GOAL} erreicht am <b>${S.date}</b>. Längste Serie: <b>${S.best}</b> in Folge richtig. Quote: <b>${Math.round(S.right/S.total*100)} %</b>.</p>
+ <p class="note">Zeig diesen Bildschirm deiner Lehrkraft. Er ist dein Nachweis, dass du die Dauerbrenner der Prüfung sicher kannst.</p>
+ <p class="note">Name: ______________________ &nbsp; Kürzel Lehrkraft: ________</p></div>`}
+nav();stats();task();proof();
+</script>
+<script src="../i18n/i18n.js" defer></script>
+</body>
+</html>

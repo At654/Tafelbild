@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Modul 4 – Der Werbeplan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f6fa;--card:#fff;--ink:#1c2733;--mut:#566574;--pri:#1f4e79;--pri2:#2f6fa8;--prib:#e6eff8;--ok:#176b40;--okb:#e0f4e8;--bad:#a8231b;--badb:#fdeaea;--part:#7a5200;--partb:#fff2cf;--hl:#fff176;--line:#cfd9e4;--vi:#5a4bb5;--vib:#f0edff;--acc:#d98a86;--fs:1}
+*{box-sizing:border-box}
+html{font-size:calc(17px * var(--fs));-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55;padding-bottom:env(safe-area-inset-bottom)}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px 80px}
+/* Top bar */
+.top{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 6px) 12px 8px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.top-in{max-width:860px;margin:0 auto}
+.prog{display:flex;align-items:center;gap:10px}
+.bar{flex:1;height:14px;background:#e1e8f0;border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pri2),#3da56a);transition:width .4s}
+.prog b{font-size:.85rem;white-space:nowrap}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;align-items:center}
+.seg{display:inline-flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{border:0;background:#fff;color:var(--pri);min-height:44px;min-width:48px;padding:0 12px;font-weight:700;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--pri);color:#fff}
+@media(max-width:480px){.seg button{padding:0 9px;font-size:.92rem}.ctrl{gap:6px}}
+.gear{min-height:44px;min-width:48px;border:2px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;margin-left:auto;font-size:1.1rem}
+.menu{display:none;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fafcff;gap:8px;flex-wrap:wrap}
+.menu.open{display:flex}
+/* Head */
+.hd{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-top:14px;padding:14px 16px}
+.hd h1{margin:0 0 2px;font-size:1.45rem;color:var(--pri);line-height:1.25}
+.hd .lf{color:var(--mut);font-size:.9rem}
+.nd{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+@media(max-width:520px){.nd{grid-template-columns:1fr}}
+.nd label{font-size:.85rem;font-weight:700;color:var(--mut);display:block}
+input[type=text],input[type=date],select,textarea{width:100%;border:2px solid var(--line);border-radius:10px;background:#fff;padding:10px 12px;font-size:16px;min-height:48px}
+textarea{resize:vertical;line-height:1.45}
+input:focus,select:focus,textarea:focus{outline:3px solid #9cc3ea;border-color:var(--pri2)}
+.can{background:var(--prib);border-left:5px solid var(--pri);border-radius:10px;padding:10px 14px;margin-top:10px}
+.can h3{margin:0 0 4px;font-size:1rem;color:var(--pri)}
+.can label{display:flex;gap:10px;align-items:flex-start;min-height:44px;padding:4px 0;cursor:pointer}
+.can input{width:26px;height:26px;flex:none;margin-top:2px;accent-color:var(--pri)}
+/* Cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-top:16px;padding:14px 16px;scroll-margin-top:130px}
+.card h2{margin:0;font-size:1.15rem;color:var(--pri);line-height:1.3;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
+.chip{font-size:.72rem;font-weight:800;border-radius:99px;padding:2px 9px;background:var(--prib);color:var(--pri);white-space:nowrap}
+.chip.v{background:var(--vib);color:var(--vi)}
+.chip.p{background:#eee;color:#444}
+.ask{margin:8px 0 10px;font-weight:600}
+.vi{display:block;color:var(--vi);font-size:.88em;font-weight:400;line-height:1.5;margin-top:1px}
+.card.lvlv{border-color:#c9bff5;background:#fcfbff}
+.item{margin:12px 0;padding-top:10px;border-top:1px dashed var(--line)}
+.item:first-of-type{border-top:0;padding-top:0}
+.q{font-weight:700;margin-bottom:6px}
+.cell-g{display:grid;grid-template-columns:repeat(var(--n,3),1fr);gap:8px}
+@media(max-width:600px){.cell-g{grid-template-columns:1fr}}
+.cell-g label{font-size:.78rem;font-weight:800;color:var(--mut);display:block}
+.cell-g .given{min-height:48px;display:flex;align-items:center;padding:6px 12px;background:#eef2f6;border-radius:10px;font-weight:700}
+.note{font-size:.88rem;color:var(--mut);font-style:italic}
+.btn{min-height:48px;padding:0 18px;border-radius:12px;border:2px solid var(--pri);background:var(--pri);color:#fff;font-weight:800;cursor:pointer;margin:6px 8px 0 0}
+.btn.sec{background:#fff;color:var(--pri)}
+.btn[disabled]{opacity:.5}
+.btn small{display:block;font-weight:400;font-size:.7em;opacity:.9;line-height:1.1}
+.btn .vi{color:inherit;font-size:.72em;opacity:.9;margin:0}
+/* MC */
+.opt{display:flex;gap:10px;align-items:flex-start;min-height:48px;padding:10px 12px;border:2px solid var(--line);border-radius:12px;margin:6px 0;cursor:pointer;background:#fff}
+.opt input{width:24px;height:24px;margin-top:2px;flex:none;accent-color:var(--pri)}
+.opt.sel{border-color:var(--pri2);background:var(--prib)}
+.opt.ok{border-color:var(--ok);background:var(--okb)}
+.opt.bad{border-color:var(--bad);background:var(--badb)}
+/* Reading */
+.rdt{font-size:1.02rem;line-height:2.1;margin:6px 0}
+.w{display:inline-block;padding:0 3px;margin:0 1px;border-radius:6px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.w.mk{background:var(--hl)}
+.w.ok{background:#a6e3bd}
+.w.bad{background:#f5b5b0;text-decoration:line-through}
+.w.miss{outline:2px dashed var(--ok);background:#fff}
+.locked .w{cursor:default}
+.wsp{background:var(--prib);border-radius:10px;padding:10px 14px;font-size:.95rem}
+.tbl{width:100%;border-collapse:collapse;font-size:.92rem;margin:8px 0}
+.tbl th{background:#e7bcb9;text-align:left;padding:8px;border:1px solid #fff}
+.tbl td{padding:8px;border:1px solid var(--line);vertical-align:top}
+.tbl td:first-child{font-weight:700}
+.scroll{overflow-x:auto}
+/* Tips */
+details.tip{margin:6px 0 10px;border:2px solid #f0d37a;border-radius:12px;background:#fff9e3}
+details.tip>summary{min-height:48px;display:flex;align-items:center;padding:0 12px;font-weight:800;cursor:pointer;color:#7a5a00;list-style:none}
+details.tip>summary::-webkit-details-marker{display:none}
+details.tip .tb{padding:0 12px 10px}
+.tb p{margin:6px 0}
+/* Feedback */
+.fb{margin-top:10px;padding:10px 12px;border-radius:10px;border-left:5px solid var(--line);background:#f3f5f8}
+.fb.ok{background:var(--okb);border-color:var(--ok)}
+.fb.bad{background:var(--badb);border-color:var(--bad)}
+.fb.part{background:var(--partb);border-color:#d9a400}
+.model{background:#f1f8f3;border:1px solid #bfe0cb;border-radius:10px;padding:8px 12px;margin-top:8px}
+.rate{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.rate button{min-height:48px;border:2px solid var(--line);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;cursor:pointer}
+.rate button[aria-pressed=true]{border-color:var(--pri);background:var(--prib)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.chips button{min-height:44px;border-radius:99px;border:2px solid var(--pri2);background:#fff;color:var(--pri);padding:0 14px;font-weight:700;cursor:pointer}
+/* Results */
+#results{display:none}
+#results.on{display:block}
+.score{font-size:2.4rem;font-weight:800;color:var(--pri);line-height:1.1}
+.rrow{border-top:1px solid var(--line);padding:10px 0}
+.badge{display:inline-block;min-width:28px;text-align:center;border-radius:99px;font-weight:800;padding:1px 8px;margin-right:6px}
+.badge.ok{background:var(--okb);color:var(--ok)}
+.badge.bad{background:var(--badb);color:var(--bad)}
+.badge.part{background:var(--partb);color:var(--part)}
+.badge.open{background:#eee;color:#555}
+.ans{background:#f3f5f8;border-radius:8px;padding:6px 10px;margin:4px 0;white-space:pre-wrap}
+.right{color:var(--ok);font-weight:700}
+.wrong{color:var(--bad);font-weight:700}
+.steps{background:#f6f9fc;border-left:4px solid var(--pri2);padding:6px 12px;margin:6px 0;border-radius:6px}
+/* Toast + dialog */
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,40px);background:#1c2733;color:#fff;padding:12px 18px;border-radius:12px;opacity:0;transition:.3s;z-index:90;max-width:90vw;pointer-events:none}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#dlg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:16px}
+#dlg.on{display:flex}
+#dlg .box{background:#fff;border-radius:16px;padding:18px;max-width:420px;width:100%}
+.printonly{display:none}
+@media print{
+ .top,#toast,#dlg,.noprint,details.tip,.btn,.menu{display:none!important}
+ body{background:#fff;font-size:11pt}
+ .wrap{max-width:none;padding:0}
+ #tasks,.hd .can{display:none!important}
+ #results{display:block!important}
+ .printonly{display:block!important}
+ .card,.hd{border:0;padding:0;margin-top:8px}
+ .rrow{break-inside:avoid}
+ .vi{display:none}
+}
+</style>
+</head>
+<body>
+<div class="top"><div class="top-in">
+ <div class="prog"><div class="bar"><i id="barfill"></i></div><b id="bartxt">0 / 0</b></div>
+ <div class="ctrl">
+  <div class="seg" id="segLang" role="group" aria-label="Sprache"><button data-lang="de">Deutsch</button><button data-lang="vi" lang="vi">Tiếng Việt</button></div>
+  <div class="seg" id="segLvl" role="group" aria-label="Ebene"><button data-lvl="b">Basis</button><button data-lvl="v">Vertiefung</button></div>
+  <button class="gear" id="gear" aria-label="Menü">⚙</button>
+ </div>
+ <div class="menu" id="menu">
+  <div class="seg"><button data-fs="-1" aria-label="Schrift kleiner">A−</button><button data-fs="1" aria-label="Schrift größer">A+</button></div>
+  <button class="btn sec" id="btnReset"></button>
+ </div>
+</div></div>
+<div class="wrap">
+ <div id="head"></div>
+ <div id="tasks"></div>
+ <div id="final"></div>
+ <div id="results" class="card"></div>
+</div>
+<div id="toast"></div>
+<div id="dlg"><div class="box" id="dlgbox"></div></div>
+<script>
+window.SHEET={
+id:'LF5_M_4',
+lf:'Lernfeld 5 · Werben und den Verkauf fördern',
+title:['Modul 4 – Der Werbeplan','Mô-đun 4 – Kế hoạch quảng cáo (Werbeplan)'],
+meta:'2 Doppelstunden · Lehrbuch S. 233, 236–237 · Arbeitsheft S. 184–186',
+can:[
+ ['Ich kann die Begriffe Werbeetat, Streuzeit, Streukreis und Streugebiet erklären.','Em có thể giải thích các khái niệm Werbeetat (ngân sách quảng cáo), Streuzeit (thời gian phát), Streukreis (nhóm đối tượng) và Streugebiet (khu vực phát).'],
+ ['Ich kann einen fertigen Werbeplan lesen und die Angaben darin erklären.','Em có thể đọc một Werbeplan đã hoàn chỉnh và giải thích các thông tin trong đó.'],
+ ['Ich kann für ein Produkt einen Werbeplan aufstellen und meine Entscheidungen begründen.','Em có thể lập một Werbeplan cho một sản phẩm và giải thích các quyết định của mình.']
+],
+words:[
+ ['**Werbeplan:** der Plan für die Werbung. Er sagt: was, womit, wie viel, wann, für wen und wo.','**Werbeplan** (kế hoạch quảng cáo): kế hoạch cho việc quảng cáo, gồm: cái gì, bằng gì, bao nhiêu tiền, khi nào, cho ai và ở đâu.'],
+ ['**Werbeetat (Werbebudget):** das Geld für die Werbung.','**Werbeetat (Werbebudget)** (ngân sách quảng cáo): số tiền dành cho quảng cáo.'],
+ ['**Streuzeit:** wann und wie oft geworben wird.','**Streuzeit** (thời gian phát quảng cáo): khi nào và bao nhiêu lần quảng cáo được phát.'],
+ ['**Streukreis:** die Menschen, die umworben werden.','**Streukreis** (nhóm đối tượng quảng cáo): những người được quảng cáo nhắm đến.'],
+ ['**Streugebiet:** das Gebiet, in dem geworben wird.','**Streugebiet** (khu vực phát quảng cáo): khu vực nơi quảng cáo được thực hiện.'],
+ ['**Reichweite:** Wie viele Menschen eine Werbung erreicht.','**Reichweite** (phạm vi tiếp cận): quảng cáo tiếp cận được bao nhiêu người.'],
+ ['**Kontakt:** Ein Mensch sieht oder hört die Werbung einmal.','**Kontakt** (lượt tiếp xúc): một người xem hoặc nghe quảng cáo một lần.']
+],
+blocks:[
+{id:'a1',type:'free',pts:1,title:['Aufgabe 1 · Ankommen: Was weißt du noch?','Bài 1 · Khởi động: Em còn nhớ gì?'],
+ ask:['Beantworte die Fragen aus dem Kopf. Nicht nachschlagen – es geht darum, was hängengeblieben ist.','Hãy trả lời từ trí nhớ. Không tra cứu – quan trọng là xem em còn nhớ được gì.'],
+ tips:[['Denke an Modul 2 und 3 und an Lernfeld 1 und an WiSo.','Hãy nhớ lại Mô-đun 2 và 3, Lernfeld 1 và môn WiSo (kinh tế – xã hội).'],['Bei Frage 2: „Maximal“ heißt „so viel wie möglich“. Was ist gegeben, was soll möglichst groß sein?','Câu 2: “Maximal” nghĩa là “càng nhiều càng tốt”. Cái gì đã cho sẵn, cái gì cần càng lớn càng tốt?']],
+ help:['Das Werbemittel …, der Werbeträger …','Das Maximalprinzip bedeutet …','Eine Zielgruppe ist …','Die Probezeit dauert …'],
+ items:[
+ {q:'Was ist der Unterschied zwischen Werbemittel und Werbeträger?',model:'Das Werbemittel vermittelt die Werbebotschaft (z. B. die Anzeige), der Werbeträger verbreitet sie (z. B. die Zeitung).',kw:[['vermittelt','botschaft','anzeige'],['verbreitet','zeitung','medium']]},
+ {q:'Was besagt das ökonomische Prinzip als Maximalprinzip? (aus LF 1)',model:'Mit gegebenen Mitteln einen möglichst großen Erfolg erzielen.',rows:2,kw:[['gegeben','mitteln'],['moeglichst gross','maximal','groesst']]},
+ {q:'Welcher Werbegrundsatz verlangt, dass der zusätzliche Erfolg höher ist als der Werbeaufwand?',model:'Der Grundsatz „wirtschaftlich“.',rows:2,kw:[['wirtschaftlich']]},
+ {q:'Was ist eine Zielgruppe?',model:'Der Personenkreis, den die Werbung erreichen soll – zum Beispiel Frauen zwischen 25 und 45 Jahren.',rows:2,kw:[['personenkreis','menschen','kunden'],['erreichen','werbung']]},
+ {q:'Wie lange darf die Probezeit in der Ausbildung dauern? (aus WiSo)',model:'Mindestens einen Monat, höchstens vier Monate.',rows:2,kw:[['monat'],['vier','4']]}
+ ]},
+{id:'i_wsp',type:'info',title:['Zum Nachlesen · Wortspeicher','Đọc thêm · Kho từ vựng'],
+ ask:['Im Unterricht liest du diesen Teil nach dem Unterrichtsgespräch. Wenn du allein arbeitest, liest du ihn zuerst.','Trên lớp, em đọc phần này sau buổi thảo luận. Nếu em học một mình, hãy đọc phần này trước.'],
+ html:'<div class="wsp">Werbeplan · Werbeetat · Werbebudget · Plankosten · Sollkosten · Streuzeit · Streukreis · Zielgruppe · Streugebiet · Werbeverbreitungsgebiet · Reichweite · Kosten für 1.000 Kontakte · Werbedisposition · Erinnerungswerbung</div><div class="note">Tipp für Schnelle: Deck den Wortspeicher ab und schau nur hin, wenn du wirklich nicht weiterkommst.</div>'},
+{id:'i_5f',type:'info',title:['Die fünf Fragen des Werbeplans','Năm câu hỏi của kế hoạch quảng cáo'],
+ ask:['Bevor ein Betrieb Geld für Werbung ausgibt, schreibt er einen Werbeplan. Darin beantwortet er fünf Fragen (Lehrbuch S. 233):','Trước khi một doanh nghiệp chi tiền cho quảng cáo, họ lập một Werbeplan. Trong đó họ trả lời năm câu hỏi (sách giáo khoa tr. 233):'],
+ html:'<div class="can"><b>Werbeplan</b><ol style="margin:4px 0 0 18px;padding:0"><li>Welche Werbebotschaft soll vermittelt werden?</li><li>Welche Werbemittel und Werbeträger sind einzusetzen?</li><li>Welche Beträge können für die Werbung eingesetzt werden (Werbeetat, Werbebudget)?</li><li>Welche Streuzeit wird festgesetzt?</li><li>Welche Streukreise und Streugebiete sind auszuwählen?</li></ol></div><div class="can"><b>Merke:</b> Kurz gemerkt: Was – womit – wie viel – wann – für wen und wo.</div>'},
+{id:'r1',type:'read',title:['Der Werbeetat: Lesen und prüfen','Werbeetat: Đọc và kiểm tra'],
+ ask:['Tippe die wichtigsten Wörter an. Prüfe danach. Beantworte dann die Fragen.','Chạm vào các từ quan trọng nhất. Sau đó kiểm tra. Rồi trả lời các câu hỏi.'],
+ tips:[['Suche: Wie heißt das Geld für die Werbung? Für welchen Zeitraum wird meist geplant?','Hãy tìm: Số tiền cho quảng cáo gọi là gì? Thường lập kế hoạch cho khoảng thời gian nào?'],['Gesucht sind drei Nomen: der Name des Budgets, das Wort für „Geld“ und der Zeitraum.','Cần tìm ba danh từ: tên của ngân sách, từ chỉ “tiền” và khoảng thời gian.']],
+ paras:['Der [[Werbeetat]] weist die [[Geldmittel]] aus, die in einer bestimmten Zeit für die Werbemaßnahmen ausgegeben werden sollen. Geplant wird in der Regel für ein [[Jahr]]. Steht der Etat fest, wird er auf die einzelnen Warengruppen verteilt.'],
+ quiz:[
+ {q:['Waren mit guten Wachstumschancen bekommen …','Hàng có cơ hội tăng trưởng tốt được nhận …'],opts:['einen hohen Werbebetrag','einen niedrigen Werbebetrag'],ans:0,why:['Faustregel aus dem Buch: Hier kann Werbung zusätzlichen Umsatz auslösen.','Quy tắc kinh nghiệm trong sách: ở đây quảng cáo có thể tạo thêm doanh thu.']},
+ {q:['Bei den umsatzstärksten Waren genügt …','Với những mặt hàng bán chạy nhất, chỉ cần …'],opts:['Erinnerungswerbung','sehr intensive Werbung'],ans:0,why:['Die umsatzstärksten Waren verkaufen sich ohnehin gut.','Những mặt hàng bán chạy nhất vốn đã bán tốt.']}
+ ]},
+{id:'i_sz',type:'info',title:['Streuzeit, Streukreis und Streugebiet','Streuzeit, Streukreis và Streugebiet'],
+ ask:['Lies die Tabelle und den Text.','Hãy đọc bảng và đoạn văn.'],
+ html:'<div class="scroll"><table class="tbl"><tr><th>Begriff</th><th>Antwort auf die Frage</th><th>Beispiel</th></tr><tr><td>Werbeetat</td><td>Wie viel Geld?</td><td>12.000 € für das Jahr, davon 2.000 € im Februar</td></tr><tr><td>Streuzeit</td><td>Wann und wie oft?</td><td>vier Anzeigen in den Kalenderwochen 5 bis 8</td></tr><tr><td>Streukreis</td><td>Wer wird umworben?</td><td>Frauen zwischen 25 und 45 Jahren mit mittlerer Kaufkraft</td></tr><tr><td>Streugebiet</td><td>Wo wird geworben?</td><td>Bremerhaven und der Landkreis Cuxhaven</td></tr></table></div>'+
+ '<p>Durch die Streuzeit werden Beginn und Häufigkeit der Werbung sowie der zeitliche Einsatz von Werbemitteln und Werbeträgern festgelegt. Der Einzelhändler hat dabei drei Möglichkeiten: einmalig bzw. zeitlich begrenzt und intensiv werben, regelmäßig werben (pro Tag, pro Woche, pro Monat) oder in unregelmäßigen Abständen kurz, aber intensiv werben.</p>'+
+ '<div class="can"><b>Merke:</b> Je länger und je häufiger geworben wird, desto schneller treten wirtschaftliche Werbewirkungen ein. Trotzdem kann ein kurzer, intensiver Werbeeinsatz sinnvoll sein – etwa bei einer Neueröffnung oder wenn ein Wettbewerber eine neue Abteilung eröffnet.</div>'+
+ '<p>Der Streukreis beschreibt den Personenkreis, der umworben wird. Er wird häufig nach Zielgruppen untergliedert, zum Beispiel nach Berufs-, Alters- und Kaufkraftgruppen oder nach Geschlecht. Das Streugebiet (Werbeverbreitungsgebiet) ist das Gebiet, in dem die Werbemaßnahmen durchgeführt werden. Es muss festgelegt werden, weil Art und Umfang des Bedarfs von Gebiet zu Gebiet unterschiedlich sein können – Stadt und Land zum Beispiel haben andersartige Bedürfnisse.</p>'},
+{id:'r2',type:'read',title:['Streukreis und Streugebiet: Lesen und prüfen','Streukreis và Streugebiet: Đọc và kiểm tra'],
+ ask:['Markiere die Schlüsselwörter. Prüfe danach. Beantworte dann die Fragen.','Đánh dấu các từ khóa. Sau đó kiểm tra. Rồi trả lời các câu hỏi.'],
+ tips:[['Streukreis = Menschen, Streugebiet = Ort.','Streukreis = con người, Streugebiet = địa điểm.'],['Gesucht: die beiden Begriffe und die beiden Wörter, die sie erklären (Personenkreis, Gebiet).','Cần tìm: hai khái niệm và hai từ giải thích chúng (Personenkreis, Gebiet).']],
+ paras:['Der [[Streukreis]] beschreibt den [[Personenkreis]], der umworben wird. Das [[Streugebiet]] ist das [[Gebiet]], in dem die Werbemaßnahmen durchgeführt werden.'],
+ quiz:[
+ {q:['„Frauen zwischen 25 und 45 Jahren“ ist ein Beispiel für …','“Phụ nữ từ 25 đến 45 tuổi” là ví dụ cho …'],opts:['Werbeetat','Streuzeit','Streukreis','Streugebiet'],ans:2,why:['Es geht um Menschen: Personenkreis.','Đây là về con người: Personenkreis (nhóm người).']},
+ {q:['Je länger und je häufiger geworben wird, desto schneller treten Werbewirkungen ein.','Quảng cáo càng lâu và càng thường xuyên thì hiệu quả càng đến nhanh.'],opts:['Richtig','Falsch'],ans:0,why:['Das steht in der Merke-Box.','Điều này có trong khung “Merke”.']},
+ {q:['Ein kurzer, intensiver Werbeeinsatz ist nie sinnvoll.','Quảng cáo ngắn và dồn dập thì không bao giờ hợp lý.'],opts:['Richtig','Falsch'],ans:1,why:['Er kann sinnvoll sein, zum Beispiel bei einer Neueröffnung.','Nó có thể hợp lý, ví dụ khi khai trương cửa hàng mới.']}
+ ]},
+{id:'a2',type:'info',title:['Aufgabe 2 · Vorgemacht: Einen Werbeplan lesen und nachrechnen','Bài 2 · Làm mẫu: Đọc và tính lại một kế hoạch quảng cáo'],
+ ask:['Im Lehrbuch auf Seite 237 steht der Werbeplan des Modehauses Böhlen GmbH für den Monat Februar. So liest du eine Zeile daraus. Tippe auf „Antwort zeigen“.','Ở sách giáo khoa trang 237 có kế hoạch quảng cáo của Modehaus Böhlen GmbH cho tháng Hai. Đây là cách đọc một dòng. Chạm “Xem đáp án”.'],
+ html:'<div class="scroll"><table class="tbl"><tr><th>Werbemaßnahme</th><th>Reichweite in Tsd.</th><th>Umfang</th><th>Anzahl</th><th>Kosten f. 1.000 Kontakte</th><th>Verbreitung insg.</th></tr><tr><td>Anzeige Tageszeitung</td><td>180</td><td>¼ Seite</td><td>10</td><td>8,40 €</td><td>15.120,00 €</td></tr></table></div>',
+ steps:[
+ {q:'Was bedeutet „Reichweite 180 Tsd.“?',a:'Eine einzelne Anzeige erreicht rund 180.000 Leser.'},
+ {q:'Wie viele Kontakte sind das insgesamt?',a:'Die Anzeige erscheint zehnmal: 180 Tsd. × 10 = 1.800 Tsd. Kontakte, also 1.800.000.'},
+ {q:'Wie kommt man auf die Verbreitungskosten?',a:'1.000 Kontakte kosten 8,40 €. Also: 1.800 × 8,40 € = 15.120,00 €. Genau diese Zahl steht im Plan.'},
+ {q:'Wofür sind die Spalten „KW 5“ bis „KW 8“ da?',a:'Das sind die Werbedispositionen, also die Planung: In welcher Kalenderwoche erscheint die Anzeige wie oft? Das ist die Streuzeit in Tabellenform.'},
+ {q:'Ergebnis',a:'Kontakte = Reichweite × Anzahl der Schaltungen. Verbreitungskosten = Kontakte (in Tsd.) × Preis für 1.000 Kontakte.'}
+ ]},
+{id:'a3',type:'grid',pts:1,title:['Aufgabe 3 · Geführte Übung: Welcher Begriff?','Bài 3 · Luyện tập có hướng dẫn: Khái niệm nào?'],
+ ask:['Ordne jede Aussage einem der vier Begriffe zu: Werbeetat, Streuzeit, Streukreis, Streugebiet.','Hãy ghép mỗi câu với một trong bốn khái niệm: Werbeetat, Streuzeit, Streukreis, Streugebiet.'],
+ tips:[['Frage dich: Wie viel Geld, wann, für wen oder wo?','Hãy tự hỏi: Bao nhiêu tiền, khi nào, cho ai hay ở đâu?'],['Merkhilfe: Streugebiet steht im Atlas, Streukreis im Adressbuch.','Mẹo nhớ: Streugebiet có trong bản đồ, Streukreis có trong danh bạ địa chỉ.']],
+ cols:[{h:'Begriff',opts:['Werbeetat','Streuzeit','Streukreis','Streugebiet']}],
+ rows:[
+ {text:'„Für die Werbung stehen im Mai 3.500 € zur Verfügung.“',hint:'Hinweis: Frage dich: Wie viel Geld, wann, für wen oder wo?',ans:['Werbeetat'],why:['Es geht um das Geld.','Đây là về tiền.']},
+ {text:'„Beworben werden Frauen zwischen 25 und 45 Jahren.“',hint:'Hinweis: Personen oder Gebiet? Streukreis sind die Menschen.',ans:['Streukreis'],why:['Es geht um den Personenkreis, also die Zielgruppe.','Đây là nhóm người, tức là Zielgruppe.']},
+ {text:'„Geworben wird in Bremerhaven und im Landkreis Cuxhaven.“',hint:'Hinweis: Merkhilfe: Streugebiet steht im Atlas, Streukreis im Adressbuch.',ans:['Streugebiet'],why:['Es geht um das Gebiet, in dem geworben wird.','Đây là khu vực nơi quảng cáo được phát.']},
+ {text:'„Die Anzeige erscheint jeden Freitag im März.“',hint:'Hinweis: Alles mit Datum, Woche oder „wie oft“ ist Streuzeit.',ans:['Streuzeit'],why:['Es geht um Beginn und Häufigkeit.','Đây là về thời điểm bắt đầu và tần suất.']}
+ ]},
+{id:'a4',type:'free',pts:0.8,title:['Aufgabe 4 · Freie Übung (Fragen 1 bis 5)','Bài 4 · Luyện tập tự do (câu 1 đến 5)'],
+ ask:['Beantworte die Fragen. Vergleiche danach mit der Musterlösung. Frage 6 (Rechnen) folgt danach.','Hãy trả lời các câu hỏi. Sau đó so sánh với bài mẫu. Câu 6 (tính toán) ở bài tiếp theo.'],
+ tips:[['Schau in die Tabelle und in die Merke-Kästen oben.','Hãy xem bảng và các khung “Merke” ở trên.'],['Bei Frage 3 gibt es drei Möglichkeiten: einmalig, regelmäßig und in unregelmäßigen Abständen.','Câu 3 có ba khả năng: một lần, đều đặn và ở những khoảng cách không đều.']],
+ help:['Der Werbeetat ist …','Der Streukreis ist …, das Streugebiet ist …','Man kann … werben.','Das Streugebiet ist wichtig, weil …'],
+ items:[
+ {q:'Nenne die fünf Fragen, die ein Werbeplan beantwortet.',model:'Welche Werbebotschaft? Welche Werbemittel und Werbeträger? Welcher Werbeetat? Welche Streuzeit? Welche Streukreise und Streugebiete?',rows:4,kw:[['botschaft'],['werbemittel','werbetraeger'],['etat','budget'],['streuzeit'],['streukreis','streugebiet']]},
+ {q:'Erkläre den Begriff Werbeetat.',model:'Der Werbeetat weist die Geldmittel aus, die in einer bestimmten Zeit für die Werbemaßnahmen ausgegeben werden sollen.',kw:[['geld'],['bestimmten zeit','jahr','werbemassnahmen']]},
+ {q:'Nenne die drei Möglichkeiten der zeitlichen Planung von Werbeaktionen.',model:'Einmalig bzw. zeitlich begrenzt und intensiv; regelmäßig (pro Tag, Woche, Monat); in unregelmäßigen Abständen kurz, aber intensiv.',rows:3,kw:[['einmalig','begrenzt'],['regelmaessig'],['unregelmaessig']]},
+ {q:'Erkläre den Unterschied zwischen Streukreis und Streugebiet.',model:'Der Streukreis ist der Personenkreis, der umworben wird. Das Streugebiet ist das Gebiet, in dem die Werbung durchgeführt wird.',kw:[['personenkreis','menschen'],['gebiet']]},
+ {q:'Warum muss ein Betrieb das Streugebiet festlegen? Nenne einen Grund.',model:'Weil Art und Umfang des Bedarfs in verschiedenen Gebieten unterschiedlich sein können – Kunden in der Stadt haben andere Bedürfnisse als Kunden auf dem Land.',kw:[['bedarf','beduerfnis'],['unterschiedlich','stadt','land']]}
+ ]},
+{id:'a4r',type:'calc',pts:0.2,title:['Aufgabe 4 · Frage 6: Verbreitungskosten berechnen','Bài 4 · Câu 6: Tính chi phí phát quảng cáo'],
+ ask:['Eine Anzeige erreicht 90.000 Leser und erscheint viermal. 1.000 Kontakte kosten 6,00 €. Wie hoch sind die Verbreitungskosten? Trage zuerst die Kontakte und dann die Kosten ein.','Một mẩu quảng cáo tiếp cận 90.000 độc giả và xuất hiện bốn lần. 1.000 Kontakte (lượt tiếp xúc) tốn 6,00 €. Chi phí phát là bao nhiêu? Hãy điền số Kontakte trước, rồi đến chi phí.'],
+ tips:[['Kontakte = Reichweite × Anzahl der Schaltungen. Rechne in Tausend (Tsd.).','Kontakte = Reichweite × số lần đăng. Hãy tính theo nghìn (Tsd.).'],['Verbreitungskosten = Kontakte (in Tsd.) × Preis für 1.000 Kontakte.','Verbreitungskosten = Kontakte (tính bằng nghìn) × giá cho 1.000 Kontakte.']],
+ items:[
+ {q:['Wie viele Kontakte sind das insgesamt? (Angabe in Tausend)','Tổng cộng có bao nhiêu lượt tiếp xúc? (tính bằng nghìn)'],ans:360,unit:'Tsd. Kontakte',steps:['90 Tsd. × 4 = 360 Tsd. Kontakte']},
+ {q:['Wie hoch sind die Verbreitungskosten?','Chi phí phát quảng cáo là bao nhiêu?'],ans:2160,unit:'€',steps:['360 × 6,00 € = 2.160,00 € Verbreitungskosten']}
+ ]},
+{id:'a5',type:'free',pts:1,title:['Aufgabe 5 · Aus deinem Betrieb','Bài 5 · Từ doanh nghiệp của em'],
+ ask:['Denke an eine Werbeaktion deines Ausbildungsbetriebs. Notiere dazu Streuzeit, Streukreis und Streugebiet – und schätze, wie hoch der Werbeetat dafür ungefähr war.','Hãy nghĩ đến một đợt quảng cáo của doanh nghiệp nơi em học nghề. Ghi lại Streuzeit, Streukreis và Streugebiet – và ước tính Werbeetat cho đợt đó khoảng bao nhiêu.'],
+ tips:[['Frage in deinem Betrieb nach einer Aktion, zum Beispiel einem Prospekt oder einer Anzeige.','Hãy hỏi ở nơi thực tập về một đợt quảng cáo, ví dụ tờ rơi hoặc tin quảng cáo.'],['Schreibe vier Zeilen: Streuzeit – Streukreis – Streugebiet – Werbeetat (geschätzt).','Viết bốn dòng: Streuzeit – Streukreis – Streugebiet – Werbeetat (ước tính).']],
+ help:['Streuzeit: …','Streukreis: …','Streugebiet: …','Der Werbeetat war ungefähr … €, weil …'],
+ items:[{q:'',rows:6,model:'Individuelle Lösung. Erwartet werden vier Angaben: ein Zeitraum mit Häufigkeit (Streuzeit), eine benannte Zielgruppe (Streukreis), ein Gebiet (Streugebiet) und eine geschätzte Summe mit kurzer Begründung.',kw:[['streuzeit','woche','monat','mal'],['streukreis','zielgruppe','frauen','maenner','jugend'],['streugebiet','stadt','region','gebiet'],['etat','euro','€']]}]},
+{id:'a6',type:'free',pts:0,profi:true,title:['Aufgabe 6 · Für Profis: Zum Weiterdenken','Bài 6 · Dành cho người giỏi: Suy nghĩ thêm'],
+ ask:['Schreibe zu jeder Frage ein paar Sätze. Vergleiche danach mit der Musterlösung.','Viết vài câu cho mỗi câu hỏi. Sau đó so sánh với bài mẫu.'],
+ tips:[['6.1: Welche Waren verkaufen sich schon gut ohne viel Werbung?','6.1: Những mặt hàng nào đã bán tốt mà không cần nhiều quảng cáo?'],['6.3: Der Anzeigenpreis sagt nichts über die Zahl der erreichten Menschen.','6.3: Giá đăng quảng cáo không cho biết số người được tiếp cận.']],
+ help:['Das ist so, weil …','Zum Beispiel bei …','Man kann vergleichen, weil …'],
+ items:[
+ {q:'6.1 Ein Betrieb hat 12.000 € Werbeetat. Warum sollte er nicht ausgerechnet die umsatzstärkste Warengruppe am stärksten bewerben?',rows:4,model:'Weil die umsatzstärkste Warengruppe sich ohnehin gut verkauft. Hier genügt eine Erinnerungswerbung. Das Geld wirkt stärker bei Waren mit guten Wachstumschancen, bei denen die Werbung zusätzlichen Umsatz auslösen kann.',kw:[['ohnehin','gut verkauft','umsatzstaerkst'],['erinnerungswerbung','wachstum','zusaetzlich']]},
+ {q:'6.2 Nennen Sie zwei Situationen, in denen ein kurzzeitiger, intensiver Werbeeinsatz sinnvoll ist.',rows:4,model:'Zum Beispiel bei einer Neueröffnung, wenn schnell ein hoher Bekanntheitsgrad erreicht werden soll (Fitnesscenter in neuen Räumen), oder als Reaktion auf einen Wettbewerber, etwa wenn ein Lebensmittelgeschäft eine neue Fleischwarenabteilung eröffnet und die örtlichen Metzgereien mit Anzeigen und Handzetteln gegenhalten.',kw:[['neueroeffnung','eroeffnung','bekannt'],['wettbewerber','konkurrenz','abteilung']]},
+ {q:'6.3 Warum sagt „Kosten für 1.000 Kontakte“ mehr aus als der reine Anzeigenpreis, wenn man zwei Werbeträger vergleicht?',rows:4,model:'Weil der Anzeigenpreis nichts darüber sagt, wie viele Menschen erreicht werden. Eine teure Anzeige in einer großen Zeitung kann pro erreichtem Leser billiger sein als eine günstige Anzeige in einem kleinen Blatt. Die Kosten für 1.000 Kontakte machen beide Werbeträger vergleichbar.',kw:[['wie viele menschen','erreicht','reichweite'],['vergleichbar','pro leser','billiger']]}
+ ]},
+{id:'v1',type:'calc',lvl:'v',pts:1,title:['Vertiefung 1 · Rechnen: Zwei Zeitungen vergleichen','Nâng cao 1 · Tính toán: So sánh hai tờ báo'],
+ ask:['Zeitung A: Reichweite 200 Tsd., eine Anzeige kostet 1.800 €. Zeitung B: Reichweite 60 Tsd., eine Anzeige kostet 720 €. Berechne die Kosten für 1.000 Kontakte (eine Schaltung).','Báo A: Reichweite 200 nghìn, một mẩu quảng cáo giá 1.800 €. Báo B: Reichweite 60 nghìn, một mẩu giá 720 €. Hãy tính chi phí cho 1.000 Kontakte (một lần đăng).'],
+ tips:[['Teile den Anzeigenpreis durch die Reichweite in Tausend.','Lấy giá quảng cáo chia cho Reichweite tính bằng nghìn.'],['Zeitung A: 1.800 € verteilt auf 200 Tausend Leser.','Báo A: 1.800 € chia cho 200 nghìn độc giả.']],
+ items:[
+ {q:['Zeitung A: Kosten für 1.000 Kontakte','Báo A: chi phí cho 1.000 Kontakte'],ans:9,unit:'€',steps:['1.800 € : 200 Tsd. = 9,00 € für 1.000 Kontakte']},
+ {q:['Zeitung B: Kosten für 1.000 Kontakte','Báo B: chi phí cho 1.000 Kontakte'],ans:12,unit:'€',steps:['720 € : 60 Tsd. = 12,00 € für 1.000 Kontakte']}
+ ]},
+{id:'v2',type:'free',lvl:'v',pts:1,title:['Vertiefung 2 · Welche Zeitung ist günstiger?','Nâng cao 2 · Tờ báo nào có lợi hơn?'],
+ ask:['Zeitung A hat den höheren Anzeigenpreis (1.800 € gegenüber 720 €). Trotzdem ist sie bei den Kosten für 1.000 Kontakte günstiger. Wie ist das möglich? Begründe.','Báo A có giá quảng cáo cao hơn (1.800 € so với 720 €). Tuy vậy chi phí cho 1.000 Kontakte lại thấp hơn. Sao lại như vậy? Hãy giải thích.'],
+ tips:[['Wie viele Leser erreicht Zeitung A im Vergleich zu Zeitung B?','Báo A tiếp cận bao nhiêu độc giả so với báo B?'],['Der Anzeigenpreis allein sagt nichts über die Zahl der erreichten Menschen.','Chỉ riêng giá đăng thì không cho biết số người được tiếp cận.']],
+ help:['Zeitung A erreicht …','Der Preis verteilt sich auf …','Deshalb …'],
+ items:[{q:'',rows:4,model:'Zeitung A erreicht viel mehr Leser (200 Tsd. statt 60 Tsd.). Der höhere Preis verteilt sich auf viel mehr Kontakte, deshalb kostet jeder Kontakt weniger. Die Kosten für 1.000 Kontakte machen beide Werbeträger vergleichbar.',kw:[['mehr leser','reichweite','200'],['verteilt','jeder kontakt','pro leser','vergleichbar']]}]},
+{id:'v3',type:'free',lvl:'v',pts:1,title:['Vertiefung 3 · Warum kurz und intensiv?','Nâng cao 3 · Tại sao ngắn và dồn dập?'],
+ ask:['Warum ist bei einer Neueröffnung ein kurzer, intensiver Werbeeinsatz sinnvoll? Begründe deine Entscheidung.','Tại sao khi khai trương cửa hàng mới, quảng cáo ngắn và dồn dập lại hợp lý? Hãy giải thích quyết định của em.'],
+ tips:[['Was sollen die Kunden bei einer Neueröffnung schnell erfahren?','Khi khai trương, khách hàng cần biết điều gì thật nhanh?'],['Denke an den Bekanntheitsgrad.','Hãy nghĩ đến mức độ nổi tiếng (Bekanntheitsgrad).']],
+ help:['Bei einer Neueröffnung …','Die Kunden sollen …','Deshalb …'],
+ items:[{q:'',rows:3,model:'Bei einer Neueröffnung soll schnell ein hoher Bekanntheitsgrad erreicht werden. Die Kunden sollen sofort erfahren, dass das Geschäft öffnet. Dafür ist ein kurzer, intensiver Werbeeinsatz geeignet.',kw:[['bekannt','schnell'],['neueroeffnung','eroeffnet','kunden erfahren'],['intensiv','kurz']]}]}
+]};
+</script>
+<script>
+(function(){
+'use strict';
+var D=window.SHEET;
+var KEY='lf5_digital_'+D.id+'_v1';
+var S={name:'',date:'',lang:'de',level:'b',fs:1,can:{},a:{},tip:{},rd:{},rev:{},rate:{},est:'',sub:false};
+var UI={
+ check:['Prüfen','Kiểm tra'],reveal:['Mit Musterlösung vergleichen','So sánh với bài mẫu'],
+ model:['Musterlösung','Bài mẫu'],selfq:['Wie gut war deine Antwort?','Câu trả lời của em tốt đến đâu?'],
+ g:['Geschafft','Đã làm được'],p:['Teilweise','Một phần'],n:['Noch nicht','Chưa được'],
+ tip:['Tipp','Gợi ý'],tip2:['Noch ein Tipp','Thêm một gợi ý'],
+ can:['Das kann ich danach','Sau bài này em có thể'],
+ name:['Name','Họ tên'],date:['Datum','Ngày'],
+ words:['Wörter erklärt','Giải thích từ'],
+ submit:['Auswerten','Chấm bài'],again:['Weiter üben','Tiếp tục luyện'],
+ pdf:['Als PDF speichern / drucken','Lưu PDF / in'],next:['Nächste Person','Người tiếp theo'],
+ reset:['Neu starten','Bắt đầu lại'],
+ yes:['Ja, löschen','Có, xóa'],no:['Abbrechen','Hủy'],
+ resetq:['Alles löschen und neu starten?','Xóa tất cả và bắt đầu lại?'],
+ resetw:['Dein Stand für dieses Arbeitsblatt wird gelöscht.','Bài làm của em cho phiếu này sẽ bị xóa.'],
+ est:['Schätzung: Wie viele Punkte schaffst du?','Ước lượng: Em sẽ được bao nhiêu điểm?'],
+ points:['Punkte','Điểm'],bonus:['Bonus','Điểm thưởng'],
+ mark:['Markierung prüfen','Kiểm tra phần đã đánh dấu'],remark:['Nochmal markieren','Đánh dấu lại'],
+ open:['Noch offen','Chưa làm'],yours:['Deine Antwort','Câu trả lời của em'],right:['Richtig ist','Đáp án đúng'],
+ why:['Warum?','Tại sao?'],steps:['Rechenweg','Cách tính'],
+ tasks:['Aufgaben','bài'],vtag:['Vertiefung','Nâng cao'],ptag:['Für Profis','Dành cho người giỏi'],
+ resume:['Weitermachen, wo du aufgehört hast','Tiếp tục từ chỗ em đã dừng'],
+ todo:['Noch nicht bearbeitet:','Chưa làm xong:'],
+ ok:['Richtig!','Đúng rồi!'],bad:['Leider falsch.','Tiếc là sai.'],
+ foundkw:['Wichtige Stichwörter in deinem Text','Các từ khóa quan trọng trong bài của em'],
+ empty:['(nichts eingetragen)','(chưa viết gì)'],
+ comp:['Rückmeldung','Nhận xét'],
+ pdfhint:['Tipp: Im Druckfenster „Als PDF sichern“ wählen.','Gợi ý: trong cửa sổ in, chọn “Lưu dưới dạng PDF”.']
+};
+var $=function(s,r){return (r||document).querySelector(s);};
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function md(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
+function T(x){ /* x: string (nur Deutsch) oder [de, vi] */
+ if(x==null)return '';
+ if(typeof x==='string')return md(x);
+ return md(x[0])+(S.lang==='vi'&&x[1]?'<span class="vi" lang="vi">'+md(x[1])+'</span>':'');
+}
+function U(k){return T(UI[k]);}
+function norm(s){return String(s||'').toLowerCase().replace(/ß/g,'ss').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim();}
+/* Speichern */
+var st;function save(){clearTimeout(st);st=setTimeout(saveNow,400);}
+function saveNow(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);for(var k in o)S[k]=o[k];return true;}}catch(e){}return false;}
+function clearSaved(){try{localStorage.removeItem(KEY);}catch(e){}}
+function toast(h){var t=$('#toast');t.innerHTML=h;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove('on');},2600);}
+/* Aufgabenliste */
+function vis(){return D.blocks.filter(function(b){return b.lvl!=='v'||S.level==='v';});}
+function tasks(){return vis().filter(function(b){return b.type!=='info';});}
+/* Zustand je Aufgabe */
+function A(id){return S.a[id]||(S.a[id]={});}
+function done(b){
+ var a=S.a[b.id]||{};
+ switch(b.type){
+ case 'free':return b.items.some(function(_,i){return (a[i]||'').trim();});
+ case 'grid':return b.rows.some(function(r,ri){return r.ans.some(function(_,ci){return a[ri+'_'+ci];});});
+ case 'mc':return a.v!==undefined;
+ case 'calc':return b.items.some(function(_,i){return (a[i]||'').trim();});
+ case 'cloze':return Object.keys(a).some(function(k){return (a[k]||'').trim();});
+ case 'read':var r=S.rd[b.id]||{};return !!r.chk&&(b.quiz||[]).every(function(_,i){return r.q&&r.q[i]!==undefined;});
+ }return false;
+}
+function progress(){
+ var ts=tasks(),n=ts.filter(done).length,p=ts.length?Math.round(100*n/ts.length):0;
+ $('#barfill').style.width=p+'%';$('#bartxt').textContent=n+' / '+ts.length+' '+UI.tasks[0];
+ var m=[25,50,75,100],last=S._m||0;
+ m.forEach(function(x){if(p>=x&&last<x){S._m=x;if(x>last&&n>0)toast(x===100?'🎉 100 % – Alles bearbeitet!':'👍 '+x+' % geschafft');}});
+}
+/* Bausteine */
+function tipHTML(b){
+ if(!b.tips)return '';var n=S.tip[b.id]||0;
+ return '<details class="tip" data-id="'+b.id+'"'+(n>0?' open':'')+'><summary>💡 '+U('tip')+'</summary><div class="tb"><p>'+T(b.tips[0])+'</p>'+
+ (n>=2?'<p>'+T(b.tips[1])+'</p>':(b.tips[1]?'<button class="btn sec" data-act="tip2" data-id="'+b.id+'">'+U('tip2')+'</button>':''))+'</div></details>';
+}
+function head(b,extra){
+ var chips='';
+ if(b.lvl==='v')chips+='<span class="chip v">'+UI.vtag[0]+' · +'+fmt(b.pts)+' '+UI.bonus[0]+'</span>';
+ else if(b.profi)chips+='<span class="chip p">'+UI.ptag[0]+'</span>';
+ else if(b.pts)chips+='<span class="chip">'+fmt(b.pts)+' '+UI.points[0]+'</span>';
+ return '<h2>'+T(b.title)+chips+'</h2>'+(b.ask?'<div class="ask">'+T(b.ask)+'</div>':'')+(extra||'');
+}
+function rateHTML(key,qk){
+ var r=S.rate[key];
+ return '<div class="note">'+U('selfq')+'</div><div class="rate">'+['g','p','n'].map(function(k){
+  return '<button data-act="rate" data-key="'+key+'" data-v="'+k+'" aria-pressed="'+(r===k)+'">'+({g:'✅ ',p:'🔶 ',n:'❌ '}[k])+U(k)+'</button>';}).join('')+'</div>';
+}
+function kwCheck(txt,kw){
+ var t=norm(txt);return (kw||[]).map(function(g){var hit=g.some(function(w){return t.indexOf(norm(w))>=0;});return {w:g[0],hit:hit};});
+}
+function selOpts(opts,val){return '<option value="">–</option>'+opts.map(function(o){return '<option'+(o===val?' selected':'')+'>'+esc(o)+'</option>';}).join('');}
+/* Renderer */
+var R={};
+R.info=function(b){
+ return '<h2>'+T(b.title)+'</h2>'+(b.ask?'<div class="ask">'+T(b.ask)+'</div>':'')+(b.html||'')+(b.steps?b.steps.map(function(s,i){
+  var o=(S.a[b.id]||{})['s'+i];
+  return '<div class="item"><div class="q">'+T(s.q)+'</div>'+(o?'<div class="fb ok">'+T(s.a)+'</div>':'<button class="btn sec" data-act="step" data-id="'+b.id+'" data-i="'+i+'">'+T(s.btn||['Antwort zeigen','Xem đáp án'])+'</button>')+'</div>';}).join(''):'');
+};
+R.free=function(b){
+ var a=A(b.id),h=head(b,tipHTML(b)+help(b));
+ b.items.forEach(function(it,i){
+  var k=b.id+'.'+i,rev=S.rev[k];
+  h+='<div class="item">'+(it.q?'<div class="q">'+(b.items.length>1?(i+1)+'. ':'')+T(it.q)+'</div>':'')+
+   '<textarea rows="'+(it.rows||3)+'" data-in="'+b.id+'" data-i="'+i+'" aria-label="Antwort">'+esc(a[i]||'')+'</textarea>'+
+   (rev?'<div class="model"><b>'+U('model')+':</b><br>'+T(it.model)+'</div>'+kwBox(a[i],it)+rateHTML(k):
+   '<button class="btn sec" data-act="rev" data-key="'+k+'" data-id="'+b.id+'">'+U('reveal')+'</button>')+'</div>';
+ });
+ return h;
+};
+function kwBox(txt,it){
+ if(!it.kw)return '';var c=kwCheck(txt,it.kw);
+ return '<div class="note">'+U('foundkw')+': '+c.map(function(x){return (x.hit?'✓ ':'○ ')+esc(x.w);}).join(' · ')+'</div>';
+}
+function help(b){
+ if(!b.help)return '';
+ return '<details class="tip" style="border-color:#bcd3ea;background:#f2f8fe"><summary style="color:var(--pri)">📝 '+T(['Wörter und Satzanfänge','Từ vựng và câu mở đầu'])+'</summary><div class="tb">'+
+  '<div class="chips">'+b.help.map(function(w){return '<button data-act="chip" data-id="'+b.id+'" data-txt="'+esc(w)+'">'+esc(w)+'</button>';}).join('')+'</div></div></details>';
+}
+R.grid=function(b){
+ var a=A(b.id),n=b.cols.length,h=head(b,tipHTML(b));
+ b.rows.forEach(function(r,ri){
+  h+='<div class="item"><div class="q">'+T(r.text)+'</div>'+(r.hint?'<div class="note">'+T(r.hint)+'</div>':'')+'<div class="cell-g" style="--n:'+n+'">';
+  b.cols.forEach(function(c,ci){
+   var g=r.given&&r.given[ci];
+   h+='<div><label>'+esc(c.h)+'</label>'+(g?'<div class="given">'+esc(g)+'</div>':
+    '<select data-sel="'+b.id+'" data-r="'+ri+'" data-c="'+ci+'" aria-label="'+esc(c.h)+'">'+selOpts(c.opts,a[ri+'_'+ci])+'</select>')+'</div>';
+  });
+  h+='</div></div>';
+ });
+ return h;
+};
+R.mc=function(b){
+ var a=A(b.id);
+ return head(b,tipHTML(b))+(b.q?'<div class="q">'+T(b.q)+'</div>':'')+b.opts.map(function(o,i){
+  return '<label class="opt'+(a.v===i?' sel':'')+'"><input type="radio" name="'+b.id+'" data-mc="'+b.id+'" value="'+i+'"'+(a.v===i?' checked':'')+'><span>'+esc(o)+'</span></label>';}).join('');
+};
+R.calc=function(b){
+ var a=A(b.id),h=head(b,tipHTML(b));
+ b.items.forEach(function(it,i){
+  h+='<div class="item"><div class="q">'+T(it.q)+'</div><div style="display:flex;gap:8px;align-items:center"><input type="text" inputmode="decimal" autocomplete="off" style="max-width:200px" data-calc="'+b.id+'" data-i="'+i+'" value="'+esc(a[i]||'')+'" aria-label="Ergebnis"><b>'+esc(it.unit||'')+'</b></div></div>';
+ });
+ return h;
+};
+R.cloze=function(b){
+ var a=A(b.id),g=0;
+ var txt=esc(b.text).replace(/\{\{(.+?)\}\}/g,function(m,x){var i=g++;return '<input type="text" class="gap" style="display:inline-block;width:'+Math.max(7,Math.min(16,x.split('|')[0].length+2))+'em;min-height:44px" autocomplete="off" autocapitalize="off" data-gap="'+b.id+'" data-i="'+i+'" value="'+esc(a[i]||'')+'" aria-label="Lücke '+(i+1)+'">';});
+ return head(b,tipHTML(b))+(b.bank?'<div class="chips">'+b.bank.map(function(w){return '<span class="chip">'+esc(w)+'</span>';}).join('')+'</div>':'')+'<div style="line-height:2.4">'+txt.replace(/\n/g,'<br>')+'</div>';
+};
+R.read=function(b){
+ var r=S.rd[b.id]||(S.rd[b.id]={marks:[],q:{}}),idx=0,keyN=0;
+ var paras=b.paras.map(function(p){
+  return '<p>'+p.split(/\s+/).map(function(tok){
+   var i=idx++,isKey=tok.indexOf('[[')>=0,word=tok.replace(/\[\[|\]\]/g,'');
+   if(isKey)keyN++;
+   var c='w',m=r.marks.indexOf(i)>=0;
+   if(r.chk){if(m&&isKey)c+=' ok';else if(m)c+=' bad';else if(isKey)c+=' miss';}else if(m)c+=' mk';
+   return '<span class="'+c+'" data-act="mark" data-id="'+b.id+'" data-i="'+i+'">'+esc(word)+'</span>';
+  }).join(' ')+'</p>';
+ }).join('');
+ var right=0,wrong=0;
+ if(r.chk){var k=0;b.paras.forEach(function(p){p.split(/\s+/).forEach(function(tok){var i=k++;if(r.marks.indexOf(i)>=0){if(tok.indexOf('[[')>=0)right++;else wrong++;}});});}
+ var h=head(b,tipHTML(b))+'<div class="rdt'+(r.chk?' locked':'')+'">'+paras+'</div>';
+ if(!r.chk)h+='<button class="btn" data-act="markchk" data-id="'+b.id+'">'+U('mark')+'</button>';
+ else h+='<div class="fb '+(right===keyN&&!wrong?'ok':'part')+'">'+T([right+' von '+keyN+' Schlüsselbegriffen gefunden, '+wrong+' falsch markiert.',right+' / '+keyN+' từ khóa tìm đúng, '+wrong+' từ đánh dấu sai.'])+
+  '<br><span class="note">'+T(['Grün = richtig, rot = falsch, gestrichelt = vergessen.','Xanh = đúng, đỏ = sai, nét đứt = bị sót.'])+'</span></div><button class="btn sec" data-act="remark" data-id="'+b.id+'">'+U('remark')+'</button>';
+ (b.quiz||[]).forEach(function(q,i){
+  var c=r.q[i];
+  h+='<div class="item"><div class="q">'+T(q.q)+'</div>'+q.opts.map(function(o,oi){
+   var cls='opt'+(c===oi?' sel':'');if(c!==undefined){if(oi===q.ans)cls='opt ok';else if(c===oi)cls='opt bad';}
+   return '<label class="'+cls+'"><input type="radio" name="'+b.id+'q'+i+'" data-rq="'+b.id+'" data-i="'+i+'" value="'+oi+'"'+(c===oi?' checked':'')+(c!==undefined?' disabled':'')+'><span>'+esc(o)+'</span></label>';}).join('')+
+   (c!==undefined?'<div class="fb '+(c===q.ans?'ok':'bad')+'"><b>'+(c===q.ans?U('ok'):U('bad'))+'</b> '+T(q.why)+'</div>':'')+'</div>';
+ });
+ return h;
+};
+function renderBlock(b){
+ var cls='card'+(b.lvl==='v'?' lvlv':'');
+ return '<section class="'+cls+'" id="b_'+b.id+'">'+R[b.type](b)+'</section>';
+}
+function refresh(id){
+ var b=D.blocks.filter(function(x){return x.id===id;})[0],el=$('#b_'+id);
+ if(b&&el){el.innerHTML=R[b.type](b);}
+ progress();save();
+}
+/* Kopf */
+function renderHead(){
+ var h='<div class="hd"><div class="lf">'+esc(D.lf)+'</div><h1>'+T(D.title)+'</h1><div class="note">'+esc(D.meta)+'</div>'+
+ '<div class="nd"><div><label for="inName">'+U('name')+'</label><input type="text" id="inName" autocomplete="off" value="'+esc(S.name)+'"></div>'+
+ '<div><label for="inDate">'+U('date')+'</label><input type="date" id="inDate" value="'+esc(S.date)+'"></div></div>'+
+ '<div class="can"><h3>'+U('can')+'</h3>'+D.can.map(function(c,i){return '<label><input type="checkbox" data-can="'+i+'"'+(S.can[i]?' checked':'')+'><span>'+T(c)+'</span></label>';}).join('')+'</div>'+
+ (D.words?'<details class="tip" style="margin-top:10px;border-color:#bcd3ea;background:#f2f8fe"><summary style="color:var(--pri)">📖 '+U('words')+'</summary><div class="tb">'+D.words.map(function(w){return '<p>'+T(w)+'</p>';}).join('')+'</div></details>':'')+'</div>';
+ $('#head').innerHTML=h;
+}
+function renderTasks(){
+ $('#tasks').innerHTML=vis().map(renderBlock).join('');
+}
+function renderFinal(){
+ var mx=maxPts();
+ $('#final').innerHTML='<div class="card noprint"><h2>'+T(['Auswertung','Chấm điểm'])+'</h2>'+
+  '<div class="item"><div class="q">'+U('est')+' (0–'+mx+')</div><input type="text" inputmode="decimal" id="inEst" style="max-width:160px" value="'+esc(S.est)+'"></div>'+
+  '<div id="todo" class="note"></div><button class="btn" data-act="submit">'+U('submit')+'</button></div>';
+ updTodo();
+}
+function updTodo(){
+ var el=$('#todo');if(!el)return;
+ var o=tasks().filter(function(b){return !done(b);});
+ el.innerHTML=o.length?U('todo')+' '+o.length+' '+UI.tasks[0]:'';
+}
+function maxPts(){return tasks().filter(function(b){return b.lvl!=='v';}).reduce(function(s,b){return s+(b.pts||0);},0);}
+/* Auswertung */
+function num(x){var v=parseFloat(String(x).replace(/[−–]/g,'-').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.').replace(/\s/g,''));return isNaN(v)?null:v;}
+function ok1(a,k){return norm(a)===norm(k);}
+function scoreOf(b){
+ var a=S.a[b.id]||{},got=0,pts=b.pts||0,st='open',html='',ans='';
+ var ST=function(f){return f>=0.999?'ok':(f>0?'part':'bad');};
+ if(b.type==='free'){
+  var sum=0,cnt=0;
+  b.items.forEach(function(it,i){
+   var rt=S.rate[b.id+'.'+i],t=(a[i]||'').trim();
+   var f=rt==='g'?1:rt==='p'?.5:0;sum+=f;cnt++;
+   html+='<div class="ans"><b>'+(b.items.length>1?(i+1)+'. ':'')+'</b>'+(t?esc(t):'<i>'+U('empty')+'</i>')+'</div><div class="model"><b>'+U('model')+':</b> '+T(it.model)+'</div><div class="note">'+(rt?{g:'✅ ',p:'🔶 ',n:'❌ '}[rt]+U(rt):'')+'</div>';
+  });
+  var f0=cnt?sum/cnt:0;got=pts*f0;st=(done(b)||sum>0)?ST(f0):'open';
+  if(!pts&&st==='bad')st='bad';
+ }else if(b.type==='grid'){
+  var need=0,right=0,wr='';
+  b.rows.forEach(function(r,ri){r.ans.forEach(function(k,ci){
+   if(r.given&&r.given[ci])return;need++;var v=a[ri+'_'+ci]||'';
+   if(v&&ok1(v,k))right++;
+   else wr+='<div class="rrow"><div>'+T(r.text)+'</div><div class="note">'+esc(b.cols[ci].h)+'</div><span class="wrong">'+(v?esc(v):U('empty'))+'</span> → <span class="right">'+esc(k)+'</span>'+(r.why?'<div>'+T(r.why)+'</div>':'')+'</div>';
+  });});
+  var f1=need?right/need:0;got=pts*f1;st=done(b)?ST(f1):'open';
+  html='<div>'+right+' / '+need+'</div>'+wr;
+ }else if(b.type==='mc'){
+  var c=a.v;got=c===b.ans?pts:0;st=c===undefined?'open':(c===b.ans?'ok':'bad');
+  html='<div class="ans">'+(c===undefined?U('empty'):esc(b.opts[c]))+'</div>'+(c!==b.ans?'<div class="right">'+U('right')+': '+esc(b.opts[b.ans])+'</div>':'')+(b.why?'<div>'+T(b.why)+'</div>':'');
+ }else if(b.type==='calc'){
+  var rc=0;
+  b.items.forEach(function(it,i){
+   var v=num(a[i]),okc=v!==null&&Math.abs(v-it.ans)<=(it.tol||0.005);if(okc)rc++;
+   html+='<div class="rrow"><div>'+T(it.q)+'</div><div class="ans">'+(a[i]?esc(a[i]):U('empty'))+' '+esc(it.unit||'')+'</div>'+(okc?'<span class="right">✓</span>':'<span class="right">'+U('right')+': '+String(it.ans).replace('.',',')+' '+esc(it.unit||'')+'</span>')+
+    '<div class="steps"><b>'+U('steps')+':</b><br>'+it.steps.map(function(s){return T(s);}).join('<br>')+'</div></div>';
+  });
+  var f2=rc/b.items.length;got=pts*f2;st=done(b)?ST(f2):'open';
+ }else if(b.type==='cloze'){
+  var gi=0,rg=0,wl='';
+  b.text.replace(/\{\{(.+?)\}\}/g,function(m,x){var i=gi++,vals=x.split('|'),v=a[i]||'';
+   if(v&&vals.some(function(k){return ok1(v,k);}))rg++;else wl+='<div><span class="wrong">'+(v?esc(v):U('empty'))+'</span> → <span class="right">'+esc(vals[0])+'</span></div>';return m;});
+  var f3=gi?rg/gi:0;got=pts*f3;st=done(b)?ST(f3):'open';html='<div>'+rg+' / '+gi+'</div>'+wl+(b.why?'<div>'+T(b.why)+'</div>':'');
+ }else if(b.type==='read'){
+  var r=S.rd[b.id]||{q:{}},q=b.quiz||[],rq=0;
+  q.forEach(function(x,i){if(r.q&&r.q[i]===x.ans)rq++;});
+  var f4=q.length?rq/q.length:(r.chk?1:0);got=0;st=done(b)?ST(f4):'open';
+  html='<div>'+rq+' / '+q.length+'</div>';
+  q.forEach(function(x,i){if(r.q&&r.q[i]!==undefined&&r.q[i]!==x.ans)html+='<div class="rrow">'+T(x.q)+'<div class="right">'+U('right')+': '+esc(x.opts[x.ans])+'</div><div>'+T(x.why)+'</div></div>';});
+ }
+ return {got:got,pts:pts,st:st,html:html};
+}
+function fmt(x){return (Math.round(x*10)/10).toString().replace('.',',');}
+function renderResults(){
+ var tot=0,max=0,bon=0,bmax=0,rows='';
+ tasks().forEach(function(b){
+  var s=scoreOf(b);
+  if(b.lvl==='v'){bon+=s.got;bmax+=b.pts||0;}else{tot+=s.got;max+=b.pts||0;}
+  var ic={ok:'✓',part:'~',bad:'✗',open:'–'}[s.st];
+  rows+='<div class="rrow"><div><span class="badge '+s.st+'">'+ic+'</span><b>'+T(b.title)+'</b> <span class="chip'+(b.lvl==='v'?' v':'')+'">'+(b.pts?fmt(s.got)+' / '+b.pts:(b.lvl==='v'?'':'0 '+UI.points[0]))+'</span></div>'+s.html+'</div>';
+ });
+ var pct=max?tot/max:0;
+ var msg=pct>=.8?['Sehr gut! Du kannst das Thema schon gut.','Rất tốt! Em đã nắm chắc chủ đề này.']:pct>=.5?['Gut. Schau dir die Fehler an und übe noch einmal.','Khá. Em hãy xem lại các lỗi và luyện thêm.']:['Das Thema braucht noch Übung. Lies die Lösungen und versuche es noch einmal.','Chủ đề này cần luyện thêm. Em hãy đọc đáp án và thử lại.'];
+ var est=num(S.est),diff=est===null?'':'<div class="note">'+T(['Deine Schätzung: ','Ước lượng của em: '])+fmt(est)+' · '+T(['Differenz: ','Chênh lệch: '])+fmt(tot-est)+'</div>';
+ var el=$('#results');
+ el.innerHTML='<div class="printonly"><b>'+esc(D.lf)+' · '+esc(D.title[0])+'</b><br>Name: '+esc(S.name||'________')+' · Datum: '+esc(S.date||'________')+'</div>'+
+  '<h2>'+T(['Dein Ergebnis','Kết quả của em'])+'</h2><div class="score">'+fmt(tot)+' / '+max+' <small style="font-size:.5em">'+UI.points[0]+'</small></div>'+
+  (bmax?'<div class="chip v">+'+fmt(bon)+' / '+bmax+' '+UI.bonus[0]+'</div>':'')+diff+
+  '<div class="fb '+(pct>=.8?'ok':pct>=.5?'part':'bad')+'">'+T(msg)+'</div>'+rows+
+  '<div class="noprint"><button class="btn" data-act="pdf">'+U('pdf')+'</button><button class="btn sec" data-act="again">'+U('again')+'</button><button class="btn sec" data-act="next">'+U('next')+'</button><div class="note">'+U('pdfhint')+'</div></div>';
+ el.classList.add('on');
+}
+/* Dialog */
+function dlg(q,w,onYes){
+ var d=$('#dlg');$('#dlgbox').innerHTML='<h3 style="margin:0 0 6px">'+T(q)+'</h3><p>'+T(w)+'</p><button class="btn" id="dYes">'+U('yes')+'</button><button class="btn sec" id="dNo">'+U('no')+'</button>';
+ d.classList.add('on');
+ $('#dYes').onclick=function(){d.classList.remove('on');onYes();};$('#dNo').onclick=function(){d.classList.remove('on');};
+}
+function resetAll(){
+ S={name:'',date:today(),lang:S.lang,level:S.level,fs:S.fs,can:{},a:{},tip:{},rd:{},rev:{},rate:{},est:'',sub:false};
+ clearSaved();$('#results').classList.remove('on');draw();window.scrollTo(0,0);
+}
+function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+/* Gesamtdarstellung */
+function setBar(){
+ document.querySelectorAll('#segLang button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.lang===S.lang);});
+ document.querySelectorAll('#segLvl button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.lvl===S.level);});
+ $('#btnReset').innerHTML=U('reset');
+ document.documentElement.style.setProperty('--fs',S.fs);
+}
+function draw(){
+ setBar();renderHead();renderTasks();renderFinal();
+ if(S.sub)renderResults();else $('#results').classList.remove('on');
+ progress();
+}
+/* Ereignisse */
+document.addEventListener('click',function(e){
+ var t=e.target.closest('[data-act],[data-lang],[data-lvl],[data-fs],#gear');if(!t)return;
+ if(t.id==='gear'){$('#menu').classList.toggle('open');return;}
+ if(t.dataset.lang){S.lang=t.dataset.lang;draw();save();return;}
+ if(t.dataset.lvl){S.level=t.dataset.lvl;S.sub=false;draw();save();return;}
+ if(t.dataset.fs){S.fs=Math.max(.9,Math.min(1.5,Math.round((S.fs+(+t.dataset.fs)*.15)*100)/100));setBar();save();return;}
+ var id=t.dataset.id,act=t.dataset.act;
+ if(act==='tip2'){S.tip[id]=2;refresh(id);return;}
+ if(act==='rev'){S.rev[t.dataset.key]=1;refresh(id);return;}
+ if(act==='rate'){S.rate[t.dataset.key]=t.dataset.v;refresh(t.dataset.key.split('.')[0]);return;}
+ if(act==='step'){A(id)['s'+t.dataset.i]=1;refresh(id);return;}
+ if(act==='chip'){var ta=lastTA[id]||document.querySelector('textarea[data-in="'+id+'"]');if(ta){var p=ta.selectionStart==null?ta.value.length:ta.selectionStart,v=ta.value;ta.value=v.slice(0,p)+(p&&!/\s$/.test(v.slice(0,p))?' ':'')+t.dataset.txt+' '+v.slice(p);ta.focus();A(id)[ta.dataset.i]=ta.value;progress();save();}return;}
+ if(act==='mark'){var r=S.rd[id];if(r.chk)return;var i=+t.dataset.i,k=r.marks.indexOf(i);if(k>=0)r.marks.splice(k,1);else r.marks.push(i);t.classList.toggle('mk');save();return;}
+ if(act==='markchk'){S.rd[id].chk=1;refresh(id);return;}
+ if(act==='remark'){S.rd[id].chk=0;S.rd[id].marks=[];refresh(id);return;}
+ if(act==='submit'){S.sub=true;renderResults();save();$('#results').scrollIntoView({behavior:'smooth'});return;}
+ if(act==='again'){S.sub=false;$('#results').classList.remove('on');save();window.scrollTo(0,0);return;}
+ if(act==='pdf'){renderResults();setTimeout(function(){window.print();},50);return;}
+ if(act==='next'||t.id==='btnReset'){return;}
+});
+$('#btnReset').addEventListener('click',function(){dlg(UI.resetq,UI.resetw,resetAll);});
+document.addEventListener('click',function(e){if(e.target.closest('[data-act=next]'))dlg(UI.resetq,UI.resetw,resetAll);});
+var lastTA={};
+document.addEventListener('focusin',function(e){if(e.target.dataset&&e.target.dataset.in)lastTA[e.target.dataset.in]=e.target;});
+document.addEventListener('input',function(e){
+ var t=e.target,d=t.dataset;
+ if(t.id==='inName'){S.name=t.value;save();return;}
+ if(t.id==='inEst'){S.est=t.value;save();return;}
+ if(d.in){A(d.in)[d.i]=t.value;}else if(d.calc){A(d.calc)[d.i]=t.value;}else if(d.gap){A(d.gap)[d.i]=t.value;}else return;
+ progress();updTodo();save();
+});
+document.addEventListener('change',function(e){
+ var t=e.target,d=t.dataset;
+ if(t.id==='inDate'){S.date=t.value;save();return;}
+ if(d.can!==undefined){S.can[d.can]=t.checked;save();return;}
+ if(d.sel){A(d.sel)[d.r+'_'+d.c]=t.value;}
+ else if(d.mc){A(d.mc).v=+t.value;refresh(d.mc);updTodo();return;}
+ else if(d.rq){var r=S.rd[d.rq];if(r.q[d.i]===undefined){r.q[d.i]=+t.value;refresh(d.rq);updTodo();}return;}
+ else return;
+ progress();updTodo();save();
+});
+document.addEventListener('toggle',function(e){
+ var t=e.target;if(t.classList&&t.classList.contains('tip')&&t.dataset.id&&t.open&&!S.tip[t.dataset.id]){S.tip[t.dataset.id]=1;save();}
+},true);
+document.addEventListener('visibilitychange',function(){if(document.hidden)saveNow();});
+window.addEventListener('pagehide',saveNow);
+window.addEventListener('beforeprint',function(){document.querySelectorAll('textarea').forEach(function(t){t.style.height=t.scrollHeight+'px';});});
+/* Start */
+var had=load();
+if(!S.date)S.date=today();
+D.blocks.forEach(function(b){if(b.type==='read'&&!S.rd[b.id])S.rd[b.id]={marks:[],q:{}};});
+document.title=D.title[0]+' – '+D.lf;
+draw();
+if(had&&(Object.keys(S.a).length||S.name))toast(U('resume'));
+window.__LF5={S:S,D:D,scoreOf:scoreOf,tasks:tasks,done:done};
+})();
+</script>
+</body>
+</html>

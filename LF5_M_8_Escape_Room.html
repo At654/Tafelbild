@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escape Room – Die Werbeagentur | LF 5 Modul 8: Das UWG</title>
+<style>
+  :root{
+    --blau:#1F4E79; --blauhell:#9DC3E6; --blauflaeche:#EAF1F8;
+    --rosa:#E5B8B7; --grau:#F2F2F2; --graulinie:#BFBFBF; --grautext:#595959;
+    --rot:#C00000; --gruen:#2E6B45; --gruenflaeche:#EAF3ED;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: Arial, Helvetica, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:#fff; color:#111; font-family:var(--serif); font-size:17px; line-height:1.6}
+  .blatt{max-width:860px; margin:0 auto; padding:26px 20px 80px}
+
+  header.kopf{border:1px solid #000; display:flex; align-items:stretch; margin-bottom:26px}
+  header.kopf .li{flex:0 0 32%; padding:12px 14px; border-right:1px solid #000; font-family:var(--sans); font-size:14px}
+  header.kopf .mi{flex:1; padding:12px 14px; text-align:center}
+  header.kopf .mi .lf{font-family:var(--sans); font-weight:bold; font-size:17px}
+  header.kopf .mi .lftxt{font-family:var(--sans); font-size:14px; padding-bottom:8px; border-bottom:1px solid #000; margin-bottom:8px}
+  header.kopf .mi .mod{font-family:var(--sans); font-weight:bold; font-size:17px}
+
+  h1{font-family:var(--sans); color:var(--blau); font-size:27px; margin:0 0 6px; border-bottom:2px solid var(--blauhell); padding-bottom:8px}
+  .unter{font-family:var(--sans); font-size:14px; color:var(--grautext); margin:0 0 22px}
+  .story{background:var(--grau); border-left:5px solid var(--graulinie); padding:14px 18px; margin:0 0 22px}
+  .story p{margin:0 0 9px}
+  .story p:last-child{margin:0}
+
+  /* Fortschrittsleiste */
+  .leiste{display:flex; gap:8px; margin:0 0 26px; flex-wrap:wrap}
+  .leiste .feld{
+    flex:1 1 0; min-width:74px; text-align:center; border:2px solid var(--graulinie);
+    background:#fff; font-family:var(--sans); padding:9px 4px; border-radius:4px
+  }
+  .leiste .feld .nr{font-size:11px; color:var(--grautext); letter-spacing:.06em; text-transform:uppercase}
+  .leiste .feld .zi{font-size:26px; font-weight:bold; color:var(--graulinie); line-height:1.1}
+  .leiste .feld.auf{border-color:var(--gruen); background:var(--gruenflaeche)}
+  .leiste .feld.auf .zi{color:var(--gruen)}
+
+  section.station{border:1px solid var(--graulinie); border-left:5px solid var(--blauhell); margin:0 0 20px; padding:16px 20px}
+  section.station.geloest{border-left-color:var(--gruen); background:var(--gruenflaeche)}
+  section.station h2{font-family:var(--sans); color:var(--blau); font-size:19px; margin:0 0 4px}
+  section.station .ort{font-family:var(--sans); font-size:13px; color:var(--grautext); margin:0 0 12px; letter-spacing:.04em; text-transform:uppercase}
+  section.station .fall{margin:0 0 14px}
+  section.station .frage{font-family:var(--sans); font-weight:bold; font-size:16px; margin:0 0 10px}
+  label.opt{display:block; padding:6px 8px 6px 4px; cursor:pointer; border-radius:3px; font-size:16px}
+  label.opt:hover{background:var(--blauflaeche)}
+  label.opt input{margin-right:9px}
+  .knopf{
+    font-family:var(--sans); font-size:15px; font-weight:bold; color:#fff; background:var(--blau);
+    border:0; border-radius:4px; padding:10px 22px; cursor:pointer; margin-top:10px
+  }
+  .knopf:hover{background:#17395a}
+  .knopf:disabled{background:var(--graulinie); cursor:default}
+  .rueck{margin:12px 0 0; padding:10px 14px; font-size:16px; display:none}
+  .rueck.falsch{background:#FBEDED; border-left:4px solid var(--rot)}
+  .rueck.richtig{background:var(--gruenflaeche); border-left:4px solid var(--gruen)}
+  .rueck b{font-family:var(--sans)}
+  .ziffer{font-family:var(--sans); font-weight:bold; color:var(--gruen); font-size:19px}
+
+  /* Tresor */
+  .tresor{border:2px solid var(--blau); padding:20px 24px; margin-top:34px}
+  .tresor h2{font-family:var(--sans); color:var(--blau); font-size:21px; margin:0 0 10px}
+  .tresor input{
+    font-family:var(--sans); font-size:30px; letter-spacing:.35em; width:250px; text-align:center;
+    padding:8px 6px; border:2px solid var(--graulinie); border-radius:4px
+  }
+  .tresor .zeile{display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-top:8px}
+  .tresor .hinw{font-family:var(--sans); font-size:14px; color:var(--grautext); margin:10px 0 0}
+  #tresorrueck{margin-top:14px; padding:12px 16px; display:none; font-size:16px}
+  #tresorrueck.zu{background:#FBEDED; border-left:4px solid var(--rot)}
+  #tresorrueck.auf{background:var(--gruenflaeche); border-left:4px solid var(--gruen)}
+
+  /* Ende */
+  #ende{display:none; margin-top:30px}
+  #ende .urkunde{border:3px double var(--blau); padding:26px 28px; text-align:center}
+  #ende .urkunde .gross{font-family:var(--sans); font-size:30px; font-weight:bold; color:var(--blau); margin-bottom:6px}
+  #ende .zahlen{font-family:var(--sans); font-size:17px; margin:14px 0 0}
+  #ende .namensfeld{font-family:var(--sans); font-size:15px; margin:18px 0 0}
+  #ende .namensfeld input{font-size:15px; padding:5px 6px; border:1px solid var(--graulinie); border-radius:3px; width:260px}
+  table.merk{border-collapse:collapse; width:100%; margin-top:22px; font-size:15px}
+  table.merk th{background:var(--rosa); font-family:var(--sans); font-size:14px; text-align:left; padding:8px 10px; border:1px solid var(--graulinie)}
+  table.merk td{border:1px solid var(--graulinie); padding:8px 10px; vertical-align:top}
+  table.merk td.b{font-family:var(--sans); font-weight:bold; width:34%}
+  @media print{ .knopf, .tresor input{display:none} }
+</style>
+</head>
+<body>
+<div class="blatt">
+
+  <header class="kopf">
+    <div class="li">Datum:<br><br>Name:</div>
+    <div class="mi">
+      <div class="lf">Lernfeld 5</div>
+      <div class="lftxt">Werben und den Verkauf fördern</div>
+      <div class="mod">Modul 8 – Escape Room</div>
+    </div>
+  </header>
+
+  <h1>Die Werbeagentur</h1>
+  <p class="unter">Sechs Fälle · sechs Ziffern · ein Tresor. Rechne mit etwa 25 Minuten. Allein oder zu zweit.</p>
+
+  <div class="story">
+    <p>Du machst ein Praktikum in der Werbeagentur <b>Nordlicht</b> in Bremerhaven. Heute ist Freitag, 16 Uhr, und die Chefin ist im Urlaub.</p>
+    <p>Sechs Werbeentwürfe von Kunden liegen zur Freigabe bereit – im Tresor, weil sie vertraulich sind. Am Montag früh sollen sie in den Druck. Der Tresor hat ein <b>sechsstelliges Zahlenschloss</b>, und die Chefin hat dir die Zahl nicht dagelassen.</p>
+    <p>Stattdessen hat sie dir sechs Aktenordner hingestellt. In jedem steckt ein Fall aus dem Gesetz gegen den unlauteren Wettbewerb. Wer den Fall richtig einordnet, findet in der Akte eine Ziffer. <b>Sechs richtige Einordnungen – und der Tresor geht auf.</b></p>
+  </div>
+
+  <div class="leiste" id="leiste"></div>
+
+  <div id="stationen"></div>
+
+  <div class="tresor">
+    <h2>Das Zahlenschloss</h2>
+    <p style="margin:0">Trage die sechs Ziffern in der Reihenfolge der Stationen ein.</p>
+    <div class="zeile">
+      <input type="text" id="code" maxlength="6" inputmode="numeric" placeholder="______" autocomplete="off">
+      <button type="button" class="knopf" id="oeffnen">Tresor öffnen</button>
+    </div>
+    <p class="hinw">Die Ziffern erscheinen automatisch in der Leiste oben, sobald du eine Station gelöst hast.</p>
+    <div id="tresorrueck"></div>
+  </div>
+
+  <div id="ende">
+    <div class="urkunde">
+      <div class="gross">Tresor geöffnet</div>
+      <div>Die sechs Entwürfe können am Montag in den Druck – vier davon allerdings erst nach Überarbeitung.</div>
+      <div class="zahlen">
+        Fehlversuche an den Stationen: <b id="fehler">0</b> &nbsp;·&nbsp; Fehlversuche am Schloss: <b id="fehlerschloss">0</b>
+      </div>
+      <div class="namensfeld">
+        Name (zum Vorzeigen bei der Lehrkraft): <input type="text" id="name" placeholder="Vor- und Nachname">
+      </div>
+    </div>
+
+    <h2 style="font-family:var(--sans); color:var(--blau); font-size:20px; margin:28px 0 6px">Das nimmst du mit</h2>
+    <table class="merk">
+      <thead><tr><th>Der Fall</th><th>Woran du ihn erkennst</th></tr></thead>
+      <tbody>
+        <tr><td class="b">Irreführende Werbung (Mondpreis)</td><td>Ein hoher Preis wird nur kurz gesetzt, damit der „Aktionspreis“ als große Ersparnis erscheint.</td></tr>
+        <tr><td class="b">Nicht ausreichende Bevorratung (Lockangebot)</td><td>Die beworbene Ware ist viel zu schnell weg. Angemessen ist ein Vorrat, der im Regelfall zwei Tage reicht.</td></tr>
+        <tr><td class="b">Beeinträchtigung der Entscheidungsfreiheit</td><td>Der Kunde wird unter Druck gesetzt, etwa bei einer Kaffeefahrt, und kann nicht mehr frei entscheiden.</td></tr>
+        <tr><td class="b">Nachahmung der Waren eines Mitbewerbers</td><td>Die Ware täuscht vor, ein Markenprodukt zu sein; nur der Preis unterscheidet sich vom Original.</td></tr>
+        <tr><td class="b">Unlautere vergleichende Werbung</td><td>Der Vergleich hinkt: andere Ware, andere Menge, andere Qualität – oder der Mitbewerber wird schlechtgemacht.</td></tr>
+        <tr><td class="b">Unzumutbare Belästigung</td><td>Werbung trotz „Keine Werbung“-Schild, Anrufe, Faxe oder E-Mails ohne Einwilligung des Empfängers.</td></tr>
+      </tbody>
+    </table>
+    <p style="font-family:var(--sans); font-size:15px; color:var(--grautext); margin-top:18px">
+      Trag deine Punkte und die Zahl der Fehlversuche ins Punktekonto ein.
+    </p>
+    <button type="button" class="knopf" id="nochmal" style="background:#fff; color:var(--blau); border:1px solid var(--blau); font-weight:normal">Noch einmal spielen</button>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STATIONEN = [
+    {
+      ort: "Aktenordner 1 · Kunde: Schuhhaus Brunner",
+      titel: "Der Preis, der nie einer war",
+      fall: "Das Schuhhaus bietet Wanderschuhe für 120,00 EUR an. Nach drei Tagen senkt es den Preis auf 99,00 EUR. In der Anzeige steht: „Wanderschuhe der Marke G & W für nur 99,00 EUR statt 120,00 EUR.“ Zwei Tage später kostet der Schuh wieder 120,00 EUR.",
+      frage: "Wie ist dieser Entwurf einzuordnen?",
+      optionen: [
+        "Zulässig – Preise darf ein Geschäft jederzeit ändern.",
+        "Irreführende Werbung: Der durchgestrichene Preis ist ein Mondpreis.",
+        "Unlautere vergleichende Werbung, weil zwei Preise verglichen werden.",
+        "Unzumutbare Belästigung, weil die Anzeige ungefragt erscheint."
+      ],
+      richtig: 1,
+      ziffer: "4",
+      erklaerung: "Der Preis von 120,00 EUR war nie ein ernsthafter Verkaufspreis, sondern wurde nur kurz gesetzt, damit die Ersparnis größer wirkt. Das ist irreführende Werbung mit einem Mondpreis.",
+      tipp: "Frag dich: Hat es den hohen Preis wirklich ernsthaft gegeben – oder nur drei Tage lang für die Anzeige?"
+    },
+    {
+      ort: "Aktenordner 2 · Kunde: Lebensmittelkette Nordkorb",
+      titel: "Zehn Körbchen für eine ganze Stadt",
+      fall: "Die Kette bewirbt in ihren Prospekten ab dem 15. Juli frische Pfifferlinge zum Preis von 4,99 EUR je Körbchen. Jede Filiale erhält zehn Körbchen. Bereits eine halbe Stunde nach Geschäftsöffnung sind die Pfifferlinge ausverkauft.",
+      frage: "Wie ist dieser Entwurf einzuordnen?",
+      optionen: [
+        "Zulässig – wer zuerst kommt, mahlt zuerst.",
+        "Herabsetzung eines Mitbewerbers.",
+        "Nicht ausreichende Bevorratung: ein Lockangebot.",
+        "Ausnutzung geschäftlicher Unerfahrenheit."
+      ],
+      richtig: 2,
+      ziffer: "7",
+      erklaerung: "Die Ware wird nicht in angemessenem Umfang vorgehalten. Angemessen ist ein Vorrat, der im Regelfall zwei Tage reicht. Kunden werden mit einem Angebot ins Geschäft gelockt, das gar nicht zu haben ist.",
+      tipp: "Wie lange muss die beworbene Ware im Regelfall reichen?"
+    },
+    {
+      ort: "Aktenordner 3 · Kunde: Reiseveranstalter Sonnenfahrt",
+      titel: "Die kostenlose Fahrt",
+      fall: "Bei einer sogenannten Kaffeefahrt werden die Teilnehmer während der Verkaufsveranstaltung nicht aus dem Raum gelassen. Teilnehmer, die nicht kaufen wollen, werden vor allen Anwesenden bloßgestellt: „Kostenlos mitfahren tun Sie, aber kaufen wollen Sie nicht!“",
+      frage: "Wie ist dieser Entwurf einzuordnen?",
+      optionen: [
+        "Beeinträchtigung der Entscheidungsfreiheit durch aggressive Handlungen.",
+        "Irreführende Angaben über das eigene Unternehmen.",
+        "Nachahmung der Waren eines Mitbewerbers.",
+        "Zulässig, solange niemand zum Kauf gezwungen wird."
+      ],
+      richtig: 0,
+      ziffer: "2",
+      erklaerung: "Wer den Raum nicht verlassen darf und vor allen bloßgestellt wird, kann nicht mehr frei entscheiden. Genau das verbietet das UWG als aggressive Handlung.",
+      tipp: "Kann der Teilnehmer in dieser Lage noch frei Ja oder Nein sagen?"
+    },
+    {
+      ort: "Aktenordner 4 · Kunde: Uhren & Mode Karstens",
+      titel: "Fast wie das Original",
+      fall: "Der Kunde will Uhren bewerben, die den bekannten Markenuhren bis ins Detail gleichen – gleiche Form, gleiches Zifferblatt, ähnlicher Schriftzug. Nur der Preis unterscheidet sich vom Original. Im Entwurf heißt es: „Der Luxus-Look für kleines Geld.“",
+      frage: "Wie ist dieser Entwurf einzuordnen?",
+      optionen: [
+        "Unzumutbare Belästigung.",
+        "Nachahmung der Waren eines Mitbewerbers.",
+        "Vorenthaltung wesentlicher Informationen.",
+        "Zulässig – Nachahmung ist schließlich die höchste Form der Anerkennung."
+      ],
+      richtig: 1,
+      ziffer: "9",
+      erklaerung: "Die Ware soll vortäuschen, es handle sich um das Markenprodukt. Das Buch nennt dafür gefälschte Rolex-Uhren und gefälschte Lacoste-T-Shirts als Beispiele.",
+      tipp: "Wessen Leistung wird hier ausgenutzt: die des Kunden oder die eines Mitbewerbers?"
+    },
+    {
+      ort: "Aktenordner 5 · Kunde: Getränkemarkt Deichquelle",
+      titel: "Fünf Cent billiger",
+      fall: "Im Entwurf steht: „Die Flasche Hohes C kostet beim Discountgeschäft Heinrich Vogler e. Kfm. 0,70 EUR, bei uns nur 0,65 EUR.“ In der Fußnote entdeckst du: Das eigene Angebot bezieht sich auf 0,75 Liter, das des Discounters auf 1,0 Liter.",
+      frage: "Wie ist dieser Entwurf einzuordnen?",
+      optionen: [
+        "Zulässig – vergleichende Werbung ist grundsätzlich erlaubt.",
+        "Herabsetzung eines Mitbewerbers.",
+        "Unlautere vergleichende Werbung: Es werden unterschiedliche Mengen verglichen.",
+        "Irreführende Angaben über das eigene Unternehmen."
+      ],
+      richtig: 2,
+      ziffer: "1",
+      erklaerung: "Vergleichende Werbung ist grundsätzlich zulässig – aber nicht, wenn Preise für unterschiedliche Waren, Mengen oder Qualitäten verglichen werden. Bei gleicher Menge, also 0,75 Liter gegen 0,75 Liter, wäre die Werbung erlaubt.",
+      tipp: "Rechne die Preise einmal auf dieselbe Menge um. Wer ist dann günstiger?"
+    },
+    {
+      ort: "Aktenordner 6 · Kunde: Versicherungsbüro Ahlers",
+      titel: "Post, die keiner bestellt hat",
+      fall: "Das Büro will Werbe-E-Mails an alle Verbraucher senden, deren Adressen es von einem Adresshändler gekauft hat. Eine Einwilligung der Empfänger liegt nicht vor. Parallel sollen Handzettel in alle Briefkästen – auch in die mit dem Schild „Keine Werbung“.",
+      frage: "Wie ist dieser Entwurf einzuordnen?",
+      optionen: [
+        "Zulässig, solange die Werbung inhaltlich wahr ist.",
+        "Unzumutbare Belästigung.",
+        "Unlautere vergleichende Werbung.",
+        "Nicht ausreichende Bevorratung."
+      ],
+      richtig: 1,
+      ziffer: "5",
+      erklaerung: "Beides ist unzumutbare Belästigung: E-Mail-Werbung ohne Einwilligung des Empfängers und Werbematerial im Briefkasten, obwohl das Schild „Keine Werbung“ erkennbar zeigt, dass sie nicht gewünscht ist.",
+      tipp: "Hat der Empfänger irgendwo gesagt, dass er diese Werbung haben möchte?"
+    }
+  ];
+
+  var CODE = STATIONEN.map(function(s){ return s.ziffer; }).join("");
+  var geloest = STATIONEN.map(function(){ return false; });
+  var fehler = 0, fehlerSchloss = 0;
+
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  // Leiste
+  var leiste = document.getElementById("leiste");
+  STATIONEN.forEach(function(s,i){
+    var d = document.createElement("div");
+    d.className = "feld"; d.id = "feld"+i;
+    d.innerHTML = '<div class="nr">Station '+(i+1)+'</div><div class="zi">?</div>';
+    leiste.appendChild(d);
+  });
+
+  // Stationen
+  var box = document.getElementById("stationen");
+  STATIONEN.forEach(function(s,i){
+    var sec = document.createElement("section");
+    sec.className = "station"; sec.id = "st"+i;
+    var h = '<div class="ort">'+esc(s.ort)+'</div>';
+    h += '<h2>Station '+(i+1)+': '+esc(s.titel)+'</h2>';
+    h += '<p class="fall">'+esc(s.fall)+'</p>';
+    h += '<p class="frage">'+esc(s.frage)+'</p>';
+    s.optionen.forEach(function(o,k){
+      h += '<label class="opt"><input type="radio" name="s'+i+'" value="'+k+'">'+esc(o)+'</label>';
+    });
+    h += '<button type="button" class="knopf" data-i="'+i+'">Akte prüfen</button>';
+    h += '<div class="rueck" id="r'+i+'"></div>';
+    sec.innerHTML = h;
+    box.appendChild(sec);
+  });
+
+  box.addEventListener("click", function(e){
+    var b = e.target.closest("button[data-i]");
+    if (!b) return;
+    var i = Number(b.getAttribute("data-i"));
+    if (geloest[i]) return;
+    var s = STATIONEN[i];
+    var sel = document.querySelector('input[name="s'+i+'"]:checked');
+    var r = document.getElementById("r"+i);
+    if (!sel){
+      r.className = "rueck falsch";
+      r.innerHTML = "<b>Noch nichts ausgewählt.</b> Entscheide dich für eine Einordnung.";
+      r.style.display = "block";
+      return;
+    }
+    if (Number(sel.value) === s.richtig){
+      geloest[i] = true;
+      r.className = "rueck richtig";
+      r.innerHTML = "<b>Richtig eingeordnet.</b> " + esc(s.erklaerung) +
+                    '<br><span class="ziffer">In der Akte steckt die Ziffer ' + esc(s.ziffer) + '.</span>';
+      r.style.display = "block";
+      document.getElementById("st"+i).classList.add("geloest");
+      var f = document.getElementById("feld"+i);
+      f.classList.add("auf");
+      f.querySelector(".zi").textContent = s.ziffer;
+      b.disabled = true;
+      b.textContent = "Akte geschlossen";
+      document.querySelectorAll('input[name="s'+i+'"]').forEach(function(x){ x.disabled = true; });
+    } else {
+      fehler++;
+      r.className = "rueck falsch";
+      r.innerHTML = "<b>Das passt noch nicht.</b> " + esc(s.tipp) + " Schau notfalls in Modul 8 nach und versuch es noch einmal.";
+      r.style.display = "block";
+    }
+  });
+
+  // Tresor
+  document.getElementById("oeffnen").addEventListener("click", function(){
+    var eing = document.getElementById("code").value.replace(/\D/g,"");
+    var tr = document.getElementById("tresorrueck");
+    var offen = geloest.filter(Boolean).length;
+    if (eing.length !== 6){
+      tr.className = "zu";
+      tr.innerHTML = "<b>Das Schloss braucht genau sechs Ziffern.</b> Bisher gelöst: " + offen + " von 6 Stationen.";
+      tr.style.display = "block";
+      return;
+    }
+    if (eing === CODE){
+      tr.className = "auf";
+      tr.innerHTML = "<b>Klick.</b> Der Tresor ist offen.";
+      tr.style.display = "block";
+      document.getElementById("fehler").textContent = fehler;
+      document.getElementById("fehlerschloss").textContent = fehlerSchloss;
+      document.getElementById("ende").style.display = "block";
+      document.getElementById("ende").scrollIntoView({behavior:"smooth"});
+    } else {
+      fehlerSchloss++;
+      tr.className = "zu";
+      tr.innerHTML = "<b>Das Schloss rührt sich nicht.</b> Prüfe die Reihenfolge: Station 1 ganz links, Station 6 ganz rechts. " +
+                     "Bisher gelöst: " + offen + " von 6 Stationen.";
+      tr.style.display = "block";
+    }
+  });
+
+  document.getElementById("nochmal").addEventListener("click", function(){ location.reload(); });
+})();
+</script>
+</body>
+</html>
