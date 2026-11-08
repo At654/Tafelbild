@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 2 · Modul 4 · Kontakt aufnehmen</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="ar">🇸🇦 العربية</button>
+    <button class="pill" data-l="tr">🇹🇷 Türkçe</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 2 · Verkaufsgespräche kundenorientiert führen</p>
+  <h1 data-k="h1">Modul 4: Kontakt aufnehmen</h1>
+  <p class="sub" data-k="meta">2 Doppelstunden · 8 Punkte · Lehrbuch S. 106–110 · Arbeitsheft S. 59–65</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann die acht Phasen des Verkaufsgesprächs in der richtigen Reihenfolge nennen.</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann erklären, warum der erste Eindruck über den Verlauf des Gesprächs entscheidet.</label></li>
+      <li><label data-k="can3"><input type="checkbox"> Ich kann eine Begrüßung in wörtlicher Rede formulieren, die zur Kundin und zur Verkaufsform passt.</label></li>
+      <li><label data-k="can4"><input type="checkbox"> Ich kann in einem misslungenen Gesprächsanfang die Fehler finden und verbessern.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a1_h">Aufgabe 1 · Ankommen: Was weißt du noch? <span class="pts" data-k="pts1">1 Punkt</span></h2>
+    <p data-k="a1_p">Beantworte die Fragen aus dem Kopf. Nicht nachschlagen – es geht darum, was aus den letzten Modulen hängengeblieben ist.</p>
+    <div data-items="a1"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> Phasen des Verkaufsgesprächs · Stufen · Kontaktaufnahme · Begrüßung · erster Eindruck · Blickkontakt · Grußformel · situationsgerecht · allgemeine Kontaktaufnahme · warenbezogene Kontaktaufnahme · Kundensignal · Freiraum · Bereitschaft zum Helfen
+      <div id="gloss"></div></div>
+    <div id="reading"></div>
+
+    <h3 style="margin-top:24px" data-k="stufen_h">Die acht Phasen im Überblick</h3>
+    <table>
+      <tr><th data-k="th_stufe">Stufe</th><th data-k="th_phase">Phase des Verkaufsgesprächs</th><th data-k="th_modul">Modul</th></tr>
+      <tr><td>1</td><td data-k="p1">Begrüßung und Kontaktaufnahme</td><td>4</td></tr>
+      <tr><td>2</td><td data-k="p2">Bedarfsermittlung</td><td>5 – 7</td></tr>
+      <tr><td>3</td><td data-k="p3">Warenvorlage</td><td>8</td></tr>
+      <tr><td>4</td><td data-k="p4">Verkaufsargumentation</td><td>9</td></tr>
+      <tr><td>5</td><td data-k="p5">Preisnennung</td><td>10</td></tr>
+      <tr><td>6</td><td data-k="p6">Kundeneinwände</td><td>11, 12</td></tr>
+      <tr><td>7</td><td data-k="p7">Ergänzungs-, Zusatz- und Alternativangebote</td><td>13</td></tr>
+      <tr><td>8</td><td data-k="p8">Kaufabschluss, Serviceleistungen und Verabschiedung</td><td>14, 15</td></tr>
+    </table>
+
+    <div class="merke" data-k="merke_ei"><b>Merke:</b> Der erste Eindruck zählt und hat unmittelbare Auswirkungen auf den Verkaufserfolg.</div>
+    <div class="merke" style="background:var(--pri2);border-color:var(--pri)"><b data-k="sbk_h">Satzbaukasten – so nimmst du Kontakt auf</b>
+      <div data-k="sbk_a" style="margin-top:6px"><b>Allgemein:</b> „Guten Tag, wie kann ich Ihnen helfen?“ · „Schönen guten Morgen, was darf ich Ihnen zeigen?“</div>
+      <div data-k="sbk_w" style="margin-top:6px"><b>Warenbezogen:</b> „Guten Tag. Diese Jacke, die Sie gerade anschauen, ist …“ · „Ich sehe, Sie interessieren sich für … Wofür soll er denn sein?“</div>
+      <div data-k="sbk_s" style="margin-top:6px"><b>Stammkunde:</b> „Guten Tag, Frau Wolf! Schön, dass Sie wieder da sind.“</div>
+      <div data-k="sbk_f" style="margin-top:6px"><b>Freiraum lassen:</b> „Gerne. Wenn Sie Hilfe brauchen, bin ich für Sie da.“</div>
+      <div data-k="sbk_n" style="margin-top:6px"><b>Nie:</b> „Kann ich Ihnen helfen?“ und „Suchen Sie etwas Bestimmtes?“ – darauf kann der Kunde „nein“ sagen, und das Gespräch ist zu Ende.</div></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 2 · Vorgemacht: einen Gesprächsanfang reparieren</h2>
+    <p data-k="a2_p">So gehst du bei jedem misslungenen Anfang vor – genau so wird es auch in der Abschlussprüfung verlangt. Lies die Beispiele genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk1"><b>Der Verkäufer tritt von hinten an den Kunden heran und sagt: „Kann ich Ihnen helfen?“</b><br>1. Fehler benennen: Er spricht den Kunden von hinten an. 2. Zweiter Fehler: „Kann ich Ihnen helfen?“ ist eine geschlossene Frage, der Kunde kann „nein“ sagen. 3. Verbesserung in wörtlicher Rede: Erst von vorn Blickkontakt aufbauen, dann: „Guten Tag. Ich sehe, Sie interessieren sich für die Drucker. Wofür möchten Sie sie vor allem verwenden?“</div>
+    <div class="worked" data-k="wk2"><b>Eine Kundin betritt den Laden, die Verkäuferin sortiert weiter ein und sagt nichts.</b><br>1. Fehler: Kein Blickkontakt, keine Begrüßung – die Kundin fühlt sich zurückgesetzt. 2. Was fehlt: Die bisherige Tätigkeit wird nicht abgebrochen. 3. Verbesserung: Aufblicken, lächeln und sagen: „Guten Tag! Schauen Sie sich in Ruhe um – wenn Sie Hilfe brauchen, bin ich für Sie da.“</div>
+    <div class="worked" data-k="wk3"><b>Ein Stammkunde kommt herein, der Verkäufer sagt: „Hallo, was wollen Sie denn?“</b><br>1. Fehler: „Hallo“ passt nicht zu jedem Kunden, die Grußformel ist nicht situationsgerecht. 2. Fehler: „Was wollen Sie denn?“ klingt abweisend, und der Name des Stammkunden fehlt. 3. Verbesserung: „Guten Tag, Herr Linder! Schön, dass Sie wieder bei uns vorbeischauen. Wie kann ich Ihnen heute behilflich sein?“</div>
+    <div class="merke" data-k="a2_res"><b>Ergebnis:</b> Immer dieselben drei Schritte: Fehler benennen – begründen, warum es ein Fehler ist – Verbesserung in wörtlicher Rede mit Anführungszeichen.</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe die Beispiele gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a3_h">Aufgabe 3 · Geführte Übung <span class="pts" data-k="pts2">2 Punkte</span></h2>
+    <p data-k="a3_p">Benenne den Fehler und schreibe die Verbesserung in wörtlicher Rede.</p>
+    <div data-items="a3"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a4_h">Aufgabe 4 · Freie Übung <span class="pts" data-k="pts2">2 Punkte</span></h2>
+    <div data-items="a4"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a5_h">Aufgabe 5 · Aus deinem Betrieb <span class="pts" data-k="pts1">1 Punkt</span></h2>
+    <div data-items="a5"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a6_h">Aufgabe 6 · Für Profis</h2>
+    <p data-k="a6_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="a6"></div>
+  </div>
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="a8_h">Aufgabe 8 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="a8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="a8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 7 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={vor:"Vorwissen aus den letzten Modulen",txt:"Textverständnis",trans:"Transfer: Gesprächsanfang reparieren",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{id:"a1_1",g:"a1",cat:"vor",q:"1. Nenne die drei Verkaufsformen.",kw:[["nosb:bedienung"],["vorwahl","vor wahl","vorauswahl"],["selbstbedienung","selbst bedienung","selbstbed"]],min:3,
+ h:["Wer holt die Ware: der Verkäufer, der Kunde, oder beide?","Eine Form beginnt mit „Bedien…“, eine mit „Vor…“, eine mit „Selbst…“."],
+ sol:"Bedienung – Vorwahl – Selbstbedienung."},
+{id:"a1_2",g:"a1",cat:"vor",q:"2. Welche Verkaufsform passt zu einer Waschmaschine? Begründe kurz.",kw:[["nosb:bedienung"],["beratung","erklaer","teuer","kompliziert","technisch","fachlich"]],min:2,rows:3,
+ h:["Welche Ware ist teuer und erklärungsbedürftig?","Bei welcher Form kann der Kunde Fragen stellen und wird beraten?"],
+ sol:"Bedienung. Eine Waschmaschine ist teuer und erklärungsbedürftig – der Kunde braucht Beratung durch eine Verkäuferin."},
+{id:"a1_3",g:"a1",cat:"vor",q:"3. Welche Distanz halten Verkäufer und Kunde zu Beginn des Gesprächs ein?",kw:[["gesellschaft","1,2","1.2","3,0","3 m"]],min:1,
+ h:["Denk an Modul 2: Es gibt Distanzzonen von „intim“ bis „weit“.","Welche Zone gilt für fremde Personen?"],
+ sol:"Die gesellschaftliche Distanz: 1,20 m bis 3,00 m."},
+{id:"a1_4",g:"a1",cat:"vor",q:"4. Nenne zwei Signale der Mimik, die Interesse zeigen.",kw:[["weit","augen"],["laechel","freundlich"],["augenkontakt","blickkontakt"]],min:2,rows:3,
+ h:["Denk an das Gesicht: Augen und Mund.","Weit … Augen – freundliches … mit Augenkontakt."],
+ sol:"Weit geöffnete Augen und ein freundliches Lächeln mit Augenkontakt."},
+{id:"a1_5",g:"a1",cat:"vor",q:"5. Was ist der Sie-Stil?",kw:[["persoenlich","direkt","ansprech","anrede","sie "]],min:1,rows:3,
+ h:["Statt über „man“ zu reden, wird jemand direkt angesprochen."],
+ sol:"Der Kunde wird persönlich angesprochen: „Damit können Sie …“ statt „Damit kann man …“."},
+
+{id:"a3_1",g:"a3",cat:"trans",q:"1. Ein etwa 60-jähriger Kunde wird mit „Hallo!“ begrüßt.",kw:[["situationsgerecht","situation","alter","aelter","passt nicht","formell","foermlich","respekt","hoeflich","vertraut","siez","sie "],["guten tag","guten morgen","guten abend","gruess"]],min:2,rows:4,
+ h:["Die Grußformel hängt von Alter, Geschlecht, Beruf, Titel und Vertrautheit ab.","Welche Begrüßung passt zu einem älteren, fremden Kunden?"],
+ sol:"Fehler: „Hallo“ ist nicht situationsgerecht – es passt nicht zu einem älteren, fremden Kunden. Besser: „Guten Tag! Wie kann ich Ihnen helfen?“"},
+{id:"a3_2",g:"a3",cat:"trans",q:"2. Der Verkäufer fragt: „Suchen Sie etwas Bestimmtes?“",kw:[["geschlossen","nein","ja/nein","ja oder nein","ende"],["wie ","was ","wofuer","wer ","warum","wonach","darf","zeigen","interessier"]],min:2,rows:4,
+ h:["Offene Fragen beginnen mit Wer, Wie, Was, Wofür, Warum.","Was kann der Kunde auf diese Frage antworten – und was passiert dann?"],
+ sol:"Fehler: geschlossene Frage – der Kunde kann „nein“ sagen und das Gespräch ist zu Ende. Besser: „Guten Tag, was darf ich Ihnen zeigen?“ oder „Wofür interessieren Sie sich?“"},
+{id:"a3_3",g:"a3",cat:"trans",q:"3. Eine Kundin steht ratlos vor dem Regal. Die Verkäuferin geht wortlos vorbei.",kw:[["signal","ratlos","uebersehen","nicht bemerkt","nicht angesprochen","nicht beachtet","ignorier","wortlos","wahrgenommen","blickkontakt","keine begruess","reagier","hilfe"],["wie kann ich","guten tag","was darf","wonach","helfen"]],min:2,rows:4,
+ h:["Welche Kundensignale stehen in der Tabelle? Ratloses Gesicht, suchender Blick …","Was musst du tun, wenn ein Kunde Interesse zeigt?"],
+ sol:"Fehler: Das Kundensignal (ratlos, suchend) wird nicht beachtet, die Kundin wird nicht wahrgenommen und nicht angesprochen. Besser: Blickkontakt, hingehen und allgemein ansprechen: „Guten Tag, wie kann ich Ihnen helfen?“"},
+{id:"a3_4",g:"a3",cat:"trans",q:"4. Ein Kunde bummelt durch den Laden. Der Verkäufer geht mit und erklärt ungefragt jedes Produkt.",kw:[["freiraum","aufdringlich","bedraeng","draeng","in ruhe","stoert","nervt","kaufabsicht","lassen","begleit","ungefragt"],["hilfe brauchen","fuer sie da","schauen sie sich","in ruhe","gerne","umsehen","umschauen","brauchen"]],min:2,rows:4,
+ h:["Für diese Kunden ist Bummeln Zeitvertreib. Sie kommen ohne Kaufabsicht.","Was brauchen sie zuerst: Erklärungen oder Freiraum?"],
+ sol:"Fehler: Der Kunde bekommt keinen Freiraum, der Verkäufer ist aufdringlich. Besser: „Gerne. Wenn Sie Hilfe brauchen, bin ich für Sie da.“"},
+
+{id:"a4_1",g:"a4",cat:"wis",q:"1. Nenne die acht Phasen des Verkaufsgesprächs in der richtigen Reihenfolge.",kw:[["begruess","kontakt"],["bedarf"],["warenvorlage"],["argument"],["preis"],["einwand","einwaend"],["ergaenz","zusatz","alternativ"],["abschluss","verabschied","service"]],min:6,rows:5,
+ h:["Schau in die Tabelle „Die acht Phasen im Überblick“.","Stufe 1: Begrüßung … Stufe 8: Kaufabschluss …"],
+ sol:"1. Begrüßung und Kontaktaufnahme – 2. Bedarfsermittlung – 3. Warenvorlage – 4. Verkaufsargumentation – 5. Preisnennung – 6. Kundeneinwände – 7. Ergänzungs-, Zusatz- und Alternativangebote – 8. Kaufabschluss, Serviceleistungen und Verabschiedung."},
+{id:"a4_2",g:"a4",cat:"wis",q:"2. Erkläre, warum der Blickkontakt am Anfang des Gesprächs so wichtig ist.",kw:[["interesse"],["offen"],["zuwendung"],["wertschaetz"],["ehrlich","wohl"]],min:2,rows:4,
+ h:["Was zeigt der Verkäufer dem Kunden, wenn er ihn anschaut?","Blickkontakt signalisiert Interesse, Offenheit, …"],
+ sol:"Blickkontakt signalisiert Interesse, Offenheit, Zuwendung, Wertschätzung und Ehrlichkeit. Der Kunde fühlt sich im Geschäft wohl."},
+{id:"a4_3",g:"a4",cat:"wis",q:"3. Nenne drei Signale, an denen du erkennst, dass ein Kunde angesprochen werden möchte.",kw:[["suchend","umschau","umsehen"],["personal zu","zugehen","geht auf","zum personal"],["in die hand","hand","prueft"],["vitrine"],["kopf","ratlos","gesicht"]],min:3,rows:4,
+ h:["Schau in die Tabelle „Der Kunde zeigt Interesse an der Ware“.","Was tut er mit den Augen, den Händen, dem Weg?"],
+ sol:"Zum Beispiel: Er schaut sich suchend um – er geht auf das Personal zu – er nimmt eine Ware in die Hand und prüft sie – er steht vor einer verschlossenen Vitrine – er kratzt sich am Kopf und macht ein ratloses Gesicht."},
+{id:"a4_4",g:"a4",cat:"wis",q:"4. Unterscheide die allgemeine und die warenbezogene Kontaktaufnahme. Formuliere zu jeder ein Beispiel in wörtlicher Rede.",kw:[["allgemein"],["warenbezogen","ware","produkt"],["wie kann ich","was darf","guten tag","guten morgen"],["gerade anschauen","interessieren sich","diese","ich sehe","sorgfaeltig"]],min:3,rows:5,
+ h:["Allgemein = ohne Bezug zur Ware. Warenbezogen = du nennst die Ware, die der Kunde anschaut.","Schau in den Satzbaukasten."],
+ sol:"Allgemein: Der Kunde wird ohne Bezug zu einer Ware angesprochen: „Guten Tag, wie kann ich Ihnen helfen?“ Warenbezogen: Du sprichst die Ware an, die der Kunde ansieht: „Guten Tag. Diese Jacke, die Sie gerade anschauen, ist …“"},
+{id:"a4_5",g:"a4",cat:"wis",q:"5. Warum darf ein Kunde niemals von hinten angesprochen werden?",kw:[["ueberfall","erschreck","schreck","bedroh","bedraeng","unwohl","unangenehm","angst","zusammenzuck"]],min:1,rows:3,
+ h:["Wie fühlt man sich, wenn plötzlich jemand hinter einem spricht?"],
+ sol:"Er könnte sich überfallen fühlen. Erst Blickkontakt aufbauen, dann sprechen."},
+{id:"a4_6",g:"a4",cat:"wis",q:"6. Ein Kunde möchte nur bummeln. Wie verhältst du dich? Formuliere deinen Satz.",kw:[["hilfe brauchen","fuer sie da","in ruhe","umsehen","schauen sie sich","gerne"]],min:1,rows:3,
+ h:["Du lässt ihm Freiraum – aber ein Satz ist wichtig.","Du zeigst einmal die Bereitschaft zum Helfen."],
+ sol:"Freiraum lassen, aber einmal Bereitschaft signalisieren: „Gerne. Wenn Sie Hilfe brauchen, bin ich für Sie da.“"},
+
+{id:"a5_1",g:"a5",cat:"refl",mode:"self",q:"Schreibe auf, wie in deinem Betrieb Kunden begrüßt werden – in wörtlicher Rede. Beurteile dann: Passt die Begrüßung zur Verkaufsform des Betriebs?",rows:5,
+ h:["Schreibe die Begrüßung genau so auf, wie sie gesagt wird – mit Anführungszeichen.","Ist dein Betrieb Bedienung, Vorwahl oder Selbstbedienung? Passt die Begrüßung dazu?"],
+ sol:"Individuelle Antwort. Prüfe selbst: (1) Steht die Begrüßung in wörtlicher Rede? (2) Ist sie situationsgerecht? (3) Hast du begründet, ob sie zur Verkaufsform passt (Bedienung: persönlich ansprechen; Selbstbedienung: jeder Mitarbeiter grüßt, Kontakt spätestens an der Kasse)?"},
+
+{id:"a6_1",g:"a6",cat:"refl",mode:"self",q:"6.1 Beurteilen Sie diese fünf Sätze aus der Kontaktphase: „Wie kann ich Ihnen helfen?“ · „Sie kommen zurecht?“ · „Suchen Sie etwas Bestimmtes?“ · „Ja bitte?“ · „Guten Tag!“",rows:7,
+ h:["Prüfen Sie jeden Satz: offene Frage (Wer, Wie, Was …) oder geschlossene Frage (Antwort ja/nein)?","Schauen Sie in den Satzbaukasten: Was steht unter „Nie“?"],
+ sol:"Musterlösung (Vorschlag): „Wie kann ich Ihnen helfen?“ – gut: höflich, im Sie-Stil, offene allgemeine Kontaktaufnahme. „Sie kommen zurecht?“ – ungünstig: geschlossene Frage, der Kunde sagt „ja“ und das Gespräch ist zu Ende. „Suchen Sie etwas Bestimmtes?“ – ungünstig: geschlossene Frage, „nein“ ist möglich (steht im Satzbaukasten unter „Nie“). „Ja bitte?“ – ungünstig: knapp, wirkt abweisend, keine Begrüßung. „Guten Tag!“ – gut als Begrüßung, aber noch kein Gesprächsangebot; besser mit Ergänzung: „Guten Tag! Wie kann ich Ihnen helfen?“"},
+{id:"a6_2",g:"a6",cat:"refl",mode:"self",q:"6.2 Warum ist der erste Eindruck kaum zu korrigieren? Begründen Sie mit dem, was Sie über Körpersprache wissen.",rows:6,
+ h:["Denken Sie an Modul 2: Körpersprache erfolgt häufig … und …","Wann beginnt der Kunde, Sie „zu lesen“ – erst nach dem ersten Wort?"],
+ sol:"Musterlösung (Vorschlag): Körpersprache erfolgt meist unwillkürlich und unbeabsichtigt und wirkt schon in den ersten Sekunden, noch bevor ein Wort gesprochen wird. Blickkontakt, Haltung, Mimik und Abstand werden vom Kunden sofort – oft unbewusst – gedeutet. Hat sich ein Kunde zurückgesetzt oder überfallen gefühlt, bleibt dieser Eindruck hängen. Deshalb hat der erste Eindruck unmittelbare Auswirkungen auf den Verkaufserfolg."},
+{id:"a6_3",g:"a6",cat:"refl",mode:"self",q:"6.3 Entwickeln Sie eine Begrüßung für eine Kundin mit zwei kleinen Kindern – und begründen Sie jede Ihrer Entscheidungen.",rows:7,
+ h:["Schauen Sie in die Tabelle zur Bedienung: Was steht bei „Dem Kunden das Gefühl geben, willkommen zu sein“?","Begründen Sie bei jedem Satz Ihrer Begrüßung, warum Sie ihn so sagen."],
+ sol:"Musterlösung (Vorschlag): Ich unterbreche meine Tätigkeit, lächle und stelle Blickkontakt her – so fühlt sich die Kundin nicht zurückgesetzt. Ich sage: „Guten Tag! Schön, dass Sie da sind. Hallo, ihr zwei!“ – die Grußformel passt zur Situation, die Kinder werden einbezogen. Dann: „Schauen Sie sich in Ruhe um – wenn Sie Hilfe brauchen, bin ich für Sie da.“ – Freiraum lassen, aber Bereitschaft zum Helfen zeigen. Wenn möglich, biete ich den Kindern eine Beschäftigung an (Kinder beschäftigen, Begleitpersonen einbeziehen)."}
+];
+
+/* Lesetext: [[Richtig]] = gesuchter Begriff, {{Falsch}} = Ablenker */
+const READ=[
+{t:"Die acht Phasen",task:"Markiere das gemeinsame Ziel, die Zahl der Phasen und die erste Stufe.",
+ x:"Verkäufer und Kunde haben ein gemeinsames Ziel: den [[Kaufabschluss]]. Bis dahin werden im Allgemeinen [[acht Phasen (Stufen)]] durchlaufen. Die erste Stufe ist die [[Begrüßung und Kontaktaufnahme]]. Danach folgt in Stufe 2 die {{Bedarfsermittlung}}, in Stufe 3 die {{Warenvorlage}}. Nicht jedes Gespräch hat alle Phasen, und sie sind nicht gleich lang.",
+ q:"Warum heißen die Phasen „Stufen“ und nicht „Fahrstuhl“?",o:["Weil jede Phase gleich lang ist.","Weil nicht jedes Gespräch alle Phasen hat – man muss sich auf jeden Kunden neu einstellen.","Weil man immer sofort zum Kaufabschluss kommt."],c:1},
+{t:"Kontaktaufnahme bei Bedienung",task:"Markiere die vier Dinge, die du bei Bedienung tust.",
+ x:"Bei Bedienung stellst du so schnell wie möglich [[Blickkontakt]] her. Du brichst deine [[bisherige Tätigkeit sofort ab]], denn Kunden fühlen sich schnell zurückgesetzt, wenn man sie warten lässt. Du begrüßt [[personen- und situationsgerecht]] – die Grußformel hängt von Alter, Geschlecht, Beruf, Titel und Vertrautheit ab. Du gibst dem Kunden das Gefühl, [[willkommen zu sein]]. Du machst {{mit dem Einräumen weiter}}, bis der Kunde fragt – das ist falsch.",
+ q:"Warum bricht man die bisherige Tätigkeit sofort ab?",o:["Weil Kunden sich zurückgesetzt fühlen, wenn man sie warten lässt.","Weil Einräumen unwichtig ist.","Weil der Kunde sonst den Preis vergisst."],c:0},
+{t:"Kontaktaufnahme bei Vorwahl",task:"Markiere, was du in den drei Situationen tust.",
+ x:"Zeigt der Kunde Interesse an der Ware, wirst du [[ansprechen]] – allgemein oder warenbezogen. Will er nicht angesprochen werden, zeigst du ihm [[einmal, dass du ihn wahrgenommen hast]] – und lässt ihn dann in Ruhe. Will er sich nur umsehen, lässt du ihm [[Freiraum]] und signalisierst vorher einmal die [[Bereitschaft zum Helfen]]. Du begleitest ihn {{den ganzen Weg durch den Laden}} und nennst sofort den {{Preis}} – das wäre falsch.",
+ q:"Ein Kunde dreht dir bewusst den Rücken zu. Was tust du?",o:["Ich spreche ihn trotzdem direkt an.","Ich zeige einmal, dass ich ihn wahrgenommen habe, und lasse ihn dann in Ruhe.","Ich folge ihm und erkläre alles."],c:1},
+{t:"Zwei Regeln für die Prüfung",task:"Markiere die beiden Regeln.",
+ x:"Ein Kunde wird [[niemals von hinten]] angesprochen. Er könnte sich überfallen fühlen. Erst [[Blickkontakt]] aufbauen, dann sprechen. Der Verkäufer zeigt jedem Kunden, dass er ihn [[wahrgenommen]] hat – auch dann, wenn er ihn nicht anspricht. Ein Ansprechen {{von der Seite im Vorbeigehen}} gehört nicht zu den Regeln.",
+ q:"Welche Frage solltest du als Einstieg nie stellen?",o:["„Guten Tag, wie kann ich Ihnen helfen?“","„Suchen Sie etwas Bestimmtes?“","„Schönen guten Morgen, was darf ich Ihnen zeigen?“"],c:1},
+{t:"Selbstbedienung",task:"Markiere, was bei Selbstbedienung gilt.",
+ x:"Bei Selbstbedienung erwartet der Kunde [[keine Kontaktaufnahme]]. Trotzdem wird jeder Kunde von [[jedem Mitarbeiter]], der ihm begegnet, [[begrüßt]], und ihm wird geholfen, wenn er eine Ware nicht findet. Spätestens [[an der Kasse]] findet der erste Kontakt statt – nicht erst {{im Lager}}.",
+ q:"Wann findet bei Selbstbedienung spätestens der erste Kontakt statt?",o:["Beim Betreten des Geschäfts.","An der Kasse.","Gar nicht."],c:1}
+];
+
+/* Vertiefung (level v) – Zusatz, aus dem Material abgeleitet */
+ITEMS.push(
+{id:"v8_1",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.1 Begründe: Warum wird bei Selbstbedienung trotzdem jeder Kunde begrüßt, obwohl er keine Kontaktaufnahme erwartet?",rows:5,
+ h:["Denk an den Merksatz: Der erste Eindruck zählt.","Was bekommt der Kunde, wenn er eine Ware nicht findet?"],
+ sol:"Der erste Eindruck zählt und wirkt sich unmittelbar auf den Verkaufserfolg aus. Mit dem Gruß zeigt jeder Mitarbeiter dem Kunden Wertschätzung, und der Kunde bekommt Hilfe, wenn er eine Ware nicht findet – auch wenn er selbst keine Ansprache erwartet."},
+{id:"v8_2",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.2 Was würde passieren, wenn die Verkäuferin bei Bedienung ihre bisherige Tätigkeit nicht abbricht? Begründe.",rows:5,
+ h:["Wie fühlen sich Kunden, wenn man sie warten lässt?","Welche Folge hat das für den ersten Eindruck?"],
+ sol:"Der Kunde fühlt sich zurückgesetzt, weil er warten muss. Das schadet dem ersten Eindruck, und der erste Eindruck hat unmittelbare Auswirkungen auf den Verkaufserfolg."},
+{id:"v8_3",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.3 Ein Kunde schaut weg und dreht dem Verkäufer den Rücken zu. Der Verkäufer spricht ihn trotzdem an. Beurteile das Verhalten und begründe.",rows:5,
+ h:["Welches Kundensignal liegt vor – und was bedeutet es?","Was soll der Verkäufer tun: ansprechen oder einmal zeigen, dass er ihn wahrgenommen hat?"],
+ sol:"Das Verhalten ist ungünstig. Wer wegschaut und den Rücken zudreht, möchte nicht angesprochen werden. Der Verkäufer soll einmal zeigen, dass er ihn wahrgenommen hat, und ihn dann in Ruhe lassen."},
+{id:"v8_4",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.4 Warum heißen die Phasen „Stufen“ und nicht „Fahrstuhl“? Erkläre mit einem Beispiel, in dem eine Phase ausfällt.",rows:6,
+ h:["Hat jedes Gespräch alle acht Phasen?","Manchmal steht man sofort bei der Preisnennung."],
+ sol:"Nicht jedes Gespräch hat alle Phasen, und sie sind nicht gleich lang. Beispiel: Ein Kunde kennt die Ware schon, und man steht sofort bei der Preisnennung – die Bedarfsermittlung entfällt. Einen Fahrstuhl, der automatisch zum Ziel bringt, gibt es nicht: Man muss sich auf jeden Kunden neu einstellen und ihm genau zuhören."}
+);
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={
+a1_1:[["Verkaufsform","Verkäufer","Kunde","Ware"],["Die drei Verkaufsformen heißen …"]],
+a1_2:[["Waschmaschine","teuer","erklärungsbedürftig","Fragen stellen"],["Eine Waschmaschine passt zur …, weil …"]],
+a1_3:[["Distanzzone","fremde Personen","Abstand","Meter"],["Zu Beginn des Gesprächs halten sie …"]],
+a1_4:[["Mimik","Gesicht","Interesse","Mund"],["Interesse erkennt man an …"]],
+a1_5:[["Kunde","Verkäufer","Beispielsatz","sprechen"],["Der Sie-Stil bedeutet, dass …"]],
+a3_1:[["Grußformel","Fehler","Verbesserung","älterer Kunde"],["Der Fehler ist, dass …","Besser wäre: „…“"]],
+a3_2:[["Frage","Antwort","Kunde","Gespräch"],["Der Fehler ist, dass …","Besser wäre: „…“"]],
+a3_3:[["Kundin","Regal","Verkäuferin","ansprechen"],["Der Fehler ist, dass …","Besser wäre: „…“"]],
+a3_4:[["Bummler","Kunde","Verkäufer","Produkt"],["Der Fehler ist, dass …","Besser wäre: „…“"]],
+a4_1:[["Phase","Stufe","Reihenfolge","Kunde"],["Zuerst …, dann …"]],
+a4_2:[["Blickkontakt","Gesprächsanfang","Kunde","wohlfühlen"],["Der Blickkontakt ist wichtig, weil …"]],
+a4_3:[["Kundensignal","Ware","Personal","Verkäufer"],["Ich erkenne es daran, dass …"]],
+a4_4:[["Kontaktaufnahme","wörtliche Rede","Beispiel","Ware"],["Der Unterschied ist, dass …","Ein Beispiel in wörtlicher Rede: „…“"]],
+a4_5:[["Kunde","Rücken","Blickkontakt","Gefühl"],["Der Kunde könnte sich … fühlen"]],
+a4_6:[["Kunde","bummeln","Verkäufer","Satz"],["Ich lasse dem Kunden …"]],
+a5_1:[["Begrüßung","Verkaufsform","Betrieb","wörtliche Rede"],["In meinem Betrieb sagt man: „…“","Das passt zur Verkaufsform, weil …"]],
+a6_1:[["offene Frage","geschlossene Frage","Sie-Stil","Begrüßung"],["Der Satz … ist (nicht) gut, weil …"]],
+a6_2:[["Körpersprache","unwillkürlich","Eindruck","Sekunden"],["Der erste Eindruck bleibt, weil …"]],
+a6_3:[["Kinder","Blickkontakt","Freiraum","Begleitperson"],["Ich sage: „…“, weil …"]],
+v8_1:[["Selbstbedienung","Wertschätzung","Eindruck","Kunde"],["Der Kunde wird begrüßt, weil …"]],
+v8_2:[["Tätigkeit","Kunde","zurückgesetzt","Eindruck"],["Wenn sie weitermacht, dann …"]],
+v8_3:[["Kundensignal","Rücken","ansprechen","Freiraum"],["Das Verhalten ist (nicht) gut, weil …"]],
+v8_4:[["Phase","Stufe","Preisnennung","Bedarfsermittlung"],["Ein Beispiel dafür ist …"]]
+};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+
+const TX={"sub":["مجال التعلّم 2 · إجراء حوارات البيع بما يلائم العميل","Öğrenme alanı 2 · Satış görüşmelerini müşteri odaklı yürütmek","Lĩnh vực học 2 · Tiến hành cuộc trò chuyện bán hàng hướng đến khách hàng"],"h1":["الوحدة 4: بدء التواصل مع العميل","Modül 4: İletişim kurmak","Mô-đun 4: Bắt chuyện với khách hàng"],"meta":["حصتان مزدوجتان · 8 نقاط · الكتاب المدرسي ص 106–110 · كراس التمارين ص 59–65","2 çift ders · 8 puan · Ders kitabı s. 106–110 · Çalışma defteri s. 59–65","2 tiết đôi · 8 điểm · Sách giáo khoa tr. 106–110 · Sách bài tập tr. 59–65"],"name":["الاسم","Ad Soyad","Họ tên"],"date":["التاريخ","Tarih","Ngày"],"can_h":["هذا ما سأستطيع فعله بعد ذلك","Sonrasında bunu yapabileceğim","Sau bài này tôi có thể"],"can1":["أستطيع ذكر المراحل الثماني لحوار البيع بالترتيب الصحيح.","Satış görüşmesinin sekiz aşamasını doğru sırayla sayabilirim.","Tôi có thể nêu đúng thứ tự tám giai đoạn của cuộc trò chuyện bán hàng."],"can2":["أستطيع أن أشرح لماذا يحدد الانطباع الأول مسار الحوار.","İlk izlenimin görüşmenin gidişatını neden belirlediğini açıklayabilirim.","Tôi có thể giải thích vì sao ấn tượng đầu tiên quyết định diễn biến cuộc trò chuyện."],"can3":["أستطيع صياغة تحية بالكلام المباشر تناسب العميلة وطريقة البيع.","Müşteriye ve satış biçimine uygun bir selamlamayı doğrudan konuşma olarak yazabilirim.","Tôi có thể viết một lời chào bằng lời nói trực tiếp phù hợp với khách hàng và hình thức bán hàng."],"can4":["أستطيع إيجاد الأخطاء في بداية حوار فاشلة وتصحيحها.","Başarısız bir görüşme başlangıcındaki hataları bulup düzeltebilirim.","Tôi có thể tìm và sửa lỗi trong một phần mở đầu cuộc trò chuyện bị hỏng."],"can_note":["ضع علامة في النهاية على ما تستطيع فعله الآن.","Sonunda şu an yapabildiklerini işaretle.","Cuối bài, hãy đánh dấu những gì bạn đã làm được."],"a1_h":["المهمة 1 · الانطلاق: ماذا تتذكّر؟","Görev 1 · Isınma: Neler hatırlıyorsun?","Bài 1 · Khởi động: Bạn còn nhớ gì?"],"pts1":["نقطة واحدة","1 puan","1 điểm"],"pts2":["نقطتان","2 puan","2 điểm"],"a1_p":["أجب عن الأسئلة من الذاكرة دون البحث في الكتاب – المهم ما بقي في ذهنك من الوحدات السابقة.","Soruları ezberden cevapla. Bakma – amaç, önceki modüllerden aklında ne kaldığını görmek.","Hãy trả lời theo trí nhớ, không tra sách – mục đích là xem bạn còn nhớ gì từ các mô-đun trước."],"read_h":["للقراءة والمراجعة · قراءة نشِطة","Okuma bölümü · aktif okuma","Đọc lại · đọc chủ động"],"read_p":["اقرأ كل مقطع واضغط على المصطلحات المطلوبة (تصبح صفراء). انتبه: هناك مصطلحات خاطئة أيضًا! بعد ذلك تجيب عن سؤال قصير – وعندها فقط يُفتح المقطع التالي.","Her bölümü oku ve istenen sözcüklere dokun (sarı olurlar). Dikkat: Yanlış sözcükler de var! Sonra kısa bir soruyu cevapla – ancak ondan sonra sonraki bölüm açılır.","Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở."],"ws_h":["مخزن الكلمات (الترجمة)","Sözcük deposu (çeviri)","Kho từ vựng (bản dịch)"],"stufen_h":["نظرة عامة على المراحل الثماني","Sekiz aşamaya genel bakış","Tổng quan tám giai đoạn"],"th_stufe":["المرحلة","Aşama","Giai đoạn"],"th_phase":["مرحلة حوار البيع","Satış görüşmesinin aşaması","Giai đoạn cuộc trò chuyện bán hàng"],"th_modul":["الوحدة","Modül","Mô-đun"],"p1":["التحية وبدء التواصل","Selamlama ve iletişim kurma","Chào hỏi và bắt chuyện"],"p2":["تحديد احتياجات العميل","İhtiyaç belirleme","Xác định nhu cầu"],"p3":["عرض البضاعة","Malı gösterme","Giới thiệu hàng hóa"],"p4":["الحجج البيعية","Satış argümanları","Lập luận bán hàng"],"p5":["ذكر السعر","Fiyatı söyleme","Nêu giá"],"p6":["اعتراضات العميل","Müşteri itirazları","Phản đối của khách"],"p7":["عروض تكميلية وإضافية وبديلة","Tamamlayıcı, ek ve alternatif teklifler","Đề xuất bổ sung, kèm theo và thay thế"],"p8":["إتمام الشراء والخدمات والوداع","Satışın sonuçlanması, hizmetler ve vedalaşma","Chốt đơn, dịch vụ và chào tạm biệt"],"merke_ei":["تذكّر: الانطباع الأول مهم وله تأثير مباشر على نجاح البيع.","Unutma: İlk izlenim önemlidir ve satış başarısını doğrudan etkiler.","Ghi nhớ: Ấn tượng đầu tiên rất quan trọng và ảnh hưởng trực tiếp đến thành công bán hàng."],"sbk_h":["صندوق الجمل – هكذا تبدأ التواصل","Cümle kalıpları – iletişimi böyle kurarsın","Hộp mẫu câu – cách bắt chuyện"],"sbk_a":["عامّ: «يوم سعيد، كيف يمكنني مساعدتك؟» · «صباح الخير، ماذا يمكنني أن أُريك؟»","Genel: „İyi günler, size nasıl yardımcı olabilirim?“ · „Günaydın, size neyi göstereyim?“","Chung: „Chào bạn, tôi có thể giúp gì cho bạn?“ · „Chào buổi sáng, tôi có thể giới thiệu gì cho bạn?“"],"sbk_w":["متعلّق بالبضاعة: «يوم سعيد. هذه السترة التي تنظر إليها الآن …» · «أرى أنك مهتم بـ … لأي غرض تريدها؟»","Ürüne bağlı: „İyi günler. Şu an baktığınız bu ceket …“ · „Görüyorum ki … ilginizi çekiyor. Ne için olacaktı?“","Theo hàng hóa: „Chào bạn. Chiếc áo khoác bạn đang xem …“ · „Tôi thấy bạn quan tâm đến … Bạn định dùng để làm gì?“"],"sbk_s":["الزبون الدائم: «يوم سعيد يا سيدة وولف! يسعدني أنك عدتِ.»","Müdavim müşteri: „İyi günler Bayan Wolf! Tekrar geldiğinize sevindim.“","Khách quen: „Chào bà Wolf! Rất vui vì bà lại đến.“"],"sbk_f":["ترك مساحة للعميل: «بكل سرور. إن احتجتَ مساعدة فأنا موجود.»","Alan bırakma: „Memnuniyetle. Yardıma ihtiyacınız olursa buradayım.“","Để khách tự do: „Vâng ạ. Khi cần giúp đỡ, tôi luôn sẵn sàng.“"],"sbk_n":["لا تقل أبدًا: «هل يمكنني مساعدتك؟» و«هل تبحث عن شيء معيّن؟» – فقد يجيب العميل بـ«لا» وينتهي الحوار.","Asla: „Yardımcı olabilir miyim?“ ve „Belirli bir şey mi arıyorsunuz?“ – müşteri „hayır“ diyebilir ve görüşme biter.","Đừng bao giờ hỏi: „Tôi có thể giúp gì không?“ và „Bạn đang tìm thứ gì cụ thể không?“ – khách có thể trả lời „không“ và cuộc trò chuyện kết thúc."],"a2_h":["المهمة 2 · نموذج محلول: تصحيح بداية حوار فاشلة","Görev 2 · Örnek: Bozuk bir görüşme başlangıcını düzeltmek","Bài 2 · Làm mẫu: sửa phần mở đầu bị hỏng"],"a2_p":["هكذا تتصرف مع كل بداية فاشلة: 1. سمِّ الخطأ 2. اشرح لماذا هو خطأ 3. اكتب التصحيح بالكلام المباشر. هكذا يُطلب منك أيضًا في الامتحان النهائي. اقرأ الأمثلة جيدًا فستحتاجها بعد قليل.","Her başarısız başlangıçta böyle ilerlersin: 1. Hatayı söyle 2. Neden hata olduğunu açıkla 3. Düzeltmeyi doğrudan konuşmayla yaz. Final sınavında da aynen böyle istenir. Örnekleri dikkatle oku, birazdan lazım olacak.","Với mỗi phần mở đầu hỏng, bạn làm như sau: 1. Nêu lỗi 2. Giải thích vì sao là lỗi 3. Viết cách sửa bằng lời nói trực tiếp. Kỳ thi cuối khóa cũng yêu cầu đúng như vậy. Hãy đọc kỹ các ví dụ, bạn sẽ cần chúng ngay."],"wk1":["البائع يقترب من العميل من الخلف ويقول: «هل يمكنني مساعدتك؟» — 1. الخطأ: يخاطب العميل من الخلف. 2. خطأ ثانٍ: هذا سؤال مغلق، يمكن للعميل أن يجيب بـ«لا». 3. التصحيح: أولًا يبني تواصلًا بصريًا من الأمام، ثم يقول: «يوم سعيد. أرى أنك مهتم بالطابعات. لأي استخدام تريدها بشكل أساسي؟»","Satıcı müşteriye arkadan yaklaşır ve şöyle der: „Yardımcı olabilir miyim?“ — 1. Hata: Müşteriye arkadan sesleniyor. 2. İkinci hata: Bu kapalı bir soru, müşteri „hayır“ diyebilir. 3. Düzeltme: Önce önden göz teması kurar, sonra: „İyi günler. Yazıcılarla ilgilendiğinizi görüyorum. Esas olarak ne için kullanmak istiyorsunuz?“","Nhân viên tiến lại gần khách từ phía sau và nói: „Tôi có thể giúp gì không?“ — 1. Lỗi: bắt chuyện với khách từ phía sau. 2. Lỗi thứ hai: đây là câu hỏi đóng, khách có thể trả lời „không“. 3. Sửa: trước hết đến từ phía trước và giao tiếp bằng mắt, rồi nói: „Chào bạn. Tôi thấy bạn quan tâm đến máy in. Bạn chủ yếu muốn dùng để làm gì?“"],"wk2":["تدخل عميلة المتجر، والبائعة تواصل ترتيب البضاعة ولا تقول شيئًا. — 1. الخطأ: لا تواصل بصري ولا تحية – تشعر العميلة بأنها مهمَلة. 2. ما الناقص: لا تتوقف عن عملها السابق. 3. التصحيح: ترفع نظرها وتبتسم وتقول: «يوم سعيد! تفضّلي بالتجوّل على راحتك – إن احتجتِ مساعدة فأنا موجودة.»","Bir müşteri mağazaya girer, satıcı raflara mal dizmeye devam eder ve hiçbir şey söylemez. — 1. Hata: Göz teması yok, selamlama yok – müşteri kendini geri plana atılmış hisseder. 2. Eksik olan: Önceki iş bırakılmıyor. 3. Düzeltme: Başını kaldırır, gülümser ve der ki: „İyi günler! Rahatça bakın – yardıma ihtiyacınız olursa buradayım.“","Một khách nữ bước vào cửa hàng, nhân viên vẫn tiếp tục xếp hàng và không nói gì. — 1. Lỗi: không giao tiếp bằng mắt, không chào – khách cảm thấy bị bỏ rơi. 2. Còn thiếu: không dừng công việc đang làm. 3. Sửa: ngẩng lên, mỉm cười và nói: „Chào chị! Chị cứ xem thoải mái – khi cần giúp đỡ, em luôn sẵn sàng.“"],"wk3":["يدخل زبون دائم والبائع يقول: «أهلًا، ماذا تريد؟» — 1. الخطأ: «أهلًا» لا تناسب كل عميل، فالتحية غير ملائمة للموقف. 2. خطأ: «ماذا تريد؟» تبدو منفِّرة، كما أن اسم الزبون الدائم غير مذكور. 3. التصحيح: «يوم سعيد يا سيد ليندر! يسعدنا أنك زرتنا مجددًا. كيف يمكنني مساعدتك اليوم؟»","Müdavim bir müşteri gelir, satıcı der ki: „Selam, ne istiyorsun?“ — 1. Hata: „Selam“ her müşteriye uygun değil, selamlama duruma uygun değil. 2. Hata: „Ne istiyorsun?“ ters bir ton taşıyor ve müdavim müşterinin adı söylenmiyor. 3. Düzeltme: „İyi günler Bay Linder! Tekrar uğramanıza sevindik. Bugün size nasıl yardımcı olabilirim?“","Một khách quen đến, nhân viên nói: „Chào, anh muốn gì?“ — 1. Lỗi: „Chào“ không hợp với mọi khách, lời chào không phù hợp hoàn cảnh. 2. Lỗi: „Anh muốn gì?“ nghe lạnh nhạt, và còn thiếu tên khách quen. 3. Sửa: „Chào ông Linder! Rất vui vì ông lại ghé cửa hàng. Hôm nay tôi có thể giúp gì cho ông?“"],"a2_res":["النتيجة: دائمًا الخطوات الثلاث نفسها: سمِّ الخطأ – علِّل لماذا هو خطأ – اكتب التصحيح بالكلام المباشر بين علامتي اقتباس.","Sonuç: Her zaman aynı üç adım: Hatayı söyle – neden hata olduğunu açıkla – düzeltmeyi tırnak içinde doğrudan konuşmayla yaz.","Kết quả: luôn là ba bước giống nhau: nêu lỗi – giải thích vì sao là lỗi – viết cách sửa bằng lời nói trực tiếp trong dấu ngoặc kép."],"a2btn":["قرأتُ الأمثلة","Örnekleri okudum","Tôi đã đọc các ví dụ"],"a3_h":["المهمة 3 · تمرين موجَّه","Görev 3 · Yönlendirmeli alıştırma","Bài 3 · Bài tập có hướng dẫn"],"a3_p":["سمِّ الخطأ واكتب التصحيح بالكلام المباشر.","Hatayı söyle ve düzeltmeyi doğrudan konuşma olarak yaz.","Hãy nêu lỗi và viết cách sửa bằng lời nói trực tiếp."],"a4_h":["المهمة 4 · تمرين حر","Görev 4 · Serbest alıştırma","Bài 4 · Bài tập tự do"],"a5_h":["المهمة 5 · من مؤسستك","Görev 5 · Kendi işletmenden","Bài 5 · Từ doanh nghiệp của bạn"],"a6_h":["المهمة 6 · للمتمكّنين","Görev 6 · Profiler için","Bài 6 · Dành cho người giỏi"],"a6_p":["للتعمّق في التفكير – بجمل كاملة ومع تعليل.","Daha derin düşünmek için – tam cümleler, gerekçeyle.","Để suy nghĩ sâu hơn – viết câu đầy đủ, có giải thích."],"a7_h":["المهمة 7 · قدِّر، اختبر، سجِّل","Görev 7 · Tahmin et, test et, kaydet","Bài 7 · Ước lượng, kiểm tra, ghi lại"],"a7_p":["كم نقطة من 20 ستحصل عليها في ورقة العمل هذه؟ سجِّل تقديرك قبل التقييم.","Bu çalışma kâğıdında 20 puanın kaçını alacaksın? Tahminini değerlendirmeden önce yaz.","Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm."],"th1":["تقديري","Tahminim","Dự đoán của tôi"],"th2":["نتيجتي","Sonucum","Kết quả của tôi"],"th3":["الفرق","Fark","Chênh lệch"],"th4":["نقاط لحساب النقاط","Puan hesabı için puan","Điểm cho tài khoản điểm"],"submit_h":["انتهيت؟ إذن قيِّم!","Bitti mi? O zaman değerlendir!","Xong chưa? Hãy chấm điểm!"],"submit_p":["يمكنك التقييم حتى لو لم تنجز كل شيء – المهام غير المنجزة تُحتسب بصفر.","Her şeyi bitirmesen de değerlendirebilirsin – boş kalan görevler 0 puan sayılır.","Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm."],"submit_b":["إرسال وتقييم","Gönder ve değerlendir","Gửi và chấm điểm"],"res_h":["تقييمك","Değerlendirmen","Kết quả của bạn"],"pdf_b":["تصدير كملف PDF (للمعلمة)","PDF olarak dışa aktar (öğretmen için)","Xuất PDF (cho giáo viên)"],"tip_t":["تلميح","İpucu","Gợi ý"],"tip_next":["تلميح آخر","Bir ipucu daha","Thêm gợi ý"],"close":["إغلاق","Kapat","Đóng"],"chk":["تحقّق","Kontrol et","Kiểm tra"],"shw":["إظهار الحل","Çözümü göster","Hiện lời giải"],"markb":["تحقّق من التظليل","İşaretlemeyi kontrol et","Kiểm tra phần đánh dấu"],"self_q":["ما مدى جودة إجابتك؟","Cevabın ne kadar iyiydi?","Câu trả lời của bạn tốt đến đâu?"],"self1":["نجحت","Başardım","Đạt"],"self2":["جزئيًا","Kısmen","Một phần"],"self3":["ليس بعد","Henüz değil","Chưa"],"fb_ok":["ممتاز! أحسنت.","Doğru! Aferin.","Đúng rồi! Làm tốt lắm."],"fb_part":["تقريبًا – ينقص جزء. قارن بالحل وأكمل.","Neredeyse – bir kısmı eksik. Çözümle karşılaştır ve tamamla.","Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung."],"fb_bad":["ليس بعد. استعن بتلميح أو أعد قراءة النص.","Henüz değil. Bir ipucu al ya da metni tekrar oku.","Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản."],"sol_lbl":["الحل:","Çözüm:","Lời giải:"],"mk_ok":["تظليل صحيح! والآن السؤال:","Doğru işaretledin! Şimdi soru:","Đánh dấu đúng! Giờ đến câu hỏi:"],"mk_bad":["ليس تمامًا بعد. اقرأ المهمة مرة أخرى.","Henüz tam değil. Görevi tekrar oku.","Chưa hoàn toàn đúng. Hãy đọc lại đề bài."],"zq_ok":["بالضبط! تم فتح المقطع التالي.","Aynen öyle! Sonraki bölüm açıldı.","Chính xác! Đoạn tiếp theo đã mở."],"zq_bad":["ليس تمامًا. أعد قراءة المقطع وحاول مجددًا.","Tam değil. Bölümü tekrar oku ve yeniden dene.","Chưa đúng. Hãy đọc lại đoạn và thử lại."],"res_pts":["من 20 نقطة","20 puan üzerinden","trên 20 điểm"],"res_an":["تحليل الأخطاء حسب مجالات الكفاءة","Yeterlilik alanlarına göre hata analizi","Phân tích lỗi theo lĩnh vực năng lực"],"rep":["ما يجب أن تراجعه","Tekrar etmen gerekenler","Bạn nên ôn lại"],"lab1":["ممتاز!","Harika!","Tuyệt vời!"],"lab2":["جيد – تحتاج مزيدًا من التمرين","İyi – biraz daha alıştırma","Khá – cần luyện thêm"],"lab3":["تحتاج هنا إلى مزيد من التمرين","Burada hâlâ alıştırmaya ihtiyacın var","Phần này bạn cần luyện thêm"],"cat_vor":["المعرفة السابقة من الوحدات الماضية","Önceki modüllerden ön bilgi","Kiến thức từ các mô-đun trước"],"cat_txt":["فهم النص","Metin anlama","Hiểu văn bản"],"cat_trans":["التطبيق: تصحيح بداية الحوار","Aktarım: Görüşme başlangıcını düzeltme","Vận dụng: sửa phần mở đầu"],"cat_wis":["المعرفة المهنية","Mesleki bilgi","Kiến thức chuyên môn"],"cat_refl":["المؤسسة والتفكير المتعمق","İşletme ve derinlemesine düşünme","Doanh nghiệp & suy nghĩ sâu hơn"],"set_h":["الإعدادات","Ayarlar","Cài đặt"],"set_mode":["الترجمة","Çeviri","Bản dịch"],"mode_tap":["بالنقر","Dokunarak","Chạm để xem"],"mode_under":["تحت النص","Metnin altında","Hiện bên dưới"],"mode_off":["إيقاف","Kapalı","Tắt"],"set_fs":["حجم الخط","Yazı boyutu","Cỡ chữ"],"set_level":["المستوى","Seviye","Mức độ"],"lvl_b":["أساسي","Temel","Cơ bản"],"lvl_v":["تعمّق","Derinleştirme","Nâng cao"],"set_snd":["الصوت","Ses","Âm thanh"],"set_reset":["البدء من جديد","Yeniden başla","Làm lại từ đầu"],"dlg_reset":["حذف كل شيء والبدء من جديد؟ ستضيع إجاباتك في ورقة العمل هذه.","Her şey silinsin ve yeniden başlansın mı? Bu çalışma kâğıdındaki girdilerin kaybolur.","Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất."],"dlg_next":["الشخص التالي: سيتم حذف الإجابات والاسم.","Sonraki kişi: Girdiler ve ad silinir.","Người tiếp theo: nội dung và tên sẽ bị xóa."],"dlg_cancel":["إلغاء","İptal","Hủy"],"dlg_ok":["نعم","Evet","Đồng ý"],"wg_h":["كلمات وبدايات جمل للمساعدة","Sözcükler ve cümle başlangıcı yardımları","Từ ngữ và gợi ý đầu câu"],"a8_h":["المهمة 8 · التعمّق","Görev 8 · Derinleştirme","Bài 8 · Nâng cao"],"pts_bonus":["نقاط إضافية","Bonus","Điểm thưởng"],"a8_p":["تظهر فقط في مستوى «التعمّق». علّل بجمل كاملة. هذه المهام تمنح نقاطًا إضافية ولا تخفض نقاطك الـ 20 أبدًا.","Sadece „Derinleştirme“ seviyesinde. Tam cümlelerle gerekçelendir. Bu görevler bonus puan verir ve 20 puanını asla düşürmez.","Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn."],"res_card_h":["النتيجة للمعلمة","Öğretmen için sonuç","Kết quả cho giáo viên"],"btn_img":["حفظ النتيجة كصورة","Sonucu resim olarak kaydet","Lưu kết quả dưới dạng ảnh"],"btn_code":["نسخ الرمز","Kodu kopyala","Sao chép mã"],"btn_next":["الشخص التالي","Sonraki kişi","Người tiếp theo"],"res_open":["ملاحظة: المهام غير المنجزة تُحتسب بصفر.","Not: Yapılmayan görevler 0 puan sayılır.","Lưu ý: bài chưa làm tính 0 điểm."],"res_bonus":["نقاط إضافية","Bonus","Điểm thưởng"],"cat_bonus":["نقاط إضافية (التعمّق)","Bonus (Derinleştirme)","Điểm thưởng (Nâng cao)"],"fb_peek":["صحيح – لكنك نظرت إلى الحل قبل ذلك، لذلك تحصل على نصف النقاط.","Doğru – ama önce çözüme baktın, bu yüzden yarım puan.","Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm."],"t25":["بداية جيدة!","İyi başlangıç!","Khởi đầu tốt!"],"t50":["اكتمل النصف!","Yarısı tamam!","Xong một nửa rồi!"],"t75":["اقتربت من الهدف!","Neredeyse bitti!","Sắp đến đích rồi!"],"t100":["أنجزت كل شيء! الآن قيِّم.","Hepsi tamam! Şimdi değerlendir.","Đã làm xong hết! Giờ hãy chấm điểm."],"t_write":["اكتب شيئًا أولًا","Önce bir şeyler yaz","Hãy viết gì đó trước"],"t_saved":["تم التسجيل","Kaydedildi","Đã ghi"],"t_read":["تمت القراءة","Okundu","Đã đọc"],"t_resume":["تابع من حيث توقفت","Kaldığın yerden devam et","Tiếp tục từ chỗ bạn dừng"],"t_copy":["تم نسخ الرمز","Kod kopyalandı","Đã sao chép mã"],"t_img":["تم حفظ الصورة","Resim kaydedildi","Đã lưu ảnh"],"a1_1.q":["1. اذكر أشكال البيع الثلاثة.","1. Üç satış biçimini say.","1. Hãy nêu ba hình thức bán hàng."],"a1_1.h0":["من يحضر البضاعة: البائع أم العميل أم الاثنان؟","Malı kim getiriyor: satıcı mı, müşteri mi, yoksa ikisi mi?","Ai lấy hàng: nhân viên bán hàng, khách hàng, hay cả hai?"],"a1_1.h1":["يبدأ أحد الأشكال بـ «Bedien…» وآخر بـ «Vor…» وآخر بـ «Selbst…».","Biri „Bedien…“, biri „Vor…“, biri „Selbst…“ ile başlıyor.","Một hình thức bắt đầu bằng „Bedien…“, một bằng „Vor…“, một bằng „Selbst…“."],"a1_1.s":["البيع بالخدمة (Bedienung) – الاختيار المسبق (Vorwahl) – الخدمة الذاتية (Selbstbedienung).","Bedienung (hizmetli satış) – Vorwahl (ön seçim) – Selbstbedienung (self servis).","Bedienung (bán có phục vụ) – Vorwahl (chọn trước) – Selbstbedienung (tự phục vụ)."],"a1_2.q":["2. أي شكل بيع يناسب غسّالة؟ علّل باختصار.","2. Çamaşır makinesi için hangi satış biçimi uygundur? Kısaca gerekçelendir.","2. Hình thức bán hàng nào phù hợp với máy giặt? Giải thích ngắn gọn."],"a1_2.h0":["أي بضاعة غالية وتحتاج إلى شرح؟","Hangi mal pahalı ve açıklama gerektirir?","Hàng hóa nào đắt và cần được giải thích?"],"a1_2.h1":["في أي شكل يستطيع العميل أن يسأل ويحصل على استشارة؟","Hangi biçimde müşteri soru sorabilir ve danışmanlık alır?","Ở hình thức nào khách có thể hỏi và được tư vấn?"],"a1_2.s":["البيع بالخدمة (Bedienung). الغسّالة غالية وتحتاج إلى شرح – يحتاج العميل إلى استشارة من بائعة.","Bedienung. Çamaşır makinesi pahalıdır ve açıklama gerektirir – müşterinin bir satıcıdan danışmanlığa ihtiyacı var.","Bedienung (bán có phục vụ). Máy giặt đắt và cần giải thích – khách cần được nhân viên tư vấn."],"a1_3.q":["3. ما المسافة التي يلتزم بها البائع والعميل في بداية الحوار؟","3. Görüşmenin başında satıcı ve müşteri hangi mesafeyi korur?","3. Đầu cuộc trò chuyện, nhân viên và khách giữ khoảng cách nào?"],"a1_3.h0":["تذكّر الوحدة 2: هناك مناطق مسافة من «حميمة» إلى «بعيدة».","Modül 2'yi hatırla: „mahrem“den „uzak“a kadar mesafe bölgeleri var.","Nhớ lại mô-đun 2: có các vùng khoảng cách từ „thân mật“ đến „xa“."],"a1_3.h1":["أي منطقة تنطبق على الأشخاص الغرباء؟","Hangi bölge yabancı kişiler için geçerli?","Vùng nào áp dụng cho người lạ?"],"a1_3.s":["المسافة الاجتماعية (gesellschaftliche Distanz): من 1,20 م إلى 3,00 م.","Toplumsal mesafe (gesellschaftliche Distanz): 1,20 m ile 3,00 m arası.","Khoảng cách xã giao (gesellschaftliche Distanz): từ 1,20 m đến 3,00 m."],"a1_4.q":["4. اذكر إشارتين من تعابير الوجه تدلان على الاهتمام.","4. İlgiyi gösteren iki mimik işareti say.","4. Nêu hai tín hiệu nét mặt thể hiện sự quan tâm."],"a1_4.h0":["فكّر في الوجه: العينان والفم.","Yüzü düşün: gözler ve ağız.","Hãy nghĩ đến khuôn mặt: mắt và miệng."],"a1_4.h1":["عينان … مفتوحتان على اتساع – ابتسامة ودّية مع تواصل بالعينين.","Geniş açılmış … gözler – göz temaslı samimi gülümseme.","Mắt mở to – nụ cười thân thiện kèm giao tiếp bằng mắt."],"a1_4.s":["عينان مفتوحتان على اتساع وابتسامة ودّية مع تواصل بالعينين.","Geniş açılmış gözler ve göz temaslı samimi bir gülümseme.","Mắt mở to và nụ cười thân thiện kèm giao tiếp bằng mắt."],"a1_5.q":["5. ما هو أسلوب «Sie» (صيغة المخاطبة الرسمية)؟","5. „Sie-Stil“ (Sie ile hitap tarzı) nedir?","5. „Sie-Stil“ (cách xưng hô trực tiếp với khách) là gì?"],"a1_5.h0":["بدل الحديث بصيغة «man» (المرء) يُخاطَب الشخص مباشرة.","„man“ (insan/kişi) diye genel konuşmak yerine kişiye doğrudan hitap edilir.","Thay vì nói chung chung bằng „man“ (người ta), ta nói trực tiếp với một người."],"a1_5.s":["يُخاطَب العميل شخصيًا: «Damit können Sie …» (بهذا تستطيع أنت …) بدل «Damit kann man …» (بهذا يمكن للمرء …).","Müşteriye kişisel olarak hitap edilir: „Damit können Sie …“ (Bununla siz …-ebilirsiniz) „Damit kann man …“ yerine.","Khách được nói chuyện trực tiếp: „Damit können Sie …“ (Với cái này, bạn có thể …) thay vì „Damit kann man …“."],"a3_1.q":["1. يُحيَّا عميل عمره نحو 60 عامًا بعبارة «Hallo!».","1. Yaklaşık 60 yaşındaki bir müşteri „Hallo!“ diye karşılanıyor.","1. Một khách khoảng 60 tuổi được chào bằng „Hallo!“."],"a3_1.h0":["تعتمد صيغة التحية على العمر والجنس والمهنة واللقب ودرجة الألفة.","Selamlama kalıbı yaşa, cinsiyete, mesleğe, unvana ve yakınlığa bağlıdır.","Cách chào phụ thuộc vào tuổi, giới tính, nghề nghiệp, danh hiệu và mức độ thân quen."],"a3_1.h1":["أي تحية تناسب عميلًا غريبًا أكبر سنًا؟","Yaşlı, yabancı bir müşteriye hangi selamlama yakışır?","Lời chào nào phù hợp với một khách lớn tuổi, không quen biết?"],"a3_1.s":["الخطأ: «Hallo» غير ملائمة للموقف – لا تناسب عميلًا غريبًا أكبر سنًا. الأفضل: «Guten Tag! Wie kann ich Ihnen helfen?» (يوم سعيد! كيف يمكنني مساعدتك؟)","Hata: „Hallo“ duruma uygun değil – yaşlı, yabancı bir müşteriye yakışmaz. Daha iyisi: „Guten Tag! Wie kann ich Ihnen helfen?“ (İyi günler! Size nasıl yardımcı olabilirim?)","Lỗi: „Hallo“ không phù hợp hoàn cảnh – không hợp với khách lớn tuổi, không quen. Tốt hơn: „Guten Tag! Wie kann ich Ihnen helfen?“ (Chào ông/bà! Tôi có thể giúp gì ạ?)"],"a3_2.q":["2. يسأل البائع: «Suchen Sie etwas Bestimmtes?» (هل تبحث عن شيء معيّن؟)","2. Satıcı soruyor: „Suchen Sie etwas Bestimmtes?“ (Belirli bir şey mi arıyorsunuz?)","2. Nhân viên hỏi: „Suchen Sie etwas Bestimmtes?“ (Bạn đang tìm thứ gì cụ thể không?)"],"a3_2.h0":["الأسئلة المفتوحة تبدأ بـ Wer, Wie, Was, Wofür, Warum (من، كيف، ماذا، لماذا/لأي غرض).","Açık sorular Wer, Wie, Was, Wofür, Warum (kim, nasıl, ne, ne için, neden) ile başlar.","Câu hỏi mở bắt đầu bằng Wer, Wie, Was, Wofür, Warum (ai, thế nào, cái gì, để làm gì, tại sao)."],"a3_2.h1":["بماذا يستطيع العميل أن يجيب – وماذا يحدث بعد ذلك؟","Müşteri buna ne cevap verebilir – ve sonra ne olur?","Khách có thể trả lời gì – và chuyện gì xảy ra sau đó?"],"a3_2.s":["الخطأ: سؤال مغلق – يستطيع العميل أن يقول «لا» وينتهي الحوار. الأفضل: «Guten Tag, was darf ich Ihnen zeigen?» أو «Wofür interessieren Sie sich?»","Hata: kapalı soru – müşteri „hayır“ diyebilir ve görüşme biter. Daha iyisi: „Guten Tag, was darf ich Ihnen zeigen?“ veya „Wofür interessieren Sie sich?“","Lỗi: câu hỏi đóng – khách có thể nói „không“ và cuộc trò chuyện kết thúc. Tốt hơn: „Guten Tag, was darf ich Ihnen zeigen?“ hoặc „Wofür interessieren Sie sich?“"],"a3_3.q":["3. تقف عميلة حائرة أمام الرف. تمرّ البائعة بجانبها دون كلمة.","3. Bir müşteri şaşkın şaşkın rafın önünde duruyor. Satıcı tek kelime etmeden geçip gidiyor.","3. Một khách nữ đứng lúng túng trước kệ hàng. Nhân viên đi qua mà không nói lời nào."],"a3_3.h0":["أي إشارات للعميل مذكورة في الجدول؟ وجه حائر، نظرة باحثة …","Tabloda hangi müşteri sinyalleri var? Şaşkın yüz, arayan bakış …","Bảng nêu những tín hiệu nào của khách? Nét mặt lúng túng, ánh mắt tìm kiếm …"],"a3_3.h1":["ماذا عليك أن تفعل عندما يُظهر العميل اهتمامًا؟","Müşteri ilgi gösterdiğinde ne yapmalısın?","Bạn phải làm gì khi khách tỏ ra quan tâm?"],"a3_3.s":["الخطأ: لم تُلاحَظ إشارة العميلة (حيرة، بحث) ولم تُخاطَب. الأفضل: تواصل بصري، الذهاب إليها ومخاطبتها بشكل عام: «Guten Tag, wie kann ich Ihnen helfen?»","Hata: Müşterinin sinyali (şaşkınlık, arama) fark edilmiyor, müşteriye hitap edilmiyor. Daha iyisi: göz teması, yanına gitmek ve genel olarak hitap etmek: „Guten Tag, wie kann ich Ihnen helfen?“","Lỗi: tín hiệu của khách (lúng túng, tìm kiếm) không được nhận ra, khách không được hỏi han. Tốt hơn: giao tiếp bằng mắt, đến gần và hỏi chung: „Guten Tag, wie kann ich Ihnen helfen?“"],"a3_4.q":["4. يتجوّل عميل في المتجر. يمشي البائع معه ويشرح كل منتج دون أن يُسأل.","4. Bir müşteri mağazada geziyor. Satıcı onunla yürüyor ve sorulmadan her ürünü anlatıyor.","4. Một khách đi dạo trong cửa hàng. Nhân viên đi theo và giải thích mọi sản phẩm mà không ai hỏi."],"a3_4.h0":["بالنسبة لهؤلاء العملاء التجوّل تسلية. يأتون دون نية الشراء.","Bu müşteriler için gezinmek bir vakit geçirme yoludur. Satın alma niyeti olmadan gelirler.","Với những khách này, đi dạo là để giải trí. Họ đến mà không có ý định mua."],"a3_4.h1":["ماذا يحتاجون أولًا: شروحات أم مساحة حرّة؟","Önce neye ihtiyaçları var: açıklamaya mı, serbest alana mı?","Họ cần gì trước: lời giải thích hay không gian tự do?"],"a3_4.s":["الخطأ: لا يُترك للعميل مجال حر، والبائع مُلحّ. الأفضل: «Gerne. Wenn Sie Hilfe brauchen, bin ich für Sie da.» (بكل سرور. إن احتجتَ مساعدة فأنا موجود.)","Hata: Müşteriye serbest alan bırakılmıyor, satıcı bunaltıcı davranıyor. Daha iyisi: „Gerne. Wenn Sie Hilfe brauchen, bin ich für Sie da.“ (Memnuniyetle. Yardıma ihtiyacınız olursa buradayım.)","Lỗi: khách không được để tự do, nhân viên quá phiền. Tốt hơn: „Gerne. Wenn Sie Hilfe brauchen, bin ich für Sie da.“ (Vâng ạ. Khi cần giúp đỡ, tôi luôn sẵn sàng.)"],"a4_1.q":["1. اذكر المراحل الثماني لحوار البيع بالترتيب الصحيح.","1. Satış görüşmesinin sekiz aşamasını doğru sırayla say.","1. Hãy nêu tám giai đoạn của cuộc trò chuyện bán hàng theo đúng thứ tự."],"a4_1.h0":["انظر إلى الجدول «نظرة عامة على المراحل الثماني».","„Sekiz aşamaya genel bakış“ tablosuna bak.","Hãy xem bảng „Tổng quan tám giai đoạn“."],"a4_1.h1":["المرحلة 1: التحية … المرحلة 8: إتمام الشراء …","Aşama 1: Selamlama … Aşama 8: Satışın sonuçlanması …","Giai đoạn 1: Chào hỏi … Giai đoạn 8: Chốt đơn …"],"a4_1.s":["1. التحية وبدء التواصل – 2. تحديد الاحتياجات – 3. عرض البضاعة – 4. الحجج البيعية – 5. ذكر السعر – 6. اعتراضات العميل – 7. عروض تكميلية وإضافية وبديلة – 8. إتمام الشراء والخدمات والوداع.","1. Selamlama ve iletişim kurma – 2. İhtiyaç belirleme – 3. Malı gösterme – 4. Satış argümanları – 5. Fiyatı söyleme – 6. Müşteri itirazları – 7. Tamamlayıcı, ek ve alternatif teklifler – 8. Satışın sonuçlanması, hizmetler ve vedalaşma.","1. Chào hỏi và bắt chuyện – 2. Xác định nhu cầu – 3. Giới thiệu hàng hóa – 4. Lập luận bán hàng – 5. Nêu giá – 6. Phản đối của khách – 7. Đề xuất bổ sung, kèm theo, thay thế – 8. Chốt đơn, dịch vụ và chào tạm biệt."],"a4_2.q":["2. اشرح لماذا التواصل البصري مهم جدًا في بداية الحوار.","2. Görüşmenin başında göz temasının neden bu kadar önemli olduğunu açıkla.","2. Hãy giải thích vì sao giao tiếp bằng mắt ở đầu cuộc trò chuyện lại quan trọng đến vậy."],"a4_2.h0":["ماذا يُظهر البائع للعميل عندما ينظر إليه؟","Satıcı müşteriye baktığında ona ne göstermiş olur?","Khi nhìn khách, nhân viên cho khách thấy điều gì?"],"a4_2.h1":["التواصل البصري يدل على الاهتمام والانفتاح …","Göz teması ilgiyi, açıklığı … gösterir.","Giao tiếp bằng mắt thể hiện sự quan tâm, cởi mở …"],"a4_2.s":["التواصل البصري يدل على الاهتمام والانفتاح والالتفات والتقدير والصدق. يشعر العميل بالراحة في المتجر.","Göz teması ilgiyi, açıklığı, yönelmeyi, değer vermeyi ve dürüstlüğü gösterir. Müşteri mağazada kendini rahat hisseder.","Giao tiếp bằng mắt thể hiện sự quan tâm, cởi mở, hướng về khách, trân trọng và chân thành. Khách cảm thấy thoải mái trong cửa hàng."],"a4_3.q":["3. اذكر ثلاث إشارات تعرف منها أن العميل يريد أن يُخاطَب.","3. Bir müşterinin kendisine hitap edilmesini istediğini anladığın üç sinyal say.","3. Nêu ba tín hiệu cho biết khách muốn được nhân viên chào hỏi."],"a4_3.h0":["انظر إلى جدول «العميل يُبدي اهتمامًا بالبضاعة».","„Müşteri mala ilgi gösteriyor“ tablosuna bak.","Xem bảng „Khách tỏ ra quan tâm đến hàng hóa“."],"a4_3.h1":["ماذا يفعل بعينيه ويديه وطريقه؟","Gözleriyle, elleriyle, yürüyüşüyle ne yapıyor?","Họ làm gì bằng mắt, tay và hướng đi?"],"a4_3.s":["مثلًا: ينظر حوله باحثًا – يتجه نحو الموظفين – يأخذ بضاعة بيده ويفحصها – يقف أمام خزانة عرض مغلقة – يحكّ رأسه ووجهه حائر.","Örneğin: Arayan gözlerle etrafına bakar – personele doğru yürür – bir malı eline alıp inceler – kilitli bir vitrinin önünde durur – başını kaşır ve şaşkın bir yüz yapar.","Ví dụ: nhìn quanh tìm kiếm – đi về phía nhân viên – cầm hàng lên xem – đứng trước tủ kính đóng – gãi đầu và mặt lúng túng."],"a4_4.q":["4. فرّق بين التواصل العام والتواصل المتعلّق بالبضاعة. اكتب لكلٍّ منهما مثالًا بالكلام المباشر.","4. Genel ve ürüne yönelik iletişim kurmayı birbirinden ayır. Her biri için doğrudan konuşma biçiminde bir örnek yaz.","4. Hãy phân biệt bắt chuyện chung và bắt chuyện theo hàng hóa. Viết một ví dụ bằng lời nói trực tiếp cho mỗi loại."],"a4_4.h0":["عامّ = دون ذكر بضاعة. متعلّق بالبضاعة = تذكر البضاعة التي ينظر إليها العميل.","Genel = mal belirtmeden. Ürüne yönelik = müşterinin baktığı malı söylersin.","Chung = không nhắc đến hàng. Theo hàng hóa = bạn nhắc đến món khách đang xem."],"a4_4.h1":["انظر إلى صندوق الجمل.","Cümle kalıplarına bak.","Hãy xem hộp mẫu câu."],"a4_4.s":["عامّ: يُخاطَب العميل دون ذكر بضاعة: «Guten Tag, wie kann ich Ihnen helfen?» — متعلّق بالبضاعة: تذكر البضاعة التي ينظر إليها العميل: «Guten Tag. Diese Jacke, die Sie gerade anschauen, ist …»","Genel: Müşteriye bir mal belirtmeden hitap edilir: „Guten Tag, wie kann ich Ihnen helfen?“ — Ürüne yönelik: Müşterinin baktığı mal söylenir: „Guten Tag. Diese Jacke, die Sie gerade anschauen, ist …“","Chung: nói với khách mà không nhắc đến hàng: „Guten Tag, wie kann ich Ihnen helfen?“ — Theo hàng hóa: nhắc đến món khách đang xem: „Guten Tag. Diese Jacke, die Sie gerade anschauen, ist …“"],"a4_5.q":["5. لماذا يجب ألّا يُخاطَب العميل من الخلف أبدًا؟","5. Bir müşteriye neden asla arkadan hitap edilmemelidir?","5. Vì sao không bao giờ được bắt chuyện với khách từ phía sau?"],"a4_5.h0":["كيف تشعر عندما يتحدث أحد فجأة من خلفك؟","Birisi aniden arkandan konuştuğunda nasıl hissedersin?","Bạn cảm thấy thế nào khi ai đó đột ngột nói chuyện từ phía sau?"],"a4_5.s":["قد يشعر بأنه تعرّض لهجوم مباغت. أولًا تواصل بصري، ثم تكلّم.","Kendini saldırıya uğramış gibi hissedebilir. Önce göz teması kur, sonra konuş.","Khách có thể cảm thấy bị tấn công bất ngờ. Trước hết giao tiếp bằng mắt, rồi mới nói."],"a4_6.q":["6. عميل يريد التجوّل فقط. كيف تتصرف؟ اكتب جملتك.","6. Bir müşteri sadece gezmek istiyor. Nasıl davranırsın? Cümleni yaz.","6. Một khách chỉ muốn đi dạo xem hàng. Bạn xử lý thế nào? Hãy viết câu của bạn."],"a4_6.h0":["تترك له مجالًا حرًا – لكن جملة واحدة مهمة.","Ona serbest alan bırakırsın – ama bir cümle önemli.","Bạn để khách tự do – nhưng có một câu quan trọng."],"a4_6.h1":["تُظهر مرة واحدة استعدادك للمساعدة.","Bir kez yardıma hazır olduğunu gösterirsin.","Bạn thể hiện một lần rằng bạn sẵn sàng giúp đỡ."],"a4_6.s":["ترك مساحة حرّة مع إظهار الاستعداد للمساعدة مرة واحدة: «Gerne. Wenn Sie Hilfe brauchen, bin ich für Sie da.»","Alan bırakmak, ama bir kez yardıma hazır olduğunu göstermek: „Gerne. Wenn Sie Hilfe brauchen, bin ich für Sie da.“","Để khách tự do nhưng thể hiện một lần sự sẵn sàng giúp: „Gerne. Wenn Sie Hilfe brauchen, bin ich für Sie da.“"],"a5_1.q":["اكتب كيف يُستقبل العملاء في مؤسستك – بالكلام المباشر. ثم قيِّم: هل تناسب التحية طريقة البيع في المؤسسة؟","İşletmende müşterilerin nasıl karşılandığını doğrudan konuşma olarak yaz. Sonra değerlendir: Selamlama, işletmenin satış biçimine uyuyor mu?","Hãy viết cách khách hàng được chào đón ở doanh nghiệp của bạn – bằng lời nói trực tiếp. Sau đó đánh giá: lời chào có phù hợp với hình thức bán hàng của doanh nghiệp không?"],"a5_1.h0":["اكتب التحية تمامًا كما تُقال – بين علامتي اقتباس.","Selamlamayı tam söylendiği gibi yaz – tırnak içinde.","Viết lời chào đúng như được nói – trong dấu ngoặc kép."],"a5_1.h1":["هل مؤسستك بيع بالخدمة أم اختيار مسبق أم خدمة ذاتية؟ هل تناسبها التحية؟","İşletmen Bedienung, Vorwahl ya da Selbstbedienung mu? Selamlama buna uyuyor mu?","Doanh nghiệp bạn là Bedienung, Vorwahl hay Selbstbedienung? Lời chào có phù hợp không?"],"a5_1.s":["إجابة فردية. تحقّق بنفسك: (1) هل التحية مكتوبة بالكلام المباشر؟ (2) هل هي مناسبة للموقف؟ (3) هل علّلتَ ما إذا كانت تناسب شكل البيع (بيع بالخدمة: مخاطبة شخصية؛ خدمة ذاتية: كل موظف يحيّي، والتواصل على الأكثر عند الصندوق)؟","Kişisel cevap. Kendin kontrol et: (1) Selamlama doğrudan konuşma olarak yazılmış mı? (2) Duruma uygun mu? (3) Satış biçimine uyup uymadığını gerekçelendirdin mi (Bedienung: kişisel hitap; Selbstbedienung: her çalışan selam verir, temas en geç kasada)?","Câu trả lời cá nhân. Tự kiểm tra: (1) Lời chào có viết bằng lời nói trực tiếp không? (2) Có phù hợp hoàn cảnh không? (3) Bạn đã giải thích lời chào có hợp với hình thức bán hàng không (Bedienung: nói chuyện trực tiếp; Selbstbedienung: mọi nhân viên chào, tiếp xúc muộn nhất tại quầy thu ngân)?"],"a6_1.q":["6.1 قيِّم هذه الجمل الخمس من مرحلة التواصل: «Wie kann ich Ihnen helfen?» · «Sie kommen zurecht?» · «Suchen Sie etwas Bestimmtes?» · «Ja bitte?» · «Guten Tag!»","6.1 Temas aşamasından şu beş cümleyi değerlendirin: „Wie kann ich Ihnen helfen?“ · „Sie kommen zurecht?“ · „Suchen Sie etwas Bestimmtes?“ · „Ja bitte?“ · „Guten Tag!“","6.1 Hãy đánh giá năm câu này trong giai đoạn bắt chuyện: „Wie kann ich Ihnen helfen?“ · „Sie kommen zurecht?“ · „Suchen Sie etwas Bestimmtes?“ · „Ja bitte?“ · „Guten Tag!“"],"a6_1.h0":["افحص كل جملة: سؤال مفتوح (Wer, Wie, Was …) أم مغلق (الجواب نعم/لا)؟","Her cümleyi inceleyin: açık soru (Wer, Wie, Was …) mu, kapalı soru (cevap evet/hayır) mu?","Kiểm tra từng câu: câu hỏi mở (Wer, Wie, Was …) hay câu hỏi đóng (trả lời có/không)?"],"a6_1.h1":["انظر إلى صندوق الجمل: ماذا كُتب تحت «لا تقل أبدًا» (Nie)؟","Cümle kalıplarına bakın: „Nie“ (asla) altında ne yazıyor?","Xem hộp mẫu câu: dưới mục „Nie“ (đừng bao giờ) viết gì?"],"a6_1.s":["نموذج حل (اقتراح): «Wie kann ich Ihnen helfen?» – جيدة: مهذبة، بصيغة Sie، تواصل عام مفتوح. «Sie kommen zurecht?» – غير مناسبة: سؤال مغلق، يجيب العميل «نعم» وينتهي الحوار. «Suchen Sie etwas Bestimmtes?» – غير مناسبة: سؤال مغلق، قد يجيب «لا» (مذكورة تحت «Nie»). «Ja bitte?» – غير مناسبة: مقتضبة، تبدو منفِّرة، بلا تحية. «Guten Tag!» – جيدة كتحية، لكنها ليست عرضًا لبدء حوار؛ الأفضل إضافة: «Guten Tag! Wie kann ich Ihnen helfen?»","Örnek çözüm (öneri): „Wie kann ich Ihnen helfen?“ – iyi: kibar, Sie ile, açık ve genel iletişim. „Sie kommen zurecht?“ – uygun değil: kapalı soru, müşteri „evet“ der ve görüşme biter. „Suchen Sie etwas Bestimmtes?“ – uygun değil: kapalı soru, „hayır“ denebilir („Nie“ altında yazıyor). „Ja bitte?“ – uygun değil: kısa, ters görünür, selamlama yok. „Guten Tag!“ – selamlama olarak iyi, ama henüz konuşma teklifi değil; daha iyisi: „Guten Tag! Wie kann ich Ihnen helfen?“","Bài mẫu (gợi ý): „Wie kann ich Ihnen helfen?“ – tốt: lịch sự, dùng Sie, bắt chuyện chung dạng mở. „Sie kommen zurecht?“ – chưa tốt: câu hỏi đóng, khách nói „có“ và cuộc trò chuyện kết thúc. „Suchen Sie etwas Bestimmtes?“ – chưa tốt: câu hỏi đóng, có thể bị trả lời „không“ (nằm dưới mục „Nie“). „Ja bitte?“ – chưa tốt: cụt lủn, nghe lạnh nhạt, không có lời chào. „Guten Tag!“ – tốt làm lời chào nhưng chưa mời bắt chuyện; tốt hơn: „Guten Tag! Wie kann ich Ihnen helfen?“"],"a6_2.q":["6.2 لماذا يصعب تصحيح الانطباع الأول؟ علّل بما تعرفه عن لغة الجسد.","6.2 İlk izlenimi düzeltmek neden çok zordur? Beden dili hakkında bildiklerinle gerekçelendir.","6.2 Vì sao ấn tượng đầu tiên rất khó sửa? Hãy giải thích bằng những gì bạn biết về ngôn ngữ cơ thể."],"a6_2.h0":["تذكّر الوحدة 2: لغة الجسد تحدث غالبًا بلا وعي وبلا قصد …","Modül 2'yi düşünün: Beden dili çoğu zaman istemsiz ve kasıtsız gerçekleşir …","Nhớ lại mô-đun 2: ngôn ngữ cơ thể thường diễn ra vô thức và không chủ ý …"],"a6_2.h1":["متى يبدأ العميل «بقراءتك» – بعد الكلمة الأولى فقط؟","Müşteri sizi ne zaman „okumaya“ başlar – sadece ilk sözcükten sonra mı?","Khách bắt đầu „đọc“ bạn từ lúc nào – chỉ sau từ đầu tiên?"],"a6_2.s":["نموذج حل (اقتراح): لغة الجسد تحدث غالبًا بلا وعي وبلا قصد، وتؤثر في الثواني الأولى، قبل أن تُقال أي كلمة. يفسّر العميل التواصل البصري والوقفة وتعابير الوجه والمسافة فورًا – غالبًا دون وعي. إذا شعر العميل بأنه مهمَل أو بأنه تعرّض لهجوم مباغت يبقى هذا الانطباع. لذلك للانطباع الأول تأثير مباشر على نجاح البيع.","Örnek çözüm (öneri): Beden dili çoğu zaman istemsiz ve kasıtsızdır; daha tek kelime konuşulmadan ilk saniyelerde etkisini gösterir. Müşteri göz temasını, duruşu, mimiği ve mesafeyi hemen – çoğu kez bilinçsizce – yorumlar. Müşteri kendini geri plana atılmış ya da ürkütülmüş hissettiyse bu izlenim kalır. Bu yüzden ilk izlenimin satış başarısı üzerinde doğrudan etkisi vardır.","Bài mẫu (gợi ý): Ngôn ngữ cơ thể thường vô thức và không chủ ý, tác động ngay trong vài giây đầu, trước cả khi nói một từ. Khách diễn giải ngay – thường là vô thức – ánh mắt, tư thế, nét mặt và khoảng cách. Nếu khách đã cảm thấy bị bỏ rơi hoặc bị giật mình, ấn tượng đó sẽ ở lại. Vì vậy ấn tượng đầu tiên ảnh hưởng trực tiếp đến thành công bán hàng."],"a6_3.q":["6.3 صُغ تحية لعميلة معها طفلان صغيران – وعلّل كل قرار تتخذه.","6.3 İki küçük çocuklu bir müşteri için bir selamlama geliştirin – ve her kararınızı gerekçelendirin.","6.3 Hãy soạn một lời chào cho một khách nữ đi cùng hai trẻ nhỏ – và giải thích từng quyết định của bạn."],"a6_3.h0":["انظر إلى جدول البيع بالخدمة: ماذا كُتب عند «إشعار العميل بأنه موضع ترحيب»؟","Bedienung tablosuna bakın: „Müşteriye hoş karşılandığını hissettirmek“ satırında ne yazıyor?","Xem bảng Bedienung: ở dòng „Làm cho khách cảm thấy được chào đón“ viết gì?"],"a6_3.h1":["علّل كل جملة في تحيتك: لماذا تقولها هكذا؟","Selamlamanızdaki her cümle için neden öyle söylediğinizi gerekçelendirin.","Với mỗi câu trong lời chào, hãy giải thích vì sao bạn nói như vậy."],"a6_3.s":["نموذج حل (اقتراح): أوقف عملي وأبتسم وأتواصل بصريًا – كي لا تشعر العميلة بأنها مهمَلة. أقول: «Guten Tag! Schön, dass Sie da sind. Hallo, ihr zwei!» – التحية مناسبة للموقف ويُشرَك الطفلان. ثم: «Schauen Sie sich in Ruhe um – wenn Sie Hilfe brauchen, bin ich für Sie da.» – ترك مساحة حرّة مع إظهار الاستعداد للمساعدة. وإن أمكن أعرض على الطفلين ما يشغلهما (إشغال الأطفال وإشراك المرافقين).","Örnek çözüm (öneri): İşimi bırakır, gülümser ve göz teması kurarım – böylece müşteri kendini geri plana atılmış hissetmez. Şöyle derim: „Guten Tag! Schön, dass Sie da sind. Hallo, ihr zwei!“ – selamlama duruma uygun, çocuklar da dahil ediliyor. Sonra: „Schauen Sie sich in Ruhe um – wenn Sie Hilfe brauchen, bin ich für Sie da.“ – serbest alan bırakırım, ama yardıma hazır olduğumu gösteririm. Mümkünse çocuklara bir uğraş sunarım (çocukları oyalamak, yanındakileri dahil etmek).","Bài mẫu (gợi ý): Tôi dừng việc đang làm, mỉm cười và giao tiếp bằng mắt – để khách không cảm thấy bị bỏ rơi. Tôi nói: „Guten Tag! Schön, dass Sie da sind. Hallo, ihr zwei!“ – lời chào phù hợp hoàn cảnh, hai em nhỏ cũng được hỏi han. Rồi: „Schauen Sie sich in Ruhe um – wenn Sie Hilfe brauchen, bin ich für Sie da.“ – để khách tự do nhưng thể hiện sự sẵn sàng giúp. Nếu được, tôi đề nghị cho các em một hoạt động (giữ trẻ bận rộn, bao gồm cả người đi cùng)."],"v8_1.q":["8.1 علّل: لماذا يُحيَّا كل عميل في الخدمة الذاتية رغم أنه لا ينتظر أن يُخاطَب؟","8.1 Gerekçelendir: Selbstbedienung'da müşteri iletişim beklemese de neden her müşteri selamlanır?","8.1 Giải thích: Vì sao ở hình thức tự phục vụ mọi khách vẫn được chào, dù khách không mong được bắt chuyện?"],"v8_1.h0":["فكّر في العبارة المهمة: الانطباع الأول مهم.","Hatırlatma cümlesini düşün: İlk izlenim önemlidir.","Nghĩ đến câu cần nhớ: Ấn tượng đầu tiên rất quan trọng."],"v8_1.h1":["ماذا يحصل العميل إذا لم يجد بضاعة؟","Müşteri bir malı bulamazsa ne alır?","Khách nhận được gì nếu không tìm thấy hàng?"],"v8_1.s":["الانطباع الأول مهم ويؤثر مباشرة في نجاح البيع. بالتحية يُظهر كل موظف تقديرًا للعميل، ويحصل العميل على مساعدة إذا لم يجد بضاعة – حتى لو لم ينتظر أن يُخاطَب.","İlk izlenim önemlidir ve satış başarısını doğrudan etkiler. Selamlamayla her çalışan müşteriye değer verdiğini gösterir ve müşteri bir malı bulamazsa yardım alır – kendisi hitap beklemese bile.","Ấn tượng đầu tiên quan trọng và ảnh hưởng trực tiếp đến thành công bán hàng. Bằng lời chào, mỗi nhân viên thể hiện sự trân trọng với khách, và khách được giúp nếu không tìm thấy hàng – dù khách không mong được bắt chuyện."],"v8_2.q":["8.2 ماذا سيحدث لو لم تتوقف البائعة عن عملها السابق في البيع بالخدمة؟ علّل.","8.2 Satıcı Bedienung'da önceki işini bırakmazsa ne olur? Gerekçelendir.","8.2 Điều gì xảy ra nếu nhân viên bán hàng không dừng việc đang làm khi bán có phục vụ? Hãy giải thích."],"v8_2.h0":["كيف يشعر العملاء عندما يُتركون ينتظرون؟","Müşteriler bekletildiğinde nasıl hisseder?","Khách cảm thấy thế nào khi bị bắt chờ?"],"v8_2.h1":["ما نتيجة ذلك على الانطباع الأول؟","Bunun ilk izlenime etkisi ne olur?","Điều đó ảnh hưởng thế nào đến ấn tượng đầu tiên?"],"v8_2.s":["يشعر العميل بأنه مهمَل لأنه يضطر إلى الانتظار. هذا يضرّ بالانطباع الأول، وللانطباع الأول تأثير مباشر على نجاح البيع.","Müşteri beklemek zorunda kaldığı için kendini geri plana atılmış hisseder. Bu ilk izlenime zarar verir ve ilk izlenimin satış başarısı üzerinde doğrudan etkisi vardır.","Khách cảm thấy bị bỏ rơi vì phải chờ. Điều này làm hỏng ấn tượng đầu tiên, mà ấn tượng đầu tiên ảnh hưởng trực tiếp đến thành công bán hàng."],"v8_3.q":["8.3 عميل ينظر بعيدًا ويدير ظهره للبائع. البائع يخاطبه رغم ذلك. قيِّم هذا التصرف وعلّل.","8.3 Bir müşteri başka yöne bakıyor ve satıcıya sırtını dönüyor. Satıcı yine de ona hitap ediyor. Bu davranışı değerlendir ve gerekçelendir.","8.3 Một khách nhìn đi chỗ khác và quay lưng lại với nhân viên. Nhân viên vẫn bắt chuyện. Hãy đánh giá cách cư xử này và giải thích."],"v8_3.h0":["أي إشارة من العميل موجودة – وماذا تعني؟","Hangi müşteri sinyali var – ve ne anlama gelir?","Đó là tín hiệu nào của khách – và nó có nghĩa gì?"],"v8_3.h1":["ماذا ينبغي على البائع أن يفعل: أن يخاطبه أم أن يُظهر مرة واحدة أنه لاحظه؟","Satıcı ne yapmalı: hitap etmeli mi, yoksa bir kez onu fark ettiğini mi göstermeli?","Nhân viên nên làm gì: bắt chuyện hay chỉ cho khách thấy một lần là đã nhận ra?"],"v8_3.s":["التصرف غير مناسب. من ينظر بعيدًا ويدير ظهره لا يريد أن يُخاطَب. على البائع أن يُظهر مرة واحدة أنه لاحظه، ثم يتركه بسلام.","Davranış uygun değil. Başka yöne bakan ve sırtını dönen kişi kendisine hitap edilmesini istemez. Satıcı bir kez onu fark ettiğini göstermeli, sonra onu rahat bırakmalı.","Cách cư xử này chưa tốt. Ai nhìn đi chỗ khác và quay lưng thì không muốn bị bắt chuyện. Nhân viên nên cho khách thấy một lần là đã nhận ra, rồi để khách yên."],"v8_4.q":["8.4 لماذا تُسمّى المراحل «درجات» (Stufen) وليس «مصعدًا» (Fahrstuhl)؟ اشرح بمثال تسقط فيه مرحلة.","8.4 Aşamalara neden „Stufen“ deniyor da „Fahrstuhl“ denmiyor? Bir aşamanın atlandığı bir örnekle açıkla.","8.4 Vì sao các giai đoạn gọi là „Stufen“ chứ không phải „Fahrstuhl“? Hãy giải thích bằng một ví dụ trong đó một giai đoạn bị bỏ qua."],"v8_4.h0":["هل لكل حوار المراحل الثماني كلها؟","Her görüşmede sekiz aşamanın hepsi var mı?","Cuộc trò chuyện nào cũng có đủ tám giai đoạn không?"],"v8_4.h1":["أحيانًا تصل مباشرة إلى ذكر السعر.","Bazen doğrudan fiyatı söylemeye gelinir.","Đôi khi ta đến thẳng bước nêu giá."],"v8_4.s":["ليس لكل حوار كل المراحل، وهي ليست متساوية الطول. مثال: عميل يعرف البضاعة مسبقًا، فنصل مباشرة إلى ذكر السعر – وتسقط مرحلة تحديد الاحتياجات. لا يوجد مصعد يوصل تلقائيًا إلى الهدف: عليك أن تتكيّف مع كل عميل من جديد وتصغي إليه جيدًا.","Her görüşmede tüm aşamalar olmaz ve aşamalar eşit uzunlukta değildir. Örnek: Müşteri malı zaten tanıyor, doğrudan fiyatı söylemeye gelinir – ihtiyaç belirleme atlanır. Kendiliğinden hedefe götüren bir asansör yoktur: Her müşteriye yeniden uyum sağlamalı ve onu dikkatle dinlemelisin.","Không phải cuộc trò chuyện nào cũng có đủ giai đoạn, và các giai đoạn không dài bằng nhau. Ví dụ: khách đã biết hàng, ta đến thẳng bước nêu giá – bước xác định nhu cầu bị bỏ qua. Không có thang máy tự động đưa đến đích: bạn phải thích nghi lại với từng khách và lắng nghe kỹ."],"r0.t":["المراحل الثماني","Sekiz aşama","Tám giai đoạn"],"r0.task":["ظلّل الهدف المشترك وعدد المراحل والمرحلة الأولى.","Ortak hedefi, aşama sayısını ve ilk aşamayı işaretle.","Hãy đánh dấu mục tiêu chung, số giai đoạn và giai đoạn đầu tiên."],"r0.x":["للبائع والعميل هدف مشترك: إتمام الشراء. وحتى الوصول إليه تُمرّ عمومًا بثماني مراحل (درجات). المرحلة الأولى هي التحية وبدء التواصل. بعدها في المرحلة 2 تحديد الاحتياجات وفي المرحلة 3 عرض البضاعة. ليس لكل حوار كل المراحل، وهي ليست متساوية الطول.","Satıcı ve müşterinin ortak bir hedefi var: satışın tamamlanması. Oraya kadar genellikle sekiz aşama (basamak) geçilir. İlk aşama selamlama ve iletişim kurmadır. Ardından 2. aşamada ihtiyaç belirleme, 3. aşamada malı gösterme gelir. Her görüşmede tüm aşamalar olmaz ve aşamalar eşit uzunlukta değildir.","Nhân viên và khách có chung một mục tiêu: chốt đơn mua hàng. Cho đến lúc đó thường trải qua tám giai đoạn (bậc). Bậc đầu tiên là chào hỏi và bắt chuyện. Sau đó, bậc 2 là xác định nhu cầu, bậc 3 là giới thiệu hàng hóa. Không phải cuộc trò chuyện nào cũng có đủ các giai đoạn, và các giai đoạn không dài bằng nhau."],"r0.q":["لماذا تُسمّى المراحل «درجات» (Stufen) وليس «مصعدًا» (Fahrstuhl)؟","Aşamalara neden „Stufen“ (basamak) deniyor da „Fahrstuhl“ (asansör) denmiyor?","Vì sao các giai đoạn gọi là „Stufen“ (bậc thang) chứ không phải „Fahrstuhl“ (thang máy)?"],"r0.o0":["لأن كل مرحلة بالطول نفسه.","Çünkü her aşama aynı uzunlukta.","Vì mỗi giai đoạn dài bằng nhau."],"r0.o1":["لأنه ليس في كل حوار كل المراحل – ويجب أن تتكيّف مع كل عميل من جديد.","Çünkü her görüşmede tüm aşamalar yoktur – her müşteriye yeniden uyum sağlamak gerekir.","Vì không phải cuộc trò chuyện nào cũng có đủ giai đoạn – phải thích nghi lại với từng khách."],"r0.o2":["لأنك تصل دائمًا فورًا إلى إتمام الشراء.","Çünkü her zaman hemen satışa ulaşılır.","Vì lúc nào cũng chốt đơn ngay lập tức."],"r1.t":["التواصل في البيع بالخدمة","Bedienung'da iletişim kurma","Bắt chuyện khi bán có phục vụ"],"r1.task":["ظلّل الأمور الأربعة التي تفعلها في البيع بالخدمة.","Bedienung'da yaptığın dört şeyi işaretle.","Hãy đánh dấu bốn việc bạn làm khi bán có phục vụ."],"r1.x":["في البيع بالخدمة تبني تواصلًا بصريًا بأسرع ما يمكن. توقف عملك السابق فورًا، لأن العملاء يشعرون بسرعة بأنهم مهمَلون إذا تركتهم ينتظرون. تحيّي بما يناسب الشخص والموقف – فصيغة التحية تعتمد على العمر والجنس والمهنة واللقب ودرجة الألفة. وتجعل العميل يشعر بأنه موضع ترحيب. أما أن تواصل الترتيب حتى يسأل العميل – فهذا خطأ.","Bedienung'da mümkün olan en kısa sürede göz teması kurarsın. Önceki işini hemen bırakırsın, çünkü müşteriyi bekletirsen kendini hemen geri plana atılmış hisseder. Kişiye ve duruma uygun selamlarsın – selamlama kalıbı yaşa, cinsiyete, mesleğe, unvana ve yakınlığa bağlıdır. Müşteriye hoş karşılandığını hissettirirsin. Müşteri soruncaya kadar mal dizmeye devam etmek ise yanlıştır.","Khi bán có phục vụ, bạn giao tiếp bằng mắt càng sớm càng tốt. Bạn dừng ngay việc đang làm, vì khách dễ cảm thấy bị bỏ rơi nếu phải chờ. Bạn chào phù hợp với người và hoàn cảnh – cách chào phụ thuộc vào tuổi, giới tính, nghề nghiệp, danh hiệu và mức độ thân quen. Bạn làm cho khách cảm thấy được chào đón. Còn tiếp tục xếp hàng cho đến khi khách hỏi thì là sai."],"r1.q":["لماذا تتوقف عن عملك السابق فورًا؟","Önceki işini neden hemen bırakırsın?","Vì sao bạn dừng ngay công việc đang làm?"],"r1.o0":["لأن العملاء يشعرون بأنهم مهمَلون إذا تُركوا ينتظرون.","Çünkü müşteriler bekletilirse kendilerini geri plana atılmış hisseder.","Vì khách cảm thấy bị bỏ rơi nếu phải chờ."],"r1.o1":["لأن ترتيب البضاعة غير مهم.","Çünkü mal dizmek önemsiz.","Vì xếp hàng không quan trọng."],"r1.o2":["لأن العميل سينسى السعر وإلا.","Çünkü yoksa müşteri fiyatı unutur.","Vì nếu không khách sẽ quên giá."],"r2.t":["التواصل في الاختيار المسبق (Vorwahl)","Vorwahl'da iletişim kurma","Bắt chuyện khi chọn trước (Vorwahl)"],"r2.task":["ظلّل ما تفعله في المواقف الثلاثة.","Üç durumda ne yaptığını işaretle.","Hãy đánh dấu việc bạn làm trong ba tình huống."],"r2.x":["إذا أظهر العميل اهتمامًا بالبضاعة فإنك تخاطبه – بشكل عام أو بالإشارة إلى البضاعة. وإذا لم يرد أن يُخاطَب فتُظهر له مرة واحدة أنك لاحظته – ثم تتركه بسلام. وإذا أراد فقط التجوّل فتترك له مساحة حرّة وتُظهر قبل ذلك مرة واحدة استعدادك للمساعدة. أما أن ترافقه طوال الطريق في المتجر وتذكر السعر فورًا – فهذا خطأ.","Müşteri mala ilgi gösterirse ona hitap edersin – genel olarak ya da ürüne yönelik. Hitap edilmek istemezse ona bir kez fark ettiğini gösterirsin – sonra onu rahat bırakırsın. Sadece göz atmak istiyorsa ona serbest alan bırakır, öncesinde bir kez yardıma hazır olduğunu belirtirsin. Onu mağazada baştan sona takip etmek ve hemen fiyatı söylemek ise yanlıştır.","Nếu khách tỏ ra quan tâm đến hàng, bạn chào hỏi – chung hoặc theo hàng hóa. Nếu khách không muốn bị bắt chuyện, bạn cho khách thấy một lần là bạn đã nhận ra – rồi để khách yên. Nếu khách chỉ muốn xem, bạn để khách tự do và trước đó thể hiện một lần sự sẵn sàng giúp. Đi theo khách suốt cửa hàng và nói giá ngay lập tức thì là sai."],"r2.q":["يدير لك عميل ظهره عمدًا. ماذا تفعل؟","Bir müşteri bilerek sana sırtını dönüyor. Ne yaparsın?","Một khách cố tình quay lưng lại với bạn. Bạn làm gì?"],"r2.o0":["أخاطبه مباشرة على أي حال.","Yine de doğrudan ona hitap ederim.","Tôi vẫn bắt chuyện trực tiếp."],"r2.o1":["أُظهر مرة واحدة أنني لاحظته، ثم أتركه بسلام.","Bir kez onu fark ettiğimi gösteririm, sonra onu rahat bırakırım.","Tôi cho khách thấy một lần là tôi đã nhận ra, rồi để khách yên."],"r2.o2":["أتبعه وأشرح له كل شيء.","Onu takip eder ve her şeyi anlatırım.","Tôi đi theo và giải thích mọi thứ."],"r3.t":["قاعدتان للامتحان","Sınav için iki kural","Hai quy tắc cho kỳ thi"],"r3.task":["ظلّل القاعدتين.","İki kuralı işaretle.","Hãy đánh dấu hai quy tắc."],"r3.x":["لا يُخاطَب العميل أبدًا من الخلف. فقد يشعر بأنه تعرّض لهجوم مباغت. أولًا تواصل بصري، ثم تكلّم. يُظهر البائع لكل عميل أنه لاحظه – حتى إن لم يخاطبه. أن تخاطبه من الجانب أثناء المرور ليس من القواعد.","Bir müşteriye asla arkadan hitap edilmez. Kendini saldırıya uğramış gibi hissedebilir. Önce göz teması kur, sonra konuş. Satıcı her müşteriye onu fark ettiğini gösterir – ona hitap etmese bile. Geçerken yandan hitap etmek kurallar arasında yoktur.","Không bao giờ bắt chuyện với khách từ phía sau. Khách có thể cảm thấy bị tấn công bất ngờ. Trước hết giao tiếp bằng mắt, rồi mới nói. Nhân viên cho mỗi khách thấy mình đã nhận ra khách – kể cả khi không bắt chuyện. Bắt chuyện từ bên cạnh khi đi ngang qua không phải là quy tắc."],"r3.q":["أي سؤال يجب ألّا تطرحه أبدًا كبداية؟","Giriş olarak asla hangi soruyu sormamalısın?","Bạn không bao giờ nên mở đầu bằng câu hỏi nào?"],"r3.o0":["«Guten Tag, wie kann ich Ihnen helfen?»","„Guten Tag, wie kann ich Ihnen helfen?“","„Guten Tag, wie kann ich Ihnen helfen?“"],"r3.o1":["«Suchen Sie etwas Bestimmtes?»","„Suchen Sie etwas Bestimmtes?“","„Suchen Sie etwas Bestimmtes?“"],"r3.o2":["«Schönen guten Morgen, was darf ich Ihnen zeigen?»","„Schönen guten Morgen, was darf ich Ihnen zeigen?“","„Schönen guten Morgen, was darf ich Ihnen zeigen?“"],"r4.t":["الخدمة الذاتية","Selbstbedienung","Tự phục vụ"],"r4.task":["ظلّل ما ينطبق في الخدمة الذاتية.","Selbstbedienung'da geçerli olanı işaretle.","Hãy đánh dấu điều đúng với tự phục vụ."],"r4.x":["في الخدمة الذاتية لا ينتظر العميل أن يُخاطَب. ومع ذلك يُحيّى كل عميل من كل موظف يقابله، ويُساعَد إن لم يجد بضاعة. وعلى الأكثر عند الصندوق يحدث أول تواصل – وليس في المستودع فقط.","Selbstbedienung'da müşteri iletişim beklemez. Yine de her müşteriyi karşılaştığı her çalışan selamlar ve bir malı bulamazsa ona yardım edilir. En geç kasada ilk temas gerçekleşir – depoda değil.","Với tự phục vụ, khách không mong được bắt chuyện. Dù vậy mọi khách đều được mọi nhân viên gặp mặt chào, và được giúp nếu không tìm thấy hàng. Muộn nhất tại quầy thu ngân sẽ có lần tiếp xúc đầu tiên – không phải trong kho."],"r4.q":["متى يحدث أول تواصل في الخدمة الذاتية على الأكثر؟","Selbstbedienung'da ilk temas en geç ne zaman gerçekleşir?","Trong tự phục vụ, lần tiếp xúc đầu tiên muộn nhất xảy ra khi nào?"],"r4.o0":["عند دخول المتجر.","Mağazaya girerken.","Khi bước vào cửa hàng."],"r4.o1":["عند الصندوق.","Kasada.","Tại quầy thu ngân."],"r4.o2":["لا يحدث أبدًا.","Hiç gerçekleşmez.","Không bao giờ."]};
+const GLOSS=[["Phasen des Verkaufsgesprächs","مراحل حوار البيع","Satış görüşmesinin aşamaları","Các giai đoạn của cuộc trò chuyện bán hàng"],["Stufen","مراحل / درجات","Basamaklar","Các bậc"],["Kontaktaufnahme","بدء التواصل","İletişim kurma","Bắt chuyện, tiếp xúc"],["Begrüßung","التحية","Selamlama","Lời chào"],["erster Eindruck","الانطباع الأول","İlk izlenim","Ấn tượng đầu tiên"],["Blickkontakt","التواصل البصري","Göz teması","Giao tiếp bằng mắt"],["Grußformel","صيغة التحية","Selamlama kalıbı","Cách chào"],["situationsgerecht","مناسب للموقف","Duruma uygun","Phù hợp hoàn cảnh"],["allgemeine Kontaktaufnahme","تواصل عامّ","Genel iletişim kurma","Bắt chuyện chung"],["warenbezogene Kontaktaufnahme","تواصل متعلّق بالبضاعة","Ürüne yönelik iletişim kurma","Bắt chuyện theo hàng hóa"],["Kundensignal","إشارة العميل","Müşteri sinyali","Tín hiệu của khách hàng"],["Freiraum","مساحة حرّة","Rahat bırakma / serbest alan","Không gian riêng"],["Bereitschaft zum Helfen","الاستعداد للمساعدة","Yardıma hazır olma","Sẵn sàng giúp đỡ"]];
+const WTX={"Verkaufsform":["شكل البيع","satış biçimi","hình thức bán hàng"],"Verkäufer":["البائع","satıcı","nhân viên bán hàng"],"Kunde":["العميل","müşteri","khách hàng"],"Ware":["البضاعة","mal, ürün","hàng hóa"],"Waschmaschine":["غسّالة","çamaşır makinesi","máy giặt"],"teuer":["غالٍ","pahalı","đắt"],"erklärungsbedürftig":["يحتاج إلى شرح","açıklama gerektiren","cần được giải thích"],"Fragen stellen":["طرح أسئلة","soru sormak","đặt câu hỏi"],"Distanzzone":["منطقة المسافة","mesafe bölgesi","vùng khoảng cách"],"fremde Personen":["أشخاص غرباء","yabancı kişiler","người lạ"],"Abstand":["مسافة","mesafe","khoảng cách"],"Meter":["متر","metre","mét"],"Mimik":["تعابير الوجه","mimikler","nét mặt"],"Gesicht":["الوجه","yüz","khuôn mặt"],"Interesse":["اهتمام","ilgi","sự quan tâm"],"Mund":["الفم","ağız","miệng"],"Beispielsatz":["جملة مثال","örnek cümle","câu ví dụ"],"sprechen":["يتكلّم","konuşmak","nói"],"Grußformel":["صيغة التحية","selamlama kalıbı","cách chào"],"Fehler":["خطأ","hata","lỗi"],"Verbesserung":["تصحيح","düzeltme","cách sửa"],"älterer Kunde":["عميل أكبر سنًا","yaşlı müşteri","khách lớn tuổi"],"Frage":["سؤال","soru","câu hỏi"],"Antwort":["إجابة","cevap","câu trả lời"],"Gespräch":["حوار","görüşme","cuộc trò chuyện"],"Kundin":["عميلة","müşteri (kadın)","khách nữ"],"Regal":["رف","raf","kệ hàng"],"Verkäuferin":["بائعة","satıcı (kadın)","nhân viên bán hàng nữ"],"ansprechen":["يخاطب","hitap etmek","bắt chuyện với"],"Bummler":["متجوّل بلا نية شراء","alışveriş niyeti olmadan gezen","người đi dạo xem hàng"],"Produkt":["منتج","ürün","sản phẩm"],"Phase":["مرحلة","aşama","giai đoạn"],"Stufe":["درجة","basamak","bậc"],"Reihenfolge":["ترتيب","sıra","thứ tự"],"Blickkontakt":["تواصل بصري","göz teması","giao tiếp bằng mắt"],"Gesprächsanfang":["بداية الحوار","görüşmenin başı","phần mở đầu cuộc trò chuyện"],"wohlfühlen":["الشعور بالراحة","rahat hissetmek","cảm thấy thoải mái"],"Kundensignal":["إشارة العميل","müşteri sinyali","tín hiệu của khách"],"Personal":["الموظفون","personel","nhân viên"],"Kontaktaufnahme":["بدء التواصل","iletişim kurma","bắt chuyện"],"wörtliche Rede":["كلام مباشر","doğrudan konuşma","lời nói trực tiếp"],"Beispiel":["مثال","örnek","ví dụ"],"Rücken":["الظهر","sırt","lưng"],"Gefühl":["شعور","his","cảm giác"],"bummeln":["يتجوّل","gezinmek","đi dạo"],"Satz":["جملة","cümle","câu"],"Begrüßung":["تحية","selamlama","lời chào"],"Betrieb":["المؤسسة","işletme","doanh nghiệp"],"offene Frage":["سؤال مفتوح","açık soru","câu hỏi mở"],"geschlossene Frage":["سؤال مغلق","kapalı soru","câu hỏi đóng"],"Sie-Stil":["أسلوب Sie (المخاطبة الرسمية)","Sie-Stil (resmî hitap)","cách xưng hô Sie (trang trọng)"],"Körpersprache":["لغة الجسد","beden dili","ngôn ngữ cơ thể"],"unwillkürlich":["لا إرادي","istemsiz","vô thức, không chủ ý"],"Eindruck":["انطباع","izlenim","ấn tượng"],"Sekunden":["ثوانٍ","saniyeler","giây"],"Kinder":["أطفال","çocuklar","trẻ em"],"Freiraum":["مساحة حرّة","rahat bırakma, serbest alan","không gian riêng"],"Begleitperson":["مرافق","yanındaki kişi","người đi cùng"],"Selbstbedienung":["خدمة ذاتية","self servis","tự phục vụ"],"Tätigkeit":["عمل","iş, faaliyet","công việc"],"Wertschätzung":["تقدير","değer verme","sự trân trọng"],"zurückgesetzt":["مهمَل","geri plana atılmış","bị bỏ rơi"],"Preisnennung":["ذكر السعر","fiyatı söyleme","nêu giá"],"Bedarfsermittlung":["تحديد الاحتياجات","ihtiyaç belirleme","xác định nhu cầu"],"Die drei Verkaufsformen heißen …":["أشكال البيع الثلاثة هي …","Üç satış biçimi şunlardır: …","Ba hình thức bán hàng là …"],"Eine Waschmaschine passt zur …, weil …":["الغسّالة تناسب … لأن …","Çamaşır makinesi … uygundur, çünkü …","Máy giặt phù hợp với …, vì …"],"Zu Beginn des Gesprächs halten sie …":["في بداية الحوار يحافظان على …","Görüşmenin başında … korurlar.","Đầu cuộc trò chuyện họ giữ …"],"Interesse erkennt man an …":["يُعرف الاهتمام من …","İlgi, … ile anlaşılır.","Sự quan tâm được nhận ra qua …"],"Der Sie-Stil bedeutet, dass …":["أسلوب Sie يعني أن …","Sie-Stil, … demektir.","Sie-Stil nghĩa là …"],"Der Fehler ist, dass …":["الخطأ هو أن …","Hata şu: …","Lỗi là …"],"Besser wäre: „…“":["الأفضل: «…»","Daha iyisi: „…“","Tốt hơn là: „…“"],"Zuerst …, dann …":["أولًا …، ثم …","Önce …, sonra …","Trước tiên …, sau đó …"],"Der Blickkontakt ist wichtig, weil …":["التواصل البصري مهم لأن …","Göz teması önemlidir, çünkü …","Giao tiếp bằng mắt quan trọng vì …"],"Ich erkenne es daran, dass …":["أعرف ذلك من أن …","Bunu şundan anlarım: …","Tôi nhận ra qua việc …"],"Der Unterschied ist, dass …":["الفرق هو أن …","Fark şu: …","Sự khác nhau là …"],"Ein Beispiel in wörtlicher Rede: „…“":["مثال بالكلام المباشر: «…»","Doğrudan konuşma örneği: „…“","Ví dụ bằng lời nói trực tiếp: „…“"],"Der Kunde könnte sich … fühlen":["قد يشعر العميل بأنه …","Müşteri kendini … hissedebilir.","Khách có thể cảm thấy …"],"Ich lasse dem Kunden …":["أترك للعميل …","Müşteriye … bırakırım.","Tôi để cho khách …"],"In meinem Betrieb sagt man: „…“":["في مؤسستي يقولون: «…»","İşletmemde şöyle denir: „…“","Ở doanh nghiệp tôi, người ta nói: „…“"],"Das passt zur Verkaufsform, weil …":["هذا يناسب شكل البيع لأن …","Bu satış biçimine uyuyor, çünkü …","Điều này phù hợp với hình thức bán hàng vì …"],"Der Satz … ist (nicht) gut, weil …":["الجملة … جيدة (أو غير جيدة) لأن …","… cümlesi (iyi / iyi değil), çünkü …","Câu … (không) tốt vì …"],"Der erste Eindruck bleibt, weil …":["الانطباع الأول يبقى لأن …","İlk izlenim kalır, çünkü …","Ấn tượng đầu tiên còn lại vì …"],"Ich sage: „…“, weil …":["أقول: «…» لأن …","Şöyle derim: „…“, çünkü …","Tôi nói: „…“ vì …"],"Der Kunde wird begrüßt, weil …":["يُحيَّا العميل لأن …","Müşteri karşılanır, çünkü …","Khách được chào vì …"],"Wenn sie weitermacht, dann …":["إذا واصلت عملها، فإن …","Devam ederse, o zaman …","Nếu cô ấy cứ tiếp tục thì …"],"Das Verhalten ist (nicht) gut, weil …":["هذا السلوك جيد (أو غير جيد) لأن …","Bu davranış (iyi / iyi değil), çünkü …","Cách cư xử này (không) tốt vì …"],"Ein Beispiel dafür ist …":["مثال على ذلك …","Bunun bir örneği: …","Một ví dụ là …"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={ar:0,tr:1,vi:2}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 2 · Modul 4 · Kontakt aufnehmen";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf2m4_v2";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),["a2"]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF2_Modul4.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done)$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>

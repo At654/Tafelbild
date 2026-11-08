@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 2 · Modul 4 · Kontakt aufnehmen</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:19px;line-height:1.6;padding-top:84px}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 10px) 16px 10px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+#barin{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:14px}
+#barlbl{font-weight:700;font-size:15px;white-space:nowrap}
+#track{flex:1;height:18px;background:#e7e3d6;border-radius:99px;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:99px;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:20px;min-width:48px;min-height:48px;cursor:pointer}
+main{max-width:860px;margin:0 auto;padding:16px 16px 80px}
+h1{font-size:30px;line-height:1.25;margin:16px 0 4px}
+.sub{color:var(--mute);margin:0 0 20px}
+h2{font-size:24px;margin:0 0 6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin:0 0 28px}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:18px}}
+label.f{font-size:14px;color:var(--mute);display:block}
+input[type=text],textarea,select{width:100%;font:inherit;font-size:17px;color:inherit;border:2px solid var(--line);border-radius:12px;padding:12px 14px;min-height:52px;background:#fffefb;-webkit-appearance:none;appearance:none}
+select{background-image:linear-gradient(45deg,transparent 50%,#5d6b76 50%),linear-gradient(135deg,#5d6b76 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px;background-repeat:no-repeat;padding-right:34px}
+textarea{min-height:104px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:99px;font-size:14px;font-weight:700;padding:2px 12px;vertical-align:middle}
+.pro{background:#efe6f8;color:#6a3f9a}
+.can li{list-style:none;margin:6px 0}
+.can input{width:26px;height:26px;vertical-align:middle;margin-right:10px}
+.q{border-top:1px dashed var(--line);padding:18px 0 4px;margin-top:14px}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:8px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+button.b{font:inherit;font-weight:600;border:0;border-radius:12px;padding:12px 20px;min-height:48px;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:24px;border-radius:50%;width:48px;height:48px;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:12px;border-radius:12px;padding:12px 16px;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:6px solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:6px solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:6px solid var(--bad)}
+.sol{margin-top:8px;font-size:17px}
+.self button{margin-right:8px}
+.rsec{border:2px solid var(--line);border-radius:14px;padding:18px;margin:16px 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:15px}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 6px;font-size:21px}
+.task{font-size:15px;background:var(--warnbg);border-radius:8px;padding:6px 12px;margin-bottom:10px}
+.w{cursor:pointer;border-radius:6px;padding:2px 3px;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:12px;padding:12px 16px;margin:8px 0;min-height:52px;cursor:pointer;touch-action:manipulation}
+.opt.sel{border-color:var(--pri);background:var(--pri2)}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:16px;margin:10px 0}
+td,th{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--pri2)}
+td.good{background:var(--okbg)}td.no{background:var(--badbg)}
+.merke{background:var(--okbg);border-left:6px solid var(--ok);border-radius:10px;padding:10px 16px;margin:12px 0}
+.worked{background:#f0f7fa;border-radius:12px;padding:12px 16px;margin:10px 0;font-size:17px}
+.bar2{height:22px;background:#e7e3d6;border-radius:99px;overflow:hidden;margin:4px 0 14px}
+.bar2 i{display:block;height:100%;border-radius:99px;transition:width 1s}
+.res{margin:14px 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:20px;max-width:520px;width:100%;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 8px}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(120px);background:#23303a;color:#fff;padding:12px 22px;border-radius:99px;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:12px}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea,select{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:60px;overflow:visible}
+ .opt{border:1px solid #bbb}.opt.sel{background:#e9e9e9}
+ .sol{display:none}
+}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="snd" title="Ton an/aus" aria-label="Ton an/aus">🔊</button>
+</div></div>
+<main>
+  <p class="sub" style="margin-bottom:0">Lernfeld 2 · Verkaufsgespräche kundenorientiert führen</p>
+  <h1>Modul 4: Kontakt aufnehmen</h1>
+  <p class="sub">2 Doppelstunden · 8 Punkte · Lehrbuch S. 106–110 · Arbeitsheft S. 59–65</p>
+  <div class="card meta">
+    <div><label class="f" for="nm">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt">Datum</label><input type="text" id="dt"></div>
+  </div>
+  <div class="card">
+    <h2>Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0"><li><label><input type="checkbox"> Ich kann die acht Phasen des Verkaufsgesprächs in der richtigen Reihenfolge nennen.</label></li><li><label><input type="checkbox"> Ich kann erklären, warum der erste Eindruck über den Verlauf des Gesprächs entscheidet.</label></li><li><label><input type="checkbox"> Ich kann eine Begrüßung in wörtlicher Rede formulieren, die zur Kundin und zur Verkaufsform passt.</label></li><li><label><input type="checkbox"> Ich kann in einem misslungenen Gesprächsanfang die Fehler finden und verbessern.</label></li></ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+<div class="card"><h2>Aufgabe 1 · Ankommen: Was weißt du noch? <span class="pts">1 Punkt</span></h2><div data-items="a1"></div></div>
+<div class="card read"><h2>Zum Nachlesen · aktiv lesen</h2><p>Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p><div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> Phasen des Verkaufsgesprächs · Stufen · Kontaktaufnahme · Begrüßung · erster Eindruck · Blickkontakt · Grußformel · situationsgerecht · allgemeine Kontaktaufnahme · warenbezogene Kontaktaufnahme · Kundensignal · Freiraum · Bereitschaft zum Helfen</div><div id="reading"></div><div class="merke noprint" style="font-size:16px"><b>Tipp für Schnelle:</b> Sprich die acht Phasen laut in der richtigen Reihenfolge – dreimal hintereinander, ohne hinzusehen.</div><table><tr><th>Stufe</th><th>Phase des Verkaufsgesprächs</th><th>Modul</th></tr><tr><td>1</td><td>Begrüßung und Kontaktaufnahme</td><td>4</td></tr><tr><td>2</td><td>Bedarfsermittlung</td><td>5 bis 7</td></tr><tr><td>3</td><td>Warenvorlage</td><td>8</td></tr><tr><td>4</td><td>Verkaufsargumentation</td><td>9</td></tr><tr><td>5</td><td>Preisnennung</td><td>10</td></tr><tr><td>6</td><td>Kundeneinwände</td><td>11 und 12</td></tr><tr><td>7</td><td>Ergänzungs-, Zusatz- und Alternativangebote</td><td>13</td></tr><tr><td>8</td><td>Kaufabschluss, Serviceleistungen und Verabschiedung</td><td>14 und 15</td></tr></table><div class="merke"><b>Merke:</b> Der erste Eindruck zählt und hat unmittelbare Auswirkungen auf den Verkaufserfolg.</div></div>
+<div class="card"><h2>Aufgabe 2 · Vorgemacht: einen Gesprächsanfang reparieren</h2><p>So gehst du bei jedem misslungenen Anfang vor – genau so wird es auch in der Abschlussprüfung verlangt.</p><div class="worked"><b>Der Verkäufer tritt von hinten an den Kunden heran und sagt: „Kann ich Ihnen helfen?“</b><br>1. Fehler: Er spricht den Kunden von hinten an. 2. Zweiter Fehler: „Kann ich Ihnen helfen?“ ist eine geschlossene Frage, der Kunde kann „nein“ sagen. 3. Verbesserung in wörtlicher Rede: Erst von vorn Blickkontakt aufbauen, dann: „Guten Tag. Ich sehe, Sie interessieren sich für die Drucker. Wofür möchten Sie ihn vor allem verwenden?“</div><div class="worked"><b>Eine Kundin betritt den Laden, die Verkäuferin sortiert weiter ein und sagt nichts.</b><br>1. Fehler: Kein Blickkontakt, keine Begrüßung – die Kundin fühlt sich zurückgesetzt. 2. Was fehlt: Die bisherige Tätigkeit wird nicht abgebrochen. 3. Verbesserung: Aufblicken, lächeln und sagen: „Guten Tag! Schauen Sie sich in Ruhe um – wenn Sie Hilfe brauchen, bin ich für Sie da.“</div><div class="worked"><b>Ein Stammkunde kommt herein, der Verkäufer sagt: „Hallo, was wollen Sie denn?“</b><br>1. Fehler: „Hallo“ passt nicht zu jedem Kunden, die Grußformel ist nicht situationsgerecht. 2. Fehler: „Was wollen Sie denn?“ klingt abweisend, und der Name des Stammkunden fehlt. 3. Verbesserung: „Guten Tag, Herr Linder! Schön, dass Sie wieder bei uns vorbeischauen. Wie kann ich Ihnen heute behilflich sein?“</div><div class="merke"><b>Ergebnis:</b> Immer dieselben drei Schritte: Fehler benennen – begründen, warum es ein Fehler ist – Verbesserung in wörtlicher Rede mit Anführungszeichen.</div><div class="row noprint"><button class="b" data-ack="a2ack">Ich habe die Beispiele gelesen ✓</button></div></div>
+<div class="card"><h2>Aufgabe 3 · Geführte Übung <span class="pts">2 Punkte</span></h2><p>Benenne den Fehler und schreibe die Verbesserung in wörtlicher Rede.</p><div data-items="a3"></div></div>
+<div class="card"><h2>Aufgabe 4 · Freie Übung <span class="pts">2 Punkte</span></h2><div data-items="a4"></div></div>
+<div class="card"><h2>Aufgabe 5 · Aus deinem Betrieb <span class="pts">1 Punkt</span></h2><div data-items="a5"></div></div>
+<div class="card"><h2>Aufgabe 6 · Für Profis <span class="pts pro">Profi</span></h2><p>Zum Weiterdenken – ganze Sätze, mit Begründung.</p><div data-items="a6"></div></div>
+  <div class="card">
+    <h2>Aufgabe 7 · Schätzen, testen, eintragen</h2>
+    <p>Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th>Meine Schätzung</th><th>Mein Ergebnis</th><th>Differenz</th><th>Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+  <div class="card noprint" id="submitCard">
+    <h2>Fertig? Dann auswerten!</h2>
+    <p>Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit">📊 Absenden &amp; auswerten</button></div>
+  </div>
+  <div class="card" id="result" style="display:none"><h2>Deine Auswertung</h2><div id="resBody"></div></div>
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur Text und Eingaben gedruckt.</p>
+</main>
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3><p id="mx"></p>
+  <div class="row"><button class="b sec" id="mnext">Noch ein Tipp</button><button class="b" id="mclose">Schließen</button></div>
+</div></div>
+<div id="toast"></div>
+<script>
+const CAT={"vor": "Vorwissen aus Modul 3", "txt": "Textverständnis", "trans": "Anwenden: Fehler finden & verbessern", "wis": "Fachwissen", "refl": "Betrieb & Weiterdenken"};
+const ITEMS=[{"id": "a1_1", "g": "a1", "cat": "vor", "q": "1. Nenne die drei Verkaufsformen.", "kw": [["bedienung"], ["selbstbedienung"], ["vorwahl"]], "min": 3, "h": ["Eine beginnt mit B, eine mit S, eine mit V."], "sol": "Bedienung – Selbstbedienung – Vorwahl.", "rows": 2}, {"id": "a1_2", "g": "a1", "cat": "vor", "q": "2. Welche Verkaufsform passt zu einer Waschmaschine? Begründe kurz.", "kw": [["bedienung"], ["erklaer", "hochpreis", "teuer"]], "min": 2, "h": ["Ist die Ware erklärungsbedürftig?"], "sol": "Bedienung, weil die Ware erklärungsbedürftig und hochpreisig ist.", "rows": 2}, {"id": "a1_3", "g": "a1", "cat": "vor", "q": "3. Welche Distanz halten Verkäufer und Kunde zu Beginn des Gesprächs ein?", "kw": [["gesellschaft"]], "min": 1, "h": ["Fremde Personen …"], "sol": "Die gesellschaftliche Distanz, 1,20 bis 3,00 Meter.", "rows": 2}, {"id": "a1_4", "g": "a1", "cat": "vor", "q": "4. Nenne zwei Signale der Mimik, die Interesse zeigen.", "kw": [["weit", "offen", "augen"], ["laecheln", "augenkontakt"], ["mundwinkel", "augenbraue"]], "min": 2, "h": ["Augen und Mund verraten Interesse."], "sol": "Zwei aus: weit geöffnete Augen, freundliches Lächeln mit Augenkontakt, angehobene Mundwinkel und Augenbrauen.", "rows": 2}, {"id": "a1_5", "g": "a1", "cat": "vor", "q": "5. Was ist der Sie-Stil?", "kw": [["sie", "ihnen", "ihr "], ["persoenlich", "direkt", "ansprech"]], "min": 1, "h": ["Statt „ich“ oder „man“ …"], "sol": "Der Kunde wird persönlich angesprochen: „Sie“, „Ihr“, „Ihre“, „Ihnen“ statt „ich“ oder „man“.", "rows": 2}, {"id": "a3_1", "g": "a3", "cat": "trans", "q": "1. Ein etwa 60-jähriger Kunde wird mit „Hallo!“ begrüßt. Benenne den Fehler und schreibe die Verbesserung in wörtlicher Rede.", "kw": [["alter", "passt nicht", "situationsgerecht", "grussformel"], ["guten tag"]], "min": 2, "h": ["Die Grußformel hängt von Alter, Geschlecht, Beruf, Titel und Vertrautheit ab.", "Verbesserung mit Anführungszeichen: „Guten Tag. …“"], "sol": "Fehler: Die Grußformel passt nicht zum Alter des Kunden. Besser: „Guten Tag. Schön, dass Sie da sind – was darf ich Ihnen zeigen?“", "rows": 4}, {"id": "a3_2", "g": "a3", "cat": "trans", "q": "2. Der Verkäufer fragt: „Suchen Sie etwas Bestimmtes?“ Benenne den Fehler und schreibe die Verbesserung in wörtlicher Rede.", "kw": [["geschlossen", "nein", "ja/nein", "ja-nein"], ["wofuer", "wie", "was", "womit", "guten tag"]], "min": 2, "h": ["Kann der Kunde mit einem Wort antworten und das Gespräch beenden?", "Offene Fragen beginnen mit Wer, Wie, Was, Wofür, Warum."], "sol": "Fehler: geschlossene Frage, der Kunde kann mit „nein“ antworten. Besser: „Guten Tag. Wofür genau möchten Sie den Rucksack verwenden?“", "rows": 4}, {"id": "a3_3", "g": "a3", "cat": "trans", "q": "3. Eine Kundin steht ratlos vor dem Regal. Die Verkäuferin geht wortlos vorbei. Benenne den Fehler und schreibe die Verbesserung in wörtlicher Rede.", "kw": [["signal", "uebersehen", "nicht beachtet", "ratlos", "wahrgenommen", "nicht bemerkt"], ["guten tag", "helfen", "suchen", "wobei"]], "min": 2, "h": ["Welche Kundensignale stehen in der Tabelle?", "Hingehen und ansprechen: „Guten Tag. Ich sehe, Sie suchen etwas …“"], "sol": "Fehler: Das Kundensignal (ratloses Gesicht, suchender Blick) wird übersehen. Besser: hingehen und sagen: „Guten Tag. Ich sehe, Sie suchen etwas – wobei darf ich Ihnen helfen?“", "rows": 4}, {"id": "a3_4", "g": "a3", "cat": "trans", "q": "4. Ein Kunde bummelt durch den Laden. Der Verkäufer geht mit und erklärt ungefragt jedes Produkt. Benenne den Fehler und schreibe die Verbesserung in wörtlicher Rede.", "kw": [["freiraum", "ueberrumpel", "aufdringlich", "ungefragt", "in ruhe", "bedraengt"], ["in ruhe", "gerne", "bin ich fuer sie da", "wenn sie"]], "min": 2, "h": ["Bummeln ist Zeitvertreib. Was braucht der Kunde?", "Einmal ansprechen – dann zurückziehen."], "sol": "Fehler: Dem Kunden wird kein Freiraum gelassen, er fühlt sich überrumpelt. Besser: einmal ansprechen – „Schauen Sie sich gerne in Ruhe um. Wenn Sie etwas wissen möchten, bin ich für Sie da.“ – und sich dann zurückziehen.", "rows": 4}, {"id": "a4_1", "g": "a4", "cat": "wis", "q": "1. Nenne die acht Phasen des Verkaufsgesprächs in der richtigen Reihenfolge.", "kw": [["begruessung", "kontaktaufnahme"], ["bedarf"], ["warenvorlage"], ["argumentation"], ["preisnennung", "preis"], ["einwand", "einwaend"], ["ergaenzung", "zusatz", "alternativ"], ["kaufabschluss", "abschluss", "verabschiedung"]], "min": 7, "h": ["Erste Phase: Begrüßung. Letzte Phase: Kaufabschluss und Verabschiedung.", "Dazwischen: Bedarf – Ware – Argumente – Preis – Einwände – Zusatzangebote."], "sol": "1. Begrüßung und Kontaktaufnahme 2. Bedarfsermittlung 3. Warenvorlage 4. Verkaufsargumentation 5. Preisnennung 6. Kundeneinwände 7. Ergänzungs-, Zusatz- und Alternativangebote 8. Kaufabschluss, Serviceleistungen und Verabschiedung.", "rows": 6}, {"id": "a4_2", "g": "a4", "cat": "wis", "q": "2. Erkläre, warum der Blickkontakt am Anfang des Gesprächs so wichtig ist.", "kw": [["interesse", "offenheit", "zuwendung", "wertschaetzung", "ehrlich"], ["wohl", "wohlfuehl", "willkommen"]], "min": 1, "h": ["Was signalisiert der Blick dem Kunden?"], "sol": "Er signalisiert Interesse, Offenheit, Zuwendung, Wertschätzung und Ehrlichkeit und schafft die Voraussetzung dafür, dass sich der Kunde im Geschäft wohlfühlt.", "rows": 4}, {"id": "a4_3", "g": "a4", "cat": "wis", "q": "3. Nenne drei Signale, an denen du erkennst, dass ein Kunde angesprochen werden möchte.", "kw": [["suchend", "umschauen", "umsehen"], ["personal", "zugehen", "zu mir"], ["hand", "prueft", "prufend", "in die hand"], ["vitrine"], ["ratlos", "kopf", "gesicht"]], "min": 3, "h": ["Fünf Signale stehen in der Tabelle „Der Kunde zeigt Interesse an der Ware“."], "sol": "Drei aus: Er schaut sich suchend um, geht auf das Personal zu, nimmt eine Ware prüfend in die Hand, steht vor einer verschlossenen Vitrine, macht ein ratloses Gesicht.", "rows": 5}, {"id": "a4_4", "g": "a4", "cat": "wis", "q": "4. Unterscheide die allgemeine und die warenbezogene Kontaktaufnahme. Formuliere zu jeder ein Beispiel in wörtlicher Rede.", "kw": [["allgemein"], ["warenbezogen", "ware"], ["guten tag"]], "min": 3, "h": ["Allgemein: ohne Bezug zu einer Ware. Warenbezogen: knüpft an die Ware an, die der Kunde betrachtet.", "Beispiel allgemein: „Guten Tag, wie kann ich Ihnen helfen?“"], "sol": "Allgemein: Der Verkäufer spricht den Kunden an, ohne sich auf eine bestimmte Ware zu beziehen – „Guten Tag, wie kann ich Ihnen helfen?“ Warenbezogen: Er knüpft an die Ware an, die der Kunde gerade betrachtet – „Guten Tag. Dieser Bluetooth-Lautsprecher, den Sie sich gerade anschauen, ist wasserdicht und stoßfest.“", "rows": 6}, {"id": "a4_5", "g": "a4", "cat": "wis", "q": "5. Warum darf ein Kunde niemals von hinten angesprochen werden?", "kw": [["ueberfall", "erschreck", "erschrick", "ablehn"], ["blickkontakt", "hinten"]], "min": 1, "h": ["Wie fühlt sich jemand, der plötzlich von hinten angesprochen wird?"], "sol": "Er könnte sich „überfallen“ fühlen und ablehnend reagieren. Zuerst wird Blickkontakt aufgebaut.", "rows": 3}, {"id": "a4_6", "g": "a4", "cat": "wis", "q": "6. Ein Kunde möchte nur bummeln. Wie verhältst du dich? Formuliere deinen Satz.", "kw": [["freiraum", "in ruhe", "gerne", "umschauen", "umsehen"], ["bin ich fuer sie da", "helfen", "wenn sie"]], "min": 2, "h": ["Freiraum lassen – aber vorher einmal Bereitschaft zum Helfen signalisieren."], "sol": "Ich lasse ihm den Freiraum, signalisiere aber vorher Bereitschaft zum Helfen: „Schauen Sie sich gerne in Ruhe um. Wenn Sie etwas wissen möchten, bin ich für Sie da.“", "rows": 3}, {"id": "a5_1", "g": "a5", "cat": "refl", "mode": "self", "q": "Schreibe auf, wie in deinem Betrieb Kunden begrüßt werden – in wörtlicher Rede. Beurteile dann: Passt die Begrüßung zur Verkaufsform des Betriebs?", "h": ["Setze die Begrüßung in Anführungszeichen.", "Danach: Bedienung, Vorwahl oder Selbstbedienung – und passt der Satz dazu?"], "sol": "Individuelle Lösung. Erwartet wird ein Satz in Anführungszeichen und danach eine kurze Beurteilung mit Bezug auf die Verkaufsform (Bedienung, Vorwahl oder Selbstbedienung).", "rows": 5}, {"id": "a6_1", "g": "a6", "cat": "refl", "mode": "self", "q": "6.1 Beurteile diese fünf Sätze aus der Kontaktphase: „Wie kann ich Ihnen helfen?“ · „Sie kommen zurecht?“ · „Suchen Sie etwas Bestimmtes?“ · „Ja bitte?“ · „Guten Tag!“", "h": ["Offene oder geschlossene Frage? Gibt es eine Begrüßung?"], "sol": "„Wie kann ich Ihnen helfen?“ – gut, offene Frage, der Kunde muss antworten. „Sie kommen zurecht?“ – schwach, geschlossene Frage und klingt, als wolle man ihn loswerden. „Suchen Sie etwas Bestimmtes?“ – schwach, geschlossene Frage, „nein“ beendet das Gespräch. „Ja bitte?“ – schlecht, keine Begrüßung, wirkt abweisend und ungeduldig. „Guten Tag!“ – als Begrüßung richtig, aber allein zu wenig; es fehlt die Überleitung ins Gespräch.", "rows": 7}, {"id": "a6_2", "g": "a6", "cat": "refl", "mode": "self", "q": "6.2 Warum ist der erste Eindruck kaum zu korrigieren? Begründe mit dem, was du über Körpersprache weißt.", "h": ["Wie schnell entsteht der erste Eindruck – und über welche Signale?", "Wem glaubt der Kunde eher: den Worten oder dem Körper?"], "sol": "Der erste Eindruck entsteht in wenigen Sekunden und größtenteils über die Körpersprache – Blickkontakt, Haltung, Mimik –, also über Signale, die unwillkürlich gesendet und unbewusst gelesen werden. Wer einmal abgewandt und desinteressiert gewirkt hat, kann das mit Worten kaum zurücknehmen, weil der Kunde der Körpersprache mehr glaubt als den Worten. Er bewertet alles Folgende vor diesem Hintergrund.", "rows": 7}, {"id": "a6_3", "g": "a6", "cat": "refl", "mode": "self", "q": "6.3 Entwickle eine Begrüßung für eine Kundin mit zwei kleinen Kindern – und begründe jede deiner Entscheidungen.", "h": ["Wen begrüßt du alles? Auf welcher Höhe? Welche Distanz?", "Begleitpersonen mit einbeziehen, Kinder beschäftigen."], "sol": "Zum Beispiel: Blickkontakt zuerst zur Kundin, dann kurz zu den Kindern. „Guten Tag! Schön, dass Sie da sind – und ihr auch.“ Begründungen: Begleitpersonen werden in die Begrüßung einbezogen, weil sie den Kauf mit beeinflussen. Die Kinder werden angesprochen und, wenn möglich, beschäftigt (Malecke, Luftballon), damit die Mutter Ruhe für die Beratung hat. Die Grußformel bleibt beim „Sie“ für die Kundin und darf bei den Kindern locker sein. Die gesellschaftliche Distanz wird eingehalten, man geht aber für die Kinder kurz in die Hocke, um auf Augenhöhe zu sein.", "rows": 8}, {"id": "a6_4", "g": "a6", "cat": "refl", "mode": "self", "q": "Zusatz für Experten: Bei Selbstbedienung erwartet der Kunde keine Kontaktaufnahme. Erkläre, was trotzdem zur Kontaktaufnahme gehört – und warum.", "h": ["Wer begrüßt wen? Und wann findet spätestens der erste Kontakt statt?"], "sol": "Trotzdem wird jeder Kunde von jedem Mitarbeiter, der ihm begegnet, begrüßt, und ihm wird geholfen, wenn er eine Ware nicht findet. Spätestens an der Kasse findet der erste Kontakt statt. Der erste Eindruck zählt auch hier und hat unmittelbare Auswirkungen auf den Verkaufserfolg.", "rows": 6, "opt": true}];
+const READ=[{"t": "Die acht Phasen", "task": "Markiere das gemeinsame Ziel und die Zahl der Phasen.", "x": "Verkäufer und Kunde haben ein gemeinsames Ziel: den [[Kaufabschluss]] am Ende des Verkaufsgesprächs. Bis dahin werden im Allgemeinen [[acht Phasen]] (Stufen) durchlaufen. Die erste Phase ist die {{Begrüßung und Kontaktaufnahme}}, danach folgen Bedarfsermittlung, Warenvorlage, Verkaufsargumentation, Preisnennung, Kundeneinwände, Ergänzungsangebote und zum Schluss Kaufabschluss und Verabschiedung.", "q": "Welche Phase kommt zuerst?", "o": ["Preisnennung", "Begrüßung und Kontaktaufnahme", "Warenvorlage"], "c": 1}, {"t": "Warum „Stufen“ und nicht „Fahrstuhl“?", "task": "Markiere, was nicht in jedem Gespräch gleich ist, und was man für jeden Kunden tun muss.", "x": "Nicht jedes Gespräch hat [[alle acht Phasen]], und die Phasen sind nicht gleich lang. Manchmal kommt es gar nicht zum Kaufabschluss. Einen {{Fahrstuhl}} gibt es im Verkaufsgespräch nicht: Zum Ziel kommt man nur, indem man sich [[auf jeden Kunden neu einstellt]] und ihm genau zuhört.", "q": "Warum spricht man von „Stufen“?", "o": ["Jedes Gespräch ist gleich lang.", "Man muss sich auf jeden Kunden neu einstellen.", "Man fährt direkt zum Abschluss."], "c": 1}, {"t": "Kontaktaufnahme bei Bedienung", "task": "Markiere die drei wichtigsten Schritte.", "x": "Bei Bedienung stellt der Verkäufer so schnell wie möglich [[Blickkontakt]] her, bricht die [[bisherige Tätigkeit sofort ab]] und begrüßt [[personen- und situationsgerecht]]. Die Grußformel hängt ab von {{Alter, Geschlecht, Beruf, Titel}} und davon, wie vertraut der Kunde ist. Älteren Kunden bietet man eine Sitzgelegenheit an, Kinder werden beschäftigt.", "q": "Warum bricht der Verkäufer seine Tätigkeit sofort ab?", "o": ["Kunden fühlen sich zurückgesetzt, wenn man sie warten lässt.", "Er hat Feierabend.", "Das ist nicht nötig."], "c": 0}, {"t": "Kontaktaufnahme bei Vorwahl", "task": "Markiere die drei Situationen.", "x": "Bei der Vorwahl gibt es drei Situationen: Der Kunde [[zeigt Interesse an der Ware]] – man spricht ihn an, allgemein oder warenbezogen. Der Kunde [[möchte nicht angesprochen werden]] – er schaut weg und meidet den Blickkontakt; man zeigt einmal, dass man ihn wahrgenommen hat, und lässt ihn in Ruhe. Der Kunde [[möchte sich nur umsehen]] – man lässt Freiraum, signalisiert vorher aber Bereitschaft zum Helfen. Zum {{Kaufabschluss}} kommt es dann später.", "q": "Ein Kunde meidet den Blickkontakt und dreht den Rücken zu. Was tust du?", "o": ["Ich spreche ihn sofort an.", "Ich zeige einmal, dass ich ihn wahrgenommen habe, und lasse ihn in Ruhe.", "Ich folge ihm."], "c": 1}, {"t": "Zwei Prüfungsregeln", "task": "Markiere beide Regeln.", "x": "Ein Kunde wird [[niemals von hinten angesprochen]]. Er könnte sich überfallen fühlen. Erst Blickkontakt aufbauen, dann sprechen. Der Verkäufer zeigt [[jedem Kunden, dass er ihn wahrgenommen hat]] – auch dann, wenn er ihn nicht anspricht. Bei {{Selbstbedienung}} erwartet der Kunde keine Kontaktaufnahme; trotzdem wird er von jedem Mitarbeiter begrüßt.", "q": "Wie spricht man einen Kunden NICHT an?", "o": ["von vorn, mit Blickkontakt", "von hinten", "mit „Guten Tag“"], "c": 1}, {"t": "Der Satzbaukasten", "task": "Markiere die beiden Sätze, die man nie sagen soll.", "x": "Allgemein: „Guten Tag, {{wie kann ich Ihnen helfen?}}“ Warenbezogen: „Guten Tag. Diese Jacke, die Sie gerade anschauen, ist …“ Stammkunde: „Guten Tag, Frau Wolf! Schön, dass Sie wieder da sind.“ Nie: „[[Kann ich Ihnen helfen?]]“ und „[[Suchen Sie etwas Bestimmtes?]]“ – darauf kann der Kunde „nein“ sagen, und das Gespräch ist zu Ende. Beides sind geschlossene Fragen.", "q": "Warum ist „Suchen Sie etwas Bestimmtes?“ schwach?", "o": ["Weil man darauf „nein“ sagen kann und das Gespräch endet.", "Weil sie zu höflich ist.", "Weil sie zu lang ist."], "c": 0}];
+const ACK=["a2ack"];
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const S={};
+const OPT=new Set(ITEMS.filter(i=>i.opt).map(i=>i.id));
+let soundOn=true, actx=null;
+function beep(freqs){
+  if(!soundOn)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2200);}
+$("#snd").onclick=()=>{soundOn=!soundOn;$("#snd").textContent=soundOn?"🔊":"🔇";};
+
+/* ===== FORTSCHRITT ===== */
+const TOTAL=ITEMS.filter(i=>!i.opt).length+READ.length+ACK.length;
+let lastPct=0;
+function progress(){
+  const n=Object.keys(S).filter(k=>S[k].done&&!OPT.has(k)).length;
+  const p=Math.min(100,Math.round(n/TOTAL*100));
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:"Guter Start! 🚀",50:"Halbzeit geschafft! 💪",75:"Fast am Ziel! 🔥",100:"Alles bearbeitet! 🎉 Jetzt auswerten."};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h;
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[Math.min(tipLvl,h.length-1)];
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== AUFGABEN ===== */
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const mode=it.mode||"free";
+  let body="";
+  if(mode==="mc"){
+    body=(it.o||[]).map((o,j)=>`<button class="opt" data-j="${j}">${o}</button>`).join("");
+    if(Array.isArray(it.c))body=`<div class="task">Mehrere Antworten möglich: wähle ${it.c.length}.</div>`+body;
+  } else if(mode==="sel"){
+    body=`<table class="seltab">${it.rows.map((r,j)=>`<tr><td>${r.t}</td><td style="min-width:42%"><select data-j="${j}" aria-label="Auswahl"><option value="">– wählen –</option>${it.opts.map(o=>`<option>${o}</option>`).join("")}</select></td></tr>`).join("")}</table>`;
+  } else {
+    body=`<textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>`;
+  }
+  d.innerHTML=`<div class="qt">${it.q}${it.opt?' <span class="pts pro">freiwillig</span>':""}</div>${body}
+  <div class="row noprint">
+   ${mode==="self"?"":'<button class="b chk">✔ Prüfen</button>'}
+   <button class="b sec shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const fb=d.querySelector(".fb");
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;};
+  const solHtml=`<div class="sol"><b>Lösung:</b> ${it.sol}</div>`;
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  let tries=0;
+  const finish=sc=>{
+    if(S[it.id]&&S[it.id].peek)sc*=.5;
+    if(tries>1&&sc>=1)sc=.5;
+    S[it.id]=Object.assign(S[it.id]||{},{score:sc});setDone(it.id,sc);
+  };
+  if(mode==="free"){
+    const ta=d.querySelector("textarea");
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️");return;}
+      tries++;
+      const hit=it.kw.filter(g=>g.some(w=>t.includes(w))).length;
+      const sc=Math.min(1,hit/it.min);
+      if(sc>=1)show("ok","✅ Das passt! Gut gemacht."+solHtml);
+      else if(sc>0)show("part","🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze."+solHtml);
+      else show("bad","❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach."+solHtml);
+      S[it.id]=Object.assign(S[it.id]||{},{});
+      let s2=sc;if(S[it.id].peek)s2*=.5;
+      S[it.id].score=s2;setDone(it.id,s2);
+    };
+  }
+  if(mode==="mc"){
+    const btns=[...d.querySelectorAll(".opt")];const multi=Array.isArray(it.c);const cs=multi?it.c:[it.c];
+    btns.forEach(b=>b.onclick=()=>{
+      if(b.classList.contains("good")||b.classList.contains("no"))return;
+      if(multi)b.classList.toggle("sel");else{btns.forEach(x=>x.classList.remove("sel"));b.classList.add("sel");}
+    });
+    d.querySelector(".chk").onclick=()=>{
+      const sel=btns.map((b,j)=>b.classList.contains("sel")?j:-1).filter(j=>j>=0);
+      if(!sel.length){toast("Wähle zuerst eine Antwort 👆");return;}
+      tries++;
+      const ok=sel.length===cs.length&&sel.every(j=>cs.includes(j));
+      btns.forEach((b,j)=>{b.classList.remove("good","no");if(b.classList.contains("sel"))b.classList.add(cs.includes(j)?"good":"no");});
+      if(ok){show("ok","✅ Richtig!"+solHtml);finish(1);}
+      else{show("bad","❌ Nicht ganz. Lies die Frage noch einmal oder nimm einen Tipp 💡. Du kannst es nochmal versuchen.");
+        btns.forEach(b=>{if(b.classList.contains("no"))b.classList.remove("sel","no");});
+        S[it.id]=Object.assign(S[it.id]||{},{score:0});if(!S[it.id].done)setDone(it.id,0);}
+    };
+  }
+  if(mode==="sel"){
+    const sels=[...d.querySelectorAll("select")];
+    d.querySelector(".chk").onclick=()=>{
+      if(sels.some(s=>!s.value)){toast("Wähle zuerst überall etwas aus 👆");return;}
+      tries++;
+      let right=0;
+      sels.forEach((s,j)=>{const td=s.parentElement;td.classList.remove("good","no");const ok=norm(s.value)===norm(it.rows[j].c);if(ok)right++;td.classList.add(ok?"good":"no");});
+      const sc=right/sels.length;
+      if(sc===1)show("ok","✅ Alles richtig!"+solHtml);
+      else show(sc>=.5?"part":"bad",`${right} von ${sels.length} richtig. Die roten Felder ändern und nochmal prüfen.`);
+      S[it.id]=Object.assign(S[it.id]||{},{});
+      let s2=sc*(tries>1?.5:1);if(S[it.id].peek)s2*=.5;
+      S[it.id].score=s2;setDone(it.id,s2);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(mode==="self"){
+      const ta=d.querySelector("textarea");const v=ta.value;let pre="";
+      if(it.auto==="beob"){
+        pre=(v.trim().length>=40&&/kann bedeuten|deutet darauf|wirkt auf mich/i.test(v))
+          ?"✅ Dein Text enthält eine Deutung mit Satzbaukasten-Formel. ":"ℹ️ Prüfe: Beobachtung zuerst? Deutung mit „Das kann bedeuten, dass …“? ";
+      }
+      show("part",pre+solHtml+`<div class="self noprint" style="margin-top:10px"><b>Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1">✔ Geschafft</button><button class="b sec" data-s=".5">◐ Teilweise</button><button class="b sec" data-s="0">✖ Noch nicht</button></div></div>`);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓");});
+    } else {
+      if(mode==="mc")d.querySelectorAll(".opt").forEach((b,j)=>{const cs=Array.isArray(it.c)?it.c:[it.c];b.classList.remove("sel","no");if(cs.includes(j))b.classList.add("good");});
+      if(mode==="sel")d.querySelectorAll("select").forEach((s,j)=>{s.value=[...s.options].find(o=>norm(o.value)===norm(it.rows[j].c)).value;s.parentElement.classList.add("good");});
+      show("part",solHtml);
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+document.querySelectorAll("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k="0">$1</span>');
+    s.innerHTML=`<h3>${r.t}</h3><div class="task">🖍️ ${r.task}</div><p class="txt">${html}</p>
+      <div class="row noprint"><button class="b chkm">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ ${r.q}</div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")];
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    const fb=s.querySelector(":scope > .fb");
+    let tries=0,mDone=false;
+    s.querySelector(".chkm").onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){
+        mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k==="1")w.classList.add("right");});
+        fb.className="fb show ok";fb.textContent="✅ Richtig markiert! Jetzt die Frage:";
+        s.querySelector(".chkm").disabled=true;s.querySelector(".zq").classList.add("show");
+        s.dataset.mf=tries===1?1:0;
+      } else {
+        fb.className="fb show bad";
+        fb.textContent=`Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.`;
+      }
+    };
+    let qtries=0;
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;
+      const zfb=s.querySelector(".zfb");
+      if(+b.dataset.j===r.c){
+        b.classList.add("good");zfb.className="fb zfb show ok";zfb.textContent=(i<READ.length-1)?"✅ Genau! Der nächste Abschnitt ist freigeschaltet.":"✅ Genau! Du hast den ganzen Text geschafft.";
+        s.classList.add("done");
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+        const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.textContent="Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.";}
+    });
+  });
+}
+buildRead();
+
+/* Bestätigungs-Aufgaben (Beispiele gelesen) */
+document.querySelectorAll("[data-ack]").forEach(b=>b.onclick=function(){this.disabled=true;this.textContent="Gelesen ✓";setDone(this.dataset.ack,1);});
+
+/* ===== AUSWERTUNG ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+$("#submit").onclick=()=>{
+  const cats={};const add=(c,s,lbl,sol)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol});};
+  ITEMS.filter(it=>!it.opt).forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  const lab=p=>p>=80?["Super!","var(--ok)"]:p>=50?["Gut – noch etwas Übung","var(--warn)"]:["Hier hast du noch Übungsbedarf","var(--bad)"];
+  let h=`<div class="res"><b style="font-size:26px">${pts} von 20 Punkten</b>(${Math.round(sum/n*100)} %)</div><h3>Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CAT)){
+    const c=cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:16px"><summary>Das solltest du wiederholen (${c.weak.length})</summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  const open=TOTAL-Object.keys(S).filter(k=>S[k].done&&!OPT.has(k)).length;
+  if(open>0)h+=`<p>Hinweis: ${open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  const df=Math.round((pts-e)*10)/10;
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(df>0?"+":"")+df;
+  beep([523,659,784,1047]);
+  $("#result").scrollIntoView({behavior:"smooth"});
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>document.querySelectorAll("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+</script>
+</body>
+</html>

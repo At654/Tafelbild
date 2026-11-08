@@ -1,0 +1,2143 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Störer-Bingo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#f1efe9;--surface:#fff;--surface2:#f7f5f0;--ink:#1f1d18;--muted:#5f5a4f;--line:#d9d3c6;
+  --brand:#0e6466;--brand-ink:#fff;--ok:#1f7a3f;--bad:#b3261e;--warn:#a15c00;
+  --kauf:#1f5fae;--kauf-soft:#dde8f7;--verk:#c2410c;--verk-soft:#fbe6dc;--beob:#5b4b8a;--beob-soft:#e9e3f5;
+  --display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15130f;--surface:#1f1c17;--surface2:#191712;--ink:#efebe2;--muted:#b0a898;--line:#3a352c;
+  --brand:#5fc9c4;--brand-ink:#08201f;--ok:#6fcf8e;--bad:#ff8a80;--warn:#f0b35a;
+  --kauf:#7fb0ff;--kauf-soft:#1b2a40;--verk:#ff8a5c;--verk-soft:#3a2219;--beob:#b9a6f0;--beob-soft:#2a2340;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#15130f;--surface:#1f1c17;--surface2:#191712;--ink:#efebe2;--muted:#b0a898;--line:#3a352c;
+  --brand:#5fc9c4;--brand-ink:#08201f;--ok:#6fcf8e;--bad:#ff8a80;--warn:#f0b35a;
+  --kauf:#7fb0ff;--kauf-soft:#1b2a40;--verk:#ff8a5c;--verk-soft:#3a2219;--beob:#b9a6f0;--beob-soft:#2a2340;color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.4}
+h1,h2,h3{font-family:var(--display);font-stretch:112%;margin:0 0 .4em;line-height:1.1}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:.6em 1em}
+button.pri{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:700}
+button:disabled{opacity:.45;cursor:default}
+input,textarea{font:inherit;width:100%;padding:.6em .7em;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.muted{color:var(--muted)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.merk{border-left:6px solid var(--brand);background:var(--surface);border-radius:10px;padding:12px 14px;margin:8px 0}
+.merk b.k{color:var(--kauf)} .merk b.v{color:var(--verk)}
+.term{font-weight:700;border-bottom:3px solid var(--brand)}
+.alt{font-weight:400;color:var(--muted);font-size:.9em}
+/* ---------- Tafel ---------- */
+#tafel header{display:flex;align-items:center;gap:14px;padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap}
+#tafel header h1{font-size:1.35rem;margin:0}
+.steps{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.steps button{padding:.35em .8em;font-size:.9rem}
+.steps button.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.mini{display:flex;align-items:center;gap:10px;font-size:.9rem}
+.mini canvas{width:64px;height:64px;border-radius:6px;background:#fff}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bad);margin-right:4px}
+.dot.on{background:var(--ok)}
+#tMain{padding:20px 22px 40px;max-width:1400px;margin:0 auto}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.ctrl button{font-size:1.05rem}
+.big{font-size:clamp(1.6rem,3.2vw,2.6rem)}
+.join{display:grid;grid-template-columns:minmax(260px,420px) 1fr;gap:28px;align-items:start}
+.join canvas{width:100%;aspect-ratio:1;background:#fff;border-radius:14px}
+.code{font-family:var(--display);font-size:3rem;font-weight:800;letter-spacing:.12em}
+.nicks{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.nicks button{padding:.3em .7em;font-size:.95rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.clock{font-family:var(--display);font-size:3rem;font-weight:800}
+.chip{display:inline-block;border-radius:999px;padding:.2em .7em;margin:3px;font-weight:700;font-family:var(--display)}
+.chip.k{background:var(--kauf-soft);color:var(--kauf)} .chip.v{background:var(--verk-soft);color:var(--verk)}
+.banner{border-radius:12px;padding:12px 16px;margin-top:14px;font-size:1.2rem}
+.banner.ok{background:color-mix(in srgb,var(--ok) 15%,var(--surface));border:2px solid var(--ok)}
+.banner.nf{background:var(--kauf-soft);border:2px solid var(--kauf)}
+.banner.af{background:var(--verk-soft);border:2px solid var(--verk)}
+.banner.info{background:var(--surface);border:2px solid var(--brand)}
+.satz{display:block;margin-top:6px;font-size:1rem;color:var(--muted)}
+.hbar{display:grid;grid-template-columns:140px 1fr 60px;gap:10px;align-items:center;margin:10px 0;font-size:1.15rem}
+.hbar .t{height:34px;border-radius:8px;background:var(--surface2);overflow:hidden}
+.hbar .t i{display:block;height:100%;transition:width .4s}
+.hbar b{font-family:var(--display);font-size:1.8rem;text-align:right}
+table.mt{border-collapse:collapse;width:100%;background:var(--surface);border-radius:12px;overflow:hidden;font-size:1.05rem}
+table.mt th,table.mt td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:center}
+table.mt th{background:var(--surface2);font-size:.9rem}
+table.mt tr.cur td{outline:3px solid var(--brand);outline-offset:-3px}
+table.mt tr.eq td{background:color-mix(in srgb,var(--ok) 18%,var(--surface));font-weight:700}
+.pchips{display:flex;gap:6px;flex-wrap:wrap}
+.pchips button{font-family:var(--display);font-weight:800;font-size:1.1rem;padding:.4em .8em}
+.pchips button.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.pchips button.done{border-color:var(--ok);border-width:2px}
+.scen{text-align:left;padding:14px;border-radius:14px;border:2px solid var(--line)}
+.scen b{display:block;font-family:var(--display);font-size:1.3rem;margin-bottom:4px}
+svg text{font-family:var(--body)}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.timer{font-family:var(--display);font-size:3rem;font-weight:800;min-width:2.2em;text-align:center;border-radius:50%;background:var(--surface);border:4px solid var(--brand);aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.opt{border-radius:14px;padding:14px 16px;color:#fff;font-size:1.2rem;font-weight:700;position:relative}
+.o0{background:#b3261e}.o1{background:#1f5fae}.o2{background:#8a5300}.o3{background:#3a7a1c}.o4{background:#8537a3}
+.opt.wrong{opacity:.35}
+.opt .cnt{position:absolute;right:14px;top:10px;font-family:var(--display);font-size:1.6rem}
+.top{list-style:none;padding:0;margin:0}
+.top li{display:flex;justify-content:space-between;padding:8px 12px;border-radius:10px;background:var(--surface);margin-bottom:6px;font-size:1.15rem}
+.top li b{font-family:var(--display)}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:16px;margin-top:24px}
+.podium div{background:var(--brand);color:var(--brand-ink);border-radius:14px 14px 0 0;width:200px;text-align:center;padding:12px;font-family:var(--display);font-weight:800}
+.podium span{display:block;font-size:1.4rem}
+.pro{font-size:.75rem;font-weight:700;background:var(--brand);color:var(--brand-ink);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.qtab{border-collapse:collapse;margin:8px 0;background:var(--surface)}
+.qtab td,.qtab th{border:1px solid var(--line);padding:4px 10px;text-align:center}
+@media (max-width:900px){.two,.three,.join,.opts{grid-template-columns:1fr}}
+/* ---------- Handy ---------- */
+#phone{max-width:560px;margin:0 auto;padding:14px 16px 40px}
+#phone .ph-top{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;color:var(--muted);margin-bottom:10px}
+.card{border-radius:18px;padding:16px 18px;border:3px solid;margin-bottom:12px}
+.card.K{background:var(--kauf-soft);border-color:var(--kauf)} .card.V{background:var(--verk-soft);border-color:var(--verk)} .card.B{background:var(--beob-soft);border-color:var(--beob)}
+.card .role{font-family:var(--display);font-weight:800;font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase}
+.card.K .role{color:var(--kauf)} .card.V .role{color:var(--verk)} .card.B .role{color:var(--beob)}
+.card .val{font-family:var(--display);font-weight:800;font-size:2.6rem;line-height:1.05}
+.card .cd{margin-top:8px;font-size:1rem}
+.card .cd b{font-family:var(--display);font-size:1.8rem;letter-spacing:.1em}
+.step{display:flex;align-items:center;gap:8px;margin:8px 0}
+.step button{font-size:1.2rem;font-weight:800;padding:.5em .7em;min-width:3.2em}
+.step .pv{flex:1;text-align:center;font-family:var(--display);font-weight:800;font-size:2rem}
+.status{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--surface2)}
+.status.ok{background:color-mix(in srgb,var(--ok) 15%,var(--surface))}
+.status.bad{background:color-mix(in srgb,var(--bad) 15%,var(--surface))}
+.yn{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.yn button{padding:20px 10px;font-size:1.2rem;font-weight:700;border-radius:14px;border:3px solid var(--line)}
+.yn button.sel{outline:4px solid var(--ink);outline-offset:1px}
+.yn .y{background:color-mix(in srgb,var(--ok) 18%,var(--surface));border-color:var(--ok)}
+.yn .n{background:color-mix(in srgb,var(--bad) 12%,var(--surface));border-color:var(--bad)}
+.pbtn{display:block;width:100%;text-align:left;margin:8px 0;padding:14px;border-radius:14px;font-size:1.05rem}
+.pbtn.sel{outline:4px solid var(--ink);outline-offset:-2px}
+.popt{display:block;width:100%;margin:10px 0;padding:16px 14px;border-radius:14px;color:#fff;border:none;font-size:1.05rem;font-weight:700;text-align:left}
+.bigpts{font-family:var(--display);font-size:2.4rem;font-weight:800}
+.ansage{font-family:var(--display);font-weight:800;font-size:3rem;text-align:center;margin:6px 0}
+
+:root{--st:#b3261e;--st-soft:#f9e0de;--fo:#1f7a3f;--fo-soft:#dcefe2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--st:#ff8a80;--st-soft:#3a1d1b;--fo:#6fcf8e;--fo-soft:#173222}}
+:root[data-theme="dark"]{--st:#ff8a80;--st-soft:#3a1d1b;--fo:#6fcf8e;--fo-soft:#173222}
+.cloud{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.cloud button{font-family:var(--display);font-weight:800;border-radius:12px;background:var(--surface);padding:.2em .6em;line-height:1.2}
+.cloud button.sel{outline:4px solid var(--brand)}
+.cloud small{font-size:.6em;color:var(--muted)}
+.scr button{display:flex;gap:10px;width:100%;text-align:left;margin:5px 0;padding:.5em .8em;align-items:center}
+.scr .nr{font-family:var(--display);font-weight:800;min-width:1.6em}
+.scr.blur .tx{filter:blur(7px);transition:filter .15s}
+.scr.blur button:hover .tx,.scr.blur button:focus .tx{filter:none}
+.scr button.on{background:var(--fo-soft);border-color:var(--fo);border-width:2px}
+.scr button.on .nr::after{content:" ✓";color:var(--fo)}
+.cats{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.cat{border-radius:12px;padding:12px 18px;font-family:var(--display);font-weight:800;font-size:1.4rem}
+.cat.st{background:var(--st-soft);color:var(--st);border:2px solid var(--st)}
+.sopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0}
+.sopt{border-radius:14px;padding:16px;font-size:1.3rem;font-weight:700;display:flex;justify-content:space-between;align-items:center;border:3px solid}
+.sopt.st{background:var(--st-soft);border-color:var(--st)} .sopt.fo{background:var(--fo-soft);border-color:var(--fo)}
+.sopt b{font-family:var(--display);font-size:2rem}
+.sopt.right{outline:5px solid var(--ok);outline-offset:2px} .sopt.wrong{opacity:.35}
+.wcats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:12px 0}
+.wcat{border-radius:12px;padding:10px 12px;min-height:90px;cursor:pointer;border:2px solid var(--line);background:var(--surface)}
+.wcat.st{border-color:var(--st)} .wcat.st b{color:var(--st)} .wcat.fo{border-color:var(--fo)} .wcat.fo b{color:var(--fo)}
+.chip2{display:inline-block;background:var(--surface2);border-radius:999px;padding:.15em .6em;margin:3px 2px;font-weight:700}
+.steps3{font-size:1.15rem;padding-left:1.4em} .steps3 li{margin:4px 0}
+.steps3.sm{font-size:1rem;margin:8px 0}
+.bk{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.bk span,.bk button{background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:.25em .7em;font-size:.95rem}
+.tab{padding:.35em .9em}.tab.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+s.neg{text-decoration-color:var(--st);text-decoration-thickness:3px;color:var(--muted)}
+.rans{display:flex;justify-content:space-between;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:8px 0}
+.rans .rt{font-size:1.3rem;font-weight:700}
+.rans .rz{font-size:1rem;color:var(--muted);margin-top:4px}
+.rans.star{border:3px solid var(--fo);background:var(--fo-soft)}
+.rans button{padding:.3em .7em;font-size:.9rem}
+.vc{font-family:var(--display);font-size:1.8rem;min-width:1.5em;text-align:right}
+table.lt td,table.lt th{text-align:left;vertical-align:top}
+/* Handy */
+.bg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+.bg button{min-height:92px;font-size:.88rem;line-height:1.2;padding:6px;border-radius:12px;border:2px solid var(--line);background:var(--surface);position:relative;overflow:hidden}
+.bg button.x{background:var(--st-soft);border-color:var(--st)}
+.bg button.x::after{content:"";position:absolute;inset:0;background:linear-gradient(45deg,transparent 47%,var(--st) 47%,var(--st) 53%,transparent 53%),linear-gradient(-45deg,transparent 47%,var(--st) 47%,var(--st) 53%,transparent 53%);opacity:.3;pointer-events:none}
+button.bingo{width:100%;font-family:var(--display);font-size:2rem;padding:14px}
+.bigst{font-size:1.2rem}
+input[type=range]{padding:0;width:100%;accent-color:var(--brand);height:40px}
+.rg-l{display:flex;justify-content:space-between;font-weight:700;font-size:.95rem;gap:10px}
+.rg-l span:last-child{text-align:right}
+.neg-box{background:var(--st-soft);border-left:6px solid var(--st);border-radius:10px;padding:12px 14px;font-size:1.15rem;font-weight:700;margin:8px 0}
+.pbtn.st{border-color:var(--st)} .pbtn.fo{border-color:var(--fo)}
+.pbtn.own{opacity:.6}
+.hint{font-size:.95rem;margin-top:6px;color:var(--muted);min-height:1.2em}
+details.pz{margin-top:12px}
+@media (max-width:900px){table.lt{font-size:.9rem}}
+.neg-box.big2{font-size:clamp(1.4rem,2.6vw,2.1rem);margin:14px 0 6px}
+@media(max-width:520px){table.mt.lt{width:100%;table-layout:fixed;font-size:.85rem}table.mt.lt th,table.mt.lt td{padding:6px 4px;overflow-wrap:break-word;hyphens:auto}}
+
+/* Sprachen */
+.dd{display:none}
+body.showde .dd,.dd.show{display:block;font-size:.72em;font-weight:400;line-height:1.25;opacity:.85;margin-top:2px;direction:ltr;text-align:left;unicode-bidi:isolate}
+.bg.trb button{min-height:132px;font-size:.8rem;padding:5px}
+.bg.trb button .dd{font-size:.76em;opacity:.9}
+.neg-box .dd.show,.pbtn .dd.show{font-size:.62em;font-weight:400}
+.langbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+.langbar button{padding:8px 14px;border:2px solid var(--line);border-radius:99px;background:var(--surface);color:var(--ink);font-size:1rem;font-weight:700;min-height:0}
+.langbar button.on{outline:3px solid var(--brand);outline-offset:-2px}
+.langbar label{white-space:nowrap}.langbar input{width:auto;min-height:0;margin:0}
+.langbar label{font-size:.95rem;display:flex;gap:6px;align-items:center;margin-inline-start:auto}
+.chooser{display:grid;gap:12px;margin-top:18px}
+.chooser button{padding:22px;font-size:1.6rem;font-weight:800;border-radius:14px}
+#phone[dir=rtl]{text-align:right}
+#phone[dir=rtl] .pbtn,#phone[dir=rtl] .popt,#phone[dir=rtl] .neg-box{text-align:right}
+#phone[dir=rtl] .neg-box{border-left:0;border-right:6px solid var(--st)}
+:lang(ar){font-family:"Segoe UI","Noto Sans Arabic","Geeza Pro",Tahoma,system-ui,sans-serif}
+</style>
+</head>
+<body>
+<div id="tafel" hidden>
+  <header>
+    <h1>Störer-Bingo · LF 2 Modul 1</h1>
+    <nav class="steps" id="steps"></nav>
+    <div class="mini"><canvas id="qrSmall" width="128" height="128"></canvas><div><b id="miniCode"></b><br><span id="miniN"></span><br><span id="conn"></span></div></div>
+  </header>
+  <main id="tMain"></main>
+</div>
+<div id="phone" hidden></div>
+<script>
+var QRLib=(function(){var M={};function R(n){n=n.replace("./","");return M[n]();}
+M["QR8bitByte"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMode = R("./QRMode");
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+})(c,c.exports);return c.exports;};})();
+M["QRBitBuffer"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+})(c,c.exports);return c.exports;};})();
+M["QRErrorCorrectLevel"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+})(c,c.exports);return c.exports;};})();
+M["QRMaskPattern"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+})(c,c.exports);return c.exports;};})();
+M["QRMath"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+})(c,c.exports);return c.exports;};})();
+M["QRMode"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+})(c,c.exports);return c.exports;};})();
+M["QRPolynomial"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMath = R("./QRMath");
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+})(c,c.exports);return c.exports;};})();
+M["QRRSBlock"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRErrorCorrectLevel = R("./QRErrorCorrectLevel");
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+})(c,c.exports);return c.exports;};})();
+M["QRUtil"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMode = R("./QRMode");
+var QRPolynomial = R("./QRPolynomial");
+var QRMath = R("./QRMath");
+var QRMaskPattern = R("./QRMaskPattern");
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+})(c,c.exports);return c.exports;};})();
+M["index"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = R("./QR8bitByte");
+var QRUtil = R("./QRUtil");
+var QRPolynomial = R("./QRPolynomial");
+var QRRSBlock = R("./QRRSBlock");
+var QRBitBuffer = R("./QRBitBuffer");
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+})(c,c.exports);return c.exports;};})();
+return {QRCode:R("./index"),ECL:R("./QRErrorCorrectLevel")};})();
+</script>
+
+<script>
+/* =========================================================
+   Kleiner MQTT-3.1.1-Client über WebSocket (wie im Standort-Spiel)
+   ========================================================= */
+const TE=new TextEncoder(), TD=new TextDecoder();
+function mqStr(s){const b=TE.encode(s);return [b.length>>8,b.length&255,...b];}
+function mqLen(n){const o=[];do{let d=n%128;n=Math.floor(n/128);if(n>0)d|=128;o.push(d);}while(n>0);return o;}
+function mqPacket(h,body){return new Uint8Array([h,...mqLen(body.length),...body]);}
+class MqttLink{
+  constructor(url,cid,onMsg,onStatus){this.url=url;this.cid=cid;this.onMsg=onMsg;this.onStatus=onStatus;this.subs=new Set();this.up=false;this.buf=new Uint8Array(0);this.pid=1;this.tries=0;this.connect();}
+  connect(){
+    clearTimeout(this.rt);clearInterval(this.ping);let ws;
+    try{ws=new WebSocket(this.url,["mqtt"]);}catch(e){this.retry();return;}
+    this.ws=ws;ws.binaryType="arraybuffer";
+    const guard=setTimeout(()=>{if(!this.up){try{ws.close();}catch(e){}}},9000);
+    ws.onopen=()=>{ws.send(mqPacket(0x10,[...mqStr("MQTT"),4,0x02,0,30,...mqStr(this.cid+"-"+Math.random().toString(36).slice(2,6))]));};
+    ws.onmessage=(ev)=>{const d=new Uint8Array(ev.data);const nb=new Uint8Array(this.buf.length+d.length);nb.set(this.buf);nb.set(d,this.buf.length);this.buf=nb;this.parse();};
+    ws.onclose=()=>{clearTimeout(guard);this.up=false;clearInterval(this.ping);this.onStatus();this.retry();};
+    ws.onerror=()=>{};
+  }
+  retry(){this.tries++;this.rt=setTimeout(()=>this.connect(),Math.min(15000,800*Math.pow(1.6,this.tries)));}
+  parse(){
+    while(this.buf.length>=2){
+      let mult=1,len=0,i=1,b;
+      do{if(i>=this.buf.length)return;b=this.buf[i++];len+=(b&127)*mult;mult*=128;}while(b&128);
+      if(this.buf.length<i+len)return;
+      const type=this.buf[0]>>4,flags=this.buf[0]&15,body=this.buf.subarray(i,i+len);this.buf=this.buf.slice(i+len);
+      if(type===2){if(body[1]===0){this.up=true;this.tries=0;for(const t of this.subs)this.sendSub(t);
+          this.ping=setInterval(()=>{try{this.ws.send(new Uint8Array([0xC0,0]));}catch(e){}},20000);this.onStatus(true);}else{try{this.ws.close();}catch(e){}}}
+      else if(type===3){const tl=(body[0]<<8)|body[1];const topic=TD.decode(body.subarray(2,2+tl));let p=2+tl;const qos=(flags>>1)&3;
+        if(qos>0){const id=(body[p]<<8)|body[p+1];p+=2;if(qos===1){try{this.ws.send(new Uint8Array([0x40,2,id>>8,id&255]));}catch(e){}}}
+        let payload=null;try{payload=JSON.parse(TD.decode(body.subarray(p)));}catch(e){}
+        if(payload!==null)this.onMsg(topic,payload,(flags&1)===1);}
+    }
+  }
+  sendSub(t){const id=this.pid=(this.pid%60000)+1;try{this.ws.send(mqPacket(0x82,[id>>8,id&255,...mqStr(t),0]));}catch(e){}}
+  subscribe(t){this.subs.add(t);if(this.up)this.sendSub(t);}
+  publish(t,obj,retain){if(!this.up)return false;const body=[...mqStr(t),...TE.encode(obj===null?"":JSON.stringify(obj))];
+    try{this.ws.send(mqPacket(retain?0x31:0x30,body));return true;}catch(e){return false;}}
+}
+/* Lokaler Testbetrieb: ?bc=1 verbindet nur Tabs im selben Browser (zum Ausprobieren ohne Internet) */
+class LocalLink{
+  constructor(cid,onMsg,onStatus){this.up=true;this.subs=new Set();this.bc=new BroadcastChannel("stoerer-bingo");
+    this.bc.onmessage=e=>{const m=e.data;if(this.subs.has(m.t))onMsg(m.t,m.p,false);};setTimeout(()=>onStatus(true),50);}
+  subscribe(t){this.subs.add(t);}
+  publish(t,obj){this.bc.postMessage({t,p:JSON.parse(JSON.stringify(obj))});return true;}
+}
+const params=new URLSearchParams(location.search);
+const LOCAL=params.get("bc")==="1";
+const BROKERS=params.get("broker")?[params.get("broker")]:["wss://broker.hivemq.com:8884/mqtt","wss://broker.emqx.io:8084/mqtt"];
+const NS="stoererbingo1/";
+class Net{
+  constructor(onMsg,onStatus){
+    this.cid="p"+rnd(10);this.seen=new Map();this.onMsg=onMsg;
+    const st=()=>onStatus(this.count());
+    this.links=LOCAL?[new LocalLink(this.cid,(t,p,r)=>this.recv(t,p,r),st)]:BROKERS.map(u=>new MqttLink(u,this.cid,(t,p,r)=>this.recv(t,p,r),st));
+  }
+  count(){return {up:this.links.filter(l=>l.up).length,all:this.links.length};}
+  recv(t,p,r){
+    if(p&&typeof p==="object"&&p.mid){const now=Date.now();if(this.seen.has(p.mid))return;this.seen.set(p.mid,now);
+      if(this.seen.size>3000){for(const [k,v] of this.seen){if(now-v>600000)this.seen.delete(k);}}}
+    this.onMsg(t,p,r);
+  }
+  sub(t){this.links.forEach(l=>l.subscribe(NS+t));}
+  pub(t,obj,retain){obj.mid=rnd(12);let ok=false;this.links.forEach(l=>{if(l.publish(NS+t,obj,retain))ok=true;});return ok;}
+}
+function rnd(n){const a="abcdefghijkmnpqrstuvwxyz23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(n));for(const x of r)s+=a[x%a.length];return s;}
+function codeGen(){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(5));for(const x of r)s+=a[x%a.length];return s;}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k));localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+const $=id=>document.getElementById(id);
+function clean(s,max){return String(s==null?"":s).replace(/[\u0000-\u001f\u007f​-‏‪-‮]/g," ").trim().slice(0,max);}
+function h(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+const eur=c=>(c/100).toFixed(2).replace(".",",")+" €";
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+
+/* =========================================================
+   Inhalte: LF 2 · Modul 1 – Kundenorientiert kommunizieren
+   Sätze wörtlich aus dem Bingo-Skript (Einstiegsmaterial), Störer und Förderer aus dem Aufgabenblatt.
+   ========================================================= */
+const PHASES=["Start","Meinungslinie","Bingo","Sortieren","Reparieren","Merken","Prüfungs-Check","Sieger"];
+const STOER=["Befehl","Killerphrase","Überredungsversuch","Vorwurf","Erwartungen dämpfen"];
+const FOERD=["Aktives Zuhören","Kundenorientierte Sprache","Gute Stimmtechnik"];
+/* y:"s" = Gesprächsstörer (k = Index in STOER) · y:"f" = hier fehlt ein Gesprächsförderer (k = Index in FOERD) */
+const SENT=[
+ {t:"Nehmen Sie einfach die hier. Greifen Sie zu, die ist reduziert.",c:"„Greifen Sie zu, die ist reduziert.“",y:"s",k:0,x:"„Greifen Sie zu“ ist eine Aufforderung. Wer Befehle gibt, stellt sich über die Kundin."},
+ {t:"Das verstehen Sie nicht, ich bin hier die Fachfrau.",c:"„Das verstehen Sie nicht, ich bin hier die Fachfrau.“",y:"s",k:1,x:"Abwertend und verletzend: Die Kundin wird für dumm erklärt. Killerphrasen kommen oft, wenn Sachargumente fehlen."},
+ {t:"An Ihrer Stelle würde ich nicht so lange überlegen.",c:"„An Ihrer Stelle würde ich nicht so lange überlegen.“",y:"s",k:2,x:"Die Kundin soll schnell kaufen, statt selbst zu entscheiden. Der Kauf wird ihr aufgezwungen."},
+ {t:"Ich habe Ihnen doch gesagt, dass wir keine Winterware mehr haben.",c:"„Ich habe Ihnen doch gesagt …“",y:"s",k:3,x:"„Ich habe Ihnen doch gesagt“ gibt der Kundin die Schuld. Vorwürfe kommen oft, wenn der Kunde der Argumentation nicht folgt."},
+ {t:"Also, warm und dünn – das geht eigentlich gar nicht.",c:"„Das geht eigentlich gar nicht.“",y:"s",k:4,x:"Der Wunsch der Kundin wirkt unerfüllbar. Sie wird verunsichert."},
+ {t:"Da bin ich nicht zuständig.",c:"„Da bin ich nicht zuständig.“",y:"f",k:1,x:"Negative Formulierung: Die Kundin hört nur, was nicht geht. Kundenorientiert: „Ich stelle Ihnen gleich die zuständige Kollegin vor.“"},
+ {t:"So ein Quatsch, das hält doch keinen Winter.",c:"„So ein Quatsch.“",y:"s",k:1,x:"„So ein Quatsch“ verletzt die Kundin und beendet jedes Gespräch."},
+ {t:"Wären Sie letzte Woche gekommen, hätten wir noch Auswahl gehabt.",c:"„Wären Sie letzte Woche gekommen …“",y:"s",k:3,x:"Die Kundin ist angeblich selbst schuld, weil sie zu spät gekommen ist."},
+ {t:"Entscheiden Sie sich jetzt, ich habe noch andere Kunden.",c:"„Entscheiden Sie sich jetzt.“",y:"s",k:0,x:"Eine Aufforderung im Befehlston. Die Verkäuferin stellt ihre Zeit über die Kundin."},
+ {t:"Ich kann nicht oft genug sagen, dass Sie da nicht lange warten sollten.",c:"„Ich kann nicht oft genug sagen …“",y:"s",k:2,x:"Druck durch Wiederholung: Die Kundin soll überredet werden."},
+ {t:"Da müsste ich mal nachsehen. Aber ich glaube nicht, dass da noch was ist.",c:"„Da müsste ich mal nachsehen.“",y:"s",k:4,x:"„Ich glaube nicht, dass da noch was ist“ nimmt der Kundin jede Hoffnung, bevor überhaupt jemand nachgesehen hat."},
+ {t:"Moment noch. (sortiert weiter ein und schaut nicht auf)",c:"„Moment noch.“",y:"f",k:0,x:"Kein Blickkontakt, die Kundin muss warten. Aktives Zuhören heißt: sich zuwenden, ansehen, mit echtem Interesse eine Lösung suchen."}
+];
+const SCRIPT=[11,4,3,10,0,9,1,2,5,6,7,8];   /* Reihenfolge im Skript der Lehrkraft */
+const ROLE_K="„Guten Tag. Ich suche eine Jacke für meine Tochter, sie ist vierzehn. Sie soll warm sein, aber nicht zu dick.“";
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+/* Reparieren: Sätze aus dem Bingo (nicht die aus Aufgabe 3 des Arbeitsblatts) */
+const REP=[
+ {t:"Nehmen Sie einfach die hier. Greifen Sie zu, die ist reduziert.",s:"Befehl",m:"„Diese Jacke ist gerade reduziert. Möchten Sie sie einmal ansehen?“"},
+ {t:"Das verstehen Sie nicht, ich bin hier die Fachfrau.",s:"Killerphrase",m:"„Gern erkläre ich Ihnen, worauf es bei einer Winterjacke ankommt.“"},
+ {t:"Ich habe Ihnen doch gesagt, dass wir keine Winterware mehr haben.",s:"Vorwurf",m:"„Unsere Winterjacken sind ausverkauft. Ich zeige Ihnen gern eine gefütterte Übergangsjacke, die Ihre Tochter warm hält.“"},
+ {t:"Also, warm und dünn – das geht eigentlich gar nicht.",s:"Erwartungen dämpfen",m:"„Sie suchen also eine Jacke, die warm und trotzdem leicht ist. Da zeige ich Ihnen gern zwei Modelle.“"},
+ {t:"Wären Sie letzte Woche gekommen, hätten wir noch Auswahl gehabt.",s:"Vorwurf",m:"„In der Größe Ihrer Tochter habe ich noch drei schöne Modelle für Sie.“"},
+ {t:"Da müsste ich mal nachsehen. Aber ich glaube nicht, dass da noch was ist.",s:"Erwartungen dämpfen",m:"„Ich sehe sofort für Sie im Lager nach.“"}
+];
+const BAUK=["Damit können Sie …","Für Sie bedeutet das, dass …","Ihnen bringt das …","Wenn ich Sie richtig verstanden habe, …","Sie suchen also …","Ich sehe sofort nach.","Ich kümmere mich darum.","Gern zeige ich Ihnen …"];
+const STEPS3=["Was hört der Kunde?","Was ist eigentlich gemeint?","Wie sage ich es positiv und im Sie-Stil?"];
+
+const MERK=`<div class="merk"><b>Merke:</b> Die Sprache ist das wichtigste <span class="term">Verkaufsinstrument</span>. Wichtig ist nicht nur, <i>was</i> ein Verkäufer sagt, sondern auch, <i>wie</i> er es sagt.</div>
+<h3 style="margin-top:14px;color:var(--fo)">Die 3 Gesprächsförderer</h3>
+<table class="mt lt"><tr><th>Fachbegriff</th><th>Das bedeutet er</th><th>So klingt das</th></tr>
+<tr><td><b>Aktives Zuhören</b></td><td>Sich in den Kunden hinein&shy;versetzen, mit echtem Interesse eine Lösung suchen</td><td>„Wenn ich Sie richtig verstanden habe, suchen Sie …“</td></tr>
+<tr><td><b>Kunden&shy;orientierte Sprache</b><br><span class="alt">Sie-Stil, positive Formulierung</span></td><td>„Sie“, „Ihr“, „Ihnen“ statt „ich“ oder „man“; positiv statt negativ</td><td>„Damit können Sie …“ statt „Damit kann man …“</td></tr>
+<tr><td><b>Gute Stimmtechnik</b></td><td>Angenehmer Tonfall, saubere Aussprache, melodische Stimmführung, wechselnde Lautstärke, Sprechpausen</td><td>natürlich, nicht aufgesetzt</td></tr></table>
+<h3 style="margin-top:14px;color:var(--st)">Die 5 Gesprächsstörer</h3>
+<table class="mt lt"><tr><th>Fachbegriff</th><th>Was dahintersteckt</th><th>Beispiel</th></tr>
+<tr><td><b>Befehle</b></td><td>Der Verkäufer fühlt sich überlegen.</td><td>„Greifen Sie sofort zu!“</td></tr>
+<tr><td><b>Killerphrasen</b><br><span class="alt">abwertende Äußerungen</span></td><td>Verletzend; kommen oft, wenn Sachargumente fehlen.</td><td>„Das verstehen Sie nicht!“</td></tr>
+<tr><td><b>Überredungs&shy;versuche</b></td><td>Der Kauf wird aufgezwungen.</td><td>„An Ihrer Stelle würde ich nicht warten …“</td></tr>
+<tr><td><b>Vorwürfe</b></td><td>Der Kunde bekommt die Schuld.</td><td>„Sie haben meinen Rat nicht befolgt …“</td></tr>
+<tr><td><b>Erwartungen dämpfen</b></td><td>Der Kunde wird verunsichert.</td><td>„Dieses Handy ist schwierig zu bedienen.“</td></tr></table>
+<div class="merk"><b>Verständlich formulieren:</b> kurze Sätze · bekannte Wörter, kein Fachchinesisch · anschaulich · nur das Wesentliche · Sie-Stil.<br>
+<b>Satzbaustein:</b> „Gesprächsstörer sind Aussagen, die das Verkaufsgespräch belasten. Ein Beispiel ist …“</div>`;
+
+const DUR=30,DURPRO=45,SORTPTS=300;
+const QUIZ=[
+ {q:"Ein Kunde fragt: „Läuft dieser In-Ear-Kopfhörer auch beim Joggen störungsfrei?“ Bei welcher Antwort liegt ein Gesprächsförderer vor?",src:"",
+  o:["„Wenn Sie die Gebrauchsanweisung genau beachten, sollte das problemlos funktionieren!“","„Ich benutze dieses Gerät selbst und war bisher immer sehr zufrieden!“","„Dieser In-Ear-Kopfhörer ist nicht erschütterungsempfindlich. Sie können auch beim Joggen Ihre Musik genießen!“","„Es gab bisher noch kein negatives Feedback!“","„Probieren Sie es doch aus. Notfalls bringen Sie das Gerät wieder zurück!“"],k:2,
+  x:"C ist sachlich, im Sie-Stil und nennt den Nutzen für den Kunden. A und E verunsichern (Erwartungen dämpfen), B spricht von „ich“, D ist negativ formuliert."},
+ {q:"Welcher Gesprächsstörer liegt vor? „Sie haben meinen Rat nicht befolgt, deshalb ist das Gerät jetzt kaputt.“",src:"nach Lehrbuch S. 94–97",
+  o:["Befehl","Killerphrase","Überredungsversuch","Vorwurf","Erwartungen dämpfen"],k:3,x:"Der Kunde bekommt die Schuld. Das ist ein Vorwurf."},
+ {q:"Welche Aussage ist im Sie-Stil formuliert?",src:"nach Lehrbuch S. 94–97",
+  o:["„Man kann den Akku in zwei Stunden laden.“","„Ich finde, der Akku ist schnell geladen.“","„Den Akku können Sie in zwei Stunden aufladen.“","„Der Akku ist nicht langsam.“","„Wir haben den Akku auch schon getestet.“"],k:2,
+  x:"Im Sie-Stil steht der Kunde im Mittelpunkt: „Sie“, „Ihr“, „Ihnen“ statt „ich“, „wir“ oder „man“. D ist außerdem negativ formuliert."},
+ {q:"Woran merkt ein Kunde, dass der Verkäufer aktiv zuhört?",src:"nach Lehrbuch S. 94–97",
+  o:["Der Verkäufer sortiert weiter ein und sagt „Ja, ja“.","Der Verkäufer fasst den Wunsch zusammen: „Wenn ich Sie richtig verstanden habe, …“","Der Verkäufer erzählt von seinen eigenen Erfahrungen.","Der Verkäufer unterbricht, um Zeit zu sparen.","Der Verkäufer nennt sofort den Preis."],k:1,
+  x:"Wer den Wunsch mit eigenen Worten zusammenfasst, zeigt: Ich habe Sie verstanden. Das ist aktives Zuhören."},
+ {q:"Im Verlauf einer Schulung betonen Sie, dass bei der Beratung auch die Stimme wichtig ist. Mit welchem Argument können Sie diese These verdeutlichen?",src:"",
+  o:["Die fachliche Kompetenz wird durch schnelles Sprechen überzeugen.","Eine monotone Stimme hat im Verkaufsgespräch eine beruhigende Wirkung.","Je lauter die Stimme, umso höher die Kundenbindung an das Warenhaus.","Dialekt bindet den Kunden in seiner Region.","Eine sympathische Stimme hilft, den Kunden zu überzeugen."],k:4,
+  x:"Gute Stimmtechnik heißt: angenehmer Tonfall, melodische Stimmführung, wechselnde Lautstärke, Pausen. Schnell, monoton oder laut wirkt nicht überzeugend."},
+ {q:"Prüfen Sie, welche Formulierung beim Kunden Vertrauen und Zuversicht schafft!",src:"",
+  o:["„Das ist eine neue Information für mich. Ich werde mich sofort nach dieser Möglichkeit erkundigen!“","„Da gebe ich Ihnen recht, jedoch ist der Fehler nun einmal passiert!“","„Da muss ich Sie auf unsere Allgemeinen Geschäftsbedingungen hinweisen!“","„Da bitte ich Sie um Ihr Verständnis, aber wir haben unsere Anweisungen von der Geschäftsleitung!“","„Da haben Sie mich falsch verstanden. Gern erkläre ich es Ihnen noch einmal!“"],k:0,
+  x:"A ist positiv und verspricht eine Handlung („sofort erkundigen“). E enthält einen versteckten Vorwurf, B–D wehren den Kunden ab."},
+ {q:"Eine Kundin fragt: „Ist die Jacke wasserdicht?“ Welche Antwort verbindet aktives Zuhören, Sie-Stil und positive Formulierung?",pro:1,src:"Profi",
+  o:["„Nicht ganz, aber bei leichtem Regen geht das schon.“","„Sie möchten also auch bei Regen trocken bleiben. Mit dieser Jacke bleiben Sie bis zu drei Stunden im Regen trocken.“","„Man kann sie auch bei Regen tragen.“","„Ich würde damit nicht in den Regen gehen.“","„Das habe ich Ihnen doch schon gesagt: Sie ist wasserabweisend.“"],k:1,
+  x:"B fasst zuerst den Wunsch zusammen (aktives Zuhören), spricht die Kundin mit „Sie“ an und sagt, was die Jacke kann. A und D dämpfen Erwartungen, C ist „man“-Stil, E ist ein Vorwurf.",
+  pz:"Formuliere A so um, dass die Kundin dasselbe erfährt, aber positiv."},
+ {q:"Eine Verkäuferin sagt: „Wenn Sie heute nicht zugreifen, ist die Jacke morgen weg. An Ihrer Stelle würde ich sie sofort nehmen.“ Welche Aussage trifft zu?",pro:1,src:"Profi",
+  o:["Das ist ein Gesprächsförderer, weil sie im Sie-Stil spricht.","Das ist ein Überredungsversuch. Der Sie-Stil allein macht den Satz nicht kundenorientiert.","Das ist eine Killerphrase, weil sie die Kundin beleidigt.","Das ist aktives Zuhören, weil sie auf das Zögern reagiert.","Das ist gute Stimmtechnik, weil der Satz kurz ist."],k:1,
+  x:"Die Kundin soll unter Zeitdruck kaufen. Das ist ein Überredungsversuch, auch wenn das Wort „Sie“ darin vorkommt.",
+  pz:"Wie könnte die Verkäuferin auf das Zögern reagieren, ohne Druck zu machen?"}
+];
+</script>
+<script>
+/* =========================================================
+   TAFEL (Lehrkraft, Beamer)
+   ========================================================= */
+function tafelApp(){
+  $("tafel").hidden=false;
+  const KEY="stoererbingo_tafel";
+  const fresh=()=>({code:codeGen(),ph:0,pl:{},kick:[],url:"",
+    line:{},hideW:[],lnNames:false,
+    said:[],bingo:[],bno:{},bStart:0,showScr:false,
+    so:-1,soOpen:false,soAns:{},soView:"i",wmap:{},
+    rp:{},rpA:{},rs:0,rv:0,rvOpen:false,rvShow:false,rvM:false,votes:{},star:{},hideA:[],
+    q:-1,qOpen:false,qStart:0,qAns:{}});
+  let T=store(KEY);if(!T||!T.code)T=fresh();
+  let conn={up:0,all:2},pubT=null,subbed="",selW=null;
+  const net=new Net(onMsg,c=>{conn=c;if(c.up)pub();renderHead();});
+  function sub(){if(subbed!==T.code){subbed=T.code;net.sub(T.code+"/in");}}
+  sub();
+  const save=()=>store(KEY,T);
+  const players=()=>Object.keys(T.pl);
+  const optsOf=i=>SENT[i].y==="s"?STOER:FOERD;
+  const bRank=pid=>{const i=T.bingo.findIndex(b=>b.pid===pid);return i+1;};
+  function ensureRp(){let j=Object.keys(T.rp).length;for(const id of players())if(T.rp[id]==null){T.rp[id]=j%REP.length;j++;}}
+  function rvList(i){return players().filter(id=>T.rpA[id]&&T.rpA[id].i===i&&!T.hideA.includes(id)).map(id=>({pid:id,n:T.pl[id].n,t:T.rpA[id].t,z:T.rpA[id].z}));}
+
+  function onMsg(t,p){
+    if(t!==NS+T.code+"/in"||!p||!p.p)return;
+    const pid=clean(p.p,12);if(T.kick.includes(pid))return;
+    if(p.k==="hi"){const n=clean(p.n,16)||"?";
+      const lg=["de","ar","vi","tr"].includes(p.l)?p.l:"de";if(!T.pl[pid]){T.pl[pid]={n,l:lg,card:shuffle([0,1,2,3,4,5,6,7,8,9,10,11]).slice(0,9)};if(T.ph>=4)ensureRp();}else{T.pl[pid].n=n;T.pl[pid].l=lg;}}
+    else if(!T.pl[pid])return;
+    else if(p.k==="ln"&&T.ph===1&&Number.isInteger(p.v)&&p.v>=0&&p.v<=100){T.line[pid]={v:p.v,w:clean(p.w,24)};}
+    else if(p.k==="b"&&T.ph===2&&Array.isArray(p.m)){
+      if(bRank(pid))return pub();
+      const m=p.m.filter(x=>Number.isInteger(x)&&x>=0&&x<9),card=T.pl[pid].card;
+      const ok=LINES.some(L=>L.every(q=>m.includes(q)&&T.said.includes(card[q])));
+      if(ok)T.bingo.push({pid,t:Date.now()});else T.bno[pid]=(T.bno[pid]||0)+1;}
+    else if(p.k==="s"&&T.ph===3&&T.soOpen&&p.i===T.so&&Number.isInteger(p.c)&&p.c>=0&&p.c<optsOf(T.so).length){(T.soAns[T.so]=T.soAns[T.so]||{})[pid]=p.c;}
+    else if(p.k==="r"&&T.ph===4&&T.rs===0){const tx=clean(p.t,180);if(!tx)return;if(T.rp[pid]==null)ensureRp();T.rpA[pid]={t:tx,z:clean(p.z,220),i:T.rp[pid]};}
+    else if(p.k==="v"&&T.ph===4&&T.rs===1&&T.rvOpen&&p.i===T.rv&&Number.isInteger(p.c)){
+      const L=rvList(T.rv),e=L[p.c];if(!e||e.pid===pid)return;(T.votes[T.rv]=T.votes[T.rv]||{})[pid]=e.pid;}
+    else if(p.k==="a"&&T.ph===6&&T.qOpen&&p.q===T.q){
+      const A=(T.qAns[T.q]=T.qAns[T.q]||{});if(A[pid])return;
+      const c=p.c;if(!Number.isInteger(c)||c<0||c>=QUIZ[T.q].o.length)return;
+      const dur=QUIZ[T.q].pro?DURPRO:DUR,s=(Date.now()-T.qStart)/1000;
+      A[pid]={c,g:c===QUIZ[T.q].k?1000+Math.round(500*Math.max(0,1-s/dur)):0};
+      if(Object.keys(A).length>=players().length)T.qOpen=false;}
+    else return;
+    save();pub();render();
+  }
+
+  /* ---------- Punkte: Sortieren (300 je Treffer) + Prüfungs-Check ---------- */
+  function sortPts(pid){let s=0;for(const i in T.soAns){if(+i<T.so||(+i===T.so&&!T.soOpen)){const a=T.soAns[i][pid];if(a===SENT[+i].k)s+=SORTPTS;}}return s;}
+  function quizPts(pid){let s=0;for(const qi in T.qAns){if(+qi<T.q||(+qi===T.q&&!T.qOpen)){const a=T.qAns[qi][pid];if(a)s+=a.g;}}return s;}
+  function ranking(){return players().map(id=>({id,n:T.pl[id].n,s:sortPts(id)+quizPts(id)})).sort((a,b)=>b.s-a.s);}
+
+  /* ---------- Zustand an alle Handys ---------- */
+  function pub(){clearTimeout(pubT);pubT=setTimeout(()=>{
+    const pp={},L=T.ph===4&&T.rs===1?rvList(T.rv):[];
+    for(const id of players()){const P=T.pl[id];
+      pp[id]={card:P.card,bw:bRank(id),bn:T.bno[id]||0,ln:!!T.line[id],rp:T.rp[id],rpd:!!T.rpA[id],
+        sa:T.so>=0&&T.soAns[T.so]?T.soAns[T.so][id]:null,mi:L.findIndex(e=>e.pid===id),vt:!!(T.votes[T.rv]||{})[id]};
+      if(pp[id].sa===undefined)pp[id].sa=null;}
+    const S={ph:T.ph,pp,kick:T.kick,j:players(),so:T.so,soOpen:T.soOpen,rs:T.rs,rv:T.rv,rvOpen:T.rvOpen,rvL:L.map(e=>e.t),
+      q:T.q,qOpen:T.qOpen,ans:[]};
+    if(T.ph===6&&T.q>=0){S.ans=Object.keys(T.qAns[T.q]||{});S.rem=T.qOpen?Math.max(0,(QUIZ[T.q].pro?DURPRO:DUR)-(Date.now()-T.qStart)/1000):0;}
+    if(T.ph>=3){const r=ranking();S.sc={};let rank=0,last=-1;
+      r.forEach((x,i)=>{if(x.s!==last){rank=i+1;last=x.s;}const a=T.ph===6?(T.qAns[T.q]||{})[x.id]:null;S.sc[x.id]=[x.s,rank,T.qOpen?0:(a?a.g:0)];});S.np=r.length;}
+    net.pub(T.code+"/st",S,true);},120);}
+  setInterval(pub,5000);
+
+  function go(ph){T.ph=ph;if(ph===4)ensureRp();if(ph===2&&!T.bStart)T.bStart=Date.now();save();pub();render();}
+
+  /* ---------- Kopfzeile ---------- */
+  function joinUrl(){
+    const extra=(params.get("broker")?"&broker="+encodeURIComponent(params.get("broker")):"")+(LOCAL?"&bc=1":"");
+    if(location.protocol.startsWith("http"))return location.origin+location.pathname+"?s="+T.code+extra;
+    if(T.url){const u=T.url.trim();return u+(u.includes("?")?"&":"?")+"s="+T.code+extra;}
+    if(LOCAL)return location.href.split("?")[0]+"?s="+T.code+extra;return "";}
+  function drawQR(canvas,text){
+    const ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+    if(!text||typeof QRLib==="undefined"){ctx.fillStyle="#999";ctx.font="bold 16px sans-serif";ctx.textAlign="center";ctx.fillText("keine Adresse",canvas.width/2,canvas.height/2);return;}
+    const q=new QRLib.QRCode(-1,QRLib.ECL.M);q.addData(text);q.make();
+    const n=q.getModuleCount(),cell=Math.floor(canvas.width/(n+4)),off=Math.floor((canvas.width-cell*n)/2);
+    ctx.fillStyle="#000";for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))ctx.fillRect(off+c*cell,off+r*cell,cell,cell);}
+  function renderHead(){
+    $("steps").innerHTML=PHASES.map((p,i)=>`<button data-ph="${i}" class="${i===T.ph?"on":""}">${i} ${p}</button>`).join("");
+    $("steps").querySelectorAll("button").forEach(b=>b.onclick=()=>go(+b.dataset.ph));
+    $("miniCode").textContent="Code "+T.code;$("miniN").textContent=players().length+" dabei";
+    $("conn").innerHTML=`<span class="dot ${conn.up?"on":""}"></span>${conn.up?"verbunden":"keine Verbindung"}`;
+    drawQR($("qrSmall"),joinUrl());}
+  function render(){renderHead();const M=$("tMain");[rStart,rLine,rBingo,rSort,rRep,rMerk,rQuiz,rWin][T.ph](M);}
+
+  /* ---------- 0 Start ---------- */
+  function rStart(M){
+    const pl=Object.entries(T.pl);
+    M.innerHTML=`<div class="join"><div><canvas id="qrBig" width="600" height="600"></canvas></div>
+      <div><h2 class="big">Kundenorientiert kommunizieren</h2>
+      <p style="font-size:1.25rem">1. QR-Code mit dem Handy scannen.<br>2. Einen Spitznamen eingeben.<br>3. Warten, bis es losgeht.</p>
+      <p class="muted">Code: <span class="code">${T.code}</span><br><span id="jU" style="word-break:break-all"></span></p>
+      ${location.protocol.startsWith("http")||LOCAL?"":`<label>Internetadresse dieser Seite (nur nötig, wenn die Datei lokal geöffnet ist)<input id="tUrl" value="${h(T.url)}" placeholder="https://…/stoerer-bingo/"></label>`}
+      <h3 style="margin-top:16px">${pl.length} dabei <span class="muted" style="font-size:.9rem;font-weight:400">· DE ${pl.filter(([i,x])=>!x.l||x.l==="de").length} · AR ${pl.filter(([i,x])=>x.l==="ar").length} · VI ${pl.filter(([i,x])=>x.l==="vi").length} · TR ${pl.filter(([i,x])=>x.l==="tr").length}</span> <span class="muted" style="font-size:.9rem;font-weight:400">· Antippen entfernt einen Namen</span></h3>
+      <div class="nicks">${pl.map(([id,x])=>`<button data-id="${h(id)}">${h(x.n)}${x.l&&x.l!=="de"?` <small>${h(x.l.toUpperCase())}</small>`:""}</button>`).join("")}</div>
+      <div class="ctrl"><button class="pri" id="bGo">Los: Meinungslinie →</button><button id="bB">Direkt zum Bingo (2. Doppelstunde)</button><button id="bNew">Neue Sitzung (alles löschen)</button></div></div></div>`;
+    drawQR($("qrBig"),joinUrl());$("jU").textContent=joinUrl();
+    if($("tUrl"))$("tUrl").onchange=e=>{T.url=e.target.value;save();render();};
+    M.querySelectorAll(".nicks button").forEach(b=>b.onclick=()=>{const id=b.dataset.id;delete T.pl[id];T.kick.push(id);save();pub();render();});
+    $("bGo").onclick=()=>go(1);$("bB").onclick=()=>go(2);
+    $("bNew").onclick=()=>{if(window.confirm("Neue Sitzung starten? Alle Namen und Ergebnisse werden gelöscht.")){const u=T.url;T=fresh();T.url=u;save();sub();pub();render();}};
+  }
+
+  /* ---------- 1 Meinungslinie ---------- */
+  function words(){const m=new Map();for(const id in T.line){const w=T.line[id].w;if(!w)continue;const k=w.toLowerCase();if(T.hideW.includes(k))continue;
+    if(!m.has(k))m.set(k,{w,n:0});m.get(k).n++;}return [...m.entries()].map(([k,o])=>({k,w:o.w,n:o.n}));}
+  function lineSVG(){
+    const E=Object.entries(T.line).filter(([id])=>T.pl[id]),bins={};
+    const dots=E.map(([id,o])=>{const b=Math.round(o.v/5);bins[b]=(bins[b]||0)+1;const x=50+o.v*7,y=150-(bins[b]-1)*22;
+      return `<circle cx="${x}" cy="${y}" r="9" fill="var(--brand)"/>${T.lnNames?`<text x="${x+12}" y="${y+5}" font-size="14" fill="var(--ink)">${h(T.pl[id].n)}</text>`:""}`;}).join("");
+    const avg=E.length?E.reduce((s,[,o])=>s+o.v,0)/E.length:null;
+    return `<svg viewBox="0 0 860 210" style="width:100%;background:var(--surface);border-radius:14px" role="img" aria-label="Meinungslinie von super beraten bis nie wieder">
+      <line x1="50" y1="165" x2="750" y2="165" stroke="var(--line)" stroke-width="10" stroke-linecap="round"/>
+      <text x="50" y="200" font-size="18" font-weight="700" fill="var(--fo)">Ich wurde super beraten.</text>
+      <text x="750" y="200" font-size="18" font-weight="700" fill="var(--st)" text-anchor="end">Nie wieder.</text>
+      ${dots}${avg!=null?`<line x1="${50+avg*7}" y1="20" x2="${50+avg*7}" y2="170" stroke="var(--muted)" stroke-dasharray="5 5"/><text x="${50+avg*7}" y="16" font-size="13" text-anchor="middle" fill="var(--muted)">Mitte der Klasse</text>`:""}</svg>`;}
+  function rLine(M){
+    const W=words(),n=Object.keys(T.line).length;
+    M.innerHTML=`<h2 class="big">Der schlimmste Einkauf meines Lebens</h2>
+      <p style="font-size:1.2rem">Denkt an euren letzten Einkauf, bei dem euch jemand beraten hat. Wo steht ihr? Schreibt <b>ein Wort</b> dazu, wie es war.</p>
+      ${lineSVG()}<p class="muted">${n} von ${players().length} haben sich eingeordnet.</p>
+      <div class="two"><div><h3>Eure Wörter</h3><div class="cloud">${W.map(o=>`<button data-k="${h(o.k)}" style="font-size:${Math.min(3,1.1+.45*(o.n-1))}rem">${h(o.w)}${o.n>1?` <small>×${o.n}</small>`:""}</button>`).join("")||'<span class="muted">noch keine</span>'}</div>
+        <p class="muted" style="font-size:.9rem">Antippen blendet ein Wort aus.</p></div>
+        <div class="box"><b>Drei Stimmen:</b> Fragen Sie drei Personen an verschiedenen Stellen: „Warum stehst du hier?“ Nur zuhören, nicht bewerten.<br><br>
+        <b>Überleitung:</b> „Diese Wörter haben alle einen Fachbegriff. Sie heißen <span class="term">Gesprächsstörer</span>. Genau darum geht es heute.“
+        <p class="muted" style="font-size:.9rem">Die Wörter bleiben gespeichert. Nach dem Sortieren ordnet die Klasse sie den Störern zu.</p></div></div>
+      <div class="ctrl"><button id="bNm">${T.lnNames?"Namen verbergen":"Namen zeigen"}</button><button class="pri" id="bNext">Weiter: Bingo →</button></div>`;
+    M.querySelectorAll(".cloud button").forEach(b=>b.onclick=()=>{T.hideW.push(b.dataset.k);save();render();});
+    $("bNm").onclick=()=>{T.lnNames=!T.lnNames;save();render();};$("bNext").onclick=()=>go(2);
+  }
+
+  /* ---------- 2 Bingo ---------- */
+  function rBingo(M){
+    const sec=b=>Math.round((b.t-T.bStart)/1000);
+    M.innerHTML=`<div class="two"><div><h2 class="big">Gesprächsstörer-Bingo</h2>
+      <div class="banner info"><b>Die Kundin sagt:</b> ${ROLE_K}<span class="satz">Danach antwortet sie frei – ruhig genervt.</span></div>
+      <p style="font-size:1.15rem;margin-top:14px">Hört genau zu. Sobald ein Satz von eurer Karte fällt: <b>ankreuzen</b>.<br>Eine Reihe voll – waagerecht, senkrecht oder diagonal? <b>Bingo drücken, aufstehen und den letzten Satz laut vorlesen.</b></p>
+      <h3>Bingo!</h3><ol class="top">${T.bingo.map((b,i)=>`<li><span>${i+1}. ${h((T.pl[b.pid]||{n:"?"}).n)}</span><b>${sec(b)} s</b></li>`).join("")||'<li class="muted">noch niemand</li>'}</ol>
+      <div class="merk" style="margin-top:14px"><b>Danach fragen:</b> „Was hat die Kundin die ganze Zeit gefühlt?“ – erst dann: „Wie hätte man es besser sagen können?“</div></div>
+      <div><div class="row" style="justify-content:space-between"><h3 style="margin:0">Ihr Skript <span class="muted" style="font-size:.9rem;font-weight:400">· nur Lehrkraft: Maus drüber zeigt den Satz</span></h3>
+        <span class="muted">${T.said.length} von 12 gesagt</span></div>
+      <div class="scr ${T.showScr?"":"blur"}">${SCRIPT.map((i,n)=>`<button data-i="${i}" class="${T.said.includes(i)?"on":""}"><span class="nr">${n+1}</span><span class="tx">„${h(SENT[i].t)}“</span></button>`).join("")}</div>
+      <p class="muted" style="font-size:.9rem">Sagen Sie den Satz und tippen Sie ihn dann an. Nur angetippte Sätze zählen für ein Bingo.</p>
+      <div class="ctrl"><button id="bSc">${T.showScr?"Skript verschwimmen lassen":"Skript scharf zeigen"}</button><button id="bRs">Bingo zurücksetzen</button></div></div></div>
+      <div class="ctrl"><button class="pri" id="bNext">Weiter: Sortieren →</button></div>`;
+    M.querySelectorAll(".scr button").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;T.said=T.said.includes(i)?T.said.filter(x=>x!==i):[...T.said,i];save();render();});
+    $("bSc").onclick=()=>{T.showScr=!T.showScr;save();render();};
+    $("bRs").onclick=()=>{if(window.confirm("Bingo neu starten? Gesagte Sätze und Gewinner werden gelöscht.")){T.said=[];T.bingo=[];T.bno={};T.bStart=Date.now();for(const id of players())T.pl[id].card=shuffle([0,1,2,3,4,5,6,7,8,9,10,11]).slice(0,9);save();pub();render();}};
+    $("bNext").onclick=()=>go(3);
+  }
+
+  /* ---------- 3 Sortieren ---------- */
+  function rSort(M){
+    if(T.soView==="w")return rWords(M);
+    if(T.so<0){M.innerHTML=`<h2 class="big">Welcher Störer ist das?</h2>
+      <p style="font-size:1.2rem">Ihr bekommt die Sätze aus dem Bingo noch einmal. <b>Vermutet zuerst</b> auf dem Handy, dann lösen wir auf.</p>
+      <div class="cats">${STOER.map(s=>`<div class="cat st">${s}</div>`).join("")}</div>
+      <p class="muted" style="font-size:1.05rem">Zwei Sätze sind etwas anders: Da fehlt ein <b style="color:var(--fo)">Gesprächsförderer</b>. Dann wählt ihr, welcher fehlt.</p>
+      <div class="ctrl"><button class="pri" id="bS0">Erster Satz →</button></div>`;
+      $("bS0").onclick=()=>{T.so=0;T.soOpen=true;save();pub();render();};return;}
+    const it=SENT[T.so],O=optsOf(T.so),A=T.soAns[T.so]||{},cnt=O.map((_,i)=>Object.values(A).filter(c=>c===i).length),n=Object.keys(A).length,last=T.so===SENT.length-1;
+    M.innerHTML=`<p class="muted">Satz ${T.so+1} von ${SENT.length} · ${n} von ${players().length} haben getippt</p>
+      <h2 class="big">„${h(it.t)}“</h2>
+      <p style="font-size:1.2rem">${it.y==="s"?"Welcher <b style='color:var(--st)'>Gesprächsstörer</b> ist das?":"Hier fehlt ein <b style='color:var(--fo)'>Gesprächsförderer</b>. Welcher?"}</p>
+      <div class="sopts">${O.map((o,i)=>`<div class="sopt ${it.y==="s"?"st":"fo"} ${!T.soOpen?(i===it.k?"right":"wrong"):""}"><span>${o}</span>${T.soOpen?"":`<b>${cnt[i]}</b>`}</div>`).join("")}</div>
+      ${T.soOpen?"":`<div class="merk" style="font-size:1.15rem">${h(it.x)}</div>`}
+      <div class="ctrl">${T.soOpen?`<button class="pri" id="bR">Auflösen</button>`:last?`<button class="pri" id="bW">Eure Wörter zuordnen →</button>`:`<button class="pri" id="bN">Nächster Satz →</button>`}
+      ${last&&!T.soOpen?"":`<button id="bW2">Zu den Wörtern</button>`}<button id="bRep">Weiter: Reparieren →</button></div>`;
+    if($("bR"))$("bR").onclick=()=>{T.soOpen=false;save();pub();render();};
+    if($("bN"))$("bN").onclick=()=>{T.so++;T.soOpen=true;save();pub();render();};
+    const toW=()=>{T.soOpen=false;T.soView="w";save();pub();render();};
+    if($("bW"))$("bW").onclick=toW;if($("bW2"))$("bW2").onclick=toW;
+    $("bRep").onclick=()=>{T.soOpen=false;go(4);};
+  }
+  function rWords(M){
+    const W=words(),cats=[...STOER.map(s=>({s,y:"st"})),...FOERD.map(s=>({s:s+" fehlt",y:"fo"})),{s:"positiv / passt nirgends",y:"nn"}];
+    const free=W.filter(o=>T.wmap[o.k]==null);
+    M.innerHTML=`<h2 class="big">Eure Wörter vom Anfang</h2>
+      <p style="font-size:1.15rem">Welcher Störer steckt hinter euren Wörtern? Wort antippen, dann Kategorie antippen.</p>
+      <div class="cloud">${free.map(o=>`<button data-k="${h(o.k)}" class="${selW===o.k?"sel":""}">${h(o.w)}</button>`).join("")||'<span class="muted">Alle Wörter sind zugeordnet.</span>'}</div>
+      <div class="wcats">${cats.map((c,ci)=>`<div class="wcat ${c.y}" data-c="${ci}"><b>${h(c.s)}</b><div>${W.filter(o=>T.wmap[o.k]===ci).map(o=>`<span class="chip2" data-k="${h(o.k)}">${h(o.w)}</span>`).join(" ")}</div></div>`).join("")}</div>
+      <div class="merk">Ihr habt den Stoff selbst geliefert: Fast jedes Wort passt zu einem Gesprächsstörer – oder zu einem fehlenden Förderer.</div>
+      <div class="ctrl"><button id="bBack">Zurück zu den Sätzen</button><button class="pri" id="bRep">Weiter: Reparieren →</button></div>`;
+    M.querySelectorAll(".cloud button").forEach(b=>b.onclick=()=>{selW=selW===b.dataset.k?null:b.dataset.k;render();});
+    M.querySelectorAll(".wcat").forEach(d=>d.onclick=e=>{const ch=e.target.closest(".chip2");if(ch){delete T.wmap[ch.dataset.k];save();render();return;}
+      if(selW!=null){T.wmap[selW]=+d.dataset.c;selW=null;save();render();}});
+    $("bBack").onclick=()=>{T.soView="i";save();render();};$("bRep").onclick=()=>go(4);
+  }
+
+  /* ---------- 4 Reparieren ---------- */
+  function rRep(M){
+    if(T.rs===0){
+      const tot=REP.map((_,i)=>players().filter(id=>T.rp[id]===i).length),done=REP.map((_,i)=>players().filter(id=>T.rpA[id]&&T.rpA[id].i===i).length);
+      M.innerHTML=`<h2 class="big">Aus negativ wird positiv</h2>
+        <div class="two"><div><p style="font-size:1.15rem">Jede und jeder bekommt einen Satz aus dem Bingo. Schreibt ihn neu – <b>positiv und im Sie-Stil</b>, in wörtlicher Rede.</p>
+        <ol class="steps3">${STEPS3.map(s=>`<li>${s}</li>`).join("")}</ol>
+        <div class="box"><b>Satzbaukasten</b><div class="bk">${BAUK.map(b=>`<span>${h(b)}</span>`).join("")}</div>
+        <p class="muted" style="margin:.5em 0 0">Statt „Da bin ich nicht zuständig“: „Ich stelle Ihnen gleich die zuständige Kollegin vor.“</p></div></div>
+        <div><h3>Stand</h3>${REP.map((r,i)=>`<div class="hbar"><span style="font-size:.95rem">„${h(r.t.slice(0,34))}${r.t.length>34?"…":""}“</span><div class="t"><i style="width:${tot[i]?100*done[i]/tot[i]:0}%;background:var(--fo)"></i></div><b>${done[i]}/${tot[i]}</b></div>`).join("")}</div></div>
+        <div class="ctrl"><button class="pri" id="bV">Abstimmung starten →</button><button id="bM">Weiter: Merken →</button></div>`;
+      $("bV").onclick=()=>{T.rs=1;T.rv=0;T.rvOpen=true;T.rvShow=false;T.rvM=false;save();pub();render();};$("bM").onclick=()=>go(5);return;}
+    const L=rvList(T.rv),V=T.votes[T.rv]||{},cnt=L.map(e=>Object.values(V).filter(x=>x===e.pid).length),R=REP[T.rv];
+    M.innerHTML=`<div class="row">${REP.map((_,i)=>`<button class="tab ${i===T.rv?"on":""}" data-i="${i}">Satz ${i+1}</button>`).join("")}<button class="tab" id="bBk">zurück zum Schreiben</button></div>
+      <div class="neg-box big2">„${h(R.t)}“</div>
+      <p class="muted">${T.rvOpen?`Abstimmung läuft: Welche Reparatur klingt am besten? · ${Object.keys(V).length} Stimmen`:"Abstimmung beendet."}</p>
+      <div>${L.map((e,i)=>`<div class="rans ${T.star[T.rv]===e.pid?"star":""}"><div><div class="rt">${h(e.t)}</div>${e.z?`<div class="rz"><span class="pro">Profi</span> ${h(e.z)}</div>`:""}
+        ${T.rvShow?`<div class="muted" style="font-size:.9rem">${h(e.n)}</div>`:""}</div>
+        <div class="row" style="flex-wrap:nowrap">${T.rvShow?`<b class="vc">${cnt[i]}</b><button data-s="${h(e.pid)}" title="Beste Reparatur">${T.star[T.rv]===e.pid?"Beste ✓":"Beste"}</button>`:""}<button data-x="${h(e.pid)}" title="Ausblenden">ausblenden</button></div></div>`).join("")||'<p class="muted">Zu diesem Satz gibt es noch keine Antwort.</p>'}</div>
+      ${T.rvM?`<div class="merk"><b>Störer:</b> ${h(R.s)} · <b>So könnte es klingen:</b> ${h(R.m)}</div>`:""}
+      <div class="ctrl">${T.rvOpen?`<button class="pri" id="bSh">Stimmen zeigen</button>`:""}<button id="bMu">${T.rvM?"Vorschlag verbergen":"Unser Vorschlag"}</button>
+      ${T.rv<REP.length-1?`<button id="bNx">Nächster Satz →</button>`:""}<button class="${T.rvOpen?"":"pri"}" id="bM">Weiter: Merken →</button></div>`;
+    M.querySelectorAll(".tab[data-i]").forEach(b=>b.onclick=()=>{T.rv=+b.dataset.i;T.rvOpen=true;T.rvShow=false;T.rvM=false;save();pub();render();});
+    $("bBk").onclick=()=>{T.rs=0;T.rvOpen=false;save();pub();render();};
+    M.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{T.star[T.rv]=T.star[T.rv]===b.dataset.s?null:b.dataset.s;save();render();});
+    M.querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>{T.hideA.push(b.dataset.x);save();pub();render();});
+    if($("bSh"))$("bSh").onclick=()=>{T.rvOpen=false;T.rvShow=true;save();pub();render();};
+    $("bMu").onclick=()=>{T.rvM=!T.rvM;save();render();};
+    if($("bNx"))$("bNx").onclick=()=>{T.rv++;T.rvOpen=true;T.rvShow=false;T.rvM=false;save();pub();render();};
+    $("bM").onclick=()=>{T.rvOpen=false;go(5);};
+  }
+
+  /* ---------- 5 Merken ---------- */
+  function rMerk(M){
+    M.innerHTML=`<h2 class="big">Das merken wir uns</h2>${MERK}
+      <p class="muted">Weiter im Arbeitsblatt: Aufgabe 2 (Vorgemacht) und Aufgabe 3 (Geführte Übung).</p>
+      <div class="ctrl"><button class="pri" id="bNext">Weiter: Prüfungs-Check →</button></div>`;
+    $("bNext").onclick=()=>go(6);
+  }
+
+  /* ---------- 6 Prüfungs-Check ---------- */
+  function rQuiz(M){
+    if(T.q<0){M.innerHTML=`<h2 class="big">Prüfungs-Check</h2><p style="font-size:1.25rem">${QUIZ.length} Fragen im Stil der IHK-Prüfung, drei davon original aus Prüfungen. Die letzten beiden sind für Profis <span class="pro">Profi</span>. Richtig ist wichtiger als schnell.</p>
+      <div class="ctrl"><button class="pri" id="bQ">Erste Frage →</button></div>`;$("bQ").onclick=()=>openQ(0);return;}
+    const Q=QUIZ[T.q],A=T.qAns[T.q]||{},cnt=Q.o.map((_,i)=>Object.values(A).filter(a=>a.c===i).length),n=Object.keys(A).length,dur=Q.pro?DURPRO:DUR;
+    M.innerHTML=`<div class="qhead"><div><p class="muted">Frage ${T.q+1} von ${QUIZ.length}${Q.pro?' <span class="pro">Profi</span>':""} · ${h(Q.src)} · ${n} von ${players().length} geantwortet</p><h2 class="big">${h(Q.q)}</h2></div>
+      ${T.qOpen?`<div class="timer" id="tm">${dur}</div>`:""}</div>
+      <div class="opts">${Q.o.map((o,i)=>`<div class="opt o${i} ${!T.qOpen&&i!==Q.k?"wrong":""}">${"ABCDE"[i]}: ${h(o)}${T.qOpen?"":`<span class="cnt">${cnt[i]}</span>`}</div>`).join("")}</div>
+      ${T.qOpen?"":`<div class="merk" style="font-size:1.15rem;margin-top:14px">${h(Q.x)}${Q.pz?`<br><span class="pro">Profi</span> ${h(Q.pz)}`:""}</div>`}
+      <div class="ctrl">${T.qOpen?`<button class="pri" id="bR">Auflösen</button>`:T.q<QUIZ.length-1?`<button class="pri" id="bN">Nächste Frage →</button>`:""}<button id="bW">Zur Siegerehrung</button></div>`;
+    if($("bR"))$("bR").onclick=()=>{T.qOpen=false;save();pub();render();};
+    if($("bN"))$("bN").onclick=()=>openQ(T.q+1);
+    $("bW").onclick=()=>{T.qOpen=false;go(7);};
+    if(T.qOpen){clearInterval(window._qt);window._qt=setInterval(()=>{const s=Math.max(0,Math.ceil(dur-(Date.now()-T.qStart)/1000));if($("tm"))$("tm").textContent=s;
+      if(s<=0&&T.qOpen){T.qOpen=false;save();pub();render();}if(!T.qOpen)clearInterval(window._qt);},250);}
+  }
+  function openQ(i){T.q=i;T.qOpen=true;T.qStart=Date.now();save();pub();render();}
+
+  /* ---------- 7 Sieger ---------- */
+  function rWin(M){
+    const r=ranking(),stars=REP.map((R,i)=>({R,id:T.star[i]})).filter(x=>x.id&&T.rpA[x.id]);
+    M.innerHTML=`<h2 class="big">Siegerehrung</h2><div class="two"><div><h3>Punkte aus Sortieren und Prüfungs-Check</h3>
+      <div class="podium">${[1,0,2].filter(i=>r[i]).map(i=>`<div style="height:${[190,150,120][i]}px"><span>${i+1}.</span>${h(r[i].n)}<br>${r[i].s}</div>`).join("")}</div>
+      <ol class="top" style="margin-top:14px">${r.slice(3,10).map((x,i)=>`<li><span>${i+4}. ${h(x.n)}</span><b>${x.s}</b></li>`).join("")}</ol></div>
+      <div><h3>Schnellste Bingos</h3><ol class="top">${T.bingo.slice(0,3).map((b,i)=>`<li><span>${i+1}. ${h((T.pl[b.pid]||{n:"?"}).n)}</span><b>${Math.round((b.t-T.bStart)/1000)} s</b></li>`).join("")||'<li class="muted">kein Bingo</li>'}</ol>
+      <h3 style="margin-top:16px">Beste Reparaturen</h3>${stars.map(x=>`<div class="rans star"><div><div class="muted" style="font-size:.95rem">statt „${h(x.R.t)}“</div><div class="rt">${h(T.rpA[x.id].t)}</div><div class="muted" style="font-size:.9rem">${h(T.pl[x.id]?T.pl[x.id].n:"")}</div></div></div>`).join("")||'<p class="muted">Beim Reparieren „Beste“ antippen, dann erscheinen sie hier.</p>'}</div></div>`;
+  }
+  render();
+}
+</script>
+<script>
+/* =========================================================
+   HANDY (Schülerinnen und Schüler)
+   ========================================================= */
+
+/* ---------------- Sprachen (Handy): Deutsch, Arabisch, Vietnamesisch ---------------- */
+const TRB={"Befehl": ["أمر", "Mệnh lệnh", "Emir"], "Killerphrase": ["عبارة قاتلة للحوار", "Câu nói dập tắt cuộc trò chuyện", "Öldürücü cümle"], "Überredungsversuch": ["محاولة إقناع بالضغط", "Cố thuyết phục bằng áp lực", "İkna baskısı"], "Vorwurf": ["لوم", "Trách móc", "Suçlama"], "Erwartungen dämpfen": ["تثبيط التوقعات", "Dập tắt kỳ vọng", "Beklentileri düşürmek"], "Aktives Zuhören": ["الاستماع الفعّال", "Lắng nghe chủ động", "Aktif dinleme"], "Kundenorientierte Sprache": ["لغة موجَّهة للزبون", "Ngôn ngữ hướng đến khách hàng", "Müşteri odaklı dil"], "Gute Stimmtechnik": ["تقنية صوت جيدة", "Kỹ thuật giọng nói tốt", "İyi ses tekniği"], "„Greifen Sie zu, die ist reduziert.“": ["„أمسكي بها، فهي مخفَّضة.“", "„Hãy lấy đi, cái này đang giảm giá.“", "„Hemen alın, bu indirimde.“"], "Nehmen Sie einfach die hier. Greifen Sie zu, die ist reduziert.": ["خذي هذه ببساطة. أمسكي بها، فهي مخفَّضة.", "Cứ lấy cái này đi. Hãy lấy đi, cái này đang giảm giá.", "Şunu alın işte. Hemen alın, bu indirimde."], "„Greifen Sie zu“ ist eine Aufforderung. Wer Befehle gibt, stellt sich über die Kundin.": ["„أمسكي بها“ هو أمر. من يعطي الأوامر يضع نفسه فوق الزبونة.", "„Hãy lấy đi“ là một mệnh lệnh. Ai ra lệnh là đặt mình cao hơn khách.", "„Hemen alın“ bir emirdir. Emir veren, kendini müşterinin üstüne koyar."], "„Das verstehen Sie nicht, ich bin hier die Fachfrau.“": ["„أنتِ لا تفهمين، أنا هنا الخبيرة.“", "„Bà không hiểu đâu, ở đây tôi là chuyên gia.“", "„Bunu anlayamazsınız, burada uzman benim.“"], "Das verstehen Sie nicht, ich bin hier die Fachfrau.": ["أنتِ لا تفهمين، أنا هنا الخبيرة.", "Bà không hiểu đâu, ở đây tôi là chuyên gia.", "Bunu anlayamazsınız, burada uzman benim."], "Abwertend und verletzend: Die Kundin wird für dumm erklärt. Killerphrasen kommen oft, wenn Sachargumente fehlen.": ["تحقير وإيذاء: تُعامَل الزبونة كأنها غبية. وتظهر العبارات القاتلة للحوار كثيرًا عندما تغيب الحجج الموضوعية.", "Hạ thấp và xúc phạm: khách bị coi là ngốc. Những câu dập tắt cuộc trò chuyện thường xuất hiện khi thiếu lập luận khách quan.", "Küçümseyici ve incitici: Müşteri aptal yerine konuyor. Öldürücü cümleler çoğu zaman somut argümanlar eksik olduğunda gelir."], "„An Ihrer Stelle würde ich nicht so lange überlegen.“": ["„لو كنت مكانك لما فكّرتُ طويلًا.“", "„Nếu tôi là bà, tôi sẽ không suy nghĩ lâu như vậy.“", "„Yerinizde olsam bu kadar uzun düşünmezdim.“"], "An Ihrer Stelle würde ich nicht so lange überlegen.": ["لو كنت مكانك لما فكّرتُ طويلًا.", "Nếu tôi là bà, tôi sẽ không suy nghĩ lâu như vậy.", "Yerinizde olsam bu kadar uzun düşünmezdim."], "Die Kundin soll schnell kaufen, statt selbst zu entscheiden. Der Kauf wird ihr aufgezwungen.": ["يُراد من الزبونة أن تشتري بسرعة بدل أن تقرّر بنفسها. يُفرَض عليها الشراء.", "Khách bị thúc mua nhanh thay vì tự quyết định. Việc mua bị áp đặt lên họ.", "Müşteri kendi karar vermek yerine hızlıca satın almalı. Satın alma ona dayatılıyor."], "„Ich habe Ihnen doch gesagt …“": ["„ألم أقل لك …“", "„Tôi đã bảo bà rồi mà …“", "„Size söylemiştim ki …“"], "Ich habe Ihnen doch gesagt, dass wir keine Winterware mehr haben.": ["ألم أقل لك إنه لم تعد عندنا بضاعة شتوية.", "Tôi đã bảo bà rồi, chúng tôi không còn hàng mùa đông nữa.", "Size söylemiştim ki, kış ürünlerimiz artık kalmadı."], "„Ich habe Ihnen doch gesagt“ gibt der Kundin die Schuld. Vorwürfe kommen oft, wenn der Kunde der Argumentation nicht folgt.": ["„ألم أقل لك“ تُحمّل الزبونة الذنب. يظهر اللوم كثيرًا عندما لا يتابع الزبون الحجّة.", "„Tôi đã bảo bà rồi mà“ đổ lỗi cho khách. Trách móc thường xuất hiện khi khách không theo kịp lập luận.", "„Size söylemiştim ki“ suçu müşteriye yükler. Suçlamalar çoğu zaman müşteri argümantasyonu takip etmediğinde gelir."], "„Das geht eigentlich gar nicht.“": ["„هذا غير ممكن أصلًا.“", "„Cái đó thực ra không thể được.“", "„Bu aslında hiç olmaz.“"], "Also, warm und dünn – das geht eigentlich gar nicht.": ["إذن، دافئ ورقيق – هذا غير ممكن أصلًا.", "Vậy là vừa ấm vừa mỏng – cái đó thực ra không thể được.", "Yani, hem sıcak hem ince – bu aslında hiç olmaz."], "Der Wunsch der Kundin wirkt unerfüllbar. Sie wird verunsichert.": ["تبدو رغبة الزبونة مستحيلة التحقيق. فتشعر بعدم اليقين.", "Mong muốn của khách có vẻ không thể thực hiện. Khách trở nên bất an.", "Müşterinin isteği gerçekleşmesi imkânsızmış gibi görünüyor. Müşteri tedirgin ediliyor."], "„Da bin ich nicht zuständig.“": ["„هذا ليس من اختصاصي.“", "„Việc đó không thuộc phần của tôi.“", "„Bu benim sorumluluğumda değil.“"], "Da bin ich nicht zuständig.": ["هذا ليس من اختصاصي.", "Việc đó không thuộc phần của tôi.", "Bu benim sorumluluğumda değil."], "Negative Formulierung: Die Kundin hört nur, was nicht geht. Kundenorientiert: „Ich stelle Ihnen gleich die zuständige Kollegin vor.“": ["صياغة سلبية: لا تسمع الزبونة إلا ما لا يمكن. الأسلوب الموجَّه للزبون: „سأعرّفك فورًا على الزميلة المختصّة.“", "Cách nói tiêu cực: khách chỉ nghe thấy điều không làm được. Cách nói hướng đến khách: „Tôi sẽ giới thiệu ngay đồng nghiệp phụ trách cho bà.“", "Olumsuz ifade: Müşteri yalnızca olmayanı duyar. Müşteri odaklı: „Sizi hemen ilgili meslektaşımla tanıştırayım.“"], "„So ein Quatsch.“": ["„يا له من هراء.“", "„Nhảm nhí quá.“", "„Ne saçmalık.“"], "So ein Quatsch, das hält doch keinen Winter.": ["يا له من هراء، هذا لا يصمد شتاءً كاملًا.", "Nhảm nhí quá, cái này không chịu nổi một mùa đông.", "Ne saçmalık, bu hiçbir kışı çıkarmaz."], "„So ein Quatsch“ verletzt die Kundin und beendet jedes Gespräch.": ["„يا له من هراء“ تجرح الزبونة وتنهي أي حوار.", "„Nhảm nhí quá“ làm tổn thương khách và kết thúc mọi cuộc trò chuyện.", "„Ne saçmalık“ müşteriyi incitir ve her görüşmeyi bitirir."], "„Wären Sie letzte Woche gekommen …“": ["„لو أتيتِ الأسبوع الماضي …“", "„Giá bà đến từ tuần trước thì …“", "„Geçen hafta gelseydiniz …“"], "Wären Sie letzte Woche gekommen, hätten wir noch Auswahl gehabt.": ["لو أتيتِ الأسبوع الماضي لكان لدينا اختيار أوسع.", "Giá bà đến từ tuần trước thì chúng tôi vẫn còn nhiều lựa chọn.", "Geçen hafta gelseydiniz, hâlâ seçeneğimiz olurdu."], "Die Kundin ist angeblich selbst schuld, weil sie zu spät gekommen ist.": ["يُقال إن الزبونة هي المخطئة لأنها جاءت متأخرة.", "Khách bị cho là có lỗi vì đã đến muộn.", "Müşteri geç geldiği için sözde kendi hatası."], "„Entscheiden Sie sich jetzt.“": ["„قرّري الآن.“", "„Bà quyết định ngay đi.“", "„Şimdi karar verin.“"], "Entscheiden Sie sich jetzt, ich habe noch andere Kunden.": ["قرّري الآن، فعندي زبائن آخرون.", "Bà quyết định ngay đi, tôi còn khách khác nữa.", "Şimdi karar verin, başka müşterilerim de var."], "Eine Aufforderung im Befehlston. Die Verkäuferin stellt ihre Zeit über die Kundin.": ["طلب بنبرة الأمر. تضع البائعة وقتها فوق الزبونة.", "Một yêu cầu với giọng ra lệnh. Người bán đặt thời gian của mình lên trên khách.", "Emir tonunda bir çağrı. Satıcı kendi zamanını müşterinin üstüne koyuyor."], "„Ich kann nicht oft genug sagen …“": ["„لا أستطيع أن أكرّر بما يكفي …“", "„Tôi nói bao nhiêu lần cũng không đủ …“", "„Yeterince tekrar edemem ki …“"], "Ich kann nicht oft genug sagen, dass Sie da nicht lange warten sollten.": ["لا أستطيع أن أكرّر بما يكفي أنه لا ينبغي لك الانتظار طويلًا.", "Tôi nói bao nhiêu lần cũng không đủ rằng bà không nên chờ lâu.", "Yeterince tekrar edemem ki, orada çok beklememelisiniz."], "Druck durch Wiederholung: Die Kundin soll überredet werden.": ["ضغط بالتكرار: يُراد إقناع الزبونة.", "Áp lực bằng cách lặp lại: khách bị thuyết phục.", "Tekrarla baskı: Müşteri ikna edilmek isteniyor."], "„Da müsste ich mal nachsehen.“": ["„يجب أن أنظر.“", "„Để tôi xem thử.“", "„Bir bakmam gerekir.“"], "Da müsste ich mal nachsehen. Aber ich glaube nicht, dass da noch was ist.": ["يجب أن أنظر. لكن لا أظن أنه بقي شيء.", "Để tôi xem thử. Nhưng tôi không nghĩ là còn gì.", "Bir bakmam gerekir. Ama orada bir şey kaldığını sanmıyorum."], "„Ich glaube nicht, dass da noch was ist“ nimmt der Kundin jede Hoffnung, bevor überhaupt jemand nachgesehen hat.": ["„لا أظن أنه بقي شيء“ تأخذ كل أمل من الزبونة، قبل أن ينظر أحد أصلًا.", "„Tôi không nghĩ là còn gì“ lấy đi mọi hy vọng của khách trước khi có ai kịp xem.", "„Orada bir şey kaldığını sanmıyorum“ henüz kimse bakmadan müşterinin bütün umudunu alır."], "„Moment noch.“": ["„لحظة.“", "„Chờ một chút.“", "„Bir dakika.“"], "Moment noch. (sortiert weiter ein und schaut nicht auf)": ["لحظة. (يواصل الترتيب ولا يرفع نظره)", "Chờ một chút. (vẫn tiếp tục xếp hàng và không ngẩng lên)", "Bir dakika. (düzenlemeye devam eder ve başını kaldırıp bakmaz)"], "Kein Blickkontakt, die Kundin muss warten. Aktives Zuhören heißt: sich zuwenden, ansehen, mit echtem Interesse eine Lösung suchen.": ["لا تواصل بالعينين والزبونة تنتظر. الاستماع الفعّال يعني: الالتفات إلى الزبونة والنظر إليها والبحث عن حل باهتمام حقيقي.", "Không giao tiếp bằng mắt, khách phải chờ. Lắng nghe chủ động nghĩa là: quay về phía khách, nhìn khách, tìm giải pháp với sự quan tâm thật sự.", "Göz teması yok, müşteri beklemek zorunda. Aktif dinleme demek: ilgiyle yönelmek, bakmak, gerçek bir ilgiyle çözüm aramak."], "Damit können Sie …": ["بذلك تستطيعين …", "Với cái này bà có thể …", "Bununla … yapabilirsiniz"], "Für Sie bedeutet das, dass …": ["هذا يعني لكِ أنّ …", "Điều này có nghĩa với bà là …", "Sizin için bu, … demektir"], "Ihnen bringt das …": ["هذا يمنحكِ …", "Điều này mang lại cho bà …", "Size bunun faydası …"], "Wenn ich Sie richtig verstanden habe, …": ["إذا فهمتُكِ جيدًا، …", "Nếu tôi hiểu đúng ý bà thì …", "Sizi doğru anladıysam, …"], "Sie suchen also …": ["إذن أنتِ تبحثين عن …", "Vậy là bà đang tìm …", "Yani şunu arıyorsunuz: …"], "Ich sehe sofort nach.": ["سأنظر فورًا.", "Tôi xem ngay đây.", "Hemen bakıyorum."], "Ich kümmere mich darum.": ["سأهتم بالأمر.", "Tôi sẽ lo việc này.", "Bununla ben ilgilenirim."], "Gern zeige ich Ihnen …": ["يسعدني أن أُريكِ …", "Tôi rất sẵn lòng giới thiệu cho bà …", "Size memnuniyetle … göstereyim"], "Was hört der Kunde?": ["ماذا يسمع الزبون؟", "Khách nghe thấy gì?", "Müşteri ne duyuyor?"], "Was ist eigentlich gemeint?": ["ماذا يُقصَد في الحقيقة؟", "Thực ra ý muốn nói là gì?", "Aslında ne kastediliyor?"], "Wie sage ich es positiv und im Sie-Stil?": ["كيف أقولها بشكل إيجابي وبأسلوب الاحترام (Sie)؟", "Làm sao nói điều đó một cách tích cực và theo lối xưng hô lịch sự (Sie)?", "Bunu nasıl olumlu ve Siz-hitabıyla söylerim?"], "Ein Kunde fragt: „Läuft dieser In-Ear-Kopfhörer auch beim Joggen störungsfrei?“ Bei welcher Antwort liegt ein Gesprächsförderer vor?": ["يسأل زبون: „هل تعمل سماعة الأذن هذه دون تشويش أثناء الركض أيضًا؟“ في أي إجابة يوجد عامل مساعد للحوار؟", "Một khách hỏi: „Tai nghe nhét tai này có hoạt động ổn định khi chạy bộ không?“ Ở câu trả lời nào có yếu tố thúc đẩy cuộc trò chuyện?", "Bir müşteri soruyor: „Bu kulak içi kulaklık koşarken de sorunsuz çalışır mı?“ Hangi cevapta görüşmeyi destekleyen bir ifade var?"], "„Wenn Sie die Gebrauchsanweisung genau beachten, sollte das problemlos funktionieren!“": ["„إذا التزمتَ بدليل الاستعمال بدقة فيُفترض أن تعمل دون مشاكل!“", "„Nếu ông làm đúng theo hướng dẫn sử dụng thì chắc là sẽ chạy tốt thôi!“", "„Kullanım kılavuzuna tam uyarsanız, sorunsuz çalışması gerekir!“"], "„Ich benutze dieses Gerät selbst und war bisher immer sehr zufrieden!“": ["„أنا أستخدم هذا الجهاز بنفسي وكنت راضيًا دائمًا حتى الآن!“", "„Chính tôi cũng dùng thiết bị này và đến giờ lúc nào cũng hài lòng!“", "„Bu cihazı kendim kullanıyorum ve şimdiye kadar hep çok memnun kaldım!“"], "„Dieser In-Ear-Kopfhörer ist nicht erschütterungsempfindlich. Sie können auch beim Joggen Ihre Musik genießen!“": ["„سماعة الأذن هذه ليست حساسة للاهتزازات. يمكنك الاستمتاع بموسيقاك حتى أثناء الركض!“", "„Tai nghe này không nhạy với rung lắc. Ông có thể thưởng thức nhạc ngay cả khi chạy bộ!“", "„Bu kulak içi kulaklık sarsıntıya duyarlı değil. Koşarken de müziğinizin tadını çıkarabilirsiniz!“"], "„Es gab bisher noch kein negatives Feedback!“": ["„لم تصلنا حتى الآن أي ملاحظات سلبية!“", "„Từ trước đến giờ chưa có phản hồi tiêu cực nào!“", "„Şimdiye kadar olumsuz geri bildirim gelmedi!“"], "„Probieren Sie es doch aus. Notfalls bringen Sie das Gerät wieder zurück!“": ["„جرّبها. وإن لزم الأمر فأعد الجهاز!“", "„Ông cứ dùng thử đi. Nếu cần thì mang trả lại thiết bị!“", "„Bir deneyin. Gerekirse cihazı geri getirirsiniz!“"], "C ist sachlich, im Sie-Stil und nennt den Nutzen für den Kunden. A und E verunsichern (Erwartungen dämpfen), B spricht von „ich“, D ist negativ formuliert.": ["الإجابة C موضوعية وبأسلوب الاحترام (Sie) وتذكر الفائدة للزبون. A وE تُربكان (تثبيط التوقعات)، وB تتحدث بصيغة „أنا“، وD صيغتها سلبية.", "Câu C khách quan, theo lối xưng hô lịch sự (Sie) và nêu lợi ích cho khách. A và E làm khách bất an (dập tắt kỳ vọng), B nói về „tôi“, D được diễn đạt tiêu cực.", "C nesnel, Siz-hitabıyla ve müşteri için faydayı söylüyor. A ve E tedirgin eder (beklentileri düşürmek), B „ben“ diyor, D olumsuz ifade edilmiş."], "Welcher Gesprächsstörer liegt vor? „Sie haben meinen Rat nicht befolgt, deshalb ist das Gerät jetzt kaputt.“": ["أيّ معوّق للحوار هذا؟ „لم تتبع نصيحتي، ولهذا تعطّل الجهاز الآن.“", "Đây là yếu tố cản trở cuộc trò chuyện nào? „Ông đã không làm theo lời khuyên của tôi, vì thế bây giờ thiết bị hỏng rồi.“", "Hangi görüşme engeli var? „Tavsiyeme uymadınız, bu yüzden cihaz şimdi bozuldu.“"], "Der Kunde bekommt die Schuld. Das ist ein Vorwurf.": ["يُحمَّل الزبون الذنب. هذا لوم.", "Khách bị đổ lỗi. Đó là trách móc.", "Suç müşteriye yüklenir. Bu bir suçlamadır."], "Welche Aussage ist im Sie-Stil formuliert?": ["أيّ عبارة صيغت بأسلوب الاحترام (Sie)؟", "Câu nào được diễn đạt theo lối xưng hô lịch sự (Sie)?", "Hangi ifade Siz-hitabıyla kurulmuştur?"], "„Man kann den Akku in zwei Stunden laden.“": ["„يمكن شحن البطارية في ساعتين.“", "„Người ta có thể sạc pin trong hai tiếng.“", "„Aküyü iki saatte şarj etmek mümkün.“"], "„Ich finde, der Akku ist schnell geladen.“": ["„أرى أن البطارية تُشحن بسرعة.“", "„Tôi thấy pin sạc nhanh.“", "„Bence akü hızlı şarj oluyor.“"], "„Den Akku können Sie in zwei Stunden aufladen.“": ["„يمكنك شحن البطارية خلال ساعتين.“", "„Ông có thể sạc pin trong hai tiếng.“", "„Aküyü iki saatte şarj edebilirsiniz.“"], "„Der Akku ist nicht langsam.“": ["„البطارية ليست بطيئة.“", "„Pin không chậm.“", "„Akü yavaş değil.“"], "„Wir haben den Akku auch schon getestet.“": ["„لقد اختبرنا البطارية أيضًا.“", "„Chúng tôi cũng đã thử nghiệm pin rồi.“", "„Aküyü biz de test ettik.“"], "Im Sie-Stil steht der Kunde im Mittelpunkt: „Sie“, „Ihr“, „Ihnen“ statt „ich“, „wir“ oder „man“. D ist außerdem negativ formuliert.": ["في أسلوب الاحترام (Sie) يكون الزبون في المركز: „Sie“ و„Ihr“ و„Ihnen“ بدل „ich“ و„wir“ و„man“. وD صيغتها سلبية أيضًا.", "Trong lối xưng hô lịch sự (Sie), khách hàng là trung tâm: „Sie“, „Ihr“, „Ihnen“ thay vì „ich“, „wir“ hay „man“. D cũng được diễn đạt tiêu cực.", "Siz-hitabında müşteri merkezdedir: „ben“, „biz“ ya da „insan“ yerine „Siz“, „Sizin“, „Size“. D ayrıca olumsuz ifade edilmiştir."], "Woran merkt ein Kunde, dass der Verkäufer aktiv zuhört?": ["بمَ يشعر الزبون أن البائع يستمع بفاعلية؟", "Khách nhận ra người bán đang lắng nghe chủ động qua điều gì?", "Müşteri satıcının aktif dinlediğini nereden anlar?"], "Der Verkäufer sortiert weiter ein und sagt „Ja, ja“.": ["يواصل البائع الترتيب ويقول „نعم، نعم“.", "Người bán vẫn tiếp tục xếp hàng và nói „vâng, vâng“.", "Satıcı düzenlemeye devam eder ve „Evet, evet“ der."], "Der Verkäufer fasst den Wunsch zusammen: „Wenn ich Sie richtig verstanden habe, …“": ["يلخّص البائع الرغبة: „إذا فهمتك جيدًا، …“", "Người bán tóm tắt mong muốn của khách: „Nếu tôi hiểu đúng ý ông thì …“", "Satıcı isteği özetler: „Sizi doğru anladıysam, …“"], "Der Verkäufer erzählt von seinen eigenen Erfahrungen.": ["يحكي البائع عن تجاربه الشخصية.", "Người bán kể về kinh nghiệm của chính mình.", "Satıcı kendi deneyimlerinden bahseder."], "Der Verkäufer unterbricht, um Zeit zu sparen.": ["يقاطع البائع ليوفّر الوقت.", "Người bán ngắt lời để tiết kiệm thời gian.", "Satıcı zaman kazanmak için sözünü keser."], "Der Verkäufer nennt sofort den Preis.": ["يذكر البائع السعر فورًا.", "Người bán nêu ngay giá.", "Satıcı hemen fiyatı söyler."], "Wer den Wunsch mit eigenen Worten zusammenfasst, zeigt: Ich habe Sie verstanden. Das ist aktives Zuhören.": ["من يلخّص الرغبة بكلماته هو يُظهر: لقد فهمتك. وهذا هو الاستماع الفعّال.", "Ai tóm tắt mong muốn bằng lời của mình là đang thể hiện: Tôi đã hiểu bạn. Đó là lắng nghe chủ động.", "İsteği kendi sözleriyle özetleyen kişi şunu gösterir: Sizi anladım. Aktif dinleme budur."], "Im Verlauf einer Schulung betonen Sie, dass bei der Beratung auch die Stimme wichtig ist. Mit welchem Argument können Sie diese These verdeutlichen?": ["في أثناء دورة تدريبية تؤكدون أن الصوت مهم أيضًا في المشورة. بأيّ حجة تستطيعون توضيح هذه الفكرة؟", "Trong một buổi tập huấn, bạn nhấn mạnh rằng giọng nói cũng quan trọng khi tư vấn. Bạn có thể làm rõ luận điểm này bằng lập luận nào?", "Bir eğitim sırasında danışmanlıkta sesin de önemli olduğunu vurguluyorsunuz. Bu tezi hangi argümanla açıklayabilirsiniz?"], "Die fachliche Kompetenz wird durch schnelles Sprechen überzeugen.": ["ستُقنع الكفاءة المهنية من خلال الكلام السريع.", "Năng lực chuyên môn sẽ thuyết phục nhờ nói nhanh.", "Uzmanlık hızlı konuşmayla ikna edici olur."], "Eine monotone Stimme hat im Verkaufsgespräch eine beruhigende Wirkung.": ["للصوت الرتيب أثر مهدّئ في حوار البيع.", "Giọng đều đều có tác dụng làm dịu trong cuộc trò chuyện bán hàng.", "Tekdüze ses, satış görüşmesinde yatıştırıcı bir etki yapar."], "Je lauter die Stimme, umso höher die Kundenbindung an das Warenhaus.": ["كلما ارتفع الصوت زاد ارتباط الزبون بالمتجر.", "Giọng càng to thì khách càng gắn bó với cửa hàng.", "Ses ne kadar yüksekse, müşterinin mağazaya bağlılığı o kadar yüksek olur."], "Dialekt bindet den Kunden in seiner Region.": ["اللهجة تربط الزبون بمنطقته.", "Phương ngữ gắn kết khách hàng với vùng của họ.", "Lehçe, müşteriyi kendi bölgesine bağlar."], "Eine sympathische Stimme hilft, den Kunden zu überzeugen.": ["الصوت اللطيف يساعد على إقناع الزبون.", "Giọng nói dễ chịu giúp thuyết phục khách hàng.", "Sempatik bir ses, müşteriyi ikna etmeye yardımcı olur."], "Gute Stimmtechnik heißt: angenehmer Tonfall, melodische Stimmführung, wechselnde Lautstärke, Pausen. Schnell, monoton oder laut wirkt nicht überzeugend.": ["تقنية الصوت الجيدة تعني: نبرة لطيفة، تنغيم لحني، تنويع في شدة الصوت، وفترات صمت. السرعة أو الرتابة أو الصوت العالي لا تقنع.", "Kỹ thuật giọng nói tốt nghĩa là: giọng điệu dễ chịu, ngữ điệu lên xuống nhịp nhàng, thay đổi âm lượng, có quãng ngừng. Nói nhanh, đều đều hoặc to tiếng thì không thuyết phục.", "İyi ses tekniği demek: hoş bir ton, melodik ses akışı, değişen ses şiddeti, duraklamalar. Hızlı, tekdüze ya da yüksek ses ikna edici değildir."], "Prüfen Sie, welche Formulierung beim Kunden Vertrauen und Zuversicht schafft!": ["افحصوا أيّ صياغة تخلق لدى الزبون الثقة والاطمئنان!", "Hãy xem cách diễn đạt nào tạo ra lòng tin và sự yên tâm nơi khách hàng!", "Hangi ifadenin müşteride güven ve umut yarattığını inceleyin!"], "„Das ist eine neue Information für mich. Ich werde mich sofort nach dieser Möglichkeit erkundigen!“": ["„هذه معلومة جديدة بالنسبة لي. سأستفسر فورًا عن هذه الإمكانية!“", "„Đây là thông tin mới đối với tôi. Tôi sẽ hỏi ngay về khả năng này!“", "„Bu benim için yeni bir bilgi. Bu olanağı hemen araştıracağım!“"], "„Da gebe ich Ihnen recht, jedoch ist der Fehler nun einmal passiert!“": ["„معك حق، لكن الخطأ وقع الآن على كل حال!“", "„Ông nói đúng, nhưng lỗi thì đã xảy ra rồi!“", "„Size hak veriyorum, ama hata artık olmuş bulunuyor!“"], "„Da muss ich Sie auf unsere Allgemeinen Geschäftsbedingungen hinweisen!“": ["„يجب أن أشير عليك إلى شروطنا العامة!“", "„Tôi phải nhắc ông về các điều khoản chung của chúng tôi!“", "„Size Genel İş Şartlarımızı hatırlatmak zorundayım!“"], "„Da bitte ich Sie um Ihr Verständnis, aber wir haben unsere Anweisungen von der Geschäftsleitung!“": ["„أرجو تفهّمك، لكن هذه تعليمات من الإدارة!“", "„Mong ông thông cảm, nhưng đây là chỉ thị từ ban giám đốc!“", "„Anlayışınıza sığınıyorum, ama talimatları işletme yönetiminden aldık!“"], "„Da haben Sie mich falsch verstanden. Gern erkläre ich es Ihnen noch einmal!“": ["„لقد أسأتَ فهمي. يسعدني أن أشرح لك مرة أخرى!“", "„Ông hiểu sai tôi rồi. Tôi rất sẵn lòng giải thích lại!“", "„Beni yanlış anladınız. Size memnuniyetle bir kez daha açıklayayım!“"], "A ist positiv und verspricht eine Handlung („sofort erkundigen“). E enthält einen versteckten Vorwurf, B–D wehren den Kunden ab.": ["A إيجابية وتَعِد بإجراء („أستفسر فورًا“). E فيها لوم مستتر، وB إلى D تصدّ الزبون.", "A tích cực và hứa hành động („hỏi ngay“). E chứa một lời trách móc ngầm, còn B đến D thì gạt khách ra.", "A olumlu ve bir eylem vaat ediyor („hemen araştırmak“). E gizli bir suçlama içeriyor, B–D müşteriyi savuşturuyor."], "Eine Kundin fragt: „Ist die Jacke wasserdicht?“ Welche Antwort verbindet aktives Zuhören, Sie-Stil und positive Formulierung?": ["تسأل زبونة: „هل السترة مقاومة للماء؟“ أيّ إجابة تجمع بين الاستماع الفعّال وأسلوب الاحترام والصياغة الإيجابية؟", "Một khách nữ hỏi: „Áo khoác này có chống thấm nước không?“ Câu trả lời nào kết hợp lắng nghe chủ động, lối xưng hô lịch sự và cách nói tích cực?", "Bir müşteri soruyor: „Ceket su geçirmez mi?“ Hangi cevap aktif dinlemeyi, Siz-hitabını ve olumlu ifadeyi birleştiriyor?"], "„Nicht ganz, aber bei leichtem Regen geht das schon.“": ["„ليست كذلك تمامًا، لكنها تصلح للمطر الخفيف.“", "„Không hẳn, nhưng mưa nhẹ thì cũng được.“", "„Tam değil, ama hafif yağmurda idare eder.“"], "„Sie möchten also auch bei Regen trocken bleiben. Mit dieser Jacke bleiben Sie bis zu drei Stunden im Regen trocken.“": ["„إذن تريدين أن تبقي جافة حتى في المطر. بهذه السترة تبقين جافة في المطر حتى ثلاث ساعات.“", "„Vậy bà muốn giữ khô ráo cả khi trời mưa. Với chiếc áo khoác này, bà khô ráo dưới mưa đến ba tiếng.“", "„Yani yağmurda da kuru kalmak istiyorsunuz. Bu ceketle üç saate kadar yağmurda kuru kalırsınız.“"], "„Man kann sie auch bei Regen tragen.“": ["„يمكن ارتداؤها في المطر أيضًا.“", "„Người ta cũng có thể mặc nó khi trời mưa.“", "„Yağmurda da giyilebilir.“"], "„Ich würde damit nicht in den Regen gehen.“": ["„أنا لن أخرج بها في المطر.“", "„Tôi thì sẽ không mặc nó ra ngoài mưa đâu.“", "„Ben bununla yağmura çıkmazdım.“"], "„Das habe ich Ihnen doch schon gesagt: Sie ist wasserabweisend.“": ["„ألم أقل لك: إنها طاردة للماء.“", "„Tôi đã bảo bà rồi mà: nó chỉ hơi chống nước thôi.“", "„Bunu size zaten söylemiştim: Su itici.“"], "B fasst zuerst den Wunsch zusammen (aktives Zuhören), spricht die Kundin mit „Sie“ an und sagt, was die Jacke kann. A und D dämpfen Erwartungen, C ist „man“-Stil, E ist ein Vorwurf.": ["B تلخّص الرغبة أولًا (استماع فعّال)، وتخاطب الزبونة بـ „Sie“، وتقول ما تفعله السترة. A وD تثبّطان التوقعات، وC بأسلوب „man“، وE لوم.", "B trước tiên tóm tắt mong muốn (lắng nghe chủ động), xưng hô với khách bằng „Sie“ và nói áo khoác làm được gì. A và D dập tắt kỳ vọng, C theo kiểu „man“, E là trách móc.", "B önce isteği özetliyor (aktif dinleme), müşteriye „Siz“ diye hitap ediyor ve ceketin ne yapabildiğini söylüyor. A ve D beklentileri düşürür, C „insan“ üslubudur, E bir suçlamadır."], "Formuliere A so um, dass die Kundin dasselbe erfährt, aber positiv.": ["أعد صياغة A بحيث تعرف الزبونة الشيء نفسه ولكن بشكل إيجابي.", "Hãy viết lại câu A sao cho khách biết cùng một điều nhưng theo cách tích cực.", "A cümlesini, müşteri aynı şeyi öğrenecek ama olumlu olacak şekilde yeniden kur."], "Eine Verkäuferin sagt: „Wenn Sie heute nicht zugreifen, ist die Jacke morgen weg. An Ihrer Stelle würde ich sie sofort nehmen.“ Welche Aussage trifft zu?": ["تقول بائعة: „إذا لم تشتري اليوم فستختفي السترة غدًا. لو كنت مكانك لأخذتها فورًا.“ أيّ عبارة تنطبق؟", "Một nhân viên bán hàng nói: „Nếu hôm nay bà không lấy thì mai áo khoác sẽ hết. Nếu là bà, tôi sẽ lấy ngay.“ Nhận định nào đúng?", "Bir satıcı diyor ki: „Bugün almazsanız ceket yarın gider. Yerinizde olsam hemen alırdım.“ Hangi ifade doğrudur?"], "Das ist ein Gesprächsförderer, weil sie im Sie-Stil spricht.": ["هذا عامل مساعد للحوار لأنها تتحدث بأسلوب الاحترام (Sie).", "Đây là yếu tố thúc đẩy cuộc trò chuyện vì cô ấy nói theo lối xưng hô lịch sự (Sie).", "Bu bir görüşme destekleyicidir, çünkü Siz-hitabıyla konuşuyor."], "Das ist ein Überredungsversuch. Der Sie-Stil allein macht den Satz nicht kundenorientiert.": ["هذه محاولة إقناع بالضغط. أسلوب الاحترام وحده لا يجعل الجملة موجَّهة للزبون.", "Đây là cố thuyết phục bằng áp lực. Riêng lối xưng hô lịch sự không làm câu nói hướng đến khách hàng.", "Bu bir ikna baskısıdır. Tek başına Siz-hitabı cümleyi müşteri odaklı yapmaz."], "Das ist eine Killerphrase, weil sie die Kundin beleidigt.": ["هذه عبارة قاتلة للحوار لأنها تهين الزبونة.", "Đây là câu dập tắt cuộc trò chuyện vì nó xúc phạm khách.", "Bu bir öldürücü cümledir, çünkü müşteriye hakaret ediyor."], "Das ist aktives Zuhören, weil sie auf das Zögern reagiert.": ["هذا استماع فعّال لأنها تتفاعل مع تردد الزبونة.", "Đây là lắng nghe chủ động vì cô ấy phản ứng với sự do dự của khách.", "Bu aktif dinlemedir, çünkü tereddüde tepki veriyor."], "Das ist gute Stimmtechnik, weil der Satz kurz ist.": ["هذه تقنية صوت جيدة لأن الجملة قصيرة.", "Đây là kỹ thuật giọng nói tốt vì câu ngắn.", "Bu iyi ses tekniğidir, çünkü cümle kısa."], "Die Kundin soll unter Zeitdruck kaufen. Das ist ein Überredungsversuch, auch wenn das Wort „Sie“ darin vorkommt.": ["يُراد من الزبونة أن تشتري تحت ضغط الوقت. هذه محاولة إقناع بالضغط، حتى لو وردت كلمة „Sie“ فيها.", "Khách bị thúc mua dưới áp lực thời gian. Đây là cố thuyết phục bằng áp lực, ngay cả khi trong câu có từ „Sie“.", "Müşteri zaman baskısı altında satın almalı. Cümlede „Siz“ kelimesi geçse de bu bir ikna baskısıdır."], "Wie könnte die Verkäuferin auf das Zögern reagieren, ohne Druck zu machen?": ["كيف يمكن للبائعة أن تتفاعل مع التردد دون ضغط؟", "Người bán có thể phản ứng với sự do dự của khách thế nào mà không gây áp lực?", "Satıcı baskı yapmadan tereddüde nasıl tepki verebilirdi?"]};
+const UIB={"top": ["Störer-Bingo · {c}", "لعبة بينغو المعوّقات · {c}", "Bingo Yếu tố cản trở · {c}", "Engel Bingosu · {c}"], "title": ["Kundenorientiert kommunizieren", "التواصل بما يلبّي حاجة الزبون", "Giao tiếp hướng đến khách hàng", "Müşteri odaklı iletişim"], "nickask": ["Gib einen Spitznamen ein.", "اكتب اسمًا مستعارًا.", "Hãy nhập một biệt danh.", "Bir takma ad gir."], "nickph": ["Spitzname", "اسم مستعار", "Biệt danh", "Takma ad"], "join": ["Mitmachen", "شارك", "Tham gia", "Katıl"], "verb": ["Verbinde mit der Tafel …", "جارٍ الاتصال بالسبّورة …", "Đang kết nối với bảng …", "Tahtaya bağlanıyor …"], "anm": ["Du wirst angemeldet …", "جارٍ تسجيلك …", "Bạn đang được đăng ký …", "Kaydın yapılıyor …"], "drin": ["Du bist drin!", "أنت معنا!", "Bạn đã vào rồi!", "İçerdesin!"], "warte": ["Warte, bis es an der Tafel losgeht.", "انتظر حتى تبدأ اللعبة على السبّورة.", "Hãy chờ đến khi bắt đầu trên bảng.", "Tahtada başlamasını bekle."], "merk": ["Das merken wir uns", "هذا ما سنتذكّره", "Điều chúng ta ghi nhớ", "Bunu aklımızda tutuyoruz"], "gesch": ["Geschafft!", "أنجزت!", "Xong rồi!", "Başardın!"], "platz": ["Platz {n}", "المركز {n}", "Hạng {n}", "{n}. sıra"], "punkte2": ["{p} Punkte aus Sortieren und Prüfungs-Check · {n} haben mitgespielt", "{p} نقطة من التصنيف وفحص الامتحان · شارك {n} لاعبًا", "{p} điểm từ phần phân loại và kiểm tra thi · {n} người đã chơi", "Sıralama ve Sınav Kontrolü'nden {p} puan · {n} kişi oynadı"], "beibingo": ["Beim Bingo warst du auf Platz {n}.", "في البينغو كنت في المركز {n}.", "Ở trò Bingo bạn đứng hạng {n}.", "Bingoda {n}. sıradaydın."], "danke": ["Danke fürs Mitmachen!", "شكرًا على مشاركتك!", "Cảm ơn bạn đã tham gia!", "Katıldığın için teşekkürler!"], "gesp": ["Gespeichert ✓", "تم الحفظ ✓", "Đã lưu ✓", "Kaydedildi ✓"], "schau": ["Schau an die Tafel. Wo stehen die anderen?", "انظر إلى السبّورة. أين يقف الآخرون؟", "Hãy nhìn lên bảng. Những người khác đứng ở đâu?", "Tahtaya bak. Diğerleri nerede?"], "aendern": ["Ändern", "تعديل", "Sửa", "Değiştir"], "lastbuy": ["Dein letzter Einkauf mit Beratung", "آخر عملية شراء لك مع مشورة", "Lần mua hàng gần nhất của bạn có tư vấn", "Danışmanlık aldığın son alışverişin"], "wiewar": ["Wie war das? Schieb den Regler.", "كيف كان ذلك؟ حرّك المؤشر.", "Lần đó thế nào? Hãy kéo thanh trượt.", "Nasıldı? Kaydırıcıyı oynat."], "super": ["Ich wurde super beraten.", "تلقّيت مشورة ممتازة.", "Tôi được tư vấn rất tốt.", "Çok iyi danışmanlık aldım."], "nie": ["Nie wieder.", "لن أعود أبدًا.", "Không bao giờ nữa.", "Bir daha asla."], "einwort": ["Ein Wort, wie es war", "كلمة واحدة تصف ما حدث", "Một từ mô tả lần đó", "Nasıldı, tek kelimeyle"], "einwortph": ["z. B. unfreundlich", "مثلًا: غير ودود", "ví dụ: không thân thiện", "örn. nezaketsiz"], "senden": ["Senden", "إرسال", "Gửi", "Gönder"], "binghead": ["Gesprächsstörer-Bingo", "بينغو معوّقات الحوار", "Bingo yếu tố cản trở cuộc trò chuyện", "Görüşme Engelleri Bingosu"], "kreuze": ["Kreuze an, sobald du einen Satz hörst. (Der deutsche Satz steht unter der Übersetzung.)", "ضع علامة بمجرد أن تسمع جملة. (الجملة الألمانية مكتوبة تحت الترجمة.)", "Hãy đánh dấu ngay khi bạn nghe thấy một câu. (Câu tiếng Đức nằm dưới phần dịch.)", "Bir cümle duyar duymaz işaretle. (Almanca cümle çevirinin altında yazıyor.)"], "bingobtn": ["BINGO!", "بينغو!", "BINGO!", "BİNGO!"], "bingook": ["BINGO! Platz {n}<br>Steh auf und lies deinen letzten Satz laut vor.", "بينغو! المركز {n}<br>قِف واقرأ آخر جملة لديك بصوت عالٍ.", "BINGO! Hạng {n}<br>Hãy đứng lên và đọc to câu cuối cùng của bạn.", "BİNGO! {n}. sıra<br>Ayağa kalk ve son cümleni yüksek sesle oku."], "gepr": ["Wird geprüft …", "جارٍ التحقق …", "Đang kiểm tra …", "Kontrol ediliyor …"], "nobingo": ["Noch kein Bingo: Mindestens ein Satz in deiner Reihe ist noch nicht gefallen. Hör genau hin!", "ليس بينغو بعد: جملة واحدة على الأقل في صفّك لم تُقَل بعد. استمع جيدًا!", "Chưa phải Bingo: ít nhất một câu trong hàng của bạn vẫn chưa được nói. Hãy nghe kỹ!", "Henüz bingo yok: Sıranda en az bir cümle henüz söylenmedi. İyi dinle!"], "gleich": ["Gleich geht's los", "سنبدأ بعد قليل", "Sắp bắt đầu rồi", "Birazdan başlıyoruz"], "sortintro": ["Du siehst die Sätze aus dem Bingo noch einmal. Vermute: Welcher Gesprächsstörer ist das?", "سترى جمل البينغو مرة أخرى. خمّن: أيّ معوّق للحوار هذا؟", "Bạn sẽ xem lại các câu trong trò Bingo. Hãy đoán: đây là yếu tố cản trở nào?", "Bingodaki cümleleri bir kez daha görüyorsun. Tahmin et: Bu hangi görüşme engeli?"], "satzvon": ["Satz {a} von {b}", "الجملة {a} من {b}", "Câu {a}/{b}", "Cümle {a} / {b}"], "welchst": ["Welcher Gesprächsstörer ist das?", "أيّ معوّق للحوار هذا؟", "Đây là yếu tố cản trở cuộc trò chuyện nào?", "Bu hangi görüşme engeli?"], "welchfo": ["Hier fehlt ein Gesprächsförderer. Welcher?", "هنا ينقص عامل مساعد للحوار. أيّ واحد؟", "Ở đây thiếu một yếu tố thúc đẩy cuộc trò chuyện. Là yếu tố nào?", "Burada bir görüşme destekleyici eksik. Hangisi?"], "gespum": ["Gespeichert ✓ Du kannst noch umentscheiden.", "تم الحفظ ✓ ما زال بإمكانك تغيير قرارك.", "Đã lưu ✓ Bạn vẫn có thể đổi ý.", "Kaydedildi ✓ Hâlâ fikrini değiştirebilirsin."], "keineant": ["Keine Antwort.", "لا توجد إجابة.", "Không có câu trả lời.", "Cevap yok."], "richtigp": ["Richtig! +{n} Punkte", "صحيح! +{n} نقطة", "Đúng! +{n} điểm", "Doğru! +{n} puan"], "leidernicht": ["Leider nicht. Du hattest: {x}", "للأسف لا. إجابتك كانت: {x}", "Tiếc là không. Bạn đã chọn: {x}", "Maalesef değil. Senin cevabın: {x}"], "richtig": ["Richtig: {x}", "الصحيح: {x}", "Đáp án đúng: {x}", "Doğru: {x}"], "rep": ["Reparieren", "الإصلاح", "Sửa câu nói", "Onarma"], "schaut": ["Schau an die Tafel.", "انظر إلى السبّورة.", "Hãy nhìn lên bảng.", "Tahtaya bak."], "stimme": ["Stimme abgegeben ✓", "تم التصويت ✓", "Đã bỏ phiếu ✓", "Oy verildi ✓"], "wartest": ["Warte, bis die Lehrkraft die Stimmen zeigt.", "انتظر حتى تعرض المعلّمة الأصوات.", "Hãy chờ đến khi giáo viên hiển thị kết quả.", "Öğretmen oyları gösterene kadar bekle."], "welchrep": ["Welche Reparatur klingt am besten?", "أيّ إصلاح يبدو الأفضل؟", "Cách sửa nào nghe hay nhất?", "Hangi onarım en iyi duyuluyor?"], "deine": ["deine Antwort", "إجابتك", "câu trả lời của bạn", "senin cevabın"], "nochkeine": ["Zu diesem Satz gibt es noch keine Antworten.", "لا توجد إجابات لهذه الجملة بعد.", "Câu này chưa có câu trả lời nào.", "Bu cümle için henüz cevap yok."], "gesendet": ["Gesendet …", "تم الإرسال …", "Đã gửi …", "Gönderildi …"], "abgegeben": ["Abgegeben ✓", "تم التسليم ✓", "Đã nộp ✓", "Teslim edildi ✓"], "antkam": ["Deine Antwort ist angekommen.", "وصلت إجابتك.", "Câu trả lời của bạn đã được gửi.", "Cevabın ulaştı."], "gleichvote": ["Gleich stimmt die Klasse ab.", "سيصوّت الصف بعد قليل.", "Lát nữa cả lớp sẽ bỏ phiếu.", "Birazdan sınıf oy verecek."], "negpos": ["Aus negativ wird positiv", "من السلبي إلى الإيجابي", "Từ tiêu cực thành tích cực", "Olumsuzdan olumluya"], "geht": ["Dieser Satz geht schief:", "هذه الجملة تسير في الاتجاه الخاطئ:", "Câu này không ổn:", "Bu cümle yanlış gidiyor:"], "deinerep": ["Deine Reparatur in wörtlicher Rede", "إصلاحك بصيغة كلام مباشر", "Cách sửa của bạn dưới dạng lời nói trực tiếp", "Onarımın, doğrudan konuşma biçiminde"], "deutsch": ["Schreibe auf Deutsch – nutze den Satzbaukasten.", "اكتب بالألمانية – واستعن بصندوق الجمل.", "Hãy viết bằng tiếng Đức – dùng hộp câu mẫu.", "Almanca yaz – cümle kutusunu kullan."], "baukasten": ["Satzbaukasten – antippen fügt ein:", "صندوق الجمل – اضغط لإدراج الجملة:", "Hộp câu mẫu – chạm để chèn vào:", "Cümle kutusu – dokunmak ekler:"], "profi": ["Profi", "محترف", "Nâng cao", "Profesyonel"], "zusatz": ["Zusatz", "إضافة", "Bổ sung", "Ek"], "warumbesser": ["Welcher Störer war das, und warum wirkt deine Fassung besser?", "أيّ معوّق كان هذا، ولماذا تبدو صيغتك أفضل؟", "Đó là yếu tố cản trở nào, và vì sao cách viết của bạn hay hơn?", "Bu hangi engeldi ve senin versiyonun neden daha iyi etki ediyor?"], "abgeben": ["Abgeben", "تسليم", "Nộp", "Teslim et"], "hint1": ["Sie-Stil fehlt noch: Sprich die Kundin mit „Sie“ oder „Ihnen“ an.", "ما زال أسلوب الاحترام (Sie) ناقصًا: خاطب الزبونة بـ „Sie“ أو „Ihnen“.", "Vẫn thiếu lối xưng hô lịch sự (Sie): hãy gọi khách là „Sie“ hoặc „Ihnen“.", "Siz hitabı henüz eksik: Müşteriye „Sie“ ya da „Ihnen“ ile hitap et."], "hint2": ["Geht es ohne „nicht“, „kein“ oder „leider“? Sag, was du tust.", "هل يمكن بدون „nicht“ أو „kein“ أو „leider“؟ قل ما الذي ستفعله.", "Có thể nói mà không dùng „nicht“, „kein“ hay „leider“ không? Hãy nói bạn sẽ làm gì.", "„nicht“, „kein“ ya da „leider“ olmadan olmaz mı? Ne yapacağını söyle."], "hint3": ["Aus „man“ wird „Sie“.", "„man“ تصبح „Sie“.", "„man“ đổi thành „Sie“.", "„man“ yerine „Sie“ yaz."], "hintok": ["Klingt kundenorientiert ✓", "يبدو موجَّهًا للزبون ✓", "Nghe hướng đến khách hàng ✓", "Müşteri odaklı duyuluyor ✓"], "pruef": ["Prüfungs-Check", "فحص الامتحان", "Kiểm tra thi", "Sınav Kontrolü"], "pgleich": ["Gleich geht es los. Lies jede Frage genau. Richtig ist wichtiger als schnell!", "سنبدأ بعد قليل. اقرأ كل سؤال بدقة. الصحة أهم من السرعة!", "Sắp bắt đầu rồi. Hãy đọc kỹ từng câu hỏi. Đúng quan trọng hơn nhanh!", "Birazdan başlıyoruz. Her soruyu dikkatle oku. Doğru olmak hızlı olmaktan önemli!"], "frage": ["Frage {a}", "السؤال {a}", "Câu hỏi {a}", "Soru {a}"], "fragevon": ["Frage {a} von {b}", "السؤال {a} من {b}", "Câu hỏi {a}/{b}", "Soru {a} / {b}"], "antges": ["Antwort gespeichert ✓", "تم حفظ الإجابة ✓", "Đã lưu câu trả lời ✓", "Cevap kaydedildi ✓"], "wirdges": ["Wird gesendet …", "جارٍ الإرسال …", "Đang gửi …", "Gönderiliyor …"], "warteauf": ["Warte auf die Auflösung.", "انتظر الحل.", "Hãy chờ đáp án.", "Çözümü bekle."], "profiz": ["Profi-Zusatz:", "إضافة للمحترفين:", "Bổ sung nâng cao:", "Profesyonel ek:"], "richtigq": ["Richtig!", "صحيح!", "Đúng!", "Doğru!"], "falsch": ["Leider falsch.", "للأسف خطأ.", "Tiếc là sai.", "Maalesef yanlış."], "punkte": ["{n} Punkte", "{n} نقطة", "{n} điểm", "{n} puan"], "platzvon": ["Platz {a} von {b}", "المركز {a} من {b}", "Hạng {a}/{b}", "{a}. sıra / {b}"], "deutschzeigen": ["Deutsch zeigen", "إظهار الألمانية", "Hiện tiếng Đức", "Almancayı göster"], "sprache": ["Sprache wählen · اختر لغتك · Chọn ngôn ngữ · Dil seç", "", "", "Sprache wählen · اختر لغتك · Chọn ngôn ngữ · Dil seç"]};
+const MERK_TR={ar:"<div class=\"merk\"><b>تذكّر:</b> اللغة هي أهم <span class=\"term\">أداة للبيع</span>. المهم ليس ما يقوله البائع فقط، بل <i>كيف</i> يقوله أيضًا.</div>\n<h3 style=\"margin-top:14px;color:var(--fo)\">العوامل الثلاثة المساعدة للحوار (Gesprächsförderer)</h3>\n<table class=\"mt lt\"><tr><th>المصطلح</th><th>معناه</th><th>كيف يبدو</th></tr>\n<tr><td><b>Aktives Zuhören</b><br><span class=\"alt\">الاستماع الفعّال</span></td><td>أن تضع نفسك مكان الزبون وتبحث عن حل باهتمام حقيقي</td><td>„Wenn ich Sie richtig verstanden habe, suchen Sie …“<br><span class=\"alt\">إذا فهمتُك جيدًا فأنت تبحث عن …</span></td></tr>\n<tr><td><b>Kundenorientierte Sprache</b><br><span class=\"alt\">لغة موجَّهة للزبون: أسلوب الاحترام (Sie)، صياغة إيجابية</span></td><td>„Sie“ و„Ihr“ و„Ihnen“ بدل „ich“ أو „man“؛ إيجابي بدل سلبي</td><td>„Damit können Sie …“ <span class=\"alt\">بدل</span> „Damit kann man …“</td></tr>\n<tr><td><b>Gute Stimmtechnik</b><br><span class=\"alt\">تقنية صوت جيدة</span></td><td>نبرة لطيفة، نطق واضح، تنغيم لحني، تنويع في شدة الصوت، فترات صمت</td><td>طبيعي وغير مصطنع</td></tr></table>\n<h3 style=\"margin-top:14px;color:var(--st)\">معوّقات الحوار الخمسة (Gesprächsstörer)</h3>\n<table class=\"mt lt\"><tr><th>المصطلح</th><th>ما وراءه</th><th>مثال</th></tr>\n<tr><td><b>Befehle</b><br><span class=\"alt\">أوامر</span></td><td>يشعر البائع بأنه أعلى من الزبون.</td><td>„Greifen Sie sofort zu!“</td></tr>\n<tr><td><b>Killerphrasen</b><br><span class=\"alt\">عبارات تحقيرية قاتلة للحوار</span></td><td>جارحة؛ تظهر غالبًا عندما تغيب الحجج الموضوعية.</td><td>„Das verstehen Sie nicht!“</td></tr>\n<tr><td><b>Überredungsversuche</b><br><span class=\"alt\">محاولات إقناع بالضغط</span></td><td>يُفرَض الشراء على الزبون.</td><td>„An Ihrer Stelle würde ich nicht warten …“</td></tr>\n<tr><td><b>Vorwürfe</b><br><span class=\"alt\">لوم</span></td><td>يُحمَّل الزبون الذنب.</td><td>„Sie haben meinen Rat nicht befolgt …“</td></tr>\n<tr><td><b>Erwartungen dämpfen</b><br><span class=\"alt\">تثبيط التوقعات</span></td><td>يُصاب الزبون بعدم اليقين.</td><td>„Dieses Handy ist schwierig zu bedienen.“</td></tr></table>\n<div class=\"merk\"><b>صياغة مفهومة:</b> جمل قصيرة · كلمات معروفة وبدون مصطلحات معقّدة · أسلوب مُجسَّد · الاكتفاء بالأساسي · أسلوب الاحترام (Sie).<br>\n<b>جملة جاهزة:</b> „Gesprächsstörer sind Aussagen, die das Verkaufsgespräch belasten. Ein Beispiel ist …“<br><span class=\"alt\">معوّقات الحوار هي عبارات تُثقل حوار البيع. ومثال على ذلك …</span></div>",vi:"<div class=\"merk\"><b>Ghi nhớ:</b> Lời nói là <span class=\"term\">công cụ bán hàng</span> quan trọng nhất. Điều quan trọng không chỉ là người bán nói <i>gì</i>, mà còn là nói <i>như thế nào</i>.</div>\n<h3 style=\"margin-top:14px;color:var(--fo)\">3 yếu tố thúc đẩy cuộc trò chuyện (Gesprächsförderer)</h3>\n<table class=\"mt lt\"><tr><th>Thuật ngữ</th><th>Ý nghĩa</th><th>Nghe như thế nào</th></tr>\n<tr><td><b>Aktives Zuhören</b><br><span class=\"alt\">Lắng nghe chủ động</span></td><td>Đặt mình vào vị trí khách và tìm giải pháp với sự quan tâm thật sự</td><td>„Wenn ich Sie richtig verstanden habe, suchen Sie …“<br><span class=\"alt\">Nếu tôi hiểu đúng thì bà đang tìm …</span></td></tr>\n<tr><td><b>Kundenorientierte Sprache</b><br><span class=\"alt\">Ngôn ngữ hướng đến khách: lối xưng hô lịch sự (Sie), cách nói tích cực</span></td><td>„Sie“, „Ihr“, „Ihnen“ thay vì „ich“ hay „man“; tích cực thay vì tiêu cực</td><td>„Damit können Sie …“ <span class=\"alt\">thay vì</span> „Damit kann man …“</td></tr>\n<tr><td><b>Gute Stimmtechnik</b><br><span class=\"alt\">Kỹ thuật giọng nói tốt</span></td><td>Giọng điệu dễ chịu, phát âm rõ, ngữ điệu nhịp nhàng, thay đổi âm lượng, có quãng ngừng</td><td>tự nhiên, không gượng ép</td></tr></table>\n<h3 style=\"margin-top:14px;color:var(--st)\">5 yếu tố cản trở cuộc trò chuyện (Gesprächsstörer)</h3>\n<table class=\"mt lt\"><tr><th>Thuật ngữ</th><th>Điều ẩn sau</th><th>Ví dụ</th></tr>\n<tr><td><b>Befehle</b><br><span class=\"alt\">Mệnh lệnh</span></td><td>Người bán cảm thấy mình cao hơn khách.</td><td>„Greifen Sie sofort zu!“</td></tr>\n<tr><td><b>Killerphrasen</b><br><span class=\"alt\">Câu nói hạ thấp, dập tắt cuộc trò chuyện</span></td><td>Gây tổn thương; thường xuất hiện khi thiếu lập luận khách quan.</td><td>„Das verstehen Sie nicht!“</td></tr>\n<tr><td><b>Überredungsversuche</b><br><span class=\"alt\">Cố thuyết phục bằng áp lực</span></td><td>Việc mua bị áp đặt.</td><td>„An Ihrer Stelle würde ich nicht warten …“</td></tr>\n<tr><td><b>Vorwürfe</b><br><span class=\"alt\">Trách móc</span></td><td>Khách bị đổ lỗi.</td><td>„Sie haben meinen Rat nicht befolgt …“</td></tr>\n<tr><td><b>Erwartungen dämpfen</b><br><span class=\"alt\">Dập tắt kỳ vọng</span></td><td>Khách trở nên bất an.</td><td>„Dieses Handy ist schwierig zu bedienen.“</td></tr></table>\n<div class=\"merk\"><b>Diễn đạt dễ hiểu:</b> câu ngắn · từ quen thuộc, không dùng thuật ngữ khó · nói sinh động · chỉ nói điều cốt yếu · lối xưng hô lịch sự (Sie).<br>\n<b>Câu mẫu:</b> „Gesprächsstörer sind Aussagen, die das Verkaufsgespräch belasten. Ein Beispiel ist …“<br><span class=\"alt\">Yếu tố cản trở cuộc trò chuyện là những câu nói làm nặng nề cuộc trò chuyện bán hàng. Một ví dụ là …</span></div>",tr:"<div class=\"merk\"><b>Aklında tut:</b> Dil, en önemli <span class=\"term\">satış aracıdır</span>. Önemli olan yalnızca satıcının <i>ne</i> söylemesi değil, aynı zamanda <i>nasıl</i> söylemesidir.</div>\n<h3 style=\"margin-top:14px;color:var(--fo)\">3 görüşme destekleyici (Gesprächsförderer)</h3>\n<table class=\"mt lt\"><tr><th>Terim</th><th>Anlamı</th><th>Nasıl duyulur</th></tr>\n<tr><td><b>Aktives Zuhören</b><br><span class=\"alt\">Aktif dinleme</span></td><td>Kendini müşterinin yerine koymak ve gerçek bir ilgiyle çözüm aramak</td><td>„Wenn ich Sie richtig verstanden habe, suchen Sie …“<br><span class=\"alt\">Sizi doğru anladıysam, … arıyorsunuz.</span></td></tr>\n<tr><td><b>Kundenorientierte Sprache</b><br><span class=\"alt\">Müşteri odaklı dil: nazik hitap (Sie), olumlu ifade</span></td><td>„ich“ ya da „man“ yerine „Sie“, „Ihr“, „Ihnen“; olumsuz yerine olumlu</td><td>„Damit können Sie …“ <span class=\"alt\">yerine</span> „Damit kann man …“</td></tr>\n<tr><td><b>Gute Stimmtechnik</b><br><span class=\"alt\">İyi ses tekniği</span></td><td>Hoş ses tonu, net telaffuz, melodik ses akışı, değişen ses şiddeti, konuşma araları</td><td>doğal, yapmacık değil</td></tr></table>\n<h3 style=\"margin-top:14px;color:var(--st)\">5 görüşme engeli (Gesprächsstörer)</h3>\n<table class=\"mt lt\"><tr><th>Terim</th><th>Arkasında ne var</th><th>Örnek</th></tr>\n<tr><td><b>Befehle</b><br><span class=\"alt\">Emirler</span></td><td>Satıcı kendini üstün hisseder.</td><td>„Greifen Sie sofort zu!“</td></tr>\n<tr><td><b>Killerphrasen</b><br><span class=\"alt\">Küçümseyen, görüşmeyi öldüren cümleler</span></td><td>İncitici; çoğu zaman somut argümanlar eksik olduğunda gelir.</td><td>„Das verstehen Sie nicht!“</td></tr>\n<tr><td><b>Überredungsversuche</b><br><span class=\"alt\">İkna baskıları</span></td><td>Satın alma dayatılır.</td><td>„An Ihrer Stelle würde ich nicht warten …“</td></tr>\n<tr><td><b>Vorwürfe</b><br><span class=\"alt\">Suçlamalar</span></td><td>Suç müşteriye yüklenir.</td><td>„Sie haben meinen Rat nicht befolgt …“</td></tr>\n<tr><td><b>Erwartungen dämpfen</b><br><span class=\"alt\">Beklentileri düşürmek</span></td><td>Müşteri tedirgin edilir.</td><td>„Dieses Handy ist schwierig zu bedienen.“</td></tr></table>\n<div class=\"merk\"><b>Anlaşılır ifade etmek:</b> kısa cümleler · bilinen sözcükler, zor terim yok · canlı anlatım · yalnızca esas olan · nazik hitap (Sie).<br>\n<b>Cümle kalıbı:</b> „Gesprächsstörer sind Aussagen, die das Verkaufsgespräch belasten. Ein Beispiel ist …“<br><span class=\"alt\">Görüşme engelleri, satış görüşmesini zorlaştıran ifadelerdir. Bir örnek: …</span></div>"};
+let LANG="de",SHOWDE=false,LANGSET=false;
+try{const l=localStorage.getItem("stoerer:lang");if(l&&["de","ar","vi","tr"].includes(l)){LANG=l;LANGSET=true;}SHOWDE=localStorage.getItem("stoerer:showde")==="1";}catch(e){}
+function saveLang(){try{localStorage.setItem("stoerer:lang",LANG);localStorage.setItem("stoerer:showde",SHOWDE?"1":"0");}catch(e){}}
+function u(k,v){const e=UIB[k];if(!e)return k;let s=e[{de:0,ar:1,vi:2,tr:3}[LANG]]||e[0];if(v)for(const x in v)s=s.split("{"+x+"}").join(v[x]);return s;}
+function uh(k,v){return LANG==="de"?u(k,v):u(k,v);}
+function pl_(s){if(LANG==="de")return s;const t=TRB[s];return t?t[{ar:0,vi:1,tr:2}[LANG]]:s;}
+function tx(s){if(LANG==="de"||!TRB[s])return h(s);return h(pl_(s))+'<span class="dd" dir="ltr">'+h(s)+'</span>';}
+function txd(s){if(LANG==="de"||!TRB[s])return h(s);return h(pl_(s))+'<span class="dd show" dir="ltr">'+h(s)+'</span>';}
+function phoneApp(){
+  $("phone").hidden=false;
+  const KEY="stoererbingo_p_"+roomCode+(params.get("t")||"");
+  let me=store(KEY)||{};if(!me.pid){me.pid=rnd(8);store(KEY,me);}
+  let S=null,lastKey="",pending=null,qEnd=0,qSel={},sSel={},vSel={},lnD={v:50,w:""},lnEdit=false,rpD={t:"",z:""},rpEdit=false,claim=false,fail=false;
+  const net=new Net((t,p)=>{if(t===NS+roomCode+"/st"&&p&&typeof p==="object")onState(p);},c=>{if(c.up)hello();});
+  net.sub(roomCode+"/st");
+  const send=o=>{o.p=me.pid;net.pub(roomCode+"/in",o,false);};
+  function hello(){if(me.nick&&LANGSET)send({k:"hi",n:me.nick,l:LANG});}
+  setInterval(()=>{if(!S)return;
+    if(me.nick&&!(S.j||[]).includes(me.pid))hello();
+    else if(pending&&pending.done&&!pending.done())send(pending.msg);},2500);
+  function onState(p){
+    if(p.qOpen&&(!S||!S.qOpen||S.q!==p.q))qEnd=Date.now()+p.rem*1000;
+    S=p;
+    if((S.kick||[]).includes(me.pid)&&me.nick){me={pid:rnd(8)};store(KEY,me);lastKey="";}
+    render();
+  }
+  /* Sprachwahl per Delegation (bleibt bei jedem Neuaufbau erhalten) */
+  const PH=$("phone");
+  PH.addEventListener("click",e=>{const b=e.target.closest(".langbar button,.chooser button");if(!b)return;LANG=b.dataset.l;LANGSET=true;saveLang();lastKey="";hello();render();});
+  PH.addEventListener("change",e=>{if(e.target.id==="showde"){SHOWDE=e.target.checked;saveLang();document.body.classList.toggle("showde",SHOWDE&&LANG!=="de");}});
+  const mine=()=>(S&&S.pp&&S.pp[me.pid])||null;
+  const marks=m=>{const k=m.card.join(",");if(!me.mk||me.mk.k!==k){me.mk={k,x:[]};store(KEY,me);}return me.mk.x;};
+  function keyOf(){if(!LANGSET)return "lang";if(!me.nick)return "join"+LANG+SHOWDE;if(!S)return "wait"+LANG+SHOWDE;const m=mine();
+    return JSON.stringify([LANG,SHOWDE,S.ph,m,S.so,S.soOpen,S.rs,S.rv,S.rvOpen,S.rvL,S.q,S.qOpen,(S.ans||[]).includes(me.pid),S.sc?S.sc[me.pid]:0,lnEdit,rpEdit,me.mk,claim,fail]);}
+  function langbar(){return `<div class="langbar" dir="ltr">${[["de","Deutsch"],["ar","العربية"],["vi","Tiếng Việt"],["tr","Türkçe"]].map(([c,n])=>`<button data-l="${c}" lang="${c}" class="${c===LANG?"on":""}">${n}</button>`).join("")}${LANG!=="de"?`<label dir="${LANG==="ar"?"rtl":"ltr"}"><input type="checkbox" id="showde" ${SHOWDE?"checked":""}> ${u("deutschzeigen")}</label>`:""}</div>`;}
+  function render(){const k=keyOf();if(k===lastKey)return;lastKey=k;const P=$("phone");
+    P.dir=LANG==="ar"?"rtl":"ltr";P.lang=LANG;document.documentElement.lang=LANG;document.body.classList.toggle("showde",SHOWDE&&LANG!=="de");
+    if(!LANGSET){P.dir="ltr";P.innerHTML=`<h2>Sprache wählen · اختر لغتك · Chọn ngôn ngữ · Dil seç</h2><div class="chooser">${[["de","Deutsch"],["ar","العربية"],["vi","Tiếng Việt"],["tr","Türkçe"]].map(([c,n])=>`<button data-l="${c}" lang="${c}">${n}</button>`).join("")}</div>`;return;}
+    const sc=S&&S.sc&&S.sc[me.pid];
+    const top=`<div class="ph-top" dir="ltr"><span>${u("top",{c:roomCode})}</span><span>${h(me.nick||"")}${sc?` · ${sc[0]} ${LANG==="ar"?"نقطة":LANG==="vi"?"điểm":LANG==="tr"?"puan":"P."}`:""}</span></div>`+langbar();
+    if(!me.nick){P.innerHTML=top+`<h2>${u("title")}</h2><p>${u("nickask")}</p>
+      <input id="nk" maxlength="16" placeholder="${h(u("nickph"))}" autocomplete="off"><div style="height:10px"></div><button class="pri" id="bJ" style="width:100%">${u("join")}</button>`;
+      $("bJ").onclick=()=>{const n=clean($("nk").value,16);if(!n)return;me.nick=n;store(KEY,me);hello();lastKey="";render();};return;}
+    if(!S){P.innerHTML=top+`<p>${u("verb")}</p>`;return;}
+    const m=mine();
+    if(!m){P.innerHTML=top+`<p>${u("anm")}</p>`;return;}
+    if(S.ph===0){P.innerHTML=top+`<h2>${u("drin")}</h2><p>${u("warte")}</p>`;return;}
+    if(S.ph===1)return rLine(P,top,m);
+    if(S.ph===2)return rBingo(P,top,m);
+    if(S.ph===3)return rSort(P,top,m);
+    if(S.ph===4)return rRep(P,top,m);
+    if(S.ph===5){P.innerHTML=top+`<h2>${u("merk")}</h2>${LANG==="de"?MERK:MERK_TR[LANG]+(SHOWDE?`<details dir="ltr"><summary>Deutsch</summary>${MERK}</details>`:"")}`;return;}
+    if(S.ph===6)return rQuiz(P,top);
+    const s=sc||[0,"–",0];
+    P.innerHTML=top+`<h2>${u("gesch")}</h2><div class="box"><div class="bigpts">${u("platz",{n:s[1]})}</div>${u("punkte2",{p:s[0],n:S.np||"?"})}</div>
+      ${m.bw?`<p>${u("beibingo",{n:m.bw})}</p>`:""}<p>${u("danke")}</p>`;
+  }
+
+  /* ---------- 1 Meinungslinie ---------- */
+  function rLine(P,top,m){
+    if(m.ln&&!lnEdit){P.innerHTML=top+`<h2>${u("gesp")}</h2><p>${u("schau")}</p><button id="bE" style="width:100%">${u("aendern")}</button>`;
+      $("bE").onclick=()=>{lnEdit=true;lastKey="";render();};return;}
+    P.innerHTML=top+`<h2>${u("lastbuy")}</h2><p>${u("wiewar")}</p>
+      <input type="range" id="rg" min="0" max="100" value="${lnD.v}" aria-label="Meinungslinie" style="direction:ltr">
+      <div class="rg-l" style="direction:ltr"><span style="color:var(--fo)">${u("super")}</span><span style="color:var(--st)">${u("nie")}</span></div>
+      <label style="display:block;margin-top:14px"><b>${u("einwort")}</b><input id="lw" maxlength="20" value="${h(lnD.w)}" placeholder="${h(u("einwortph"))}" autocomplete="off"></label>
+      <div style="height:12px"></div><button class="pri" id="bS" style="width:100%">${u("senden")}</button>`;
+    $("rg").oninput=e=>{lnD.v=+e.target.value;};$("lw").oninput=e=>{lnD.w=e.target.value;};
+    $("bS").onclick=()=>{const w=clean(lnD.w,20);pending={msg:{k:"ln",v:lnD.v,w},done:()=>S.ph!==1||(mine()||{}).ln};send(pending.msg);
+      if(m.ln)setTimeout(()=>send({k:"ln",v:lnD.v,w}),900);lnEdit=false;lastKey="";render();};
+  }
+
+  /* ---------- 2 Bingo ---------- */
+  function rBingo(P,top,m){
+    const X=marks(m),full=LINES.some(L=>L.every(q=>X.includes(q)));
+    if(claim!==false&&(m.bw||m.bn!==claim)){if(!m.bw)fail=true;claim=false;}
+    let st="";
+    if(m.bw)st=`<div class="status ok bigst"><b>${u("bingook",{n:m.bw})}</b></div>`;
+    else if(claim!==false)st=`<div class="status">${u("gepr")}</div>`;
+    else if(fail)st=`<div class="status bad">${u("nobingo")}</div>`;
+    P.innerHTML=top+`<h2>${u("binghead")}</h2><p>${u("kreuze")}</p>
+      <div class="bg ${LANG!=="de"?"trb":""}">${m.card.map((i,q)=>`<button data-q="${q}" class="${X.includes(q)?"x":""}">${txd(SENT[i].c)}</button>`).join("")}</div>
+      ${m.bw?"":`<button class="pri bingo" id="bB" ${full&&claim===false?"":"disabled"}>${u("bingobtn")}</button>`}${st}`;
+    P.querySelectorAll(".bg button").forEach(b=>b.onclick=()=>{if(m.bw)return;const q=+b.dataset.q,a=marks(m);const i=a.indexOf(q);if(i>=0)a.splice(i,1);else a.push(q);fail=false;store(KEY,me);lastKey="";render();});
+    if($("bB"))$("bB").onclick=()=>{claim=m.bn;fail=false;pending={msg:{k:"b",m:marks(m).slice()},done:()=>{const x=mine()||{};return S.ph!==2||x.bw>0||x.bn!==m.bn;}};send(pending.msg);lastKey="";render();};
+  }
+
+  /* ---------- 3 Sortieren ---------- */
+  function rSort(P,top,m){
+    if(S.so<0){P.innerHTML=top+`<h2>${u("gleich")}</h2><p>${u("sortintro")}</p>`;return;}
+    const it=SENT[S.so],O=it.y==="s"?STOER:FOERD,my=m.sa!=null?m.sa:sSel[S.so];
+    const head=`<p class="muted">${u("satzvon",{a:S.so+1,b:SENT.length})}</p><div class="neg-box">„${txd(it.t)}“</div>
+      <p><b>${it.y==="s"?u("welchst"):u("welchfo")}</b></p>`;
+    if(S.soOpen){
+      P.innerHTML=top+head+O.map((o,i)=>`<button class="pbtn ${it.y==="s"?"st":"fo"} ${my===i?"sel":""}" data-i="${i}">${txd(o)}</button>`).join("")+
+        (m.sa!=null?`<div class="status ok">${u("gespum")}</div>`:"");
+      P.querySelectorAll(".pbtn").forEach(b=>b.onclick=()=>{const i=S.so,c=+b.dataset.i;sSel[i]=c;pending={msg:{k:"s",i,c},done:()=>S.so!==i||!S.soOpen||(mine()||{}).sa===c};send(pending.msg);lastKey="";render();});return;}
+    const ok=my===it.k;
+    P.innerHTML=top+head+`<div class="status ${my==null?"":ok?"ok":"bad"}">${my==null?u("keineant"):ok?`<b>${u("richtigp",{n:SORTPTS})}</b>`:`<b>${u("leidernicht",{x:txd(O[my])})}</b>`}</div>
+      <p><b>${u("richtig",{x:txd(O[it.k])})}</b><br>${tx(it.x)}</p>`;
+  }
+
+  /* ---------- 4 Reparieren ---------- */
+  function hint(t){const out=[];if(!/\b(Sie|Ihnen|Ihr|Ihre|Ihren|Ihrem|Ihrer)\b/.test(t))out.push(u("hint1"));
+    if(/\b(nicht|kein|keine|keinen|nie|leider)\b/i.test(t))out.push(u("hint2"));
+    if(/\b(man)\b/.test(t))out.push(u("hint3"));
+    return t.trim().length<8?"":out.length?out.map(x=>"• "+h(x)).join("<br>"):u("hintok");}
+  function rRep(P,top,m){
+    const R=REP[m.rp!=null?m.rp:0];
+    if(S.rs===1){
+      if(!S.rvOpen){P.innerHTML=top+`<h2>${u("rep")}</h2><p>${u("schaut")}</p>`;return;}
+      const RV=REP[S.rv],L=S.rvL||[];
+      if(m.vt){P.innerHTML=top+`<h2>${u("stimme")}</h2><p>${u("wartest")}</p>`;return;}
+      P.innerHTML=top+`<h2>${u("welchrep")}</h2><div class="neg-box">„${txd(RV.t)}“</div>
+        ${L.map((t,i)=>i===m.mi?`<div class="pbtn own" dir="ltr">${h(t)}<br><small class="muted">${u("deine")}</small></div>`:`<button class="pbtn ${vSel[S.rv]===i?"sel":""}" dir="ltr" data-i="${i}">${h(t)}</button>`).join("")||`<p>${u("nochkeine")}</p>`}`;
+      P.querySelectorAll("button.pbtn").forEach(b=>b.onclick=()=>{const i=S.rv,c=+b.dataset.i;vSel[i]=c;pending={msg:{k:"v",i,c},done:()=>S.rv!==i||!S.rvOpen||(mine()||{}).vt};send(pending.msg);b.textContent=u("gesendet");});return;}
+    if(m.rpd&&!rpEdit){P.innerHTML=top+`<h2>${u("abgegeben")}</h2><div class="neg-box">„${txd(R.t)}“</div><div class="box" dir="ltr">${h(rpD.t)||u("antkam")}</div>
+      <p class="muted">${u("gleichvote")}</p><button id="bE" style="width:100%">${u("aendern")}</button>`;$("bE").onclick=()=>{rpEdit=true;lastKey="";render();};return;}
+    P.innerHTML=top+`<h2>${u("negpos")}</h2><p>${u("geht")}</p><div class="neg-box">„${txd(R.t)}“</div>
+      <ol class="steps3 sm">${STEPS3.map(s=>`<li>${txd(s)}</li>`).join("")}</ol>
+      <label><b>${u("deinerep")}</b><br><span class="muted">${u("deutsch")}</span><textarea id="rt" rows="3" maxlength="180" placeholder="„…“" dir="ltr">${h(rpD.t)}</textarea></label>
+      <div class="hint" id="hi">${hint(rpD.t)}</div>
+      <p class="muted" style="margin:.6em 0 .2em">${u("baukasten")}</p><div class="bk" dir="ltr">${BAUK.map((b,i)=>`<button data-b="${i}">${h(b)}${LANG!=="de"?`<span class="dd show">${h(pl_(b))}</span>`:""}</button>`).join("")}</div>
+      <details class="pz"><summary><span class="pro">${u("profi")}</span> ${u("zusatz")}</summary><label>${u("warumbesser")}<textarea id="rz" rows="3" maxlength="220">${h(rpD.z)}</textarea></label></details>
+      <div style="height:12px"></div><button class="pri" id="bS" style="width:100%">${u("abgeben")}</button>`;
+    const ta=$("rt");ta.oninput=()=>{rpD.t=ta.value;$("hi").innerHTML=hint(ta.value);};$("rz").oninput=e=>{rpD.z=e.target.value;};
+    P.querySelectorAll(".bk button").forEach(b=>b.onclick=()=>{let v=ta.value.replace(/[“"]\s*$/,"");if(!v.trim())v="„";v+=(v.endsWith("„")||v.endsWith(" ")?"":" ")+BAUK[+b.dataset.b].replace(/ …$/," ");ta.value=v;rpD.t=v;$("hi").innerHTML=hint(v);ta.focus();});
+    $("bS").onclick=()=>{const t=clean(rpD.t,180);if(t.length<4){ta.focus();return;}pending={msg:{k:"r",t,z:clean(rpD.z,220)},done:()=>S.ph!==4||S.rs!==0||(mine()||{}).rpd};send(pending.msg);rpEdit=false;$("bS").textContent=u("gesendet");};
+  }
+
+  /* ---------- 6 Prüfungs-Check ---------- */
+  function rQuiz(P,top){
+    const sc=(S.sc&&S.sc[me.pid])||[0,"–",0];
+    if(S.q<0){P.innerHTML=top+`<h2>${u("pruef")}</h2><p>${u("pgleich")}</p>`;return;}
+    const Q=QUIZ[S.q],answered=(S.ans||[]).includes(me.pid);
+    if(S.qOpen){
+      if(answered||qSel[S.q]!=null){P.innerHTML=top+`<p class="muted">${u("frage",{a:S.q+1})}</p><h2>${tx(Q.q)}</h2><div class="status ${answered?"ok":""}">${answered?u("antges"):u("wirdges")} ${u("warteauf")}</div>
+        ${Q.pz?`<div class="merk"><b>${u("profiz")}</b> ${tx(Q.pz)}</div>`:""}`;return;}
+      P.innerHTML=top+`<div class="row" style="justify-content:space-between"><span class="muted">${u("fragevon",{a:S.q+1,b:QUIZ.length})}${Q.pro?` <span class="pro">${u("profi")}</span>`:""}</span><b id="ptm"></b></div><h2>${tx(Q.q)}</h2>
+        ${Q.o.map((o,i)=>`<button class="popt o${i}" data-i="${i}"><span dir="ltr">${"ABCDE"[i]}:</span> ${tx(o)}</button>`).join("")}`;
+      P.querySelectorAll(".popt").forEach(b=>b.onclick=()=>{const q=S.q;qSel[q]=+b.dataset.i;pending={msg:{k:"a",q,c:+b.dataset.i},done:()=>S.q!==q||!S.qOpen||(S.ans||[]).includes(me.pid)};send(pending.msg);lastKey="";render();});
+      const t=()=>{const s=Math.max(0,Math.ceil((qEnd-Date.now())/1000));if($("ptm"))$("ptm").textContent=s+" s";};t();clearInterval(window._pt);window._pt=setInterval(t,250);return;}
+    const my=qSel[S.q],ok=my===Q.k;
+    P.innerHTML=top+`<p class="muted">${u("fragevon",{a:S.q+1,b:QUIZ.length})}</p>
+      <div class="status ${my==null?"":ok?"ok":"bad"}">${my==null?u("keineant"):ok?"<b>"+u("richtigq")+"</b> +"+sc[2]+" "+h(u("punkte",{n:""}).trim()):"<b>"+u("falsch")+"</b>"}</div>
+      <p><b>${u("richtig",{x:tx(Q.o[Q.k])})}</b><br>${tx(Q.x)}</p>
+      <div class="box"><div class="bigpts">${u("punkte",{n:sc[0]})}</div>${u("platzvon",{a:sc[1],b:S.np||"?"})}</div>`;
+  }
+  render();
+}
+const roomCode=(params.get("s")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);
+if(roomCode)phoneApp();else tafelApp();
+</script>
+<script>
+/* =========================================================
+   QUIZ-MUSIK v2 (Skill live-klassen-app) – eigene Kompositionen, live per WebAudio erzeugt,
+   keine Musikdatei, keine Rechte Dritter. Jede Abfrage bekommt ein ANDERES Stück aus dem Pool
+   (gemischt, nie zweimal hintereinander). Läuft nur auf der Tafel.
+   Ablauf: Loop während der Frage · letzte 10 s schneller · Ticks in den letzten 5 s · Jingle beim Auflösen · Fanfare beim Sieger
+   ========================================================= */
+const MUSIK_POOL=[
+  {name:"Spannung",bpm:124,fast:156,bass:[45,45,41,40],ch:[[69,72,76],[69,72,76],[65,69,72],[64,68,71]],ap:[0,1,2,1,0,2,1,2],arp:"square",kick:[0,4,8,12],snare:[4,12],hat:"off"},
+  {name:"Funk",bpm:104,fast:132,swing:.16,bass:[40,40,43,45],bp:[0,3,6,8,10,11,14],bt:"sawtooth",ch:[[64,67,71,74],[64,67,71,74],[67,71,74,77],[69,72,76,79]],ap:[0,2,1,3],as:[2,6,10,13],ad:.07,arp:"sawtooth",kick:[0,6,8],snare:[4,12],hat:"all"},
+  {name:"Marimba",bpm:116,fast:144,bass:[48,45,41,43],ch:[[72,76,79],[69,72,76],[65,69,72],[67,71,74]],ap:[0,1,2,1,2,1,0,1],ad:.22,arp:"sine",oct:1,kick:[0,8],snare:[],hat:"none",cl:[3,11]},
+  {name:"Chiptune",bpm:144,fast:176,bass:[43,43,40,38],bt:"square",ch:[[67,71,74],[67,71,74],[64,67,71],[62,66,69]],ap:[0,1,2,3,2,1],arp:"square",oct:1,ad:.06,kick:[0,8],snare:[4,12],hat:"none"},
+  {name:"Latin",bpm:112,fast:140,bass:[38,38,43,45],bp:[0,3,8,11],ch:[[62,65,69],[62,65,69],[67,70,74],[69,73,76]],ap:[0,2,1,2],as:[0,2,3,6,8,10,11,14],arp:"triangle",kick:[0,6,8,14],snare:[],hat:"off",cl:[0,3,6,10,12]},
+  {name:"Jazz",bpm:132,fast:164,swing:.3,walk:1,bass:[41,38,43,36],bp:[0,4,8,12],ch:[[65,69,72,76],[62,65,69,72],[67,70,74,77],[60,64,67,70]],ap:[0,2,1,3],as:[0,6,10],ad:.18,arp:"triangle",kick:[],snare:[],hat:"jazz"},
+  {name:"Synthwave",bpm:100,fast:128,bass:[47,43,38,45],bp:[0,2,4,6,8,10,12,14],bt:"sawtooth",ch:[[71,74,78],[67,71,74],[62,66,69],[69,73,76]],ap:[0,1,2,1],arp:"sawtooth",ad:.14,kick:[0,4,8,12],snare:[4,12],hat:"all"},
+  {name:"Detektiv",bpm:92,fast:120,bass:[37,37,42,44],bp:[0,3,8,10],ch:[[61,64,68],[61,64,68],[66,69,73],[68,72,75]],ap:[0,1,2,1,2,0],as:[0,2,4,7,8,10,12,15],ad:.12,arp:"triangle",kick:[0],snare:[8],hat:"off"}
+];
+const Music=(()=>{
+  const ls=(k,v)=>{try{if(v===undefined){const x=localStorage.getItem(k);return x==null?null:JSON.parse(x);}localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}};
+  let ctx=null,master=null,timer=null,next=0,step=0,fast=false,nbuf=null,on=ls("quizmusik")!==false;
+  let order=[],last=-1,S=MUSIK_POOL[0];
+  const mf=m=>440*Math.pow(2,(m-69)/12),AV={square:.04,sawtooth:.03,triangle:.08,sine:.1};
+  function pick(){if(!order.length){order=MUSIK_POOL.map((_,i)=>i);for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+      if(order[0]===last&&order.length>1)order.push(order.shift());}
+    last=order.shift();S=MUSIK_POOL[last];return last;}
+  function init(){try{if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;ctx=new AC();
+      master=ctx.createGain();master.gain.value=.24;master.connect(ctx.destination);}
+    if(ctx.state==="suspended")ctx.resume();return true;}catch(e){return false;}}
+  function tone(f,t,d,type,v){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.05);}
+  function noise(t,d,v,hp){if(!nbuf){nbuf=ctx.createBuffer(1,ctx.sampleRate*.3,ctx.sampleRate);const a=nbuf.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1;}
+    const s=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();s.buffer=nbuf;f.type="highpass";f.frequency.value=hp;
+    g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(master);s.start(t);s.stop(t+d+.02);}
+  function kick(t){const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(45,t+.13);
+    g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.0001,t+.18);o.connect(g);g.connect(master);o.start(t);o.stop(t+.2);}
+  function play(st,t){const bar=Math.floor(st/16)%S.bass.length,s=st%16,ch=S.ch[bar%S.ch.length];
+    const bp=S.bp||[0,2,4,6,8,10,12,14];
+    if(bp.includes(s)){const off=S.walk?[0,4,7,9][Math.floor(s/4)%4]:(s%4===0?0:12);tone(mf(S.bass[bar]+off),t,S.walk?.3:.16,S.bt||"triangle",S.bt==="sawtooth"?.12:S.bt==="square"?.1:.32);}
+    if(!S.as||S.as.includes(s))tone(mf(ch[S.ap[s%S.ap.length]%ch.length]+12*(S.oct||0)+(fast?12:0)),t,S.ad||.09,S.arp,AV[S.arp]||.05);
+    if(S.kick.includes(s))kick(t);
+    if(S.snare.includes(s))noise(t,.12,.25,1800);
+    if(S.cl&&S.cl.includes(s))tone(1250,t,.04,"sine",.18);
+    const hat=S.hat;
+    if(hat==="all"||fast||(hat==="off"&&s%2===1)||(hat==="jazz"&&(s%4===0||s%8===6)))noise(t,.03,.07,7000);}
+  function sched(){const d=60/(fast?S.fast:S.bpm)/4;
+    if(next<ctx.currentTime-.05)next=ctx.currentTime+.02;
+    while(next<ctx.currentTime+.12){play(step,next+(step%2?d*(S.swing||0):0));next+=d;step++;}}
+  const root=()=>S.ch[0][0]%12+60;
+  return {
+    pool:MUSIK_POOL,
+    current(){return S.name;},
+    unlock(){if(on)init();},
+    isOn(){return on;},
+    toggle(){on=!on;ls("quizmusik",on);if(!on)this.stop();return on;},
+    start(){if(!on||timer||!init())return;pick();fast=false;step=0;next=ctx.currentTime+.06;timer=setInterval(sched,25);
+      try{console.log("[Quiz-Musik] Stück",last,S.name);}catch(e){}},
+    hurry(){fast=true;},
+    tick(){if(!on||!init())return;tone(1760,ctx.currentTime,.06,"sine",.25);},
+    stop(){clearInterval(timer);timer=null;fast=false;},
+    reveal(){this.stop();if(!on||!init())return;const t=ctx.currentTime+.03,r=root();
+      [0,4,7].forEach((m,i)=>tone(mf(r+m),t+i*.09,.25,"square",.08));
+      [0,4,7,12].forEach(m=>tone(mf(r+m),t+.3,.9,"triangle",.14));kick(t+.3);noise(t+.3,.25,.25,3000);},
+    fanfare(){this.stop();if(!on||!init())return;const t=ctx.currentTime+.05,r=60;
+      [[-5,0],[0,.15],[4,.3],[7,.45],[4,.7],[7,.85]].forEach(([m,d])=>tone(mf(r+m),t+d,.22,"square",.09));
+      [0,4,7,12].forEach(m=>tone(mf(r+m),t+1.05,1.6,"triangle",.15));[0,.45,1.05].forEach(d=>kick(t+d));noise(t+1.05,.5,.3,2500);}
+  };})();
+/* Quiz-Musik automatisch an die Tafel koppeln: Timer #tm sichtbar = Abfrage läuft (Quiz, Prüfungs-Check, Abstimmung) */
+(function MusicAuto(){
+  if(new URLSearchParams(location.search).get("s"))return;
+  const tf=document.getElementById("tafel"),st=document.getElementById("steps");
+  let was=false,lastS=-1,pod=false;
+  function btn(){if(!st||document.getElementById("bMus"))return;const b=document.createElement("button");b.id="bMus";b.type="button";
+    b.title="Quiz-Musik an oder aus";b.style.cssText="padding:.25em .7em;font-weight:700;border-radius:999px;white-space:nowrap";
+    b.onclick=()=>{Music.toggle();if(Music.isOn()&&was)Music.start();lab();};st.after(b);lab();}
+  function lab(){const b=document.getElementById("bMus");if(b)b.textContent=Music.isOn()?"Musik: an":"Musik: aus";}
+  document.addEventListener("pointerdown",()=>Music.unlock(),true);
+  btn();
+  setInterval(()=>{if(!tf||tf.hidden)return;btn();
+    const tm=document.getElementById("tm"),vis=!!(tm&&tm.offsetParent!==null);
+    if(vis){if(!was){was=true;lastS=-1;Music.start();}
+      const s=parseInt(tm.textContent,10);if(!isNaN(s)&&s!==lastS){lastS=s;if(s<=10&&s>0)Music.hurry();if(s<=5&&s>0)Music.tick();}}
+    else if(was){was=false;Music.reveal();}
+    const p=document.querySelector("#tMain .podium"),pv=!!(p&&p.offsetParent!==null);
+    if(pv&&!pod){pod=true;Music.fanfare();}if(!pv)pod=false;
+  },200);
+})();
+</script>
+</body>
+</html>
