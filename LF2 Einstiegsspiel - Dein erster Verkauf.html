@@ -1,0 +1,288 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>
+<title>Der erste Verkauf</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: Verkaufsfläche (Szene) links, Kassenbon rechts, der sich Phase für Phase druckt = Lernfeld-Überblick */
+:root{
+  --bg:#eef1ee; --fg:#17302b; --muted:#5a6f69; --card:#ffffff; --line:#cfd8d4;
+  --accent:#ffd23f; --accent-ink:#2a2200; --ink:#0f5a4c;
+  --good:#1f8a4c; --mid:#b8790c; --bad:#c2412d;
+  --paper:#fffef8; --paper-ink:#2b2b2b;
+  --f-disp:"Bricolage Grotesque",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101a18; --fg:#e4ece9; --muted:#9db0aa; --card:#182624; --line:#2c3d39;
+  --accent:#ffd23f; --accent-ink:#2a2200; --ink:#6fd1bb;
+  --good:#4cc07c; --mid:#e0a93a; --bad:#ef7a64; --paper:#f4f1e6; --paper-ink:#222; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101a18; --fg:#e4ece9; --muted:#9db0aa; --card:#182624; --line:#2c3d39;
+  --accent:#ffd23f; --accent-ink:#2a2200; --ink:#6fd1bb;
+  --good:#4cc07c; --mid:#e0a93a; --bad:#ef7a64; --paper:#f4f1e6; --paper-ink:#222; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:17px/1.5 var(--f-body);padding:20px 16px 40px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+@media (max-width:820px){.wrap{grid-template-columns:minmax(0,1fr)}}
+header{max-width:1080px;margin:0 auto 18px}
+.eyebrow{font:600 12px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font:800 clamp(30px,5vw,46px)/1.05 var(--f-disp);margin:4px 0 6px;text-wrap:balance}
+h1 .tag{background:var(--accent);color:var(--accent-ink);padding:0 .25em;border-radius:4px;display:inline-block;transform:rotate(-1.5deg)}
+.sub{color:var(--muted);max-width:60ch;margin:0}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;min-width:0}
+.phase{font:600 13px var(--f-mono);color:var(--ink);letter-spacing:.06em;text-transform:uppercase}
+.scene{margin:8px 0 14px;color:var(--muted)}
+.bubble{position:relative;background:var(--bg);border-radius:14px;padding:14px 16px;margin:0 0 18px 52px;font-size:18px}
+.bubble::before{content:"";position:absolute;left:-9px;top:16px;border:9px solid transparent;border-left:0;border-right-color:var(--bg)}
+.avatar{position:absolute;left:-52px;top:2px;width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--card);display:grid;place-items:center;font:800 16px var(--f-disp)}
+.q{font:800 21px/1.25 var(--f-disp);margin:0 0 12px;text-wrap:balance}
+.opts{display:grid;gap:10px}
+.opt{all:unset;cursor:pointer;display:block;border:2px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card);color:var(--fg)}
+.opt:hover{border-color:var(--ink)}
+.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.opt[disabled]{cursor:default}
+.opt.s2{border-color:var(--good);background:color-mix(in srgb,var(--good) 12%,var(--card))}
+.opt.s1{border-color:var(--mid)}
+.opt.s0.picked{border-color:var(--bad)}
+.opt .k{font:600 13px var(--f-mono);color:var(--muted);margin-right:8px}
+.fb{margin-top:16px;border-top:1px dashed var(--line);padding-top:14px;display:grid;gap:10px}
+.react{font-style:italic}
+.teaser{background:color-mix(in srgb,var(--accent) 28%,var(--card));border-radius:10px;padding:12px 14px}
+.teaser b{font-family:var(--f-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:2px}
+.profi{border:1px dashed var(--ink);border-radius:10px;padding:10px 14px}
+.profi b{color:var(--ink)}
+.profi .pa{margin-top:8px;background:var(--bg);border-radius:8px;padding:10px 12px;font-size:15px}
+.profi .pa small{color:var(--muted)}
+.btn.sm{font-size:14px;padding:6px 14px;margin-top:8px}
+.btn[disabled]{opacity:.4;cursor:default}
+.profi textarea{width:100%;margin-top:6px;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--bg);color:var(--fg);min-height:60px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:14px}
+.btn{all:unset;cursor:pointer;background:var(--fg);color:var(--bg);font:700 16px var(--f-body);padding:10px 18px;border-radius:999px}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn.alt{background:transparent;color:var(--fg);border:2px solid var(--fg)}
+.mood{display:flex;align-items:center;gap:10px;font:600 13px var(--f-mono);color:var(--muted);margin-bottom:14px}
+.meter{flex:1;height:10px;background:var(--line);border-radius:99px;overflow:hidden;max-width:260px}
+.meter i{display:block;height:100%;background:var(--good);transition:width .5s}
+label.sw{display:flex;gap:8px;align-items:center;font-size:15px;cursor:pointer}
+/* Kassenbon */
+.bon{background:var(--paper);color:var(--paper-ink);font:14px/1.5 var(--f-mono);padding:18px 16px 26px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);
+  -webkit-mask:radial-gradient(circle 6px at 50% 100%,#0000 98%,#000) 50% 100%/14px 100% repeat-x;mask:radial-gradient(circle 6px at 50% 100%,#0000 98%,#000) 50% 100%/14px 100% repeat-x;box-shadow:0 6px 18px #0002}
+.bon h2{font:600 14px var(--f-mono);text-align:center;margin:0;letter-spacing:.08em}
+.bon .c{text-align:center;font-size:12px}
+.bon hr{border:0;border-top:1px dashed #999;margin:10px 0}
+.bon ol{list-style:none;padding:0;margin:0;display:grid;gap:4px}
+.bon li{display:flex;justify-content:space-between;gap:8px}
+.bon li.lock{color:#aaa}
+.bon li.now{background:#ffd23f55}
+.bon li.new{animation:print .5s ease-out}
+@keyframes print{from{transform:translateY(-6px);opacity:.3}}
+@media (prefers-reduced-motion:reduce){.bon li.new{animation:none}.meter i{transition:none}}
+.sum{display:flex;justify-content:space-between;font-weight:600}
+/* Ende */
+.end h2{font:800 28px/1.1 var(--f-disp);margin:0 0 8px}
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0}
+.map div{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.map small{font:600 12px var(--f-mono);color:var(--ink)}
+.map p{margin:2px 0 0;font-size:15px}
+.self{display:grid;gap:8px;margin:12px 0}
+.self .it{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:6px}
+.self .it div{display:flex;gap:6px}
+.chip{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:14px}
+.chip.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+</style>
+
+<header>
+  <div class="eyebrow">Lernfeld 2 · Verkaufsgespräche kundenorientiert führen</div>
+  <h1>Dein <span class="tag">erster Verkauf</span></h1>
+  <p class="sub">Dein erster Samstag in der Laufabteilung eines Sporthauses. Gleich kommt eine Kundin, und du bist allein auf der Fläche. Triff 15 Entscheidungen. Rate ruhig: Du sollst noch nicht alles wissen.</p>
+</header>
+
+<div class="wrap">
+  <main class="stage" id="stage"></main>
+  <aside class="bon" aria-label="Kassenbon: Überblick Lernfeld 2">
+    <h2>SPORTHAUS · BON</h2>
+    <div class="c">Kasse 2 · Azubi-Training</div>
+    <hr>
+    <ol id="bonlist"></ol>
+    <hr>
+    <div class="sum"><span>Kundenstimmung</span><span id="bonmood">50 %</span></div>
+    <div class="sum"><span>Punkte</span><span id="bonpts">0 / 30</span></div>
+    <hr>
+    <div class="c">Jede Zeile = ein Modul aus LF 2<br>mit Seite im Lehrbuch</div>
+  </aside>
+</div>
+
+<script>
+const P=[
+{m:3,n:"Verkaufsformen",pg:"102–105",scene:"Samstag, 10:55 Uhr. Deine erste Schicht in der Laufabteilung. Die Filialleiterin zeigt auf zwei Bereiche.",say:"Die Socken hängen in Selbstbedienung. Laufschuhe verkaufen wir nur mit Beratung. Weißt du, warum?",sp:"Filialleiterin",
+ q:"Was antwortest du?",
+ o:[["„Laufschuhe sind erklärungsbedürftig. Die Passform muss stimmen, dafür braucht der Kunde Beratung.“",2,"„Genau. Socken versteht jeder, beim Laufschuh entscheidet die Beratung.“"],
+    ["„Damit keiner die Schuhe klaut.“",1,"„Das spielt auch eine Rolle, ist aber nicht der Hauptgrund.“"],
+    ["„Das ist Zufall, das könnte man auch tauschen.“",0,"„Nein, das hat einen Grund. Den lernst du noch.“"]],
+ t:"Bedienung, Vorwahl, Selbstbedienung: Welche Ware passt zu welcher Verkaufsform? Und woher bekommst du deine Warenkenntnisse?",
+ pro:"Warum liegt die Zahnpasta im Regal, der Ring aber in der Vitrine? Begründe mit zwei Merkmalen der Ware.",pa:"Zahnpasta ist günstig, bekannt und braucht keine Erklärung: Selbstbedienung reicht. Ein Ring ist wertvoll und erklärungsbedürftig (Material, Größe, Pflege). Außerdem muss er vor Diebstahl geschützt werden. Deshalb Bedienung."},
+{m:2,n:"Körpersprache",pg:"98–101",scene:"11:20 Uhr. Eine Kundin kommt in die Abteilung und bleibt vor der Schuhwand stehen.",say:null,
+ q:"Wie stehst du da?",
+ o:[["Arme verschränkt hinter dem Tresen. So wirkst du nicht aufdringlich.",0,"Die Kundin wirft einen kurzen Blick zu dir und dreht sich weg."],
+    ["Offene Haltung, freundlicher Blick, etwa eine Armlänge Abstand.",2,"Sie bemerkt dich und wirkt entspannt."],
+    ["Du stellst dich direkt neben sie, Schulter an Schulter.",0,"Sie macht einen Schritt zur Seite. Zu nah."]],
+ t:"Was verraten Mimik, Gestik, Haltung und Blick? Wie nah darfst du Kunden kommen? Hier lernst du die vier Distanzzonen.",
+ pro:"Kein Körpersignal ist eindeutig. Nenne ein Signal, das zwei verschiedene Bedeutungen haben kann.",pa:"Beispiel verschränkte Arme: Das kann Ablehnung bedeuten, aber auch, dass der Kunde friert oder einfach bequem steht. Deshalb immer mehrere Signale und die Situation beachten."},
+{m:4,n:"Kontakt aufnehmen",pg:"106–110",scene:"Die Kundin dreht einen Laufschuh in der Hand.",say:null,
+ q:"Wie nimmst du Kontakt auf?",
+ o:[["Du gehst sofort hin: „Kann ich Ihnen helfen?“",1,"„Nein danke, ich schau nur.“ Sie stellt den Schuh zurück."],
+    ["Du lächelst und sagst: „Guten Tag! Den Schuh haben wir gerade neu bekommen. Er ist sehr leicht.“",2,"Sie lächelt zurück: „Ja, wirklich leicht. Ich suche eigentlich Laufschuhe …“"],
+    ["Du räumst weiter das Regal ein. Wenn sie etwas will, fragt sie schon.",0,"Nach zwei Minuten geht sie Richtung Ausgang. Gerade noch erwischt."]],
+ t:"Der erste Eindruck entsteht in Sekunden. Wie begrüßt du in den drei Verkaufsformen? Und welche acht Phasen hat ein Verkaufsgespräch?",
+ pro:"Warum ist ein Satz über die Ware ein besserer Einstieg als „Kann ich Ihnen helfen?“",pa:"Auf „Kann ich Ihnen helfen?“ kann der Kunde mit „Nein“ antworten, dann ist das Gespräch vorbei. Ein Satz über die Ware lenkt den Blick auf das Produkt, zeigt Warenkenntnis und lädt zum Weitersprechen ein."},
+{m:1,n:"Kommunizieren",pg:"94–97",scene:"Die Kundin wirkt etwas unsicher.",say:"Ich kenne mich mit Laufschuhen überhaupt nicht aus.",
+ q:"Was sagst du?",
+ o:[["„Oh, dann wird es schwierig.“",0,"Sie wird noch unsicherer."],
+    ["„Kein Problem. Wir finden zusammen den passenden Schuh für Sie.“",2,"„Da bin ich aber froh.“"],
+    ["„Da musst du erst mal wissen, ob du Überpronierer bist.“",0,"Sie schaut irritiert. Duzen und Fachchinesisch."]],
+ t:"Welche Gesprächsförderer bauen Vertrauen auf, welche Gesprächsstörer machen ein Gespräch kaputt? Und wie klingt der Sie-Stil?",
+ pro:"Formuliere „Das geht nicht“ positiv und im Sie-Stil um.",pa:"„Das können wir gern so machen: …“ oder „Ich kann Ihnen Folgendes anbieten: …“. Statt zu sagen, was nicht geht, sagst du, was geht, und sprichst den Kunden mit „Sie“ an."},
+{m:6,n:"Fragetechnik",pg:"113–114",scene:"Jetzt musst du herausfinden, was sie braucht.",say:"Also, ich suche Laufschuhe.",
+ q:"Welche Frage bringt dir die meisten Informationen?",
+ o:[["„Laufschuhe also, ja?“",0,"„Ja … hab ich doch gesagt.“"],
+    ["„Welche Größe haben Sie?“",1,"„39.“ Gut zu wissen, aber welcher Schuh passt zu ihr?"],
+    ["„Wofür möchten Sie die Schuhe nutzen?“",2,"„Ich will im Frühjahr meinen ersten Halbmarathon laufen. Beim Training haben mir die Knie wehgetan.“"]],
+ t:"Offene, geschlossene, Alternativ-, Kontroll- und Suggestivfragen: Wann nutzt du welche? Dieses Thema kommt in der Abschlussprüfung am häufigsten vor.",
+ pro:"Schreib zwei weitere offene Fragen für diese Kundin auf, in wörtlicher Rede.",pa:"„Wie oft in der Woche laufen Sie?“ · „Auf welchem Untergrund laufen Sie meistens?“ · „Welche Schuhe haben Sie bisher getragen?“ Offene Fragen beginnen mit einem W-Wort."},
+{m:5,n:"Kaufmotive",pg:"111–113",scene:"Du hörst genau zu.",say:"Erster Halbmarathon … und meine Knie sollen das aushalten.",
+ q:"Was ist ihr wichtigstes Kaufmotiv?",
+ o:[["Prestige: Sie will eine bekannte Marke zeigen.",0,"Davon hat sie nichts gesagt."],
+    ["Gesundheit: Sie will ihre Knie schonen.",2,"Genau. Jetzt weißt du, welche Argumente bei ihr ankommen."],
+    ["Sparsamkeit: Sie will wenig ausgeben.",1,"Vielleicht später wichtig, aber gerade ging es um ihre Knie."]],
+ t:"Rationale oder emotionale Kaufmotive? Das Eisbergmodell zeigt, warum der eigentliche Kaufgrund oft gar nicht ausgesprochen wird.",
+ pro:"Welches emotionale Motiv könnte unter der Wasseroberfläche liegen, wenn jemand seinen ersten Halbmarathon läuft?",pa:"Zum Beispiel Stolz und Anerkennung (es geschafft haben), Zugehörigkeit (mit Freunden laufen), Selbstbestätigung oder Angst, sich zu verletzen. Das sagt die Kundin meist nicht laut: Das ist der Teil des Eisbergs unter Wasser."},
+{m:7,n:"Bedarfsermittlung",pg:"115–117",scene:"Du fragst, welche Dämpfung sie mag. Sie zuckt mit den Schultern.",say:"Weich? Fest? Keine Ahnung, ehrlich gesagt.",
+ q:"Wie machst du weiter?",
+ o:[["Du stellst noch fünf weitere Fragen zur Dämpfung.",0,"Sie wirkt genervt: „Ich weiß es wirklich nicht.“"],
+    ["Du gibst ihr einen weichen und einen festen Schuh in die Hand und achtest auf ihre Reaktion.",2,"„Oh, der weiche fühlt sich viel angenehmer an.“"],
+    ["„Dann suchen Sie sich am besten selbst einen aus.“",0,"Sie steht allein vor der Schuhwand."]],
+ t:"Fragen oder zeigen? Wann passt die direkte Bedarfsermittlung, wann die indirekte, und wann braucht man gar keine?",
+ pro:"Nenne eine Situation in deinem Betrieb, in der du den Bedarf besser indirekt ermittelst. Begründe.",pa:"Beispiel: Ein Kunde sucht „ein Geschenk“ und weiß nicht, was. Statt ihn auszufragen, legst du zwei, drei Artikel vor und beobachtest, worauf er reagiert. Indirekt passt, wenn der Kunde seinen Bedarf selbst nicht beschreiben kann."},
+{m:8,n:"Warenvorlage",pg:"118–121",scene:"Im Regal stehen 14 passende Modelle in Größe 39, von 79 € bis 229 €.",say:null,
+ q:"Was legst du vor?",
+ o:[["Nur das teuerste Modell. Das ist das beste.",1,"„Hm, gibt es auch etwas Günstigeres?“"],
+    ["Zwei bis drei Modelle aus der mittleren Preislage. Sie darf sie anfassen und anprobieren.",2,"Sie fühlt die Sohle und schlüpft hinein: „Der sitzt gut.“"],
+    ["Alle 14. Dann hat sie die volle Auswahl.",0,"„Puh … jetzt weiß ich gar nicht mehr, was ich will.“"]],
+ t:"Wie viele Artikel legst du vor, mit welcher Preislage fängst du an, und wie sprichst du mehrere Sinne gleichzeitig an?",
+ pro:"Begründe, warum du mit der mittleren Preislage beginnst.",pa:"Mit der mittleren Preislage kannst du je nach Reaktion nach oben oder unten gehen. Beginnst du zu teuer, schreckst du ab. Beginnst du zu billig, wirkt höherwertige Ware später unnötig teuer."},
+{m:9,n:"Verkaufsargumente",pg:"122–128",scene:"Der Schuh hat eine Gel-Dämpfung in der Ferse.",say:"Was ist an dem besonders?",
+ q:"Welcher Satz überzeugt sie am meisten?",
+ o:[["„Der Schuh hat eine Gel-Dämpfung.“",1,"„Aha.“ Sie weiß nicht, was sie davon hat."],
+    ["„Der ist echt top, den haben alle.“",0,"„Alle? Ich will einen für meine Knie.“"],
+    ["„Die Gel-Dämpfung fängt den Aufprall ab. So werden Ihre Knie bei jedem Schritt entlastet.“",2,"„Das ist genau das, was ich brauche.“"]],
+ t:"Merkmal – Vorteil – Nutzen: Wie wird aus einem Warenmerkmal ein Kundennutzen? Nur der Nutzen verkauft.",
+ pro:"Wandle um: Merkmal „atmungsaktives Obermaterial“ → Vorteil → Nutzen für diese Kundin.",pa:"Merkmal: atmungsaktives Obermaterial. Vorteil: Feuchtigkeit kann nach außen entweichen. Nutzen: „Ihre Füße bleiben auch auf langen Strecken trocken, so bekommen Sie keine Blasen.“"},
+{m:10,n:"Preisnennung",pg:"129–132",scene:"Jetzt kommt die Frage, vor der viele Azubis Angst haben.",say:"Und was kostet der?",
+ q:"Wie nennst du den Preis von 149,99 €?",
+ o:[["„Leider ist der etwas teuer: 149,99 €.“",0,"„Teuer? Dann lieber nicht.“"],
+    ["„Mit der Dämpfung schonen Sie Ihre Knie. Er kostet 149,99 €. Dafür hält die Sohle etwa 800 Kilometer.“",2,"Sie nickt langsam. Der Preis wirkt gar nicht so hoch."],
+    ["„149,99 €.“",1,"Sie schluckt kurz. Die Zahl steht allein im Raum: Preisschock."]],
+ t:"Wie vermeidest du den Preisschock? Du lernst die Sandwich-Methode und vier weitere: Verzögerung, Zerlegung, Vergleich, Verkleinerung.",
+ pro:"Rechne: Was kostet der Schuh pro Kilometer? Welche Methode ist das?",pa:"149,99 € : 800 km ≈ 0,19 € pro Kilometer. Das ist die Verkleinerungsmethode (Divisionsmethode): Der Preis wird auf eine kleine Einheit heruntergerechnet. Sie wirkt nur, wenn die Nutzungsdauer glaubwürdig ist."},
+{m:11,n:"Kundeneinwände",pg:"133–136",scene:"Sie holt ihr Handy raus.",say:"Hm. Im Internet ist der bestimmt billiger.",
+ q:"Was antwortest du?",
+ o:[["„Nein, das stimmt nicht.“",0,"Sie runzelt die Stirn. Jetzt fühlt sie sich angegriffen."],
+    ["„Dann bestellen Sie ihn doch online.“",0,"„Okay …“ Fast wäre der Verkauf verloren gewesen."],
+    ["„Das kann sein. Hier können Sie ihn aber auf dem Laufband testen, und ich prüfe mit Ihnen, ob die Größe wirklich passt.“",2,"„Laufband? Das würde ich gern ausprobieren.“"]],
+ t:"Ist das ein echter Einwand oder ein Vorwand? Du lernst fünf Methoden der Einwandbehandlung, allen voran die Ja-Aber-Methode.",
+ pro:"Woran erkennst du einen Vorwand? Nenne zwei Signale.",pa:"Ein Vorwand ist ein vorgeschobener Grund: Der Kunde bleibt vage („Ich überlege noch“), nennt immer neue Gründe, auch wenn du einen ausgeräumt hast, oder seine Körpersprache passt nicht zu seinen Worten. Ein echter Einwand ist konkret und lässt sich beantworten."},
+{m:12,n:"Beschwerden",pg:"137–138",scene:"Während die Kundin auf dem Laufband ist, kommt ein Mann mit einem Schuh in der Hand. Er ist laut.",say:"Nach drei Wochen löst sich die Sohle! So ein Mist!",sp:"Kunde",
+ q:"Wie reagierst du?",
+ o:[["„Das kann nicht sein. Die halten normalerweise ewig.“",0,"Er wird noch lauter. Die Kundin auf dem Laufband schaut herüber."],
+    ["„Das tut mir leid. Erzählen Sie bitte, was passiert ist.“ Du hörst zu, ohne zu unterbrechen.",2,"Er beruhigt sich. Deine Kollegin übernimmt und bietet ihm einen Umtausch an."],
+    ["„Da müssen Sie zur Kasse gehen.“",1,"Er stapft weg. Gelöst ist das Problem nicht."]],
+ t:"Ruhig bleiben, zuhören, Lösung anbieten: Wie funktioniert die Vier-Schritt-Methode? Und warum sollte ein Betrieb froh über Beschwerden sein?",
+ pro:"Warum ist ein Kunde, der sich beschwert, wertvoller als einer, der still geht?",pa:"Wer sich beschwert, gibt dem Betrieb eine Chance, den Fehler zu beheben und den Kunden zu halten. Wer still geht, kommt nicht wieder und erzählt es oft anderen weiter. Beschwerden zeigen außerdem, was im Betrieb verbessert werden muss."},
+{m:13,n:"Zusatzangebote",pg:"139–141",scene:"Die Kundin kommt vom Laufband. Der Schuh gefällt ihr, gekauft hat sie ihn aber noch nicht.",say:null,
+ q:"Was bietest du jetzt noch an?",
+ o:[["„Wollen Sie sonst noch was?“",1,"„Nö, danke.“ Eine Chance verpasst."],
+    ["„Zu den Schuhen passen Laufsocken. Die verhindern Blasen auf langen Strecken.“",2,"„Oh, gute Idee. Die nehme ich mit.“"],
+    ["„Wir hätten auch noch ein günstigeres Modell.“",0,"„Ach so? Ich dachte, der hier ist der richtige …“"]],
+ t:"Ergänzungsangebot, Zusatzangebot, Alternativangebot: Was ist der Unterschied? Und wann ist der richtige Zeitpunkt dafür?",
+ pro:"Ordne zu: Laufsocken, Sporttrinkflasche, anderes Modell bei fehlender Größe. Welche Angebotsart ist was?",pa:"Laufsocken: Ergänzungsangebot (gehört direkt zur Hauptware). Sporttrinkflasche: Zusatzangebot (passt zum Anlass, ergänzt die Ware aber nicht direkt). Anderes Modell bei fehlender Größe: Alternativangebot (nur, wenn es gleichwertig oder besser ist)."},
+{m:14,n:"Kaufabschluss",pg:"142–145",scene:"Sie hält die Socken und den Schuh in der Hand und dreht ihn hin und her.",say:"Gibt es den auch in Blau?",
+ q:"Was sagst du jetzt?",
+ o:[["„Überlegen Sie es sich in Ruhe zu Hause.“",0,"„Ja, mach ich.“ Fast wäre sie gegangen."],
+    ["„Ja, in Blau und in Grau. Welche Farbe gefällt Ihnen besser?“",2,"„Blau! Den nehme ich, und die Socken auch.“"],
+    ["„Soll ich Ihnen noch ein paar andere Modelle zeigen?“",1,"„Äh … ich dachte, ich hätte mich schon entschieden.“"]],
+ t:"Woran erkennst du Kaufsignale, sprachlich und körpersprachlich? Du lernst sechs Abschlusstechniken und wie du Kunden in ihrer Entscheidung bestärkst.",
+ pro:"Warum ist die Frage nach der Farbe ein Kaufsignal? Welche Abschlusstechnik hast du genutzt?",pa:"Wer nach einer Farbe fragt, beschäftigt sich schon damit, den Artikel zu besitzen: Das ist ein verbales Kaufsignal. Genutzt wurde die Alternativfrage: Die Kundin wählt zwischen zwei Möglichkeiten, beide führen zum Kauf."},
+{m:15,n:"Service und Abschied",pg:"146–148",scene:"An der Kasse.",say:null,
+ q:"Wie verabschiedest du die Kundin?",
+ o:[["„Tschüss.“",0,"Sie nickt kurz und geht."],
+    ["„Danke für Ihren Einkauf.“",1,"Freundlich, aber schnell vergessen."],
+    ["„Wenn die Schuhe beim Laufen drücken, kommen Sie einfach mit dem Bon vorbei. Viel Erfolg beim Halbmarathon!“",2,"„Danke! Ich erzähle Ihnen, wie es gelaufen ist.“ Eine Stammkundin."]],
+ t:"Welche Serviceleistungen gibt es: warenbezogen, kundenbezogen, zahlungsbezogen? Und wie verabschiedest du Kunden, damit sie wiederkommen?",
+ pro:"Nenne zu jedem der drei Servicebereiche ein Beispiel aus deinem Betrieb.",pa:"Warenbezogen: Laufanalyse, Einlagen anpassen, Reparatur. Kundenbezogen: Reservierung, Kundenkarte, Parkplatz. Zahlungsbezogen: Kartenzahlung, Ratenkauf, Gutscheine. Deine Beispiele aus dem Betrieb können anders aussehen."}
+];
+const MAX=P.length*2;
+let S={i:0,picked:Array(P.length).fill(null),mood:50,profi:false,notes:{},shown:{},self:{}};
+const $=s=>document.querySelector(s), stage=$("#stage");
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pts=()=>S.picked.reduce((a,p,i)=>a+(p==null?0:P[i].o[p][1]),0);
+function bon(){
+  const ord=P.map((p,i)=>i).sort((x,y)=>P[x].m-P[y].m);
+  $("#bonlist").innerHTML=ord.map(i=>{const p=P[i],d=S.picked[i];
+    const st=d==null?(i===S.i?"now":"lock"):"";
+    const r=d==null?"···":["✗","~","✓"][p.o[d][1]];
+    return `<li class="${st}${d!=null&&i===S.last?" new":""}"><span>M${String(p.m).padStart(2,"0")} ${d==null?"?????????":esc(p.n)}</span><span>${d==null?r:"S."+p.pg.split("–")[0]+" "+r}</span></li>`}).join("");
+  $("#bonmood").textContent=S.mood+" %"; $("#bonpts").textContent=pts()+" / "+MAX;
+}
+function view(){
+  bon(); if(S.i>=P.length) return end();
+  const p=P[S.i],d=S.picked[S.i];
+  stage.innerHTML=`
+  <div class="mood"><span>Stimmung</span><span class="meter"><i style="width:${S.mood}%"></i></span><span>${S.mood} %</span></div>
+  <div class="phase">Schritt ${S.i+1} von ${P.length}${d!=null?" · Modul "+p.m+" "+esc(p.n):""}</div>
+  <p class="scene">${esc(p.scene)}</p>
+  ${p.say?`<div class="bubble"><span class="avatar">${p.sp?p.sp[0]:"K"}</span>${esc(p.say)}</div>`:""}
+  <p class="q">${esc(p.q)}</p>
+  <div class="opts">${p.o.map((o,k)=>`<button class="opt ${d!=null?"s"+o[1]+(d===k?" picked":""):""}" data-k="${k}" ${d!=null?"disabled":""}><span class="k">${"ABC"[k]}</span>${esc(o[0])}</button>`).join("")}</div>
+  ${d!=null?`<div class="fb">
+    <div class="react">${["Autsch.","Geht so.","Stark!"][p.o[d][1]]} ${esc(p.o[d][2])}</div>
+    <div class="teaser"><b>Das klärst du in Modul ${p.m}</b>${esc(p.t)}</div>
+    ${S.profi?`<div class="profi"><b>Profi-Frage:</b> ${esc(p.pro)}<textarea id="note${S.i}" aria-label="Deine Antwort" placeholder="Schreib zuerst deine eigene Antwort.">${esc(S.notes[S.i]||"")}</textarea>${S.shown[S.i]?`<div class="pa"><b>Musterlösung:</b> ${esc(p.pa)}<br><small>Vergleiche: Was hast du genauso? Was fehlt dir noch?</small></div>`:`<button class="btn alt sm" id="showpa" ${(S.notes[S.i]||"").trim().length<15?"disabled":""}>Musterlösung zeigen</button>`}</div>`:""}
+  </div>`:""}
+  <div class="row">
+    <label class="sw"><input type="checkbox" id="profi" ${S.profi?"checked":""}> Profi-Modus (Begründungsfragen)</label>
+    ${d!=null?`<button class="btn" id="next">${S.i===P.length-1?"Zum Bon":"Weiter"} →</button>`:""}
+  </div>`;
+  stage.querySelectorAll(".opt:not([disabled])").forEach(b=>b.onclick=()=>{const k=+b.dataset.k;S.picked[S.i]=k;S.last=S.i;S.mood=Math.max(0,Math.min(100,S.mood+[-10,0,8][P[S.i].o[k][1]]));view()});
+  $("#profi").onchange=e=>{S.profi=e.target.checked;view()};
+  const ta=$("#note"+S.i),sp=$("#showpa"); if(ta) ta.oninput=e=>{S.notes[S.i]=e.target.value;if(sp)sp.disabled=e.target.value.trim().length<15};
+  if(sp) sp.onclick=()=>{S.shown[S.i]=true;view()};
+  const n=$("#next"); if(n){n.onclick=()=>{S.i++;S.last=-1;view();stage.scrollIntoView({behavior:"smooth",block:"start"})};n.focus({preventScroll:true})}
+}
+function end(){
+  const sold=S.mood>=60, ord=P.map((p,i)=>i).sort((x,y)=>P[x].m-P[y].m);
+  stage.innerHTML=`<div class="end">
+  <div class="phase">Ergebnis</div>
+  <h2>${sold?"Verkauft! Blaue Laufschuhe und Laufsocken.":"Die Kundin ist unsicher gegangen."}</h2>
+  <p>${pts()} von ${MAX} Punkten, Kundenstimmung ${S.mood} %. ${sold?"Gutes Gespür. In Lernfeld 2 lernst du, <b>warum</b> das funktioniert hat, und wie du es in der Prüfung in wörtlicher Rede aufschreibst.":"Kein Problem: Genau dafür ist Lernfeld 2 da. Am Ende spielst du das noch einmal."}</p>
+  <p class="q" style="margin-top:18px">Deine Lernlandkarte für Lernfeld 2</p>
+  <div class="map">${ord.map(i=>{const p=P[i];return `<div><small>Modul ${p.m} · ${esc(p.n)} · S. ${p.pg}</small><p>${esc(p.t)}</p></div>`}).join("")}</div>
+  <p class="q">Außerdem warten auf dich</p>
+  <div class="map">
+    <div><small>Escape Rooms am Rechner</small><p>„Der Testkäufer“ und „Die Reklamation um 17:55 Uhr“, je vor einer Klausur.</p></div>
+    <div><small>Exkursion</small><p>Verkaufsgespräch-Safari: echte Kontaktaufnahmen beobachten und auswerten.</p></div>
+    <div><small>Das große Rollenspiel</small><p>„Das ganze Gespräch“: alle Phasen am Stück, mit Beobachtungsbogen.</p></div>
+    <div><small>Punktekonto</small><p>In jedem Modul sammelst du Punkte. Wie das geht, klären wir im Auftakt.</p></div>
+  </div>
+  <p class="q">Wie sicher bist du jetzt schon?</p>
+  <p class="scene" style="margin-top:-6px">Ampel wie in deiner Kann-Liste: + sicher, o geht so, – unsicher. Am Ende von Lernfeld 2 vergleichst du.</p>
+  <div class="self">${ord.map(i=>`<div class="it"><span>M${P[i].m} ${esc(P[i].n)}</span><div>${["+","o","–"].map((l,v)=>`<button class="chip ${S.self[i]===v?"on":""}" data-i="${i}" data-v="${v}" aria-label="${["sicher","geht so","unsicher"][v]}">${l}</button>`).join("")}</div></div>`).join("")}</div>
+  <div class="row"><span class="scene">Mach einen Screenshot von dieser Seite.</span><button class="btn alt" id="again">Nochmal spielen</button></div>
+  </div>`;
+  stage.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{S.self[c.dataset.i]=+c.dataset.v;end()});
+  $("#again").onclick=()=>{S={i:0,picked:Array(P.length).fill(null),mood:50,profi:S.profi,notes:{},shown:{},self:{}};view()};
+}
+window.claude?.hot?.snapshot?.(()=>S);
+const start=d=>{if(d&&d.picked){S=d;S.shown=S.shown||{}}view()};
+window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
+</script>
+</body></html>

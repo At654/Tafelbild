@@ -1,0 +1,1821 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stufe für Stufe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Nunito+Sans:wght@400;600;800&display=swap">
+<style>
+/* Layout: eine Spalte wie ein Gesprächsprotokoll; oben Statusleiste (Stimmung, Punkte, Stufe), darunter die Treppe mit Kundin und Sprechblase, dann die Aufgabenkarten */
+:root{
+  --bg:#eef0f5; --surface:#ffffff; --surface2:#f4f2f7; --ink:#1f1b2d; --muted:#5a5568; --line:#d6d2e0;
+  --berry:#9e2457; --on-berry:#ffffff; --apricot:#f2a541; --on-apricot:#2b1a00; --teal:#16706a;
+  --good:#1d7f47; --mid:#9a6400; --bad:#bf3626; --good-bg:#e1f3e8; --mid-bg:#fbf0d6; --bad-bg:#fbe3df;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15131d; --surface:#1f1c2a; --surface2:#282435; --ink:#ece9f3; --muted:#aaa4ba; --line:#3a3549;
+  --berry:#ec6f9f; --on-berry:#2a0715; --apricot:#f5b960; --on-apricot:#2b1a00; --teal:#4cc2b8;
+  --good:#63d18f; --mid:#eebc4a; --bad:#f2846f; --good-bg:#173626; --mid-bg:#3a3017; --bad-bg:#40221d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15131d; --surface:#1f1c2a; --surface2:#282435; --ink:#ece9f3; --muted:#aaa4ba; --line:#3a3549;
+  --berry:#ec6f9f; --on-berry:#2a0715; --apricot:#f5b960; --on-apricot:#2b1a00; --teal:#4cc2b8;
+  --good:#63d18f; --mid:#eebc4a; --bad:#f2846f; --good-bg:#173626; --mid-bg:#3a3017; --bad-bg:#40221d; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--body);font-size:17px;line-height:1.5;padding-inline:16px;padding-block:0 48px;
+  background-image:radial-gradient(var(--line) 1.2px,transparent 1.3px);background-size:22px 22px}
+.wrap{max-width:820px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);line-height:1.08;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.4rem,8vw,3.8rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.45rem,4.6vw,1.95rem);font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:800}
+p{margin:0}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--apricot);outline-offset:2px;border-radius:8px}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin-inline:-16px;padding:8px 16px;
+  background:var(--surface);border-bottom:2px solid var(--ink);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;font-size:1.2rem;display:flex;align-items:center;gap:6px}
+.brand svg{width:26px;height:26px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--surface2);border:1.5px solid var(--line);font-weight:800;font-size:.88rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill.pts{background:var(--apricot);color:var(--on-apricot);border-color:transparent}
+.bar .sp{flex:1}
+.prog{display:flex;gap:4px;width:100%}
+.prog i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.prog i.done{background:var(--teal)}
+.prog i.now{background:var(--berry)}
+
+main{padding-top:18px;display:grid;gap:16px}
+.card{background:var(--surface);border:2px solid var(--ink);border-radius:var(--r);padding:18px;box-shadow:4px 4px 0 var(--ink);min-width:0}
+.eyebrow{font-weight:800;font-size:.76rem;letter-spacing:.09em;text-transform:uppercase;color:var(--berry)}
+.lead{color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stack{display:grid;gap:12px}
+.small{font-size:.9rem;color:var(--muted)}
+
+.btn{border:2px solid var(--ink);background:var(--berry);color:var(--on-berry);font-weight:800;font-size:1.05rem;padding:12px 20px;border-radius:12px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:transform .08s}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.sun{background:var(--apricot);color:var(--on-apricot)}
+.btn.ghost{background:var(--surface);color:var(--ink)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.wide{width:100%}
+.linkbtn{background:none;border:none;color:var(--berry);font-weight:800;text-decoration:underline;cursor:pointer;padding:0}
+
+input[type=text],textarea{width:100%;border:2px solid var(--line);background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:1.05rem}
+textarea{min-height:92px;resize:vertical;line-height:1.45}
+input[type=text]:focus,textarea:focus{border-color:var(--berry);outline:none}
+label.fl{font-weight:800;font-size:.95rem;display:block;margin-bottom:4px}
+
+/* Auswahlkarten */
+.choice{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.ch{border:2px solid var(--line);background:var(--surface2);border-radius:12px;padding:12px;cursor:pointer;text-align:left;display:grid;gap:4px;justify-items:start;min-width:0}
+.ch svg{width:54px;height:54px}
+.ch b{font-family:var(--display);font-size:1.1rem}
+.ch .small{hyphens:auto;overflow-wrap:anywhere}
+.choice.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.choice.three .ch{padding:10px}
+.ch.sel{border-color:var(--berry);background:var(--surface);box-shadow:0 0 0 3px var(--berry) inset}
+
+/* Stufenwahl */
+.steps8{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.st{border:2px solid var(--line);background:var(--surface2);border-radius:12px;padding:10px 12px;cursor:pointer;text-align:left;display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;min-width:0}
+.st .n{grid-row:span 2;width:34px;height:34px;border-radius:9px;background:var(--surface);border:2px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:800}
+.st .nm{font-weight:800;line-height:1.2}
+.st .md{font-size:.82rem;color:var(--muted);grid-column:2}
+.st .bx{grid-row:span 2;grid-column:3;width:24px;height:24px;border-radius:6px;border:2px solid var(--ink);display:grid;place-items:center;background:var(--surface)}
+.st.on{border-color:var(--berry);background:var(--surface)}
+.st.on .n{background:var(--berry);color:var(--on-berry)}
+.st.on .bx{background:var(--berry)}
+.st.on .bx::after{content:"";width:6px;height:11px;border:solid var(--on-berry);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.wr{display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;background:var(--apricot);color:var(--on-apricot);padding:0 6px;border-radius:5px;margin-left:4px;vertical-align:1px}
+
+/* Prüfungsbalken */
+.heat{display:grid;gap:6px}
+.hr{display:grid;grid-template-columns:minmax(0,9.5em) 1fr 3.4em;gap:8px;align-items:center;font-size:.92rem}
+.hr .tr{height:14px;border-radius:7px;background:var(--surface2);border:1.5px solid var(--line);overflow:hidden}
+.hr .fi{height:100%;background:var(--berry);border-radius:6px}
+.hr .v{font-variant-numeric:tabular-nums;font-weight:800;text-align:right}
+.hr .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Szene */
+.scene{border:2px solid var(--ink);border-radius:var(--r);overflow:hidden;background:#dfe7f3;display:grid;grid-template-columns:minmax(0,1fr);position:relative}
+.scene svg{display:block;width:100%;height:auto}
+.talk{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center}
+.talk .face{width:96px;height:96px;border-radius:50%;border:2px solid var(--ink);background:#f7e8d7;overflow:hidden}
+.talk .face svg{width:100%;height:100%;display:block}
+.bubble{position:relative;background:var(--surface);border:2px solid var(--ink);border-radius:16px;padding:10px 14px;font-weight:600;min-width:0}
+.bubble::before{content:"";position:absolute;left:-11px;top:50%;margin-top:-8px;border:8px solid transparent;border-right-color:var(--ink);border-left:0;width:0;height:0;border-right-width:11px}
+.bubble::after{content:"";position:absolute;left:-7px;top:50%;margin-top:-6px;border:6px solid transparent;border-right-color:var(--surface);border-left:0;border-right-width:8px}
+.bubble .who{font-size:.78rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.mood{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:800}
+.mood .tr{flex:1;height:12px;border-radius:6px;background:var(--surface2);border:1.5px solid var(--line);overflow:hidden}
+.mood .fi{height:100%;transition:width .5s ease}
+
+/* Optionen */
+.opts{display:grid;gap:10px}
+.opt{text-align:left;border:2px solid var(--line);background:var(--surface2);border-radius:12px;padding:12px 14px;cursor:pointer;display:grid;gap:3px;min-width:0}
+.opt:hover:not([disabled]){border-color:var(--berry)}
+.opt.sel{border-color:var(--berry);background:var(--surface);box-shadow:0 0 0 3px var(--berry) inset}
+.opt[disabled]{cursor:default}
+.opt .t{font-weight:800;font-size:1.05rem;line-height:1.25}
+.opt .d{font-size:.93rem;color:var(--muted)}
+.opt.r3{border-color:var(--good);background:var(--good-bg)}
+.opt.r1,.opt.r2{border-color:var(--mid);background:var(--mid-bg)}
+.opt.r0{border-color:var(--bad);background:var(--bad-bg)}
+
+.term{border:2px dashed var(--teal);border-radius:12px;padding:12px 14px;display:grid;gap:4px;background:var(--surface2)}
+.term b{font-family:var(--display);font-size:1.15rem;color:var(--teal)}
+.fb{border-radius:12px;padding:10px 14px;font-weight:600}
+.fb.good{background:var(--good-bg);color:var(--ink);border:2px solid var(--good)}
+.fb.mid{background:var(--mid-bg);color:var(--ink);border:2px solid var(--mid)}
+.fb.bad{background:var(--bad-bg);color:var(--ink);border:2px solid var(--bad)}
+.hint{border-left:4px solid var(--apricot);padding:6px 12px;background:var(--surface2);border-radius:0 10px 10px 0;font-size:.95rem}
+
+/* Satzbaukasten */
+.sentence{font-family:var(--display);font-weight:600;font-size:1.25rem;line-height:1.35;background:var(--surface2);border:2px solid var(--line);border-radius:12px;padding:12px 14px;min-height:3.2em}
+.sentence .gap{display:inline-block;min-width:3.5em;border-bottom:3px solid var(--line);margin:0 2px}
+.sentence .w{border-bottom:3px solid var(--berry)}
+.sentence .w.ok{border-color:var(--good)}
+.sentence .w.no{border-color:var(--bad);text-decoration:line-through;text-decoration-color:var(--bad)}
+.slot{display:grid;gap:6px}
+.slot .lbl{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;cursor:pointer;font-weight:600;text-align:left;max-width:100%}
+.chip.sel{border-color:var(--berry);box-shadow:0 0 0 2px var(--berry) inset}
+.chip.ok{border-color:var(--good);background:var(--good-bg)}
+.chip.no{border-color:var(--bad);background:var(--bad-bg)}
+.chip[disabled]{cursor:default}
+.ws{display:flex;flex-wrap:wrap;gap:6px}
+.ws span{font-size:.85rem;background:var(--surface2);border:1.5px solid var(--line);border-radius:6px;padding:1px 8px}
+
+.checks{display:grid;gap:4px;margin:0;padding:0;list-style:none}
+.checks li{display:flex;gap:8px;align-items:flex-start;font-size:.95rem}
+.checks li::before{content:"";flex:none;width:18px;height:18px;margin-top:3px;border-radius:50%;border:2px solid var(--line);background:var(--surface)}
+.checks li.ok::before{background:var(--good);border-color:var(--good)}
+.checks li.no::before{background:var(--bad);border-color:var(--bad)}
+.muster{border:2px solid var(--teal);border-radius:12px;padding:12px 14px;background:var(--surface2);display:grid;gap:6px}
+.muster .src{font-size:.8rem;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.05em}
+.quote{font-style:italic}
+
+/* Persona-Karte */
+.flip{perspective:900px}
+.flip .inner{transition:transform .6s;transform-style:preserve-3d;position:relative;min-height:290px}
+.flip.turned .inner{transform:rotateY(180deg)}
+.flip .side{position:absolute;inset:0;backface-visibility:hidden;border:2px solid var(--ink);border-radius:var(--r);background:var(--surface);box-shadow:4px 4px 0 var(--ink);padding:18px;display:grid;place-items:center}
+.flip .back{transform:rotateY(180deg);place-items:stretch}
+.flip .front{background:var(--berry);color:var(--on-berry)}
+.pcard{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:start}
+.pcard .face{width:110px;height:110px;border-radius:50%;border:2px solid var(--ink);overflow:hidden;background:#f7e8d7}
+.pcard .face svg{width:100%;height:100%;display:block}
+dl.facts{margin:0;display:grid;gap:4px}
+dl.facts dt{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+dl.facts dd{margin:0 0 4px}
+
+/* Reihenfolge-Spiel */
+.ladder{display:grid;gap:6px}
+.ladder .pl{display:grid;grid-template-columns:34px 1fr;gap:8px;align-items:center}
+.ladder .pl .n{width:34px;height:30px;border-radius:8px;border:2px solid var(--ink);display:grid;place-items:center;font-weight:800;background:var(--surface)}
+.ladder .pl .c{border:2px dashed var(--line);border-radius:10px;padding:4px 10px;min-height:34px;font-weight:700}
+.ladder .pl .c.f{border-style:solid;border-color:var(--berry)}
+.ladder .pl .c.ok{border-color:var(--good);background:var(--good-bg)}
+.ladder .pl .c.no{border-color:var(--bad);background:var(--bad-bg)}
+
+/* Quiz */
+.qbtns{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.qb{border:2px solid var(--line);background:var(--surface2);border-radius:10px;padding:6px 4px;cursor:pointer;display:grid;justify-items:center;font-size:.78rem;line-height:1.15;font-weight:700;min-width:0}
+.qb .n{font-family:var(--display);font-weight:800;font-size:1.2rem}
+.qb.ok{border-color:var(--good);background:var(--good-bg)}
+.qb.no{border-color:var(--bad);background:var(--bad-bg)}
+
+/* Auswertung */
+.score{background:var(--berry);color:var(--on-berry);border:2px solid var(--ink);border-radius:var(--r);box-shadow:4px 4px 0 var(--ink);padding:18px;display:grid;gap:10px;text-align:center;justify-items:center}
+.score .big{font-family:var(--display);font-weight:800;font-size:clamp(3rem,13vw,4.6rem);line-height:1;font-variant-numeric:tabular-nums}
+.stars{display:flex;gap:6px}
+.stars svg{width:42px;height:42px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.kpi{background:var(--surface2);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi .v{font-family:var(--display);font-weight:800;font-size:1.6rem;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:.82rem;color:var(--muted);font-weight:700}
+.rv{border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px;background:var(--surface2)}
+.rv .hd{display:flex;gap:10px;align-items:center}
+.mk{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff}
+.mk.g{background:var(--good)} .mk.m{background:var(--mid)} .mk.b{background:var(--bad)}
+:root[data-theme="dark"] .mk{color:#15131d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mk{color:#15131d}}
+.said{font-family:var(--display);font-weight:600;border-left:4px solid var(--berry);padding-left:10px}
+details summary{cursor:pointer;font-weight:800}
+.tiny{font-size:.8rem;color:var(--muted)}
+
+
+/* Modi */
+.choice.two{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.ch.mode svg{width:44px;height:44px}
+.newc{font-size:.78rem;font-weight:800;background:var(--surface);border:1.5px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--teal)}
+.dlg{display:grid;gap:8px}
+.ln{border:2px solid var(--line);border-radius:14px;padding:8px 12px;text-align:left;background:var(--surface2);max-width:88%;cursor:pointer;display:grid;gap:2px;font-weight:600}
+.ln .who{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.ln.v{justify-self:start;border-color:var(--berry)}
+.ln.k{justify-self:end;background:var(--surface)}
+.ln[disabled]{cursor:default}
+.ln.no{border-color:var(--bad);background:var(--bad-bg)}
+.ln.hit{border-color:var(--bad);background:var(--bad-bg);box-shadow:0 0 0 3px var(--bad) inset}
+.ln.fixed{border-color:var(--good);background:var(--good-bg)}
+
+@keyframes pop{0%{transform:scale(.85);opacity:.3}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .35s ease-out}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:480px){
+  body{font-size:16px}
+  .talk{grid-template-columns:72px 1fr}
+  .talk .face{width:72px;height:72px}
+  .pcard{grid-template-columns:80px 1fr}
+  .pcard .face{width:80px;height:80px}
+  .card{padding:14px}
+  .qb{font-size:.7rem}
+  .flip .inner{min-height:340px}
+}
+</style>
+</head><body>
+
+<div class="wrap" lang="de">
+  <div class="bar" id="bar"></div>
+  <main id="app"></main>
+</div>
+<script>
+/* ===== Daten: Branchen, Kundinnen, Stufen ===== */
+const SHOPS = {
+  mode:{ id:'mode', kontrolle:'einen warmen Pullover, der nicht kratzt und lange hält', n2:'auch an kalten Tagen angenehm warm zu bleiben.', vgl:'reine Merinowolle statt Mischgewebe – die kratzt nicht und hält länger warm.', alt:'aber dieser Pullover ist aus derselben Wolle und genauso weich.', branche:'Mode', laden:'Modehaus', kurz:'Pullover', Nom:'Der Pullover', nom:'der Pullover', akkUnbest:'einen Pullover', akk:'den Pullover', dat:'dem Pullover', ihn:'ihn', preis:'79,95 €',
+    k2:'ich sehe, Sie interessieren sich für unsere Pullover.', k3:'Die gibt es jetzt auch in den neuen Herbstfarben.',
+    o1:'Zu welchem Anlass', o3:'den Pullover tragen?',
+    a1:'Soll der Pullover', a2:'eher klassisch sein', a3:'oder lieber sportlich?',
+    w1:'Probieren Sie', w2:'den Pullover gerne einmal an.', w3:'Spüren Sie, wie weich die Wolle ist?',
+    m:'Der Pullover ist aus Merinowolle.', v:'Die Wolle kratzt nicht und gleicht die Temperatur aus.', n:'Damit frieren Sie nicht und schwitzen auch nicht.',
+    s1:'Der Pullover aus Merinowolle hält Sie schön warm,', s2:'er kostet 79,95 €', s3:'– und Sie können ihn im Wollprogramm Ihrer Waschmaschine waschen.',
+    e2:'dafür ist er sehr pflegeleicht und hält viele Jahre.',
+    zTyp:'Zusatzangebot', zItem:'einen passenden Schal', z1:'Zu dem Pullover passt', z2:'dieser Schal aus derselben Wolle', z3:'– damit sind Sie an kalten Tagen rundum warm angezogen.',
+    zWhy:'Der Pullover funktioniert auch ohne Schal. Der Schal erhöht aber den Nutzen – das ist ein Zusatzangebot.',
+    b1:'Mit diesem Pullover haben Sie eine gute Wahl getroffen', b2:'– und sollte die Größe nicht passen, können Sie ihn umtauschen.' },
+  elektro:{ id:'elektro', kontrolle:'eine handliche Kamera mit starkem Zoom für Ausflüge', n2:'auch weit entfernte Motive scharf festzuhalten.', vgl:'den doppelten Zoom – damit holen Sie auch weit entfernte Motive nah heran.', alt:'aber diese Kamera hat den gleichen Zoom und ist sogar etwas leichter.', branche:'Elektronik', laden:'Elektromarkt', kurz:'Kamera', Nom:'Die Kamera', nom:'die Kamera', akkUnbest:'eine Kamera', akk:'die Kamera', dat:'der Kamera', ihn:'sie', preis:'349,00 €',
+    k2:'ich sehe, Sie interessieren sich für unsere Kameras.', k3:'Dieses Modell hat einen besonders starken Zoom.',
+    o1:'Wofür', o3:'die Kamera vor allem nutzen?',
+    a1:'Soll die Kamera', a2:'eher klein für die Jackentasche sein', a3:'oder lieber einen großen Zoom haben?',
+    w1:'Nehmen Sie', w2:'die Kamera ruhig einmal in die Hand.', w3:'Spüren Sie, wie leicht sie ist?',
+    m:'Die Kamera hat einen 30-fachen Zoom.', v:'Sie holt weit entfernte Motive ganz nah heran.', n:'Damit fotografieren Sie auch Tiere oder ein Fußballspiel gestochen scharf.',
+    s1:'Mit dem 30-fachen Zoom holen Sie jedes Motiv nah heran,', s2:'die Kamera kostet 349,00 €', s3:'– und der Akku hält einen ganzen Ausflugstag durch.',
+    e2:'dafür richten wir Ihnen die Kamera hier gleich ein, und Sie haben bei Fragen immer einen Ansprechpartner.',
+    zTyp:'Ergänzungsangebot', zItem:'eine Speicherkarte', z1:'Zu der Kamera brauchen Sie', z2:'noch eine Speicherkarte', z3:'– damit können Sie gleich am ersten Tag losfotografieren.',
+    zWhy:'Ohne Speicherkarte kann die Kamera die Fotos nicht speichern. Die Karte ist also notwendig – das ist ein Ergänzungsangebot, und das muss immer angeboten werden.',
+    b1:'Mit dieser Kamera haben Sie eine gute Wahl getroffen', b2:'– und bei Fragen zur Bedienung sind wir jederzeit für Sie da.' },
+  haushalt:{ id:'haushalt', kontrolle:'eine Pfanne, in der nichts anbrennt und die leicht zu reinigen ist', n2:'mit wenig Fett und ohne Schrubben zu kochen.', vgl:'eine Keramikbeschichtung – da brennt nichts an, und Sie braten mit wenig Fett.', alt:'aber diese Pfanne hat die gleiche Beschichtung und ist sogar spülmaschinenfest.', branche:'Haushalt', laden:'Haushaltswarengeschäft', kurz:'Pfanne', Nom:'Die Pfanne', nom:'die Pfanne', akkUnbest:'eine Pfanne', akk:'die Pfanne', dat:'der Pfanne', ihn:'sie', preis:'59,95 €',
+    k2:'ich sehe, Sie interessieren sich für unsere Pfannen.', k3:'Diese hier hat eine Keramikbeschichtung, da brennt nichts an.',
+    o1:'Wofür', o3:'die Pfanne vor allem nutzen?',
+    a1:'Soll die Pfanne', a2:'24 Zentimeter groß sein', a3:'oder lieber 28 Zentimeter?',
+    w1:'Nehmen Sie', w2:'die Pfanne ruhig einmal in die Hand.', w3:'Spüren Sie, wie gut der Griff in der Hand liegt?',
+    m:'Die Pfanne hat eine Keramikbeschichtung.', v:'Darin brennt nichts an.', n:'So braten Sie mit wenig Fett und sparen sich das Schrubben.',
+    s1:'Mit der Keramikbeschichtung brennt nichts an,', s2:'die Pfanne kostet 59,95 €', s3:'– und Sie braten mit ganz wenig Fett.',
+    e2:'dafür brauchen Sie kaum Öl, und die Pfanne ist in Sekunden sauber.',
+    zTyp:'Zusatzangebot', zItem:'einen passenden Glasdeckel', z1:'Zu der Pfanne passt', z2:'dieser Glasdeckel', z3:'– damit spritzt nichts, und Sie sehen trotzdem, wie weit das Essen ist.',
+    zWhy:'Die Pfanne funktioniert auch ohne Deckel. Der Deckel erhöht aber den Nutzen – das ist ein Zusatzangebot.',
+    b1:'Mit dieser Pfanne haben Sie eine gute Wahl getroffen', b2:'– Sie werden lange Freude daran haben.' }
+};
+
+const PERSONAS = {
+  yil:{ id:'yil', anrede:'Frau Yilmaz', name:'Frau Yilmaz', nameD:'Frau Yilmaz', kurz:'Stammkundin, etwa 50 Jahre', wunsch:'sucht ein Geburtstagsgeschenk für ihren Mann',
+    motiv:'emotional – sie möchte ihrem Mann eine Freude machen', need:'Mein Mann hat bald Geburtstag. Es soll hochwertig sein und schön aussehen.',
+    signal:'nimmt einen Artikel in die Hand und schaut sich suchend um', einwand:'Hm, das ist aber teurer, als ich dachte.',
+    look:{skin:'#c98e62',hair:'#2b1d16',style:'bob',glasses:false,beard:false,grey:false,top:'#b03a5b'} },
+  bec:{ id:'bec', anrede:'Herr Becker', name:'Herr Becker', nameD:'Herrn Becker', kurz:'Rentner, etwa 70 Jahre', wunsch:'sucht etwas für sich selbst und lässt sich gern beraten',
+    motiv:'rational – Qualität und Haltbarkeit (Sicherheit)', need:'Es soll lange halten. Das alte Teil hat zehn Jahre gehalten.',
+    signal:'steht seit einer Weile ratlos vor dem Regal und kratzt sich am Kopf', einwand:'Das ist mir zu teuer!',
+    look:{skin:'#f0c7a6',hair:'#c9c4bd',style:'short',glasses:true,beard:false,grey:true,top:'#3d6b8f'} },
+  len:{ id:'len', anrede:'Frau Wolf', name:'Lena Wolf', nameD:'Lena Wolf', kurz:'Auszubildende, 21 Jahre', wunsch:'kauft für sich selbst und hat vorher im Internet Preise verglichen',
+    motiv:'rational – Sparsamkeit, gutes Preis-Leistungs-Verhältnis', need:'Ich habe nicht viel Geld. Es soll ein gutes Preis-Leistungs-Verhältnis haben.',
+    signal:'bummelt durch die Abteilung, stöbert und meidet den Blickkontakt', einwand:'Im Internet habe ich das billiger gesehen.',
+    look:{skin:'#e8b892',hair:'#8a4b2a',style:'tail',glasses:false,beard:false,grey:false,top:'#2f8a63'} },
+  oka:{ id:'oka', anrede:'Herr Okafor', name:'Herr Okafor', nameD:'Herrn Okafor', kurz:'Bürokaufmann, etwa 40 Jahre, in der Mittagspause', wunsch:'kauft für sich selbst und hat wenig Zeit',
+    motiv:'Bequemlichkeit – schnell und unkompliziert', need:'Ich habe nur zehn Minuten. Ich brauche etwas Solides, nichts Kompliziertes.',
+    signal:'kommt zügig herein und geht direkt auf dich zu', einwand:'Hm, das ist mir eigentlich zu teuer.',
+    look:{skin:'#6b4429',hair:'#141010',style:'crop',glasses:false,beard:true,grey:false,top:'#e0a03a'} }
+};
+
+/* Prüfungs-Check LF 2: Teilaufgaben bzw. Termine aus 14 Prüfungen „Verkauf und Werbemaßnahmen“ (W 2019/20 bis S 2026) */
+const PHASES = [
+ { id:1, name:'Begrüßung und Kontaktaufnahme', short:'Kontakt', modul:'Modul 4', tm:7, teil:11, wr:true,
+   examNote:'11 Teilaufgaben in 7 von 14 Prüfungen (dazu „Hilfebedarf erkennen“ aus Modul 2: 6 Teilaufgaben).',
+   sit:{ yil:'Frau Yilmaz, eine Stammkundin, {signal}. Du räumst gerade Ware ein.', bec:'Herr Becker {signal}. Du räumst gerade Ware ein.', len:'Lena {signal}. Du räumst gerade Ware ein.', oka:'Herr Okafor {signal}. Du räumst gerade Ware ein.' },
+   opts:[
+    { t:'Weiter einräumen und warten, bis die Kundschaft fragt', d:'Dann störe ich niemanden.', fit:{yil:0,bec:0,len:0,oka:0}, bad:true,
+      re:{all:'(schaut sich um, niemand reagiert) …Hallo? Arbeitet hier jemand?', len:'(merkt gar nicht, dass sie gesehen wurde, und geht wieder)'},
+      why:'Die Kundschaft fühlt sich zurückgesetzt, wenn man sie warten lässt. Die bisherige Tätigkeit wird sofort abgebrochen – und jeder Kunde merkt, dass er wahrgenommen wurde.' },
+    { t:'Einräumen abbrechen, von vorn Blickkontakt, lächeln, begrüßen und ansprechen', d:'Ich gehe aktiv auf die Kundschaft zu.', fit:{yil:3,bec:3,len:1,oka:3},
+      re:{all:'Guten Tag! Schön, dass sich jemand Zeit nimmt.', yil:'Ah, guten Tag! Schön, Sie zu sehen.', len:'Äh … ich wollte eigentlich nur gucken.'},
+      why:'Richtig bei Kundensignalen wie suchendem Blick, ratlosem Gesicht oder Ware in der Hand. Wer nur bummelt und den Blick meidet, fühlt sich dadurch aber schnell bedrängt.' },
+    { t:'Kurz Blickkontakt, lächeln, begrüßen – und dann Freiraum lassen', d:'„Wenn Sie Hilfe brauchen, bin ich für Sie da.“', fit:{yil:1,bec:1,len:3,oka:1},
+      re:{all:'(wartet) …Na gut, dann such ich eben selbst.', len:'Danke, ich schau mich erst mal um. (lächelt)', oka:'Ich hab eigentlich keine Zeit zum Suchen …'},
+      why:'Richtig bei Kunden, die sich erst umsehen möchten: wahrnehmen, Bereitschaft zeigen, dann Freiraum lassen. Wer Hilfe sucht oder direkt auf dich zukommt, wartet so unnötig.' } ],
+   term:'Kontaktaufnahme', termText:'Der erste Eindruck entsteht in Sekunden. Erst Blickkontakt, dann sprechen – nie von hinten. Bei Vorwahl auf die Kundensignale achten: Interesse zeigen, nicht angesprochen werden wollen oder nur umsehen.',
+   ihk:{ src:'Abschlussprüfung Winter 2025/26, Aufgabe 3.2.2 (3 Punkte)', task:'Sie sprechen die Kundin an. Formulieren Sie eine warenbezogene Ansprache in wörtlicher Rede zu einem Artikel Ihrer Wahl!', lsg:'z. B. Pullover: „Guten Tag, wir haben den Pullover noch in den neuen Herbstfarben!“' },
+   basis:[{ task:'Bau eine warenbezogene Ansprache.', slots:[
+      {lbl:'Begrüßung', ch:[{t:'Guten Tag,',ok:true},{t:'Hallo, na?',why:'„Hallo, na?“ passt nicht zu jeder Kundschaft. Die Grußformel muss zur Person und zur Situation passen.'},{t:'Ähm, Entschuldigung,',why:'Unsicher und ohne Gruß – der erste Eindruck zählt.'}]},
+      {lbl:'Ansprache', ch:[{t:'{k2}',ok:true},{t:'kann ich Ihnen helfen?',why:'Geschlossene Frage: Die Antwort „Nein“ beendet das Gespräch.'},{t:'suchen Sie etwas Bestimmtes?',why:'Geschlossene Frage: Die Kundin kann mit „Nein“ antworten.'}]},
+      {lbl:'Bezug zur Ware', ch:[{t:'{k3}',ok:true},{t:'Die sind gerade richtig billig.',why:'„Billig“ klingt nach schlechter Qualität. Besser: „preisgünstig“.'},{t:'Die kauft eh jeder.',why:'Das ist kein Bezug zur Ware und klingt gleichgültig.'}]} ]}],
+   profi:{ task:'Sie sprechen {nameD} an. Formulieren Sie eine warenbezogene Ansprache in wörtlicher Rede zum Artikel „{kurz}“!', fields:['Ihre Ansprache'],
+     checks:[ {l:'Begrüßung (z. B. „Guten Tag“)', re:/guten (tag|morgen|abend)|grüß|willkommen/i, must:true},
+              {l:'Sie-Stil („Sie“, „Ihnen“, „Ihr“)', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:true},
+              {l:'Bezug zur Ware ({kurz})', re:'KURZ', must:true},
+              {l:'keine geschlossene Frage wie „Kann ich helfen?“', re:/kann ich (ihnen )?(weiter)?helfen|suchen sie (etwas|was) bestimmtes/i, neg:true, must:true} ] },
+   why:{ q:'Begründen Sie, warum Ihr Verhalten schon bei der Kontaktaufnahme wichtig ist.', opts:[
+      {t:'Hier entsteht der erste Eindruck – die Kundin fühlt sich wahrgenommen und wertgeschätzt.',ok:true},
+      {t:'Weil man bei der Begrüßung schon den Preis nennen sollte.'},
+      {t:'Damit die Kundin merkt, dass sie im Laden beobachtet wird.'} ], src:'nach Sommer 2025, Aufgabe 2.2' } },
+
+ { id:2, name:'Bedarfsermittlung', short:'Bedarf', modul:'Module 5 bis 7', tm:8, teil:22, wr:true,
+   examNote:'Fragetechnik in 8, Bedarfsermittlung in 6, Kaufmotive in 4 von 14 Prüfungen – zusammen 22 Teilaufgaben. Fast immer: offene Frage plus Alternativfrage in wörtlicher Rede.',
+   sit:{ yil:'Frau Yilmaz sagt: „Ich suche ein Geschenk für meinen Mann.“ Jetzt musst du herausfinden, was genau sie braucht.', all:'{name} sagt: „Ich suche {akkUnbest}.“ Jetzt musst du herausfinden, was genau gebraucht wird.' },
+   opts:[
+    { t:'Offene Fragen stellen: Wofür? Für wen? Was ist wichtig?', d:'Direkte Bedarfsermittlung', fit:{yil:3,bec:3,len:3,oka:1},
+      re:{all:'Gute Frage! {need}', oka:'(schaut auf die Uhr) {need}'},
+      why:'Direkte Bedarfsermittlung mit offenen Fragen bringt die meisten Informationen. Wer es sehr eilig hat und schon genau weiß, was er will, braucht aber nicht viele Fragen.' },
+    { t:'Gleich drei passende Modelle zeigen und an der Reaktion ablesen, was gefällt', d:'Indirekte Bedarfsermittlung', fit:{yil:1,bec:1,len:2,oka:3},
+      re:{all:'Hm, schön … aber ich weiß gar nicht, welches. {need}', oka:'Genau so was. Das geht schnell, prima. {need}', len:'Okay, das hier ist ganz nett. {need}'},
+      why:'Indirekte Bedarfsermittlung passt, wenn die Kundschaft ungefähr weiß, was sie will, oder wenig Zeit hat. Bei einem Geschenk oder wenn jemand unsicher ist, fehlen so wichtige Informationen.' },
+    { t:'Zuerst fragen: „Wie viel wollen Sie ausgeben?“', d:'Dann weiß ich gleich, was infrage kommt.', fit:{yil:0,bec:0,len:1,oka:0}, bad:true,
+      re:{all:'(wirkt unsicher) Das weiß ich noch nicht … nicht mehr als nötig.', len:'Möglichst wenig natürlich.'},
+      why:'Genau dieser Fehler steht in der Prüfung Sommer 2026: Wer zuerst nach dem Preis fragt, ermittelt den Bedarf nicht. Besser: „Wofür möchten Sie … verwenden?“' } ],
+   term:'Direkte und indirekte Bedarfsermittlung', termText:'Direkt: den Bedarf mit offenen Fragen erfragen. Indirekt: Ware vorlegen und an der Reaktion ablesen, was gefällt. Offene Fragen beginnen mit einem W-Wort, Alternativfragen geben zwei positive Möglichkeiten.',
+   ihk:{ src:'Abschlussprüfung Winter 2025/26, Aufgabe 3.3 (4 Punkte)', task:'Formulieren Sie eine offene Frage und eine Alternativfrage zur Bedarfsermittlung in wörtlicher Rede!', lsg:'offen z. B. „Wie alt ist Ihre Tochter?“ – Alternativfrage z. B. „Kleidet sich Ihre Tochter eher klassisch oder sportlich?“ Für geschlossene Fragen gibt es keine Punkte.' },
+   basis:[
+    { task:'Bau eine offene Frage.', slots:[
+      {lbl:'Fragewort', ch:[{t:'{o1}',ok:true},{t:'Wollen',why:'Mit „Wollen …?“ beginnt eine geschlossene Frage – Antwort: Ja oder Nein.'},{t:'Ob',why:'„Ob“ ist kein Fragewort. Offene Fragen beginnen mit W-Wörtern: Wer, Wie, Was, Wofür …'}]},
+      {lbl:'Sie-Stil', ch:[{t:'möchten Sie',ok:true},{t:'will man',why:'„Man“ ist unpersönlich. Im Sie-Stil sprichst du die Kundin direkt an.'},{t:'musst du',why:'Kundschaft wird gesiezt.'}]},
+      {lbl:'Ende', ch:[{t:'{o3}',ok:true},{t:'das denn jetzt?',why:'Klingt ungeduldig und unfreundlich.'},{t:'– ja oder nein?',why:'Das macht die Frage geschlossen.'}]} ]},
+    { task:'Bau eine Alternativfrage.', slots:[
+      {lbl:'Anfang', ch:[{t:'{a1}',ok:true},{t:'Ist doch klar, dass',why:'So drängst du der Kundin eine Meinung auf (Suggestivfrage).'}]},
+      {lbl:'Möglichkeit 1', ch:[{t:'{a2}',ok:true},{t:'billig sein',why:'„Billig“ wirkt abwertend. Und die Kundin bekommt keine echte Wahl.'}]},
+      {lbl:'Möglichkeit 2', ch:[{t:'{a3}',ok:true},{t:'– oder was?',why:'Umgangssprachlich. Eine Alternativfrage nennt zwei positive Möglichkeiten.'},{t:'?',why:'Dann gibt es nur eine Möglichkeit – das ist eine geschlossene Frage.'}]} ]} ],
+   profi:{ task:'{name} {wunsch}. Formulieren Sie eine offene Frage und eine Alternativfrage zur Bedarfsermittlung in wörtlicher Rede!', fields:['Offene Frage','Alternativfrage'],
+     checks:[ {l:'Offene Frage beginnt mit einem W-Wort', re:/^\s*[„"]?\s*(wer|wie|was|wo|wofür|wozu|wann|warum|weshalb|welche[rsmn]?|womit|wobei|woran|wohin|wieviel|zu welche[mr]|für welche[mn]?|für wen|in welche[mr]|an welche[mn]?|mit welche[mr]|aus welche[mn]?|bei welche[mr])\b/i, f:0, must:true},
+              {l:'Offene Frage endet mit „?“', re:/\?\s*[“"]?\s*$/, f:0, must:true},
+              {l:'Alternativfrage enthält „oder“', re:/\boder\b/i, f:1, must:true},
+              {l:'Alternativfrage endet mit „?“', re:/\?\s*[“"]?\s*$/, f:1, must:true},
+              {l:'kein „billig“', re:/billig/i, neg:true, f:-1} ] },
+   why:{ q:'Warum gibt es für „Kann ich Ihnen helfen?“ in der Prüfung keine Punkte?', opts:[
+      {t:'Es ist eine geschlossene Frage – die Kundin kann mit „Nein“ antworten, und das Gespräch ist zu Ende.',ok:true},
+      {t:'Weil man Kunden duzen sollte.'},
+      {t:'Weil die Frage zu lang ist.'} ], src:'Lösungshinweise Sommer 2020 und Sommer 2026' } },
+
+ { id:3, name:'Warenvorlage', short:'Ware', modul:'Modul 8', tm:10, teil:15, wr:false,
+   examNote:'15 Teilaufgaben in 10 von 14 Prüfungen – damit das Modul, das am häufigsten drankommt. Meist: Grundsätze nennen, Anzahl der Artikel begründen, Preislage begründen.',
+   sit:{ all:'Du weißt jetzt ungefähr, was {name} braucht. Wie legst du die Ware vor?' },
+   opts:[
+    { t:'Drei bis fünf passende Modelle in der mittleren Preislage zeigen und anfassen lassen', d:'Je nach Reaktion weiche ich nach oben oder unten aus.', fit:{yil:3,bec:3,len:2,oka:2},
+      re:{all:'(nimmt eins in die Hand) Oh, das fühlt sich gut an!', oka:'Gut, aber bitte nicht zu viele, ich hab’s eilig.', len:'Ganz schön, aber was kosten die?'},
+      why:'Das sind die Grundsätze der Warenvorlage: 3 bis 5 Artikel, mittlere Preislage, mehrere Sinne ansprechen. Hat die Kundin eine Preisvorstellung genannt, beginnt man aber in dieser Preisklasse.' },
+    { t:'Alle zehn Modelle aus dem Regal auf den Tisch legen', d:'Dann hat die Kundin die volle Auswahl.', fit:{yil:0,bec:0,len:0,oka:0}, bad:true,
+      re:{all:'Puh … das ist ja viel zu viel. Ich weiß gar nicht mehr, was ich will.'},
+      why:'Zu viele Artikel überfordern. 3 bis 5 Artikel: Die Kundin hat eine Auswahl, wird aber nicht überfordert (Winter 2022/23, Aufgabe 1.6).' },
+    { t:'Drei Modelle aus der Preisklasse zeigen, die die Kundschaft genannt hat', d:'Kurz und gezielt.', fit:{yil:1,bec:1,len:3,oka:3},
+      re:{all:'Hm, über den Preis habe ich doch noch gar nichts gesagt …', len:'Super, genau mein Rahmen!', oka:'Perfekt, genau so etwas.'},
+      why:'Richtig, wenn eine Preisvorstellung genannt wurde: dann aus der gewünschten Preiskategorie vorlegen (Sommer 2025, Aufgabe 2.4). Ohne Preisvorstellung beginnt man in der mittleren Preislage.' } ],
+   term:'Grundsätze der Warenvorlage', termText:'3 bis 5 Artikel vorlegen · mit der mittleren Preislage beginnen · sorgfältig mit der Ware umgehen · nur einwandfreie Ware zeigen · alle Sinne ansprechen · Artikel, die nicht infrage kommen, wegräumen.',
+   ihk:{ src:'Abschlussprüfung Winter 2025/26, Aufgabe 3.4.1 (3 Punkte)', task:'Geben Sie an, wie viele Artikel Sie der Kundin vorlegen, und begründen Sie Ihre Entscheidung!', lsg:'3–5 Artikel (1 P.); Begründung (2 P.), z. B. bei nur einem Artikel keine Auswahl; Auswahl ohne Überforderung.' },
+   basis:[{ task:'Lade die Kundschaft ein, die Ware mit den Sinnen zu prüfen.', slots:[
+      {lbl:'Einladung', ch:[{t:'{w1}',ok:true},{t:'Fassen Sie das bitte nicht an,',why:'Die Kundin soll die Ware anfassen – so baut sie eine Beziehung zum Produkt auf.'},{t:'Man kann',why:'„Man“ ist unpersönlich. Sprich die Kundin mit „Sie“ an.'}]},
+      {lbl:'Ware', ch:[{t:'{w2}',ok:true},{t:'das Ding mal an.',why:'„Das Ding“ wertet die Ware ab. Sorgfältig mit der Ware umgehen heißt auch: sie richtig benennen.'}]},
+      {lbl:'Sinne', ch:[{t:'{w3}',ok:true},{t:'Aber nichts kaputt machen.',why:'Misstrauisch und unfreundlich.'},{t:'Ist halt Standard.',why:'Kein Nutzen, keine Begeisterung.'}]} ]}],
+   profi:{ task:'Formulieren Sie in wörtlicher Rede, wie Sie {nameD} einladen, {akk} mit mehreren Sinnen zu prüfen! (Übungsaufgabe nach Modul 8)', fields:['Ihre Einladung'],
+     checks:[ {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:true},
+              {l:'Einladung zum Anfassen oder Ausprobieren', re:/(in die hand|anfassen|probieren|ausprobieren|fühlen|spüren|halten|testen|anprobieren|nehmen sie)/i, must:true},
+              {l:'Bezug zur Ware ({kurz})', re:'KURZ', must:false} ] },
+   why:{ q:'Begründen Sie, mit welcher Preisklasse Sie die Warenvorlage beginnen.', opts:[
+      {t:'Mittlere Preislage – dann kann ich je nach Reaktion nach oben oder unten ausweichen.',ok:true},
+      {t:'Mit dem teuersten Artikel – das bringt am meisten Umsatz.'},
+      {t:'Mit dem günstigsten Artikel – dann ist der Kunde nie enttäuscht.'} ], src:'Sommer 2025, Aufgabe 2.4' } },
+
+ { id:4, name:'Verkaufsargumentation', short:'Argumente', modul:'Modul 9', tm:3, teil:3, wr:true,
+   examNote:'Nur 3 Teilaufgaben in 3 Prüfungen direkt gefragt – aber jedes Sandwich und jedes Ja-Aber braucht ein Nutzen-Argument.',
+   sit:{ all:'{name} fragt: „Und was ist das Besondere an {dat}?“' },
+   opts:[
+    { t:'Qualität betonen: lange Haltbarkeit, die man sieht und fühlt', d:'Nutzen: Sicherheit, Freude, Ansehen', fit:{yil:3,bec:3,len:1,oka:1},
+      re:{all:'Das klingt hochwertig, genau so etwas suche ich.', len:'Schön und gut … aber ist das nicht teuer?', oka:'Klingt gut, aber ich brauch keinen Vortrag.'},
+      why:'Passt zu Kundschaft, der Qualität wichtig ist oder die etwas Besonderes verschenken möchte.' },
+    { t:'Sparen und Bequemlichkeit betonen: pflegeleicht, praktisch, spart Zeit und Geld', d:'Nutzen: Sparsamkeit, Bequemlichkeit', fit:{yil:1,bec:1,len:3,oka:3},
+      re:{all:'Hm, praktisch … aber für ein Geschenk?', len:'Das gefällt mir, das rechnet sich.', oka:'Genau, unkompliziert. Das passt.', bec:'Praktisch ist schön, aber hält das auch?'},
+      why:'Passt zu Kundschaft, die auf den Preis achtet oder wenig Zeit hat.' },
+    { t:'Alle technischen Daten aufzählen', d:'Dann weiß die Kundschaft alles.', fit:{yil:0,bec:0,len:0,oka:0}, bad:true,
+      re:{all:'(schaut verwirrt) Und … was bringt mir das jetzt?'},
+      why:'Ein Merkmal allein verkauft nicht. Erst der Nutzen zeigt der Kundin, was sie davon hat: Merkmal – Vorteil – Nutzen.' } ],
+   need:true,
+   term:'Merkmal – Vorteil – Nutzen', termText:'Warenmerkmal nennen, Vorteil aufzeigen, Kundennutzen darlegen – und zwar den Nutzen, der zum ermittelten Bedarf passt. Das stärkste Argument kommt an den Schluss.',
+   ihk:{ src:'Abschlussprüfung Sommer 2020, Aufgabe 4.3 (3 Punkte)', task:'Formulieren Sie ein personenbezogenes Verkaufsargument in wörtlicher Rede, um den Kunden von diesem Artikel zu überzeugen!', lsg:'z. B. „Mit der integrierten Kamera im Smartphone können Sie qualitativ sehr gute Fotos machen, die Sie sofort versenden können.“' },
+   basis:[{ task:'Bau ein Argument: Merkmal – Vorteil – Nutzen.', slots:[
+      {lbl:'Merkmal', ch:[{t:'{m}',ok:true},{t:'{Nom} ist echt top.',why:'„Top“ ist kein Merkmal. Ein Merkmal ist eine Eigenschaft der Ware: Material, Technik, Form …'}]},
+      {lbl:'Vorteil', ch:[{t:'{v}',ok:true},{t:'Den haben wir schon oft verkauft.',why:'Das sagt nichts über die Ware selbst.'}]},
+      {lbl:'Nutzen', ch:[{t:'{n}',ok:true},{t:'Damit macht der Laden mehr Umsatz.',why:'Der Nutzen muss für die Kundin sein, nicht für den Betrieb.'},{t:'Mehr weiß ich auch nicht.',why:'Unsicher – Warenkenntnisse schaffen Vertrauen.'}]} ]}],
+   profi:{ task:'{name} zeigt starkes Interesse an {dat}. Formulieren Sie ein personenbezogenes Verkaufsargument in wörtlicher Rede, das zum ermittelten Bedarf passt!', fields:['Ihr Verkaufsargument'],
+     checks:[ {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:true},
+              {l:'Nutzen-Formulierung („damit“, „dadurch“, „so können Sie“, „Sie sparen“ …)', re:/(damit|dadurch|so können sie|sie sparen|das hilft|das garantiert|sie haben|sie können|sie müssen nicht|sie brauchen)/i, must:true},
+              {l:'Bezug zur Ware ({kurz})', re:'KURZ', must:false} ] },
+   why:{ q:'Wohin gehört das stärkste Argument?', opts:[
+      {t:'An den Schluss – begonnen wird aber mit einem wichtigen Argument, sonst fehlt das Interesse.',ok:true},
+      {t:'Immer ganz an den Anfang, danach ist es egal.'},
+      {t:'Das stärkste Argument hebt man auf, falls die Kundin wiederkommt.'} ], src:'Modul 9, Merke' } },
+
+ { id:5, name:'Preisnennung', short:'Preis', modul:'Modul 10', tm:9, teil:11, wr:true,
+   examNote:'11 Teilaufgaben in 9 von 14 Prüfungen. Fast immer die Sandwich-Methode in wörtlicher Rede, dazu „Warum Sandwich?“.',
+   sit:{ all:'{name} fragt: „Und was kostet {nom}?“ – {Nom} kostet {preis}.' },
+   opts:[
+    { t:'Sandwich: Nutzen – Preis – Nutzen', d:'Den Preis zwischen zwei Vorteile packen.', fit:{yil:3,bec:3,len:2,oka:3},
+      re:{all:'Ah ja, das ist es mir wert.', len:'Okay … klingt fair.'},
+      why:'Die Sandwich-Methode verbindet den Preis mit dem Nutzen. So entsteht kein Preisschock.' },
+    { t:'Einfach den Preis sagen: „{preis}.“', d:'Kurz und ehrlich.', fit:{yil:0,bec:0,len:0,oka:1}, bad:true,
+      re:{all:'(zuckt zusammen) Oh! So viel?', oka:'Hm. Okay.'},
+      why:'Ein nackt genannter Preis löst einen Preisschock aus – genau dieser Fehler steht in der Prüfung Winter 2024/25 (Situation 2).' },
+    { t:'Verkleinerungsmethode: Preis auf die Nutzungsdauer umrechnen', d:'„Bei fünf Jahren Nutzung sind das nur … im Monat.“', fit:{yil:1,bec:2,len:3,oka:1},
+      re:{all:'Hm, so habe ich das noch nicht gesehen.', len:'Stimmt, so gerechnet ist das echt nicht viel!', oka:'Ich hab keine Zeit für Rechnungen.', yil:'Ach, bei einem Geschenk rechne ich nicht in Monaten.'},
+      why:'Gut für preisbewusste Kundschaft und für Ware, die lange genutzt wird. Bei einem Geschenk oder in Eile passt das Sandwich besser.' } ],
+   term:'Sandwich-Methode', termText:'Nutzen – Preis – Nutzen. Weitere Methoden: Verzögerung (Preis erst am Ende), Zerlegung (Teilpreise nennen), Verkleinerung (Preis auf Nutzungsdauer oder Menge verteilen), Vergleich.',
+   ihk:{ src:'Abschlussprüfung Winter 2025/26, Aufgabe 3.5 (2 Punkte)', task:'Die Kundin fragt nach dem Preis eines Artikels. Formulieren Sie eine Antwort in wörtlicher Rede und wenden Sie dabei die Sandwich-Methode an!', lsg:'z. B. „Diese Jeans besteht aus 97 % Baumwolle, 3 % Elasthan und liegt bei 99,95 €. Mit dieser Stoffmischung garantiert diese Jeans einen hohen Tragekomfort.“' },
+   basis:[{ task:'Bau ein Sandwich: Nutzen – Preis – Nutzen.', slots:[
+      {lbl:'Nutzen 1', ch:[{t:'{s1}',ok:true},{t:'Ganz ehrlich, das ist nicht billig:',why:'Damit kündigst du den Preisschock selbst an.'}]},
+      {lbl:'Preis', ch:[{t:'{s2}',ok:true},{t:'das kostet läppische {preis}',why:'„Läppisch“ ist Umgangssprache und klingt herablassend.'}]},
+      {lbl:'Nutzen 2', ch:[{t:'{s3}',ok:true},{t:'– mehr kann ich da nicht machen.',why:'Nach dem Preis muss ein Nutzen kommen, keine Entschuldigung.'}]} ]}],
+   profi:{ task:'{name} fragt nach dem Preis. Formulieren Sie eine Antwort in wörtlicher Rede und wenden Sie dabei die Sandwich-Methode an! ({Nom} kostet {preis}.)', fields:['Ihre Antwort'],
+     checks:[ {l:'Preis wird genannt', re:/\d/, must:true},
+              {l:'vor dem Preis steht ein Nutzen (mind. 4 Wörter)', re:'BEFORE', must:true},
+              {l:'nach dem Preis steht noch ein Nutzen (mind. 4 Wörter)', re:'AFTER', must:true},
+              {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:false},
+              {l:'kein „billig“ oder „teuer“', re:/billig|teuer/i, neg:true, must:false} ] },
+   why:{ q:'Erläutern Sie, warum Sie die Sandwich-Methode einsetzen.', opts:[
+      {t:'Ein nackt genannter Preis kann einen Preisschock auslösen. Das Sandwich verbindet den Preis mit dem Kundennutzen.',ok:true},
+      {t:'Damit die Kundin den Preis gar nicht erst bemerkt.'},
+      {t:'Weil man so den Preis erhöhen darf.'} ], src:'Winter 2023/24, Aufgabe 5.5' } },
+
+ { id:6, name:'Kundeneinwände', short:'Einwand', modul:'Modul 11', tm:7, teil:8, wr:true,
+   examNote:'Einwände: 8 Teilaufgaben in 7 von 14 Prüfungen. Dazu Beschwerde/Reklamation: 31 Teilaufgaben in 12 Prüfungen – das häufigste Thema überhaupt.',
+   sit:{ all:'Nach der Preisnennung sagt {name}: „{einwand}“' },
+   opts:[
+    { t:'Ja-Aber: erst zustimmen, dann einen Nutzen nennen', d:'„Ja, da haben Sie recht, dafür …“', fit:{yil:3,bec:3,len:2,oka:3},
+      re:{all:'Stimmt eigentlich. Das überzeugt mich.', len:'Hm, okay … das ist ein Punkt.'},
+      why:'Die Ja-Aber-Methode nimmt die Kundin ernst und widerspricht ihr nicht direkt. Erst dann kommt ein neues Argument.' },
+    { t:'„Gute Dinge haben halt ihren Preis.“', d:'Das stimmt doch.', fit:{yil:0,bec:0,len:0,oka:0}, bad:true,
+      re:{all:'(verschränkt die Arme) Na, dann eben nicht.'},
+      why:'Das ist keine Einwandbehandlung. Genau dieser Satz steht als Fehler in der Prüfung Winter 2024/25 (Situation 3).' },
+    { t:'Nachfragen: „Was genau stört Sie?“ bzw. „Wo haben Sie das gesehen?“', d:'Erst verstehen, dann antworten.', fit:{yil:2,bec:2,len:3,oka:1},
+      re:{all:'Na ja, ich hatte mit weniger gerechnet.', len:'Bei einem Onlineshop … aber das war ein anderes Modell, glaube ich.', oka:'Ich hab jetzt keine Zeit für Diskussionen.'},
+      why:'Die Gegenfrage-Methode hilft, den echten Grund zu finden. Behauptet jemand, es woanders billiger gesehen zu haben, erbittet man zuerst nähere Angaben und prüft, ob es der gleiche Artikel ist.' } ],
+   term:'Ja-Aber-Methode', termText:'Erst zustimmen („Ja, da haben Sie recht“), dann ein neues Argument bringen („dafür …“). Weitere Methoden: Gegenfrage, Umkehr, Vergleich, Bumerang. Ein Einwand ist eine Chance: Die Kundin ist interessiert.',
+   ihk:{ src:'Abschlussprüfung Sommer 2025, Aufgabe 2.6 (3 Punkte)', task:'Formulieren Sie in wörtlicher Rede, wie Sie auf den Preiseinwand der Kundin reagieren, und benennen Sie die angewandte Methode!', lsg:'Methode 1 P. (z. B. Ja-Aber-Methode), Formulierung 2 P., z. B. „Ja, da haben Sie recht. Dafür ist dieser Pullover sehr pflegeleicht und angenehm zu tragen.“' },
+   basis:[{ task:'Bau eine Antwort nach der Ja-Aber-Methode.', slots:[
+      {lbl:'Ja …', ch:[{t:'Ja, da haben Sie recht,',ok:true},{t:'Nein, das stimmt nicht,',why:'Direkter Widerspruch – die Kundin verliert ihr Gesicht.'},{t:'Tja,',why:'Gleichgültig. Du nimmst den Einwand nicht ernst.'}]},
+      {lbl:'… aber', ch:[{t:'{e2}',ok:true},{t:'aber woanders ist es noch teurer.',why:'Unbelegt – und es lenkt vom Nutzen ab.'},{t:'aber das ist nicht mein Problem.',why:'Unhöflich. Damit ist das Gespräch beendet.'}]} ]}],
+   profi:{ task:'Nachdem Sie den Preis genannt haben, sagt {name}: „{einwand}“ Formulieren Sie eine verkaufsfördernde Antwort in wörtlicher Rede und benennen Sie die angewandte Methode!', fields:['Ihre Antwort','Methode'],
+     checks:[ {l:'Zustimmung oder Verständnis am Anfang', re:/(^\s*[„"]?\s*ja\b|recht|verstehe|stimmt|richtig|nachvollziehen)/i, f:0, must:true},
+              {l:'danach ein Nutzen („dafür“, „allerdings“, „jedoch“ …)', re:/(dafür|allerdings|jedoch|aber|bedenken sie|gerade deshalb|deswegen)/i, f:0, must:true},
+              {l:'Methode benannt', re:/(ja.?aber|gegenfrage|umkehr|bumerang|vergleich|einwand)/i, f:1, must:true},
+              {l:'kein Widerspruch wie „Das stimmt nicht“', re:/stimmt nicht|unmöglich|falsch/i, neg:true, f:0, must:true} ] },
+   why:{ q:'Was zeigt ein Kundeneinwand?', opts:[
+      {t:'Die Kundin ist interessiert, ihr ist der Nutzen nur noch nicht klar. Ein Einwand ist eine Chance.',ok:true},
+      {t:'Die Kundin will nicht kaufen – man kann das Gespräch beenden.'},
+      {t:'Die Kundin will den Verkäufer ärgern.'} ], src:'Modul 11, Merke' } },
+
+ { id:7, name:'Ergänzungs-, Zusatz- und Alternativangebote', short:'Zusatz', modul:'Modul 13', tm:6, teil:13, wr:false,
+   examNote:'13 Teilaufgaben in 6 von 14 Prüfungen: Zusatzartikel zu Hauptartikeln nennen, Zeitpunkt begründen, Vorteile für Betrieb und Kunde.',
+   sit:{ all:'{name} hat sich für {akk} entschieden.' },
+   opts:[
+    { t:'Jetzt {zItem} anbieten – mit Nutzen', d:'Nach der Entscheidung für den Hauptartikel.', fit:{yil:3,bec:3,len:2,oka:2},
+      re:{all:'Oh ja, gute Idee, daran hätte ich nicht gedacht.', len:'Hm, was kostet das denn?', oka:'Na gut, wenn’s schnell geht.'},
+      why:'Der richtige Zeitpunkt ist in der Regel nach der Entscheidung für den Hauptartikel. Die Kundin kann die Ware dann sofort voll nutzen.' },
+    { t:'„Brauchen Sie sonst noch was?“', d:'Locker nachfragen.', fit:{yil:0,bec:0,len:0,oka:0}, bad:true,
+      re:{all:'Nö, danke.'},
+      why:'Geschlossen, negativ und zu spät gestellt. Die Kundin sagt „Nein“, und die Chance ist vorbei.' },
+    { t:'Nichts anbieten – die Kundschaft hat schon genug ausgegeben', d:'Ich will nicht aufdringlich sein.', fit:{yil:1,bec:1,len:2,oka:2}, shop:{elektro:-2},
+      re:{all:'(geht zur Kasse)', elektro:'(zu Hause) Mist, ohne Speicherkarte geht ja gar nichts …'},
+      why:'Ein Zusatzangebot ist kein Muss, aber ein Service. Ein Ergänzungsangebot (wie die Speicherkarte zur Kamera) muss dagegen immer angeboten werden.' } ],
+   term:'{zTyp}', termText:'{zWhy} Ein Alternativangebot macht man nur, wenn die gewünschte Ware fehlt – und nur mit gleichem oder höherem Standard.',
+   ihk:{ src:'Abschlussprüfung Sommer 2024, Aufgabe 4.3.1 (2 Punkte)', task:'Erläutern Sie, zu welchem Zeitpunkt Sie Zusatzartikel/Ergänzungsartikel im Verkaufsgespräch anbieten!', lsg:'In der Regel nach der Entscheidung für den Hauptartikel; branchenabhängig auch in anderen Phasen.' },
+   basis:[{ task:'Bau ein {zTyp}.', slots:[
+      {lbl:'Anfang', ch:[{t:'{z1}',ok:true},{t:'Brauchen Sie sonst noch',why:'Geschlossen und negativ – „Nein, danke.“'},{t:'Wollen Sie nicht noch',why:'Klingt aufdringlich.'}]},
+      {lbl:'Artikel', ch:[{t:'{z2}',ok:true},{t:'irgendwas anderes',why:'Ein Angebot muss konkret sein: ein bestimmter Artikel.'}]},
+      {lbl:'Nutzen', ch:[{t:'{z3}',ok:true},{t:'– der muss auch mal weg.',why:'Dein Lagerproblem interessiert die Kundin nicht. Nenne ihren Nutzen.'}]} ]}],
+   profi:{ task:'Formulieren Sie in wörtlicher Rede, wie Sie {nameD} {zItem} anbieten, und benennen Sie die Angebotsart! (Übungsaufgabe nach Modul 13)', fields:['Ihr Angebot','Angebotsart'],
+     checks:[ {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, f:0, must:true},
+              {l:'kein „sonst noch“', re:/sonst noch/i, neg:true, f:0, must:true},
+              {l:'ein Nutzen für die Kundin', re:/(damit|dadurch|so können sie|sie können|schützt|passt|sofort)/i, f:0, must:false},
+              {l:'Angebotsart richtig benannt ({zTyp})', re:'ZTYP', f:1, must:true} ] },
+   why:{ q:'Wann darf man ein Alternativangebot machen?', opts:[
+      {t:'Wenn die gewünschte Ware fehlt – und nur mit gleichem oder höherem Standard.',ok:true},
+      {t:'Immer, wenn man eine andere Ware loswerden möchte.'},
+      {t:'Nur bei Stammkunden.'} ], src:'Modul 13 und Winter 2023/24, Aufgabe 4.1' } },
+
+ { id:8, name:'Kaufabschluss, Service und Verabschiedung', short:'Abschluss', modul:'Module 14 und 15', tm:7, teil:21, wr:true,
+   examNote:'Kaufabschluss: 8 Teilaufgaben in 7 Prüfungen, Service und Verabschiedung: 13 in 6. Oft: Kaufbestätigung mit Verabschiedung in wörtlicher Rede.',
+   sit:{ all:'{name} nimmt {akk} noch einmal in die Hand, nickt und fragt: „Kann ich auch mit Karte zahlen?“' },
+   opts:[
+    { t:'Kaufsignal erkennen: Entscheidung bestätigen, Umtausch erwähnen, zur Kasse begleiten', d:'Kaufbestätigung und freundliche Verabschiedung', fit:{yil:2,bec:3,len:3,oka:3},
+      re:{all:'Wunderbar, dann nehme ich das.', yil:'Schön! Ach – können Sie es mir noch einpacken?'},
+      why:'Die Frage nach der Zahlungsweise ist ein Kaufsignal. Jetzt bestärkst du die Entscheidung – das schafft Vertrauen und verhindert den „Kaufkater“.' },
+    { t:'Abschluss mit Service: Geschenkverpackung oder Lieferung anbieten, dann bestätigen', d:'Serviceleistung plus Kaufbestätigung', fit:{yil:3,bec:2,len:1,oka:1},
+      re:{all:'Oh, wie aufmerksam!', len:'Nee, brauch ich nicht, ich will nur zahlen.', oka:'Nein danke, ich nehm’s so mit.'},
+      why:'Serviceleistungen (warenbezogen: Geschenkverpackung, Lieferung) erleichtern die Entscheidung – vor allem bei Geschenken. Wer nur schnell zahlen will, braucht sie nicht.' },
+    { t:'Weiter argumentieren – man kann nie genug Argumente bringen', d:'Sicher ist sicher.', fit:{yil:0,bec:0,len:0,oka:0}, bad:true,
+      re:{all:'(seufzt) Ich wollte doch nur wissen, ob ich mit Karte zahlen kann …'},
+      why:'Das Kaufsignal wurde übersehen. Wer jetzt weiterredet, bringt die Kundin wieder ins Zweifeln.' } ],
+   term:'Kaufsignal und Kaufbestätigung', termText:'Kaufsignale: Fragen nach Zahlung, Lieferung oder Service, zustimmendes Nicken, die Ware erneut prüfen, nach dem Geldbeutel greifen. Danach: Entscheidung bestätigen, bedanken, situationsbezogen verabschieden – nach dem Kauf ist vor dem Kauf.',
+   ihk:{ src:'Abschlussprüfung Winter 2025/26, Aufgabe 3.6 (3 Punkte)', task:'Die Kundin entschließt sich zum Kauf. Formulieren Sie eine situationsgerechte Kaufbestätigung mit Verabschiedung in wörtlicher Rede!', lsg:'z. B. „Ich beglückwünsche Sie zu dem Kauf dieser Jeans, mit dem hohen Tragekomfort werden Sie Ihrer Tochter eine Freude bereiten. Wenn die Größe nicht passt, haben Sie die Möglichkeit eines Umtausches.“ Ohne Kaufbestätigung nur 1 P.' },
+   basis:[{ task:'Bau eine Kaufbestätigung mit Verabschiedung.', slots:[
+      {lbl:'Bestätigung', ch:[{t:'{b1}',ok:true},{t:'Na endlich haben Sie sich entschieden',why:'Ungeduldig. Die Kundin soll sich in ihrer Entscheidung bestärkt fühlen.'},{t:'Hoffentlich gefällt es Ihnen',why:'Das sät Zweifel – das Gegenteil einer Kaufbestätigung.'}]},
+      {lbl:'Service', ch:[{t:'{b2}',ok:true},{t:'– Umtausch gibt’s aber nicht.',why:'Abweisend. Ein Hinweis auf den Umtausch nimmt der Kundin die Sorge.'}]},
+      {lbl:'Verabschiedung', ch:[{t:'Vielen Dank für Ihren Einkauf und einen schönen Tag noch!',ok:true},{t:'Tschüss.',why:'Zu knapp und nicht situationsgerecht. Immer zuerst bedanken.'},{t:'Der Nächste, bitte!',why:'Die Kundin fühlt sich abgefertigt.'}]} ]}],
+   profi:{ task:'{name} entschließt sich zum Kauf. Formulieren Sie eine situationsgerechte Kaufbestätigung mit Verabschiedung in wörtlicher Rede!', fields:['Ihre Kaufbestätigung mit Verabschiedung'],
+     checks:[ {l:'Kaufbestätigung (z. B. „gute Wahl“, „Freude“, „beglückwünsche“)', re:/(gute wahl|richtige wahl|richtige entscheidung|freude|beglückwünsch|gratulier|werden sie|lange|zufrieden|überzeugt)/i, must:true},
+              {l:'Dank oder Verabschiedung', re:/(danke|dank|wiedersehen|schönen (tag|abend)|wochenende|bis bald|feier|geburtstag)/i, must:true},
+              {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:true},
+              {l:'Pluspunkt: Name der Kundschaft', re:'NAME', must:false} ] },
+   why:{ q:'Begründen Sie, warum eine Kaufbestätigung für die Kundin wichtig ist.', opts:[
+      {t:'Sie bestärkt die Kundin in ihrer Entscheidung und schafft Vertrauen zur Verkäuferin.',ok:true},
+      {t:'Sie ist gesetzlich vorgeschrieben.'},
+      {t:'Damit die Kundin noch mehr kauft.'} ], src:'Sommer 2024, Aufgabe 4.4.2' } }
+];
+
+const EVENTS = [
+ { t:'Begleitung', text:'{name} hat jemanden dabei, der gelangweilt danebensteht und auf die Uhr schaut.', opts:[
+   {t:'Die Begleitperson freundlich einbeziehen',ok:true},{t:'Nur mit der Kundschaft reden – die Begleitung stört'}],
+   why:'Begleitpersonen werden mit einbezogen. Sie beeinflussen die Kaufentscheidung oft mit (Modul 4).' },
+ { t:'Kind dabei', text:'Ein Kind, das mit {nameD} gekommen ist, fängt an zu quengeln.', opts:[
+   {t:'Das Kind beschäftigen, zum Beispiel mit einem Malblock',ok:true},{t:'Einfach lauter weiterreden'}],
+   why:'Kinder beschäftigen gehört dazu, damit sich die Kundschaft willkommen fühlt (Modul 4).' },
+ { t:'Kollegin ruft', text:'Eine Kollegin ruft quer durch den Laden: „Hast du mal kurz?“', opts:[
+   {t:'„Ich komme gleich, ich berate gerade.“ – und weiter bei der Kundschaft bleiben',ok:true},{t:'Die Kundschaft kurz stehen lassen'}],
+   why:'Kundschaft fühlt sich schnell zurückgesetzt, wenn man sie warten lässt. Die Kundin hat Vorrang (Modul 4).' },
+ { t:'Voller Tisch', text:'Auf dem Tisch liegen inzwischen fünf Modelle. Zwei davon gefallen {nameD} gar nicht.', opts:[
+   {t:'Die zwei Modelle gleich wegräumen',ok:true},{t:'Liegen lassen – mehr Auswahl ist besser'}],
+   why:'Was nicht infrage kommt, wird weggeräumt: Die Auswahl bleibt überschaubar, die Entscheidung fällt leichter (Winter 2023/24, Aufgabe 5.3).' },
+ { t:'Erschöpft', text:'{name} wirkt erschöpft, stellt die Tasche ab und atmet tief durch.', opts:[
+   {t:'Eine Sitzgelegenheit und ein Glas Wasser anbieten',ok:true},{t:'Schneller reden, damit es bald vorbei ist'}],
+   why:'Eine Sitzgelegenheit und eine Erfrischung anbieten schafft eine positive Verkaufsatmosphäre und keine Hektik (Modul 4; Sommer 2020, Aufgabe 4.1).' },
+ { t:'Griff zum Geldbeutel', text:'{name} nickt zufrieden und greift unbewusst nach dem Geldbeutel.', opts:[
+   {t:'Kaufsignal erkennen und zum Abschluss kommen',ok:true},{t:'Noch fünf weitere Argumente bringen'}],
+   why:'Der Griff zum Geldbeutel ist ein körpersprachliches Kaufsignal. Jetzt nicht weiterreden, sondern den Abschluss einleiten (Modul 14).' }
+];
+
+const QUIZ = [
+ {s:'„Guten Tag, Frau Wolf! Schön, dass Sie wieder da sind.“',p:1},
+ {s:'„Gerne. Wenn Sie Hilfe brauchen, bin ich für Sie da.“',p:1},
+ {s:'„Wofür möchten Sie den Rucksack vor allem verwenden?“',p:2},
+ {s:'„Trägt Ihre Tochter eher helle oder dunkle Farben?“',p:2},
+ {s:'„Nehmen Sie die Tasche ruhig einmal in die Hand.“',p:3},
+ {s:'„Spüren Sie, wie leicht der Schlafsack ist?“',p:3},
+ {s:'„Die Jacke ist aus Gore-Tex. Damit bleiben Sie auch bei Dauerregen trocken.“',p:4},
+ {s:'„Der Stoff ist atmungsaktiv, das Hemd kostet 59 Euro – und Sie müssen es nicht bügeln.“',p:5},
+ {s:'„Bei zehn Jahren Nutzung sind das weniger als 20 Cent pro Nacht.“',p:5},
+ {s:'„Ja, da haben Sie recht. Dafür ist dieser Pullover sehr pflegeleicht.“',p:6},
+ {s:'„Wo genau haben Sie den Artikel günstiger gesehen?“',p:6},
+ {s:'„Zur Kamera brauchen Sie noch eine Speicherkarte.“',p:7},
+ {s:'„Dieses Modell führen wir nicht, aber diese Jacke hat die gleiche Qualität.“',p:7},
+ {s:'„Mit dieser Uhr werden Sie Ihrer Frau eine große Freude machen.“',p:8},
+ {s:'„Vielen Dank für Ihren Einkauf und ein schönes Wochenende!“',p:8},
+ {s:'„Möchten Sie die Kaffeemaschine gleich mitnehmen oder nutzen Sie unseren Lieferservice?“',p:8}
+];
+
+const PROFI_Q = [
+ {q:'Warum spricht man von „Stufen“ des Verkaufsgesprächs und nicht von einem „Fahrstuhl“?', a:'Nicht jedes Gespräch hat alle acht Phasen, und die Phasen sind unterschiedlich lang. Manchmal steht man sofort bei der Preisnennung, manchmal kommt es gar nicht zum Kauf. Zum Ziel kommt man nur, wenn man sich auf jeden Kunden neu einstellt.'},
+ {q:'Erklären Sie den Unterschied zwischen einem Einwand und einem Vorwand. Woran erkennen Sie einen Vorwand?', a:'Ein Einwand ist ein echter Grund, der gegen den Kauf spricht (z. B. Preis-Leistung, Qualität). Ein Vorwand ist ein vorgeschobener Grund, der den eigentlichen Grund verdeckt. Hinweis: Der Kunde bleibt vage, wechselt die Begründung oder geht auf Argumente gar nicht ein.'},
+ {q:'Eine Kollegin sagt: „Null Problem! Ich zeige Ihnen mal die billigen Modelle.“ Nennen Sie zwei Fehler und verbessern Sie in wörtlicher Rede.', a:'Umgangssprache („Null Problem“) und das abwertende Wort „billig“; außerdem fehlt die Bedarfsermittlung. Besser: „Selbstverständlich, ich zeige Ihnen gern ein preisgünstiges Modell. Wofür möchten Sie den Akkubohrer vor allem verwenden?“ (Sommer 2026, Aufgabe 3.1)'},
+ {q:'Begründen Sie, warum die Phasen 5 (Preisnennung) und 6 (Einwände) oft direkt nacheinander kommen.', a:'Der Preis ist der häufigste Anlass für einen Einwand. Wird der Preis ohne Nutzen genannt, kommt fast sicher „Das ist aber teuer“. Darum gehören Sandwich-Methode und Ja-Aber-Methode zusammen.'},
+ {q:'Nennen Sie je einen Vorteil von Zusatzartikeln für den Betrieb und für die Kundin.', a:'Betrieb: Umsatzsteigerung, Kundenbindung. Kundin: kann das Produkt sofort voll nutzen, die Ware wird aufgewertet. (Sommer 2024, Aufgabe 4.3.3)'},
+ {q:'Warum ist eine freundliche Verabschiedung für den Betrieb wichtig? Zwei Argumente.', a:'Die Kundin geht mit einem positiven Gefühl und kommt wieder (Stammkundenbindung); positives Image und Mundpropaganda; Grundlage für den nächsten Kauf. (Winter 2023/24, Aufgabe 5.8)'}
+];
+/* ===== Weitere Situationen je Stufe (Variante a = Grunddaten in PHASES) ===== */
+const ALL = (y, b, l, o) => ({ yil:y, bec:b, len:l, oka:o });
+const VARIANTS = {
+ 1:[
+  { vid:'1b', sit:{ all:'Du kassierst gerade eine andere Kundin ab. {name} betritt die Abteilung und schaut zu dir herüber.' },
+    opts:[
+     { t:'Blickkontakt, zunicken, lächeln – fertig kassieren und dann hingehen', d:'Nonverbal zeigen: Ich habe Sie gesehen.', fit:ALL(3,3,3,2),
+       re:{all:'(nickt zurück und wartet entspannt)', oka:'(nickt, schaut aber auf die Uhr)'},
+       why:'Mit Blickkontakt, Zunicken und Lächeln nimmst du sofort nonverbal Kontakt auf (Winter 2022/23, Aufgabe 1.1). Die Kundin an der Kasse wird trotzdem fertig bedient.' },
+     { t:'Die Kundin an der Kasse stehen lassen und sofort zu {name} gehen', d:'Neue Kundschaft geht vor.', fit:ALL(1,1,0,2),
+       re:{all:'Oh – Sie waren doch noch beschäftigt …', len:'Äh, ich wollte doch nur gucken …'},
+       why:'Jetzt fühlt sich die Kundin an der Kasse zurückgesetzt. Besser: nonverbal Kontakt aufnehmen und dann hingehen.' },
+     { t:'Nicht reagieren – erst fertig kassieren, dann mal sehen', d:'Eins nach dem anderen.', fit:ALL(0,0,1,0), bad:true,
+       re:{all:'(wartet, schaut sich um) Sieht mich hier eigentlich jemand?'},
+       why:'Jeder Kunde soll merken, dass er wahrgenommen wurde – auch wenn du gerade nicht sprechen kannst.' } ],
+    basis:[{ task:'Bau einen Satz für die wartende Kundschaft.', slots:[
+      {lbl:'Begrüßung', ch:[{t:'Guten Tag,',ok:true},{t:'Moment!',why:'Ohne Gruß wirkt das wie ein Befehl.'}]},
+      {lbl:'Hinweis', ch:[{t:'ich bin sofort bei Ihnen.',ok:true},{t:'Sie müssen jetzt warten.',why:'Unfreundlich. Sag lieber, dass du gleich kommst.'},{t:'das dauert.',why:'Negativ und ohne Zuwendung.'}]},
+      {lbl:'Angebot', ch:[{t:'Schauen Sie sich gerne schon in Ruhe um.',ok:true},{t:'Fassen Sie bitte nichts an.',why:'Misstrauisch – die Kundin soll sich willkommen fühlen.'}]} ]}],
+    profi:{ task:'Sie kassieren noch. Formulieren Sie in wörtlicher Rede, wie Sie {nameD} trotzdem willkommen heißen!', fields:['Ihr Satz'],
+      checks:[ {l:'Begrüßung', re:/guten (tag|morgen|abend)|grüß|willkommen/i, must:true},
+               {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:true},
+               {l:'Hinweis, dass du gleich kommst', re:/(gleich|sofort|moment|augenblick|einen kleinen)/i, must:true} ] },
+    why:{ q:'Nennen Sie Verhaltensweisen, mit denen Sie sofort nonverbal Kontakt aufnehmen.', opts:[
+      {t:'Blickkontakt herstellen, zunicken, anlächeln, in Richtung der Kundin gehen.',ok:true},
+      {t:'Laut quer durch den Laden rufen.'},{t:'Mit dem Finger auf die Kundin zeigen.'} ], src:'Winter 2022/23, Aufgabe 1.1' },
+    ihk:{ src:'Abschlussprüfung Winter 2022/23, Aufgabe 1.1 (2 Punkte)', task:'Geben Sie 2 Verhaltensweisen an, mit denen Sie sofort nonverbal Kontakt zu Frau Yilmaz aufnehmen können!', lsg:'z. B. Blickkontakt herstellen; in Richtung Kundin gehen; zunicken; anlächeln.' } },
+  { vid:'1c', sit:{ all:'{name} kommt herein. Du erkennst {nameD} wieder – ihr hattet letzte Woche schon ein Gespräch.' },
+    opts:[
+     { t:'„Guten Tag, {anrede}! Schön, dass Sie wieder da sind.“', d:'Mit Namen begrüßen.', fit:ALL(3,3,3,3),
+       re:{all:'Oh, Sie wissen ja noch, wer ich bin! Guten Tag!'},
+       why:'Die Grußformel hängt auch davon ab, wie vertraut die Kundschaft ist. Mit dem Namen zeigst du Wertschätzung.' },
+     { t:'„Hallo! Na, wieder da?“', d:'Locker und freundlich.', fit:ALL(0,0,1,0), bad:true,
+       re:{all:'(stutzt) Äh … ja, guten Tag.', len:'Hi … ja.'},
+       why:'„Hallo, na?“ ist zu salopp und nicht situationsgerecht – Kundschaft wird höflich gegrüßt.' },
+     { t:'Nur „Guten Tag.“ – und so tun, als kenne man sich nicht', d:'Neutral bleiben.', fit:ALL(1,1,2,1),
+       re:{all:'Guten Tag. (etwas enttäuscht) Wir hatten doch letzte Woche …'},
+       why:'Nicht falsch, aber eine Chance verschenkt: Wer wiedererkannt wird, fühlt sich wertgeschätzt.' } ],
+    basis:[{ task:'Bau eine persönliche Begrüßung.', slots:[
+      {lbl:'Begrüßung', ch:[{t:'Guten Tag, {anrede}!',ok:true},{t:'Hallo, na?',why:'Zu salopp. Die Grußformel muss situationsgerecht sein.'}]},
+      {lbl:'Wertschätzung', ch:[{t:'Schön, dass Sie wieder bei uns sind.',ok:true},{t:'Sie schon wieder?',why:'Klingt genervt.'}]},
+      {lbl:'Frage', ch:[{t:'Wie kann ich Ihnen heute helfen?',ok:true},{t:'Was wollen Sie denn diesmal?',why:'Klingt abweisend.'},{t:'Kann ich helfen?',why:'Geschlossene Frage.'}]} ]}],
+    profi:{ task:'Formulieren Sie eine persönliche Begrüßung für {anrede} in wörtlicher Rede!', fields:['Ihre Begrüßung'],
+      checks:[ {l:'Begrüßung', re:/guten (tag|morgen|abend)|grüß|willkommen/i, must:true},
+               {l:'Name der Kundschaft', re:'NAME', must:true},
+               {l:'keine geschlossene Frage wie „Kann ich helfen?“', re:/kann ich (ihnen )?(weiter)?helfen|suchen sie (etwas|was) bestimmtes/i, neg:true, must:true} ] },
+    why:{ q:'Begründen Sie, warum Ihr Verhalten bei der Begrüßung wichtig ist.', opts:[
+      {t:'Eine freundliche Begrüßung schafft eine angenehme Atmosphäre und beeinflusst das Gespräch positiv.',ok:true},
+      {t:'Weil man bei der Begrüßung schon den Umsatz festlegt.'},{t:'Weil die Begrüßung im Kaufvertrag steht.'} ], src:'Winter 2022/23, Aufgabe 1.2' },
+    ihk:{ src:'Abschlussprüfung Winter 2022/23, Aufgabe 1.2 (2 Punkte)', task:'Begründen Sie, warum Ihr Verhalten als Verkäufer/-in bereits bei der Begrüßung der Kunden wichtig ist!', lsg:'Richtige Begrüßung beeinflusst das Verkaufsgespräch positiv; freundliche Begrüßung schafft angenehme Atmosphäre.' } } ],
+ 2:[
+  { vid:'2b', sit:{ all:'{name} hat dir schon einiges erzählt. Bevor du Ware holst: Wie sicherst du ab, dass du alles richtig verstanden hast?' },
+    opts:[
+     { t:'Den Bedarf mit einer Kontrollfrage kurz zusammenfassen', d:'„Sie suchen also … – trifft das zu?“', fit:ALL(3,3,3,3),
+       re:{all:'Ja, genau so! Sie haben gut zugehört.'},
+       why:'Mit der Kontrollfrage prüfst du, ob du den Bedarf richtig verstanden hast. Die Kundschaft fühlt sich verstanden.' },
+     { t:'Noch zehn weitere Fragen stellen, damit nichts fehlt', d:'Sicher ist sicher.', fit:ALL(1,1,1,0),
+       re:{all:'(seufzt) Das hab ich doch schon gesagt …', oka:'Ich hab wirklich keine Zeit für so viele Fragen!'},
+       why:'Zu viele Fragen wirken wie ein Verhör. Lieber kurz zusammenfassen und bestätigen lassen.' },
+     { t:'Gar nichts sagen und einfach irgendein Modell holen', d:'Wird schon passen.', fit:ALL(0,0,0,1), bad:true,
+       re:{all:'Hm, das ist aber nicht das, was ich meinte.'},
+       why:'Ohne Abgleich triffst du den Bedarf oft nicht – das kostet Zeit und Vertrauen.' } ],
+    basis:[{ task:'Bau eine Kontrollfrage.', slots:[
+      {lbl:'Anfang', ch:[{t:'Sie suchen also',ok:true},{t:'Also, Sie wollen halt',why:'Umgangssprachlich („halt“).'}]},
+      {lbl:'Bedarf', ch:[{t:'{kontrolle}',ok:true},{t:'irgendwas Schönes',why:'Zu ungenau – eine Kontrollfrage fasst den Bedarf genau zusammen.'}]},
+      {lbl:'Rückfrage', ch:[{t:'– trifft das zu?',ok:true},{t:'– hab ich eh richtig verstanden.',why:'Das ist keine Frage mehr. Die Kundin soll bestätigen können.'}]} ]}],
+    profi:{ task:'Fassen Sie den Bedarf von {nameD} in einer Kontrollfrage in wörtlicher Rede zusammen!', fields:['Ihre Kontrollfrage'],
+      checks:[ {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:true},
+               {l:'endet mit „?“', re:/\?\s*[“"]?\s*$/, must:true},
+               {l:'Bezug zur Ware ({kurz})', re:'KURZ', must:false} ] },
+    why:{ q:'Wozu dient eine Kontrollfrage?', opts:[
+      {t:'Sie prüft, ob man den Bedarf richtig verstanden hat, und gibt der Kundin Sicherheit.',ok:true},
+      {t:'Sie kontrolliert, ob die Kundin genug Geld dabeihat.'},{t:'Sie ersetzt die Begrüßung.'} ], src:'Modul 8, Satzbaukasten' } },
+  { vid:'2c', sit:{ all:'{name} sagt: „Ich suche ein Geschenk!“' },
+    opts:[
+     { t:'„Für wen soll das Geschenk denn sein?“', d:'Offene Frage', fit:ALL(3,3,3,3),
+       re:{all:'Für meinen Mann, er hat bald Geburtstag.', bec:'Für meinen Enkel, er wird zwölf.', len:'Für meine Mitbewohnerin.', oka:'Für meinen Kollegen, der geht in Rente.'},
+       why:'Offene Fragen nach Person und Anlass bringen die wichtigsten Informationen (Sommer 2020, Aufgabe 4.2).' },
+     { t:'„Haben Sie schon eine Idee?“', d:'Freundlich nachfragen', fit:ALL(1,1,1,1),
+       re:{all:'Nein. (Pause)'},
+       why:'Geschlossene Frage: Die Antwort „Nein“ bringt dich nicht weiter. Für geschlossene Fragen gibt es in der Prüfung keine Punkte.' },
+     { t:'Sofort den Bestseller zeigen: „Das nehmen die meisten.“', d:'Spart Zeit.', fit:ALL(0,0,0,1), bad:true,
+       re:{all:'Hm, aber passt das denn zu der Person?'},
+       why:'Ohne Bedarfsermittlung weißt du nicht, für wen das Geschenk ist. Der Bestseller passt vielleicht gar nicht.' } ],
+    basis:[{ task:'Bau eine offene Frage zum Geschenk.', slots:[
+      {lbl:'Fragewort', ch:[{t:'Zu welchem Anlass',ok:true},{t:'Ist das',why:'Damit beginnt eine geschlossene Frage.'}]},
+      {lbl:'Sie-Stil', ch:[{t:'möchten Sie',ok:true},{t:'will man',why:'„Man“ ist unpersönlich.'}]},
+      {lbl:'Ende', ch:[{t:'das Geschenk überreichen?',ok:true},{t:'– sagen Sie schon!',why:'Drängelnd und unhöflich.'}]} ]}],
+    profi:{ task:'{name} äußert: „Ich suche ein Geschenk!“ Formulieren Sie 2 geeignete Fragen zur genaueren Bedarfsermittlung in wörtlicher Rede!', fields:['Frage 1','Frage 2'],
+      checks:[ {l:'Frage 1 ist offen (W-Wort) oder eine Alternativfrage („oder“)', re:/^\s*[„"]?\s*(wer|wie|was|wo|wofür|wozu|wann|welche[rsmn]?|zu welche[mr]|für welche[mn]?|für wen|in welche[mr])\b|\boder\b/i, f:0, must:true},
+               {l:'Frage 1 endet mit „?“', re:/\?\s*[“"]?\s*$/, f:0, must:true},
+               {l:'Frage 2 ist offen (W-Wort) oder eine Alternativfrage („oder“)', re:/^\s*[„"]?\s*(wer|wie|was|wo|wofür|wozu|wann|welche[rsmn]?|zu welche[mr]|für welche[mn]?|für wen|in welche[mr])\b|\boder\b/i, f:1, must:true},
+               {l:'Frage 2 endet mit „?“', re:/\?\s*[“"]?\s*$/, f:1, must:true} ] },
+    why:{ q:'Warum gibt es für „Haben Sie schon eine Idee?“ keine Punkte?', opts:[
+      {t:'Es ist eine geschlossene Frage – sie bringt kaum Informationen.',ok:true},
+      {t:'Weil man nie nach Ideen fragen darf.'},{t:'Weil die Frage zu höflich ist.'} ], src:'Sommer 2020, Aufgabe 4.2' },
+    ihk:{ src:'Abschlussprüfung Sommer 2020, Aufgabe 4.2 (4 Punkte)', task:'Ein Kunde äußert folgenden Kaufwunsch: „Ich suche ein Geschenk!“ Formulieren Sie 2 geeignete Fragen zur genaueren Bedarfsermittlung in wörtlicher Rede!', lsg:'2 × 2 P., z. B. „Für welchen Anlass soll das Geschenk sein?“ „Für wen …?“ „Welches Hobby hat die Person …?“ Für geschlossene Fragen keine Punkte.' } } ],
+ 3:[
+  { vid:'3b', sit:{ all:'{name} betrachtet {akk} interessiert, traut sich aber nicht, es anzufassen.' },
+    opts:[
+     { t:'Vorführen und dann selbst ausprobieren lassen', d:'Mehrere Sinne ansprechen.', fit:ALL(3,3,3,2),
+       re:{all:'Oh, das fühlt sich ja richtig gut an!', oka:'Gut, aber kurz bitte.'},
+       why:'Ware vorführen: Die Kundin sieht die Verwendung. Sinne ansprechen: Sie baut eine Beziehung zum Produkt auf (Winter 2025/26, Aufgabe 3.4.2).' },
+     { t:'Nur erklären, was die Ware kann', d:'Anfassen ist nicht nötig.', fit:ALL(1,1,1,2),
+       re:{all:'Aha … ich kann mir das noch nicht so richtig vorstellen.'},
+       why:'Erklären allein spricht nur das Hören an. Wer anfassen und ausprobieren darf, versteht den Nutzen schneller.' },
+     { t:'Das zerkratzte Ausstellungsstück geben – das neue bleibt verpackt', d:'Schont die Neuware.', fit:ALL(0,0,0,0), bad:true,
+       re:{all:'(sieht die Kratzer) Na, das macht ja keinen guten Eindruck.'},
+       why:'Grundsatz: nur einwandfreie, saubere Ware vorlegen – von ihrer besten Seite.' } ],
+    basis:[{ task:'Bau einen Satz zum Vorführen.', slots:[
+      {lbl:'Anfang', ch:[{t:'Ich zeige Ihnen,',ok:true},{t:'Passen Sie auf,',why:'Klingt wie ein Befehl.'}]},
+      {lbl:'Mitte', ch:[{t:'wie einfach das geht –',ok:true},{t:'wie kompliziert das ist –',why:'Negativ. Das schreckt ab.'}]},
+      {lbl:'Ende', ch:[{t:'und dann probieren Sie es selbst.',ok:true},{t:'aber anfassen dürfen Sie es nicht.',why:'Die Kundin soll die Ware gerade selbst prüfen.'}]} ]}],
+    profi:{ task:'Formulieren Sie in wörtlicher Rede, wie Sie {akk} vorführen und {nameD} zum Ausprobieren einladen!', fields:['Ihr Satz'],
+      checks:[ {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:true},
+               {l:'Einladung zum Ausprobieren', re:/(probier|test|anfass|in die hand|fühlen|spüren|halten|anprobier)/i, must:true} ] },
+    why:{ q:'Erläutern Sie die Grundregel „Ware vorführen“.', opts:[
+      {t:'Die Kundin sieht die Verwendung und kann sich den Nutzen besser vorstellen.',ok:true},
+      {t:'Die Ware wird vorgeführt, damit sie schneller kaputtgeht.'},{t:'Vorführen ersetzt die Beratung.'} ], src:'Winter 2025/26, Aufgabe 3.4.2' } },
+  { vid:'3c', sit:{ all:'{name} hat keine Preisvorstellung genannt. Du holst drei Modelle. Welche?' },
+    opts:[
+     { t:'Drei Modelle aus der mittleren Preislage', d:'Je nach Reaktion weiche ich aus.', fit:ALL(3,3,3,3),
+       re:{all:'Die gefallen mir. Das mittlere vielleicht?'},
+       why:'Mittlere Preislage: Je nach Reaktion kannst du nach oben oder unten ausweichen (Sommer 2025, Aufgabe 2.4).' },
+     { t:'Die drei teuersten Modelle', d:'Qualität verkauft sich.', fit:ALL(1,1,0,1), bad:true,
+       re:{all:'Puh, die sind ja alle sehr teuer.', len:'Das kann ich mir nie leisten.'},
+       why:'Wer mit den teuersten beginnt, riskiert einen Preisschock – und kann nur noch nach unten ausweichen.' },
+     { t:'Ein günstiges, ein mittleres und ein teures Modell', d:'Von allem etwas.', fit:ALL(2,2,2,2),
+       re:{all:'Hm, die sind ja sehr verschieden.'},
+       why:'Möglich, aber die Regel lautet: mit der mittleren Preislage beginnen und dann je nach Reaktion ausweichen.' } ],
+    basis:[{ plain:true, task:'Bau eine Begründung (so wie in der Prüfung).', slots:[
+      {lbl:'Preislage', ch:[{t:'Ich beginne mit der mittleren Preislage,',ok:true},{t:'Ich beginne mit dem teuersten Artikel,',why:'Dann droht ein Preisschock.'},{t:'Ich beginne mit dem billigsten Artikel,',why:'Dann wirkt alles danach teuer – und „billig“ ist kein gutes Wort.'}]},
+      {lbl:'Verbindung', ch:[{t:'weil ich dann',ok:true},{t:'obwohl ich dann',why:'„Obwohl“ passt nicht – du nennst einen Grund.'}]},
+      {lbl:'Grund', ch:[{t:'je nach Reaktion nach oben oder unten ausweichen kann.',ok:true},{t:'mehr Provision bekomme.',why:'Kein kundenorientierter Grund.'}]} ]}],
+    profi:{ task:'Begründen Sie, mit welcher Preisklasse Sie Ihre Warenvorlage beginnen!', fields:['Ihre Begründung'],
+      checks:[ {l:'mittlere Preislage genannt', re:/mittler/i, must:true},
+               {l:'Grund: nach oben oder unten ausweichen', re:/(oben|unten|ausweich|reaktion|anpass)/i, must:true} ] },
+    why:{ q:'Wie viele Artikel legen Sie vor – und warum?', opts:[
+      {t:'3 bis 5 – die Kundin hat eine Auswahl, wird aber nicht überfordert.',ok:true},
+      {t:'Einen – dann gibt es keine Diskussion.'},{t:'Zehn – je mehr, desto besser.'} ], src:'Winter 2022/23, Aufgabe 1.6' },
+    ihk:{ src:'Abschlussprüfung Sommer 2025, Aufgabe 2.4 (2 Punkte)', task:'Nachdem Sie den Bedarf der Kundin ermittelt haben, wollen Sie ihr die passende Ware vorlegen. Begründen Sie, mit welcher Preisklasse Sie Ihre Warenvorlage beginnen!', lsg:'Mittlere Preislage, um ggf. nach oben oder unten auszuweichen; bei geäußerter Preisvorstellung aus der gewünschten Preiskategorie.' } } ],
+ 4:[
+  { vid:'4b', sit:{ all:'{name} fragt: „Und warum sollte ich ausgerechnet {akk} nehmen?“ Du hast drei Argumente. In welcher Reihenfolge?' },
+    opts:[
+     { t:'Mit einem wichtigen Argument beginnen, das stärkste zum Schluss', d:'Steigerung', fit:ALL(3,3,3,3),
+       re:{all:'Oh – das letzte Argument überzeugt mich wirklich.'},
+       why:'Die Argumente werden gesteigert: Das stärkste kommt an den Schluss, begonnen wird mit einem wichtigen (Modul 9).' },
+     { t:'Das stärkste zuerst, danach die schwächeren', d:'Gleich mit der Tür ins Haus.', fit:ALL(1,1,1,2),
+       re:{all:'Gut … und der Rest klingt jetzt eher schwach.'},
+       why:'Dann wird die Argumentation zum Ende hin schwächer – der letzte Eindruck bleibt aber hängen.' },
+     { t:'„Weil der Chef sagt, dass wir den verkaufen sollen.“', d:'Ehrlich ist ehrlich.', fit:ALL(0,0,0,0), bad:true,
+       re:{all:'(lacht unsicher) Na, das ist ja ein Argument …'},
+       why:'Ein Verkaufsargument nennt immer einen Nutzen für die Kundschaft, nicht für den Betrieb.' } ],
+    basis:[{ task:'Bau ein Argument im Sie-Stil.', slots:[
+      {lbl:'Merkmal', ch:[{t:'{m}',ok:true},{t:'{Nom} ist halt gut.',why:'„Gut“ ist kein Merkmal.'}]},
+      {lbl:'Überleitung', ch:[{t:'Das hilft Ihnen,',ok:true},{t:'Das hilft uns,',why:'Der Nutzen muss für die Kundin sein.'}]},
+      {lbl:'Nutzen', ch:[{t:'{n2}',ok:true},{t:'wenn Sie es brauchen.',why:'Zu ungenau – welcher Nutzen genau?'}]} ]}],
+    profi:{ task:'Leiten Sie aus der Produktinformation „Verwendungszweck“ eine Eigenschaft von {dat} ab und formulieren Sie dazu ein Verkaufsargument in wörtlicher Rede!', fields:['Produkteigenschaft','Verkaufsargument'],
+      checks:[ {l:'Eigenschaft eingetragen', re:/[A-Za-zÄÖÜäöüß]{4,}/, f:0, must:true},
+               {l:'Argument im Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, f:1, must:true},
+               {l:'Argument nennt einen Nutzen', re:/(damit|dadurch|so können sie|sie können|sie sparen|sie haben|sie müssen nicht|das hilft)/i, f:1, must:true} ] },
+    why:{ q:'Was ist der Unterschied zwischen Gebrauchsnutzen und Zusatznutzen?', opts:[
+      {t:'Der Gebrauchsnutzen erfüllt den eigentlichen Bedarf, der Zusatznutzen bringt darüber hinaus z. B. Ansehen.',ok:true},
+      {t:'Gebrauchsnutzen gibt es nur bei Lebensmitteln.'},{t:'Zusatznutzen ist der Rabatt.'} ], src:'Modul 9' },
+    ihk:{ src:'Abschlussprüfung Winter 2024/25, Aufgabe 2.3 (6 Punkte)', task:'Aus den Produktinformationen kann man Verkaufsargumente ableiten. Ergänzen Sie die Tabelle (Produkteigenschaft, Verkaufsargumentation in wörtlicher Rede) für ein Produkt Ihrer Wahl!', lsg:'z. B. Verwendungszweck: für Außen- und Innenbereich geeignet – „Diese Farbe können Sie für den Außen- und Innenbereich verwenden.“' } },
+  { vid:'4c', sit:{ all:'Welches Argument wählst du für {nameD}?' },
+    opts:[
+     { t:'Gütesiegel, Testergebnis, hochwertige Marke', d:'für Qualitätsbewusste', fit:ALL(3,3,1,2),
+       re:{all:'Das ist mir wichtig – dann weiß ich, dass es was taugt.', len:'Schön, aber das zahl ich doch mit.'},
+       why:'Qualitätsbewusste überzeugen Gütesiegel, Testergebnisse und hochwertige Markenartikel (Sommer 2023, Aufgabe 2.1).' },
+     { t:'Angebot, Preis-Leistungs-Verhältnis', d:'für Sparsame', fit:ALL(1,1,3,2),
+       re:{all:'Hm, beim Preis spare ich nicht so gern.', len:'Genau das will ich hören!'},
+       why:'Sparsame überzeugen Angebote, Staffelpreise und ein gutes Preis-Leistungs-Verhältnis.' },
+     { t:'Nachhaltigkeit, Herkunft, Recycling', d:'für Umweltbewusste', fit:ALL(2,1,2,1),
+       re:{all:'Ach, das ist auch nett zu wissen.'},
+       why:'Umweltbewusste überzeugen Nachhaltigkeit, Recyclingfähigkeit, Herkunftsland und Biolabel. Passt hier nur teilweise.' } ],
+    why:{ q:'Begründen Sie, warum man Kunden in Typen und Gruppen einteilt.', opts:[
+      {t:'Sie haben unterschiedliche Bedürfnisse und brauchen unterschiedliche Beratung.',ok:true},
+      {t:'Damit man weiß, wen man nicht bedienen muss.'},{t:'Weil das Gesetz es vorschreibt.'} ], src:'Sommer 2023, Aufgabe 2.2' },
+    ihk:{ src:'Abschlussprüfung Sommer 2023, Aufgabe 2.1 (6 Punkte)', task:'Beschreiben Sie, mit welchen Argumenten Sie die Kundentypen „der Umweltbewusste“, „der Sparsame“ und „der Qualitätsbewusste“ überzeugen!', lsg:'Umweltbewusste: Nachhaltigkeit, Recyclingfähigkeit, Herkunftsland, Biolabel; Sparsame: Angebote, Preis-Leistungs-Verhältnis, Staffelpreise; Qualitätsbewusste: Gütesiegel, Testergebnisse, hochwertige Markenartikel.' } } ],
+ 5:[
+  { vid:'5b', sit:{ all:'{name} hält zwei Modelle in der Hand: „Warum kostet das hier 20 Euro mehr?“' },
+    opts:[
+     { t:'Vergleichsmethode: zeigen, welchen Nutzen der Mehrpreis bringt', d:'„Für 20 Euro mehr bekommen Sie …“', fit:ALL(3,3,2,3),
+       re:{all:'Ah, jetzt verstehe ich den Unterschied.', len:'Okay, das ist ein Argument … aber 20 Euro sind 20 Euro.'},
+       why:'Die Vergleichsmethode erklärt den Preis über einen Vergleich – hier über den zusätzlichen Nutzen.' },
+     { t:'„Das ist halt die Marke.“', d:'Kurze Antwort', fit:ALL(0,0,0,0), bad:true,
+       re:{all:'Und dafür soll ich mehr zahlen?'},
+       why:'„Halt“ ist Umgangssprache, und ein Nutzen fehlt völlig.' },
+     { t:'„Nehmen Sie doch einfach das billigere.“', d:'Die Kundin soll nicht zu viel ausgeben.', fit:ALL(1,0,2,1),
+       re:{all:'Ist das billigere denn schlechter?', len:'Okay … wenn Sie meinen.'},
+       why:'„Billig“ wertet ab, und du gibst die Beratung auf. Die Kundin soll den Unterschied verstehen und dann selbst entscheiden.' } ],
+    basis:[{ task:'Bau eine Antwort nach der Vergleichsmethode.', slots:[
+      {lbl:'Anfang', ch:[{t:'Für 20 Euro mehr',ok:true},{t:'Nur 20 Euro mehr, das sind doch Peanuts –',why:'Umgangssprachlich und herablassend.'}]},
+      {lbl:'Verb', ch:[{t:'bekommen Sie',ok:true},{t:'zahlen Sie halt',why:'„Halt“ ist Umgangssprache, und es fehlt der Nutzen.'}]},
+      {lbl:'Nutzen', ch:[{t:'{vgl}',ok:true},{t:'eben mehr.',why:'Was genau? Ohne Nutzen überzeugt das nicht.'}]} ]}],
+    profi:{ task:'Erläutern Sie {nameD} in wörtlicher Rede, warum das eine Modell 20 Euro mehr kostet (Vergleichsmethode)!', fields:['Ihre Antwort'],
+      checks:[ {l:'Mehrpreis wird genannt', re:/(\d|mehr)/i, must:true},
+               {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:true},
+               {l:'ein Nutzen für die Kundin', re:/(damit|dadurch|so können sie|sie können|sie bekommen|sie haben|hält|länger|besser)/i, must:true},
+               {l:'kein „billig“', re:/billig/i, neg:true, must:false} ] },
+    why:{ q:'Nennen und beschreiben Sie eine weitere Methode der Preisnennung.', opts:[
+      {t:'Verkleinerungsmethode: Der Preis wird auf die Nutzungsdauer oder die Menge verteilt.',ok:true},
+      {t:'Rabattmethode: Man gibt immer sofort 10 Prozent.'},{t:'Schweigemethode: Man nennt den Preis gar nicht.'} ], src:'Sommer 2026, Aufgabe 3.3' },
+    ihk:{ src:'Abschlussprüfung Sommer 2026, Aufgabe 3.3 (6 Punkte)', task:'Ihnen stehen als Verkäufer verschiedene Techniken/Methoden zur Preisnennung zur Verfügung. Nennen und beschreiben Sie hierzu 2 verkaufsorientierte Techniken/Methoden!', lsg:'Sandwich (Argument – Preis – Argument); Verzögerung (Argumente, Preis am Ende); Zerlegung (Preise der Komponenten); Verkleinerung (Preis auf Nutzungsdauer oder Menge); Vergleich (Preis anhand eines vergleichbaren Produkts).' } },
+  { vid:'5c', sit:{ all:'{name} fragt gleich am Anfang: „Was kostet {nom}?“ Du weißt noch gar nicht, was gebraucht wird.' },
+    opts:[
+     { t:'Verzögerungsmethode: erst den Nutzen klären, den Preis danach nennen', d:'„Das hängt davon ab … darf ich kurz fragen …?“', fit:ALL(3,3,2,1),
+       re:{all:'Gute Idee, fragen Sie ruhig.', oka:'Ich wollte eigentlich nur den Preis wissen …', len:'Okay, aber sagen Sie mir bitte auch den Preis.'},
+       why:'Bei der Verzögerungsmethode nennst du erst Argumente und den Preis am Ende. Wer es sehr eilig hat, bekommt den Preis aber besser gleich – mit Nutzen.' },
+     { t:'Sofort das Sandwich: Nutzen – Preis – Nutzen', d:'Den Preis gleich verpacken.', fit:ALL(2,2,3,3),
+       re:{all:'Ah, verstehe.', oka:'Perfekt, danke – schnell und klar.'},
+       why:'Gut bei Kundschaft, die es eilig hat oder schon verglichen hat. Sonst kennst du den Bedarf noch nicht.' },
+     { t:'„Puh, ganz schön teuer, ehrlich gesagt.“', d:'Ehrlichkeit zahlt sich aus.', fit:ALL(0,0,0,0), bad:true,
+       re:{all:'Oh. Dann lass ich es wohl lieber.'},
+       why:'Damit löst du den Preisschock selbst aus – noch bevor die Kundin den Nutzen kennt.' } ],
+    basis:[{ task:'Bau eine Antwort nach der Verzögerungsmethode.', slots:[
+      {lbl:'Anfang', ch:[{t:'Das hängt davon ab,',ok:true},{t:'Keine Ahnung,',why:'Wirkt unwissend – Warenkenntnisse schaffen Vertrauen.'}]},
+      {lbl:'Mitte', ch:[{t:'welches Modell am besten zu Ihnen passt.',ok:true},{t:'ob Sie sich das leisten können.',why:'Herablassend.'}]},
+      {lbl:'Frage', ch:[{t:'Darf ich Sie kurz fragen, wofür Sie es nutzen möchten?',ok:true},{t:'Das sag ich Ihnen später.',why:'Abweisend – die Kundin fühlt sich hingehalten.'}]} ]}],
+    profi:{ task:'{name} fragt sofort nach dem Preis. Formulieren Sie in wörtlicher Rede eine höfliche Antwort, mit der Sie die Preisnennung verzögern!', fields:['Ihre Antwort'],
+      checks:[ {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:true},
+               {l:'eine Frage zum Bedarf („?“)', re:/\?/, must:true},
+               {l:'kein „billig“ oder „teuer“', re:/billig|teuer/i, neg:true, must:true} ] },
+    why:{ q:'Beschreiben Sie die Verzögerungsmethode.', opts:[
+      {t:'Erst werden Argumente genannt, der Preis kommt am Ende.',ok:true},
+      {t:'Der Preis wird absichtlich falsch genannt.'},{t:'Die Kundin muss bis morgen auf den Preis warten.'} ], src:'Sommer 2026, Aufgabe 3.3' } } ],
+ 6:[
+  { vid:'6b', sit:{ all:'{name} sagt: „Ich weiß nicht, ob {nom} wirklich lange hält.“' },
+    opts:[
+     { t:'Ja-Aber mit Beweis: zustimmen, dann Material und Verarbeitung zeigen', d:'„Gut, dass Sie das fragen …“', fit:ALL(3,3,3,3),
+       re:{all:'Ah, das sieht wirklich solide aus.'},
+       why:'Ein Einwand gegen die Qualität wird ernst genommen und mit einem neuen Argument entkräftet – am besten zum Anfassen.' },
+     { t:'„Doch, natürlich hält das! Alles andere ist Quatsch.“', d:'Mit Überzeugung', fit:ALL(0,0,0,0), bad:true,
+       re:{all:'(zieht die Augenbrauen hoch) Na, wenn Sie meinen …'},
+       why:'Direkter Widerspruch – die Kundin verliert ihr Gesicht. „Quatsch“ ist außerdem Umgangssprache.' },
+     { t:'Gegenfrage: „Was genau macht Sie unsicher?“', d:'Erst verstehen', fit:ALL(2,3,2,1),
+       re:{all:'Na ja, mein letztes ging schnell kaputt.', oka:'Ach, ich will jetzt nicht lange erzählen.'},
+       why:'Mit der Gegenfrage findest du den echten Grund für den Einwand. Danach brauchst du aber noch ein Argument.' } ],
+    basis:[{ task:'Bau eine Gegenfrage.', slots:[
+      {lbl:'Anfang', ch:[{t:'Was genau',ok:true},{t:'Warum zum Kuckuck',why:'Umgangssprachlich und gereizt.'}]},
+      {lbl:'Mitte', ch:[{t:'macht Sie',ok:true},{t:'nervt Sie',why:'Umgangssprache.'}]},
+      {lbl:'Ende', ch:[{t:'dabei unsicher?',ok:true},{t:'schon wieder?',why:'Klingt genervt.'}]} ]}],
+    profi:{ task:'{name} sagt: „Ich weiß nicht, ob {nom} wirklich lange hält.“ Formulieren Sie eine verkaufsfördernde Antwort in wörtlicher Rede und benennen Sie die Methode!', fields:['Ihre Antwort','Methode'],
+      checks:[ {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, f:0, must:true},
+               {l:'kein Widerspruch wie „Quatsch“ oder „stimmt nicht“', re:/quatsch|stimmt nicht|unsinn/i, neg:true, f:0, must:true},
+               {l:'Methode benannt', re:/(ja.?aber|gegenfrage|umkehr|bumerang|vergleich)/i, f:1, must:true} ] },
+    why:{ q:'Gegen welche Aspekte außer dem Preis können sich Einwände richten?', opts:[
+      {t:'gegen den Artikel, das Sortiment, das Unternehmen, die Marke oder den Verkäufer',ok:true},
+      {t:'nur gegen das Wetter'},{t:'nur gegen die Öffnungszeiten'} ], src:'Sommer 2026, Aufgabe 3.6.2' },
+    ihk:{ src:'Abschlussprüfung Sommer 2026, Aufgabe 3.6.2 (3 Punkte)', task:'Nennen Sie außer dem Preis 3 weitere Aspekte, gegen die sich die Einwände der Kunden richten können!', lsg:'z. B. gegen das Sortiment, den Artikel, das Unternehmen, die Marke, den Verkäufer.' } },
+  { vid:'6c', sit:{ all:'{name} hält {akk} fest in der Hand und sagt: „Ich muss mir das noch mal überlegen.“' },
+    opts:[
+     { t:'Freundlich nachfragen, was noch fehlt – und Zurücklegen anbieten', d:'Den echten Grund finden.', fit:ALL(3,3,3,2),
+       re:{all:'Ehrlich gesagt bin ich mir bei der Farbe nicht sicher …', len:'Na ja, eigentlich ist es nur der Preis.', oka:'Zurücklegen bis morgen wäre gut.'},
+       why:'„Ich überlege es mir noch“ ist oft ein Vorwand. Nachfragen bringt den echten Grund ans Licht; Zurücklegen erleichtert die Entscheidung (Winter 2023/24, Aufgabe 5.6).' },
+     { t:'„Klar, kommen Sie einfach wieder.“ – und weggehen', d:'Nicht aufdringlich sein.', fit:ALL(1,1,1,1),
+       re:{all:'(legt die Ware zurück und geht)'},
+       why:'Höflich, aber du findest nicht heraus, was der Kundin fehlt. Die Chance ist meist vertan.' },
+     { t:'Druck machen: „Morgen ist das weg!“', d:'Ein bisschen Tempo schadet nicht.', fit:ALL(0,0,0,0), bad:true,
+       re:{all:'(legt die Ware weg) So lasse ich mich nicht unter Druck setzen.'},
+       why:'Druck zerstört Vertrauen – und ist oft gar nicht wahr.' } ],
+    basis:[{ task:'Bau eine Antwort auf „Ich überlege es mir noch“.', slots:[
+      {lbl:'Anfang', ch:[{t:'Selbstverständlich,',ok:true},{t:'Na toll,',why:'Genervt und unhöflich.'}]},
+      {lbl:'Frage', ch:[{t:'darf ich fragen, was Ihnen noch fehlt?',ok:true},{t:'aber dann ist es vielleicht weg.',why:'Das ist Druck.'}]},
+      {lbl:'Angebot', ch:[{t:'Ich kann {akk} auch gern bis morgen für Sie zurücklegen.',ok:true},{t:'Sie wissen ja, wo die Tür ist.',why:'Abweisend.'}]} ]}],
+    profi:{ task:'{name} ist noch unentschlossen. Schlagen Sie 3 Möglichkeiten vor, wie Sie {nameD} bei der Kaufentscheidung unterstützen können!', fields:['Ihre drei Möglichkeiten'],
+      checks:[ {l:'Zurücklegen oder Reservieren', re:/(zurücklegen|zurückleg|reserv)/i, must:false},
+               {l:'Umtausch oder Service', re:/(umtausch|gutschein|service|garantie|liefer)/i, must:false},
+               {l:'Auswahl einengen, Argumente zusammenfassen oder Empfehlung', re:/(einengen|zusammenfass|empfehl|argument|nutzen)/i, must:false} ] },
+    why:{ q:'Was ist ein Vorwand?', opts:[
+      {t:'Ein vorgeschobener Grund, hinter dem der eigentliche Grund steckt.',ok:true},
+      {t:'Ein Einwand gegen die Wand im Laden.'},{t:'Eine Frage nach dem Preis.'} ], src:'Modul 11' },
+    ihk:{ src:'Abschlussprüfung Winter 2023/24, Aufgabe 5.6 (3 Punkte)', task:'Die Kundin ist noch unentschlossen. Schlagen Sie 3 Möglichkeiten vor, wie Sie die Kundin bei ihrer Kaufentscheidung unterstützen können!', lsg:'z. B. wichtigste Argumente zusammenfassen; Auswahl einengen; Nutzen hervorheben; Empfehlung aussprechen; auf Service (Umtausch, Gutschein) hinweisen; Zurücklegen anbieten.' } } ],
+ 7:[
+  { vid:'7b', sit:{ all:'{name} fragt nach einem bestimmten Modell. Genau dieses führt ihr nicht.' },
+    opts:[
+     { t:'Alternativangebot mit gleichem Standard – und mit Nutzen', d:'„Dieses Modell führen wir nicht, aber …“', fit:ALL(3,3,3,3),
+       re:{all:'Oh, das ist ja auch schön. Zeigen Sie mal.'},
+       why:'Ein Alternativangebot nur mit gleichem oder höherem Standard – und überzeugend formuliert.' },
+     { t:'„Leider nicht. Ich kann Ihnen höchstens das hier zeigen, weiß aber nicht, ob es Ihnen gefällt.“', d:'Ehrlich bleiben.', fit:ALL(0,0,0,0), bad:true,
+       re:{all:'Na, wenn Sie selbst nicht überzeugt sind …'},
+       why:'Genau so steht es in der Prüfung Winter 2023/24: Die Alternative wird schlecht gemacht, es fehlen Argumente, die Verkäuferin wirkt selbst nicht überzeugt.' },
+     { t:'„Haben wir leider nicht, aber ich kann es für Sie bestellen.“', d:'Service anbieten', fit:ALL(2,2,1,1),
+       re:{all:'Das wäre nett.', oka:'Ich brauche es aber heute.', len:'Bestellen kann ich auch selbst im Internet.'},
+       why:'Ein guter Service – aber wer es heute braucht, wäre mit einem passenden Alternativangebot besser bedient.' } ],
+    basis:[{ task:'Bau ein Alternativangebot.', slots:[
+      {lbl:'Anfang', ch:[{t:'Dieses Modell führen wir leider nicht,',ok:true},{t:'Ham wir nicht,',why:'Umgangssprache und abweisend.'}]},
+      {lbl:'Alternative', ch:[{t:'{alt}',ok:true},{t:'aber das hier ist auch irgendwie okay.',why:'Wenig überzeugend – die Alternative wird schlecht gemacht.'}]},
+      {lbl:'Einladung', ch:[{t:'Möchten Sie es sich einmal ansehen?',ok:true},{t:'Wenn es Ihnen nicht gefällt, Pech gehabt.',why:'Unhöflich.'}]} ]}],
+    profi:{ task:'Ihre Kollegin sagt: „Leider führen wir dieses Modell nicht. Ich kann Ihnen höchstens das hier zeigen. Ich weiß aber nicht, ob Ihnen das gefällt.“ Formulieren Sie ein verkaufsförderndes Alternativangebot in wörtlicher Rede!', fields:['Ihr Alternativangebot'],
+      checks:[ {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:true},
+               {l:'gleicher Standard oder Nutzen genannt', re:/(gleich|genauso|ebenso|sogar|auch|damit|dadurch)/i, must:true},
+               {l:'kein „höchstens“ oder „weiß nicht“', re:/höchstens|weiß (aber )?nicht/i, neg:true, must:true} ] },
+    why:{ q:'Wie nennt man dieses Angebot fachlich korrekt?', opts:[
+      {t:'Alternativangebot',ok:true},{t:'Ergänzungsangebot'},{t:'Zusatzangebot'} ], src:'Winter 2023/24, Aufgabe 4.1.1' },
+    ihk:{ src:'Abschlussprüfung Winter 2023/24, Aufgabe 4.1.2 (4 Punkte)', task:'Entscheiden und begründen Sie mit 2 Argumenten, ob die Antwort der Kollegin verkaufsfördernd wirkt!', lsg:'Nein – Formulierung wenig überzeugend; Alternative wird „schlecht“ gemacht; keine Verkaufsargumente; Verkäuferin wirkt selbst nicht überzeugt.' } },
+  { vid:'7c', sit:{ all:'{name} schwankt noch zwischen zwei Modellen. Wann bietest du {zItem} an?' },
+    opts:[
+     { t:'Erst, wenn die Entscheidung für den Hauptartikel gefallen ist', d:'Eins nach dem anderen.', fit:ALL(3,3,3,3),
+       re:{all:'(entscheidet sich) Gut, dann dieses hier. – Ach, und das passt dazu? Prima.'},
+       why:'In der Regel bietet man Zusatz- und Ergänzungsartikel nach der Entscheidung für den Hauptartikel an (Sommer 2024, Aufgabe 4.3.1).' },
+     { t:'Jetzt sofort – dann sieht sie, was alles dazugehört', d:'Mehr Auswahl hilft.', fit:ALL(1,1,0,1),
+       re:{all:'Moment, jetzt wird es mir zu viel.'},
+       why:'Solange die Kundin noch schwankt, macht ein weiteres Angebot die Entscheidung schwerer.' },
+     { t:'Gar nicht – das verwirrt nur', d:'Nicht aufdringlich sein.', fit:ALL(1,1,2,2), shop:{elektro:-2},
+       re:{all:'(kauft und geht)', elektro:'(zu Hause) Ohne Speicherkarte geht ja gar nichts …'},
+       why:'Ein Zusatzangebot ist Service. Ein Ergänzungsangebot (z. B. Speicherkarte) muss immer angeboten werden.' } ],
+    basis:[{ plain:true, task:'Bau einen Satz: Vorteile für Betrieb und Kundin.', slots:[
+      {lbl:'Betrieb', ch:[{t:'Der Betrieb macht mehr Umsatz und bindet die Kundschaft,',ok:true},{t:'Der Betrieb wird alte Ware los,',why:'Darum geht es nicht – es geht um Umsatz und Kundenbindung.'}]},
+      {lbl:'Kundin', ch:[{t:'und die Kundin kann die Ware sofort voll nutzen.',ok:true},{t:'und die Kundin gibt mehr Geld aus.',why:'Das ist kein Vorteil für die Kundin.'}]} ]}],
+    profi:{ task:'Beschreiben Sie jeweils einen Vorteil von Zusatz- oder Ergänzungsartikeln für den Betrieb und für {nameD}!', fields:['Vorteil für den Betrieb','Vorteil für die Kundschaft'],
+      checks:[ {l:'Betrieb: z. B. Umsatz, Kundenbindung', re:/(umsatz|bindung|gewinn|image|ertrag|absatz)/i, f:0, must:true},
+               {l:'Kundschaft: z. B. sofort nutzen, Aufwertung', re:/(sofort|nutzen|aufwert|komplett|schütz|praktisch|bequem|zeit|weg)/i, f:1, must:true} ] },
+    why:{ q:'Wann bieten Sie Zusatzartikel in der Regel an?', opts:[
+      {t:'Nach der Entscheidung für den Hauptartikel.',ok:true},{t:'Bei der Begrüßung.'},{t:'Erst nach der Verabschiedung.'} ], src:'Sommer 2024, Aufgabe 4.3.1' },
+    ihk:{ src:'Abschlussprüfung Sommer 2024, Aufgabe 4.3.3 (2 Punkte)', task:'Beschreiben Sie jeweils einen Vorteil von Zusatzartikeln/Ergänzungsartikeln für die Maxikauf GmbH und für den Kunden!', lsg:'Betrieb: Umsatzsteigerung, Kundenbindung. Kunde: kann das Produkt sofort nutzen, Aufwertung der Ware.' } } ],
+ 8:[
+  { vid:'8b', sit:{ all:'{name} schwankt zwischen zwei Modellen: „Ich kann mich einfach nicht entscheiden.“' },
+    opts:[
+     { t:'Auswahl einengen und die wichtigsten Argumente zusammenfassen', d:'Ja-Stimmung erzeugen', fit:ALL(3,3,3,2),
+       re:{all:'Stimmt, genau das war mir wichtig. Dann nehme ich das.'},
+       why:'Auswahl einengen und Argumente zusammenfassen erleichtern die Entscheidung (Sommer 2025, Aufgabe 2.5; Winter 2023/24, Aufgabe 5.6).' },
+     { t:'Alternativfrage: „Gefällt Ihnen eher dieses oder jenes Modell?“', d:'Zwei positive Möglichkeiten', fit:ALL(2,2,2,3),
+       re:{all:'Hm … eher das hier, glaube ich.', oka:'Das hier. Fertig.'},
+       why:'Die Alternativfrage ist eine Abschlusstechnik. Bei sehr Unsicheren hilft es, vorher die Argumente zusammenzufassen.' },
+     { t:'Noch drei weitere Modelle holen', d:'Vielleicht ist das richtige noch nicht dabei.', fit:ALL(0,0,0,0), bad:true,
+       re:{all:'Oh nein, jetzt ist es noch schwerer …'},
+       why:'Mehr Auswahl macht die Entscheidung schwerer. Richtig ist: die Auswahl einengen.' } ],
+    basis:[{ task:'Bau eine Abschlussfrage (Alternativfrage).', slots:[
+      {lbl:'Anfang', ch:[{t:'Möchten Sie {akk} gleich mitnehmen',ok:true},{t:'Wollen Sie {akk} jetzt endlich',why:'Ungeduldig und drängelnd.'}]},
+      {lbl:'Alternative', ch:[{t:'oder nutzen Sie unseren Lieferservice?',ok:true},{t:'oder was?',why:'Umgangssprache – eine Alternativfrage nennt zwei positive Möglichkeiten.'}]} ]}],
+    profi:{ task:'Formulieren Sie in wörtlicher Rede eine Abschlussfrage für {nameD} als Alternativfrage!', fields:['Ihre Abschlussfrage'],
+      checks:[ {l:'enthält „oder“', re:/\boder\b/i, must:true}, {l:'endet mit „?“', re:/\?\s*[“"]?\s*$/, must:true}, {l:'Sie-Stil', re:/\b(Sie|Ihnen|Ihr|Ihre)\b/, must:true} ] },
+    why:{ q:'Nennen Sie zwei Abschlusstechniken.', opts:[
+      {t:'Alternativfrage und Zusammenfassung der wichtigsten Argumente',ok:true},{t:'Preis erhöhen und Druck machen'},{t:'Schweigen und warten'} ], src:'Modul 14' },
+    ihk:{ src:'Abschlussprüfung Sommer 2025, Aufgabe 2.5 (3 Punkte)', task:'Sie haben der Kundin drei vergleichbare Artikel vorgeführt und erläutert. Die Kundin zeigt sich unentschlossen. Geben Sie 3 Möglichkeiten an, wie Sie der Kundin die Entscheidung erleichtern können!', lsg:'z. B. Warenauswahl einengen bzw. verändern; Umtauschmöglichkeit anbieten; Reservierung anbieten; Geschenkverpackung anbieten; Testberichte erwähnen.' } },
+  { vid:'8c', sit:{ all:'{name} hat mit Karte bezahlt. Hinter {nameD} ist die Schlange an der Kasse lang.' },
+    opts:[
+     { t:'Bedanken, mit Namen verabschieden und einen schönen Tag wünschen', d:'Auch wenn es voll ist.', fit:ALL(3,3,3,3),
+       re:{all:'Danke, Ihnen auch! Bis bald.'},
+       why:'Immer zuerst bedanken. Wer mit Karte zahlt, wird mit Namen verabschiedet. Nach dem Kauf ist vor dem Kauf (Modul 15).' },
+     { t:'„Der Nächste, bitte!“', d:'Die Schlange ist lang.', fit:ALL(0,0,0,0), bad:true,
+       re:{all:'(geht ohne Gruß) Na, tschüss dann.'},
+       why:'Die Kundin fühlt sich abgefertigt. Eine freundliche Verabschiedung sorgt dafür, dass sie wiederkommt.' },
+     { t:'Kurz „Danke“, der Blick ist schon beim nächsten Kunden', d:'Effizient', fit:ALL(1,1,1,2),
+       re:{all:'(nimmt die Tüte) … Ja, danke.'},
+       why:'Nicht unhöflich, aber ohne persönliche Note. Ein situationsbezogener Wunsch kostet zwei Sekunden.' } ],
+    basis:[{ task:'Bau eine Verabschiedung.', slots:[
+      {lbl:'Dank', ch:[{t:'Vielen Dank für Ihren Einkauf,',ok:true},{t:'So,',why:'Kein Dank – immer zuerst bedanken.'}]},
+      {lbl:'Name', ch:[{t:'{anrede},',ok:true},{t:'Sie da,',why:'Unpersönlich – bei Kartenzahlung kennst du den Namen.'}]},
+      {lbl:'Wunsch', ch:[{t:'und ein schönes Wochenende!',ok:true},{t:'tschüssi!',why:'Zu salopp.'}]} ]}],
+    profi:{ task:'Nach dem Kassiervorgang verabschieden Sie {nameD}. Formulieren Sie eine kundenorientierte Verabschiedung in wörtlicher Rede!', fields:['Ihre Verabschiedung'],
+      checks:[ {l:'Dank', re:/(danke|dank)/i, must:true},
+               {l:'Wunsch oder Gruß', re:/(wiedersehen|schönen|wochenende|bis bald|feier|tag noch|abend)/i, must:true},
+               {l:'Pluspunkt: Name der Kundschaft', re:'NAME', must:false} ] },
+    why:{ q:'Begründen Sie, warum eine freundliche Verabschiedung für den Betrieb wichtig ist.', opts:[
+      {t:'Die Kundin geht mit einem positiven Gefühl und kommt wieder – das bindet Stammkunden.',ok:true},
+      {t:'Damit die Schlange schneller kürzer wird.'},{t:'Weil sonst die Kasse nicht schließt.'} ], src:'Winter 2023/24, Aufgabe 5.8' },
+    ihk:{ src:'Abschlussprüfung Sommer 2023, Aufgabe 1.4.1 (2 Punkte)', task:'Nach Abschluss eines weiteren Kassiervorgangs verabschieden Sie eine Kundin. Formulieren Sie eine kundenorientierte Verabschiedung in wörtlicher Rede!', lsg:'z. B. „Auf Wiedersehen, Sie haben eine gute Wahl getroffen!“; „Vielen Dank und einen schönen Tag noch!“' } } ]
+};
+/* ===== Weitere Sätze für Quiz und Blitzrunde ===== */
+QUIZ.push(
+ {s:'„Guten Morgen! Schauen Sie sich in Ruhe um, ich bin gleich hier vorne.“',p:1},
+ {s:'„Guten Tag, Herr Linder! Schön, dass Sie wieder bei uns vorbeischauen.“',p:1},
+ {s:'„Guten Tag. Diese Jacke, die Sie gerade anschauen, ist wasserdicht.“',p:1},
+ {s:'„Für wen soll das Geschenk denn sein?“',p:2},
+ {s:'„Welche Anforderungen stellen Sie an das Fahrrad?“',p:2},
+ {s:'„Sie suchen also einen leichten Koffer für Flugreisen – trifft das zu?“',p:2},
+ {s:'„Bevorzugen Sie Gold- oder Silberschmuck?“',p:2},
+ {s:'„Möchten Sie das einmal selbst ausprobieren?“',p:3},
+ {s:'„Ich zeige Ihnen drei Modelle, die gut zu Ihren Wünschen passen.“',p:3},
+ {s:'„Probieren Sie die Schuhe gerne an – hier ist ein Spiegel.“',p:3},
+ {s:'„Der Akku hält zwei Tage. Damit müssen Sie das Handy nicht jeden Abend laden.“',p:4},
+ {s:'„Die Pfanne ist spülmaschinenfest. So sparen Sie sich das Abwaschen.“',p:4},
+ {s:'„Mit der Kamera im Smartphone machen Sie Fotos, die Sie sofort versenden können.“',p:4},
+ {s:'„Diese Jeans ist sehr bequem, sie kostet 99,95 € – und sie bleibt lange in Form.“',p:5},
+ {s:'„Die Küche besteht aus den Schränken für 4.200 €, der Arbeitsplatte für 800 € …“',p:5},
+ {s:'„Für 18 Euro mehr bekommen Sie einen zweiten Akku dazu.“',p:5},
+ {s:'„Gerade deshalb ist dieses Modell so robust gebaut.“',p:6},
+ {s:'„Sie haben recht, allerdings müssen Sie diesen Mantel nie reinigen lassen.“',p:6},
+ {s:'„Was genau macht Sie noch unsicher?“',p:6},
+ {s:'„Zum Funkwecker brauchen Sie noch Batterien, damit er gleich läuft.“',p:7},
+ {s:'„Zu der Bohrmaschine passt dieser Satz Bohrer für Holz und Metall.“',p:7},
+ {s:'„Passend zum Kleid haben wir diesen Gürtel.“',p:7},
+ {s:'„Darf ich Ihnen die Uhr als Geschenk einpacken?“',p:8},
+ {s:'„Sie haben eine gute Wahl getroffen. Wenn die Größe nicht passt, können Sie sie umtauschen.“',p:8},
+ {s:'„Vielen Dank, Frau Kaya, und eine schöne Feier!“',p:8},
+ {s:'„Diese Tasche ist leicht, hat ein Laptopfach und viele kleine Fächer – genau, wie Sie es wollten.“',p:8},
+ {s:'„Wofür möchten Sie den Staubsauger vor allem verwenden?“',p:2},
+ {s:'„Spüren Sie einmal, wie weich der Stoff ist.“',p:3},
+ {s:'„Bei fünf Jahren Nutzung sind das nur etwa 5 Euro im Monat.“',p:5},
+ {s:'„Ja, das verstehe ich. Dafür bekommen Sie bei uns die Montage gleich dazu.“',p:6},
+ {s:'„Diese Jacke führen wir nicht, aber diese hier hat dieselbe Membran.“',p:7},
+ {s:'„Guten Tag! Ich sehe, Sie interessieren sich für unsere Kaffeemaschinen.“',p:1}
+);
+QUIZ.forEach((q, i) => q.id = 'q' + i);
+
+/* ===== Fehler-Detektiv: fehlerhafte Gespräche (Prüfungsformat „Fehler nennen – Verbesserung in wörtlicher Rede“) ===== */
+const FTYPES = {
+ G:'geschlossene Frage', K:'falsche Kontaktaufnahme (Begrüßung, Blickkontakt, Freiraum)', W:'abwertendes Wort oder Umgangssprache',
+ N:'Bedarf nicht ermittelt', M:'nur Merkmal, kein Kundennutzen', Z:'Fehler bei der Warenvorlage', P:'Preis ohne Nutzen genannt (Preisschock)',
+ E:'Einwand nicht ernst genommen', A:'schlechtes Zusatz- oder Alternativangebot', S:'Kaufsignal übersehen', V:'keine Kaufbestätigung oder Verabschiedung', F:'fehlende Warenkenntnis'
+};
+const FEHLER = [
+ { id:'f1', ort:'Schuhgeschäft', lines:[['V','Kann ich Ihnen helfen?'],['K','Ja, ich suche Laufschuhe.'],['V','Okay. Die hier sind gerade richtig billig.']],
+   errs:[ {l:0, ty:'G', fix:[{t:'„Guten Tag, wie kann ich Ihnen helfen?“',ok:true},{t:'„Kann ich Ihnen vielleicht helfen?“',why:'Immer noch geschlossen – die Antwort kann „Nein“ sein.'},{t:'„Was wollen Sie?“',why:'Offen, aber unhöflich und ohne Gruß.'}], m:'„Guten Tag, wie kann ich Ihnen helfen?“' },
+          {l:2, ty:'W', fix:[{t:'„Diese Laufschuhe sind gerade im Angebot und besonders preisgünstig.“',ok:true},{t:'„Die hier sind gerade spottbillig.“',why:'„Spottbillig“ ist genauso abwertend.'},{t:'„Die hier kauft eh jeder.“',why:'Kein Nutzen, kein Bezug zum Bedarf.'}], m:'„Diese Laufschuhe sind gerade im Angebot und besonders preisgünstig.“' } ] },
+ { id:'f2', ort:'Elektromarkt', lines:[['K','Was kostet der Fernseher?'],['V','1.299 Euro.'],['K','Oh, das ist aber teuer!'],['V','Gute Qualität hat eben ihren Preis.']],
+   errs:[ {l:1, ty:'P', fix:[{t:'„Der Fernseher hat ein besonders helles Bild, er kostet 1.299 Euro – und Sie sehen damit auch bei Sonnenlicht alles gestochen scharf.“',ok:true},{t:'„Nur 1.299 Euro!“',why:'Immer noch ein nackter Preis.'},{t:'„Das wollen Sie gar nicht wissen.“',why:'Ausweichend und unhöflich.'}], m:'Sandwich: „Der Fernseher hat …, er kostet 1.299 Euro – und Sie …“' },
+          {l:3, ty:'E', fix:[{t:'„Ja, da haben Sie recht. Dafür hat er fünf Jahre Garantie und wir liefern und schließen ihn kostenlos an.“',ok:true},{t:'„Nein, teuer ist der nicht.“',why:'Direkter Widerspruch.'},{t:'„Dann kaufen Sie halt im Internet.“',why:'Damit ist die Kundin weg.'}], m:'Ja-Aber: „Ja, da haben Sie recht, dafür …“ (nach Winter 2024/25, Aufgabe 2.1)' } ] },
+ { id:'f3', ort:'Modehaus', lines:[['V','(sortiert weiter ein, ohne aufzusehen) Hallo. Was wollen Sie?'],['K','Ich brauche eine Bluse fürs Büro.'],['V','(legt neun Blusen auf den Tisch) Suchen Sie sich was aus.']],
+   errs:[ {l:0, ty:'K', fix:[{t:'(aufblicken, lächeln) „Guten Tag! Wie kann ich Ihnen helfen?“',ok:true},{t:'(weiter einräumen) „Guten Tag!“',why:'Die Tätigkeit wird nicht unterbrochen, kein Blickkontakt.'},{t:'„Hallo, was brauchst du?“',why:'Kundschaft wird gesiezt und situationsgerecht begrüßt.'}], m:'Tätigkeit abbrechen, Blickkontakt: „Guten Tag! Wie kann ich Ihnen helfen?“' },
+          {l:2, ty:'Z', fix:[{t:'(legt vier passende Blusen vor) „Diese Blusen sind bügelleicht – fühlen Sie einmal den Stoff.“',ok:true},{t:'(legt zwölf Blusen vor) „Noch mehr Auswahl!“',why:'Noch mehr überfordert noch mehr.'},{t:'(legt eine Bluse vor) „Die oder keine.“',why:'Bei nur einem Artikel gibt es keine Auswahl.'}], m:'3 bis 5 passende Artikel vorlegen und die Sinne ansprechen.' } ] },
+ { id:'f4', ort:'Drogerie', lines:[['K','Ich suche ein Geschenk für meine Schwester.'],['V','Wie viel wollen Sie ausgeben?'],['K','(unsicher) Weiß ich noch nicht …'],['V','Nehmen Sie das Duftset, das nimmt jeder.']],
+   errs:[ {l:1, ty:'N', fix:[{t:'„Was macht Ihre Schwester denn gern?“',ok:true},{t:'„Soll es teuer sein?“',why:'Geschlossen und wieder nur der Preis.'},{t:'„Haben Sie eine Idee?“',why:'Geschlossene Frage.'}], m:'„Was macht Ihre Schwester gern?“ – „Zu welchem Anlass soll das Geschenk sein?“' },
+          {l:3, ty:'M', fix:[{t:'„Dieses Duftset ist mild und hautfreundlich – damit kann sich Ihre Schwester nach einem langen Tag richtig entspannen.“',ok:true},{t:'„Das Duftset hat drei Teile.“',why:'Nur ein Merkmal, kein Nutzen.'},{t:'„Das ist gerade im Trend.“',why:'Kein Bezug zur Schwester.'}], m:'Merkmal – Vorteil – Nutzen, passend zum Bedarf.' } ] },
+ { id:'f5', ort:'Fotoabteilung', lines:[['V','Diese Kamera hat 24 Megapixel und einen APS-C-Sensor.'],['K','(nickt, holt die Geldbörse heraus) Kann ich auch mit Karte zahlen?'],['V','Moment, ich erzähle Ihnen noch etwas über den Autofokus …']],
+   errs:[ {l:0, ty:'M', fix:[{t:'„Mit 24 Megapixeln können Sie Ihre Urlaubsfotos sogar als großes Poster drucken.“',ok:true},{t:'„Die Kamera hat auch noch WLAN.“',why:'Noch ein Merkmal ohne Nutzen.'},{t:'„Die ist technisch top.“',why:'Kein Merkmal und kein Nutzen.'}], m:'Merkmal plus Kundennutzen.' },
+          {l:2, ty:'S', fix:[{t:'„Selbstverständlich! Da haben Sie eine gute Wahl getroffen. Ich begleite Sie zur Kasse.“',ok:true},{t:'„Gleich, erst noch die technischen Daten.“',why:'Das Kaufsignal wird wieder übersehen.'},{t:'„Wollen Sie wirklich?“',why:'Sät Zweifel statt die Entscheidung zu bestärken.'}], m:'Kaufsignal erkennen, Entscheidung bestätigen, zur Kasse begleiten.' } ] },
+ { id:'f6', ort:'Spielwarenabteilung', lines:[['K','Gut, ich nehme das ferngesteuerte Auto für meinen Enkel.'],['V','Brauchen Sie sonst noch was?'],['K','Nein, danke.']],
+   errs:[ {l:1, ty:'A', fix:[{t:'„Dazu brauchen Sie noch Batterien – dann kann Ihr Enkel gleich losfahren.“',ok:true},{t:'„Sonst noch was?“',why:'Geschlossen und negativ.'},{t:'„Wir haben auch noch Puppen.“',why:'Kein Bezug zum Hauptartikel.'}], m:'Ergänzungsangebot mit Nutzen: „Dazu brauchen Sie noch …“ (Sommer 2025, Aufgabe 2.7)' } ] },
+ { id:'f7', ort:'Haushaltswaren', lines:[['K','Haben Sie die Kaffeemaschine „Crema 300“?'],['V','Nee. Höchstens die hier, aber keine Ahnung, ob die was taugt.']],
+   errs:[ {l:1, ty:'A', fix:[{t:'„Dieses Modell führen wir leider nicht. Diese Maschine hat aber den gleichen Mahlgrad und ist leiser. Möchten Sie einen Kaffee probieren?“',ok:true},{t:'„Nein, haben wir nicht.“',why:'Kein Angebot, Gespräch zu Ende.'},{t:'„Die hier ist halt ähnlich.“',why:'Wenig überzeugend, kein Nutzen.'}], m:'Alternativangebot mit gleichem Standard und Nutzen (Winter 2023/24, Aufgabe 4.1).' } ] },
+ { id:'f8', ort:'Käsetheke', lines:[['V','Guten Tag, was darf es sein?'],['K','Ist der Gouda hier mild?'],['V','Keine Ahnung, ich bin neu.']],
+   errs:[ {l:2, ty:'F', fix:[{t:'„Ja, das ist ein junger Gouda, sehr mild. Möchten Sie ein Stück probieren?“',ok:true},{t:'„Steht doch auf dem Schild.“',why:'Abweisend.'},{t:'„Weiß nicht, probieren Sie halt.“',why:'Unsicher und umgangssprachlich.'}], m:'Warenkenntnisse schaffen Vertrauen. Wenn man etwas nicht weiß: „Ich frage gern meine Kollegin.“' } ] },
+ { id:'f9', ort:'Sportgeschäft', lines:[['K','Der Rucksack ist mir zu teuer.'],['V','Nein, der ist gar nicht teuer, der ist günstig!']],
+   errs:[ {l:1, ty:'E', fix:[{t:'„Ja, das verstehe ich. Dafür ist er wasserdicht und hat eine Rückenpolsterung, die auch auf langen Touren bequem bleibt.“',ok:true},{t:'„Doch, der ist günstig, glauben Sie mir.“',why:'Immer noch Widerspruch.'},{t:'„Dann eben nicht.“',why:'Der Einwand wird gar nicht behandelt.'}], m:'Ja-Aber-Methode: erst zustimmen, dann Nutzen.' } ] },
+ { id:'f10', ort:'Modehaus', lines:[['K','Im Internet habe ich die Jacke 20 Euro billiger gesehen.'],['V','Das kann nicht sein.']],
+   errs:[ {l:1, ty:'E', fix:[{t:'„Darf ich fragen, wo genau? Dann schaue ich gern, ob es dasselbe Modell ist.“',ok:true},{t:'„Dann kaufen Sie sie doch dort.“',why:'Damit ist die Kundin weg.'},{t:'„Im Internet lügen alle.“',why:'Unsachlich und nicht belegt.'}], m:'Nähere Angaben erbitten und prüfen, ob es der gleiche Artikel ist (Winter 2022/23, Aufgabe 1.8).' } ] },
+ { id:'f11', ort:'Kasse im Supermarkt', lines:[['V','(ohne aufzusehen) Der Nächste!'],['K','Guten Tag.'],['V','(schiebt den Bon hin) 23,40. … Tschüss.']],
+   errs:[ {l:0, ty:'K', fix:[{t:'(aufsehen, lächeln) „Guten Tag!“',ok:true},{t:'„Weiter geht’s!“',why:'Keine Begrüßung.'},{t:'„Nächster, bitte.“',why:'Immer noch ohne Gruß und Blickkontakt.'}], m:'Spätestens an der Kasse findet der erste Kontakt statt – mit Blickkontakt und Gruß.' },
+          {l:2, ty:'V', fix:[{t:'„Vielen Dank für Ihren Einkauf und einen schönen Tag noch!“',ok:true},{t:'„Ciao.“',why:'Zu salopp.'},{t:'„Bon brauchen Sie ja nicht.“',why:'Kein Dank, kein Gruß.'}], m:'„Vielen Dank und einen schönen Tag noch!“ (Sommer 2023, Aufgabe 1.4.1)' } ] },
+ { id:'f12', ort:'Elektromarkt', lines:[['K','Und was kostet die Waschmaschine?'],['V','Die ist leider ziemlich teuer: 899 Euro.']],
+   errs:[ {l:1, ty:'P', fix:[{t:'„Die Waschmaschine spart viel Wasser und Strom, sie kostet 899 Euro – und mit dem Kurzprogramm ist Ihre Wäsche in 30 Minuten fertig.“',ok:true},{t:'„899 Euro, aber das ist es wert.“',why:'Fast nackt – es fehlt der konkrete Nutzen.'},{t:'„Fragen Sie lieber nicht.“',why:'Damit kündigst du den Preisschock an.'}], m:'Sandwich: Nutzen – Preis – Nutzen; nie selbst „teuer“ sagen.' } ] },
+ { id:'f13', ort:'Uhrenabteilung', lines:[['K','Ich weiß nicht, welche ich nehmen soll.'],['V','(holt fünf weitere Uhren) Dann schauen Sie sich noch die hier an.']],
+   errs:[ {l:1, ty:'Z', fix:[{t:'„Welche zwei haben Ihnen am besten gefallen? Dann vergleichen wir nur noch diese beiden.“',ok:true},{t:'„Nehmen Sie einfach irgendeine.“',why:'Gibt die Beratung auf.'},{t:'„Dann kommen Sie morgen wieder.“',why:'Die Entscheidung wird nicht erleichtert.'}], m:'Auswahl einengen (Sommer 2025, Aufgabe 2.5).' } ] },
+ { id:'f14', ort:'Buchhandlung', lines:[['K','(stöbert, meidet den Blickkontakt)'],['V','(läuft hinterher und erklärt jedes Buch, das die Kundin ansieht)']],
+   errs:[ {l:1, ty:'K', fix:[{t:'„Schauen Sie sich in Ruhe um – wenn Sie Hilfe brauchen, bin ich für Sie da.“',ok:true},{t:'„Darf ich Ihnen alle Neuheiten zeigen?“',why:'Bedrängt die Kundin weiter.'},{t:'(gar nichts sagen und wegsehen)',why:'Die Kundin soll merken, dass sie wahrgenommen wurde.'}], m:'Wer sich nur umsehen möchte: wahrnehmen, Bereitschaft zeigen, Freiraum lassen (Modul 4).' } ] },
+ { id:'f15', ort:'Gartencenter', lines:[['K','Gut, ich nehme die Orchidee.'],['V','Okay.']],
+   errs:[ {l:1, ty:'V', fix:[{t:'„Da haben Sie eine gute Wahl getroffen – diese Orchidee blüht viele Wochen und ist sehr pflegeleicht.“',ok:true},{t:'„Na endlich.“',why:'Ungeduldig.'},{t:'„Hoffentlich geht sie nicht ein.“',why:'Sät Zweifel.'}], m:'Kaufbestätigung: Entscheidung bestärken, Nutzen nennen (Sommer 2024, Aufgabe 4.4.1).' } ] },
+ { id:'f16', ort:'Baumarkt', lines:[['V','Guten Tag. Wofür brauchen Sie die Bohrmaschine?'],['K','Hauptsächlich für Löcher in Beton.'],['V','Dann nehmen Sie die teuerste, das ist die beste.']],
+   errs:[ {l:2, ty:'Z', fix:[{t:'„Für Beton eignet sich ein Bohrhammer. Ich zeige Ihnen drei Modelle in der mittleren Preislage.“',ok:true},{t:'„Dann nehmen Sie die billigste.“',why:'Falsche Preislage und abwertend.'},{t:'„Alle sind gleich gut.“',why:'Keine Beratung, kein Bezug zum Bedarf.'}], m:'Passende Artikel in der mittleren Preislage vorlegen.' } ] }
+];
+
+/* ===== Kundenansturm: Samstag, 11 Uhr – schnelle Reaktionen ===== */
+const ANSTURM = [
+ { id:'a1', p:1, k:'Eine Kundin steht ratlos vor dem Regal und schaut sich suchend um.', o:[['„Guten Tag, wobei darf ich Ihnen helfen?“',2],['„Suchen Sie was Bestimmtes?“',1],['(weiter einräumen)',0]], w:'Kundensignal erkannt: hingehen und offen ansprechen.' },
+ { id:'a2', p:1, k:'Ein Kunde stöbert, dreht dir bewusst den Rücken zu.', o:[['Kurz lächeln: „Wenn Sie Hilfe brauchen, bin ich für Sie da.“',2],['Ihn von hinten antippen und ansprechen',0],['Ihn gar nicht beachten',1]], w:'Wahrnehmen, Bereitschaft zeigen, Freiraum lassen. Nie von hinten ansprechen.' },
+ { id:'a3', p:1, k:'Stammkundin Frau Kaya kommt herein.', o:[['„Guten Tag, Frau Kaya! Schön, dass Sie wieder da sind.“',2],['„Hallo, na?“',0],['„Guten Tag.“',1]], w:'Stammkundschaft mit Namen begrüßen.' },
+ { id:'a4', p:1, k:'Ein Kunde hält einen Artikel in der Hand und sieht sich hilfesuchend um.', o:[['„Guten Tag, probieren Sie ihn gerne an – die Kabinen sind gleich hier.“',2],['„Brauchen Sie Hilfe?“',1],['„Den gibt’s nur in der Größe.“',0]], w:'Warenbezogene Ansprache (Sommer 2025, Aufgabe 2.1).' },
+ { id:'a5', p:2, k:'„Ich brauche einen Koffer.“', o:[['„Wohin geht denn die Reise?“',2],['„Wollen Sie einen großen?“',1],['„Wie viel wollen Sie ausgeben?“',0]], w:'Offene Frage zur Bedarfsermittlung – nicht zuerst nach dem Preis fragen.' },
+ { id:'a6', p:2, k:'„Ich suche ein Geschenk für meine Enkelin.“', o:[['„Wie alt ist Ihre Enkelin?“',2],['„Haben Sie schon eine Idee?“',1],['„Nehmen Sie das hier, das kaufen alle.“',0]], w:'Offene Frage (Sommer 2022, Aufgabe 3.4).' },
+ { id:'a7', p:2, k:'„Ich brauche Laufschuhe.“', o:[['„Laufen Sie eher auf Asphalt oder im Wald?“',2],['„Laufen Sie?“',0],['„Laufschuhe sind da hinten.“',1]], w:'Alternativfrage mit zwei positiven Möglichkeiten.' },
+ { id:'a8', p:2, k:'Ein Kunde zeigt auf Kopfhörer: „So etwas in der Art suche ich.“', o:[['„Ich zeige Ihnen einmal drei Modelle – wie gefällt Ihnen dieses hier?“',2],['„Was genau?“',1],['„Die sind teuer.“',0]], w:'Indirekte Bedarfsermittlung: Ware vorlegen und Reaktion beobachten.' },
+ { id:'a9', p:3, k:'Eine Kundin möchte eine Jacke. Wie viele zeigst du?', o:[['Drei bis fünf passende',2],['Eine einzige',0],['Zehn, für die volle Auswahl',0]], w:'3 bis 5 Artikel: Auswahl ohne Überforderung.' },
+ { id:'a10', p:3, k:'Ein Kunde nennt keine Preisvorstellung. Womit beginnst du?', o:[['Mittlere Preislage',2],['Teuerste Modelle',0],['Günstigste Modelle',1]], w:'Mittlere Preislage – dann kannst du nach oben oder unten ausweichen.' },
+ { id:'a11', p:3, k:'Ein Kunde schaut sich einen Akkuschrauber an.', o:[['„Nehmen Sie ihn ruhig in die Hand – spüren Sie, wie leicht er ist?“',2],['„Bitte nicht anfassen.“',0],['„Der ist gut.“',1]], w:'Ware anfassen lassen, mehrere Sinne ansprechen.' },
+ { id:'a12', p:4, k:'„Was ist an dieser Regenjacke besonders?“', o:[['„Sie ist aus Gore-Tex – damit bleiben Sie auch bei Dauerregen trocken.“',2],['„Sie ist aus Gore-Tex.“',1],['„Die ist echt top.“',0]], w:'Merkmal plus Kundennutzen.' },
+ { id:'a13', p:4, k:'Ein sparsamer Kunde fragt nach einem Staubsauger.', o:[['„Er verbraucht wenig Strom – das spart Ihnen jedes Jahr Geld.“',2],['„Er sieht modern aus.“',1],['„Den hat mein Chef ausgesucht.“',0]], w:'Argument passend zum Kundentyp (Sommer 2023, Aufgabe 2.1).' },
+ { id:'a14', p:5, k:'„Was kostet der Mantel?“', o:[['„Der Mantel ist wasserabweisend, er kostet 189 € – und hält Sie auch bei Minusgraden warm.“',2],['„189 €.“',0],['„Der ist nicht billig.“',0]], w:'Sandwich: Nutzen – Preis – Nutzen.' },
+ { id:'a15', p:5, k:'Ein Kunde stutzt bei 690 € für eine Matratze.', o:[['„Bei zehn Jahren Nutzung sind das weniger als 20 Cent pro Nacht.“',2],['„So viel kosten Matratzen nun mal.“',0],['„Es gibt auch günstigere.“',1]], w:'Verkleinerungsmethode: Preis auf die Nutzungsdauer verteilen.' },
+ { id:'a16', p:5, k:'„Warum ist das eine Modell 30 Euro teurer?“', o:[['„Für 30 Euro mehr bekommen Sie einen zweiten Akku – Sie können doppelt so lange arbeiten.“',2],['„Marke halt.“',0],['„Weiß ich nicht genau.“',0]], w:'Vergleichsmethode: Mehrpreis mit Nutzen erklären.' },
+ { id:'a17', p:6, k:'„Das ist mir zu teuer!“', o:[['„Ja, da haben Sie recht. Dafür hält er viele Jahre.“',2],['„Gute Dinge haben ihren Preis.“',0],['„Nein, das ist günstig.“',0]], w:'Ja-Aber-Methode (Sommer 2025, Aufgabe 2.6).' },
+ { id:'a18', p:6, k:'„Im Internet ist das billiger.“', o:[['„Darf ich fragen, wo genau? Dann prüfe ich, ob es dasselbe Modell ist.“',2],['„Das kann nicht sein.“',0],['„Dann kaufen Sie dort.“',0]], w:'Nähere Angaben erbitten und prüfen (Winter 2022/23, Aufgabe 1.8).' },
+ { id:'a19', p:6, k:'„Ich weiß nicht, ob die Farbe zu mir passt.“', o:[['„Was genau macht Sie unsicher? Hier ist ein Spiegel.“',2],['„Doch, die passt.“',1],['„Ist doch egal.“',0]], w:'Gegenfrage: den echten Grund finden.' },
+ { id:'a20', p:6, k:'„Ist das alles, was Sie an Blusen haben?“', o:[['„Ja – dafür sind alle aus reiner Baumwolle und bügelleicht. Darf ich Ihnen zwei zeigen?“',2],['„Ja. Mehr gibt’s nicht.“',0],['„Woanders ist es auch nicht besser.“',0]], w:'Einwand gegen das Sortiment ernst nehmen und mit Nutzen antworten.' },
+ { id:'a21', p:7, k:'Ein Kunde hat sich für einen Funkwecker entschieden.', o:[['„Dazu brauchen Sie noch Batterien, damit er gleich läuft.“',2],['„Sonst noch was?“',0],['(nichts sagen)',1]], w:'Ergänzungsangebot – notwendig, muss immer angeboten werden.' },
+ { id:'a22', p:7, k:'Eine Kundin kauft ein Smartphone.', o:[['„Passend dazu haben wir diese Schutzhülle – damit bleibt das Display heil.“',2],['„Brauchen Sie noch was?“',0],['„Wollen Sie nicht noch eine Hülle?“',1]], w:'Zusatzangebot mit Nutzen (Sommer 2025, Aufgabe 2.7).' },
+ { id:'a23', p:7, k:'Ein Kunde fragt nach Marke X. Ihr führt nur Marke Y in gleicher Qualität.', o:[['„Marke X führen wir nicht – diese hier hat dieselbe Qualität und …“',2],['„Haben wir nicht.“',0],['„Höchstens die hier, weiß aber nicht, ob die was ist.“',0]], w:'Alternativangebot mit gleichem Standard und Argument.' },
+ { id:'a24', p:8, k:'„Kann ich auch mit Karte zahlen?“', o:[['„Selbstverständlich! Da haben Sie eine gute Wahl getroffen.“',2],['„Ja. Aber noch mal zu den technischen Daten …“',0],['„Ja.“',1]], w:'Kaufsignal erkennen und bestätigen.' },
+ { id:'a25', p:8, k:'Die Kundin nickt und greift zur Geldbörse.', o:[['„Möchten Sie die Tasche gleich mitnehmen oder sollen wir sie liefern?“',2],['Noch fünf Argumente nennen',0],['Abwarten und schweigen',1]], w:'Kaufsignal – Abschluss mit Alternativfrage.' },
+ { id:'a26', p:8, k:'Ein Kunde hat bezahlt.', o:[['„Vielen Dank, Herr Sommer, und ein schönes Wochenende!“',2],['„Der Nächste!“',0],['„Tschüss.“',1]], w:'Bedanken, mit Namen und situationsbezogen verabschieden.' },
+ { id:'a27', p:8, k:'„Ich kann mich zwischen den beiden nicht entscheiden.“', o:[['„Was ist Ihnen am wichtigsten? Dann fasse ich die Vorteile kurz zusammen.“',2],['„Nehmen Sie einfach beide.“',1],['Noch drei weitere zeigen',0]], w:'Auswahl einengen, Argumente zusammenfassen.' },
+ { id:'a28', p:8, k:'Eine Kundin kauft ein Geschenk.', o:[['„Darf ich es Ihnen als Geschenk einpacken?“',2],['„Einpacken müssen Sie selbst.“',0],['„Tüte?“',1]], w:'Warenbezogene Serviceleistung: Geschenkverpackung.' },
+ { id:'a29', p:8, k:'„Und was, wenn die Größe nicht passt?“', o:[['„Dann können Sie es innerhalb von 14 Tagen umtauschen.“',2],['„Dann haben Sie Pech.“',0],['„Muss passen.“',0]], w:'Umtauschmöglichkeit nennen – nimmt die Sorge vor dem Kauf.' },
+ { id:'a30', p:2, k:'Ein Kunde sagt: „Ich brauche eine Pfanne.“', o:[['„Kochen Sie eher auf Gas oder auf Induktion?“',2],['„Eine Pfanne?“',0],['„Die stehen dahinten.“',1]], w:'Alternativfrage zur Bedarfsermittlung.' },
+ { id:'a31', p:1, k:'Du räumst ein. Eine Kundin wartet neben dir.', o:[['Sofort unterbrechen, Blickkontakt, begrüßen',2],['Erst den Karton fertig machen',0],['„Moment noch.“',1]], w:'Bisherige Tätigkeit sofort abbrechen.' },
+ { id:'a32', p:4, k:'„Warum soll ich diesen Topf nehmen?“', o:[['„Er ist für alle Herdarten geeignet – Sie können ihn auch nach einem Umzug weiter nutzen.“',2],['„Weil er schön ist.“',1],['„Weil er im Angebot ist und weg muss.“',0]], w:'Nutzen für die Kundschaft, nicht für den Betrieb.' }
+];
+/* ===== Hilfsfunktionen ===== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const fmt = n => String(Math.round(n * 10) / 10).replace('.', ',');
+function fill(str) {
+  if (typeof str !== 'string') return str;
+  for (let k = 0; k < 3; k++) str = str.replace(/\{(\w+)\}/g, (m, key) => {
+    const sh = SHOPS[S.shop] || {}, pe = PERSONAS[S.per] || {};
+    if (key in sh) return sh[key];
+    if (key in pe) return pe[key];
+    return m;
+  });
+  return str;
+}
+function PV(ph, key) { const v = S.var && S.var[ph.id]; return (v && v[key] !== undefined) ? v[key] : ph[key]; }
+function pickTxt(obj) { if (!obj) return ''; return (obj[S.per] ?? obj[S.shop] ?? obj.all ?? ''); }
+function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
+
+/* ===== Grafiken ===== */
+function faceSVG(look, mood) {
+  const L = look, sk = L.skin, hr = L.hair;
+  const brow = mood === 'sad' ? 'M36 44 L50 40 M70 40 L84 44' : mood === 'happy' ? 'M36 40 Q43 35 50 39 M70 39 Q77 35 84 40' : 'M36 41 L50 41 M70 41 L84 41';
+  const mouth = mood === 'happy' ? '<path d="M44 74 Q60 90 76 74 Q60 82 44 74Z" fill="#7a2230"/>' : mood === 'sad' ? '<path d="M46 82 Q60 70 74 82" fill="none" stroke="#5a2a20" stroke-width="3.5" stroke-linecap="round"/>' : '<path d="M48 78 Q60 82 72 78" fill="none" stroke="#5a2a20" stroke-width="3.5" stroke-linecap="round"/>';
+  let hairBack = '', hairFront = '';
+  if (L.style === 'bob') { hairBack = `<path d="M24 60 Q22 18 60 16 Q98 18 96 60 L96 84 Q86 90 80 84 L80 50 L40 50 L40 84 Q34 90 24 84Z" fill="${hr}"/>`; hairFront = `<path d="M32 46 Q40 22 66 22 Q90 26 88 48 Q70 34 52 40 Q40 44 32 46Z" fill="${hr}"/>`; }
+  if (L.style === 'short') { hairFront = `<path d="M30 48 Q30 20 60 18 Q90 20 90 48 Q84 34 70 32 Q56 36 44 32 Q34 36 30 48Z" fill="${hr}"/>`; }
+  if (L.style === 'tail') { hairBack = `<path d="M84 40 Q108 50 100 92 Q96 70 86 60Z" fill="${hr}"/>`; hairFront = `<path d="M30 52 Q28 18 62 18 Q92 20 90 50 Q78 30 58 32 Q40 34 30 52Z" fill="${hr}"/>`; }
+  if (L.style === 'crop') { hairFront = `<path d="M32 44 Q34 20 60 19 Q86 20 88 44 Q74 30 60 30 Q46 30 32 44Z" fill="${hr}"/>`; }
+  const beard = L.beard ? `<path d="M34 66 Q36 100 60 102 Q84 100 86 66 Q80 84 60 86 Q40 84 34 66Z" fill="${hr}" opacity=".9"/>` : '';
+  const glasses = L.glasses ? `<g fill="none" stroke="#2a2a2a" stroke-width="3"><circle cx="45" cy="54" r="9"/><circle cx="75" cy="54" r="9"/><path d="M54 54 L66 54"/></g>` : '';
+  const lines = L.grey ? `<path d="M40 66 Q44 68 46 66 M74 66 Q76 68 80 66" stroke="#b98a70" stroke-width="2" fill="none"/>` : '';
+  return `<svg viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" fill="#f7e8d7"/>${hairBack}
+  <path d="M18 120 Q22 98 60 96 Q98 98 102 120Z" fill="${L.top}"/><rect x="52" y="84" width="16" height="16" fill="${sk}"/>
+  <ellipse cx="60" cy="58" rx="28" ry="32" fill="${sk}"/><circle cx="32" cy="60" r="5" fill="${sk}"/><circle cx="88" cy="60" r="5" fill="${sk}"/>
+  ${beard}${hairFront}<path d="${brow}" stroke="${hr === '#c9c4bd' ? '#8d877f' : hr}" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <circle cx="45" cy="54" r="3.6" fill="#231a14"/><circle cx="75" cy="54" r="3.6" fill="#231a14"/>${glasses}${lines}${mouth}</svg>`;
+}
+function shopIcon(id) {
+  if (id === 'mode') return `<svg viewBox="0 0 60 60" aria-hidden="true"><path d="M20 10 L8 18 L12 30 L18 27 L18 52 L42 52 L42 27 L48 30 L52 18 L40 10 Q30 18 20 10Z" fill="#b03a5b" stroke="#1f1b2d" stroke-width="2.5" stroke-linejoin="round"/><path d="M18 46 L42 46 M18 40 L42 40" stroke="#f2a541" stroke-width="2.5"/></svg>`;
+  if (id === 'elektro') return `<svg viewBox="0 0 60 60" aria-hidden="true"><rect x="7" y="18" width="46" height="30" rx="5" fill="#3d6b8f" stroke="#1f1b2d" stroke-width="2.5"/><rect x="18" y="12" width="14" height="8" rx="2" fill="#3d6b8f" stroke="#1f1b2d" stroke-width="2.5"/><circle cx="30" cy="33" r="10" fill="#dfe7f3" stroke="#1f1b2d" stroke-width="2.5"/><circle cx="30" cy="33" r="4.5" fill="#1f1b2d"/><circle cx="46" cy="24" r="2.5" fill="#f2a541"/></svg>`;
+  return `<svg viewBox="0 0 60 60" aria-hidden="true"><ellipse cx="25" cy="34" rx="19" ry="13" fill="#2f2b3a" stroke="#1f1b2d" stroke-width="2.5"/><ellipse cx="25" cy="31" rx="14" ry="8" fill="#e9e3d4"/><rect x="40" y="29" width="18" height="6" rx="3" fill="#a8672f" stroke="#1f1b2d" stroke-width="2" transform="rotate(-12 40 32)"/><path d="M18 22 Q20 16 18 11 M26 21 Q28 15 26 10" stroke="#9aa4b5" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
+}
+const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 27 H11 V21 H17 V15 H23 V9 H29 V27Z" fill="var(--berry)"/><path d="M4 10 Q4 4 11 4 H16 Q22 4 22 9 Q22 14 16 14 H12 L8 17 L9 14 Q4 14 4 10Z" fill="var(--apricot)" stroke="var(--ink)" stroke-width="1.5"/></svg>`;
+function star(on) { return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="${on ? '#f2a541' : 'none'}" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`; }
+
+function sceneSVG() {
+  const P = PERSONAS[S.per];
+  const resCol = f => f >= 3 ? '#2e9a5c' : f >= 1 ? '#d39a1c' : '#d24b36';
+  let g = `<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#cfd5e1"/><line x1="0" y1="0" x2="0" y2="6" stroke="#b8bfce" stroke-width="2.5"/></pattern></defs>`;
+  g += `<rect y="-24" width="640" height="216" fill="#dfe7f3"/><rect y="188" width="640" height="4" fill="#c3cbe0"/>`;
+  g += `<g transform="translate(536 -18)"><rect width="98" height="24" rx="6" fill="#1f1b2d"/><text x="49" y="16" text-anchor="middle" font-size="10.5" font-weight="800" fill="#f2a541" font-family="Nunito Sans,system-ui,sans-serif">KAUF&#8209;ABSCHLUSS</text></g>`;
+  const cur = (S.screen === 'play' || S.screen === 'event') ? S.list[S.i] : null;
+  let figX = 30, figY = 188;
+  PHASES.forEach((ph, i) => {
+    const x = 6 + i * 78, top = 154 - i * 16, w = 78;
+    const on = S.sel.has(ph.id), r = S.res[ph.id];
+    let fill = on ? '#ffffff' : 'url(#hatch)';
+    if (r && r.fit != null) fill = resCol(r.fit);
+    const isCur = cur === ph.id;
+    g += `<rect x="${x}" y="${top}" width="${w}" height="${188 - top}" fill="${fill}" stroke="${isCur ? '#f2a541' : '#1f1b2d'}" stroke-width="${isCur ? 4 : 2}"/>`;
+    const txtCol = r && r.fit != null ? '#ffffff' : on ? '#1f1b2d' : '#6d7487';
+    g += `<text x="${x + w / 2}" y="${top + 20}" text-anchor="middle" font-size="17" font-weight="800" fill="${txtCol}" font-family="Bricolage Grotesque,Trebuchet MS,sans-serif">${ph.id}</text>`;
+    g += `<text x="${x + w / 2}" y="${top + 31}" text-anchor="middle" font-size="10" font-weight="700" fill="${txtCol}" font-family="Nunito Sans,system-ui,sans-serif">${ph.short}</text>`;
+    if (isCur) { figX = x + w / 2; figY = top; }
+  });
+  if (S.screen === 'result' || S.screen === 'quiz') { const last = Math.max(...S.list); figX = 6 + (last - 1) * 78 + 39; figY = 154 - (last - 1) * 16; }
+  if (S.screen === 'order' || S.screen === 'draw') { figX = 30; figY = 188; }
+  const person = (x, y, col, head) => `<g transform="translate(${x} ${y})"><rect x="-8" y="-30" width="16" height="22" rx="7" fill="${col}" stroke="#1f1b2d" stroke-width="1.6"/><rect x="-7" y="-10" width="5" height="10" fill="#2a2a38"/><rect x="2" y="-10" width="5" height="10" fill="#2a2a38"/><circle cx="0" cy="-37" r="7.5" fill="${head}" stroke="#1f1b2d" stroke-width="1.6"/></g>`;
+  g += person(figX - 14, figY, '#9e2457', '#e8b892');
+  g += person(figX + 14, figY, P.look.top, P.look.skin);
+  if (S.screen === 'result' && S.bought) g += `<g transform="translate(${figX + 26} ${figY - 20})"><rect width="16" height="16" rx="2" fill="#f2a541" stroke="#1f1b2d" stroke-width="1.6"/><path d="M4 4 Q8 -4 12 4" fill="none" stroke="#1f1b2d" stroke-width="1.6"/></g>`;
+  return `<svg viewBox="0 -24 640 216" role="img" aria-label="Treppe mit acht Stufen des Verkaufsgesprächs">${g}</svg>`;
+}
+
+/* ===== Zustand ===== */
+const S = { mode:null, screen:'start', team:'', level:null, shop:null, per:null, sel:new Set([1,2,3,4,5,6,7,8]), list:[], i:0, step:'decide', res:{}, mood:55, pts:0, max:0, evAt:-1, ev:null, evRes:null, order:null, quiz:null, bubble:'', face:'ok', known:false, bought:false, lastPer:null };
+
+function moodCol() { return S.mood >= 65 ? 'var(--good)' : S.mood >= 40 ? 'var(--mid)' : 'var(--bad)'; }
+function addMood(d) { S.mood = clamp(S.mood + d, 0, 100); }
+function addPts(p, m) { S.pts += p; S.max += m; }
+
+function renderBar() {
+  const inGame = ['play','event','order','quiz','result'].includes(S.screen);
+  let h = `<div class="brand">${LOGO}Stufe für Stufe</div><span class="sp"></span>`;
+  const mb = modeBar(); if (mb !== null) { $('#bar').innerHTML = h + mb; return; }
+  if (inGame) {
+    h += `<span class="pill" title="Stimmung der Kundschaft">Stimmung ${Math.round(S.mood)}</span><span class="pill pts">${fmt(S.pts)} Punkte</span>`;
+    const n = S.list.length;
+    h += `<div class="prog">${S.list.map((id, k) => `<i class="${S.screen === 'result' || S.screen === 'quiz' || k < S.i ? 'done' : (k === S.i && S.screen === 'play') ? 'now' : ''}"></i>`).join('')}</div>`;
+  }
+  $('#bar').innerHTML = h;
+}
+
+function talk() {
+  const P = PERSONAS[S.per];
+  return `<div class="talk"><div class="face">${faceSVG(P.look, S.face)}</div><div class="bubble pop"><div class="who">${esc(P.name)}</div>${esc(fill(S.bubble))}</div></div>
+  <div class="mood"><span>Stimmung</span><div class="tr"><div class="fi" style="width:${S.mood}%;background:${moodCol()}"></div></div><span style="font-variant-numeric:tabular-nums">${Math.round(S.mood)}</span></div>`;
+}
+
+function render() {
+  renderBar();
+  const app = $('#app');
+  stopTimer();
+  const f = { start:vStart, phases:vPhases, draw:vDraw, order:vOrder, play:vPlay, event:vEvent, quiz:vQuiz, result:vResult, fehler:vFehler, ansturm:vAnsturm, blitz:vBlitz, mres:vModeResult }[S.screen];
+  app.innerHTML = f();
+  bind();
+  afterRender();
+}
+
+/* ===== Startseite ===== */
+function heatBars() {
+  const mx = 14;
+  return `<div class="heat">${PHASES.map(p => `<div class="hr"><span class="nm">${p.id} ${esc(p.short)}</span><div class="tr"><div class="fi" style="width:${p.tm / mx * 100}%"></div></div><span class="v">${p.tm}/14</span></div>`).join('')}</div>`;
+}
+function vStart() {
+  const rec = store('sfs-rekord') || {};
+  return `<section class="card stack">
+    <span class="eyebrow">Lernfeld 2 · Verkaufsgespräche kundenorientiert führen</span>
+    <h1>Stufe für Stufe</h1>
+    <p class="lead">Acht Stufen bis zum Kaufabschluss. Ihr führt das Verkaufsgespräch, die Kundschaft reagiert sofort – und am Ende seht ihr, was die IHK in der Prüfung hören will.</p>
+    <div><label class="fl" for="team">Teamname</label><input type="text" id="team" maxlength="24" placeholder="z. B. Die Ja-Aber-Profis" value="${esc(S.team)}"></div>
+  </section>
+  <section class="card stack">
+    <h2>Wie wollt ihr spielen?</h2>
+    <div class="choice" id="lvl">
+      <button class="ch ${S.level === 'basis' ? 'sel' : ''}" data-lvl="basis"><b>Basis</b><span class="small">Ihr entscheidet und baut die Sätze aus Bausteinen zusammen.</span></button>
+      <button class="ch ${S.level === 'profi' ? 'sel' : ''}" data-lvl="profi"><b>Profi</b><span class="small">Ihr schreibt die Sätze selbst – wie in der Prüfung – und begründet.</span></button>
+    </div>
+  </section>
+  <section class="card stack">
+    <h2>Was wollt ihr spielen?</h2>
+    ${modeCards()}
+  </section>
+  ${S.mode === 'gespraech' ? `<section class="card stack">
+    <h2>In welchem Geschäft arbeitet ihr?</h2>
+    <div class="choice three">${Object.values(SHOPS).map(s => `<button class="ch ${S.shop === s.id ? 'sel' : ''}" data-shop="${s.id}">${shopIcon(s.id)}<b>${s.branche}</b><span class="small">Artikel: ${s.kurz}</span></button>`).join('')}</div>
+    <button class="btn wide" id="toPhases" ${S.level && S.shop ? '' : 'disabled'}>Weiter: Stufen wählen</button>
+    ${rec.basis || rec.profi ? `<p class="tiny">Rekord auf diesem Gerät: Basis ${rec.basis || 0} % · Profi ${rec.profi || 0} %</p>` : ''}
+  </section>` : S.mode ? `<section class="card stack"><button class="btn wide" id="startMode" ${S.level ? '' : 'disabled'}>${S.level ? 'Los geht’s: ' + esc(MODES[S.mode].name) : 'Erst oben ein Niveau wählen'}</button></section>` : ''}
+  <section class="card stack">
+    <span class="eyebrow">Das fragt die IHK</span>
+    <h3>In wie vielen der letzten 14 Prüfungen kam die Stufe dran?</h3>
+    ${heatBars()}
+    <p class="small">Prüfungsbereich „Verkauf und Werbemaßnahmen“, Winter 2019/20 bis Sommer 2026. Wörtliche Rede wird fast immer bei Stufe 1, 2, 5, 6 und 8 verlangt.</p>
+  </section>`;
+}
+
+function vPhases() {
+  return `<section class="card stack">
+    <span class="eyebrow">Schritt 2 von 3</span>
+    <h2>Welche Stufen spielt ihr?</h2>
+    <p class="lead">Ihr müsst nicht alle acht spielen. Tippt die Stufen an, die ihr üben wollt.</p>
+    <div class="row">
+      <button class="btn ghost" data-pre="all">Ganzes Gespräch</button>
+      <button class="btn ghost" data-pre="hits">Prüfungs-Hits</button>
+      <button class="btn ghost" data-pre="none">Alle abwählen</button>
+    </div>
+    <div class="steps8">${PHASES.map(p => `<button class="st ${S.sel.has(p.id) ? 'on' : ''}" data-ph="${p.id}" aria-pressed="${S.sel.has(p.id)}"><span class="n">${p.id}</span><span class="nm">${esc(p.name)}${p.wr ? '<span class="wr">wörtl. Rede</span>' : ''}</span><span class="bx"></span><span class="md">${p.modul} · in ${p.tm} von 14 Prüfungen</span></button>`).join('')}</div>
+    <div class="row"><button class="btn ghost" id="back">Zurück</button><button class="btn" id="toDraw" ${S.sel.size ? '' : 'disabled'}>Weiter: Kundschaft ziehen</button></div>
+  </section>`;
+}
+
+function vDraw() {
+  const P = PERSONAS[S.per], sh = SHOPS[S.shop];
+  return `<section class="stack">
+    <div class="card stack"><span class="eyebrow">Schritt 3 von 3</span><h2>Wer kommt in euer ${esc(sh.laden)}?</h2><p class="lead">Tippt auf die Karte.</p></div>
+    <div class="flip ${S.turned ? 'turned' : ''}" id="flip"><div class="inner">
+      <button class="side front" id="turn" aria-label="Karte umdrehen"><span style="font-family:var(--display);font-weight:800;font-size:2rem">?</span></button>
+      <div class="side back"><div class="pcard"><div class="face">${faceSVG(P.look, 'ok')}</div><div class="stack" style="gap:6px;min-width:0"><h2>${esc(P.name)}</h2><p class="small">${esc(P.kurz)}</p>
+        <dl class="facts"><dt>Was sie will</dt><dd>${esc(P.name)} ${esc(P.wunsch)}.</dd><dt>Tipp</dt><dd>Achtet darauf, was ${esc(P.name)} sagt. Daran erkennt ihr das Kaufmotiv.</dd></dl></div></div></div>
+    </div></div>
+    <div class="card stack">
+      <p class="small">Gespielt werden die Stufen ${[...S.sel].sort((a, b) => a - b).join(', ')} · Niveau ${S.level === 'profi' ? 'Profi' : 'Basis'} · ${esc(sh.branche)}</p>
+      <div class="row"><button class="btn ghost" id="redraw">Andere Kundschaft</button><button class="btn" id="go" ${S.turned ? '' : 'disabled'}>Los geht’s</button></div>
+    </div></section>`;
+}
+
+/* ===== Mini-Spiel: Treppe bauen ===== */
+function vOrder() {
+  const O = S.order;
+  const placed = O.placed.map(id => PHASES.find(p => p.id === id));
+  return `<div class="scene">${sceneSVG()}</div>
+  <section class="card stack"><span class="eyebrow">Aufwärmen · bis zu 4 Fachpunkte</span><h2>Baut die Treppe auf</h2>
+  <p class="lead">Tippt die Phasen in der richtigen Reihenfolge an – von der ersten bis zur achten Stufe.</p>
+  <div class="ladder">${PHASES.map((p, k) => { const c = placed[k]; let cls = c ? 'f' : ''; if (O.checked && c) cls = c.id === k + 1 ? 'ok' : 'no'; return `<div class="pl"><span class="n">${k + 1}</span><span class="c ${cls}">${c ? esc(c.name) : ''}${O.checked && c && c.id !== k + 1 ? ` <span class="tiny">→ richtig: ${esc(PHASES[k].name)}</span>` : ''}</span></div>`; }).join('')}</div>
+  ${O.checked ? `<div class="fb ${O.right === 8 ? 'good' : O.right >= 5 ? 'mid' : 'bad'}">${O.right} von 8 an der richtigen Stelle · +${O.p} Fachpunkte</div><button class="btn wide" id="orderNext">Weiter zur ersten Stufe</button>`
+  : `<div class="chips">${O.pool.filter(id => !O.placed.includes(id)).map(id => `<button class="chip" data-ord="${id}">${esc(PHASES.find(p => p.id === id).name)}</button>`).join('')}</div>
+  <div class="row"><button class="btn ghost" id="orderReset">Neu anfangen</button><button class="btn" id="orderCheck" ${O.placed.length === 8 ? '' : 'disabled'}>Prüfen</button></div>`}
+  </section>`;
+}
+
+/* ===== Spielrunde ===== */
+function curPh() { return PHASES.find(p => p.id === S.list[S.i]); }
+function fitOf(ph, k) {
+  const o = PV(ph,'opts')[k]; let f = o.fit[S.per] + ((o.shop && o.shop[S.shop]) || 0);
+  if ((ph.id === 3 || ph.id === 4) && S.res[2] && S.res[2].fit === 0) f -= 1;
+  return clamp(f, 0, 3);
+}
+function bestFit(ph) { return Math.max(...PV(ph,'opts').map((o, k) => fitOf(ph, k))); }
+
+function vPlay() {
+  const ph = curPh(), R = S.res[ph.id];
+  let h = `<div class="scene">${sceneSVG()}</div><section class="card stack">${talk()}</section>`;
+  h += `<section class="card stack"><span class="eyebrow">Stufe ${ph.id} · ${esc(ph.modul)}</span><h2>${esc(ph.name)}</h2>`;
+  if (S.step === 'decide') {
+    h += `<p>${esc(fill(pickTxt(PV(ph,'sit'))))}</p>`;
+    if (ph.id >= 3 && !S.sel.has(2)) h += `<div class="hint"><b>Das wisst ihr schon:</b> „${esc(PERSONAS[S.per].need)}“</div>`;
+    if ((ph.id === 3 || ph.id === 4) && S.res[2] && S.res[2].fit === 0) h += `<div class="hint">Achtung: In Stufe 2 habt ihr den Bedarf kaum ermittelt. Jetzt trefft ihr schwerer.</div>`;
+    h += `<div class="opts">${PV(ph,'opts').map((o, k) => { let cls = R && R.opt === k ? 'sel' : ''; if (R && R.locked) cls += ' r' + fitOf(ph, k); return `<button class="opt ${cls}" data-opt="${k}" ${R && R.locked ? 'disabled' : ''}><span class="t">${esc(fill(o.t))}</span><span class="d">${esc(fill(o.d))}</span></button>`; }).join('')}</div>`;
+    if (!R || !R.locked) h += `<button class="btn wide" id="lock" ${R && R.opt != null ? '' : 'disabled'}>Entscheidung festlegen</button>`;
+    else {
+      const f = R.fit, bf = bestFit(ph);
+      h += `<div class="fb ${f >= 3 ? 'good' : f >= 1 ? 'mid' : 'bad'}">${f >= 3 ? 'Passt sehr gut zu ' : f >= 1 ? 'Geht so bei ' : 'Daneben bei '}${esc(PERSONAS[S.per].nameD)}. +${f} ${f === 1 ? 'Punkt' : 'Punkte'}${f < bf ? ' · Es gäbe eine bessere Wahl – die steht in der Auswertung.' : ''}</div>`;
+      h += `<div class="term"><span class="eyebrow" style="color:var(--teal)">Fachbegriff</span><b>${esc(fill(PV(ph,'term')))}</b><span>${esc(fill(PV(ph,'termText')))}</span></div>`;
+      h += `<button class="btn wide" id="toSay">Weiter: Jetzt sagt ihr es</button>`;
+    }
+  } else if (S.step === 'say') {
+    h += S.level === 'basis' ? vBasis(ph) : vProfi(ph);
+  } else if (S.step === 'why') {
+    h += vWhy(ph);
+  }
+  return h + `</section>`;
+}
+
+/* Basis: Satzbaukasten */
+function vBasis(ph) {
+  const R = S.res[ph.id];
+  if (!R.builds) R.builds = PV(ph,'basis').map(b => ({ order: b.slots.map(sl => shuffle(sl.ch.map((c, k) => k))), sel: b.slots.map(() => null), tries: 0, done: false, ok: b.slots.map(() => false), pts: 0 }));
+  let h = `<p class="lead">In wörtlicher Rede: Tippt pro Zeile einen Baustein an. Dann prüfen.</p>`;
+  h += `<div class="ws">${wsFor(ph).map(w => `<span>${esc(w)}</span>`).join('')}</div>`;
+  PV(ph,'basis').forEach((b, bi) => {
+    const B = R.builds[bi];
+    const parts = b.slots.map((sl, si) => { const k = B.sel[si]; if (k == null) return '<span class="gap">&nbsp;</span>'; const cls = B.tries ? (B.ok[si] ? 'ok' : 'no') : ''; return `<span class="w ${cls}">${esc(fill(sl.ch[k].t))}</span>`; });
+    h += `<div class="stack" style="gap:8px"><h3>${esc(fill(b.task))}</h3><div class="sentence">${b.plain ? '' : '„'}${parts.join(' ')}${b.plain ? '' : '“'}</div>`;
+    b.slots.forEach((sl, si) => {
+      const locked = B.done || (B.tries && B.ok[si]);
+      h += `<div class="slot"><span class="lbl">${esc(sl.lbl)}</span><div class="chips">${B.order[si].map(k => { const c = sl.ch[k]; let cls = B.sel[si] === k ? 'sel' : ''; if (B.tries && B.sel[si] === k) cls = B.ok[si] ? 'ok' : 'no'; if (B.done && B.showRight && c.ok) cls = 'ok'; return `<button class="chip ${cls}" data-b="${bi}" data-s="${si}" data-k="${k}" ${locked ? 'disabled' : ''}>${esc(fill(c.t))}</button>`; }).join('')}</div>`;
+      if (B.tries && !B.ok[si] && B.sel[si] != null && B.lastWrong && B.lastWrong[si]) h += `<div class="fb bad">${esc(fill(B.lastWrong[si]))}</div>`;
+      h += `</div>`;
+    });
+    if (!B.done) h += `<button class="btn sun" data-check="${bi}" ${B.sel.every(x => x != null) ? '' : 'disabled'}>${B.tries ? 'Noch einmal prüfen' : 'Prüfen'}</button>`;
+    else h += `<div class="fb ${B.pts === 2 ? 'good' : B.pts === 1 ? 'mid' : 'bad'}">${B.pts === 2 ? 'Auf Anhieb richtig!' : B.pts === 1 ? 'Im zweiten Versuch richtig.' : 'So wäre es richtig gewesen – lest den Satz einmal laut.'} +${B.pts} ${B.pts === 1 ? 'Punkt' : 'Punkte'}</div>`;
+    h += `</div>`;
+  });
+  if (R.builds.every(B => B.done)) h += mustBox(ph) + `<button class="btn wide" id="next">${nextLabel()}</button>`;
+  return h;
+}
+function wsFor(ph) {
+  const W = { 1:['Blickkontakt','Begrüßung','Sie-Stil','warenbezogen','Freiraum'], 2:['offene Frage','W-Wort','Alternativfrage','direkt','indirekt'], 3:['3 bis 5 Artikel','mittlere Preislage','alle Sinne','anfassen'], 4:['Merkmal','Vorteil','Nutzen'], 5:['Sandwich','Preisschock','Nutzen – Preis – Nutzen'], 6:['Ja-Aber','zustimmen','Chance'], 7:['Ergänzungsangebot','Zusatzangebot','Alternativangebot'], 8:['Kaufsignal','Kaufbestätigung','bedanken','verabschieden'] };
+  return W[ph.id];
+}
+function mustBox(ph) {
+  return `<div class="muster"><span class="src">So steht es in der Prüfung · ${esc(PV(ph,'ihk').src)}</span><p><b>${esc(PV(ph,'ihk').task)}</b></p><p class="quote">${esc(PV(ph,'ihk').lsg)}</p></div>`;
+}
+
+/* Profi: selbst formulieren */
+function evalChecks(ph, texts) {
+  const sh = SHOPS[S.shop], pe = PERSONAS[S.per];
+  return PV(ph,'profi').checks.map(c => {
+    const f = c.f == null ? 0 : c.f; const t = f === -1 ? texts.join(' ') : (texts[f] || '');
+    let ok;
+    if (c.re === 'KURZ') ok = new RegExp(sh.kurz, 'i').test(t);
+    else if (c.re === 'ZTYP') ok = new RegExp(sh.zTyp.slice(0, 6), 'i').test(t);
+    else if (c.re === 'NAME') ok = new RegExp(pe.name.split(' ').pop(), 'i').test(t);
+    else if (c.re === 'BEFORE' || c.re === 'AFTER') {
+      const m = t.match(/\d[\d.,]*\s*(€|euro|eur)?/i);
+      if (!m) ok = false; else { const before = t.slice(0, m.index), after = t.slice(m.index + m[0].length); const wc = s => (s.match(/[A-Za-zÄÖÜäöüß]{2,}/g) || []).length; ok = c.re === 'BEFORE' ? wc(before) >= 4 : wc(after) >= 4; }
+    } else ok = c.re.test(t);
+    if (c.neg) ok = !ok;
+    return { l: fill(c.l), ok, must: c.must };
+  });
+}
+function vProfi(ph) {
+  const R = S.res[ph.id];
+  if (!R.texts) R.texts = PV(ph,'profi').fields.map(() => '');
+  let h = `<div class="hint"><b>Prüfungsaufgabe:</b> ${esc(fill(PV(ph,'profi').task))}</div>`;
+  PV(ph,'profi').fields.forEach((fl, k) => {
+    h += `<div><label class="fl" for="tx${k}">${esc(fl)}</label><textarea id="tx${k}" data-tx="${k}" ${R.submitted ? 'readonly' : ''} placeholder="${k === 0 || PV(ph,'profi').fields.length === 1 ? '„…“' : ''}">${esc(R.texts[k])}</textarea></div>`;
+  });
+  const res = evalChecks(ph, R.texts);
+  h += `<div><span class="eyebrow">Checkliste</span><ul class="checks" id="checks">${res.map(c => `<li class="${R.texts.some(t => t.trim()) ? (c.ok ? 'ok' : 'no') : ''}">${esc(c.l)}${c.must ? '' : ' <span class="tiny">(Bonus)</span>'}</li>`).join('')}</ul></div>`;
+  if (!R.submitted) {
+    const ready = R.texts.every(t => t.trim().length >= 6);
+    h += `<button class="btn wide" id="submit" ${ready ? '' : 'disabled'}>Abgeben und mit der Musterlösung vergleichen</button>`;
+  } else {
+    const mustFail = res.some(c => c.must && !c.ok);
+    h += mustBox(ph);
+    h += `<div class="muster"><span class="src">Beispiel für euren Laden</span><p class="quote">„${esc(PV(ph,'basis').map(b => b.slots.map(sl => fill(sl.ch.find(c => c.ok).t)).join(' ')).join('“ – „'))}“</p></div>`;
+    if (R.self == null) {
+      h += `<h3>Wie viele Punkte gibt es für euren Satz?</h3><p class="small">Vergleicht ehrlich mit der Musterlösung. Lest euren Satz laut vor: Klingt er freundlich und im Sie-Stil?</p>`;
+      if (mustFail) h += `<div class="fb mid">Die Checkliste zeigt eine Lücke. Volle Punkte sind so nicht drin.</div>`;
+      h += `<div class="row"><button class="btn" data-self="2" ${mustFail ? 'disabled' : ''}>2 · passt wie die Musterlösung</button><button class="btn sun" data-self="1">1 · teilweise</button><button class="btn ghost" data-self="0">0 · noch nicht</button></div>`;
+    } else {
+      h += `<div class="fb ${R.self === 2 ? 'good' : R.self === 1 ? 'mid' : 'bad'}">+${R.self} ${R.self === 1 ? 'Punkt' : 'Punkte'} für eure Formulierung</div><button class="btn wide" id="toWhy">Weiter: Begründen</button>`;
+    }
+  }
+  return h;
+}
+function vWhy(ph) {
+  const R = S.res[ph.id];
+  if (!R.whyOrder) R.whyOrder = shuffle(PV(ph,'why').opts.map((o, k) => k));
+  let h = `<span class="eyebrow">Für Profis · 1 Fachpunkt</span><h3>${esc(PV(ph,'why').q)}</h3><div class="opts">`;
+  R.whyOrder.forEach(k => { const o = PV(ph,'why').opts[k]; let cls = ''; if (R.whyPick != null) { if (o.ok) cls = 'r3'; else if (R.whyPick === k) cls = 'r0'; } h += `<button class="opt ${cls}" data-why="${k}" ${R.whyPick != null ? 'disabled' : ''}><span class="t">${esc(o.t)}</span></button>`; });
+  h += `</div>`;
+  if (R.whyPick != null) h += `<p class="tiny">Quelle: ${esc(PV(ph,'why').src)}</p><button class="btn wide" id="next">${nextLabel()}</button>`;
+  return h;
+}
+function nextLabel() {
+  if (S.i === S.evAt && !S.evRes) return 'Weiter';
+  return S.i + 1 < S.list.length ? `Weiter zu Stufe ${S.list[S.i + 1]}` : 'Weiter zum Abschluss-Quiz';
+}
+
+/* ===== Zwischenfall ===== */
+function vEvent() {
+  const E = S.ev;
+  if (!S.evOrder) S.evOrder = shuffle([0, 1]);
+  let h = `<div class="scene">${sceneSVG()}</div><section class="card stack">${talk()}</section><section class="card stack"><span class="eyebrow">Zwischenfall · ${esc(E.t)}</span><h2>Was jetzt?</h2><p>${esc(fill(E.text))}</p><div class="opts">`;
+  S.evOrder.forEach(k => { const o = E.opts[k]; let cls = ''; if (S.evRes) { if (o.ok) cls = 'r3'; else if (S.evRes.k === k) cls = 'r0'; } h += `<button class="opt ${cls}" data-ev="${k}" ${S.evRes ? 'disabled' : ''}><span class="t">${esc(fill(o.t))}</span></button>`; });
+  h += `</div>`;
+  if (S.evRes) h += `<div class="fb ${S.evRes.ok ? 'good' : 'bad'}">${S.evRes.ok ? '+1 Punkt · ' : ''}${esc(E.why)}</div><button class="btn wide" id="evNext">${S.i + 1 < S.list.length ? `Weiter zu Stufe ${S.list[S.i + 1]}` : 'Weiter zum Abschluss-Quiz'}</button>`;
+  return h + `</section>`;
+}
+
+/* ===== Quiz ===== */
+function vQuiz() {
+  const Q = S.quiz, q = Q.items[Q.k];
+  let h = `<div class="scene">${sceneSVG()}</div><section class="card stack"><span class="eyebrow">Abschluss-Quiz · Satz ${Q.k + 1} von ${Q.items.length}</span><h2>Welche Stufe ist das?</h2>
+  <div class="sentence">${esc(q.s)}</div><div class="qbtns">${PHASES.map(p => { let cls = ''; if (Q.pick != null) { if (p.id === q.p) cls = 'ok'; else if (Q.pick === p.id) cls = 'no'; } return `<button class="qb ${cls}" data-q="${p.id}" ${Q.pick != null ? 'disabled' : ''}><span class="n">${p.id}</span>${esc(p.short)}</button>`; }).join('')}</div>`;
+  if (Q.pick != null) h += `<div class="fb ${Q.pick === q.p ? 'good' : 'bad'}">${Q.pick === q.p ? 'Richtig! +1 Punkt' : `Das gehört zu Stufe ${q.p}: ${esc(PHASES[q.p - 1].name)}.`}</div><button class="btn wide" id="qNext">${Q.k + 1 < Q.items.length ? 'Nächster Satz' : 'Zur Auswertung'}</button>`;
+  return h + `</section>`;
+}
+
+/* ===== Auswertung ===== */
+function vResult() {
+  const P = PERSONAS[S.per], sh = SHOPS[S.shop];
+  const pct = S.max ? Math.round(S.pts / S.max * 100) : 0;
+  const stars = pct >= 85 ? 3 : pct >= 60 ? 2 : pct >= 35 ? 1 : 0;
+  const pq = PROFI_Q[(store('sfs-runden') || 0) % PROFI_Q.length];
+  let h = `<div class="scene">${sceneSVG()}</div>
+  <section class="score"><span class="eyebrow" style="color:inherit;opacity:.85">Punktekarte · zum Zeigen</span>
+    <div class="stars">${[0, 1, 2].map(k => star(k < stars)).join('')}</div>
+    <div class="big">${fmt(S.pts)} / ${S.max}</div>
+    <p><b>${esc(S.team || 'Team ohne Namen')}</b> · ${esc(sh.laden)} · ${esc(P.name)} · ${S.level === 'profi' ? 'Profi' : 'Basis'}</p>
+    <p>${S.sel.has(8) ? (S.bought ? `${esc(P.name)} hat gekauft.` : `${esc(P.name)} ist ohne Kauf gegangen.`) : `Geübt: Stufe ${S.list.join(', ')}`}</p>
+  </section>
+  <section class="card stack"><div class="kpis">
+    <div class="kpi"><div class="v">${pct} %</div><div class="l">der möglichen Punkte</div></div>
+    <div class="kpi"><div class="v">${Math.round(S.mood)}</div><div class="l">Stimmung am Ende</div></div>
+    <div class="kpi"><div class="v">${S.list.filter(id => S.res[id] && S.res[id].fit >= 3).length} / ${S.list.length}</div><div class="l">Entscheidungen voll getroffen</div></div>
+  </div>${S.newRecord ? '<p class="small"><b>Neuer Rekord auf diesem Gerät!</b> (wird nur hier gespeichert)</p>' : ''}
+  <p class="small">Das Kaufmotiv von ${esc(P.name)}: ${esc(P.motiv)}.</p></section>
+  <section class="card stack"><h2>Eure Entscheidungen</h2>`;
+  S.list.forEach(id => {
+    const ph = PHASES[id - 1], R = S.res[id], o = PV(ph,'opts')[R.opt], f = R.fit, bf = bestFit(ph);
+    const mk = f >= 3 ? ['g', '✓'] : f >= 1 ? ['m', '~'] : ['b', '✗'];
+    h += `<div class="rv"><div class="hd"><span class="mk ${mk[0]}">${mk[1]}</span><div style="min-width:0"><b>Stufe ${id}: ${esc(ph.name)}</b><br><span class="small">Eure Wahl: ${esc(fill(o.t))}</span></div></div>
+    <p>${esc(fill(o.why))}</p>`;
+    if (f < bf) { const k = PV(ph,'opts').findIndex((x, i) => fitOf(ph, i) === bf); h += `<p><b>Besser für ${esc(P.nameD)}:</b> ${esc(fill(PV(ph,'opts')[k].t))}</p>`; }
+    const said = S.level === 'basis' ? (R.builds || []).map(B => (PV(ph,'basis')[R.builds.indexOf(B)].plain ? '' : '„') + PV(ph,'basis')[R.builds.indexOf(B)].slots.map((sl, si) => fill(sl.ch[B.sel[si]].t)).join(' ') + (PV(ph,'basis')[R.builds.indexOf(B)].plain ? '' : '“')) : (R.texts || []).filter(t => t.trim()).map((t, k) => (PV(ph,'profi').fields.length > 1 ? PV(ph,'profi').fields[k] + ': ' : '') + t.trim());
+    if (said.length) h += `<div class="said">${said.map(esc).join('<br>')}</div>`;
+    h += `<details><summary>So steht es in der Prüfung</summary><div class="muster" style="margin-top:8px"><span class="src">${esc(PV(ph,'ihk').src)}</span><p><b>${esc(PV(ph,'ihk').task)}</b></p><p class="quote">${esc(PV(ph,'ihk').lsg)}</p><p class="tiny">${esc(ph.examNote)}</p></div></details></div>`;
+  });
+  h += `</section>
+  <section class="card stack"><span class="eyebrow">Prüfungskasten</span><h3>Das will die IHK in wörtlicher Rede hören</h3>
+  <ul class="checks"><li class="ok">Ganzer Satz mit Anführungszeichen, im Sie-Stil.</li><li class="ok">Offene Fragen beginnen mit W-Wort. Für geschlossene Fragen gibt es keine Punkte.</li><li class="ok">Preis nie nackt nennen: Nutzen – Preis – Nutzen.</li><li class="ok">Einwand: erst zustimmen, dann Nutzen („Ja, da haben Sie recht, dafür …“).</li><li class="ok">Kaufbestätigung plus Verabschiedung – ohne Bestätigung nur 1 Punkt.</li></ul></section>
+  <section class="card stack"><span class="eyebrow">Für Profis</span><h3>${esc(pq.q)}</h3><details><summary>Lösung zeigen</summary><p style="margin-top:6px">${esc(pq.a)}</p></details></section>
+  <section class="card stack"><h3>Noch eine Runde?</h3><div class="row">
+    <button class="btn" id="againNew">Neue Kundschaft, neue Situationen</button><button class="btn sun" id="againSame">Gleiche Situationen – besser machen</button><button class="btn ghost" id="againSetup">Andere Stufen oder Branche</button></div>
+    <p class="tiny">Rekord und Rundenzahl werden nur auf diesem Gerät gespeichert.</p></section>`;
+  return h;
+}
+
+/* ===== Ablauf ===== */
+function drawPersona(exclude) {
+  const ids = Object.keys(PERSONAS).filter(id => id !== exclude);
+  S.per = ids[Math.floor(Math.random() * ids.length)];
+}
+function startGame(keep) {
+  S.list = [...S.sel].sort((a, b) => a - b);
+  if (!keep || !S.var) { S.var = {}; S.list.forEach(id => { const pool = [{ vid: id + 'a' }].concat(VARIANTS[id] || []); const v = pickUnseen('gv' + id, pool, 1, x => x.vid)[0]; S.var[id] = v.vid.endsWith('a') ? null : v; }); }
+  S.i = 0; S.step = 'decide'; S.res = {}; S.mood = 55; S.pts = 0; S.max = 0; S.ev = null; S.evRes = null; S.evOrder = null; S.bought = false; S.newRecord = false;
+  S.evAt = S.list.length >= 2 ? Math.floor((S.list.length - 1) / 2) : -1;
+  S.ev = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+  S.face = 'ok'; S.bubble = 'Guten Tag …';
+  if (S.list.length >= 5) { S.order = { pool: shuffle(PHASES.map(p => p.id)), placed: [], checked: false }; S.screen = 'order'; S.bubble = 'Ich komme gleich rein – baut schon mal eure Treppe auf.'; }
+  else S.screen = 'play';
+  render(); window.scrollTo(0, 0);
+}
+function nextPhase() {
+  if (S.i === S.evAt && !S.evRes) { S.screen = 'event'; S.face = 'ok'; S.bubble = '…'; render(); window.scrollTo(0, 0); return; }
+  if (S.i + 1 < S.list.length) { S.i++; S.step = 'decide'; S.screen = 'play'; S.bubble = '…'; render(); window.scrollTo(0, 0); return; }
+  startQuiz();
+}
+function startQuiz() {
+  const items = pickUnseen('satz', QUIZ, 6, q => q.id);
+  S.quiz = { items, k: 0, pick: null }; S.screen = 'quiz'; render(); window.scrollTo(0, 0);
+}
+function finish() {
+  S.bought = S.sel.has(8) && S.mood >= 45 && S.res[8] && S.res[8].fit > 0;
+  S.face = S.mood >= 60 ? 'happy' : S.mood >= 40 ? 'ok' : 'sad';
+  S.bubble = S.sel.has(8) ? (S.bought ? 'Vielen Dank, ich komme gern wieder!' : 'Ich überlege es mir noch mal …') : 'Danke für die Beratung!';
+  const pct = S.max ? Math.round(S.pts / S.max * 100) : 0;
+  const rec = store('sfs-rekord') || {};
+  if (pct > (rec[S.level] || 0)) { rec[S.level] = pct; store('sfs-rekord', rec); S.newRecord = true; }
+  store('sfs-runden', (store('sfs-runden') || 0) + 1);
+  S.screen = 'result'; render(); window.scrollTo(0, 0);
+}
+
+/* ===== Ereignisse ===== */
+function bind() {
+  const app = $('#app');
+  app.onclick = e => {
+    const b = e.target.closest('button'); if (!b || b.disabled) return;
+    const d = b.dataset;
+    if (modeClick(b, d)) return;
+    if (d.lvl) { S.level = d.lvl; S.team = ($('#team') || {}).value || S.team; render(); return; }
+    if (d.shop) { S.shop = d.shop; S.team = ($('#team') || {}).value || S.team; render(); return; }
+    if (b.id === 'toPhases') { S.team = $('#team').value.trim(); S.screen = 'phases'; render(); window.scrollTo(0, 0); return; }
+    if (d.ph) { const id = +d.ph; S.sel.has(id) ? S.sel.delete(id) : S.sel.add(id); render(); return; }
+    if (d.pre) { S.sel = new Set(d.pre === 'all' ? [1,2,3,4,5,6,7,8] : d.pre === 'hits' ? [1,2,3,5,6,8] : []); render(); return; }
+    if (b.id === 'back') { S.screen = 'start'; render(); return; }
+    if (b.id === 'toDraw') { drawPersona(); S.turned = false; S.screen = 'draw'; render(); window.scrollTo(0, 0); return; }
+    if (b.id === 'turn') { S.turned = true; $('#flip').classList.add('turned'); $('#go').disabled = false; return; }
+    if (b.id === 'redraw') { drawPersona(S.per); S.turned = false; render(); return; }
+    if (b.id === 'go') { startGame(); return; }
+    /* Treppe */
+    if (d.ord) { S.order.placed.push(+d.ord); render(); return; }
+    if (b.id === 'orderReset') { S.order.placed = []; render(); return; }
+    if (b.id === 'orderCheck') { const O = S.order; O.checked = true; O.right = O.placed.filter((id, k) => id === k + 1).length; O.p = Math.ceil(O.right / 2); addPts(O.p, 4); S.face = O.right >= 6 ? 'happy' : 'ok'; S.bubble = O.right === 8 ? 'Ihr kennt die Stufen – dann mal los!' : 'Gut, dann schauen wir mal, wie ihr Stufe für Stufe vorgeht.'; render(); return; }
+    if (b.id === 'orderNext') { S.screen = 'play'; S.face = 'ok'; S.bubble = '…'; render(); window.scrollTo(0, 0); return; }
+    /* Entscheidung */
+    const ph = S.screen === 'play' ? curPh() : null;
+    if (d.opt != null && ph) { S.res[ph.id] = { opt: +d.opt }; render(); return; }
+    if (b.id === 'lock') {
+      const R = S.res[ph.id]; R.locked = true; R.fit = fitOf(ph, R.opt);
+      addPts(R.fit, 3); addMood([-15, -5, 5, 12][R.fit]);
+      S.face = R.fit >= 3 ? 'happy' : R.fit >= 1 ? 'ok' : 'sad';
+      S.bubble = pickTxt(PV(ph,'opts')[R.opt].re);
+      render(); return;
+    }
+    if (b.id === 'toSay') { S.step = 'say'; render(); $('#app').scrollIntoView({ block: 'start' }); return; }
+    /* Basis */
+    if (d.b != null && d.s != null) { const B = S.res[ph.id].builds[+d.b]; B.sel[+d.s] = +d.k; render(); return; }
+    if (d.check != null) {
+      const bi = +d.check, B = S.res[ph.id].builds[bi], bdef = PV(ph,'basis')[bi];
+      B.tries++; B.lastWrong = {};
+      B.ok = bdef.slots.map((sl, si) => { const c = sl.ch[B.sel[si]]; if (!c.ok) B.lastWrong[si] = c.why; return !!c.ok; });
+      if (B.ok.every(Boolean)) { B.done = true; B.pts = B.tries === 1 ? 2 : 1; addPts(B.pts, 2); addMood(B.tries === 1 ? 5 : 1); S.face = 'happy'; S.bubble = 'Ja, so gefällt mir das.'; }
+      else if (B.tries >= 2) { B.done = true; B.pts = 0; addPts(0, 2); addMood(-3); B.showRight = true; bdef.slots.forEach((sl, si) => { B.sel[si] = sl.ch.findIndex(c => c.ok); B.ok[si] = true; }); S.face = 'ok'; S.bubble = 'Hm …'; }
+      else { S.face = 'ok'; S.bubble = 'Hm, das klang noch nicht ganz richtig.'; }
+      render(); return;
+    }
+    /* Profi */
+    if (b.id === 'submit') { S.res[ph.id].submitted = true; render(); return; }
+    if (d.self != null) { const R = S.res[ph.id]; R.self = +d.self; addPts(R.self, 2); addMood([-3, 2, 6][R.self]); S.face = R.self === 2 ? 'happy' : 'ok'; S.bubble = R.self === 2 ? 'Das haben Sie schön gesagt.' : 'Aha …'; render(); return; }
+    if (b.id === 'toWhy') { S.step = 'why'; render(); return; }
+    if (d.why != null) { const R = S.res[ph.id]; R.whyPick = +d.why; const ok = !!PV(ph,'why').opts[R.whyPick].ok; addPts(ok ? 1 : 0, 1); if (ok) addMood(3); render(); return; }
+    if (b.id === 'next') { nextPhase(); return; }
+    /* Zwischenfall */
+    if (d.ev != null) { const k = +d.ev, ok = !!S.ev.opts[k].ok; S.evRes = { k, ok }; addPts(ok ? 1 : 0, 1); addMood(ok ? 8 : -10); S.face = ok ? 'happy' : 'sad'; S.bubble = ok ? 'Das ist aufmerksam, danke.' : 'Hm. Das gefällt mir gar nicht.'; render(); return; }
+    if (b.id === 'evNext') { if (S.i + 1 < S.list.length) { S.i++; S.step = 'decide'; S.screen = 'play'; S.bubble = '…'; render(); window.scrollTo(0, 0); } else startQuiz(); return; }
+    /* Quiz */
+    if (d.q != null) { const Q = S.quiz; Q.pick = +d.q; const ok = Q.pick === Q.items[Q.k].p; addPts(ok ? 1 : 0, 1); render(); return; }
+    if (b.id === 'qNext') { const Q = S.quiz; if (Q.k + 1 < Q.items.length) { Q.k++; Q.pick = null; render(); } else finish(); return; }
+    /* Neue Runde */
+    if (b.id === 'againNew') { drawPersona(S.per); S.turned = false; S.screen = 'draw'; render(); window.scrollTo(0, 0); return; }
+    if (b.id === 'againSame') { startGame(true); return; }
+    if (b.id === 'againSetup') { S.screen = 'start'; render(); window.scrollTo(0, 0); return; }
+  };
+  app.oninput = e => {
+    const t = e.target;
+    if (t.dataset && t.dataset.tx != null) {
+      const ph = curPh(), R = S.res[ph.id]; R.texts[+t.dataset.tx] = t.value;
+      const res = evalChecks(ph, R.texts);
+      const lis = document.querySelectorAll('#checks li');
+      res.forEach((c, k) => { lis[k].className = c.ok ? 'ok' : 'no'; });
+      const sb = $('#submit'); if (sb) sb.disabled = !R.texts.every(x => x.trim().length >= 6);
+    }
+    if (t.id === 'team') S.team = t.value;
+  };
+}
+
+/* ===== Start ===== */
+function init() {
+  const h = (location.hash || '').slice(1);
+  const m = h.match(/^stufe([1-8])$/);
+  if (m) { S.sel = new Set([+m[1]]); S.mode = 'gespraech'; }
+  if (MODES[h]) S.mode = h;
+  render();
+}
+/* ===== Gesehen-Speicher: keine doppelten Fragen, solange es neue gibt ===== */
+function seenAll() { return store('sfs-seen') || {}; }
+function seenGet(k) { return seenAll()[k] || []; }
+function seenAdd(k, ids) { const all = seenAll(); const set = new Set(all[k] || []); ids.forEach(i => set.add(i)); all[k] = [...set]; store('sfs-seen', all); }
+function seenReset(k) { const all = seenAll(); all[k] = []; store('sfs-seen', all); }
+function pickUnseen(k, pool, n, idf) {
+  const seen = new Set(seenGet(k));
+  let out = shuffle(pool.filter(x => !seen.has(idf(x)))).slice(0, n);
+  if (out.length < n) {
+    seenReset(k); S.cycled = true;
+    out = out.concat(shuffle(pool.filter(x => !out.includes(x))).slice(0, n - out.length));
+  }
+  seenAdd(k, out.map(idf));
+  return out;
+}
+function newCount(mode) {
+  if (mode === 'gespraech') { let t = 0, seen = 0; PHASES.forEach(p => { const ids = [p.id + 'a'].concat((VARIANTS[p.id] || []).map(v => v.vid)); t += ids.length; const sg = new Set(seenGet('gv' + p.id)); seen += ids.filter(i => sg.has(i)).length; }); return [t - seen, t]; }
+  const pool = { fehler:FEHLER, ansturm:ANSTURM, blitz:QUIZ }[mode], key = { fehler:'fehler', ansturm:'ansturm', blitz:'satz' }[mode], idf = x => x.id;
+  const sg = new Set(seenGet(key)); return [pool.filter(x => !sg.has(idf(x))).length, pool.length];
+}
+
+/* ===== Modi ===== */
+const MODES = {
+  gespraech:{ name:'Verkaufsgespräch', desc:'Stufe für Stufe mit einer Kundschaft – Entscheidung, Satz in wörtlicher Rede, Zwischenfall, Quiz.', unit:'Situationen' },
+  fehler:{ name:'Fehler-Detektiv', desc:'Eine Kollegin verkauft – mit Fehlern. Findet sie, benennt sie und verbessert sie. Genau so fragt die IHK.', unit:'Gespräche' },
+  ansturm:{ name:'Kundenansturm', desc:'Samstag, 11 Uhr: acht Kunden hintereinander, die Zeit läuft. Wer bleibt cool und reagiert richtig?', unit:'Kunden' },
+  blitz:{ name:'Blitzrunde', desc:'Welche Stufe ist das? So viele Sätze wie möglich, bevor die Zeit abläuft. Serien geben Bonus.', unit:'Sätze' }
+};
+const MICON = {
+  gespraech:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 42h10v-8h10v-8h10v-8h10v24z" fill="var(--berry)"/><path d="M6 14q0-8 9-8h6q8 0 8 7t-8 7h-5l-5 4 1-4q-6 0-6-6z" fill="var(--apricot)" stroke="var(--ink)" stroke-width="2"/></svg>',
+  fehler:'<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="20" cy="20" r="13" fill="var(--surface)" stroke="var(--ink)" stroke-width="4"/><path d="M30 30l12 12" stroke="var(--ink)" stroke-width="6" stroke-linecap="round"/><path d="M14 14l12 12M26 14L14 26" stroke="var(--bad)" stroke-width="4" stroke-linecap="round"/></svg>',
+  ansturm:'<svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="var(--ink)" stroke-width="2"><circle cx="10" cy="16" r="5" fill="var(--teal)"/><rect x="5" y="22" width="10" height="16" rx="4" fill="var(--teal)"/><circle cx="24" cy="16" r="5" fill="var(--apricot)"/><rect x="19" y="22" width="10" height="16" rx="4" fill="var(--apricot)"/><circle cx="38" cy="16" r="5" fill="var(--berry)"/><rect x="33" y="22" width="10" height="16" rx="4" fill="var(--berry)"/></g><path d="M4 43h40" stroke="var(--ink)" stroke-width="3"/></svg>',
+  blitz:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M27 3L9 27h12l-4 18 22-26H26z" fill="var(--apricot)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/></svg>'
+};
+function modeCards() {
+  return `<div class="choice two">${Object.keys(MODES).map(k => { const [n, t] = newCount(k); return `<button class="ch mode ${S.mode === k ? 'sel' : ''}" data-mode="${k}">${MICON[k]}<b>${MODES[k].name}</b><span class="small">${MODES[k].desc}</span><span class="newc">${n ? `${n} von ${t} ${MODES[k].unit} neu` : `alle ${t} gespielt – es wird neu gemischt`}</span></button>`; }).join('')}</div>`;
+}
+
+/* ===== Timer ===== */
+let TIMER = null;
+function stopTimer() { if (TIMER) { clearInterval(TIMER); TIMER = null; } }
+function runTimer(end, total, onEnd) {
+  const tick = () => {
+    const left = Math.max(0, end - Date.now());
+    const bar = $('#tbar'), txt = $('#ttxt');
+    if (bar) { bar.style.width = (left / total * 100) + '%'; bar.style.background = left < total * 0.3 ? 'var(--bad)' : 'var(--teal)'; }
+    if (txt) txt.textContent = Math.ceil(left / 1000) + ' s';
+    if (left <= 0) { stopTimer(); onEnd(); }
+  };
+  stopTimer(); tick(); if (Date.now() < end) TIMER = setInterval(tick, 200);
+}
+function afterRender() {
+  if (S.screen === 'ansturm' && S.an && S.an.pick == null) runTimer(S.an.deadline, S.an.dur, () => { if (S.an.pick == null) answerAnsturm(-1); });
+  if (S.screen === 'blitz' && S.bz && !S.bz.over) runTimer(S.bz.end, S.bz.dur, () => endBlitz());
+}
+function modeBar() {
+  if (S.screen === 'fehler') return `<span class="pill">Gespräch ${S.fe.k + 1}/${S.fe.items.length}</span><span class="pill pts">${S.fe.pts} Punkte</span>`;
+  if (S.screen === 'ansturm') return `<span class="pill">Kunde ${S.an.k + 1}/${S.an.items.length}</span><span class="pill pts">${S.an.umsatz} € Umsatz</span>`;
+  if (S.screen === 'blitz') return `<span class="pill" id="ttxt">${Math.ceil(Math.max(0, S.bz.end - Date.now()) / 1000)} s</span><span class="pill">Serie ${S.bz.streak}</span><span class="pill pts">${S.bz.pts} Punkte</span><div class="prog"><i class="now" id="tbar" style="flex:none;width:100%"></i></div>`;
+  if (S.screen === 'mres') return '';
+  return null;
+}
+function lvlTag() { return S.level === 'profi' ? 'Profi' : 'Basis'; }
+
+/* ===== Fehler-Detektiv ===== */
+function startFehler() {
+  S.cycled = false;
+  S.fe = { items: pickUnseen('fehler', FEHLER, 3, x => x.id), k: 0, e: 0, stage: 'line', tries: 0, wrong: [], pts: 0, max: 0, log: [] };
+  S.screen = 'fehler'; render(); window.scrollTo(0, 0);
+}
+function feCur() { const F = S.fe; return { D: F.items[F.k], E: F.items[F.k].errs[F.e] }; }
+function vFehler() {
+  const F = S.fe, { D, E } = feCur();
+  const found = D.errs.slice(0, F.e).map(x => x.l);
+  let h = `<section class="card stack"><span class="eyebrow">Fehler-Detektiv · ${esc(D.ort)} · ${lvlTag()}</span><h2>${F.stage === 'line' ? 'Wo ist der Fehler?' : F.stage === 'type' ? 'Was ist falsch?' : 'Wie geht es besser?'}</h2>
+  <p class="small">Fehler ${F.e + 1} von ${D.errs.length} in diesem Gespräch. V = Verkäuferin, K = Kunde.</p><div class="dlg">`;
+  D.lines.forEach((ln, i) => {
+    let cls = ln[0] === 'V' ? 'v' : 'k';
+    if (found.includes(i)) cls += ' fixed';
+    if (F.wrong.includes(i)) cls += ' no';
+    if (F.stage !== 'line' && i === E.l) cls += ' hit';
+    const can = F.stage === 'line' && !found.includes(i) && !F.wrong.includes(i) && (S.level === 'profi' || ln[0] === 'V');
+    h += `<button class="ln ${cls}" data-fl="${i}" ${can ? '' : 'disabled'}><span class="who">${ln[0] === 'V' ? 'Verkäuferin' : 'Kunde'}</span>${esc(ln[1].startsWith('(') ? ln[1] : '„' + ln[1] + '“')}</button>`;
+  });
+  h += `</div>`;
+  if (F.stage === 'line') h += `<p class="lead">${S.level === 'profi' ? 'Tippt die Zeile an, in der die Verkäuferin einen Fehler macht.' : 'Tippt eine Zeile der Verkäuferin an.'}${F.tries ? ' Noch ein Versuch.' : ''}</p>`;
+  if (F.stage === 'type') {
+    if (!F.typeOpts) F.typeOpts = shuffle([E.ty].concat(shuffle(Object.keys(FTYPES).filter(t => t !== E.ty)).slice(0, 3)));
+    h += `<div class="opts">${F.typeOpts.map(t => { let cls = ''; if (F.typePick) { if (t === E.ty) cls = 'r3'; else if (t === F.typePick) cls = 'r0'; } return `<button class="opt ${cls}" data-ft="${t}" ${F.typePick ? 'disabled' : ''}><span class="t">${esc(FTYPES[t])}</span></button>`; }).join('')}</div>`;
+    if (F.typePick) h += `<div class="fb ${F.typePick === E.ty ? 'good' : 'bad'}">${F.typePick === E.ty ? 'Richtig erkannt! +1' : 'Der Fehler ist: ' + esc(FTYPES[E.ty]) + '.'}</div><button class="btn wide" id="feToFix">Weiter: Verbesserung</button>`;
+  }
+  if (F.stage === 'fix') {
+    if (S.level === 'basis') {
+      if (!F.fixOrder) F.fixOrder = shuffle(E.fix.map((x, i) => i));
+      h += `<p class="lead">Welcher Satz ist die beste Verbesserung?</p><div class="opts">${F.fixOrder.map(i => { const x = E.fix[i]; let cls = ''; if (F.fixPick != null) { if (x.ok) cls = 'r3'; else if (F.fixPick === i) cls = 'r0'; } return `<button class="opt ${cls}" data-ff="${i}" ${F.fixPick != null ? 'disabled' : ''}><span class="t">${esc(x.t)}</span></button>`; }).join('')}</div>`;
+      if (F.fixPick != null) { const x = E.fix[F.fixPick]; h += `<div class="fb ${x.ok ? 'good' : 'bad'}">${x.ok ? 'Genau so! +2' : esc(x.why)}</div>` + feNextBtn(); }
+    } else {
+      h += `<div class="hint"><b>Prüfungsaufgabe:</b> Formulieren Sie einen Verbesserungsvorschlag in wörtlicher Rede!</div><textarea id="fetx" data-fetx="1" ${F.sub ? 'readonly' : ''} placeholder="„…“">${esc(F.text || '')}</textarea>`;
+      if (!F.sub) h += `<button class="btn wide" id="feSub" ${(F.text || '').trim().length >= 6 ? '' : 'disabled'}>Abgeben und vergleichen</button>`;
+      else {
+        h += `<div class="muster"><span class="src">So könnte es klingen</span><p class="quote">${esc(E.fix.find(x => x.ok).t)}</p><p class="tiny">${esc(E.m)}</p></div>`;
+        if (F.self == null) h += `<h3>Wie viele Punkte gibt es?</h3><div class="row"><button class="btn" data-fself="2">2 · passt</button><button class="btn sun" data-fself="1">1 · teilweise</button><button class="btn ghost" data-fself="0">0 · noch nicht</button></div>`;
+        else h += `<div class="fb ${F.self === 2 ? 'good' : F.self ? 'mid' : 'bad'}">+${F.self} ${F.self === 1 ? 'Punkt' : 'Punkte'}</div>` + feNextBtn();
+      }
+    }
+  }
+  return h + `</section>`;
+}
+function feNextBtn() { const F = S.fe, D = F.items[F.k]; const last = F.e + 1 >= D.errs.length; return `<button class="btn wide" id="feNext">${!last ? 'Nächster Fehler' : F.k + 1 < F.items.length ? 'Nächstes Gespräch' : 'Zur Auswertung'}</button>`; }
+function feAdvance() {
+  const F = S.fe, D = F.items[F.k];
+  Object.assign(F, { stage: 'line', tries: 0, wrong: [], typeOpts: null, typePick: null, fixOrder: null, fixPick: null, text: '', sub: false, self: null });
+  if (F.e + 1 < D.errs.length) F.e++;
+  else if (F.k + 1 < F.items.length) { F.k++; F.e = 0; }
+  else return modeResult('fehler');
+  render(); window.scrollTo(0, 0);
+}
+
+/* ===== Kundenansturm ===== */
+const CROWD = ['#b03a5b','#3d6b8f','#2f8a63','#e0a03a','#7a4fa0','#c0603a','#4a7a2a','#2a6f8a'];
+function startAnsturm() {
+  S.cycled = false;
+  S.an = { items: pickUnseen('ansturm', ANSTURM, 8, x => x.id), k: 0, umsatz: 0, happy: 0, pts: 0, log: [], dur: S.level === 'profi' ? 12000 : 20000 };
+  anPrep(); S.screen = 'ansturm'; render(); window.scrollTo(0, 0);
+}
+function anPrep() { const A = S.an; A.pick = null; A.order = shuffle([0, 1, 2]); A.deadline = Date.now() + A.dur; A.look = Object.values(PERSONAS)[Math.floor(Math.random() * 4)].look; }
+function queueSVG() {
+  const A = S.an, waiting = A.items.length - A.k - 1; let g = '';
+  for (let i = 0; i < Math.min(waiting, 7); i++) { const x = 58 + i * 29, c = CROWD[(A.k + i + 1) % CROWD.length]; g += `<g transform="translate(${x} 58)"><rect x="-9" y="-30" width="18" height="24" rx="8" fill="${c}" stroke="#1f1b2d" stroke-width="1.6"/><circle cy="-38" r="8" fill="#e8b892" stroke="#1f1b2d" stroke-width="1.6"/></g>`; }
+  return `<svg viewBox="0 0 320 70" role="img" aria-label="${waiting} Kunden warten"><rect width="320" height="70" fill="#dfe7f3"/><rect y="58" width="320" height="12" fill="#c3cbe0"/><rect x="4" y="18" width="34" height="40" rx="4" fill="#1f1b2d"/><text x="21" y="42" text-anchor="middle" font-size="9" font-weight="800" fill="#f2a541" font-family="Nunito Sans,system-ui,sans-serif">KASSE</text>${g}<text x="314" y="14" text-anchor="end" font-size="11" font-weight="800" fill="#1f1b2d" font-family="Nunito Sans,system-ui,sans-serif">${waiting} warten</text></svg>`;
+}
+function vAnsturm() {
+  const A = S.an, it = A.items[A.k];
+  const mood = A.pick == null ? 'ok' : (A.pick >= 0 && it.o[A.pick][1] === 2) ? 'happy' : (A.pick >= 0 && it.o[A.pick][1] === 1) ? 'ok' : 'sad';
+  let h = `<div class="scene">${queueSVG()}</div><section class="card stack"><div class="talk"><div class="face">${faceSVG(A.look, mood)}</div><div class="bubble pop"><div class="who">Kunde ${A.k + 1} · Stufe ${it.p}</div>${esc(it.k)}</div></div>`;
+  if (A.pick == null) h += `<div class="mood"><span id="ttxt">${Math.ceil(A.dur / 1000)} s</span><div class="tr"><div class="fi" id="tbar" style="width:100%;background:var(--teal)"></div></div></div>`;
+  h += `</section><section class="card stack"><h2>Was sagst du?</h2><div class="opts">`;
+  A.order.forEach(i => { const o = it.o[i]; let cls = ''; if (A.pick != null) { if (o[1] === 2) cls = 'r3'; else if (A.pick === i) cls = o[1] === 1 ? 'r1' : 'r0'; } h += `<button class="opt ${cls}" data-an="${i}" ${A.pick != null ? 'disabled' : ''}><span class="t">${esc(o[0])}</span></button>`; });
+  h += `</div>`;
+  if (A.pick != null) {
+    const s = A.pick >= 0 ? it.o[A.pick][1] : -1;
+    h += `<div class="fb ${s === 2 ? 'good' : s === 1 ? 'mid' : 'bad'}">${s === -1 ? 'Zu langsam – der Kunde ist gegangen. ' : s === 2 ? 'Top! ' : s === 1 ? 'Geht so. ' : 'Daneben. '}${esc(it.w)}</div>`;
+    h += `<button class="btn wide" id="anNext">${A.k + 1 < A.items.length ? 'Nächster Kunde' : 'Ladenschluss – Auswertung'}</button>`;
+  }
+  return h + `</section>`;
+}
+function answerAnsturm(i) {
+  const A = S.an, it = A.items[A.k]; A.pick = i; stopTimer();
+  const s = i >= 0 ? it.o[i][1] : -1;
+  const sale = s === 2 ? 60 + Math.round((A.deadline - Date.now()) / 1000) * 2 : s === 1 ? 25 : 0;
+  A.umsatz += Math.max(0, sale); A.pts += Math.max(0, s); if (s === 2) A.happy++;
+  A.log.push({ it, s });
+  render();
+}
+
+/* ===== Blitzrunde ===== */
+function startBlitz() {
+  S.cycled = false;
+  const seen = new Set(seenGet('satz'));
+  let fresh = shuffle(QUIZ.filter(q => !seen.has(q.id)));
+  if (fresh.length < 12) { seenReset('satz'); S.cycled = true; fresh = fresh.concat(shuffle(QUIZ.filter(q => !fresh.includes(q)))); }
+  else fresh = fresh.concat(shuffle(QUIZ.filter(q => seen.has(q.id))));
+  const dur = S.level === 'profi' ? 60000 : 90000;
+  S.bz = { queue: fresh, k: 0, pts: 0, streak: 0, best: 0, right: 0, log: [], dur, end: Date.now() + dur, over: false, last: null };
+  seenAdd('satz', [fresh[0].id]);
+  S.screen = 'blitz'; render(); window.scrollTo(0, 0);
+}
+function vBlitz() {
+  const B = S.bz, q = B.queue[B.k % B.queue.length];
+  const mult = B.streak >= 6 ? 3 : B.streak >= 3 ? 2 : 1;
+  let h = `<section class="card stack"><span class="eyebrow">Blitzrunde · ${lvlTag()} · Bonus ×${mult}</span><h2>Welche Stufe ist das?</h2><div class="sentence">${esc(q.s)}</div>
+  <div class="qbtns">${PHASES.map(p => `<button class="qb" data-bz="${p.id}"><span class="n">${p.id}</span>${esc(p.short)}</button>`).join('')}</div>`;
+  if (B.last) h += `<div class="fb ${B.last.ok ? 'good' : 'bad'} pop">${B.last.ok ? `Richtig! +${B.last.add}` : `Das war Stufe ${B.last.q.p}: ${esc(PHASES[B.last.q.p - 1].name)}.`}</div>`;
+  return h + `</section>`;
+}
+function endBlitz() {
+  const B = S.bz; if (B.over) return; B.over = true; stopTimer();
+  modeResult('blitz');
+}
+
+/* ===== Auswertung der Modi ===== */
+function modeResult(mode) {
+  stopTimer(); S.mres = mode;
+  const rec = store('sfs-modrek') || {}, key = mode + '-' + S.level;
+  const score = mode === 'fehler' ? S.fe.pts : mode === 'ansturm' ? S.an.umsatz : S.bz.pts;
+  S.newRecord = score > (rec[key] || 0); if (S.newRecord) { rec[key] = score; store('sfs-modrek', rec); }
+  S.recVal = Math.max(score, rec[key] || 0);
+  S.screen = 'mres'; render(); window.scrollTo(0, 0);
+}
+function vModeResult() {
+  const m = S.mres; let big = '', sub = '', kpis = [], list = '';
+  if (m === 'fehler') {
+    const F = S.fe; big = `${F.pts} / ${F.max}`; sub = 'Punkte im Fehler-Detektiv';
+    kpis = [[F.items.length, 'Gespräche'], [F.items.reduce((a, d) => a + d.errs.length, 0), 'Fehler gesucht'], [Math.round(F.pts / Math.max(1, F.max) * 100) + ' %', 'der Punkte']];
+    list = F.items.map(D => `<div class="rv"><b>${esc(D.ort)}</b>${D.errs.map(E => `<p><span class="small">Fehler: ${esc(FTYPES[E.ty])}</span><br>„${esc(D.lines[E.l][1])}“ → <b>${esc(E.fix.find(x => x.ok).t)}</b></p>`).join('')}</div>`).join('');
+  }
+  if (m === 'ansturm') {
+    const A = S.an; big = `${A.umsatz} €`; sub = 'Umsatz bis Ladenschluss';
+    kpis = [[`${A.happy} / ${A.items.length}`, 'Kunden begeistert'], [`${A.pts} / ${A.items.length * 2}`, 'Fachpunkte'], [A.dur / 1000 + ' s', 'Zeit pro Kunde']];
+    list = A.log.map(l => `<div class="rv"><div class="hd"><span class="mk ${l.s === 2 ? 'g' : l.s === 1 ? 'm' : 'b'}">${l.s === 2 ? '✓' : l.s === 1 ? '~' : '✗'}</span><div style="min-width:0"><b>Stufe ${l.it.p}:</b> ${esc(l.it.k)}</div></div><p>Beste Antwort: <b>${esc(l.it.o.find(o => o[1] === 2)[0])}</b></p><p class="small">${esc(l.it.w)}</p></div>`).join('');
+  }
+  if (m === 'blitz') {
+    const B = S.bz; big = `${B.pts}`; sub = 'Punkte in der Blitzrunde';
+    kpis = [[`${B.right} / ${B.log.length}`, 'Sätze richtig'], [B.best, 'längste Serie'], [B.dur / 1000 + ' s', 'Spielzeit']];
+    const wrong = B.log.filter(l => !l.ok);
+    list = wrong.length ? `<h3>Das solltet ihr euch noch einmal ansehen</h3>` + wrong.map(l => `<div class="rv"><p>${esc(l.q.s)}</p><p class="small">Ihr: Stufe ${l.pick} · richtig: <b>Stufe ${l.q.p} – ${esc(PHASES[l.q.p - 1].name)}</b></p></div>`).join('') : '<p>Kein einziger Fehler – stark!</p>';
+  }
+  const [n, t] = newCount(m);
+  return `<section class="score"><span class="eyebrow" style="color:inherit;opacity:.85">${esc(MODES[m].name)} · ${lvlTag()} · zum Zeigen</span><div class="big">${big}</div><p>${sub}</p><p><b>${esc(S.team || 'Team ohne Namen')}</b></p></section>
+  <section class="card stack"><div class="kpis">${kpis.map(k => `<div class="kpi"><div class="v">${k[0]}</div><div class="l">${k[1]}</div></div>`).join('')}</div>
+  <p class="small">${S.newRecord ? '<b>Neuer Rekord auf diesem Gerät!</b> ' : ''}Rekord (${lvlTag()}): ${m === 'ansturm' ? S.recVal + ' €' : S.recVal + ' Punkte'} · nur auf diesem Gerät gespeichert.</p>
+  <p class="small">${n ? `Noch ${n} von ${t} ${MODES[m].unit} neu.` : `Ihr habt alle ${t} ${MODES[m].unit} gespielt – ab jetzt wird neu gemischt.`}</p></section>
+  <section class="card stack"><h2>Auflösung</h2>${list}</section>
+  <section class="card stack"><div class="row"><button class="btn" id="mAgain">Nochmal – mit neuen Fragen</button><button class="btn ghost" id="mHome">Anderer Modus</button></div></section>`;
+}
+
+/* ===== Klicks der Modi ===== */
+function modeClick(b, d) {
+  if (d.mode) { S.mode = d.mode; const t = $('#team'); if (t) S.team = t.value; render(); const x = $('#startMode') || $('#toPhases'); if (x) x.scrollIntoView({ block: 'center', behavior: 'smooth' }); return true; }
+  if (b.id === 'startMode') { const t = $('#team'); if (t) S.team = t.value.trim(); ({ fehler:startFehler, ansturm:startAnsturm, blitz:startBlitz })[S.mode](); return true; }
+  if (b.id === 'mAgain') { ({ fehler:startFehler, ansturm:startAnsturm, blitz:startBlitz })[S.mres](); return true; }
+  if (b.id === 'mHome') { S.screen = 'start'; render(); window.scrollTo(0, 0); return true; }
+  /* Fehler-Detektiv */
+  if (S.screen === 'fehler') {
+    const F = S.fe, { E } = feCur();
+    if (d.fl != null) {
+      const i = +d.fl;
+      if (i === E.l) { const p = F.tries ? 0 : 1; F.pts += p; F.max += 1; F.stage = 'type'; }
+      else { F.wrong.push(i); F.tries++; if (F.tries >= 2) { F.max += 1; F.stage = 'type'; } }
+      render(); return true;
+    }
+    if (d.ft) { F.typePick = d.ft; F.max += 1; if (d.ft === E.ty) F.pts += 1; render(); return true; }
+    if (b.id === 'feToFix') { F.stage = 'fix'; render(); return true; }
+    if (d.ff != null) { F.fixPick = +d.ff; F.max += 2; if (E.fix[F.fixPick].ok) F.pts += 2; render(); return true; }
+    if (b.id === 'feSub') { F.sub = true; render(); return true; }
+    if (d.fself != null) { F.self = +d.fself; F.max += 2; F.pts += F.self; render(); return true; }
+    if (b.id === 'feNext') { feAdvance(); return true; }
+  }
+  /* Kundenansturm */
+  if (S.screen === 'ansturm') {
+    if (d.an != null && S.an.pick == null) { answerAnsturm(+d.an); return true; }
+    if (b.id === 'anNext') { const A = S.an; if (A.k + 1 < A.items.length) { A.k++; anPrep(); render(); window.scrollTo(0, 0); } else modeResult('ansturm'); return true; }
+  }
+  /* Blitzrunde */
+  if (S.screen === 'blitz' && d.bz != null) {
+    const B = S.bz; if (B.over) return true;
+    const q = B.queue[B.k % B.queue.length], pick = +d.bz, ok = pick === q.p;
+    let add = 0;
+    if (ok) { B.streak++; add = B.streak > 6 ? 3 : B.streak > 3 ? 2 : 1; B.pts += add; B.right++; B.best = Math.max(B.best, B.streak); } else B.streak = 0;
+    B.log.push({ q, pick, ok }); B.last = { ok, add, q }; B.k++;
+    if (B.k < B.queue.length) seenAdd('satz', [B.queue[B.k].id]);
+    if (Date.now() >= B.end) { endBlitz(); return true; }
+    render(); return true;
+  }
+  return false;
+}
+document.addEventListener('input', e => { if (e.target.dataset && e.target.dataset.fetx) { S.fe.text = e.target.value; const sb = $('#feSub'); if (sb) sb.disabled = e.target.value.trim().length < 6; } });
+
+init();
+</script></body></html>

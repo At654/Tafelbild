@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escape Room – Die Reklamation um 17:55 Uhr | LF 2, Module 8 bis 15</title>
+<style>
+  :root{
+    --blau:#1F4E79; --blauhell:#9DC3E6; --blauflaeche:#EAF1F8;
+    --rosa:#E5B8B7; --grau:#F2F2F2; --graulinie:#BFBFBF; --grautext:#595959;
+    --rot:#C00000; --gruen:#2E6B45; --gruenflaeche:#EAF3ED;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: Arial, Helvetica, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:#fff; color:#111; font-family:var(--serif); font-size:17px; line-height:1.6}
+  .blatt{max-width:860px; margin:0 auto; padding:26px 20px 80px}
+
+  header.kopf{border:1px solid #000; display:flex; align-items:stretch; margin-bottom:26px}
+  header.kopf .li{flex:0 0 32%; padding:12px 14px; border-right:1px solid #000; font-family:var(--sans); font-size:14px}
+  header.kopf .mi{flex:1; padding:12px 14px; text-align:center}
+  header.kopf .mi .lf{font-family:var(--sans); font-weight:bold; font-size:17px}
+  header.kopf .mi .lftxt{font-family:var(--sans); font-size:14px; padding-bottom:8px; border-bottom:1px solid #000; margin-bottom:8px}
+  header.kopf .mi .mod{font-family:var(--sans); font-weight:bold; font-size:17px}
+
+  h1{font-family:var(--sans); color:var(--blau); font-size:27px; margin:0 0 6px; border-bottom:2px solid var(--blauhell); padding-bottom:8px}
+  .unter{font-family:var(--sans); font-size:14px; color:var(--grautext); margin:0 0 22px}
+  .story{background:var(--grau); border-left:5px solid var(--graulinie); padding:14px 18px; margin:0 0 22px}
+  .story p{margin:0 0 9px}
+  .story p:last-child{margin:0}
+
+  /* Fortschrittsleiste */
+  .leiste{display:flex; gap:8px; margin:0 0 26px; flex-wrap:wrap}
+  .leiste .feld{
+    flex:1 1 0; min-width:74px; text-align:center; border:2px solid var(--graulinie);
+    background:#fff; font-family:var(--sans); padding:9px 4px; border-radius:4px
+  }
+  .leiste .feld .nr{font-size:11px; color:var(--grautext); letter-spacing:.06em; text-transform:uppercase}
+  .leiste .feld .zi{font-size:26px; font-weight:bold; color:var(--graulinie); line-height:1.1}
+  .leiste .feld.auf{border-color:var(--gruen); background:var(--gruenflaeche)}
+  .leiste .feld.auf .zi{color:var(--gruen)}
+
+  section.station{border:1px solid var(--graulinie); border-left:5px solid var(--blauhell); margin:0 0 20px; padding:16px 20px}
+  section.station.geloest{border-left-color:var(--gruen); background:var(--gruenflaeche)}
+  section.station h2{font-family:var(--sans); color:var(--blau); font-size:19px; margin:0 0 4px}
+  section.station .ort{font-family:var(--sans); font-size:13px; color:var(--grautext); margin:0 0 12px; letter-spacing:.04em; text-transform:uppercase}
+  section.station .fall{margin:0 0 14px}
+  section.station .frage{font-family:var(--sans); font-weight:bold; font-size:16px; margin:0 0 10px}
+  label.opt{display:block; padding:6px 8px 6px 4px; cursor:pointer; border-radius:3px; font-size:16px}
+  label.opt:hover{background:var(--blauflaeche)}
+  label.opt input{margin-right:9px}
+  .knopf{
+    font-family:var(--sans); font-size:15px; font-weight:bold; color:#fff; background:var(--blau);
+    border:0; border-radius:4px; padding:10px 22px; cursor:pointer; margin-top:10px
+  }
+  .knopf:hover{background:#17395a}
+  .knopf:disabled{background:var(--graulinie); cursor:default}
+  .rueck{margin:12px 0 0; padding:10px 14px; font-size:16px; display:none}
+  .rueck.falsch{background:#FBEDED; border-left:4px solid var(--rot)}
+  .rueck.richtig{background:var(--gruenflaeche); border-left:4px solid var(--gruen)}
+  .rueck b{font-family:var(--sans)}
+  .ziffer{font-family:var(--sans); font-weight:bold; color:var(--gruen); font-size:19px}
+
+  /* Schlüsselkasten */
+  .tresor{border:2px solid var(--blau); padding:20px 24px; margin-top:34px}
+  .tresor h2{font-family:var(--sans); color:var(--blau); font-size:21px; margin:0 0 10px}
+  .tresor input{
+    font-family:var(--sans); font-size:30px; letter-spacing:.35em; width:250px; text-align:center;
+    padding:8px 6px; border:2px solid var(--graulinie); border-radius:4px
+  }
+  .tresor .zeile{display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-top:8px}
+  .tresor .hinw{font-family:var(--sans); font-size:14px; color:var(--grautext); margin:10px 0 0}
+  #tresorrueck{margin-top:14px; padding:12px 16px; display:none; font-size:16px}
+  #tresorrueck.zu{background:#FBEDED; border-left:4px solid var(--rot)}
+  #tresorrueck.auf{background:var(--gruenflaeche); border-left:4px solid var(--gruen)}
+
+  /* Ende */
+  #ende{display:none; margin-top:30px}
+  #ende .urkunde{border:3px double var(--blau); padding:26px 28px; text-align:center}
+  #ende .urkunde .gross{font-family:var(--sans); font-size:30px; font-weight:bold; color:var(--blau); margin-bottom:6px}
+  #ende .zahlen{font-family:var(--sans); font-size:17px; margin:14px 0 0}
+  #ende .namensfeld{font-family:var(--sans); font-size:15px; margin:18px 0 0}
+  #ende .namensfeld input{font-size:15px; padding:5px 6px; border:1px solid var(--graulinie); border-radius:3px; width:260px}
+  table.merk{border-collapse:collapse; width:100%; margin-top:22px; font-size:15px}
+  table.merk th{background:var(--rosa); font-family:var(--sans); font-size:14px; text-align:left; padding:8px 10px; border:1px solid var(--graulinie)}
+  table.merk td{border:1px solid var(--graulinie); padding:8px 10px; vertical-align:top}
+  table.merk td.b{font-family:var(--sans); font-weight:bold; width:34%}
+  @media print{ .knopf, .tresor input{display:none} }
+</style>
+<style id="mehrsprachig-css">
+.t{display:none;margin-top:3px;color:#1F4E79;font-family:Arial,"Segoe UI","Geeza Pro",Tahoma,sans-serif;font-weight:normal;font-style:normal;font-size:.92em;line-height:1.5;letter-spacing:0;text-transform:none}
+.t b{font-weight:bold}
+h1 .t,h2 .t,.ort .t,.nr .t{font-size:.7em}
+body[data-lang="vi"] .t-vi,body[data-lang="tr"] .t-tr,body[data-lang="ar"] .t-ar{display:block}
+.t-ar{direction:rtl;text-align:right}
+button .t{text-align:center;font-size:.85em}
+#sprachbar{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid #BFBFBF;padding:6px 10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-family:Arial,sans-serif;font-size:14px}
+#sprachbar button{font:inherit;padding:6px 12px;border:1px solid #1F4E79;background:#fff;color:#1F4E79;border-radius:16px;cursor:pointer}
+#sprachbar button[aria-pressed="true"]{background:#1F4E79;color:#fff}
+@media print{#sprachbar{display:none}}
+</style>
+
+</head>
+<body>
+<div id="sprachbar"><span aria-hidden="true">🌐</span>
+<button type="button" data-l="de">Deutsch</button><button type="button" data-l="vi" lang="vi">Tiếng Việt</button><button type="button" data-l="tr" lang="tr">Türkçe</button><button type="button" data-l="ar" lang="ar">العربية</button></div>
+
+<div class="blatt">
+
+  <header class="kopf">
+    <div class="li">Datum:<br><br>Name:<span class="t t-vi" lang="vi">Ngày:<br><br>Họ tên:</span><span class="t t-tr" lang="tr">Tarih:<br><br>Ad:</span><span class="t t-ar" lang="ar" dir="rtl">التاريخ:<br><br>الاسم:</span></div>
+    <div class="mi">
+      <div class="lf">Lernfeld 2<span class="t t-vi" lang="vi">Lĩnh vực học 2</span><span class="t t-tr" lang="tr">Öğrenme alanı 2</span><span class="t t-ar" lang="ar" dir="rtl">مجال التعلّم 2</span></div>
+      <div class="lftxt">Verkaufsgespräche kundenorientiert führen<span class="t t-vi" lang="vi">Thực hiện các cuộc trò chuyện bán hàng theo hướng khách hàng</span><span class="t t-tr" lang="tr">Satış görüşmelerini müşteri odaklı yürütmek</span><span class="t t-ar" lang="ar" dir="rtl">إجراء محادثات البيع بما يتمحور حول العميل</span></div>
+      <div class="mod">Escape Room · Module 8 bis 15<span class="t t-vi" lang="vi">Phòng thoát hiểm · Module 8 đến 15</span><span class="t t-tr" lang="tr">Kaçış odası · Modül 8–15</span><span class="t t-ar" lang="ar" dir="rtl">غرفة الهروب · الوحدات 8 إلى 15</span></div>
+    </div>
+  </header>
+
+  <h1>Die Reklamation um 17:55 Uhr<span class="t t-vi" lang="vi">Khiếu nại lúc 17:55</span><span class="t t-tr" lang="tr">Saat 17:55'te şikâyet</span><span class="t t-ar" lang="ar" dir="rtl">الشكوى في الساعة 17:55</span></h1>
+  <p class="unter">Sechs Szenen · sechs Ziffern · ein Schlüsselkasten. Rechne mit etwa 25 Minuten. Allein oder zu zweit.<span class="t t-vi" lang="vi">Sáu cảnh · sáu chữ số · một hộp chìa khóa. Khoảng 25 phút. Chơi một mình hoặc theo cặp.</span><span class="t t-tr" lang="tr">Altı sahne · altı rakam · bir anahtar kutusu. Yaklaşık 25 dakika sürer. Tek başına veya ikili oynanır.</span><span class="t t-ar" lang="ar" dir="rtl">ستة مشاهد · ستة أرقام · صندوق مفاتيح واحد. يستغرق حوالي 25 دقيقة. بمفردك أو مع زميل.</span></p>
+
+  <div class="story">
+    <p>Freitag, 17:55 Uhr. Die <b>Nordstadt-Kauf GmbH</b> schließt um 18 Uhr. Sie sind allein in der Abteilung, die Kollegin ist schon zur Kasse.<span class="t t-vi" lang="vi">Thứ Sáu, 17:55. <b>Nordstadt-Kauf GmbH</b> đóng cửa lúc 18 giờ. Bạn đang một mình ở khu vực bán hàng, đồng nghiệp đã ra quầy thu ngân.</span><span class="t t-tr" lang="tr">Cuma, saat 17:55. <b>Nordstadt-Kauf GmbH</b> saat 18'de kapanıyor. Reyonda yalnızsın, iş arkadaşın kasaya geçti bile.</span><span class="t t-ar" lang="ar" dir="rtl">يوم الجمعة، الساعة 17:55. تُغلق <b>Nordstadt-Kauf GmbH</b> أبوابها في الساعة 18:00. أنت وحدك في القسم، وزميلتك ذهبت بالفعل إلى الصندوق.</span></p>
+    <p>Die Tür geht auf. Eine Kundin kommt herein, in der Hand eine Tüte mit einer Jacke, die sie vor zwei Wochen gekauft hat. Sie ist aufgebracht. Und sie will eine Lösung, bevor Sie Feierabend machen.<span class="t t-vi" lang="vi">Cửa mở ra. Một khách hàng nữ bước vào, tay cầm một túi đựng chiếc áo khoác chị đã mua cách đây hai tuần. Chị đang rất bực. Và chị muốn có giải pháp trước khi bạn tan ca.</span><span class="t t-tr" lang="tr">Kapı açılıyor. Bir müşteri içeri giriyor; elinde iki hafta önce aldığı bir ceketin olduğu bir poşet var. Çok kızgın. Ve sen mesaiyi bitirmeden önce bir çözüm istiyor.</span><span class="t t-ar" lang="ar" dir="rtl">يُفتح الباب. تدخل زبونة وفي يدها كيس فيه سترة اشترتها قبل أسبوعين. هي غاضبة. وتريد حلًا قبل أن تنهي دوامك.</span></p>
+    <p>Sie brauchen das Reklamationsformular – es liegt im Schrank der Abteilungsleitung, und der ist abgeschlossen. Der Schlüssel hängt im <b>Schlüsselkasten mit sechsstelligem Zahlenschloss</b>. Frau Ahlers hat die Zahl nicht hinterlassen, aber sie hat etwas anderes dagelassen: sechs Notizzettel aus den Gesprächsprotokollen dieser Woche. Auf der Rückseite jedes Zettels steht eine Ziffer – sichtbar nur für den, der die Szene richtig einordnet. <b>Sechs richtige Einordnungen – und der Schlüsselkasten geht auf.</b><span class="t t-vi" lang="vi">Bạn cần mẫu đơn khiếu nại – nó nằm trong tủ của trưởng bộ phận, và tủ đã khóa. Chìa khóa treo trong <b>hộp chìa khóa có khóa số sáu chữ số</b>. Bà Ahlers không để lại dãy số, nhưng bà đã để lại thứ khác: sáu phiếu ghi chú từ biên bản các cuộc trò chuyện tuần này. Mặt sau của mỗi phiếu có một chữ số – chỉ người xếp loại đúng cảnh đó mới nhìn thấy. <b>Sáu lần xếp loại đúng – và hộp chìa khóa sẽ mở.</b></span><span class="t t-tr" lang="tr">Şikâyet formuna ihtiyacın var – formun bulunduğu dolap reyon müdürlüğünün dolabı ve kilitli. Anahtar, <b>altı haneli şifreli kilide sahip anahtar kutusunda</b> asılı. Bayan Ahlers şifreyi bırakmadı, ama başka bir şey bıraktı: bu haftaki görüşme tutanaklarından altı not kâğıdı. Her kâğıdın arkasında bir rakam yazıyor – bunu sadece sahneyi doğru sınıflandıran görebilir. <b>Altı doğru sınıflandırma – ve anahtar kutusu açılır.</b></span><span class="t t-ar" lang="ar" dir="rtl">تحتاج إلى نموذج الشكوى – وهو في خزانة رئيس القسم، والخزانة مقفلة. المفتاح معلّق في <b>صندوق المفاتيح ذي القفل الرقمي من ستة أرقام</b>. السيدة Ahlers لم تترك الرقم، لكنها تركت شيئًا آخر: ست أوراق ملاحظات من محاضر محادثات هذا الأسبوع. على ظهر كل ورقة رقم – لا يراه إلا من يصنّف المشهد تصنيفًا صحيحًا. <b>ست تصنيفات صحيحة – ويُفتح صندوق المفاتيح.</b></span></p>
+  </div>
+
+  <div class="leiste" id="leiste"></div>
+
+  <div id="stationen"></div>
+
+  <div class="tresor">
+    <h2>Das Zahlenschloss<span class="t t-vi" lang="vi">Khóa số</span><span class="t t-tr" lang="tr">Şifreli kilit</span><span class="t t-ar" lang="ar" dir="rtl">القفل الرقمي</span></h2>
+    <p style="margin:0">Trage die sechs Ziffern in der Reihenfolge der Stationen ein.<span class="t t-vi" lang="vi">Nhập sáu chữ số theo thứ tự các trạm.</span><span class="t t-tr" lang="tr">Altı rakamı istasyonların sırasına göre gir.</span><span class="t t-ar" lang="ar" dir="rtl">اكتب الأرقام الستة بترتيب المحطات.</span></p>
+    <div class="zeile">
+      <input type="text" id="code" maxlength="6" inputmode="numeric" placeholder="______" autocomplete="off">
+      <button type="button" class="knopf" id="oeffnen">Schlüsselkasten öffnen<span class="t t-vi" lang="vi">Mở hộp chìa khóa</span><span class="t t-tr" lang="tr">Anahtar kutusunu aç</span><span class="t t-ar" lang="ar" dir="rtl">افتح صندوق المفاتيح</span></button>
+    </div>
+    <p class="hinw">Die Ziffern erscheinen automatisch in der Leiste oben, sobald du eine Station gelöst hast.<span class="t t-vi" lang="vi">Các chữ số tự động hiện trên thanh phía trên khi bạn giải xong một trạm.</span><span class="t t-tr" lang="tr">Bir istasyonu çözdüğünde rakamlar yukarıdaki çubukta otomatik olarak görünür.</span><span class="t t-ar" lang="ar" dir="rtl">تظهر الأرقام تلقائيًا في الشريط العلوي بمجرد أن تحلّ محطة.</span></p>
+    <div id="tresorrueck"></div>
+  </div>
+
+  <div id="ende">
+    <div class="urkunde">
+      <div class="gross">Schlüsselkasten offen<span class="t t-vi" lang="vi">Hộp chìa khóa đã mở</span><span class="t t-tr" lang="tr">Anahtar kutusu açıldı</span><span class="t t-ar" lang="ar" dir="rtl">فُتح صندوق المفاتيح</span></div>
+      <div>Der Schlüssel liegt in Ihrer Hand, das Formular ist da – und die Kundin steht immer noch vor Ihnen. Jetzt gilt alles, was Sie gerade eingeordnet haben: zuhören, ausreden lassen, eine Lösung anbieten.<span class="t t-vi" lang="vi">Chìa khóa đã nằm trong tay bạn, mẫu đơn đã có – và khách hàng vẫn đang đứng trước mặt bạn. Bây giờ mọi điều bạn vừa xếp loại đều được áp dụng: lắng nghe, để khách nói hết, đưa ra giải pháp.</span><span class="t t-tr" lang="tr">Anahtar elinde, form hazır – ve müşteri hâlâ karşında duruyor. Şimdi az önce sınıflandırdığın her şey geçerli: dinlemek, sözünü bitirmesine izin vermek, bir çözüm sunmak.</span><span class="t t-ar" lang="ar" dir="rtl">المفتاح في يدك، والنموذج جاهز – والزبونة ما تزال واقفة أمامك. الآن يسري كل ما صنّفته للتو: الإصغاء، وترك الزبونة تُنهي كلامها، وعرض حلّ.</span></div>
+      <div class="zahlen">
+        Fehlversuche an den Stationen: <b id="fehler">0</b> &nbsp;·&nbsp; Fehlversuche am Schloss: <b id="fehlerschloss">0</b><span class="t t-vi" lang="vi">Số lần sai ở các trạm: <b class="fz">0</b> &nbsp;·&nbsp; Số lần sai ở khóa: <b class="fs">0</b></span><span class="t t-tr" lang="tr">İstasyonlardaki hatalı denemeler: <b class="fz">0</b> &nbsp;·&nbsp; Kilitteki hatalı denemeler: <b class="fs">0</b></span><span class="t t-ar" lang="ar" dir="rtl">المحاولات الخاطئة في المحطات: <b class="fz">0</b> &nbsp;·&nbsp; المحاولات الخاطئة في القفل: <b class="fs">0</b></span></div>
+      <div class="namensfeld">
+        <span>Name (zum Vorzeigen bei der Lehrkraft):<span class="t t-vi" lang="vi">Họ tên (để đưa cho giáo viên xem):</span><span class="t t-tr" lang="tr">Ad (öğretmene göstermek için):</span><span class="t t-ar" lang="ar" dir="rtl">الاسم (لإظهاره للمعلّمة):</span></span> <input type="text" id="name" placeholder="Vor- und Nachname">
+      </div>
+    </div>
+
+    <h2 style="font-family:var(--sans); color:var(--blau); font-size:20px; margin:28px 0 6px">Das nimmst du mit<span class="t t-vi" lang="vi">Điều bạn mang theo</span><span class="t t-tr" lang="tr">Yanına alacakların</span><span class="t t-ar" lang="ar" dir="rtl">ما ستأخذه معك</span></h2>
+    <table class="merk">
+      <thead><tr><th>Der Fall<span class="t t-vi" lang="vi">Trường hợp</span><span class="t t-tr" lang="tr">Durum</span><span class="t t-ar" lang="ar" dir="rtl">الحالة</span></th><th>Woran du ihn erkennst<span class="t t-vi" lang="vi">Cách nhận biết</span><span class="t t-tr" lang="tr">Nasıl tanırsın</span><span class="t t-ar" lang="ar" dir="rtl">كيف تتعرّف عليها</span></th></tr></thead>
+      <tbody>
+        <tr><td class="b">Warenvorlage<span class="t t-vi" lang="vi">Trình bày hàng hóa (Warenvorlage)</span><span class="t t-tr" lang="tr">Mal sunumu (Warenvorlage)</span><span class="t t-ar" lang="ar" dir="rtl">عرض البضاعة (Warenvorlage)</span></td><td>Drei Artikel, im Einzelfall vier bis fünf. Beginn in der mittleren Preislage. Den Kunden einbeziehen.<span class="t t-vi" lang="vi">Ba mặt hàng, trong từng trường hợp là bốn đến năm. Bắt đầu từ tầm giá trung bình. Cho khách tham gia.</span><span class="t t-tr" lang="tr">Üç ürün, duruma göre dört ila beş. Orta fiyat grubundan başla. Müşteriyi sürece dahil et.</span><span class="t t-ar" lang="ar" dir="rtl">ثلاث قطع، وفي حالات فردية أربع إلى خمس. ابدأ بفئة السعر المتوسطة. أشرك العميل.</span></td></tr>
+        <tr><td class="b">Merkmal – Vorteil – Nutzen<span class="t t-vi" lang="vi">Đặc điểm – Ưu điểm – Lợi ích</span><span class="t t-tr" lang="tr">Özellik – Avantaj – Fayda</span><span class="t t-ar" lang="ar" dir="rtl">الميزة – الفائدة – المنفعة</span></td><td>Was die Ware hat, was sie deshalb kann, was der Kunde davon hat. Nur der Nutzen verkauft, und er enthält „Sie“.<span class="t t-vi" lang="vi">Hàng hóa có gì, vì thế nó làm được gì, khách hàng được gì từ đó. Chỉ có lợi ích mới bán được hàng, và lợi ích có chữ „Sie“ (quý khách).</span><span class="t t-tr" lang="tr">Malın neyi var, bu yüzden ne yapabiliyor, müşterinin bundan elde ettiği ne. Sadece fayda satar ve fayda „Sie“ (siz) sözcüğünü içerir.</span><span class="t t-ar" lang="ar" dir="rtl">ما تملكه البضاعة، وما تستطيع فعله بسببه، وما يجنيه العميل منه. المنفعة وحدها هي التي تبيع، وتحتوي على كلمة „Sie“ (أنتَ/أنتِ).</span></td></tr>
+        <tr><td class="b">Sandwich-Methode<span class="t t-vi" lang="vi">Phương pháp bánh mì kẹp (Sandwich-Methode)</span><span class="t t-tr" lang="tr">Sandviç yöntemi (Sandwich-Methode)</span><span class="t t-ar" lang="ar" dir="rtl">طريقة الساندويتش (Sandwich-Methode)</span></td><td>Nutzen – Preis – Nutzen. Ein nackter Preis löst einen Preisschock aus.<span class="t t-vi" lang="vi">Lợi ích – Giá – Lợi ích. Một mức giá trần trụi gây sốc giá.</span><span class="t t-tr" lang="tr">Fayda – Fiyat – Fayda. Çıplak bir fiyat fiyat şokuna yol açar.</span><span class="t t-ar" lang="ar" dir="rtl">المنفعة – السعر – المنفعة. السعر العاري يسبّب صدمة سعرية.</span></td></tr>
+        <tr><td class="b">Einwand oder Vorwand<span class="t t-vi" lang="vi">Phản đối thật hay cớ thoái thác</span><span class="t t-tr" lang="tr">Gerçek itiraz mı, bahane mi</span><span class="t t-ar" lang="ar" dir="rtl">اعتراض حقيقي أم ذريعة</span></td><td>Ein echter Einwand sagt etwas über Ware, Preis, Geschäft oder Personal. Ein Vorwand sagt nichts über die Ware.<span class="t t-vi" lang="vi">Phản đối thật nói về hàng hóa, giá cả, cửa hàng hoặc nhân viên. Cớ thoái thác (Vorwand) không nói gì về hàng hóa.</span><span class="t t-tr" lang="tr">Gerçek bir itiraz mal, fiyat, mağaza veya personel hakkında bir şey söyler. Bahane (Vorwand) mal hakkında bir şey söylemez.</span><span class="t t-ar" lang="ar" dir="rtl">الاعتراض الحقيقي يقول شيئًا عن البضاعة أو السعر أو المتجر أو الموظفين. أما الذريعة (Vorwand) فلا تقول شيئًا عن البضاعة.</span></td></tr>
+        <tr><td class="b">Ergänzung oder Zusatz<span class="t t-vi" lang="vi">Bổ sung hay thêm vào</span><span class="t t-tr" lang="tr">Tamamlayıcı mı, ek mi</span><span class="t t-ar" lang="ar" dir="rtl">مكمِّل أم إضافة</span></td><td>Ergänzung ist notwendig (Batterie zum Wecker). Zusatz erhöht nur den Nutzen (Hülle zum Handy).<span class="t t-vi" lang="vi">Hàng bổ sung (Ergänzung) là cần thiết (pin cho đồng hồ báo thức). Hàng thêm (Zusatz) chỉ làm tăng lợi ích (ốp cho điện thoại).</span><span class="t t-tr" lang="tr">Tamamlayıcı (Ergänzung) gereklidir (çalar saate pil). Ek (Zusatz) sadece faydayı artırır (telefona kılıf).</span><span class="t t-ar" lang="ar" dir="rtl">المكمِّل (Ergänzung) ضروري (بطارية للمنبّه). أما الإضافة (Zusatz) فتزيد المنفعة فقط (غلاف للهاتف).</span></td></tr>
+        <tr><td class="b">Kaufsignal<span class="t t-vi" lang="vi">Tín hiệu mua hàng (Kaufsignal)</span><span class="t t-tr" lang="tr">Satın alma sinyali (Kaufsignal)</span><span class="t t-ar" lang="ar" dir="rtl">إشارة الشراء (Kaufsignal)</span></td><td>Sprachlich (Frage nach Lieferung, Zahlung) oder körpersprachlich (Griff zum Geldbeutel). Danach nicht weiterreden, sondern abschließen.<span class="t t-vi" lang="vi">Bằng lời (hỏi về giao hàng, thanh toán) hoặc bằng ngôn ngữ cơ thể (đưa tay lấy ví). Sau đó đừng nói tiếp mà hãy chốt đơn.</span><span class="t t-tr" lang="tr">Sözlü (teslimat, ödeme hakkında soru) veya beden diliyle (cüzdana uzanma). Ardından konuşmaya devam etme, satışı bitir.</span><span class="t t-ar" lang="ar" dir="rtl">لفظية (سؤال عن التوصيل أو الدفع) أو بلغة الجسد (مدّ اليد إلى المحفظة). بعد ذلك لا تتابع الكلام، بل أنهِ عملية البيع.</span></td></tr>
+      </tbody>
+    </table>
+    <p style="font-family:var(--sans); font-size:15px; color:var(--grautext); margin-top:18px">Trag deine Punkte und die Zahl der Fehlversuche ins Punktekonto ein.<span class="t t-vi" lang="vi">Hãy ghi điểm của bạn và số lần sai vào tài khoản điểm (Punktekonto).</span><span class="t t-tr" lang="tr">Puanlarını ve hatalı deneme sayını puan hesabına (Punktekonto) yaz.</span><span class="t t-ar" lang="ar" dir="rtl">سجّل نقاطك وعدد المحاولات الخاطئة في حساب النقاط (Punktekonto).</span></p>
+    <button type="button" class="knopf" id="nochmal" style="background:#fff; color:var(--blau); border:1px solid var(--blau); font-weight:normal">Noch einmal spielen<span class="t t-vi" lang="vi">Chơi lại</span><span class="t t-tr" lang="tr">Tekrar oyna</span><span class="t t-ar" lang="ar" dir="rtl">العب مرة أخرى</span></button>
+  </div>
+
+</div>
+
+<script>
+var TR = {"Station {n}": {"vi": "Trạm {n}", "tr": "İstasyon {n}", "ar": "المحطة {n}"}, "Station {n}:": {"vi": "Trạm {n}:", "tr": "İstasyon {n}:", "ar": "المحطة {n}:"}, "Akte prüfen": {"vi": "Kiểm tra hồ sơ", "tr": "Dosyayı kontrol et", "ar": "افحص الملف"}, "Akte geschlossen": {"vi": "Hồ sơ đã đóng", "tr": "Dosya kapandı", "ar": "أُغلق الملف"}, "Wie ist diese Szene einzuordnen?": {"vi": "Cảnh này được xếp vào loại nào?", "tr": "Bu sahne nasıl sınıflandırılır?", "ar": "كيف يُصنَّف هذا المشهد؟"}, "<b>Noch nichts ausgewählt.</b>": {"vi": "<b>Chưa chọn gì cả.</b>", "tr": "<b>Henüz hiçbir şey seçilmedi.</b>", "ar": "<b>لم تختر شيئًا بعد.</b>"}, "Entscheide dich für eine Einordnung.": {"vi": "Hãy chọn một cách xếp loại.", "tr": "Bir sınıflandırma seç.", "ar": "اختر تصنيفًا."}, "<b>Richtig eingeordnet.</b>": {"vi": "<b>Xếp loại đúng.</b>", "tr": "<b>Doğru sınıflandırdın.</b>", "ar": "<b>تصنيف صحيح.</b>"}, "<span class=\"ziffer\">In der Akte steckt die Ziffer {z}.</span>": {"vi": "<span class=\"ziffer\">Trong hồ sơ có chữ số {z}.</span>", "tr": "<span class=\"ziffer\">Dosyada {z} rakamı saklı.</span>", "ar": "<span class=\"ziffer\">في الملف يوجد الرقم {z}.</span>"}, "<b>Das passt noch nicht.</b>": {"vi": "<b>Chưa đúng.</b>", "tr": "<b>Bu henüz uymuyor.</b>", "ar": "<b>هذا لا يناسب بعد.</b>"}, "Schau notfalls in Modul 8 nach und versuch es noch einmal.": {"vi": "Nếu cần, hãy xem lại Module 8 và thử lại.", "tr": "Gerekirse Modül 8'e bak ve tekrar dene.", "ar": "إن لزم الأمر، راجع الوحدة 8 وحاول مرة أخرى."}, "<b>Das Schloss braucht genau sechs Ziffern.</b>": {"vi": "<b>Khóa cần đúng sáu chữ số.</b>", "tr": "<b>Kilit tam altı rakam ister.</b>", "ar": "<b>القفل يحتاج إلى ستة أرقام بالضبط.</b>"}, "Bisher gelöst: {o} von 6 Stationen.": {"vi": "Đã giải xong: {o} trong 6 trạm.", "tr": "Şimdiye kadar çözülen: 6 istasyondan {o}.", "ar": "ما تم حلّه حتى الآن: {o} من 6 محطات."}, "<b>Klick.</b>": {"vi": "<b>Tách.</b>", "tr": "<b>Klik.</b>", "ar": "<b>نقرة.</b>"}, "<b>Das Schloss rührt sich nicht.</b>": {"vi": "<b>Khóa không nhúc nhích.</b>", "tr": "<b>Kilit kıpırdamıyor.</b>", "ar": "<b>القفل لا يتحرك.</b>"}, "Prüfe die Reihenfolge: Station 1 ganz links, Station 6 ganz rechts.": {"vi": "Hãy kiểm tra thứ tự: trạm 1 ở ngoài cùng bên trái, trạm 6 ở ngoài cùng bên phải.", "tr": "Sırayı kontrol et: İstasyon 1 en solda, istasyon 6 en sağda.", "ar": "تحقّق من الترتيب: المحطة 1 في أقصى اليسار والمحطة 6 في أقصى اليمين."}, "Der Schlüsselkasten ist offen.": {"vi": "Hộp chìa khóa đã mở.", "tr": "Anahtar kutusu açık.", "ar": "صندوق المفاتيح مفتوح."}, "Warenvorlage": {"vi": "Trình bày hàng hóa (Warenvorlage)", "tr": "Mal sunumu (Warenvorlage)", "ar": "عرض البضاعة (Warenvorlage)"}, "Sandwich-Methode": {"vi": "Phương pháp bánh mì kẹp (Sandwich-Methode)", "tr": "Sandviç yöntemi (Sandwich-Methode)", "ar": "طريقة الساندويتش (Sandwich-Methode)"}, "Kaufsignal": {"vi": "Tín hiệu mua hàng (Kaufsignal)", "tr": "Satın alma sinyali (Kaufsignal)", "ar": "إشارة الشراء (Kaufsignal)"}, "Notizzettel 1 · Sportabteilung": {"vi": "Phiếu ghi chú 1 · Khu thể thao", "tr": "Not kâğıdı 1 · Spor reyonu", "ar": "ورقة الملاحظات 1 · قسم الرياضة"}, "Sieben Paar Schuhe": {"vi": "Bảy đôi giày", "tr": "Yedi çift ayakkabı", "ar": "سبعة أزواج من الأحذية"}, "Eine Kundin sucht Wanderschuhe. Der Verkäufer stellt ihr nacheinander sieben Paar hin, alle bleiben auf dem Tisch stehen. Nach zehn Minuten sagt die Kundin: „Ich weiß jetzt gar nicht mehr, welcher welcher war. Ich überlege es mir noch mal.“ Sie geht ohne Kauf.": {"vi": "Một khách hàng nữ tìm giày đi bộ đường dài. Nhân viên lần lượt đặt trước mặt chị bảy đôi, tất cả đều để nguyên trên bàn. Sau mười phút, khách nói: „Giờ tôi không còn nhớ đôi nào là đôi nào nữa. Để tôi suy nghĩ thêm.“ Chị rời đi mà không mua.", "tr": "Bir müşteri trekking ayakkabısı arıyor. Satış elemanı art arda yedi çift önüne koyuyor, hepsi masada kalıyor. On dakika sonra müşteri diyor ki: „Şimdi hangisi hangisiydi hiç bilmiyorum. Bir daha düşüneyim.“ Bir şey almadan gidiyor.", "ar": "تبحث زبونة عن أحذية للمشي في الجبال. يضع البائع أمامها سبعة أزواج الواحد تلو الآخر، وتبقى كلها على الطاولة. بعد عشر دقائق تقول الزبونة: «لم أعد أعرف أيّ زوج هو أيّ زوج. سأفكّر في الأمر مرة أخرى.» وتغادر دون أن تشتري."}, "Richtig – je mehr Auswahl, desto größer die Chance auf einen Kauf.": {"vi": "Đúng – càng nhiều lựa chọn thì cơ hội mua hàng càng lớn.", "tr": "Doğru – seçenek ne kadar çoksa satın alma şansı o kadar büyüktür.", "ar": "صحيح – كلما زاد الاختيار، زادت فرصة الشراء."}, "Falsch – die Faustregel lautet drei Artikel, im Einzelfall vier bis fünf.": {"vi": "Sai – quy tắc ngón tay cái là ba mặt hàng, trong từng trường hợp là bốn đến năm.", "tr": "Yanlış – temel kural üç ürün, duruma göre dört ila beştir.", "ar": "خطأ – القاعدة العامة هي ثلاث قطع، وفي حالات فردية أربع إلى خمس."}, "Falsch – Wanderschuhe dürfen gar nicht anprobiert werden.": {"vi": "Sai – giày đi bộ đường dài hoàn toàn không được phép thử.", "tr": "Yanlış – trekking ayakkabıları hiç denenemez.", "ar": "خطأ – لا يجوز تجربة أحذية المشي في الجبال أصلًا."}, "Richtig – der Verkäufer hat alle Preislagen abgedeckt.": {"vi": "Đúng – nhân viên đã bao quát mọi tầm giá.", "tr": "Doğru – satış elemanı tüm fiyat gruplarını kapsamış.", "ar": "صحيح – لقد غطّى البائع جميع فئات الأسعار."}, "Mehr als fünf Artikel verwirren den Kunden: Er kann nicht mehr vergleichen und entscheidet sich gar nicht. Richtig wäre gewesen, drei Paar vorzulegen und die Paare, die nicht infrage kommen, gleich wieder wegzuräumen – so wird die Auswahl Schritt für Schritt eingegrenzt.": {"vi": "Hơn năm mặt hàng làm khách bối rối: khách không còn so sánh được nữa và không quyết định gì cả. Đúng ra phải đưa ra ba đôi và cất ngay những đôi không phù hợp – như vậy lựa chọn được thu hẹp dần từng bước.", "tr": "Beşten fazla ürün müşteriyi şaşırtır: Artık karşılaştıramaz ve hiç karar vermez. Doğrusu üç çift sunmak ve söz konusu olmayan çiftleri hemen kaldırmaktı – böylece seçim adım adım daraltılır.", "ar": "أكثر من خمس قطع تربك العميل: لا يعود قادرًا على المقارنة ولا يقرّر شيئًا. كان الصواب أن تُعرض ثلاثة أزواج وأن تُزال فورًا الأزواج غير المناسبة – وهكذا يُضيَّق الاختيار خطوة بعد خطوة."}, "Wie viele Artikel legt man nach der Faustregel vor? Und was passiert mit denen, die durchgefallen sind?": {"vi": "Theo quy tắc ngón tay cái thì đưa ra bao nhiêu mặt hàng? Và những mặt hàng bị loại thì sao?", "tr": "Temel kurala göre kaç ürün sunulur? Ve elenenlere ne olur?", "ar": "كم قطعة تُعرض حسب القاعدة العامة؟ وماذا يحدث للقطع التي استُبعدت؟"}, "Notizzettel 2 · Elektroabteilung": {"vi": "Phiếu ghi chú 2 · Khu điện máy", "tr": "Not kâğıdı 2 · Elektronik reyonu", "ar": "ورقة الملاحظات 2 · قسم الأجهزة الكهربائية"}, "Fünftausend Milliamperestunden": {"vi": "Năm nghìn miliampe giờ", "tr": "Beş bin miliamper saat", "ar": "خمسة آلاف ميلي أمبير ساعة"}, "Ein Kunde interessiert sich für ein Smartphone. Die Verkäuferin sagt: „Der Akku hat 5.000 Milliamperestunden, das Display 120 Hertz und die Hauptkamera 108 Megapixel.“ Der Kunde nickt höflich, legt das Gerät zurück und sagt: „Ich schaue noch bei der Konkurrenz.“": {"vi": "Một khách hàng quan tâm đến một chiếc điện thoại thông minh. Nhân viên nói: „Pin có 5.000 miliampe giờ, màn hình 120 hertz và camera chính 108 megapixel.“ Khách gật đầu lịch sự, đặt máy lại và nói: „Tôi sẽ xem thêm ở đối thủ cạnh tranh.“", "tr": "Bir müşteri akıllı telefonla ilgileniyor. Satış elemanı diyor ki: „Bataryası 5.000 miliamper saat, ekranı 120 hertz ve ana kamerası 108 megapiksel.“ Müşteri kibarca başını sallıyor, cihazı geri koyuyor ve diyor ki: „Bir de rakiplere bakacağım.“", "ar": "يهتم عميل بهاتف ذكي. تقول البائعة: «البطارية 5000 ميلي أمبير ساعة، والشاشة 120 هرتز، والكاميرا الرئيسية 108 ميغابكسل.» يومئ العميل بلباقة، ويعيد الجهاز، ويقول: «سأطّلع أيضًا عند المنافسين.»"}, "Was fehlt in der Argumentation der Verkäuferin?": {"vi": "Lập luận của nhân viên còn thiếu gì?", "tr": "Satış elemanının argümantasyonunda ne eksik?", "ar": "ما الذي ينقص في حجّة البائعة؟"}, "Nichts – sie hat drei Warenmerkmale genannt.": {"vi": "Không thiếu gì – cô ấy đã nêu ba đặc điểm của hàng hóa.", "tr": "Hiçbir şey – üç mal özelliği saymış.", "ar": "لا شيء – فقد ذكرت ثلاث ميزات للبضاعة."}, "Der Warenvorteil und vor allem der Kundennutzen.": {"vi": "Ưu điểm của hàng hóa và nhất là lợi ích cho khách hàng.", "tr": "Malın avantajı ve her şeyden önce müşteri faydası.", "ar": "فائدة البضاعة، وقبل كل شيء منفعة العميل."}, "Der Preis – er hätte zuerst genannt werden müssen.": {"vi": "Giá – lẽ ra phải nêu giá trước tiên.", "tr": "Fiyat – ilk olarak söylenmesi gerekirdi.", "ar": "السعر – كان يجب ذكره أولًا."}, "Eine geschlossene Frage am Ende.": {"vi": "Một câu hỏi đóng ở cuối.", "tr": "Sonda kapalı bir soru.", "ar": "سؤال مغلق في النهاية."}, "Alle drei Angaben sind reine Warenmerkmale. Es fehlt, was die Ware deshalb kann (Warenvorteil) und was der Kunde davon hat (Kundennutzen). Besser: „Der Akku hat 5.000 Milliamperestunden – das reicht für zwei volle Tage. Sie müssen unterwegs also kein Ladegerät mehr einpacken.“ Erkennbar ist der Nutzen immer am Wort „Sie“.": {"vi": "Cả ba thông tin đều chỉ là đặc điểm của hàng hóa. Còn thiếu: vì thế hàng hóa làm được gì (ưu điểm) và khách hàng được gì từ đó (lợi ích). Tốt hơn: „Pin có 5.000 miliampe giờ – đủ dùng trọn hai ngày. Như vậy quý khách không cần mang theo bộ sạc khi đi đường nữa.“ Lợi ích luôn nhận ra được qua từ „Sie“ (quý khách).", "tr": "Üç bilgi de saf mal özellikleridir. Eksik olan, malın bu yüzden ne yapabildiği (avantaj) ve müşterinin bundan ne elde ettiğidir (müşteri faydası). Daha iyisi: „Batarya 5.000 miliamper saat – tam iki gün yeter. Yani yolda artık şarj aleti taşımanıza gerek kalmaz.“ Fayda her zaman „Sie“ (siz) sözcüğünden tanınır.", "ar": "المعلومات الثلاث كلها ميزات بحتة للبضاعة. وينقص ما تستطيع البضاعة فعله بسببها (الفائدة) وما يجنيه العميل منها (منفعة العميل). الأفضل: «البطارية 5000 ميلي أمبير ساعة – وهذا يكفي ليومين كاملين. أي أنك لن تحتاج بعد الآن إلى حمل شاحن معك في الطريق.» وتُعرَف المنفعة دائمًا من كلمة „Sie“ (أنتَ)."}, "Stell nach jedem Satz die Frage „Na und?“. Solange sie noch passt, fehlt der Nutzen.": {"vi": "Sau mỗi câu hãy hỏi „Thì sao?“ (Na und?). Chừng nào câu hỏi đó còn hợp lý thì vẫn còn thiếu lợi ích.", "tr": "Her cümleden sonra „Ee, ne olmuş?“ (Na und?) diye sor. Bu soru hâlâ yerindeyse fayda eksiktir.", "ar": "اسأل بعد كل جملة: «وماذا في ذلك؟» (Na und?). ما دام السؤال ما يزال مناسبًا، فالمنفعة ناقصة."}, "Notizzettel 3 · Haushaltsabteilung": {"vi": "Phiếu ghi chú 3 · Khu đồ gia dụng", "tr": "Not kâğıdı 3 · Ev eşyaları reyonu", "ar": "ورقة الملاحظات 3 · قسم الأدوات المنزلية"}, "Zweihundertneunundvierzig": {"vi": "Hai trăm bốn mươi chín", "tr": "İki yüz kırk dokuz", "ar": "مئتان وتسعة وأربعون"}, "Eine Kundin fragt nach dem Preis eines Kaffeevollautomaten. Die Verkäuferin antwortet: „249 Euro.“ Dann schweigt sie. Die Kundin zieht die Augenbrauen hoch, sagt „Aha“ und wendet sich ab.": {"vi": "Một khách hàng nữ hỏi giá của một chiếc máy pha cà phê tự động. Nhân viên trả lời: „249 euro.“ Rồi im lặng. Khách nhướn lông mày, nói „À ra thế“ và quay đi.", "tr": "Bir müşteri tam otomatik kahve makinesinin fiyatını soruyor. Satış elemanı cevap veriyor: „249 Euro.“ Sonra susuyor. Müşteri kaşlarını kaldırıyor, „Aha“ diyor ve arkasını dönüyor.", "ar": "تسأل زبونة عن سعر آلة قهوة أوتوماتيكية. تجيب البائعة: «249 يورو.» ثم تصمت. ترفع الزبونة حاجبيها وتقول «آها» وتستدير."}, "Welchen Fehler hat die Verkäuferin gemacht?": {"vi": "Nhân viên đã mắc lỗi gì?", "tr": "Satış elemanı hangi hatayı yaptı?", "ar": "ما الخطأ الذي ارتكبته البائعة؟"}, "Sie hat den Preis zu spät genannt – Verzögerungsmethode wäre richtig gewesen.": {"vi": "Cô ấy nêu giá quá muộn – lẽ ra nên dùng phương pháp trì hoãn (Verzögerungsmethode).", "tr": "Fiyatı çok geç söylemiş – doğrusu geciktirme yöntemi (Verzögerungsmethode) olurdu.", "ar": "ذكرت السعر متأخرة جدًا – كان الصواب طريقة التأجيل (Verzögerungsmethode)."}, "Sie hat einen nackten Preis genannt und damit einen Preisschock ausgelöst.": {"vi": "Cô ấy nêu một mức giá trần trụi và vì thế gây ra sốc giá.", "tr": "Çıplak bir fiyat söylemiş ve böylece fiyat şokuna yol açmış.", "ar": "ذكرت سعرًا عاريًا وبذلك سبّبت صدمة سعرية."}, "Sie hätte die Verkleinerungsmethode anwenden müssen, alles andere ist falsch.": {"vi": "Cô ấy lẽ ra phải dùng phương pháp thu nhỏ (Verkleinerungsmethode), mọi cách khác đều sai.", "tr": "Küçültme yöntemini (Verkleinerungsmethode) uygulaması gerekirdi, diğer her şey yanlış.", "ar": "كان عليها تطبيق طريقة التصغير (Verkleinerungsmethode)، وكل ما عدا ذلك خطأ."}, "Sie hat gar keinen Fehler gemacht – der Preis muss klar genannt werden.": {"vi": "Cô ấy không mắc lỗi nào cả – giá phải được nêu rõ ràng.", "tr": "Hiç hata yapmamış – fiyat açıkça söylenmelidir.", "ar": "لم ترتكب أي خطأ – يجب ذكر السعر بوضوح."}, "Ein Preis ohne Nutzenaussage davor und danach ist ein „nackter“ Preis. Richtig wäre die Sandwich-Methode: „Der Automat mahlt die Bohnen frisch und reinigt sich selbst, er kostet 249 Euro – und Sie haben jeden Morgen frischen Kaffee, ohne die Maschine auseinanderzunehmen.“ Auch die Verkleinerungsmethode wäre möglich, aber die Sandwich-Methode ist der Normalfall.": {"vi": "Một mức giá không có lời nói về lợi ích đứng trước và sau là một mức giá „trần trụi“. Đúng ra phải dùng phương pháp bánh mì kẹp: „Máy xay hạt tươi và tự làm sạch, giá 249 euro – và quý khách có cà phê tươi mỗi sáng mà không phải tháo máy ra vệ sinh.“ Phương pháp thu nhỏ cũng có thể dùng, nhưng phương pháp bánh mì kẹp là trường hợp thông thường.", "tr": "Öncesinde ve sonrasında fayda ifadesi olmayan bir fiyat „çıplak“ bir fiyattır. Doğrusu sandviç yöntemi olurdu: „Makine çekirdekleri taze öğütür ve kendini temizler, 249 Euro – ve makineyi sökmeden her sabah taze kahveniz olur.“ Küçültme yöntemi de mümkün olurdu, ama normal durum sandviç yöntemidir.", "ar": "السعر الذي لا تسبقه ولا تتبعه عبارة عن المنفعة هو سعر «عارٍ». كان الصواب طريقة الساندويتش: «تطحن الآلة الحبوب طازجة وتنظّف نفسها بنفسها، وسعرها 249 يورو – ولديك كل صباح قهوة طازجة دون الحاجة إلى تفكيك الآلة.» طريقة التصغير ممكنة أيضًا، لكن طريقة الساندويتش هي الحالة المعتادة."}, "Was steht in der Sandwich-Methode vor und was hinter dem Preis?": {"vi": "Trong phương pháp bánh mì kẹp, điều gì đứng trước và điều gì đứng sau mức giá?", "tr": "Sandviç yönteminde fiyatın önünde ve arkasında ne yer alır?", "ar": "ما الذي يأتي قبل السعر وما الذي يأتي بعده في طريقة الساندويتش؟"}, "Notizzettel 4 · Modeabteilung": {"vi": "Phiếu ghi chú 4 · Khu thời trang", "tr": "Not kâğıdı 4 · Moda reyonu", "ar": "ورقة الملاحظات 4 · قسم الأزياء"}, "„Da muss ich meinen Mann fragen“": {"vi": "„Tôi phải hỏi chồng tôi đã“", "tr": "„Önce kocama sormam lazım“", "ar": "«يجب أن أسأل زوجي أولًا»"}, "Eine Kundin hat einen Mantel zwanzig Minuten lang anprobiert und sich beraten lassen. Dann sagt sie: „Da muss ich erst meinen Mann fragen.“ Der Verkäufer holt Luft und beginnt, den Mantel noch einmal von vorne zu erklären: Material, Verarbeitung, Preis-Leistungs-Verhältnis. Die Kundin wird einsilbig und geht.": {"vi": "Một khách hàng nữ đã thử một chiếc áo choàng suốt hai mươi phút và được tư vấn. Rồi chị nói: „Tôi phải hỏi chồng tôi trước đã.“ Nhân viên hít một hơi và bắt đầu giải thích lại chiếc áo từ đầu: chất liệu, đường may, tỷ lệ giá – chất lượng. Khách trở nên trả lời cụt lủn và bỏ đi.", "tr": "Bir müşteri yirmi dakika boyunca bir palto denemiş ve danışmanlık almış. Sonra diyor ki: „Önce kocama sormam lazım.“ Satış elemanı nefes alıyor ve paltoyu baştan anlatmaya başlıyor: malzeme, işçilik, fiyat-performans oranı. Müşteri tek heceli cevaplar vermeye başlıyor ve gidiyor.", "ar": "جرّبت زبونة معطفًا لمدة عشرين دقيقة واستفادت من الاستشارة. ثم تقول: «يجب أن أسأل زوجي أولًا.» يأخذ البائع نفسًا ويبدأ بشرح المعطف من جديد من البداية: الخامة، والصنعة، ونسبة السعر إلى الجودة. تصبح الزبونة مقتضبة في ردودها وتغادر."}, "Richtig – bei einem Einwand muss man mit neuen Argumenten nachlegen.": {"vi": "Đúng – khi có phản đối thì phải đưa thêm lập luận mới.", "tr": "Doğru – itirazda yeni argümanlarla devam edilmelidir.", "ar": "صحيح – عند الاعتراض يجب تقديم حجج جديدة."}, "Falsch – das ist ein Vorwand, hier hilft keine Argumentation mehr.": {"vi": "Sai – đây là một cớ thoái thác (Vorwand), lập luận nào cũng không còn tác dụng.", "tr": "Yanlış – bu bir bahanedir (Vorwand), burada artık hiçbir argüman işe yaramaz.", "ar": "خطأ – هذه ذريعة (Vorwand)، ولا تنفع الحجج هنا بعد الآن."}, "Falsch – der Verkäufer hätte sofort einen Preisnachlass anbieten müssen.": {"vi": "Sai – nhân viên lẽ ra phải đề nghị giảm giá ngay lập tức.", "tr": "Yanlış – satış elemanı hemen indirim önermeliydi.", "ar": "خطأ – كان على البائع أن يعرض تخفيضًا في السعر فورًا."}, "Richtig – der Kunde soll die Ware ja nicht vergessen.": {"vi": "Đúng – dù sao cũng không để khách quên món hàng.", "tr": "Doğru – müşteri malı unutmamalı.", "ar": "صحيح – فالعميل يجب ألّا ينسى البضاعة."}, "Der Satz sagt nichts über die Ware aus – das ist das Kennzeichen eines Vorwands, eines unechten Einwands. Er lässt sich nicht widerlegen. Richtig ist, Verständnis zu zeigen und der Kundin den Rückzug ohne Gesichtsverlust zu erleichtern: „Das verstehe ich gut. Ich lege Ihnen die Modellnummer auf einen Zettel – dann finden Sie den Mantel sofort wieder.“ Eine nette Verabschiedung erhöht die Chance, dass sie wiederkommt.": {"vi": "Câu nói này không nói gì về hàng hóa – đó là dấu hiệu của một cớ thoái thác (Vorwand), tức một phản đối giả. Không thể bác bỏ nó. Cách đúng là tỏ ra thông cảm và giúp khách rút lui mà không mất thể diện: „Tôi hiểu rõ ạ. Tôi ghi số mẫu ra một tờ giấy cho chị – như vậy chị sẽ tìm lại chiếc áo ngay.“ Một lời chào tạm biệt thân thiện làm tăng khả năng chị quay lại.", "tr": "Bu cümle mal hakkında hiçbir şey söylemiyor – bu, bir bahanenin (Vorwand), yani sahte bir itirazın işaretidir. Çürütülemez. Doğrusu anlayış göstermek ve müşterinin yüz kaybetmeden geri çekilmesini kolaylaştırmaktır: „Çok iyi anlıyorum. Model numarasını size bir kâğıda yazayım – böylece paltoyu hemen yeniden bulursunuz.“ Güler yüzlü bir veda, müşterinin tekrar gelme ihtimalini artırır.", "ar": "هذه العبارة لا تقول شيئًا عن البضاعة – وهذه علامة الذريعة (Vorwand)، أي الاعتراض غير الحقيقي. لا يمكن دحضها. الصواب هو إظهار التفهّم وتسهيل انسحاب الزبونة دون إحراج: «أتفهّم ذلك جيدًا. سأكتب لكِ رقم الموديل على ورقة – وهكذا تجدين المعطف فورًا.» والوداع اللطيف يزيد احتمال عودتها."}, "Sagt die Kundin etwas über die Ware, den Preis, das Geschäft oder das Personal? Wenn nein – was ist es dann?": {"vi": "Khách hàng có nói gì về hàng hóa, giá cả, cửa hàng hay nhân viên không? Nếu không – thì đó là gì?", "tr": "Müşteri mal, fiyat, mağaza veya personel hakkında bir şey söylüyor mu? Söylemiyorsa – o zaman bu nedir?", "ar": "هل تقول الزبونة شيئًا عن البضاعة أو السعر أو المتجر أو الموظفين؟ إن لم تقل – فما هذا إذًا؟"}, "Notizzettel 5 · Spielwarenabteilung": {"vi": "Phiếu ghi chú 5 · Khu đồ chơi", "tr": "Not kâğıdı 5 · Oyuncak reyonu", "ar": "ورقة الملاحظات 5 · قسم الألعاب"}, "Ohne Batterien": {"vi": "Không có pin", "tr": "Pilsiz", "ar": "بدون بطاريات"}, "Ein Kunde kauft eine ferngesteuerte Autorennbahn als Geburtstagsgeschenk. Der Verkäufer verpackt sie, kassiert und verabschiedet ihn freundlich. Zwei Tage später steht der Kunde wieder da: Die Bahn braucht acht Batterien, das Kind saß am Geburtstag vor einem Karton, der nicht funktionierte.": {"vi": "Một khách hàng mua một bộ đường đua ô tô điều khiển từ xa làm quà sinh nhật. Nhân viên gói lại, thu tiền và chào tạm biệt thân thiện. Hai ngày sau khách quay lại: bộ đua cần tám cục pin, đứa trẻ trong ngày sinh nhật đã ngồi trước một chiếc hộp không hoạt động.", "tr": "Bir müşteri doğum günü hediyesi olarak uzaktan kumandalı bir yarış pisti alıyor. Satış elemanı paketliyor, parayı alıyor ve güler yüzle uğurluyor. İki gün sonra müşteri yine karşısında: Pist sekiz pil istiyor, çocuk doğum gününde çalışmayan bir kutunun başında oturmuş.", "ar": "يشتري عميل مضمار سباق سيارات بجهاز تحكم عن بُعد كهدية عيد ميلاد. يغلّفه البائع ويحاسبه ويودّعه بلطف. بعد يومين يقف العميل أمامه من جديد: المضمار يحتاج إلى ثماني بطاريات، وقد جلس الطفل في عيد ميلاده أمام علبة لا تعمل."}, "Was hat der Verkäufer versäumt?": {"vi": "Nhân viên đã bỏ sót điều gì?", "tr": "Satış elemanı neyi ihmal etti?", "ar": "ما الذي أغفله البائع؟"}, "Ein Zusatzangebot – die Batterien hätten den Nutzen erhöht.": {"vi": "Một lời đề nghị hàng thêm (Zusatzangebot) – pin lẽ ra làm tăng lợi ích.", "tr": "Bir ek teklif (Zusatzangebot) – piller faydayı artırırdı.", "ar": "عرض إضافة (Zusatzangebot) – كانت البطاريات ستزيد المنفعة."}, "Ein Ergänzungsangebot – die Batterien sind für die Nutzung notwendig.": {"vi": "Một lời đề nghị hàng bổ sung (Ergänzungsangebot) – pin là cần thiết để sử dụng.", "tr": "Bir tamamlayıcı teklif (Ergänzungsangebot) – piller kullanım için gereklidir.", "ar": "عرض مكمِّل (Ergänzungsangebot) – البطاريات ضرورية للاستخدام."}, "Ein Alternativangebot – er hätte eine andere Bahn anbieten müssen.": {"vi": "Một lời đề nghị thay thế (Alternativangebot) – lẽ ra phải đề nghị một bộ đua khác.", "tr": "Bir alternatif teklif (Alternativangebot) – başka bir pist önermeliydi.", "ar": "عرض بديل (Alternativangebot) – كان عليه أن يعرض مضمارًا آخر."}, "Nichts – für die Batterien ist der Kunde selbst verantwortlich.": {"vi": "Không bỏ sót gì – pin là trách nhiệm của khách hàng.", "tr": "Hiçbir şey – piller için müşteri kendisi sorumludur.", "ar": "لا شيء – العميل مسؤول بنفسه عن البطاريات."}, "Ohne Batterien fährt die Bahn nicht – sie sind für die Nutzung der Hauptware notwendig und damit ein Ergänzungsartikel. Ergänzungsartikel müssen immer angeboten werden. Ein Zusatzartikel wäre zum Beispiel eine zusätzliche Kurve gewesen: Die Bahn fährt auch ohne, der Nutzen wird nur größer.": {"vi": "Không có pin thì bộ đua không chạy – pin cần thiết để dùng hàng chính, vì vậy là hàng bổ sung (Ergänzungsartikel). Hàng bổ sung luôn phải được đề nghị. Hàng thêm (Zusatzartikel) chẳng hạn là một đoạn cua bổ sung: bộ đua vẫn chạy khi không có nó, lợi ích chỉ lớn hơn.", "tr": "Pil olmadan pist çalışmaz – piller ana malın kullanımı için gereklidir ve bu yüzden bir tamamlayıcı üründür (Ergänzungsartikel). Tamamlayıcı ürünler her zaman önerilmelidir. Ek ürün (Zusatzartikel) örneğin ilave bir viraj olurdu: Pist o olmadan da çalışır, fayda sadece artar.", "ar": "بدون بطاريات لا يعمل المضمار – فهي ضرورية لاستخدام البضاعة الرئيسية، وبالتالي هي سلعة مكمِّلة (Ergänzungsartikel). يجب دائمًا عرض السلع المكمِّلة. أما السلعة الإضافية (Zusatzartikel) فكانت مثلًا منعطفًا إضافيًا: يعمل المضمار بدونه أيضًا، والمنفعة فقط تزداد."}, "Erste Frage: Funktioniert die Hauptware ohne? Nein heißt Ergänzung, ja heißt Zusatz.": {"vi": "Câu hỏi đầu tiên: Hàng chính có hoạt động khi không có nó không? Không nghĩa là hàng bổ sung (Ergänzung), có nghĩa là hàng thêm (Zusatz).", "tr": "İlk soru: Ana mal bunsuz çalışıyor mu? Hayır tamamlayıcı (Ergänzung), evet ek (Zusatz) demektir.", "ar": "السؤال الأول: هل تعمل البضاعة الرئيسية بدونها؟ لا تعني مكمِّلًا (Ergänzung)، ونعم تعني إضافة (Zusatz)."}, "Notizzettel 6 · Lederwaren": {"vi": "Phiếu ghi chú 6 · Đồ da", "tr": "Not kâğıdı 6 · Deri ürünler", "ar": "ورقة الملاحظات 6 · المنتجات الجلدية"}, "Der Griff zur Geldbörse": {"vi": "Đưa tay lấy ví", "tr": "Cüzdana uzanan el", "ar": "مدّ اليد إلى المحفظة"}, "Eine Kundin prüft eine Handtasche zum dritten Mal, tritt einen Schritt zurück, betrachtet sie aus der Entfernung und fragt: „Kann ich damit auch mit Karte zahlen?“ Dabei greift sie nach ihrer Geldbörse. Die Verkäuferin antwortet „Ja, natürlich“ und beginnt dann, die Vorzüge des Innenfutters zu erklären. Nach fünf Minuten sagt die Kundin: „Wissen Sie, ich überlege es mir noch mal.“": {"vi": "Một khách hàng nữ xem một chiếc túi xách lần thứ ba, lùi lại một bước, ngắm nó từ xa và hỏi: „Tôi có thể thanh toán bằng thẻ không?“ Đồng thời chị đưa tay lấy ví. Nhân viên trả lời „Vâng, tất nhiên“ rồi bắt đầu giải thích ưu điểm của lớp lót bên trong. Sau năm phút, khách nói: „Chị biết không, tôi sẽ suy nghĩ thêm.“", "tr": "Bir müşteri bir el çantasını üçüncü kez inceliyor, bir adım geri çekiliyor, uzaktan bakıyor ve soruyor: „Bunu kartla da ödeyebilir miyim?“ Bunu söylerken cüzdanına uzanıyor. Satış elemanı „Evet, tabii ki“ diye cevap veriyor ve ardından iç astarın artılarını anlatmaya başlıyor. Beş dakika sonra müşteri diyor ki: „Biliyor musunuz, bir daha düşüneyim.“", "ar": "تفحص زبونة حقيبة يد للمرة الثالثة، وتتراجع خطوة، وتتأملها من بعيد، وتسأل: «هل يمكنني الدفع بالبطاقة؟» وفي أثناء ذلك تمدّ يدها إلى محفظتها. تجيب البائعة «نعم، بالطبع» ثم تبدأ بشرح مزايا البطانة الداخلية. بعد خمس دقائق تقول الزبونة: «أتعلمين، سأفكّر في الأمر مرة أخرى.»"}, "Was hat die Verkäuferin übersehen?": {"vi": "Nhân viên đã bỏ sót điều gì?", "tr": "Satış elemanı neyi gözden kaçırdı?", "ar": "ما الذي لم تنتبه إليه البائعة؟"}, "Einen Kundeneinwand gegen das Preis-Leistungs-Verhältnis.": {"vi": "Một phản đối của khách hàng về tỷ lệ giá – chất lượng.", "tr": "Müşterinin fiyat-performans oranına karşı bir itirazını.", "ar": "اعتراضًا من العميلة على نسبة السعر إلى الجودة."}, "Mehrere Kaufsignale – sie hätte zum Abschluss kommen müssen.": {"vi": "Nhiều tín hiệu mua hàng – lẽ ra cô ấy phải chốt đơn.", "tr": "Birkaç satın alma sinyalini – satışı bitirmeliydi.", "ar": "عدة إشارات شراء – كان عليها أن تُنهي عملية البيع."}, "Einen Vorwand – die Kundin wollte gar nicht kaufen.": {"vi": "Một cớ thoái thác (Vorwand) – khách hàng vốn không muốn mua.", "tr": "Bir bahaneyi (Vorwand) – müşteri zaten almak istemiyordu.", "ar": "ذريعة (Vorwand) – فالزبونة لم تكن تريد الشراء أصلًا."}, "Die Kontrollfrage nach der Warenvorlage.": {"vi": "Câu hỏi kiểm tra sau khi trình bày hàng hóa.", "tr": "Mal sunumundan sonraki kontrol sorusunu.", "ar": "سؤال المراجعة بعد عرض البضاعة."}, "Hier liegen gleich vier Kaufsignale vor: das mehrmalige In-die-Hand-Nehmen, das Zurücktreten und Begutachten, die Frage nach der Zahlungsweise und der Griff zur Geldbörse. Die Kundin war entschieden. Wer jetzt weiterredet, macht den Kauf wieder auf. Richtig wäre eine Abschlusstechnik gewesen – zum Beispiel die direkte Kaufaufforderung: „Darf ich Ihnen die Tasche einpacken?“": {"vi": "Ở đây có tới bốn tín hiệu mua hàng: cầm lên nhiều lần, lùi lại ngắm nghía, hỏi về cách thanh toán và đưa tay lấy ví. Khách đã quyết định. Ai nói tiếp lúc này sẽ làm cho việc mua bán bị mở lại. Đúng ra phải dùng một kỹ thuật chốt đơn – chẳng hạn lời mời mua trực tiếp: „Tôi gói chiếc túi này cho chị nhé?“", "tr": "Burada tam dört satın alma sinyali var: çantayı birkaç kez eline alma, geri çekilip inceleme, ödeme şeklini sorma ve cüzdana uzanma. Müşteri karar vermişti. Şimdi konuşmaya devam eden, satışı yeniden açmış olur. Doğrusu bir kapanış tekniği olurdu – örneğin doğrudan satın alma daveti: „Çantayı sizin için paketleyeyim mi?“", "ar": "هنا أربع إشارات شراء دفعة واحدة: حمل الحقيبة في اليد عدة مرات، والتراجع للتأمل، والسؤال عن طريقة الدفع، ومدّ اليد إلى المحفظة. كانت الزبونة قد قرّرت. ومن يواصل الكلام الآن يعيد فتح باب الشراء من جديد. كان الصواب استخدام أسلوب إنهاء البيع (Abschlusstechnik) – مثلًا الدعوة المباشرة إلى الشراء: «هل أغلّف لكِ الحقيبة؟»"}, "Zähl die Signale in der Szene – und überleg, was danach zu tun ist.": {"vi": "Hãy đếm các tín hiệu trong cảnh – và nghĩ xem sau đó phải làm gì.", "tr": "Sahnedeki sinyalleri say – ve bundan sonra ne yapılacağını düşün.", "ar": "عُدّ الإشارات في المشهد – وفكّر فيما يجب فعله بعدها."}};
+function LT(parts, vars){
+  vars = vars || {};
+  if (typeof parts === "string") parts = [parts];
+  function sub(s){ return s.replace(/\{(\w+)\}/g, function(m,k){ return vars[k] !== undefined ? vars[k] : m; }); }
+  var out = parts.map(sub).join(" ");
+  ["vi","tr","ar"].forEach(function(l){
+    var t = parts.map(function(p){ var e = TR[p]; return sub(e && e[l] ? e[l] : p); }).join(" ");
+    out += '<span class="t t-'+l+'" lang="'+l+'"'+(l==="ar"?' dir="rtl"':'')+'>'+t+'</span>';
+  });
+  return out;
+}
+(function(){
+  var KEY = "lf2-er2-lang";
+  function setL(l){
+    document.body.setAttribute("data-lang", l);
+    document.documentElement.setAttribute("data-lang", l);
+    document.querySelectorAll("#sprachbar button").forEach(function(b){ b.setAttribute("aria-pressed", b.getAttribute("data-l")===l ? "true":"false"); });
+    try{ localStorage.setItem(KEY, l); }catch(e){}
+  }
+  document.addEventListener("DOMContentLoaded", function(){
+    var l = "de"; try{ l = localStorage.getItem(KEY) || "de"; }catch(e){}
+    if (["de","vi","tr","ar"].indexOf(l) < 0) l = "de";
+    document.getElementById("sprachbar").addEventListener("click", function(e){
+      var b = e.target.closest("button[data-l]"); if (b) setL(b.getAttribute("data-l"));
+    });
+    setL(l);
+  });
+})();
+</script>
+<script>
+(function(){
+  "use strict";
+
+  var STATIONEN = [
+    {
+      ort: "Notizzettel 1 · Sportabteilung",
+      titel: "Sieben Paar Schuhe",
+      fall: "Eine Kundin sucht Wanderschuhe. Der Verkäufer stellt ihr nacheinander sieben Paar hin, alle bleiben auf dem Tisch stehen. Nach zehn Minuten sagt die Kundin: „Ich weiß jetzt gar nicht mehr, welcher welcher war. Ich überlege es mir noch mal.“ Sie geht ohne Kauf.",
+      frage: "Wie ist diese Szene einzuordnen?",
+      optionen: [
+        "Richtig – je mehr Auswahl, desto größer die Chance auf einen Kauf.",
+        "Falsch – die Faustregel lautet drei Artikel, im Einzelfall vier bis fünf.",
+        "Falsch – Wanderschuhe dürfen gar nicht anprobiert werden.",
+        "Richtig – der Verkäufer hat alle Preislagen abgedeckt."
+      ],
+      richtig: 1,
+      ziffer: "4",
+      erklaerung: "Mehr als fünf Artikel verwirren den Kunden: Er kann nicht mehr vergleichen und entscheidet sich gar nicht. Richtig wäre gewesen, drei Paar vorzulegen und die Paare, die nicht infrage kommen, gleich wieder wegzuräumen – so wird die Auswahl Schritt für Schritt eingegrenzt.",
+      tipp: "Wie viele Artikel legt man nach der Faustregel vor? Und was passiert mit denen, die durchgefallen sind?"
+    },
+    {
+      ort: "Notizzettel 2 · Elektroabteilung",
+      titel: "Fünftausend Milliamperestunden",
+      fall: "Ein Kunde interessiert sich für ein Smartphone. Die Verkäuferin sagt: „Der Akku hat 5.000 Milliamperestunden, das Display 120 Hertz und die Hauptkamera 108 Megapixel.“ Der Kunde nickt höflich, legt das Gerät zurück und sagt: „Ich schaue noch bei der Konkurrenz.“",
+      frage: "Was fehlt in der Argumentation der Verkäuferin?",
+      optionen: [
+        "Nichts – sie hat drei Warenmerkmale genannt.",
+        "Der Warenvorteil und vor allem der Kundennutzen.",
+        "Der Preis – er hätte zuerst genannt werden müssen.",
+        "Eine geschlossene Frage am Ende."
+      ],
+      richtig: 1,
+      ziffer: "7",
+      erklaerung: "Alle drei Angaben sind reine Warenmerkmale. Es fehlt, was die Ware deshalb kann (Warenvorteil) und was der Kunde davon hat (Kundennutzen). Besser: „Der Akku hat 5.000 Milliamperestunden – das reicht für zwei volle Tage. Sie müssen unterwegs also kein Ladegerät mehr einpacken.“ Erkennbar ist der Nutzen immer am Wort „Sie“.",
+      tipp: "Stell nach jedem Satz die Frage „Na und?“. Solange sie noch passt, fehlt der Nutzen."
+    },
+    {
+      ort: "Notizzettel 3 · Haushaltsabteilung",
+      titel: "Zweihundertneunundvierzig",
+      fall: "Eine Kundin fragt nach dem Preis eines Kaffeevollautomaten. Die Verkäuferin antwortet: „249 Euro.“ Dann schweigt sie. Die Kundin zieht die Augenbrauen hoch, sagt „Aha“ und wendet sich ab.",
+      frage: "Welchen Fehler hat die Verkäuferin gemacht?",
+      optionen: [
+        "Sie hat den Preis zu spät genannt – Verzögerungsmethode wäre richtig gewesen.",
+        "Sie hat einen nackten Preis genannt und damit einen Preisschock ausgelöst.",
+        "Sie hätte die Verkleinerungsmethode anwenden müssen, alles andere ist falsch.",
+        "Sie hat gar keinen Fehler gemacht – der Preis muss klar genannt werden."
+      ],
+      richtig: 1,
+      ziffer: "9",
+      erklaerung: "Ein Preis ohne Nutzenaussage davor und danach ist ein „nackter“ Preis. Richtig wäre die Sandwich-Methode: „Der Automat mahlt die Bohnen frisch und reinigt sich selbst, er kostet 249 Euro – und Sie haben jeden Morgen frischen Kaffee, ohne die Maschine auseinanderzunehmen.“ Auch die Verkleinerungsmethode wäre möglich, aber die Sandwich-Methode ist der Normalfall.",
+      tipp: "Was steht in der Sandwich-Methode vor und was hinter dem Preis?"
+    },
+    {
+      ort: "Notizzettel 4 · Modeabteilung",
+      titel: "„Da muss ich meinen Mann fragen“",
+      fall: "Eine Kundin hat einen Mantel zwanzig Minuten lang anprobiert und sich beraten lassen. Dann sagt sie: „Da muss ich erst meinen Mann fragen.“ Der Verkäufer holt Luft und beginnt, den Mantel noch einmal von vorne zu erklären: Material, Verarbeitung, Preis-Leistungs-Verhältnis. Die Kundin wird einsilbig und geht.",
+      frage: "Wie ist diese Szene einzuordnen?",
+      optionen: [
+        "Richtig – bei einem Einwand muss man mit neuen Argumenten nachlegen.",
+        "Falsch – das ist ein Vorwand, hier hilft keine Argumentation mehr.",
+        "Falsch – der Verkäufer hätte sofort einen Preisnachlass anbieten müssen.",
+        "Richtig – der Kunde soll die Ware ja nicht vergessen."
+      ],
+      richtig: 1,
+      ziffer: "1",
+      erklaerung: "Der Satz sagt nichts über die Ware aus – das ist das Kennzeichen eines Vorwands, eines unechten Einwands. Er lässt sich nicht widerlegen. Richtig ist, Verständnis zu zeigen und der Kundin den Rückzug ohne Gesichtsverlust zu erleichtern: „Das verstehe ich gut. Ich lege Ihnen die Modellnummer auf einen Zettel – dann finden Sie den Mantel sofort wieder.“ Eine nette Verabschiedung erhöht die Chance, dass sie wiederkommt.",
+      tipp: "Sagt die Kundin etwas über die Ware, den Preis, das Geschäft oder das Personal? Wenn nein – was ist es dann?"
+    },
+    {
+      ort: "Notizzettel 5 · Spielwarenabteilung",
+      titel: "Ohne Batterien",
+      fall: "Ein Kunde kauft eine ferngesteuerte Autorennbahn als Geburtstagsgeschenk. Der Verkäufer verpackt sie, kassiert und verabschiedet ihn freundlich. Zwei Tage später steht der Kunde wieder da: Die Bahn braucht acht Batterien, das Kind saß am Geburtstag vor einem Karton, der nicht funktionierte.",
+      frage: "Was hat der Verkäufer versäumt?",
+      optionen: [
+        "Ein Zusatzangebot – die Batterien hätten den Nutzen erhöht.",
+        "Ein Ergänzungsangebot – die Batterien sind für die Nutzung notwendig.",
+        "Ein Alternativangebot – er hätte eine andere Bahn anbieten müssen.",
+        "Nichts – für die Batterien ist der Kunde selbst verantwortlich."
+      ],
+      richtig: 1,
+      ziffer: "3",
+      erklaerung: "Ohne Batterien fährt die Bahn nicht – sie sind für die Nutzung der Hauptware notwendig und damit ein Ergänzungsartikel. Ergänzungsartikel müssen immer angeboten werden. Ein Zusatzartikel wäre zum Beispiel eine zusätzliche Kurve gewesen: Die Bahn fährt auch ohne, der Nutzen wird nur größer.",
+      tipp: "Erste Frage: Funktioniert die Hauptware ohne? Nein heißt Ergänzung, ja heißt Zusatz."
+    },
+    {
+      ort: "Notizzettel 6 · Lederwaren",
+      titel: "Der Griff zur Geldbörse",
+      fall: "Eine Kundin prüft eine Handtasche zum dritten Mal, tritt einen Schritt zurück, betrachtet sie aus der Entfernung und fragt: „Kann ich damit auch mit Karte zahlen?“ Dabei greift sie nach ihrer Geldbörse. Die Verkäuferin antwortet „Ja, natürlich“ und beginnt dann, die Vorzüge des Innenfutters zu erklären. Nach fünf Minuten sagt die Kundin: „Wissen Sie, ich überlege es mir noch mal.“",
+      frage: "Was hat die Verkäuferin übersehen?",
+      optionen: [
+        "Einen Kundeneinwand gegen das Preis-Leistungs-Verhältnis.",
+        "Mehrere Kaufsignale – sie hätte zum Abschluss kommen müssen.",
+        "Einen Vorwand – die Kundin wollte gar nicht kaufen.",
+        "Die Kontrollfrage nach der Warenvorlage."
+      ],
+      richtig: 1,
+      ziffer: "6",
+      erklaerung: "Hier liegen gleich vier Kaufsignale vor: das mehrmalige In-die-Hand-Nehmen, das Zurücktreten und Begutachten, die Frage nach der Zahlungsweise und der Griff zur Geldbörse. Die Kundin war entschieden. Wer jetzt weiterredet, macht den Kauf wieder auf. Richtig wäre eine Abschlusstechnik gewesen – zum Beispiel die direkte Kaufaufforderung: „Darf ich Ihnen die Tasche einpacken?“",
+      tipp: "Zähl die Signale in der Szene – und überleg, was danach zu tun ist."
+    }
+  ];
+
+  var CODE = STATIONEN.map(function(s){ return s.ziffer; }).join("");
+  var geloest = STATIONEN.map(function(){ return false; });
+  var fehler = 0, fehlerSchloss = 0;
+
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  // Leiste
+  var leiste = document.getElementById("leiste");
+  STATIONEN.forEach(function(s,i){
+    var d = document.createElement("div");
+    d.className = "feld"; d.id = "feld"+i;
+    d.innerHTML = '<div class="nr">'+LT("Station {n}",{n:i+1})+'</div><div class="zi">?</div>';
+    leiste.appendChild(d);
+  });
+
+  // Stationen
+  var box = document.getElementById("stationen");
+  STATIONEN.forEach(function(s,i){
+    var sec = document.createElement("section");
+    sec.className = "station"; sec.id = "st"+i;
+    var h = '<div class="ort">'+LT(s.ort)+'</div>';
+    h += '<h2>'+LT(["Station {n}:", s.titel],{n:i+1})+'</h2>';
+    h += '<p class="fall">'+LT(s.fall)+'</p>';
+    h += '<p class="frage">'+LT(s.frage)+'</p>';
+    s.optionen.forEach(function(o,k){
+      h += '<label class="opt"><input type="radio" name="s'+i+'" value="'+k+'">'+LT(o)+'</label>';
+    });
+    h += '<button type="button" class="knopf" data-i="'+i+'">'+LT("Akte prüfen")+'</button>';
+    h += '<div class="rueck" id="r'+i+'"></div>';
+    sec.innerHTML = h;
+    box.appendChild(sec);
+  });
+
+  box.addEventListener("click", function(e){
+    var b = e.target.closest("button[data-i]");
+    if (!b) return;
+    var i = Number(b.getAttribute("data-i"));
+    if (geloest[i]) return;
+    var s = STATIONEN[i];
+    var sel = document.querySelector('input[name="s'+i+'"]:checked');
+    var r = document.getElementById("r"+i);
+    if (!sel){
+      r.className = "rueck falsch";
+      r.innerHTML = LT(["<b>Noch nichts ausgewählt.</b>","Entscheide dich für eine Einordnung."]);
+      r.style.display = "block";
+      return;
+    }
+    if (Number(sel.value) === s.richtig){
+      geloest[i] = true;
+      r.className = "rueck richtig";
+      r.innerHTML = LT(["<b>Richtig eingeordnet.</b>", s.erklaerung]) +
+                    '<br>' + LT('<span class="ziffer">In der Akte steckt die Ziffer {z}.</span>',{z:s.ziffer});
+      r.style.display = "block";
+      document.getElementById("st"+i).classList.add("geloest");
+      var f = document.getElementById("feld"+i);
+      f.classList.add("auf");
+      f.querySelector(".zi").textContent = s.ziffer;
+      b.disabled = true;
+      b.innerHTML = LT("Akte geschlossen");
+      document.querySelectorAll('input[name="s'+i+'"]').forEach(function(x){ x.disabled = true; });
+    } else {
+      fehler++;
+      r.className = "rueck falsch";
+      r.innerHTML = LT(["<b>Das passt noch nicht.</b>", s.tipp, "Schau notfalls in Modul 8 nach und versuch es noch einmal."]);
+      r.style.display = "block";
+    }
+  });
+
+  // Schlüsselkasten
+  document.getElementById("oeffnen").addEventListener("click", function(){
+    var eing = document.getElementById("code").value.replace(/\D/g,"");
+    var tr = document.getElementById("tresorrueck");
+    var offen = geloest.filter(Boolean).length;
+    if (eing.length !== 6){
+      tr.className = "zu";
+      tr.innerHTML = LT(["<b>Das Schloss braucht genau sechs Ziffern.</b>","Bisher gelöst: {o} von 6 Stationen."],{o:offen});
+      tr.style.display = "block";
+      return;
+    }
+    if (eing === CODE){
+      tr.className = "auf";
+      tr.innerHTML = LT(["<b>Klick.</b>", "Der Schlüsselkasten ist offen."]);
+      tr.style.display = "block";
+      document.getElementById("fehler").textContent = fehler;
+      document.querySelectorAll(".fz").forEach(function(x){ x.textContent = fehler; });
+      document.querySelectorAll(".fs").forEach(function(x){ x.textContent = fehlerSchloss; });
+      document.getElementById("fehlerschloss").textContent = fehlerSchloss;
+      document.getElementById("ende").style.display = "block";
+      document.getElementById("ende").scrollIntoView({behavior:"smooth"});
+    } else {
+      fehlerSchloss++;
+      tr.className = "zu";
+      tr.innerHTML = LT(["<b>Das Schloss rührt sich nicht.</b>","Prüfe die Reihenfolge: Station 1 ganz links, Station 6 ganz rechts.","Bisher gelöst: {o} von 6 Stationen."],{o:offen});
+      tr.style.display = "block";
+    }
+  });
+
+  document.getElementById("nochmal").addEventListener("click", function(){ location.reload(); });
+})();
+</script>
+</body>
+</html>

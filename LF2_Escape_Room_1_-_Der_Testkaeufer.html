@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escape Room – Der Testkäufer | LF 2, Module 1 bis 7</title>
+<style>
+  :root{
+    --blau:#1F4E79; --blauhell:#9DC3E6; --blauflaeche:#EAF1F8;
+    --rosa:#E5B8B7; --grau:#F2F2F2; --graulinie:#BFBFBF; --grautext:#595959;
+    --rot:#C00000; --gruen:#2E6B45; --gruenflaeche:#EAF3ED;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: Arial, Helvetica, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:#fff; color:#111; font-family:var(--serif); font-size:17px; line-height:1.6}
+  .blatt{max-width:860px; margin:0 auto; padding:26px 20px 80px}
+
+  header.kopf{border:1px solid #000; display:flex; align-items:stretch; margin-bottom:26px}
+  header.kopf .li{flex:0 0 32%; padding:12px 14px; border-right:1px solid #000; font-family:var(--sans); font-size:14px}
+  header.kopf .mi{flex:1; padding:12px 14px; text-align:center}
+  header.kopf .mi .lf{font-family:var(--sans); font-weight:bold; font-size:17px}
+  header.kopf .mi .lftxt{font-family:var(--sans); font-size:14px; padding-bottom:8px; border-bottom:1px solid #000; margin-bottom:8px}
+  header.kopf .mi .mod{font-family:var(--sans); font-weight:bold; font-size:17px}
+
+  h1{font-family:var(--sans); color:var(--blau); font-size:27px; margin:0 0 6px; border-bottom:2px solid var(--blauhell); padding-bottom:8px}
+  .unter{font-family:var(--sans); font-size:14px; color:var(--grautext); margin:0 0 22px}
+  .story{background:var(--grau); border-left:5px solid var(--graulinie); padding:14px 18px; margin:0 0 22px}
+  .story p{margin:0 0 9px}
+  .story p:last-child{margin:0}
+
+  /* Fortschrittsleiste */
+  .leiste{display:flex; gap:8px; margin:0 0 26px; flex-wrap:wrap}
+  .leiste .feld{
+    flex:1 1 0; min-width:74px; text-align:center; border:2px solid var(--graulinie);
+    background:#fff; font-family:var(--sans); padding:9px 4px; border-radius:4px
+  }
+  .leiste .feld .nr{font-size:11px; color:var(--grautext); letter-spacing:.06em; text-transform:uppercase}
+  .leiste .feld .zi{font-size:26px; font-weight:bold; color:var(--graulinie); line-height:1.1}
+  .leiste .feld.auf{border-color:var(--gruen); background:var(--gruenflaeche)}
+  .leiste .feld.auf .zi{color:var(--gruen)}
+
+  section.station{border:1px solid var(--graulinie); border-left:5px solid var(--blauhell); margin:0 0 20px; padding:16px 20px}
+  section.station.geloest{border-left-color:var(--gruen); background:var(--gruenflaeche)}
+  section.station h2{font-family:var(--sans); color:var(--blau); font-size:19px; margin:0 0 4px}
+  section.station .ort{font-family:var(--sans); font-size:13px; color:var(--grautext); margin:0 0 12px; letter-spacing:.04em; text-transform:uppercase}
+  section.station .fall{margin:0 0 14px}
+  section.station .frage{font-family:var(--sans); font-weight:bold; font-size:16px; margin:0 0 10px}
+  label.opt{display:block; padding:6px 8px 6px 4px; cursor:pointer; border-radius:3px; font-size:16px}
+  label.opt:hover{background:var(--blauflaeche)}
+  label.opt input{margin-right:9px}
+  .knopf{
+    font-family:var(--sans); font-size:15px; font-weight:bold; color:#fff; background:var(--blau);
+    border:0; border-radius:4px; padding:10px 22px; cursor:pointer; margin-top:10px
+  }
+  .knopf:hover{background:#17395a}
+  .knopf:disabled{background:var(--graulinie); cursor:default}
+  .rueck{margin:12px 0 0; padding:10px 14px; font-size:16px; display:none}
+  .rueck.falsch{background:#FBEDED; border-left:4px solid var(--rot)}
+  .rueck.richtig{background:var(--gruenflaeche); border-left:4px solid var(--gruen)}
+  .rueck b{font-family:var(--sans)}
+  .ziffer{font-family:var(--sans); font-weight:bold; color:var(--gruen); font-size:19px}
+
+  /* Tresor */
+  .tresor{border:2px solid var(--blau); padding:20px 24px; margin-top:34px}
+  .tresor h2{font-family:var(--sans); color:var(--blau); font-size:21px; margin:0 0 10px}
+  .tresor input{
+    font-family:var(--sans); font-size:30px; letter-spacing:.35em; width:250px; text-align:center;
+    padding:8px 6px; border:2px solid var(--graulinie); border-radius:4px
+  }
+  .tresor .zeile{display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-top:8px}
+  .tresor .hinw{font-family:var(--sans); font-size:14px; color:var(--grautext); margin:10px 0 0}
+  #tresorrueck{margin-top:14px; padding:12px 16px; display:none; font-size:16px}
+  #tresorrueck.zu{background:#FBEDED; border-left:4px solid var(--rot)}
+  #tresorrueck.auf{background:var(--gruenflaeche); border-left:4px solid var(--gruen)}
+
+  /* Ende */
+  #ende{display:none; margin-top:30px}
+  #ende .urkunde{border:3px double var(--blau); padding:26px 28px; text-align:center}
+  #ende .urkunde .gross{font-family:var(--sans); font-size:30px; font-weight:bold; color:var(--blau); margin-bottom:6px}
+  #ende .zahlen{font-family:var(--sans); font-size:17px; margin:14px 0 0}
+  #ende .namensfeld{font-family:var(--sans); font-size:15px; margin:18px 0 0}
+  #ende .namensfeld input{font-size:15px; padding:5px 6px; border:1px solid var(--graulinie); border-radius:3px; width:260px}
+  table.merk{border-collapse:collapse; width:100%; margin-top:22px; font-size:15px}
+  table.merk th{background:var(--rosa); font-family:var(--sans); font-size:14px; text-align:left; padding:8px 10px; border:1px solid var(--graulinie)}
+  table.merk td{border:1px solid var(--graulinie); padding:8px 10px; vertical-align:top}
+  table.merk td.b{font-family:var(--sans); font-weight:bold; width:34%}
+  @media print{ .knopf, .tresor input{display:none} }
+</style>
+<style id="mehrsprachig-css">
+.t{display:none;margin-top:3px;color:#1F4E79;font-family:Arial,"Segoe UI","Geeza Pro",Tahoma,sans-serif;font-weight:normal;font-style:normal;font-size:.92em;line-height:1.5;letter-spacing:0;text-transform:none}
+.t b{font-weight:bold}
+h1 .t,h2 .t,.ort .t,.nr .t{font-size:.7em}
+body[data-lang="vi"] .t-vi,body[data-lang="tr"] .t-tr,body[data-lang="ar"] .t-ar{display:block}
+.t-ar{direction:rtl;text-align:right}
+button .t{text-align:center;font-size:.85em}
+#sprachbar{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid #BFBFBF;padding:6px 10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-family:Arial,sans-serif;font-size:14px}
+#sprachbar button{font:inherit;padding:6px 12px;border:1px solid #1F4E79;background:#fff;color:#1F4E79;border-radius:16px;cursor:pointer}
+#sprachbar button[aria-pressed="true"]{background:#1F4E79;color:#fff}
+@media print{#sprachbar{display:none}}
+</style>
+
+</head>
+<body>
+<div id="sprachbar"><span aria-hidden="true">🌐</span>
+<button type="button" data-l="de">Deutsch</button><button type="button" data-l="vi" lang="vi">Tiếng Việt</button><button type="button" data-l="tr" lang="tr">Türkçe</button><button type="button" data-l="ar" lang="ar">العربية</button></div>
+
+<div class="blatt">
+
+  <header class="kopf">
+    <div class="li">Datum:<br><br>Name:<span class="t t-vi" lang="vi">Ngày:<br><br>Họ tên:</span><span class="t t-tr" lang="tr">Tarih:<br><br>Ad:</span><span class="t t-ar" lang="ar" dir="rtl">التاريخ:<br><br>الاسم:</span></div>
+    <div class="mi">
+      <div class="lf">Lernfeld 2<span class="t t-vi" lang="vi">Lĩnh vực học 2</span><span class="t t-tr" lang="tr">Öğrenme alanı 2</span><span class="t t-ar" lang="ar" dir="rtl">مجال التعلّم 2</span></div>
+      <div class="lftxt">Verkaufsgespräche kundenorientiert führen<span class="t t-vi" lang="vi">Thực hiện các cuộc trò chuyện bán hàng theo hướng khách hàng</span><span class="t t-tr" lang="tr">Satış görüşmelerini müşteri odaklı yürütmek</span><span class="t t-ar" lang="ar" dir="rtl">إجراء محادثات البيع بما يتمحور حول العميل</span></div>
+      <div class="mod">Escape Room · Module 1 bis 7<span class="t t-vi" lang="vi">Phòng thoát hiểm · Module 1 đến 7</span><span class="t t-tr" lang="tr">Kaçış odası · Modül 1–7</span><span class="t t-ar" lang="ar" dir="rtl">غرفة الهروب · الوحدات 1 إلى 7</span></div>
+    </div>
+  </header>
+
+  <h1>Der Testkäufer<span class="t t-vi" lang="vi">Khách mua hàng bí mật (Testkäufer)</span><span class="t t-tr" lang="tr">Gizli müşteri (Testkäufer)</span><span class="t t-ar" lang="ar" dir="rtl">المتسوّق السرّي (Testkäufer)</span></h1>
+  <p class="unter">Sechs Szenen · sechs Ziffern · ein Tresor. Rechne mit etwa 25 Minuten. Allein oder zu zweit.<span class="t t-vi" lang="vi">Sáu cảnh · sáu chữ số · một két sắt. Khoảng 25 phút. Chơi một mình hoặc theo cặp.</span><span class="t t-tr" lang="tr">Altı sahne · altı rakam · bir kasa. Yaklaşık 25 dakika sürer. Tek başına veya ikili oynanır.</span><span class="t t-ar" lang="ar" dir="rtl">ستة مشاهد · ستة أرقام · خزنة واحدة. يستغرق حوالي 25 دقيقة. بمفردك أو مع زميل.</span></p>
+
+  <div class="story">
+    <p>Du bist Auszubildende oder Auszubildender bei der <b>Nordstadt-Kauf GmbH</b> in Bremerhaven, einem Warenhaus mit Vollsortiment.<span class="t t-vi" lang="vi">Bạn là học viên nghề tại <b>Nordstadt-Kauf GmbH</b> ở Bremerhaven, một cửa hàng bách hóa có đầy đủ mặt hàng.</span><span class="t t-tr" lang="tr">Bremerhaven'daki <b>Nordstadt-Kauf GmbH</b> adlı, tam ürün yelpazesine sahip bir mağazada çıraksın (stajyersin).</span><span class="t t-ar" lang="ar" dir="rtl">أنت متدرّب في شركة <b>Nordstadt-Kauf GmbH</b> في بريمرهافن، وهي متجر متعدد الأقسام يضم تشكيلة كاملة من البضائع.</span></p>
+    <p>Vorige Woche war ein <b>Testkäufer</b> im Haus – ein Mystery Shopper. Er hat sich sechs Verkaufsgespräche angesehen und zu jedem einen Notizzettel geschrieben. Sein Bericht liegt im Tresor der Filialleitung. Morgen früh wird er im Team besprochen, und Sie sollen die Besprechung vorbereiten.<span class="t t-vi" lang="vi">Tuần trước có một <b>khách mua hàng bí mật</b> đến cửa hàng – một „Mystery Shopper“. Người đó đã quan sát sáu cuộc trò chuyện bán hàng và viết một phiếu ghi chú cho mỗi cuộc. Báo cáo của người đó nằm trong két sắt của giám đốc chi nhánh. Sáng mai báo cáo sẽ được thảo luận trong nhóm, và bạn phải chuẩn bị buổi họp này.</span><span class="t t-tr" lang="tr">Geçen hafta mağazada bir <b>gizli müşteri</b> (Mystery Shopper) vardı. Altı satış görüşmesini izledi ve her biri için bir not kâğıdı yazdı. Raporu şube müdürlüğünün kasasında duruyor. Yarın sabah ekipte konuşulacak ve toplantıyı hazırlamak sana düşüyor.</span><span class="t t-ar" lang="ar" dir="rtl">في الأسبوع الماضي زار المتجرَ <b>متسوّق سرّي</b> (Mystery Shopper). راقب ست محادثات بيع وكتب ورقة ملاحظات لكل واحدة منها. تقريره موجود في خزنة إدارة الفرع. غدًا صباحًا سيُناقَش في الفريق، وعليك أنت تحضير هذا الاجتماع.</span></p>
+    <p>Der Tresor hat ein <b>sechsstelliges Zahlenschloss</b>. Frau Ahlers, die Geschäftsführerin, ist auf einer Messe und hat die Zahl nicht hinterlassen. Auf ihrem Schreibtisch liegen aber die sechs Notizzettel des Testkäufers. Auf der Rückseite jedes Zettels steht eine Ziffer – sichtbar nur für den, der die Szene richtig einordnet. <b>Sechs richtige Einordnungen – und der Tresor geht auf.</b><span class="t t-vi" lang="vi">Két sắt có <b>khóa số sáu chữ số</b>. Bà Ahlers, giám đốc điều hành, đang đi hội chợ và không để lại dãy số. Nhưng trên bàn của bà có sáu phiếu ghi chú của khách mua hàng bí mật. Mặt sau của mỗi phiếu có một chữ số – chỉ người xếp loại đúng cảnh đó mới nhìn thấy. <b>Sáu lần xếp loại đúng – và két sắt sẽ mở.</b></span><span class="t t-tr" lang="tr">Kasanın <b>altı haneli bir şifreli kilidi</b> var. İşletme müdürü Bayan Ahlers fuarda ve şifreyi bırakmadı. Ama masasında gizli müşterinin altı not kâğıdı duruyor. Her kâğıdın arkasında bir rakam yazıyor – bunu sadece sahneyi doğru sınıflandıran görebilir. <b>Altı doğru sınıflandırma – ve kasa açılır.</b></span><span class="t t-ar" lang="ar" dir="rtl">للخزنة <b>قفل رقمي من ستة أرقام</b>. السيدة Ahlers، المديرة العامة، في معرض تجاري ولم تترك الرقم. لكن على مكتبها أوراق الملاحظات الست الخاصة بالمتسوّق السرّي. على ظهر كل ورقة رقم – لا يراه إلا من يصنّف المشهد تصنيفًا صحيحًا. <b>ست تصنيفات صحيحة – وتُفتح الخزنة.</b></span></p>
+  </div>
+
+  <div class="leiste" id="leiste"></div>
+
+  <div id="stationen"></div>
+
+  <div class="tresor">
+    <h2>Das Zahlenschloss<span class="t t-vi" lang="vi">Khóa số</span><span class="t t-tr" lang="tr">Şifreli kilit</span><span class="t t-ar" lang="ar" dir="rtl">القفل الرقمي</span></h2>
+    <p style="margin:0">Trage die sechs Ziffern in der Reihenfolge der Stationen ein.<span class="t t-vi" lang="vi">Nhập sáu chữ số theo thứ tự các trạm.</span><span class="t t-tr" lang="tr">Altı rakamı istasyonların sırasına göre gir.</span><span class="t t-ar" lang="ar" dir="rtl">اكتب الأرقام الستة بترتيب المحطات.</span></p>
+    <div class="zeile">
+      <input type="text" id="code" maxlength="6" inputmode="numeric" placeholder="______" autocomplete="off">
+      <button type="button" class="knopf" id="oeffnen">Tresor öffnen<span class="t t-vi" lang="vi">Mở két sắt</span><span class="t t-tr" lang="tr">Kasayı aç</span><span class="t t-ar" lang="ar" dir="rtl">افتح الخزنة</span></button>
+    </div>
+    <p class="hinw">Die Ziffern erscheinen automatisch in der Leiste oben, sobald du eine Station gelöst hast.<span class="t t-vi" lang="vi">Các chữ số tự động hiện trên thanh phía trên khi bạn giải xong một trạm.</span><span class="t t-tr" lang="tr">Bir istasyonu çözdüğünde rakamlar yukarıdaki çubukta otomatik olarak görünür.</span><span class="t t-ar" lang="ar" dir="rtl">تظهر الأرقام تلقائيًا في الشريط العلوي بمجرد أن تحلّ محطة.</span></p>
+    <div id="tresorrueck"></div>
+  </div>
+
+  <div id="ende">
+    <div class="urkunde">
+      <div class="gross">Tresor geöffnet<span class="t t-vi" lang="vi">Két sắt đã mở</span><span class="t t-tr" lang="tr">Kasa açıldı</span><span class="t t-ar" lang="ar" dir="rtl">فُتحت الخزنة</span></div>
+      <div>Der Bericht des Testkäufers liegt vor Ihnen. Sechs Szenen, sechs Fehler – und zu jedem wissen Sie jetzt, wie es besser geht.<span class="t t-vi" lang="vi">Báo cáo của khách mua hàng bí mật đang nằm trước mặt bạn. Sáu cảnh, sáu lỗi – và với mỗi lỗi bạn giờ đã biết cách làm tốt hơn.</span><span class="t t-tr" lang="tr">Gizli müşterinin raporu önünde duruyor. Altı sahne, altı hata – ve her biri için artık nasıl daha iyi yapılacağını biliyorsun.</span><span class="t t-ar" lang="ar" dir="rtl">تقرير المتسوّق السرّي أمامك الآن. ستة مشاهد، ستة أخطاء – والآن تعرف لكل خطأ كيف يمكن فعله بشكل أفضل.</span></div>
+      <div class="zahlen">
+        Fehlversuche an den Stationen: <b id="fehler">0</b> &nbsp;·&nbsp; Fehlversuche am Schloss: <b id="fehlerschloss">0</b><span class="t t-vi" lang="vi">Số lần sai ở các trạm: <b class="fz">0</b> &nbsp;·&nbsp; Số lần sai ở khóa: <b class="fs">0</b></span><span class="t t-tr" lang="tr">İstasyonlardaki hatalı denemeler: <b class="fz">0</b> &nbsp;·&nbsp; Kilitteki hatalı denemeler: <b class="fs">0</b></span><span class="t t-ar" lang="ar" dir="rtl">المحاولات الخاطئة في المحطات: <b class="fz">0</b> &nbsp;·&nbsp; المحاولات الخاطئة في القفل: <b class="fs">0</b></span></div>
+      <div class="namensfeld">
+        <span>Name (zum Vorzeigen bei der Lehrkraft):<span class="t t-vi" lang="vi">Họ tên (để đưa cho giáo viên xem):</span><span class="t t-tr" lang="tr">Ad (öğretmene göstermek için):</span><span class="t t-ar" lang="ar" dir="rtl">الاسم (لإظهاره للمعلّمة):</span></span> <input type="text" id="name" placeholder="Vor- und Nachname">
+      </div>
+    </div>
+
+    <h2 style="font-family:var(--sans); color:var(--blau); font-size:20px; margin:28px 0 6px">Das nimmst du mit<span class="t t-vi" lang="vi">Điều bạn mang theo</span><span class="t t-tr" lang="tr">Yanına alacakların</span><span class="t t-ar" lang="ar" dir="rtl">ما ستأخذه معك</span></h2>
+    <table class="merk">
+      <thead><tr><th>Der Fall<span class="t t-vi" lang="vi">Trường hợp</span><span class="t t-tr" lang="tr">Durum</span><span class="t t-ar" lang="ar" dir="rtl">الحالة</span></th><th>Woran du ihn erkennst<span class="t t-vi" lang="vi">Cách nhận biết</span><span class="t t-tr" lang="tr">Nasıl tanırsın</span><span class="t t-ar" lang="ar" dir="rtl">كيف تتعرّف عليها</span></th></tr></thead>
+      <tbody>
+        <tr><td class="b">Killerphrase<span class="t t-vi" lang="vi">Câu nói sát thủ (Killerphrase)</span><span class="t t-tr" lang="tr">Yıkıcı laf (Killerphrase)</span><span class="t t-ar" lang="ar" dir="rtl">عبارة قاتلة للحوار (Killerphrase)</span></td><td>Eine abwertende Äußerung, die kommt, wenn Sachargumente fehlen: „Das verstehen Sie nicht!“<span class="t t-vi" lang="vi">Một lời nói hạ thấp người khác, xuất hiện khi không còn lập luận thực chất: „Anh/chị không hiểu đâu!“</span><span class="t t-tr" lang="tr">Gerçek argüman kalmadığında ortaya çıkan küçümseyici bir söz: „Siz bunu anlamazsınız!“</span><span class="t t-ar" lang="ar" dir="rtl">عبارة تحقيرية تظهر عندما تغيب الحجج الموضوعية: «أنت لن تفهم هذا!»</span></td></tr>
+        <tr><td class="b">Distanzzone<span class="t t-vi" lang="vi">Vùng khoảng cách (Distanzzone)</span><span class="t t-tr" lang="tr">Mesafe bölgesi (Distanzzone)</span><span class="t t-ar" lang="ar" dir="rtl">منطقة المسافة (Distanzzone)</span></td><td>Zwischen Kunde und Verkäufer gilt die gesellschaftliche Distanz von 1,20 bis 3,00 Metern.<span class="t t-vi" lang="vi">Giữa khách hàng và nhân viên bán hàng áp dụng khoảng cách xã hội từ 1,20 đến 3,00 mét.</span><span class="t t-tr" lang="tr">Müşteri ile satış elemanı arasında 1,20 ile 3,00 metre arasındaki toplumsal mesafe geçerlidir.</span><span class="t t-ar" lang="ar" dir="rtl">بين العميل والبائع تسري المسافة الاجتماعية من 1,20 إلى 3,00 متر.</span></td></tr>
+        <tr><td class="b">Verkaufsform<span class="t t-vi" lang="vi">Hình thức bán hàng</span><span class="t t-tr" lang="tr">Satış şekli</span><span class="t t-ar" lang="ar" dir="rtl">شكل البيع</span></td><td>Die Eigenschaften der Ware entscheiden: erklärungsbedürftig oder offen → Bedienung.<span class="t t-vi" lang="vi">Đặc tính của hàng hóa quyết định: hàng cần giải thích hoặc hàng để hở → bán có phục vụ (Bedienung).</span><span class="t t-tr" lang="tr">Malın özellikleri belirler: açıklama gerektiren veya açık mal → gişeli satış (Bedienung).</span><span class="t t-ar" lang="ar" dir="rtl">خصائص البضاعة هي التي تحدّد: بضاعة تحتاج إلى شرح أو بضاعة مكشوفة ← البيع بالخدمة (Bedienung).</span></td></tr>
+        <tr><td class="b">Kontaktaufnahme<span class="t t-vi" lang="vi">Bắt chuyện với khách</span><span class="t t-tr" lang="tr">Temas kurma</span><span class="t t-ar" lang="ar" dir="rtl">بدء التواصل</span></td><td>Nie von hinten ansprechen. Erst Blickkontakt, dann sprechen.<span class="t t-vi" lang="vi">Không bao giờ bắt chuyện từ phía sau. Trước tiên giao tiếp bằng mắt, rồi mới nói.</span><span class="t t-tr" lang="tr">Müşteriye asla arkadan seslenme. Önce göz teması, sonra konuşma.</span><span class="t t-ar" lang="ar" dir="rtl">لا تخاطب العميل من الخلف أبدًا. أولًا التواصل البصري، ثم الكلام.</span></td></tr>
+        <tr><td class="b">Kaufmotiv<span class="t t-vi" lang="vi">Động cơ mua hàng</span><span class="t t-tr" lang="tr">Satın alma güdüsü</span><span class="t t-ar" lang="ar" dir="rtl">دافع الشراء</span></td><td>Rational ist vom Verstand geleitet, emotional vom Gefühl. Das emotionale wird selten ausgesprochen.<span class="t t-vi" lang="vi">Lý trí do đầu óc dẫn dắt, cảm xúc do tình cảm dẫn dắt. Động cơ cảm xúc hiếm khi được nói ra.</span><span class="t t-tr" lang="tr">Akılcı güdü mantıkla, duygusal güdü hislerle yönlendirilir. Duygusal güdü nadiren dile getirilir.</span><span class="t t-ar" lang="ar" dir="rtl">الدافع العقلاني يقوده العقل، والدافع العاطفي تقوده المشاعر. والدافع العاطفي نادرًا ما يُعلَن.</span></td></tr>
+        <tr><td class="b">Fragetechnik<span class="t t-vi" lang="vi">Kỹ thuật đặt câu hỏi</span><span class="t t-tr" lang="tr">Soru tekniği</span><span class="t t-ar" lang="ar" dir="rtl">أسلوب طرح الأسئلة</span></td><td>Offene Fragen bringen Informationen, geschlossene Fragen bringen eine Entscheidung – und manchmal das Gesprächsende.<span class="t t-vi" lang="vi">Câu hỏi mở mang lại thông tin, câu hỏi đóng mang lại một quyết định – và đôi khi là sự kết thúc cuộc trò chuyện.</span><span class="t t-tr" lang="tr">Açık sorular bilgi getirir, kapalı sorular bir karar getirir – ve bazen görüşmenin sonunu.</span><span class="t t-ar" lang="ar" dir="rtl">الأسئلة المفتوحة تأتي بالمعلومات، والأسئلة المغلقة تأتي بقرار – وأحيانًا بنهاية المحادثة.</span></td></tr>
+      </tbody>
+    </table>
+    <p style="font-family:var(--sans); font-size:15px; color:var(--grautext); margin-top:18px">Trag deine Punkte und die Zahl der Fehlversuche ins Punktekonto ein.<span class="t t-vi" lang="vi">Hãy ghi điểm của bạn và số lần sai vào tài khoản điểm (Punktekonto).</span><span class="t t-tr" lang="tr">Puanlarını ve hatalı deneme sayını puan hesabına (Punktekonto) yaz.</span><span class="t t-ar" lang="ar" dir="rtl">سجّل نقاطك وعدد المحاولات الخاطئة في حساب النقاط (Punktekonto).</span></p>
+    <button type="button" class="knopf" id="nochmal" style="background:#fff; color:var(--blau); border:1px solid var(--blau); font-weight:normal">Noch einmal spielen<span class="t t-vi" lang="vi">Chơi lại</span><span class="t t-tr" lang="tr">Tekrar oyna</span><span class="t t-ar" lang="ar" dir="rtl">العب مرة أخرى</span></button>
+  </div>
+
+</div>
+
+<script>
+var TR = {"Der Testkäufer": {"vi": "Khách mua hàng bí mật (Testkäufer)", "tr": "Gizli müşteri (Testkäufer)", "ar": "المتسوّق السرّي (Testkäufer)"}, "Killerphrase": {"vi": "Câu nói sát thủ (Killerphrase)", "tr": "Yıkıcı laf (Killerphrase)", "ar": "عبارة قاتلة للحوار (Killerphrase)"}, "Distanzzone": {"vi": "Vùng khoảng cách (Distanzzone)", "tr": "Mesafe bölgesi (Distanzzone)", "ar": "منطقة المسافة (Distanzzone)"}, "Zwischen Kunde und Verkäufer gilt die gesellschaftliche Distanz von 1,20 bis 3,00 Metern.": {"vi": "Giữa khách hàng và nhân viên bán hàng áp dụng khoảng cách xã hội từ 1,20 đến 3,00 mét.", "tr": "Müşteri ile satış elemanı arasında 1,20 ile 3,00 metre arasındaki toplumsal mesafe geçerlidir.", "ar": "بين العميل والبائع تسري المسافة الاجتماعية من 1,20 إلى 3,00 متر."}, "Verkaufsform": {"vi": "Hình thức bán hàng", "tr": "Satış şekli", "ar": "شكل البيع"}, "Kaufmotiv": {"vi": "Động cơ mua hàng", "tr": "Satın alma güdüsü", "ar": "دافع الشراء"}, "Station {n}": {"vi": "Trạm {n}", "tr": "İstasyon {n}", "ar": "المحطة {n}"}, "Station {n}:": {"vi": "Trạm {n}:", "tr": "İstasyon {n}:", "ar": "المحطة {n}:"}, "Akte prüfen": {"vi": "Kiểm tra hồ sơ", "tr": "Dosyayı kontrol et", "ar": "افحص الملف"}, "Akte geschlossen": {"vi": "Hồ sơ đã đóng", "tr": "Dosya kapandı", "ar": "أُغلق الملف"}, "Wie ist diese Szene einzuordnen?": {"vi": "Cảnh này được xếp vào loại nào?", "tr": "Bu sahne nasıl sınıflandırılır?", "ar": "كيف يُصنَّف هذا المشهد؟"}, "<b>Noch nichts ausgewählt.</b>": {"vi": "<b>Chưa chọn gì cả.</b>", "tr": "<b>Henüz hiçbir şey seçilmedi.</b>", "ar": "<b>لم تختر شيئًا بعد.</b>"}, "Entscheide dich für eine Einordnung.": {"vi": "Hãy chọn một cách xếp loại.", "tr": "Bir sınıflandırma seç.", "ar": "اختر تصنيفًا."}, "<b>Richtig eingeordnet.</b>": {"vi": "<b>Xếp loại đúng.</b>", "tr": "<b>Doğru sınıflandırdın.</b>", "ar": "<b>تصنيف صحيح.</b>"}, "<span class=\"ziffer\">In der Akte steckt die Ziffer {z}.</span>": {"vi": "<span class=\"ziffer\">Trong hồ sơ có chữ số {z}.</span>", "tr": "<span class=\"ziffer\">Dosyada {z} rakamı saklı.</span>", "ar": "<span class=\"ziffer\">في الملف يوجد الرقم {z}.</span>"}, "<b>Das passt noch nicht.</b>": {"vi": "<b>Chưa đúng.</b>", "tr": "<b>Bu henüz uymuyor.</b>", "ar": "<b>هذا لا يناسب بعد.</b>"}, "Schau notfalls in Modul 8 nach und versuch es noch einmal.": {"vi": "Nếu cần, hãy xem lại Module 8 và thử lại.", "tr": "Gerekirse Modül 8'e bak ve tekrar dene.", "ar": "إن لزم الأمر، راجع الوحدة 8 وحاول مرة أخرى."}, "<b>Das Schloss braucht genau sechs Ziffern.</b>": {"vi": "<b>Khóa cần đúng sáu chữ số.</b>", "tr": "<b>Kilit tam altı rakam ister.</b>", "ar": "<b>القفل يحتاج إلى ستة أرقام بالضبط.</b>"}, "Bisher gelöst: {o} von 6 Stationen.": {"vi": "Đã giải xong: {o} trong 6 trạm.", "tr": "Şimdiye kadar çözülen: 6 istasyondan {o}.", "ar": "ما تم حلّه حتى الآن: {o} من 6 محطات."}, "<b>Klick.</b>": {"vi": "<b>Tách.</b>", "tr": "<b>Klik.</b>", "ar": "<b>نقرة.</b>"}, "Der Tresor ist offen.": {"vi": "Két sắt đã mở.", "tr": "Kasa açık.", "ar": "الخزنة مفتوحة."}, "<b>Das Schloss rührt sich nicht.</b>": {"vi": "<b>Khóa không nhúc nhích.</b>", "tr": "<b>Kilit kıpırdamıyor.</b>", "ar": "<b>القفل لا يتحرك.</b>"}, "Prüfe die Reihenfolge: Station 1 ganz links, Station 6 ganz rechts.": {"vi": "Hãy kiểm tra thứ tự: trạm 1 ở ngoài cùng bên trái, trạm 6 ở ngoài cùng bên phải.", "tr": "Sırayı kontrol et: İstasyon 1 en solda, istasyon 6 en sağda.", "ar": "تحقّق من الترتيب: المحطة 1 في أقصى اليسار والمحطة 6 في أقصى اليمين."}, "Notizzettel 1 · Elektroabteilung": {"vi": "Phiếu ghi chú 1 · Khu điện máy", "tr": "Not kâğıdı 1 · Elektronik reyonu", "ar": "ورقة الملاحظات 1 · قسم الأجهزة الكهربائية"}, "„Das verstehen Sie nicht“": {"vi": "„Anh/chị không hiểu đâu“", "tr": "„Siz bunu anlamazsınız“", "ar": "«أنت لن تفهم هذا»"}, "Ein Kunde fragt, warum der teurere Fernseher ein besseres Bild habe. Der Verkäufer antwortet: „Ich bin hier der Fachmann! Das verstehen Sie sowieso nicht. Nehmen Sie einfach den da, der ist gut.“ Der Kunde geht ohne Kauf.": {"vi": "Một khách hàng hỏi tại sao chiếc tivi đắt hơn lại có hình ảnh đẹp hơn. Nhân viên trả lời: „Tôi là chuyên gia ở đây! Dù sao anh cũng không hiểu đâu. Cứ lấy cái kia đi, nó tốt.“ Khách rời đi mà không mua gì.", "tr": "Bir müşteri, pahalı televizyonun görüntüsünün neden daha iyi olduğunu soruyor. Satış elemanı şöyle cevap veriyor: „Uzman burada benim! Siz zaten anlamazsınız. Şunu alın, iyidir.“ Müşteri bir şey almadan gidiyor.", "ar": "يسأل عميل لماذا صورة التلفزيون الأغلى أفضل. يجيب البائع: «أنا الخبير هنا! أنت لن تفهم على أي حال. خذ ذاك فقط، إنه جيد.» يغادر العميل دون أن يشتري."}, "Der Verkäufer setzt eine Killerphrase ein – ein Gesprächsstörer.": {"vi": "Nhân viên dùng một câu nói sát thủ (Killerphrase) – một yếu tố cản trở cuộc trò chuyện.", "tr": "Satış elemanı yıkıcı bir laf (Killerphrase) kullanıyor – görüşmeyi bozan bir unsur.", "ar": "يستخدم البائع عبارة قاتلة للحوار (Killerphrase) – وهي معيق للحوار."}, "Der Verkäufer verwendet den Sie-Stil – ein Gesprächsförderer.": {"vi": "Nhân viên dùng cách xưng hô lịch sự „Sie“ – một yếu tố thúc đẩy cuộc trò chuyện.", "tr": "Satış elemanı „Sie“ hitabını (resmi hitap) kullanıyor – görüşmeyi geliştiren bir unsur.", "ar": "يستخدم البائع أسلوب المخاطبة الرسمية „Sie“ – وهو مُعزِّز للحوار."}, "Der Verkäufer stellt eine geschlossene Frage.": {"vi": "Nhân viên đặt một câu hỏi đóng.", "tr": "Satış elemanı kapalı bir soru soruyor.", "ar": "يطرح البائع سؤالًا مغلقًا."}, "Der Verkäufer hält die gesellschaftliche Distanz nicht ein.": {"vi": "Nhân viên không giữ khoảng cách xã hội.", "tr": "Satış elemanı toplumsal mesafeye uymuyor.", "ar": "لا يلتزم البائع بالمسافة الاجتماعية."}, "„Ich bin hier der Fachmann!“ und „Das verstehen Sie nicht“ sind Killerphrasen: abwertende, verletzende Äußerungen, die oft dann kommen, wenn Sachargumente fehlen. Besser wäre: „Gerne erkläre ich Ihnen den Unterschied. Dieses Gerät hat …“": {"vi": "„Tôi là chuyên gia ở đây!“ và „Anh/chị không hiểu đâu“ là những câu nói sát thủ: lời nói hạ thấp, gây tổn thương, thường xuất hiện khi không còn lập luận thực chất. Tốt hơn là nói: „Tôi rất vui được giải thích sự khác biệt cho anh/chị. Thiết bị này có …“", "tr": "„Uzman burada benim!“ ve „Siz bunu anlamazsınız“ yıkıcı laflardır: küçümseyen, incitici sözler; genellikle gerçek argüman kalmadığında ortaya çıkar. Daha iyisi şu olurdu: „Farkı size memnuniyetle açıklayayım. Bu cihazın şu özelliği var …“", "ar": "«أنا الخبير هنا!» و«أنت لن تفهم هذا» عبارات قاتلة للحوار: عبارات تحقيرية جارحة تظهر غالبًا عندما تغيب الحجج الموضوعية. الأفضل أن يقول: «يسعدني أن أشرح لك الفرق. هذا الجهاز يتميّز بـ …»"}, "Schau in Modul 1 in die Tabelle der fünf Gesprächsstörer.": {"vi": "Hãy xem bảng năm yếu tố cản trở cuộc trò chuyện trong Module 1.", "tr": "Modül 1'deki beş görüşme bozucunun tablosuna bak.", "ar": "انظر في الوحدة 1 إلى جدول معيقات الحوار الخمسة."}, "Notizzettel 2 · Parfümerie": {"vi": "Phiếu ghi chú 2 · Cửa hàng nước hoa", "tr": "Not kâğıdı 2 · Parfümeri", "ar": "ورقة الملاحظات 2 · قسم العطور"}, "Einen Schritt zu nah": {"vi": "Gần hơn một bước", "tr": "Bir adım fazla yakın", "ar": "خطوة أقرب من اللازم"}, "Die Verkäuferin berät eine Kundin zu einem Duft. Der Testkäufer notiert: „Verkäuferin steht durchgehend etwa 40 Zentimeter vor der Kundin. Kundin weicht zweimal zurück, verschränkt dann die Arme.“": {"vi": "Nhân viên nữ tư vấn cho một khách hàng nữ về một loại nước hoa. Khách mua hàng bí mật ghi lại: „Nhân viên đứng suốt cách khách khoảng 40 xăng-ti-mét. Khách lùi lại hai lần, sau đó khoanh tay.“", "tr": "Satış elemanı bir müşteriye parfüm konusunda danışmanlık yapıyor. Gizli müşteri şunu not ediyor: „Satış elemanı boyunca müşterinin yaklaşık 40 santim önünde duruyor. Müşteri iki kez geri çekiliyor, sonra kollarını kavuşturuyor.“", "ar": "تقدّم البائعة استشارة لزبونة حول عطر. يدوّن المتسوّق السرّي: «البائعة تقف طوال الوقت على بُعد حوالي 40 سنتيمترًا من الزبونة. تتراجع الزبونة مرتين ثم تضم ذراعيها.»"}, "Alles richtig – bei Düften muss man nah beieinander stehen.": {"vi": "Tất cả đều đúng – với nước hoa thì phải đứng gần nhau.", "tr": "Her şey doğru – parfümde birbirine yakın durmak gerekir.", "ar": "كل شيء صحيح – مع العطور يجب الوقوف قريبين من بعضهما."}, "Die Verkäuferin verletzt die Distanzzone; sie steht in der Intimdistanz.": {"vi": "Nhân viên vi phạm vùng khoảng cách; cô ấy đứng trong khoảng cách thân mật (Intimdistanz).", "tr": "Satış elemanı mesafe bölgesini ihlal ediyor; mahrem mesafede (Intimdistanz) duruyor.", "ar": "تخرق البائعة منطقة المسافة؛ فهي تقف في المسافة الحميمة (Intimdistanz)."}, "Die Kundin zeigt mit den verschränkten Armen Zustimmung.": {"vi": "Khách hàng khoanh tay để thể hiện sự đồng ý.", "tr": "Müşteri kavuşturduğu kollarıyla onay gösteriyor.", "ar": "تُظهر الزبونة موافقتها بضمّ ذراعيها."}, "Die Verkäuferin setzt eine Suggestivfrage ein.": {"vi": "Nhân viên dùng một câu hỏi dẫn dắt (Suggestivfrage).", "tr": "Satış elemanı yönlendirici bir soru (Suggestivfrage) kullanıyor.", "ar": "تستخدم البائعة سؤالًا إيحائيًا (Suggestivfrage)."}, "40 Zentimeter ist Intimdistanz – die gilt für Familienmitglieder. Zwischen Kunde und Verkäufer gilt die gesellschaftliche Distanz von 1,20 bis 3,00 Metern. Das Zurückweichen und die verschränkten Arme sind die Antwort der Kundin darauf.": {"vi": "40 xăng-ti-mét là khoảng cách thân mật – dành cho người trong gia đình. Giữa khách hàng và nhân viên áp dụng khoảng cách xã hội từ 1,20 đến 3,00 mét. Việc lùi lại và khoanh tay là phản ứng của khách hàng trước điều đó.", "tr": "40 santim mahrem mesafedir – aile üyeleri için geçerlidir. Müşteri ile satış elemanı arasında 1,20 ile 3,00 metre arasındaki toplumsal mesafe geçerlidir. Geri çekilmek ve kolları kavuşturmak, müşterinin buna verdiği cevaptır.", "ar": "40 سنتيمترًا هي مسافة حميمة – تسري على أفراد العائلة. بين العميل والبائع تسري المسافة الاجتماعية من 1,20 إلى 3,00 متر. التراجع وضمّ الذراعين هما ردّ الزبونة على ذلك."}, "Wie weit reicht die Intimdistanz – und für wen gilt sie?": {"vi": "Khoảng cách thân mật kéo dài bao xa – và áp dụng cho ai?", "tr": "Mahrem mesafe ne kadar uzaklığa kadar uzanır – ve kimler için geçerlidir?", "ar": "إلى أي مدى تمتد المسافة الحميمة – ولمن تسري؟"}, "Notizzettel 3 · Lebensmittelabteilung": {"vi": "Phiếu ghi chú 3 · Khu thực phẩm", "tr": "Not kâğıdı 3 · Gıda reyonu", "ar": "ورقة الملاحظات 3 · قسم المواد الغذائية"}, "Käse ohne Theke": {"vi": "Phô mai không có quầy", "tr": "Tezgâhsız peynir", "ar": "جبن بدون طاولة بيع"}, "Die Filialleitung überlegt, die Käsetheke abzuschaffen. Der offene Käse soll künftig unverpackt in einer offenen Kühlvitrine zur Selbstbedienung liegen. Der Testkäufer notiert: „Keine Fachkraft mehr vor Ort, kein Abwiegen nach Kundenwunsch, keine Zubereitungstipps.“": {"vi": "Ban giám đốc chi nhánh đang cân nhắc bỏ quầy phô mai. Phô mai bán lẻ sau này sẽ để không đóng gói trong tủ lạnh mở cho khách tự phục vụ. Khách mua hàng bí mật ghi lại: „Không còn nhân viên chuyên môn tại chỗ, không cân theo yêu cầu của khách, không có gợi ý cách chế biến.“", "tr": "Şube müdürlüğü peynir tezgâhını kaldırmayı düşünüyor. Açık peynir bundan böyle ambalajsız olarak açık bir soğutucu vitrinde self servis olarak satılacak. Gizli müşteri şunu not ediyor: „Yerinde artık uzman personel yok, müşterinin isteğine göre tartım yok, hazırlama önerisi yok.“", "ar": "تفكّر إدارة الفرع في إلغاء طاولة بيع الجبن. ستُعرض الأجبان المكشوفة مستقبلًا بدون تغليف في ثلاجة عرض مفتوحة للخدمة الذاتية. يدوّن المتسوّق السرّي: «لا يوجد موظف مختص في المكان بعد الآن، ولا وزن حسب رغبة العميل، ولا نصائح للتحضير.»"}, "Wie ist dieser Plan einzuordnen?": {"vi": "Kế hoạch này được xếp vào loại nào?", "tr": "Bu plan nasıl sınıflandırılır?", "ar": "كيف يُصنَّف هذا المخطط؟"}, "Richtig, denn Selbstbedienung spart immer Personalkosten.": {"vi": "Đúng, vì tự phục vụ luôn tiết kiệm chi phí nhân sự.", "tr": "Doğru, çünkü self servis her zaman personel maliyetinden tasarruf sağlar.", "ar": "صحيح، لأن الخدمة الذاتية توفّر دائمًا تكاليف الموظفين."}, "Falsch, denn offene Ware gehört wegen der Hygiene und der Beratung in die Bedienung.": {"vi": "Sai, vì hàng để hở phải thuộc hình thức bán có phục vụ do vệ sinh và nhu cầu tư vấn.", "tr": "Yanlış, çünkü açık mal hijyen ve danışmanlık nedeniyle gişeli satışa (Bedienung) aittir.", "ar": "خطأ، لأن البضاعة المكشوفة مكانها البيع بالخدمة بسبب النظافة والاستشارة."}, "Richtig, denn Käse ist keine erklärungsbedürftige Ware.": {"vi": "Đúng, vì phô mai không phải là hàng cần giải thích.", "tr": "Doğru, çünkü peynir açıklama gerektiren bir mal değildir.", "ar": "صحيح، لأن الجبن ليس بضاعة تحتاج إلى شرح."}, "Falsch, denn für Lebensmittel ist nur die Vorwahl zulässig.": {"vi": "Sai, vì với thực phẩm chỉ được phép dùng hình thức chọn trước (Vorwahl).", "tr": "Yanlış, çünkü gıda maddeleri için sadece ön seçim (Vorwahl) serbesttir.", "ar": "خطأ، لأن المواد الغذائية لا يجوز فيها إلا الاختيار المسبق (Vorwahl)."}, "Die Eigenschaften der Ware bestimmen die Verkaufsform. Offene Ware muss vor dem direkten Zugriff des Kunden geschützt werden, die Menge wird individuell abgewogen, und die Beratung (Herkunft, Zubereitung, Haltbarkeit) fällt sonst weg. Verpackter Käse im Kühlregal dagegen ist Selbstbedienung.": {"vi": "Đặc tính của hàng hóa quyết định hình thức bán hàng. Hàng để hở phải được bảo vệ khỏi việc khách chạm tay trực tiếp, lượng hàng được cân riêng theo từng khách, và nếu không thì việc tư vấn (xuất xứ, cách chế biến, hạn sử dụng) sẽ mất đi. Ngược lại, phô mai đóng gói trong kệ lạnh là tự phục vụ.", "tr": "Malın özellikleri satış şeklini belirler. Açık mal müşterinin doğrudan eline geçmekten korunmalıdır, miktar kişiye göre tartılır ve aksi halde danışmanlık (menşe, hazırlama, dayanıklılık) ortadan kalkar. Soğutucu rafta ambalajlı peynir ise self servistir.", "ar": "خصائص البضاعة تحدّد شكل البيع. يجب حماية البضاعة المكشوفة من لمس العميل المباشر، ويُوزن المقدار لكل شخص على حدة، وإلا تسقط الاستشارة (المنشأ، التحضير، مدة الصلاحية). أما الجبن المغلّف في رفّ التبريد فهو خدمة ذاتية."}, "Frag dich: Muss diese Ware vor dem direkten Zugriff geschützt werden?": {"vi": "Hãy tự hỏi: Hàng này có cần được bảo vệ khỏi việc khách chạm tay trực tiếp không?", "tr": "Kendine sor: Bu mal doğrudan erişimden korunmalı mı?", "ar": "اسأل نفسك: هل يجب حماية هذه البضاعة من وصول العميل المباشر إليها؟"}, "Notizzettel 4 · Sportabteilung": {"vi": "Phiếu ghi chú 4 · Khu thể thao", "tr": "Not kâğıdı 4 · Spor reyonu", "ar": "ورقة الملاحظات 4 · قسم الرياضة"}, "Von hinten": {"vi": "Từ phía sau", "tr": "Arkadan", "ar": "من الخلف"}, "Eine Kundin steht vor dem Regal mit den Laufschuhen und nimmt ein Modell in die Hand. Der Verkäufer tritt von hinten an sie heran und sagt: „Suchen Sie etwas Bestimmtes?“ Die Kundin zuckt zusammen, sagt „Nein danke, ich schaue nur“ und legt den Schuh zurück.": {"vi": "Một khách hàng nữ đứng trước kệ giày chạy bộ và cầm một đôi lên xem. Nhân viên bước đến từ phía sau và nói: „Chị tìm thứ gì cụ thể không ạ?“ Khách giật mình, nói „Không, cảm ơn, tôi chỉ xem thôi“ và đặt đôi giày lại.", "tr": "Bir müşteri koşu ayakkabıları rafının önünde duruyor ve bir modeli eline alıyor. Satış elemanı arkadan yaklaşıp şöyle diyor: „Belirli bir şey mi arıyorsunuz?“ Müşteri irkiliyor, „Hayır teşekkürler, sadece bakıyorum“ diyor ve ayakkabıyı geri koyuyor.", "ar": "تقف زبونة أمام رفّ أحذية الجري وتأخذ أحد الموديلات بيدها. يقترب منها البائع من الخلف ويقول: «هل تبحثين عن شيء معيّن؟» تنتفض الزبونة، وتقول «لا شكرًا، أنا فقط أتفرّج» وتعيد الحذاء إلى مكانه."}, "Wie viele Fehler macht der Verkäufer hier?": {"vi": "Nhân viên mắc bao nhiêu lỗi ở đây?", "tr": "Satış elemanı burada kaç hata yapıyor?", "ar": "كم خطأً يرتكب البائع هنا؟"}, "Keinen – er hat die Kundin ja angesprochen.": {"vi": "Không lỗi nào – dù sao anh ấy cũng đã bắt chuyện với khách.", "tr": "Hiç – sonuçta müşteriyle konuşmuş.", "ar": "لا أي خطأ – فقد خاطب الزبونة على كل حال."}, "Einen: Er spricht sie von hinten an.": {"vi": "Một lỗi: Anh ấy bắt chuyện từ phía sau.", "tr": "Bir hata: Müşteriye arkadan sesleniyor.", "ar": "خطأ واحد: يخاطبها من الخلف."}, "Zwei: Er spricht sie von hinten an, und er stellt eine geschlossene Frage.": {"vi": "Hai lỗi: Anh ấy bắt chuyện từ phía sau, và anh ấy đặt một câu hỏi đóng.", "tr": "İki hata: Müşteriye arkadan sesleniyor ve kapalı bir soru soruyor.", "ar": "خطآن: يخاطبها من الخلف، ويطرح سؤالًا مغلقًا."}, "Zwei: Er spricht sie zu spät an, und er hält die Distanz nicht ein.": {"vi": "Hai lỗi: Anh ấy bắt chuyện quá muộn, và anh ấy không giữ khoảng cách.", "tr": "İki hata: Müşteriyle çok geç konuşuyor ve mesafeye uymuyor.", "ar": "خطآن: يخاطبها متأخرًا جدًا، ولا يلتزم بالمسافة."}, "Erster Fehler: Ein Kunde wird niemals von hinten angesprochen – er könnte sich überfallen fühlen. Zuerst Blickkontakt aufbauen. Zweiter Fehler: „Suchen Sie etwas Bestimmtes?“ ist eine geschlossene Frage, auf die „nein“ die einfachste Antwort ist. Besser: „Guten Tag. Wofür möchten Sie die Laufschuhe denn vor allem verwenden?“": {"vi": "Lỗi thứ nhất: Không bao giờ bắt chuyện với khách từ phía sau – khách có thể cảm thấy bị tấn công bất ngờ. Trước tiên hãy giao tiếp bằng mắt. Lỗi thứ hai: „Chị tìm thứ gì cụ thể không ạ?“ là câu hỏi đóng, và „không“ là câu trả lời dễ nhất. Tốt hơn: „Xin chào. Chị chủ yếu muốn dùng giày chạy bộ để làm gì ạ?“", "tr": "Birinci hata: Müşteriye asla arkadan seslenilmez – kendini bastırılmış hissedebilir. Önce göz teması kurulmalı. İkinci hata: „Belirli bir şey mi arıyorsunuz?“ kapalı bir sorudur ve en kolay cevabı „hayır“dır. Daha iyisi: „İyi günler. Koşu ayakkabılarını en çok ne için kullanmak istiyorsunuz?“", "ar": "الخطأ الأول: لا يُخاطَب العميل من الخلف أبدًا – فقد يشعر بأنه فوجئ بهجوم. أولًا يجب بناء التواصل البصري. الخطأ الثاني: «هل تبحثين عن شيء معيّن؟» سؤال مغلق، وأسهل إجابة عنه هي «لا». الأفضل: «مرحبًا. في ماذا تريدين استخدام حذاء الجري بالدرجة الأولى؟»"}, "Zähle nach: Was ist an der Körperhaltung falsch, und was an der Frage?": {"vi": "Hãy đếm lại: Tư thế/vị trí đứng sai ở đâu, và câu hỏi sai ở đâu?", "tr": "Say bakalım: Duruşta ne yanlış, soruda ne yanlış?", "ar": "عُدّ من جديد: ما الخطأ في وضعية الوقوف، وما الخطأ في السؤال؟"}, "Notizzettel 5 · Uhren und Schmuck": {"vi": "Phiếu ghi chú 5 · Đồng hồ và trang sức", "tr": "Not kâğıdı 5 · Saat ve takı", "ar": "ورقة الملاحظات 5 · الساعات والمجوهرات"}, "Kennt man die Marke?": {"vi": "Có ai biết thương hiệu này không?", "tr": "Marka bilinir mi?", "ar": "هل العلامة التجارية معروفة؟"}, "Ein Kunde lässt sich Uhren zeigen. Er fragt zuerst nach dem teuersten Modell und dann: „Und die Marke – die kennt man doch, oder?“ Auf Qualität, Ganggenauigkeit und Garantie geht er kaum ein. Der Verkäufer argumentiert die ganze Zeit mit der Wasserdichtigkeit.": {"vi": "Một khách hàng nhờ xem đồng hồ. Trước tiên anh hỏi về mẫu đắt nhất, rồi hỏi: „Còn thương hiệu này – ai cũng biết, đúng không?“ Anh gần như không quan tâm đến chất lượng, độ chính xác và bảo hành. Nhân viên cứ thuyết phục suốt bằng khả năng chống nước.", "tr": "Bir müşteri saatleri gösterterek bakıyor. Önce en pahalı modeli soruyor, sonra: „Bir de marka – bu marka bilinir, değil mi?“ Kalite, saat hassasiyeti ve garantiye pek girmiyor. Satış elemanı sürekli su geçirmezlikle argüman sunuyor.", "ar": "يطلب عميل أن يُري الساعات. يسأل أولًا عن أغلى موديل، ثم يقول: «والعلامة التجارية – إنها معروفة، أليس كذلك؟» بالكاد يهتم بالجودة ودقة الساعة والضمان. والبائع يحتجّ طوال الوقت بمقاومة الماء."}, "Welches Kaufmotiv steht hier im Vordergrund?": {"vi": "Động cơ mua hàng nào nổi bật ở đây?", "tr": "Burada hangi satın alma güdüsü ön planda?", "ar": "ما دافع الشراء الغالب هنا؟"}, "Qualität – ein rationales Kaufmotiv.": {"vi": "Chất lượng – một động cơ mua hàng lý trí.", "tr": "Kalite – akılcı bir satın alma güdüsü.", "ar": "الجودة – دافع شراء عقلاني."}, "Geldersparnis – ein rationales Kaufmotiv.": {"vi": "Tiết kiệm tiền – một động cơ mua hàng lý trí.", "tr": "Para tasarrufu – akılcı bir satın alma güdüsü.", "ar": "توفير المال – دافع شراء عقلاني."}, "Geltungsbedürfnis – ein emotionales Kaufmotiv.": {"vi": "Nhu cầu được coi trọng, khẳng định bản thân (Geltungsbedürfnis) – một động cơ mua hàng cảm xúc.", "tr": "Saygınlık ve statü ihtiyacı (Geltungsbedürfnis) – duygusal bir satın alma güdüsü.", "ar": "الحاجة إلى المكانة والتقدير (Geltungsbedürfnis) – دافع شراء عاطفي."}, "Zeitersparnis – ein rationales Kaufmotiv.": {"vi": "Tiết kiệm thời gian – một động cơ mua hàng lý trí.", "tr": "Zaman tasarrufu – akılcı bir satın alma güdüsü.", "ar": "توفير الوقت – دافع شراء عقلاني."}, "Der Kunde fragt nach Preis und Bekanntheit der Marke, nicht nach der Technik. Dahinter steht das Geltungsbedürfnis – ein emotionales Kaufmotiv, das unter der Wasserlinie des Eisbergs liegt und deshalb nicht ausgesprochen wird. Der Verkäufer argumentiert am Motiv vorbei.": {"vi": "Khách hàng hỏi về giá và độ nổi tiếng của thương hiệu, không hỏi về kỹ thuật. Đằng sau đó là nhu cầu được coi trọng (Geltungsbedürfnis) – một động cơ mua hàng cảm xúc nằm dưới mặt nước của tảng băng trôi nên không được nói ra. Nhân viên đã lập luận không đúng động cơ của khách.", "tr": "Müşteri fiyatı ve markanın bilinirliğini soruyor, tekniği değil. Bunun arkasında saygınlık ihtiyacı (Geltungsbedürfnis) var – buzdağının su çizgisinin altında kalan, bu yüzden dile getirilmeyen duygusal bir güdü. Satış elemanı güdünün yanından geçen argümanlar sunuyor.", "ar": "يسأل العميل عن السعر وشهرة العلامة التجارية، لا عن التقنية. وراء ذلك الحاجة إلى المكانة والتقدير (Geltungsbedürfnis) – دافع شراء عاطفي يقع تحت خط الماء في جبل الجليد، ولذلك لا يُعلَن. والبائع يحتجّ بعيدًا عن الدافع الحقيقي."}, "Was will der Kunde wirklich – und sagt er es offen?": {"vi": "Khách hàng thực sự muốn gì – và anh ấy có nói ra công khai không?", "tr": "Müşteri gerçekte ne istiyor – ve bunu açıkça söylüyor mu?", "ar": "ماذا يريد العميل حقًا – وهل يقول ذلك صراحةً؟"}, "Notizzettel 6 · Haushaltsabteilung": {"vi": "Phiếu ghi chú 6 · Khu đồ gia dụng", "tr": "Not kâğıdı 6 · Ev eşyaları reyonu", "ar": "ورقة الملاحظات 6 · قسم الأدوات المنزلية"}, "Sonst noch etwas?": {"vi": "Còn gì nữa không?", "tr": "Başka bir şey?", "ar": "شيء آخر؟"}, "Eine Kundin hat sich für eine Pfanne entschieden. Die Verkäuferin fragt: „Sonst brauchen Sie nichts?“ Die Kundin sagt „Nein danke“ und geht zur Kasse. Der passende Pfannenwender, den sie sich vorher zweimal angesehen hatte, bleibt im Regal.": {"vi": "Một khách hàng nữ đã chọn một chiếc chảo. Nhân viên hỏi: „Vậy chị không cần gì nữa ạ?“ Khách nói „Không, cảm ơn“ và đi đến quầy thu ngân. Chiếc xẻng lật phù hợp mà chị đã xem hai lần trước đó vẫn nằm trên kệ.", "tr": "Bir müşteri bir tavaya karar vermiş. Satış elemanı soruyor: „Başka bir şeye ihtiyacınız yok yani?“ Müşteri „Hayır teşekkürler“ diyor ve kasaya gidiyor. Daha önce iki kez baktığı uygun spatula rafta kalıyor.", "ar": "قرّرت زبونة شراء مقلاة. تسألها البائعة: «إذًا لا تحتاجين إلى شيء آخر؟» تقول الزبونة «لا شكرًا» وتتجه إلى الصندوق. وتبقى المقلبة المناسبة التي نظرت إليها مرتين من قبل على الرف."}, "Wie ist diese Frage einzuordnen?": {"vi": "Câu hỏi này được xếp vào loại nào?", "tr": "Bu soru nasıl sınıflandırılır?", "ar": "كيف يُصنَّف هذا السؤال؟"}, "Richtig – so wird die Kundin nicht bedrängt.": {"vi": "Đúng – như vậy khách hàng không bị làm phiền.", "tr": "Doğru – böylece müşteri sıkıştırılmaz.", "ar": "صحيح – هكذا لا تتعرّض الزبونة للإلحاح."}, "Falsch: eine geschlossene und negativ formulierte Frage, die das Gespräch beendet.": {"vi": "Sai: một câu hỏi đóng và được diễn đạt theo hướng phủ định, làm kết thúc cuộc trò chuyện.", "tr": "Yanlış: Görüşmeyi bitiren, kapalı ve olumsuz ifade edilmiş bir soru.", "ar": "خطأ: سؤال مغلق وصيغ بشكل سلبي، ويُنهي المحادثة."}, "Falsch: eine Alternativfrage, die zu früh gestellt wird.": {"vi": "Sai: một câu hỏi lựa chọn (Alternativfrage) được đặt quá sớm.", "tr": "Yanlış: Çok erken sorulan bir seçenekli soru (Alternativfrage).", "ar": "خطأ: سؤال بديل (Alternativfrage) يُطرح مبكرًا جدًا."}, "Richtig – am Ende des Gesprächs gehören geschlossene Fragen hin.": {"vi": "Đúng – câu hỏi đóng thuộc về phần cuối cuộc trò chuyện.", "tr": "Doğru – kapalı sorular görüşmenin sonuna aittir.", "ar": "صحيح – مكان الأسئلة المغلقة في نهاية المحادثة."}, "„Sonst brauchen Sie nichts?“ ist geschlossen und negativ formuliert – „nein“ ist die einfachste Antwort. Besser wäre: „Welchen Wunsch darf ich Ihnen noch erfüllen?“ oder warenbezogen: „Zu dieser Pfanne passt dieser Pfannenwender – darf ich ihn Ihnen zeigen?“": {"vi": "„Vậy chị không cần gì nữa ạ?“ là câu hỏi đóng và diễn đạt theo hướng phủ định – „không“ là câu trả lời dễ nhất. Tốt hơn là: „Tôi còn có thể giúp chị điều gì nữa ạ?“ hoặc gắn với hàng hóa: „Chiếc xẻng lật này rất hợp với chiếc chảo – tôi giới thiệu cho chị xem nhé?“", "tr": "„Başka bir şeye ihtiyacınız yok yani?“ kapalı ve olumsuz ifade edilmiştir – en kolay cevap „hayır“dır. Daha iyisi: „Size başka hangi isteğinizi yerine getirebilirim?“ veya mala yönelik: „Bu tavaya bu spatula çok yakışır – size göstereyim mi?“", "ar": "«إذًا لا تحتاجين إلى شيء آخر؟» سؤال مغلق وبصيغة سلبية – وأسهل إجابة عنه هي «لا». الأفضل: «أي رغبة أخرى يمكنني تلبيتها لكِ؟» أو بشكل مرتبط بالبضاعة: «هذه المقلبة تناسب هذه المقلاة – هل أُريكِ إياها؟»"}, "Achte auf das Wort „nichts“ – und darauf, ob die Kundin mit Ja oder Nein antworten kann.": {"vi": "Hãy chú ý đến từ „không … gì“ (nichts) – và xem khách hàng có thể trả lời bằng „có“ hay „không“.", "tr": "„nichts“ (hiçbir şey) sözcüğüne dikkat et – ve müşterinin „evet“ veya „hayır“ ile cevap verip veremeyeceğine.", "ar": "انتبه إلى كلمة «nichts» (لا شيء) – وإلى ما إذا كانت الزبونة تستطيع الإجابة بنعم أو لا."}};
+function LT(parts, vars){
+  vars = vars || {};
+  if (typeof parts === "string") parts = [parts];
+  function sub(s){ return s.replace(/\{(\w+)\}/g, function(m,k){ return vars[k] !== undefined ? vars[k] : m; }); }
+  var out = parts.map(sub).join(" ");
+  ["vi","tr","ar"].forEach(function(l){
+    var t = parts.map(function(p){ var e = TR[p]; return sub(e && e[l] ? e[l] : p); }).join(" ");
+    out += '<span class="t t-'+l+'" lang="'+l+'"'+(l==="ar"?' dir="rtl"':'')+'>'+t+'</span>';
+  });
+  return out;
+}
+(function(){
+  var KEY = "lf2-er1-lang";
+  function setL(l){
+    document.body.setAttribute("data-lang", l);
+    document.documentElement.setAttribute("data-lang", l);
+    document.querySelectorAll("#sprachbar button").forEach(function(b){ b.setAttribute("aria-pressed", b.getAttribute("data-l")===l ? "true":"false"); });
+    try{ localStorage.setItem(KEY, l); }catch(e){}
+  }
+  document.addEventListener("DOMContentLoaded", function(){
+    var l = "de"; try{ l = localStorage.getItem(KEY) || "de"; }catch(e){}
+    if (["de","vi","tr","ar"].indexOf(l) < 0) l = "de";
+    document.getElementById("sprachbar").addEventListener("click", function(e){
+      var b = e.target.closest("button[data-l]"); if (b) setL(b.getAttribute("data-l"));
+    });
+    setL(l);
+  });
+})();
+</script>
+<script>
+(function(){
+  "use strict";
+
+  var STATIONEN = [
+    {
+      ort: "Notizzettel 1 · Elektroabteilung",
+      titel: "„Das verstehen Sie nicht“",
+      fall: "Ein Kunde fragt, warum der teurere Fernseher ein besseres Bild habe. Der Verkäufer antwortet: „Ich bin hier der Fachmann! Das verstehen Sie sowieso nicht. Nehmen Sie einfach den da, der ist gut.“ Der Kunde geht ohne Kauf.",
+      frage: "Wie ist diese Szene einzuordnen?",
+      optionen: [
+        "Der Verkäufer setzt eine Killerphrase ein – ein Gesprächsstörer.",
+        "Der Verkäufer verwendet den Sie-Stil – ein Gesprächsförderer.",
+        "Der Verkäufer stellt eine geschlossene Frage.",
+        "Der Verkäufer hält die gesellschaftliche Distanz nicht ein."
+      ],
+      richtig: 0,
+      ziffer: "5",
+      erklaerung: "„Ich bin hier der Fachmann!“ und „Das verstehen Sie nicht“ sind Killerphrasen: abwertende, verletzende Äußerungen, die oft dann kommen, wenn Sachargumente fehlen. Besser wäre: „Gerne erkläre ich Ihnen den Unterschied. Dieses Gerät hat …“",
+      tipp: "Schau in Modul 1 in die Tabelle der fünf Gesprächsstörer."
+    },
+    {
+      ort: "Notizzettel 2 · Parfümerie",
+      titel: "Einen Schritt zu nah",
+      fall: "Die Verkäuferin berät eine Kundin zu einem Duft. Der Testkäufer notiert: „Verkäuferin steht durchgehend etwa 40 Zentimeter vor der Kundin. Kundin weicht zweimal zurück, verschränkt dann die Arme.“",
+      frage: "Wie ist diese Szene einzuordnen?",
+      optionen: [
+        "Alles richtig – bei Düften muss man nah beieinander stehen.",
+        "Die Verkäuferin verletzt die Distanzzone; sie steht in der Intimdistanz.",
+        "Die Kundin zeigt mit den verschränkten Armen Zustimmung.",
+        "Die Verkäuferin setzt eine Suggestivfrage ein."
+      ],
+      richtig: 1,
+      ziffer: "1",
+      erklaerung: "40 Zentimeter ist Intimdistanz – die gilt für Familienmitglieder. Zwischen Kunde und Verkäufer gilt die gesellschaftliche Distanz von 1,20 bis 3,00 Metern. Das Zurückweichen und die verschränkten Arme sind die Antwort der Kundin darauf.",
+      tipp: "Wie weit reicht die Intimdistanz – und für wen gilt sie?"
+    },
+    {
+      ort: "Notizzettel 3 · Lebensmittelabteilung",
+      titel: "Käse ohne Theke",
+      fall: "Die Filialleitung überlegt, die Käsetheke abzuschaffen. Der offene Käse soll künftig unverpackt in einer offenen Kühlvitrine zur Selbstbedienung liegen. Der Testkäufer notiert: „Keine Fachkraft mehr vor Ort, kein Abwiegen nach Kundenwunsch, keine Zubereitungstipps.“",
+      frage: "Wie ist dieser Plan einzuordnen?",
+      optionen: [
+        "Richtig, denn Selbstbedienung spart immer Personalkosten.",
+        "Falsch, denn offene Ware gehört wegen der Hygiene und der Beratung in die Bedienung.",
+        "Richtig, denn Käse ist keine erklärungsbedürftige Ware.",
+        "Falsch, denn für Lebensmittel ist nur die Vorwahl zulässig."
+      ],
+      richtig: 1,
+      ziffer: "8",
+      erklaerung: "Die Eigenschaften der Ware bestimmen die Verkaufsform. Offene Ware muss vor dem direkten Zugriff des Kunden geschützt werden, die Menge wird individuell abgewogen, und die Beratung (Herkunft, Zubereitung, Haltbarkeit) fällt sonst weg. Verpackter Käse im Kühlregal dagegen ist Selbstbedienung.",
+      tipp: "Frag dich: Muss diese Ware vor dem direkten Zugriff geschützt werden?"
+    },
+    {
+      ort: "Notizzettel 4 · Sportabteilung",
+      titel: "Von hinten",
+      fall: "Eine Kundin steht vor dem Regal mit den Laufschuhen und nimmt ein Modell in die Hand. Der Verkäufer tritt von hinten an sie heran und sagt: „Suchen Sie etwas Bestimmtes?“ Die Kundin zuckt zusammen, sagt „Nein danke, ich schaue nur“ und legt den Schuh zurück.",
+      frage: "Wie viele Fehler macht der Verkäufer hier?",
+      optionen: [
+        "Keinen – er hat die Kundin ja angesprochen.",
+        "Einen: Er spricht sie von hinten an.",
+        "Zwei: Er spricht sie von hinten an, und er stellt eine geschlossene Frage.",
+        "Zwei: Er spricht sie zu spät an, und er hält die Distanz nicht ein."
+      ],
+      richtig: 2,
+      ziffer: "3",
+      erklaerung: "Erster Fehler: Ein Kunde wird niemals von hinten angesprochen – er könnte sich überfallen fühlen. Zuerst Blickkontakt aufbauen. Zweiter Fehler: „Suchen Sie etwas Bestimmtes?“ ist eine geschlossene Frage, auf die „nein“ die einfachste Antwort ist. Besser: „Guten Tag. Wofür möchten Sie die Laufschuhe denn vor allem verwenden?“",
+      tipp: "Zähle nach: Was ist an der Körperhaltung falsch, und was an der Frage?"
+    },
+    {
+      ort: "Notizzettel 5 · Uhren und Schmuck",
+      titel: "Kennt man die Marke?",
+      fall: "Ein Kunde lässt sich Uhren zeigen. Er fragt zuerst nach dem teuersten Modell und dann: „Und die Marke – die kennt man doch, oder?“ Auf Qualität, Ganggenauigkeit und Garantie geht er kaum ein. Der Verkäufer argumentiert die ganze Zeit mit der Wasserdichtigkeit.",
+      frage: "Welches Kaufmotiv steht hier im Vordergrund?",
+      optionen: [
+        "Qualität – ein rationales Kaufmotiv.",
+        "Geldersparnis – ein rationales Kaufmotiv.",
+        "Geltungsbedürfnis – ein emotionales Kaufmotiv.",
+        "Zeitersparnis – ein rationales Kaufmotiv."
+      ],
+      richtig: 2,
+      ziffer: "6",
+      erklaerung: "Der Kunde fragt nach Preis und Bekanntheit der Marke, nicht nach der Technik. Dahinter steht das Geltungsbedürfnis – ein emotionales Kaufmotiv, das unter der Wasserlinie des Eisbergs liegt und deshalb nicht ausgesprochen wird. Der Verkäufer argumentiert am Motiv vorbei.",
+      tipp: "Was will der Kunde wirklich – und sagt er es offen?"
+    },
+    {
+      ort: "Notizzettel 6 · Haushaltsabteilung",
+      titel: "Sonst noch etwas?",
+      fall: "Eine Kundin hat sich für eine Pfanne entschieden. Die Verkäuferin fragt: „Sonst brauchen Sie nichts?“ Die Kundin sagt „Nein danke“ und geht zur Kasse. Der passende Pfannenwender, den sie sich vorher zweimal angesehen hatte, bleibt im Regal.",
+      frage: "Wie ist diese Frage einzuordnen?",
+      optionen: [
+        "Richtig – so wird die Kundin nicht bedrängt.",
+        "Falsch: eine geschlossene und negativ formulierte Frage, die das Gespräch beendet.",
+        "Falsch: eine Alternativfrage, die zu früh gestellt wird.",
+        "Richtig – am Ende des Gesprächs gehören geschlossene Fragen hin."
+      ],
+      richtig: 1,
+      ziffer: "2",
+      erklaerung: "„Sonst brauchen Sie nichts?“ ist geschlossen und negativ formuliert – „nein“ ist die einfachste Antwort. Besser wäre: „Welchen Wunsch darf ich Ihnen noch erfüllen?“ oder warenbezogen: „Zu dieser Pfanne passt dieser Pfannenwender – darf ich ihn Ihnen zeigen?“",
+      tipp: "Achte auf das Wort „nichts“ – und darauf, ob die Kundin mit Ja oder Nein antworten kann."
+    }
+  ];
+
+  var CODE = STATIONEN.map(function(s){ return s.ziffer; }).join("");
+  var geloest = STATIONEN.map(function(){ return false; });
+  var fehler = 0, fehlerSchloss = 0;
+
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  // Leiste
+  var leiste = document.getElementById("leiste");
+  STATIONEN.forEach(function(s,i){
+    var d = document.createElement("div");
+    d.className = "feld"; d.id = "feld"+i;
+    d.innerHTML = '<div class="nr">'+LT("Station {n}",{n:i+1})+'</div><div class="zi">?</div>';
+    leiste.appendChild(d);
+  });
+
+  // Stationen
+  var box = document.getElementById("stationen");
+  STATIONEN.forEach(function(s,i){
+    var sec = document.createElement("section");
+    sec.className = "station"; sec.id = "st"+i;
+    var h = '<div class="ort">'+LT(s.ort)+'</div>';
+    h += '<h2>'+LT(["Station {n}:", s.titel],{n:i+1})+'</h2>';
+    h += '<p class="fall">'+LT(s.fall)+'</p>';
+    h += '<p class="frage">'+LT(s.frage)+'</p>';
+    s.optionen.forEach(function(o,k){
+      h += '<label class="opt"><input type="radio" name="s'+i+'" value="'+k+'">'+LT(o)+'</label>';
+    });
+    h += '<button type="button" class="knopf" data-i="'+i+'">'+LT("Akte prüfen")+'</button>';
+    h += '<div class="rueck" id="r'+i+'"></div>';
+    sec.innerHTML = h;
+    box.appendChild(sec);
+  });
+
+  box.addEventListener("click", function(e){
+    var b = e.target.closest("button[data-i]");
+    if (!b) return;
+    var i = Number(b.getAttribute("data-i"));
+    if (geloest[i]) return;
+    var s = STATIONEN[i];
+    var sel = document.querySelector('input[name="s'+i+'"]:checked');
+    var r = document.getElementById("r"+i);
+    if (!sel){
+      r.className = "rueck falsch";
+      r.innerHTML = LT(["<b>Noch nichts ausgewählt.</b>","Entscheide dich für eine Einordnung."]);
+      r.style.display = "block";
+      return;
+    }
+    if (Number(sel.value) === s.richtig){
+      geloest[i] = true;
+      r.className = "rueck richtig";
+      r.innerHTML = LT(["<b>Richtig eingeordnet.</b>", s.erklaerung]) +
+                    '<br>' + LT('<span class="ziffer">In der Akte steckt die Ziffer {z}.</span>',{z:s.ziffer});
+      r.style.display = "block";
+      document.getElementById("st"+i).classList.add("geloest");
+      var f = document.getElementById("feld"+i);
+      f.classList.add("auf");
+      f.querySelector(".zi").textContent = s.ziffer;
+      b.disabled = true;
+      b.innerHTML = LT("Akte geschlossen");
+      document.querySelectorAll('input[name="s'+i+'"]').forEach(function(x){ x.disabled = true; });
+    } else {
+      fehler++;
+      r.className = "rueck falsch";
+      r.innerHTML = LT(["<b>Das passt noch nicht.</b>", s.tipp, "Schau notfalls in Modul 8 nach und versuch es noch einmal."]);
+      r.style.display = "block";
+    }
+  });
+
+  // Tresor
+  document.getElementById("oeffnen").addEventListener("click", function(){
+    var eing = document.getElementById("code").value.replace(/\D/g,"");
+    var tr = document.getElementById("tresorrueck");
+    var offen = geloest.filter(Boolean).length;
+    if (eing.length !== 6){
+      tr.className = "zu";
+      tr.innerHTML = LT(["<b>Das Schloss braucht genau sechs Ziffern.</b>","Bisher gelöst: {o} von 6 Stationen."],{o:offen});
+      tr.style.display = "block";
+      return;
+    }
+    if (eing === CODE){
+      tr.className = "auf";
+      tr.innerHTML = LT(["<b>Klick.</b>", "Der Tresor ist offen."]);
+      tr.style.display = "block";
+      document.getElementById("fehler").textContent = fehler;
+      document.querySelectorAll(".fz").forEach(function(x){ x.textContent = fehler; });
+      document.querySelectorAll(".fs").forEach(function(x){ x.textContent = fehlerSchloss; });
+      document.getElementById("fehlerschloss").textContent = fehlerSchloss;
+      document.getElementById("ende").style.display = "block";
+      document.getElementById("ende").scrollIntoView({behavior:"smooth"});
+    } else {
+      fehlerSchloss++;
+      tr.className = "zu";
+      tr.innerHTML = LT(["<b>Das Schloss rührt sich nicht.</b>","Prüfe die Reihenfolge: Station 1 ganz links, Station 6 ganz rechts.","Bisher gelöst: {o} von 6 Stationen."],{o:offen});
+      tr.style.display = "block";
+    }
+  });
+
+  document.getElementById("nochmal").addEventListener("click", function(){ location.reload(); });
+})();
+</script>
+</body>
+</html>
