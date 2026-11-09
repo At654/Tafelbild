@@ -1,0 +1,161 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lernlandschaft LF4 Spur C</title>
+<style>
+:root{--bg:#fff;--fg:#1d2433;--mut:#5b6475;--line:#d5dae3;--card:#f6f8fb;--acc:#1f5fbf;--A:#e8f1ff;--B:#fff1e0;--C:#e6f7ea}
+@media (prefers-color-scheme:dark){:root{--bg:#14171d;--fg:#e8ebf2;--mut:#9aa3b5;--line:#343b49;--card:#1c212a;--acc:#7fb0ff;--A:#1b2a40;--B:#40301a;--C:#1a3a24}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.55 -apple-system,"Segoe UI","Noto Sans","Noto Sans Ethiopic","Kefa",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:1.6rem;margin:.4em 0}
+h2{font-size:1.25rem;margin:0 0 .3em}
+h3{font-size:1rem;margin:0 0 .4em}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:8px 16px}
+.bar .in{max-width:860px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);cursor:pointer}
+button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.who{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.who label{display:flex;gap:6px;align-items:center}
+input[type=text],textarea,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+input.gap{width:9em;border-width:0 0 2px;border-radius:0;background:transparent;border-color:var(--acc)}
+textarea{width:100%;display:block;margin:6px 0}
+.st{border:1px solid var(--line);border-radius:12px;padding:14px;margin:16px 0;background:var(--card)}
+.tag{font-size:.8rem;color:var(--mut)}
+.snack{margin:.4em 0 .8em}
+.spur{border-radius:10px;padding:10px 12px;margin:10px 0}
+.spur.A{background:var(--A)}.spur.B{background:var(--B)}.spur.C{background:var(--C)}
+.spur ul{margin:.3em 0;padding-left:1.2em}
+.spur li{margin:.3em 0}
+.rg{display:inline-flex;gap:10px;flex-wrap:wrap;margin:0 4px}
+.rg label,.ck{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+input[type=radio],input[type=checkbox]{width:1.15em;height:1.15em}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;overflow:auto;font-size:.9rem}
+table{border-collapse:collapse;width:100%;margin:6px 0}
+td,th{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:middle}
+.ti{font-size:1.1rem;margin:.3em 0 .8em;padding-left:10px;border-left:4px solid var(--acc)}
+.de{color:var(--mut)}
+.done{margin-top:6px;font-weight:600}
+.tr{margin:.3em 0 .7em;padding:6px 10px;border-left:4px solid var(--acc);background:var(--bg);border-radius:0 8px 8px 0;font-size:.95rem;line-height:1.5}
+.tr.tap{cursor:pointer;border-style:dashed;border-left-style:solid}
+.tr.tap .tg{color:var(--acc);font-weight:600}
+.tr.tap:not(.open) .tx{display:none}
+.tr.tap.open .tg{display:none}
+.bar .lang button{padding:4px 9px;font-size:.9rem}
+.fig{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px;margin:6px 0}
+.fig svg{display:block;width:100%;height:auto}
+.fig .z{fill:var(--zone);stroke:var(--ink);stroke-width:3}
+.fig .wall{stroke:var(--ink);stroke-width:7;fill:none}
+.fig .num{fill:#1f5fbf;stroke:var(--bg);stroke-width:3}
+.fig text{fill:var(--fg);font-family:-apple-system,"Segoe UI",Roboto,sans-serif}
+.fig .n{fill:#fff;font-weight:700;font-size:24px;text-anchor:middle}
+.fig .lb{font-size:18px;font-weight:600;text-anchor:middle}
+.fig .arr{stroke:#3b78d8;stroke-width:5;fill:none}
+:root{--zone:#f3ead2;--ink:#2b3345}
+@media (prefers-color-scheme:dark){:root{--zone:#2a3040;--ink:#c9d1e3}}
+body.fA .spur:not(.A),body.fB .spur:not(.B),body.fC .spur:not(.C){display:none}
+@media print{.bar{display:none}.st{break-inside:avoid}body.fA .spur,body.fB .spur,body.fC .spur{display:block}}
+</style>
+</head>
+<body>
+<div class="bar"><div class="in" id="bar"></div></div>
+<main>
+<div id="head"></div>
+<div id="app"></div>
+<div id="extra"></div>
+</main>
+<script type="application/json" id="saved">[]</script>
+<script>
+let rg=0;
+function fmt(s){
+  return s
+   .replace(/_{3,}/g,'<input type="text" class="gap" aria-label="Lücke">')
+   .replace(/\{\{T(\d*)\}\}/g,(m,n)=>'<textarea rows="'+(n||3)+'" placeholder="'+(window.PH||'Deine Antwort …')+'"></textarea>')
+   .replace(/\{\{S:([^}]*)\}\}/g,(m,o)=>'<select><option value="">–</option>'+o.split('|').map(x=>'<option>'+x+'</option>').join('')+'</select>')
+   .replace(/\{\{R:([^}]*)\}\}/g,(m,o)=>{rg++;return '<span class="rg">'+o.split('|').map(x=>'<label><input type="radio" name="r'+rg+'"> '+x+'</label>').join('')+'</span>'})
+   .replace(/\{\{X:([^}]*)\}\}/g,(m,k)=>'<div class="tr" data-k="'+k+'"></div>')
+   .replace(/\{\{C:([^}]*)\}\}/g,(m,x)=>'<label class="ck"><input type="checkbox"> '+x+'</label>');
+}
+function render(){
+  document.getElementById('head').innerHTML=HEAD;
+  document.getElementById('app').innerHTML=fmt(ST.map((s,i)=>
+   '<section class="st"><h2>Station '+(i+1)+': '+s.t+'</h2>{{X:t'+(i+1)+'}}<div class="tag">'+(s.f||'')+'</div>'+
+   (s.s?'<p class="snack"><b>'+SNACK+'</b> '+s.s+'</p>{{X:s'+(i+1)+'}}':'')+
+   ['A','B','C'].filter(k=>s[k.toLowerCase()]).map(k=>'<div class="spur '+k+'"><h3>'+LBL[k]+'</h3>{{X:'+k.toLowerCase()+(i+1)+'}}'+s[k.toLowerCase()]+'</div>').join('')+
+   '<div class="done">{{C:'+DONE+'}}</div></section>').join(''));
+  document.getElementById('extra').innerHTML=fmt(window.EXTRA||'');
+  fillTr();
+}
+let LANG='',MODE='show';
+try{LANG=localStorage.getItem('ll-lang')||'';MODE=localStorage.getItem('ll-mode')||'show'}catch(e){}
+function fillTr(){
+  const T=(window.TR||{})[LANG]||{};
+  document.querySelectorAll('.tr').forEach(el=>{
+    const x=T[el.dataset.k];
+    el.className='tr'+(MODE==='tap'?' tap':'');
+    if(!LANG||!x){el.style.display='none';return}
+    el.style.display='';el.dir=LANG==='ar'?'rtl':'ltr';el.lang=LANG;
+    el.innerHTML=MODE==='tap'?'<span class="tg">🌐 '+(window.TAPTXT||'')+'</span><span class="tx">'+x+'</span>':'<span class="tx">'+x+'</span>';
+  });
+  document.querySelectorAll('[data-l]').forEach(b=>b.classList.toggle('on',b.dataset.l===LANG));
+  const m=document.getElementById('mode');if(m)m.textContent=MODE==='tap'?'🌐 Antippen':'🌐 Unterlegt';
+}
+function setLang(l){LANG=l;try{localStorage.setItem('ll-lang',l)}catch(e){}fillTr()}
+function toggleMode(){MODE=MODE==='tap'?'show':'tap';try{localStorage.setItem('ll-mode',MODE)}catch(e){}fillTr()}
+document.addEventListener('click',e=>{const t=e.target.closest('.tr.tap');if(t)t.classList.toggle('open')});
+function fields(){return [...document.querySelectorAll('main input,main textarea,main select')]}
+function state(){return fields().map(e=>e.type==='checkbox'||e.type==='radio'?e.checked:e.value)}
+function load(arr){fields().forEach((e,i)=>{if(i>=arr.length)return;if(e.type==='checkbox'||e.type==='radio')e.checked=!!arr[i];else e.value=arr[i]})}
+const KEY='ll-'+document.title;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state()))}catch(e){}}
+function filt(k){document.body.className=k?'f'+k:'';[...document.querySelectorAll('#bar [data-f]')].forEach(b=>b.classList.toggle('on',b.dataset.f===k))}
+function download(){
+  const c=document.documentElement.cloneNode(true);
+  c.querySelector('#saved').textContent=JSON.stringify(state());
+  ['head','app','extra'].forEach(i=>c.querySelector('#'+i).innerHTML='');
+  c.querySelector('body').className='';
+  const nm=(document.querySelector('#nm')||{}).value||'Schueler';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['<!DOCTYPE html>\n'+c.outerHTML],{type:'text/html'}));
+  a.download=FILE+' - '+nm.replace(/[^\wäöüÄÖÜß -]/g,'')+'.html';a.click();
+}
+function reset(){if(confirm(RESETQ)){try{localStorage.removeItem(KEY)}catch(e){}document.getElementById('saved').textContent='[]';render();filt('')}}
+window.addEventListener('DOMContentLoaded',()=>{
+  const bar=document.getElementById('bar');
+  bar.innerHTML=BAR;
+  render();
+  let arr=[];try{arr=JSON.parse(document.getElementById('saved').textContent)}catch(e){}
+  if(!arr.length){try{arr=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){}}
+  load(arr);
+  document.addEventListener('input',save);document.addEventListener('change',save);
+});
+</script>
+<script>
+window.PH='ጽሓፍ … / Schreiben …';
+const FILE='Lernlandschaft LF4 Spur C Tigrinya',SNACK='',DONE='Fertig / ተወዲኡ',RESETQ='Alle Antworten löschen? / ኩሉ መልስታት ይጽረግ?';
+const LBL={A:'',B:'',C:'Spur C · Einfach · Deutsch / ትግርኛ'};
+const BAR='<span style="flex:1"></span><button onclick="download()">💾 Speichern / ዕቆብ</button><button onclick="window.print()">🖨 Druck / ሕተም</button><button onclick="reset()">🗑 Löschen / ደምስስ</button>';
+const HEAD='<h1>Spur C · Deutsch / ትግርኛ · Lernfeld 4</h1><p class="tag">Oben: Deutsch. Unten: Tigrinya (ትግርኛ). Deine Antworten werden automatisch gespeichert. / መልስታትካ ባዕሉ ይቕመጥ።</p><div class="who"><label>Name / ስም: <input type="text" id="nm" style="width:12em"></label></div>';
+const D=(x)=>'<div class="de">'+x+'</div>',T=(x)=>'<div class="ti">'+x+'</div>';
+const ST=[
+{t:'Sortiment · ዓይነት ኣቕሑት',
+c:D('<b>DE:</b> Ordne zu.')+T('<b>TI:</b> ኣራኽብ።')+'<ul><li>Viele Sorten Äpfel / ብዙሕ ዓይነት ፖም → {{S:tief · ዕሙቕ|breit · ሰፊሕ|Saison · እዋናዊ}}</li><li>Obst + Brot + Milch + Seife / ፍረ + ሕብስቲ + ሓሊብ + ሳሙና → {{S:tief · ዕሙቕ|breit · ሰፊሕ|Saison · እዋናዊ}}</li><li>Nur im Winter: Glühwein / ኣብ ቁሪ እዋን ጥራይ: ዋይን ሙቕ → {{S:tief · ዕሙቕ|breit · ሰፊሕ|Saison · እዋናዊ}}</li></ul>'},
+{t:'Verkaufszonen · ቦታታት መሸጣ',
+c:D('<b>DE:</b> Richtig oder Falsch?')+T('<b>TI:</b> ሓቂ ወይ ጌጋ?')+'<ul><li>Die Kasse ist ein guter Platz für Kaugummi.<br>ካሳ ንማስቲካ ጽቡቕ ቦታ እዩ። {{R:Richtig · ሓቂ|Falsch · ጌጋ}}</li><li>Hinten links kaufen viele Kunden spontan.<br>ኣብ ድሕሪት ጸጋም ብዙሓት ዓሚላት ብቕልጡፍ ይገዝኡ። {{R:Richtig · ሓቂ|Falsch · ጌጋ}}</li><li>Kunden gehen meist nach rechts.<br>ዓሚላት ብዙሕ ግዜ ናብ የማን ይኸዱ። {{R:Richtig · ሓቂ|Falsch · ጌጋ}}</li></ul>'},
+{t:'Sinne · ሓሳስያት',
+c:D('<b>DE:</b> Welcher Sinn?')+T('<b>TI:</b> ኣየናይ ሓሳስ?')+'<ul><li>👃 Kaffeeduft / ሽታ ቡን → {{S:riechen · ምሽታት|sehen · ምርኣይ|hören · ምስማዕ}}</li><li>👁 helles Licht / ብሩህ ብርሃን → {{S:riechen · ምሽታት|sehen · ምርኣይ|hören · ምስማዕ}}</li><li>👂 Musik / ሙዚቃ → {{S:riechen · ምሽታት|sehen · ምርኣይ|hören · ምስማዕ}}</li></ul>'},
+{t:'Ladengestaltung · ምድላው ድኳን',
+c:D('<b>DE:</b> Was ist besser?')+T('<b>TI:</b> ኣየናይ ይሓይሽ?')+'<ul><li>Gang / መንገዲ: {{R:eng · ጸቢብ|breit · ሰፊሕ}}</li><li>Schrift auf Preisschild / ጽሑፍ ኣብ ወረቐት ዋጋ: {{R:klein · ንእሽቶ|groß · ዓቢ}}</li><li>Eingang für Rollstuhl / ኣተዊ ንወንበር ጎማ: {{R:Stufe · ደረጃ|Rampe · ራምፕ}}</li></ul>'},
+{t:'Regalzonen · ዞናት መደርደሪ',
+c:D('<b>DE:</b> Regal mit 4 Stockwerken. Schreibe oben, Mitte, unten. Die Sichtzone ist grün.')+T('<b>TI:</b> መደርደሪ ብ4 ደረጃ። ላዕሊ፣ ማእከል፣ ታሕቲ ጽሓፍ። ማእከል ሓምላይ እዩ።')+'<ul><li>oben / ላዕሊ: {{S:Reck|Sicht/Greif|Bück}}</li><li>Mitte / ማእከል 🟩: {{S:Reck|Sicht/Greif|Bück}}</li><li>unten / ታሕቲ: {{S:Reck|Sicht/Greif|Bück}}</li></ul>'},
+{t:'Preisauszeichnung · ምልክት ዋጋ',
+c:D('<b>DE:</b> Was gehört aufs Preisschild?')+T('<b>TI:</b> እንታይ ኣብ ወረቐት ዋጋ ይጽሓፍ?')+'<ul><li>{{C:Preis in Euro · ዋጋ ብዩሮ}}</li><li>{{C:Name des Chefs · ስም ሓለቓ}}</li><li>{{C:Preis pro kg/l · ዋጋ ን1 ኪሎ/ሊትሮ}}</li></ul>'},
+{t:'Eigenmarke · ናይ ባዕሉ ምልክት',
+c:D('<b>DE:</b> Welche Marke gehört dem Laden?')+T('<b>TI:</b> ኣየናይ ምልክት ናይ ድኳን እዩ?')+'<ul><li>{{R:Coca-Cola · ኮካ-ኮላ|Hausmarke vom Laden · ናይ ድኳን ባዕሉ ምልክት}}</li><li>Eigenmarke ist meist / ናይ ባዕሉ ምልክት ብዙሕ ግዜ: {{R:billig · ርካሽ|teuer · ክቡር}}</li></ul>'},
+{t:'Warenträger · መሕዘሊ ኣቕሑት',
+c:D('<b>DE:</b> Welches Wort passt zum Bild?')+T('<b>TI:</b> ኣየናይ ቃል ምስ ስእሊ ይሰማማዕ?')+'<ul><li>🛒 Ware in der Mitte vom Gang, von allen Seiten<br>ኣቕሑት ኣብ ማእከል መንገዲ፣ ካብ ኩሉ ሸነኽ → {{S:Gondel|Vitrine}}</li><li>🔒 Glaskasten, teuer<br>ብርጭቆ ሳጹን፣ ክቡር → {{S:Gondel|Vitrine}}</li></ul>'},
+{t:'Verbundplatzierung · ኣብ ሓደ ቦታ ምድላው',
+c:D('<b>DE:</b> Was passt zusammen?')+T('<b>TI:</b> ኣየናይ ምስ ኣየናይ ይሰማማዕ?')+'<ul><li>Brot / ሕብስቲ ↔ {{S:Butter · ቅቤ|Zahnpasta · ሳሙና ስኒ|Milch · ሓሊብ}}</li><li>Zahnbürste / ብሩሽ ስኒ ↔ {{S:Butter · ቅቤ|Zahnpasta · ሳሙና ስኒ|Milch · ሓሊብ}}</li><li>Kaffee / ቡን ↔ {{S:Butter · ቅቤ|Zahnpasta · ሳሙና ስኒ|Milch · ሓሊብ}}</li></ul>'},
+{t:'Verkaufsformen · ኣገባብ መሸጣ',
+c:D('<b>DE:</b> Wer holt die Ware?')+T('<b>TI:</b> መን የምጽእ ኣቕሑት?')+'<ul><li>Metzger holt die Wurst / ሸያጢ ስጋ ስጋ የምጽእ → {{R:Vollbedienung · ምሉእ ኣገልግሎት|Selbstbedienung · ባዕል ኣገልግሎት}}</li><li>Kunde nimmt Milch selbst / ዓሚል ሓሊብ ባዕሉ ይወስድ → {{R:Vollbedienung · ምሉእ ኣገልግሎት|Selbstbedienung · ባዕል ኣገልግሎት}}</li></ul>'}
+];
+</script>
+</body>
+</html>

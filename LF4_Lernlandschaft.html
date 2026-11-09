@@ -1,0 +1,515 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lernlandschaft LF4</title>
+<style>
+:root{--bg:#fff;--fg:#1d2433;--mut:#5b6475;--line:#d5dae3;--card:#f6f8fb;--acc:#1f5fbf;--A:#e8f1ff;--B:#fff1e0;--C:#e6f7ea}
+@media (prefers-color-scheme:dark){:root{--bg:#14171d;--fg:#e8ebf2;--mut:#9aa3b5;--line:#343b49;--card:#1c212a;--acc:#7fb0ff;--A:#1b2a40;--B:#40301a;--C:#1a3a24}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.55 -apple-system,"Segoe UI","Noto Sans","Noto Sans Ethiopic","Kefa",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:1.6rem;margin:.4em 0}
+h2{font-size:1.25rem;margin:0 0 .3em}
+h3{font-size:1rem;margin:0 0 .4em}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:8px 16px}
+.bar .in{max-width:860px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);cursor:pointer}
+button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.who{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.who label{display:flex;gap:6px;align-items:center}
+input[type=text],textarea,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+input.gap{width:9em;border-width:0 0 2px;border-radius:0;background:transparent;border-color:var(--acc)}
+textarea{width:100%;display:block;margin:6px 0}
+.st{border:1px solid var(--line);border-radius:12px;padding:14px;margin:16px 0;background:var(--card)}
+.tag{font-size:.8rem;color:var(--mut)}
+.snack{margin:.4em 0 .8em}
+.spur{border-radius:10px;padding:10px 12px;margin:10px 0}
+.spur.A{background:var(--A)}.spur.B{background:var(--B)}.spur.C{background:var(--C)}
+.spur ul{margin:.3em 0;padding-left:1.2em}
+.spur li{margin:.3em 0}
+.rg{display:inline-flex;gap:10px;flex-wrap:wrap;margin:0 4px}
+.rg label,.ck{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+input[type=radio],input[type=checkbox]{width:1.15em;height:1.15em}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;overflow:auto;font-size:.9rem}
+table{border-collapse:collapse;width:100%;margin:6px 0}
+td,th{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:middle}
+.ti{font-size:1.1rem;margin:.3em 0 .8em;padding-left:10px;border-left:4px solid var(--acc)}
+.de{color:var(--mut)}
+.done{margin-top:6px;font-weight:600}
+.tr{margin:.3em 0 .7em;padding:6px 10px;border-left:4px solid var(--acc);background:var(--bg);border-radius:0 8px 8px 0;font-size:.95rem;line-height:1.5}
+.tr.tap{cursor:pointer;border-style:dashed;border-left-style:solid}
+.tr.tap .tg{color:var(--acc);font-weight:600}
+.tr.tap:not(.open) .tx{display:none}
+.tr.tap.open .tg{display:none}
+.bar .lang button{padding:4px 9px;font-size:.9rem}
+.fig{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px;margin:6px 0}
+.fig svg{display:block;width:100%;height:auto}
+.fig .z{fill:var(--zone);stroke:var(--ink);stroke-width:3}
+.fig .wall{stroke:var(--ink);stroke-width:7;fill:none}
+.fig .num{fill:#1f5fbf;stroke:var(--bg);stroke-width:3}
+.fig text{fill:var(--fg);font-family:-apple-system,"Segoe UI",Roboto,sans-serif}
+.fig .n{fill:#fff;font-weight:700;font-size:24px;text-anchor:middle}
+.fig .lb{font-size:18px;font-weight:600;text-anchor:middle}
+.fig .arr{stroke:#3b78d8;stroke-width:5;fill:none}
+:root{--zone:#f3ead2;--ink:#2b3345}
+@media (prefers-color-scheme:dark){:root{--zone:#2a3040;--ink:#c9d1e3}}
+body.fA .spur:not(.A),body.fB .spur:not(.B),body.fC .spur:not(.C){display:none}
+@media print{.bar{display:none}.st{break-inside:avoid}body.fA .spur,body.fB .spur,body.fC .spur{display:block}}
+</style>
+</head>
+<body>
+<div class="bar"><div class="in" id="bar"></div></div>
+<main>
+<div id="head"></div>
+<div id="app"></div>
+<div id="extra"></div>
+</main>
+<script type="application/json" id="saved">[]</script>
+<script>
+let rg=0;
+function fmt(s){
+  return s
+   .replace(/_{3,}/g,'<input type="text" class="gap" aria-label="Lücke">')
+   .replace(/\{\{T(\d*)\}\}/g,(m,n)=>'<textarea rows="'+(n||3)+'" placeholder="'+(window.PH||'Deine Antwort …')+'"></textarea>')
+   .replace(/\{\{S:([^}]*)\}\}/g,(m,o)=>'<select><option value="">–</option>'+o.split('|').map(x=>'<option>'+x+'</option>').join('')+'</select>')
+   .replace(/\{\{R:([^}]*)\}\}/g,(m,o)=>{rg++;return '<span class="rg">'+o.split('|').map(x=>'<label><input type="radio" name="r'+rg+'"> '+x+'</label>').join('')+'</span>'})
+   .replace(/\{\{X:([^}]*)\}\}/g,(m,k)=>'<div class="tr" data-k="'+k+'"></div>')
+   .replace(/\{\{C:([^}]*)\}\}/g,(m,x)=>'<label class="ck"><input type="checkbox"> '+x+'</label>');
+}
+function render(){
+  document.getElementById('head').innerHTML=HEAD;
+  document.getElementById('app').innerHTML=fmt(ST.map((s,i)=>
+   '<section class="st"><h2>Station '+(i+1)+': '+s.t+'</h2>{{X:t'+(i+1)+'}}<div class="tag">'+(s.f||'')+'</div>'+
+   (s.s?'<p class="snack"><b>'+SNACK+'</b> '+s.s+'</p>{{X:s'+(i+1)+'}}':'')+
+   ['A','B','C'].filter(k=>s[k.toLowerCase()]).map(k=>'<div class="spur '+k+'"><h3>'+LBL[k]+'</h3>{{X:'+k.toLowerCase()+(i+1)+'}}'+s[k.toLowerCase()]+'</div>').join('')+
+   '<div class="done">{{C:'+DONE+'}}</div></section>').join(''));
+  document.getElementById('extra').innerHTML=fmt(window.EXTRA||'');
+  fillTr();
+}
+let LANG='',MODE='show';
+try{LANG=localStorage.getItem('ll-lang')||'';MODE=localStorage.getItem('ll-mode')||'show'}catch(e){}
+function fillTr(){
+  const T=(window.TR||{})[LANG]||{};
+  document.querySelectorAll('.tr').forEach(el=>{
+    const x=T[el.dataset.k];
+    el.className='tr'+(MODE==='tap'?' tap':'');
+    if(!LANG||!x){el.style.display='none';return}
+    el.style.display='';el.dir=LANG==='ar'?'rtl':'ltr';el.lang=LANG;
+    el.innerHTML=MODE==='tap'?'<span class="tg">🌐 '+(window.TAPTXT||'')+'</span><span class="tx">'+x+'</span>':'<span class="tx">'+x+'</span>';
+  });
+  document.querySelectorAll('[data-l]').forEach(b=>b.classList.toggle('on',b.dataset.l===LANG));
+  const m=document.getElementById('mode');if(m)m.textContent=MODE==='tap'?'🌐 Antippen':'🌐 Unterlegt';
+}
+function setLang(l){LANG=l;try{localStorage.setItem('ll-lang',l)}catch(e){}fillTr()}
+function toggleMode(){MODE=MODE==='tap'?'show':'tap';try{localStorage.setItem('ll-mode',MODE)}catch(e){}fillTr()}
+document.addEventListener('click',e=>{const t=e.target.closest('.tr.tap');if(t)t.classList.toggle('open')});
+function fields(){return [...document.querySelectorAll('main input,main textarea,main select')]}
+function state(){return fields().map(e=>e.type==='checkbox'||e.type==='radio'?e.checked:e.value)}
+function load(arr){fields().forEach((e,i)=>{if(i>=arr.length)return;if(e.type==='checkbox'||e.type==='radio')e.checked=!!arr[i];else e.value=arr[i]})}
+const KEY='ll-'+document.title;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state()))}catch(e){}}
+function filt(k){document.body.className=k?'f'+k:'';[...document.querySelectorAll('#bar [data-f]')].forEach(b=>b.classList.toggle('on',b.dataset.f===k))}
+function download(){
+  const c=document.documentElement.cloneNode(true);
+  c.querySelector('#saved').textContent=JSON.stringify(state());
+  ['head','app','extra'].forEach(i=>c.querySelector('#'+i).innerHTML='');
+  c.querySelector('body').className='';
+  const nm=(document.querySelector('#nm')||{}).value||'Schueler';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['<!DOCTYPE html>\n'+c.outerHTML],{type:'text/html'}));
+  a.download=FILE+' - '+nm.replace(/[^\wäöüÄÖÜß -]/g,'')+'.html';a.click();
+}
+function reset(){if(confirm(RESETQ)){try{localStorage.removeItem(KEY)}catch(e){}document.getElementById('saved').textContent='[]';render();filt('')}}
+window.addEventListener('DOMContentLoaded',()=>{
+  const bar=document.getElementById('bar');
+  bar.innerHTML=BAR;
+  render();
+  let arr=[];try{arr=JSON.parse(document.getElementById('saved').textContent)}catch(e){}
+  if(!arr.length){try{arr=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){}}
+  load(arr);
+  document.addEventListener('input',save);document.addEventListener('change',save);
+});
+</script>
+<script>
+window.TAG='[Übersetzbar in: AR/VI/TR/TI/UK/RU/ES/PT]';
+const FILE='Lernlandschaft LF4',SNACK='Wissens-Snack:',DONE='Station fertig',RESETQ='Wirklich alle Antworten löschen?';
+const LBL={A:'Spur A · Basis',B:'Spur B · Experte',C:'Spur C · Einfach'};
+const LG=[['de','Deutsch'],['ar','العربية'],['vi','Tiếng Việt'],['tr','Türkçe'],['es','Español'],['pt','Português'],['ru','Русский'],['uk','Українська']];
+window.TAPTXT='antippen / tap';
+const BAR='<button data-f="" class="on" onclick="filt(\'\')">Alle Spuren</button><button data-f="A" onclick="filt(\'A\')">A Basis</button><button data-f="B" onclick="filt(\'B\')">B Experte</button><button data-f="C" onclick="filt(\'C\')">C Einfach</button><span style="flex:1"></span><button onclick="download()">💾 Speichern</button><button onclick="window.print()">🖨 PDF/Druck</button><button onclick="reset()">🗑 Löschen</button><div class="lang" style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;align-items:center"><span>🌐</span>'+LG.map(x=>'<button data-l="'+(x[0]==='de'?'':x[0])+'" onclick="setLang(\''+(x[0]==='de'?'':x[0])+'\')">'+x[1]+'</button>').join('')+'<button id="mode" onclick="toggleMode()">🌐 Unterlegt</button></div>';
+const HEAD='<h1>Lernlandschaft: Lernfeld 4 (Prüfungsfokus)</h1><p class="tag">Klassen V26/1 und V26/2 · Waren präsentieren · Wähle oben deine Sprache. „Unterlegt“ zeigt die Übersetzung direkt unter dem Text, „Antippen“ zeigt sie erst nach einem Tipp. Antworten werden automatisch gespeichert. Mit „💾 Speichern“ lädst du deine Datei herunter.</p><div class="who"><label>Name: <input type="text" id="nm" style="width:12em"></label><label>Klasse: <select><option value="">–</option><option>V26/1</option><option>V26/2</option></select></label><label>Meine Spur: <select><option value="">–</option><option>A Basis</option><option>B Experte</option><option>C Einfach</option></select></label></div>';
+const ST=[
+{t:'Sortiment – breit, tief, Kern, Rand, Saison (9/13)',f:'Format: Lückentext',
+s:'Ein <i>breites</i> Sortiment hat viele Warengruppen. Ein <i>tiefes</i> Sortiment hat in einer Gruppe viele Varianten.',
+a:'<p>Setze ein: <i>Kernsortiment – Randsortiment – Saisonsortiment – breit – tief</i></p><ul><li>Ein Drogeriemarkt hat Shampoo, Zahnpasta, Windeln und Tierfutter. Das Sortiment ist ______.</li><li>Er führt 40 Sorten Shampoo. Das Sortiment ist ______.</li><li>Shampoo gehört zum ______. Es bringt den meisten Umsatz.</li><li>Kleine Geschenkartikel sind nur eine Ergänzung. Sie gehören zum ______.</li><li>Sonnencreme gibt es nur im Sommer. Sie gehört zum ______.</li></ul>',
+b:'<p>Ein Modehaus will sein Sortiment <i>tiefer</i>, aber nicht <i>breiter</i> machen. Nenne 2 Vorteile und 2 Risiken (Lagerkosten, Kundenbindung, Platz). Empfiehl eine Lösung und begründe sie.</p>{{T6}}',
+c:'<p>Ordne zu.</p><ul><li>Viele Sorten Äpfel → {{S:tief|breit|Saison}}</li><li>Obst + Brot + Milch + Seife → {{S:tief|breit|Saison}}</li><li>Nur im Winter: Glühwein → {{S:tief|breit|Saison}}</li></ul>'},
+{t:'Verkaufszonen und Kundenlauf (7/13)',f:'Format: Praxis-Szenario mit Grundriss',
+s:'Kunden gehen meist nach rechts und im Kreis. Rechts vom Eingang und an der Kasse sind die Zonen <i>verkaufsstark</i>. Hinten links und direkt hinter dem Eingang sind sie <i>verkaufsschwach</i>.',
+a:'<div class="fig"><svg viewBox="0 0 600 400" role="img" aria-labelledby="ft fd"><title id="ft">Grundriss eines Ladens mit 7 Zonen</title><desc id="fd">Der Eingang ist unten links, die Kasse unten rechts. Zone 1 und 2 liegen hinten, Zone 3 und 4 in der Mitte, Zone 5, 6 und 7 vorne.</desc><defs><marker id="ah" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="14" refY="9" orient="auto"><path d="M0,0 L18,9 L0,18 Z" fill="#1f5fbf"/></marker></defs><rect class="z" x="30" y="20" width="270" height="110"/><rect class="z" x="300" y="20" width="270" height="110"/><rect class="z" x="30" y="130" width="390" height="100"/><rect class="z" x="420" y="130" width="150" height="100"/><rect class="z" x="30" y="230" width="130" height="110"/><rect class="z" x="160" y="230" width="260" height="110"/><rect class="z" x="420" y="230" width="150" height="110"/><path class="wall" d="M60 340 H30 V20 H570 V340 H160"/><rect x="445" y="290" width="100" height="36" rx="6" fill="#8a94a8" stroke="var(--ink)" stroke-width="3"/><text class="lb" x="495" y="314" style="fill:#fff">K Kasse</text><g><circle class="num" cx="165" cy="60" r="20"/><text class="n" x="165" y="68">1</text><text class="lb" x="165" y="102">hinten links</text><circle class="num" cx="435" cy="60" r="20"/><text class="n" x="435" y="68">2</text><text class="lb" x="435" y="102">hinten rechts</text><circle class="num" cx="225" cy="165" r="20"/><text class="n" x="225" y="173">3</text><text class="lb" x="225" y="207">Mitte</text><circle class="num" cx="495" cy="165" r="20"/><text class="n" x="495" y="173">4</text><text class="lb" x="495" y="207">rechte Wand</text><circle class="num" cx="95" cy="262" r="20"/><text class="n" x="95" y="270">5</text><text class="lb" x="95" y="302" style="font-size:15px">hinter dem</text><text class="lb" x="95" y="320" style="font-size:15px">Eingang</text><circle class="num" cx="290" cy="270" r="20"/><text class="n" x="290" y="278">6</text><text class="lb" x="290" y="312">rechts neben dem Eingang</text><circle class="num" cx="495" cy="258" r="20"/><text class="n" x="495" y="266">7</text></g><path class="arr" d="M100 398 V366" marker-end="url(#ah)"/><text class="lb" x="126" y="390" style="text-anchor:start">E Eingang</text><path class="arr" d="M300 364 H470" marker-end="url(#ah)"/><text class="lb" x="385" y="392" style="font-size:15px">Kunden gehen meist nach rechts</text></svg></div><p>Bestimme die Zonen:</p><ul><li>Zone 1: {{R:stark|schwach}}</li><li>Zone 2: {{R:stark|schwach}}</li><li>Zone 3: {{R:stark|schwach}}</li><li>Zone 4: {{R:stark|schwach}}</li><li>Zone 5: {{R:stark|schwach}}</li><li>Zone 6: {{R:stark|schwach}}</li><li>Zone 7: {{R:stark|schwach}}</li></ul><p>Begründe 3 Zonen mit einem Satz: „Die Zone ist …, <b>da</b> die Kunden …“</p>{{T4}}<p>Platziere (Zone 1–7): Kaugummi (Impulsartikel) → ______ · Mehl (Suchartikel) → ______ · Parfüm (diebstahlgefährdet) → ______</p>',
+b:'<p>Zone 1 bringt kaum Umsatz. Plane 3 Maßnahmen zur Aufwertung (z. B. Magnetartikel, Aktion, Licht). Erkläre, wie du den Erfolg nach 4 Wochen misst (Umsatz pro m², Kundenzählung).</p>{{T6}}',
+c:'<p>Richtig oder Falsch?</p><ul><li>Die Kasse ist ein guter Platz für Kaugummi. {{R:Richtig|Falsch}}</li><li>Hinten links kaufen viele Kunden spontan. {{R:Richtig|Falsch}}</li><li>Kunden gehen meist nach rechts. {{R:Richtig|Falsch}}</li></ul>'},
+{t:'Gestaltungselemente und Sinne (7/13)',f:'Format: Zuordnung',
+s:'Gute Gestaltung spricht die Sinne an: sehen, hören, riechen, fühlen, schmecken. Das weckt Gefühle und fördert den Kauf.',
+a:'<p>Ordne zu: Gestaltungselement → Sinn → Wirkung.</p><table><tr><th>Element</th><th>Sinn</th><th>Wirkung</th></tr><tr><td>A Akzentlicht auf Pullover</td><td>{{S:hören|sehen|riechen|fühlen}}</td><td>{{S:Kunden bleiben länger|Ware fällt auf|weckt Appetit|Qualität wird spürbar}}</td></tr><tr><td>B Brotduft am Eingang</td><td>{{S:hören|sehen|riechen|fühlen}}</td><td>{{S:Kunden bleiben länger|Ware fällt auf|weckt Appetit|Qualität wird spürbar}}</td></tr><tr><td>C ruhige Musik</td><td>{{S:hören|sehen|riechen|fühlen}}</td><td>{{S:Kunden bleiben länger|Ware fällt auf|weckt Appetit|Qualität wird spürbar}}</td></tr><tr><td>D Stoffprobe zum Anfassen</td><td>{{S:hören|sehen|riechen|fühlen}}</td><td>{{S:Kunden bleiben länger|Ware fällt auf|weckt Appetit|Qualität wird spürbar}}</td></tr></table><p>Nenne 3 weitere Gestaltungselemente (Beleuchtung, Farbe, Dekoration, Temperatur, Material, Ruhezone):</p><p>1. ______ 2. ______ 3. ______</p>',
+b:'<p>Ein Bio-Laden und ein Discounter wählen verschiedene Gestaltung (Licht, Farbe, Musik, Material). Vergleiche in 4 Zeilen. Erkläre, wie die Gestaltung zur <i>Strategie</i> (Erlebnis oder Preis) passt.</p>{{T6}}',
+c:'<p>Welcher Sinn?</p><ul><li>👃 Kaffeeduft → {{S:riechen|sehen|hören}}</li><li>👁 helles Licht → {{S:riechen|sehen|hören}}</li><li>👂 Musik → {{S:riechen|sehen|hören}}</li></ul>'},
+{t:'Kriterien der Ladengestaltung (6/13)',f:'Format: Fehlersuche',
+s:'Ein guter Laden hat breite Gänge, gute Übersicht und erreichbare Regale. Er ist barrierefrei und für ältere Kunden geeignet.',
+a:'<p>Im Laden „Lena’s Mode“ gibt es 6 Fehler. Schreibe zu jedem Fehler die Verbesserung.</p><ul><li>1. Die Gänge sind 60 cm breit. → ______</li><li>2. Die Regale sind 2,20 m hoch. → ______</li><li>3. Eine Stufe am Eingang, keine Rampe. → ______</li><li>4. Preisschilder in kleiner, grauer Schrift. → ______</li><li>5. Keine Sitzgelegenheit. → ______</li><li>6. Glatter, nasser Boden. Schwache Beleuchtung. → ______</li></ul>',
+b:'<p>Nenne 5 Maßnahmen für <b>ältere Kunden</b>. Bewerte jede nach Kosten und Nutzen. Wähle die 2 wichtigsten und begründe deine Wahl betriebswirtschaftlich (Umsatz, Kundenbindung).</p>{{T7}}',
+c:'<p>Was ist besser?</p><ul><li>Gang: {{R:eng|breit}}</li><li>Schrift auf Preisschild: {{R:klein|groß}}</li><li>Eingang für Rollstuhl: {{R:Stufe|Rampe}}</li></ul>'},
+{t:'Regalzonen (4/13)',f:'Format: Tabelle ausfüllen',
+s:'Ein Regal hat 4 Zonen. Die Sicht- und Greifzone verkaufen am besten. Reck- und Bückzone verkaufen schwächer.',
+a:'<table><tr><th>Zone</th><th>Höhe</th><th>stark / schwach</th><th>Ware (Beispiel)</th></tr><tr><td>______zone</td><td>über 1,60 m</td><td>{{R:stark|schwach}}</td><td>______</td></tr><tr><td>______zone</td><td>1,20–1,60 m</td><td>{{R:stark|schwach}}</td><td>______</td></tr><tr><td>______zone</td><td>0,80–1,20 m</td><td>{{R:stark|schwach}}</td><td>______</td></tr><tr><td>______zone</td><td>unter 0,80 m</td><td>{{R:stark|schwach}}</td><td>______</td></tr></table><p>Wo steht die Eigenmarke mit der höchsten Gewinnspanne? Begründe in einem Satz.</p>{{T2}}',
+b:'<p>Der Hersteller zahlt Geld für einen Platz in der Sichtzone. Prüfe: Lohnt sich das für den Händler? Argumentiere mit Gewinn pro Regalmeter und Umschlag. Gib eine Empfehlung.</p>{{T6}}',
+c:'<p>Regal mit 4 Stockwerken (die Sichtzone ist grün). Schreibe die Wörter: Reck · Sicht/Greif · Bück</p><ul><li>oben: {{S:Reck|Sicht/Greif|Bück}}</li><li>Mitte: {{S:Reck|Sicht/Greif|Bück}}</li><li>unten: {{S:Reck|Sicht/Greif|Bück}}</li></ul>'},
+{t:'Preisauszeichnung nach PAngV (4/13)',f:'Format: Rechenaufgabe',
+s:'Der Gesamtpreis enthält die Umsatzsteuer. Bei Waren nach Menge muss auch der <i>Grundpreis</i> (Preis je 1 kg oder 1 l) am Regal stehen.',
+a:'<ul><li>250 g Kaffee kosten 2,49 €. Grundpreis je 1 kg? Rechenweg: ______ Ergebnis: ______ €</li><li>1,5 l Wasser kosten 0,69 € plus 0,25 € Pfand. Grundpreis je 1 l: ______ € · Kasse: ______ €</li><li>Nenne 2 Pflichtangaben auf dem Regalschild: ______ und ______</li></ul>',
+b:'<p>An der Kasse kostet eine Ware mehr als am Regal. Der Kunde besteht auf dem Regalpreis. Wie ist die Rechtslage? Wie handelst du? Welche Folgen hat das für den Betrieb? Welche Vorteile haben elektronische Regaletiketten?</p>{{T7}}',
+c:'<p>Was gehört aufs Preisschild?</p><ul><li>{{C:Preis in Euro}}</li><li>{{C:Name des Chefs}}</li><li>{{C:Preis pro kg/l}}</li></ul>'},
+{t:'Eigenmarken platzieren (3/13)',f:'Format: Entscheidungsfall mit Satzbausteinen',
+s:'Eine Eigenmarke gehört dem Händler (z. B. „ja!“ bei REWE). Sie ist billiger für den Kunden. Der Händler verdient oft mehr daran.',
+a:'<p>Die Eigenmarken-Nudeln stehen in der Bückzone. Die Markennudeln stehen in der Sichtzone.</p><p>Wo platzierst du die Eigenmarke? Begründe: „Ich platziere …, <b>weil</b> …“</p>{{T3}}<p>2 Vorteile für den Händler: ______ und ______</p><p>1 Vorteil für den Kunden: ______</p>',
+b:'<p>Der Marktführer droht, seine Waren nicht mehr zu liefern, wenn die Eigenmarke neben ihm steht. Wäge ab: Verhandlungsmacht, Gewinnspanne, Kundenwirkung. Entscheide und begründe.</p>{{T6}}',
+c:'<p>Welche Marke gehört dem Laden?</p><ul><li>{{R:Coca-Cola|Hausmarke vom Laden}}</li><li>Eigenmarke ist meist: {{R:billig|teuer}}</li></ul>'},
+{t:'Warenträger (2/13)',f:'Format: Multiple Choice',
+s:'Warenträger zeigen die Ware. Beispiele: Regal, Gondel, Vitrine, Tisch, Ständer, Display, Stopper. Der Träger muss zur Ware passen.',
+a:'<ul><li>1. Teure Uhren: {{R:Gondel|Vitrine|Stopper}}</li><li>2. Socken in vielen Farben, lose: {{R:Tisch|Vitrine|Regal mit Glastür}}</li><li>3. Angebot am Gang: {{R:Display|Tresor|Wand}}</li></ul><p>Begründe Aufgabe 1 in einem Satz:</p>{{T2}}',
+b:'<p>Du gestaltest eine Modeabteilung (Jeans, Accessoires, Premiumjacken). Wähle je Warengruppe einen Träger. Begründe nach Preis, Verbundwirkung, Diebstahlschutz und Flächenbedarf.</p>{{T6}}',
+c:'<p>Welches Wort passt zum Bild?</p><ul><li>🛒 Ware in der Mitte vom Gang, von allen Seiten → {{S:Gondel|Vitrine}}</li><li>🔒 Glaskasten, teuer → {{S:Gondel|Vitrine}}</li></ul>'},
+{t:'Verbund- und Mehrfachplatzierung (2/13)',f:'Format: Praxis-Szenario (Aktionsfläche planen)',
+s:'<i>Verbundplatzierung</i>: Passende Waren stehen zusammen. <i>Mehrfachplatzierung</i>: Dieselbe Ware steht an mehreren Orten.',
+a:'<p>Plane eine Grillaktion im Supermarkt.</p><ul><li>4 Waren für die Verbundplatzierung: ______ ______ ______ ______</li><li>Wo zeigst du Grillkohle noch einmal (Mehrfachplatzierung)? 2 Orte: ______ und ______</li><li>Vorteil für die Kunden:</li></ul>{{T2}}',
+b:'<p>Bewerte die Aktion mit Kennzahlen: Mehrumsatz, Zusatzkäufe pro Kunde, Flächenkosten. Beschreibe die Gefahr bei zu viel Mehrfachplatzierung (Engpass, Ladenchaos).</p>{{T6}}',
+c:'<p>Was passt zusammen?</p><ul><li>Brot ↔ {{S:Butter|Zahnpasta|Milch}}</li><li>Zahnbürste ↔ {{S:Butter|Zahnpasta|Milch}}</li><li>Kaffee ↔ {{S:Butter|Zahnpasta|Milch}}</li></ul>'},
+{t:'Verkaufsformen (2/13)',f:'Format: Dialog ergänzen (Rollenspiel)',
+s:'<i>Vollbedienung</i>: Der Verkäufer holt die Ware. <i>Vorwahl</i>: Der Kunde sucht selbst, der Verkäufer hilft bei Bedarf. <i>Selbstbedienung</i>: Der Kunde nimmt alles allein und zahlt an der Kasse.',
+a:'<p>Ordne zu:</p><ul><li>Wurst-Theke → {{S:Vollbedienung|Vorwahl|Selbstbedienung}}</li><li>Supermarkt → {{S:Vollbedienung|Vorwahl|Selbstbedienung}}</li><li>Parfümerie → {{S:Vollbedienung|Vorwahl|Selbstbedienung}}</li></ul><p>1 Vorteil für Kunden: ______ · 1 Vorteil für den Betrieb: ______</p><p>Kontaktaufnahme in der Vorwahl: „Guten Tag, ______ ich Ihnen ______?“</p>',
+b:'<p>Ein Fachgeschäft will von Vollbedienung auf Vorwahl umstellen. Analysiere Personalkosten, Umsatz, Diebstahl und Beratungsqualität. Gib eine Empfehlung mit Begründung.</p>{{T7}}',
+c:'<p>Wer holt die Ware?</p><ul><li>Metzger holt die Wurst → {{R:Vollbedienung|Selbstbedienung}}</li><li>Kunde nimmt Milch selbst → {{R:Vollbedienung|Selbstbedienung}}</li></ul>'}
+];
+window.EXTRA='<section class="st"><h2>Feedbackbogen zur Lernlandschaft</h2><p class="tag">🟢 gut · 🟡 geht so · 🔴 schwierig</p><table><tr><th>Kriterium</th><th>Bewertung</th></tr><tr><td>Die Aufgaben waren <b>verständlich</b>.</td><td>{{R:🟢|🟡|🔴}}</td></tr><tr><td>Die Wörter waren <b>einfach genug</b>.</td><td>{{R:🟢|🟡|🔴}}</td></tr><tr><td>Die <b>Zeit</b> hat gereicht.</td><td>{{R:🟢|🟡|🔴}}</td></tr><tr><td>Ich konnte <b>alleine</b> arbeiten.</td><td>{{R:🟢|🟡|🔴}}</td></tr><tr><td>Ich habe etwas <b>gelernt</b>.</td><td>{{R:🟢|🟡|🔴}}</td></tr><tr><td>Ich traue mir die <b>Prüfungsfragen</b> zu.</td><td>{{R:🟢|🟡|🔴}}</td></tr></table><p>Meine beste Station (Nr.): ______ · Meine schwerste Station (Nr.): ______</p><p>Das brauche ich noch: {{C:mehr Zeit}} {{C:Hilfe}} {{C:Übersetzung}} {{C:mehr Beispiele}}</p><p>Mein Tipp an die Lehrerin:</p>{{T3}}</section>';
+</script>
+<script>
+window.TR=window.TR||{};
+TR.ar={
+t1:`التشكيلة: عريضة، عميقة، أساسية، ثانوية، موسمية`,t2:`مناطق البيع وحركة الزبائن`,t3:`عناصر التصميم والحواس`,t4:`معايير تصميم المحل`,t5:`مناطق الرف`,t6:`وضع علامات الأسعار (PAngV)`,t7:`وضع العلامات التجارية الخاصة`,t8:`حوامل البضائع`,t9:`العرض المرتبط والعرض المتعدد`,t10:`أشكال البيع`,
+s1:`التشكيلة العريضة (breit) = مجموعات بضائع كثيرة. التشكيلة العميقة (tief) = أنواع كثيرة داخل مجموعة واحدة.`,
+s2:`يمشي الزبائن غالبًا نحو اليمين وفي دائرة. يمين المدخل وعند الصندوق: مناطق قوية البيع (verkaufsstark). في الخلف يسارًا ومباشرة بعد المدخل: مناطق ضعيفة البيع (verkaufsschwach).`,
+s3:`التصميم الجيد يخاطب الحواس: النظر، السمع، الشم، اللمس، التذوق. هذا يثير المشاعر ويشجع على الشراء.`,
+s4:`المحل الجيد له ممرات عريضة ورؤية واضحة ورفوف يسهل الوصول إليها. وهو خالٍ من العوائق ومناسب لكبار السن.`,
+s5:`للرف 4 مناطق. منطقة النظر (Sichtzone) ومنطقة اليد (Greifzone) تبيعان أفضل. منطقة الأعلى (Reckzone) ومنطقة الانحناء (Bückzone) أضعف.`,
+s6:`السعر الإجمالي يشمل ضريبة القيمة المضافة. للبضائع التي تُباع بالكمية يجب أن يظهر على الرف أيضًا السعر الأساسي (Grundpreis): السعر لكل 1 كغ أو 1 لتر.`,
+s7:`العلامة الخاصة (Eigenmarke) ملك للتاجر، مثل «ja!» عند REWE. هي أرخص للزبون، والتاجر غالبًا يربح منها أكثر.`,
+s8:`حوامل البضائع تعرض البضاعة: رف، غوندولا، فاترينة، طاولة، حامل، ديسبلاي، ستوبر. يجب أن يناسب الحامل البضاعة.`,
+s9:`العرض المرتبط (Verbundplatzierung): بضائع متناسبة معًا. العرض المتعدد (Mehrfachplatzierung): البضاعة نفسها في أماكن عدة.`,
+s10:`الخدمة الكاملة (Vollbedienung): البائع يحضر البضاعة. الاختيار المسبق (Vorwahl): الزبون يبحث بنفسه والبائع يساعد عند الحاجة. الخدمة الذاتية (Selbstbedienung): الزبون يأخذ كل شيء بنفسه ويدفع عند الصندوق.`,
+a1:`ضع الكلمات في الفراغات: Kernsortiment، Randsortiment، Saisonsortiment، breit، tief. متجر مستحضرات: شامبو، معجون أسنان، حفاضات، طعام حيوانات ← التشكيلة؟ 40 نوع شامبو ← التشكيلة؟ الشامبو يحقق أكبر مبيعات ← إلى أي تشكيلة ينتمي؟ هدايا صغيرة مجرد إضافة ← إلى أي تشكيلة؟ واقي الشمس في الصيف فقط ← إلى أي تشكيلة؟`,
+a2:`انظر إلى المخطط. لكل منطقة 1–7: هل هي قوية البيع أم ضعيفة؟ علّل 3 مناطق بجملة («المنطقة …، لأن الزبائن …»). أين تضع: علكة (Impulsartikel)، دقيق (Suchartikel)، عطر (diebstahlgefährdet)؟`,
+a3:`اربط كل عنصر تصميم بالحاسة وبالتأثير (إضاءة موجهة، رائحة خبز، موسيقى هادئة، عينة قماش). اذكر 3 عناصر أخرى.`,
+a4:`في محل «Lena’s Mode» ستة أخطاء: الممرات 60 سم، الرفوف 2,20 م، درجة بلا منحدر، خط صغير رمادي، لا مقعد، أرضية زلقة وإضاءة ضعيفة. اكتب التحسين لكل خطأ.`,
+a5:`أكمل الجدول: اسم المنطقة، الارتفاع، قوية/ضعيفة، مثال بضاعة. أين تضع العلامة الخاصة ذات أعلى هامش ربح؟ علّل بجملة.`,
+a6:`احسب: 250 غ قهوة بسعر 2,49 يورو ← السعر الأساسي لكل كغ؟ 1,5 لتر ماء بسعر 0,69 يورو + 0,25 يورو وديعة ← السعر الأساسي لكل لتر والمبلغ عند الصندوق؟ اذكر بيانين إلزاميين على بطاقة الرف.`,
+a7:`معكرونة العلامة الخاصة في منطقة الانحناء، ومعكرونة العلامة المشهورة في منطقة النظر. أين تضع العلامة الخاصة؟ علّل («أضع …، لأن …»). اذكر ميزتين للتاجر وميزة للزبون.`,
+a8:`اختر حامل البضاعة الأنسب: ساعات غالية؛ جوارب سائبة بألوان كثيرة؛ عرض خاص عند الممر. علّل السؤال 1 بجملة.`,
+a9:`خطّط لحملة شواء. اذكر 4 بضائع للعرض المرتبط، ومكانين لعرض فحم الشواء مرة أخرى (عرض متعدد)، وميزة ذلك للزبائن.`,
+a10:`صنّف: ركن النقانق، السوبرماركت، محل العطور ← شكل البيع. اذكر ميزة للزبون وميزة للمنشأة. أكمل الجملة: «مرحبًا، هل … أن … لك؟»`,
+b1:`محل أزياء يريد تشكيلة أعمق لا أعرض. اذكر ميزتين وخطرين (تكاليف المخزن، ولاء الزبائن، المساحة). أعطِ توصية وعلّلها.`,
+b2:`المنطقة 1 تحقق مبيعات ضئيلة. خطّط 3 إجراءات لتحسينها (بضائع جاذبة، عرض خاص، إضاءة). كيف تقيس النجاح بعد 4 أسابيع (مبيعات لكل م²، عدّ الزبائن)؟`,
+b3:`متجر عضوي ومتجر خصومات يصممان بشكل مختلف (إضاءة، لون، موسيقى، مواد). قارن في 4 أسطر واشرح كيف يناسب التصميم الاستراتيجية (تجربة أو سعر).`,
+b4:`اذكر 5 إجراءات لكبار السن، قيّم التكلفة والفائدة، اختر الأهم اثنين وعلّل من منظور اقتصادي (مبيعات، ولاء الزبائن).`,
+b5:`المصنّع يدفع مقابل مكان في منطقة النظر. هل يستحق ذلك للتاجر؟ استدل بالربح لكل متر رف ودوران البضاعة. أعطِ توصية.`,
+b6:`البضاعة أغلى عند الصندوق منها على الرف. الزبون يصر على سعر الرف. ما الوضع القانوني؟ كيف تتصرف؟ ما النتائج على المنشأة؟ ما فوائد بطاقات الرف الإلكترونية؟`,
+b7:`الشركة الرائدة تهدد بوقف التوريد إذا وُضعت العلامة الخاصة بجانبها. وازن (قوة التفاوض، هامش الربح، أثر ذلك على الزبائن)، قرّر وعلّل.`,
+b8:`قسم أزياء (جينز، إكسسوارات، جاكيتات فاخرة): اختر حاملًا لكل مجموعة. علّل حسب السعر وتأثير الربط والحماية من السرقة والمساحة.`,
+b9:`قيّم الحملة بمؤشرات (زيادة المبيعات، مشتريات إضافية لكل زبون، تكاليف المساحة). صف خطر الإفراط في العرض المتعدد.`,
+b10:`محل متخصص يريد الانتقال من الخدمة الكاملة إلى الاختيار المسبق. حلّل تكاليف الموظفين والمبيعات والسرقة وجودة الاستشارة. أعطِ توصية معللة.`,
+c1:`اربط: أنواع كثيرة من التفاح؛ فواكه + خبز + حليب + صابون؛ نبيذ مسخّن في الشتاء فقط ← tief / breit / Saison.`,
+c2:`صح أم خطأ؟ الصندوق مكان جيد للعلكة. في الخلف يسارًا يشتري كثيرون فجأة. الزبائن يمشون غالبًا نحو اليمين.`,
+c3:`أي حاسة؟ رائحة القهوة، ضوء ساطع، موسيقى.`,
+c4:`ما الأفضل؟ الممر: ضيق/عريض. الخط على بطاقة السعر: صغير/كبير. مدخل الكرسي المتحرك: درجة/منحدر.`,
+c5:`رف بأربعة طوابق (منطقة النظر خضراء). أي منطقة في الأعلى وفي الوسط وفي الأسفل؟`,
+c6:`ماذا يُكتب على بطاقة السعر؟ السعر باليورو؛ اسم المدير؛ السعر لكل كغ/لتر.`,
+c7:`أي علامة تخص المحل؟ والعلامة الخاصة غالبًا: رخيصة أم غالية؟`,
+c8:`أي كلمة تناسب الصورة؟ بضاعة في وسط الممر (Gondel أم Vitrine)؛ صندوق زجاجي، غالٍ.`,
+c9:`ما الذي يناسب ماذا؟ خبز، فرشاة أسنان، قهوة ↔ زبدة، معجون أسنان، حليب.`,
+c10:`من يحضر البضاعة؟ الجزار يحضر النقانق؛ الزبون يأخذ الحليب بنفسه.`
+};
+</script>
+<script>
+window.TR=window.TR||{};
+TR.vi={
+t1:`Danh mục hàng: rộng, sâu, chính, phụ, theo mùa`,t2:`Khu vực bán hàng và đường đi của khách`,t3:`Yếu tố trang trí và các giác quan`,t4:`Tiêu chí thiết kế cửa hàng`,t5:`Các vùng của kệ hàng`,t6:`Niêm yết giá (PAngV)`,t7:`Bày hàng nhãn riêng`,t8:`Giá đỡ trưng bày hàng`,t9:`Bày liên kết và bày nhiều chỗ`,t10:`Các hình thức bán hàng`,
+s1:`Danh mục rộng (breit) = nhiều nhóm hàng. Danh mục sâu (tief) = nhiều loại khác nhau trong một nhóm hàng.`,
+s2:`Khách thường đi về bên phải và đi theo vòng. Bên phải lối vào và gần quầy thu ngân: khu bán mạnh (verkaufsstark). Phía sau bên trái và ngay sau lối vào: khu bán yếu (verkaufsschwach).`,
+s3:`Thiết kế tốt tác động đến các giác quan: nhìn, nghe, ngửi, sờ, nếm. Điều này gợi cảm xúc và thúc đẩy mua hàng.`,
+s4:`Cửa hàng tốt có lối đi rộng, dễ quan sát, kệ dễ với tới. Không có rào cản và phù hợp với người lớn tuổi.`,
+s5:`Kệ có 4 vùng. Vùng tầm mắt (Sichtzone) và vùng tầm tay (Greifzone) bán tốt nhất. Vùng trên cao (Reckzone) và vùng cúi (Bückzone) bán yếu hơn.`,
+s6:`Giá tổng đã gồm thuế VAT. Hàng bán theo khối lượng phải ghi cả giá cơ bản (Grundpreis): giá cho 1 kg hoặc 1 lít.`,
+s7:`Nhãn riêng (Eigenmarke) thuộc về nhà bán lẻ, ví dụ «ja!» của REWE. Rẻ hơn cho khách. Nhà bán lẻ thường lãi nhiều hơn.`,
+s8:`Giá đỡ trưng bày hàng hóa: kệ, gondola, tủ kính, bàn, giá treo, display, stopper. Giá đỡ phải phù hợp với hàng.`,
+s9:`Bày liên kết (Verbundplatzierung): hàng hợp nhau đặt cạnh nhau. Bày nhiều chỗ (Mehrfachplatzierung): cùng một hàng đặt ở nhiều nơi.`,
+s10:`Bán hàng đầy đủ (Vollbedienung): nhân viên lấy hàng. Chọn trước (Vorwahl): khách tự tìm, nhân viên giúp khi cần. Tự phục vụ (Selbstbedienung): khách tự lấy và trả tiền ở quầy.`,
+a1:`Điền từ: Kernsortiment, Randsortiment, Saisonsortiment, breit, tief. Cửa hàng hóa mỹ phẩm có dầu gội, kem đánh răng, tã, thức ăn thú cưng → danh mục? 40 loại dầu gội → danh mục? Dầu gội bán nhiều nhất → thuộc loại nào? Quà tặng nhỏ chỉ là phần bổ sung → loại nào? Kem chống nắng chỉ bán mùa hè → loại nào?`,
+a2:`Xem sơ đồ. Với mỗi khu 1–7: bán mạnh hay bán yếu? Giải thích 3 khu bằng một câu («Khu này …, vì khách …»). Bạn đặt đâu: kẹo cao su (Impulsartikel), bột mì (Suchartikel), nước hoa (diebstahlgefährdet)?`,
+a3:`Nối mỗi yếu tố trang trí với giác quan và tác dụng (đèn chiếu điểm, mùi bánh mì, nhạc êm, vải mẫu). Nêu thêm 3 yếu tố khác.`,
+a4:`Cửa hàng «Lena’s Mode» có 6 lỗi: lối đi 60 cm, kệ cao 2,20 m, có bậc thềm không có dốc, chữ nhỏ màu xám, không có ghế ngồi, sàn trơn và đèn yếu. Viết cách sửa cho từng lỗi.`,
+a5:`Điền bảng: tên vùng, độ cao, mạnh/yếu, ví dụ hàng. Nhãn riêng có lãi cao nhất đặt ở đâu? Giải thích bằng một câu.`,
+a6:`Tính: 250 g cà phê giá 2,49 € → giá cơ bản mỗi kg? 1,5 l nước giá 0,69 € + 0,25 € tiền cọc vỏ → giá cơ bản mỗi lít và số tiền ở quầy? Nêu 2 thông tin bắt buộc trên nhãn kệ.`,
+a7:`Mì nhãn riêng ở vùng cúi, mì thương hiệu ở vùng tầm mắt. Bạn đặt nhãn riêng ở đâu? Giải thích («Tôi đặt …, vì …»). Nêu 2 lợi ích cho nhà bán lẻ và 1 lợi ích cho khách.`,
+a8:`Chọn giá đỡ phù hợp nhất: đồng hồ đắt tiền; tất nhiều màu để rời; hàng khuyến mãi ở lối đi. Giải thích câu 1 bằng một câu.`,
+a9:`Lên kế hoạch chương trình nướng BBQ. Nêu 4 mặt hàng bày liên kết, 2 nơi bày thêm than nướng (bày nhiều chỗ) và lợi ích cho khách.`,
+a10:`Xếp loại: quầy xúc xích, siêu thị, cửa hàng nước hoa → hình thức bán. Nêu 1 lợi ích cho khách, 1 cho cửa hàng. Hoàn thành câu: «Xin chào, … tôi … giúp gì cho bạn?»`,
+b1:`Cửa hàng thời trang muốn danh mục sâu hơn nhưng không rộng hơn. Nêu 2 ưu điểm và 2 rủi ro (chi phí kho, giữ chân khách, diện tích). Đưa ra khuyến nghị và giải thích.`,
+b2:`Khu 1 gần như không có doanh thu. Lập 3 biện pháp nâng cấp (hàng thu hút, khuyến mãi, ánh sáng). Sau 4 tuần đo hiệu quả thế nào (doanh thu trên m², đếm khách)?`,
+b3:`Cửa hàng hữu cơ và cửa hàng giá rẻ thiết kế khác nhau (ánh sáng, màu, nhạc, vật liệu). So sánh trong 4 dòng và giải thích thiết kế phù hợp chiến lược (trải nghiệm hay giá) ra sao.`,
+b4:`Nêu 5 biện pháp cho khách lớn tuổi, đánh giá chi phí và lợi ích, chọn 2 biện pháp quan trọng nhất và giải thích theo góc độ kinh doanh (doanh thu, giữ khách).`,
+b5:`Nhà sản xuất trả tiền để được đặt ở vùng tầm mắt. Nhà bán lẻ có lợi không? Lập luận bằng lợi nhuận mỗi mét kệ và vòng quay hàng. Đưa ra khuyến nghị.`,
+b6:`Ở quầy giá cao hơn trên kệ. Khách đòi giá trên kệ. Tình huống pháp lý? Bạn xử lý thế nào? Hậu quả cho cửa hàng? Nhãn giá điện tử có lợi gì?`,
+b7:`Hãng dẫn đầu dọa ngừng giao hàng nếu nhãn riêng đặt cạnh họ. Cân nhắc (sức mạnh đàm phán, biên lợi nhuận, tác động tới khách), quyết định và giải thích.`,
+b8:`Khu thời trang (quần jean, phụ kiện, áo khoác cao cấp): chọn giá đỡ cho từng nhóm. Giải thích theo giá, hiệu ứng liên kết, chống trộm, diện tích.`,
+b9:`Đánh giá chương trình bằng các chỉ số (doanh thu tăng thêm, mua thêm mỗi khách, chi phí diện tích). Mô tả nguy cơ khi bày nhiều chỗ quá mức.`,
+b10:`Cửa hàng chuyên doanh muốn chuyển từ bán đầy đủ sang chọn trước. Phân tích chi phí nhân sự, doanh thu, trộm cắp, chất lượng tư vấn. Đưa ra khuyến nghị có lý do.`,
+c1:`Nối: nhiều loại táo; trái cây + bánh mì + sữa + xà phòng; rượu vang nóng chỉ có mùa đông → tief / breit / Saison.`,
+c2:`Đúng hay sai? Quầy thu ngân là chỗ tốt cho kẹo cao su. Phía sau bên trái nhiều khách mua bất chợt. Khách thường đi về bên phải.`,
+c3:`Giác quan nào? Mùi cà phê, ánh sáng sáng, âm nhạc.`,
+c4:`Cái nào tốt hơn? Lối đi: hẹp/rộng. Chữ trên nhãn giá: nhỏ/to. Lối vào cho xe lăn: bậc thềm/dốc.`,
+c5:`Kệ 4 tầng (vùng tầm mắt màu xanh lá). Vùng nào ở trên, giữa, dưới?`,
+c6:`Nhãn giá cần ghi gì? Giá bằng euro; tên ông chủ; giá mỗi kg/lít.`,
+c7:`Nhãn nào là của cửa hàng? Nhãn riêng thường rẻ hay đắt?`,
+c8:`Từ nào hợp với hình? Hàng ở giữa lối đi (Gondel hay Vitrine); tủ kính, đắt tiền.`,
+c9:`Cái nào đi với cái nào? Bánh mì, bàn chải đánh răng, cà phê ↔ bơ, kem đánh răng, sữa.`,
+c10:`Ai lấy hàng? Người bán thịt lấy xúc xích; khách tự lấy sữa.`
+};
+</script>
+<script>
+window.TR=window.TR||{};
+TR.tr={
+t1:`Ürün yelpazesi: geniş, derin, ana, yan, mevsimlik`,t2:`Satış bölgeleri ve müşteri akışı`,t3:`Tasarım unsurları ve duyular`,t4:`Mağaza tasarımı ölçütleri`,t5:`Raf bölgeleri`,t6:`Fiyat etiketleme (PAngV)`,t7:`Özel markaların yerleştirilmesi`,t8:`Ürün taşıyıcıları`,t9:`Bağlantılı ve çoklu yerleştirme`,t10:`Satış biçimleri`,
+s1:`Geniş yelpaze (breit) = çok sayıda ürün grubu. Derin yelpaze (tief) = bir grupta çok sayıda çeşit.`,
+s2:`Müşteriler çoğunlukla sağa ve daire şeklinde yürür. Girişin sağı ve kasa: satışı güçlü bölgeler (verkaufsstark). Arka sol ve girişin hemen arkası: satışı zayıf bölgeler (verkaufsschwach).`,
+s3:`İyi tasarım duyulara hitap eder: görme, işitme, koklama, dokunma, tatma. Bu duygu uyandırır ve satın almayı artırır.`,
+s4:`İyi bir mağazada geniş koridorlar, iyi görüş ve ulaşılabilir raflar vardır. Engelsizdir ve yaşlı müşterilere uygundur.`,
+s5:`Rafın 4 bölgesi vardır. Göz bölgesi (Sichtzone) ve el bölgesi (Greifzone) en iyi satar. Üst bölge (Reckzone) ve eğilme bölgesi (Bückzone) daha zayıftır.`,
+s6:`Toplam fiyat KDV içerir. Miktara göre satılan mallarda rafta ayrıca birim fiyat (Grundpreis) yazmalıdır: 1 kg veya 1 litre fiyatı.`,
+s7:`Özel marka (Eigenmarke) perakendeciye aittir, örneğin REWE’nin «ja!» markası. Müşteriye daha ucuzdur. Perakendeci genelde daha çok kazanır.`,
+s8:`Ürün taşıyıcıları malı gösterir: raf, gondol, vitrin, masa, stand, display, stopper. Taşıyıcı ürüne uymalıdır.`,
+s9:`Bağlantılı yerleştirme (Verbundplatzierung): birbirine uyan ürünler yan yana. Çoklu yerleştirme (Mehrfachplatzierung): aynı ürün birden çok yerde.`,
+s10:`Tam hizmet (Vollbedienung): satıcı ürünü getirir. Ön seçim (Vorwahl): müşteri kendi bakar, gerekirse satıcı yardım eder. Self servis (Selbstbedienung): müşteri her şeyi kendisi alır, kasada öder.`,
+a1:`Kelimeleri boşluklara yaz: Kernsortiment, Randsortiment, Saisonsortiment, breit, tief. Drogeri: şampuan, diş macunu, bez, hayvan maması → yelpaze? 40 çeşit şampuan → yelpaze? Şampuan en çok ciro yapar → hangi grup? Küçük hediyelikler sadece ek → hangi grup? Güneş kremi sadece yazın → hangi grup?`,
+a2:`Planı incele. 1–7 numaralı her bölge için: satışı güçlü mü zayıf mı? 3 bölgeyi bir cümleyle gerekçelendir («Bölge …, çünkü müşteriler …»). Nereye koyarsın: sakız (Impulsartikel), un (Suchartikel), parfüm (diebstahlgefährdet)?`,
+a3:`Her tasarım unsurunu duyu ve etkiyle eşleştir (vurgu ışığı, ekmek kokusu, sakin müzik, kumaş örneği). 3 unsur daha yaz.`,
+a4:`«Lena’s Mode» mağazasında 6 hata var: koridor 60 cm, raflar 2,20 m, rampasız basamak, küçük gri yazı, oturma yeri yok, kaygan zemin ve zayıf ışık. Her hata için düzeltmeyi yaz.`,
+a5:`Tabloyu doldur: bölge adı, yükseklik, güçlü/zayıf, örnek ürün. En yüksek kâr marjlı özel marka nereye konur? Bir cümleyle gerekçelendir.`,
+a6:`Hesapla: 250 g kahve 2,49 € → kg başına birim fiyat? 1,5 l su 0,69 € + 0,25 € depozito → litre birim fiyatı ve kasadaki tutar? Raf etiketinde 2 zorunlu bilgi yaz.`,
+a7:`Özel marka makarna eğilme bölgesinde, markalı makarna göz bölgesinde. Özel markayı nereye koyarsın? Gerekçelendir («… koyarım, çünkü …»). Perakendeci için 2, müşteri için 1 avantaj yaz.`,
+a8:`En uygun taşıyıcıyı seç: pahalı saatler; renkli dökme çoraplar; koridorda kampanya. 1. soruyu bir cümleyle gerekçelendir.`,
+a9:`Bir mangal kampanyası planla. Bağlantılı yerleştirme için 4 ürün, mangal kömürünü tekrar göstereceğin 2 yer (çoklu yerleştirme) ve müşteri avantajını yaz.`,
+a10:`Eşleştir: şarküteri tezgâhı, süpermarket, parfümeri → satış biçimi. Müşteri için 1, işletme için 1 avantaj yaz. Cümleyi tamamla: «İyi günler, … size …?»`,
+b1:`Bir moda mağazası yelpazeyi derinleştirmek ama genişletmemek istiyor. 2 avantaj ve 2 risk yaz (depo maliyeti, müşteri bağlılığı, yer). Öneri ver ve gerekçelendir.`,
+b2:`Bölge 1 neredeyse hiç ciro yapmıyor. 3 iyileştirme önlemi planla (çekici ürün, kampanya, ışık). 4 hafta sonra başarıyı nasıl ölçersin (m² başına ciro, müşteri sayımı)?`,
+b3:`Bir organik market ve bir indirim marketi farklı tasarlar (ışık, renk, müzik, malzeme). 4 satırda karşılaştır ve tasarımın stratejiye (deneyim veya fiyat) nasıl uyduğunu açıkla.`,
+b4:`Yaşlı müşteriler için 5 önlem yaz, maliyet ve faydayı değerlendir, en önemli 2’sini seç ve işletme açısından gerekçelendir (ciro, müşteri bağlılığı).`,
+b5:`Üretici göz bölgesindeki yer için para ödüyor. Perakendeciye değer mi? Raf metresi başına kâr ve stok devri ile savun. Öneri ver.`,
+b6:`Kasada mal raftakinden pahalı. Müşteri raf fiyatında ısrar ediyor. Hukuki durum? Nasıl davranırsın? İşletmeye sonuçları? Elektronik raf etiketlerinin yararları?`,
+b7:`Pazar lideri, özel marka yanına konursa tedariki keseceğini söylüyor. Tart (pazarlık gücü, kâr marjı, müşteriye etkisi), karar ver ve gerekçelendir.`,
+b8:`Moda reyonu (kot, aksesuar, premium ceket): her grup için bir taşıyıcı seç. Fiyat, bağlantı etkisi, hırsızlık önlemi ve alan ihtiyacına göre gerekçelendir.`,
+b9:`Kampanyayı göstergelerle değerlendir (ek ciro, müşteri başına ek satın alma, alan maliyeti). Çok fazla çoklu yerleştirmenin riskini anlat.`,
+b10:`Bir uzman mağaza tam hizmetten ön seçime geçmek istiyor. Personel maliyeti, ciro, hırsızlık ve danışmanlık kalitesini analiz et. Gerekçeli öneri ver.`,
+c1:`Eşleştir: çok çeşit elma; meyve + ekmek + süt + sabun; sadece kışın sıcak şarap → tief / breit / Saison.`,
+c2:`Doğru mu yanlış mı? Kasa sakız için iyi bir yer. Arka solda birçok müşteri ani alışveriş yapar. Müşteriler çoğunlukla sağa gider.`,
+c3:`Hangi duyu? Kahve kokusu, parlak ışık, müzik.`,
+c4:`Hangisi daha iyi? Koridor: dar/geniş. Fiyat etiketindeki yazı: küçük/büyük. Tekerlekli sandalye girişi: basamak/rampa.`,
+c5:`4 katlı raf (göz bölgesi yeşil). Hangi bölge üstte, ortada, altta?`,
+c6:`Fiyat etiketine ne yazılır? Euro fiyatı; patronun adı; kg/litre fiyatı.`,
+c7:`Hangi marka mağazanın? Özel marka çoğunlukla ucuz mu pahalı mı?`,
+c8:`Hangi kelime resme uyar? Koridorun ortasında mal (Gondel mi Vitrine mi); cam kutu, pahalı.`,
+c9:`Ne neyle uyar? Ekmek, diş fırçası, kahve ↔ tereyağı, diş macunu, süt.`,
+c10:`Malı kim getirir? Kasap sosisi getirir; müşteri sütü kendisi alır.`
+};
+</script>
+<script>
+window.TR=window.TR||{};
+TR.es={
+t1:`Surtido: amplio, profundo, principal, complementario, de temporada`,t2:`Zonas de venta y recorrido de los clientes`,t3:`Elementos de diseño y sentidos`,t4:`Criterios del diseño de la tienda`,t5:`Zonas del estante`,t6:`Indicación de precios (PAngV)`,t7:`Colocación de marcas propias`,t8:`Soportes para la mercancía`,t9:`Colocación combinada y múltiple`,t10:`Formas de venta`,
+s1:`Surtido amplio (breit) = muchos grupos de productos. Surtido profundo (tief) = muchas variantes dentro de un grupo.`,
+s2:`Los clientes suelen ir hacia la derecha y en círculo. A la derecha de la entrada y en la caja: zonas fuertes (verkaufsstark). Atrás a la izquierda y justo detrás de la entrada: zonas débiles (verkaufsschwach).`,
+s3:`Un buen diseño atrae los sentidos: vista, oído, olfato, tacto, gusto. Despierta emociones y favorece la compra.`,
+s4:`Una buena tienda tiene pasillos anchos, buena visibilidad y estantes accesibles. Es accesible para todos y adecuada para personas mayores.`,
+s5:`Un estante tiene 4 zonas. La zona de la vista (Sichtzone) y la zona de la mano (Greifzone) venden mejor. La zona alta (Reckzone) y la zona baja (Bückzone) venden menos.`,
+s6:`El precio total incluye el IVA. En mercancía vendida por cantidad, el estante debe mostrar también el precio base (Grundpreis): precio por 1 kg o 1 litro.`,
+s7:`La marca propia (Eigenmarke) pertenece al comerciante, por ejemplo «ja!» de REWE. Es más barata para el cliente. El comerciante suele ganar más.`,
+s8:`Los soportes muestran la mercancía: estante, góndola, vitrina, mesa, expositor, display, stopper. El soporte debe encajar con el producto.`,
+s9:`Colocación combinada (Verbundplatzierung): productos que combinan, juntos. Colocación múltiple (Mehrfachplatzierung): el mismo producto en varios lugares.`,
+s10:`Servicio completo (Vollbedienung): el vendedor trae la mercancía. Preselección (Vorwahl): el cliente busca solo y el vendedor ayuda si hace falta. Autoservicio (Selbstbedienung): el cliente lo toma todo y paga en caja.`,
+a1:`Completa con: Kernsortiment, Randsortiment, Saisonsortiment, breit, tief. Droguería: champú, pasta de dientes, pañales, comida para mascotas → surtido? 40 tipos de champú → surtido? El champú da más ventas → ¿a qué grupo pertenece? Pequeños regalos solo como complemento → ¿grupo? Protector solar solo en verano → ¿grupo?`,
+a2:`Mira el plano. Para cada zona 1–7: ¿fuerte o débil? Justifica 3 zonas con una frase («La zona es …, porque los clientes …»). ¿Dónde pones: chicle (Impulsartikel), harina (Suchartikel), perfume (diebstahlgefährdet)?`,
+a3:`Une cada elemento de diseño con el sentido y el efecto (luz de acento, olor a pan, música tranquila, muestra de tela). Escribe 3 elementos más.`,
+a4:`En la tienda «Lena’s Mode» hay 6 errores: pasillos de 60 cm, estantes de 2,20 m, escalón sin rampa, letra pequeña y gris, sin asientos, suelo resbaladizo y luz débil. Escribe la mejora para cada error.`,
+a5:`Completa la tabla: nombre de la zona, altura, fuerte/débil, ejemplo de producto. ¿Dónde va la marca propia con mayor margen? Justifica en una frase.`,
+a6:`Calcula: 250 g de café a 2,49 € → ¿precio base por kg? 1,5 l de agua a 0,69 € + 0,25 € de depósito → ¿precio base por l y total en caja? Escribe 2 datos obligatorios de la etiqueta del estante.`,
+a7:`Los fideos de marca propia están en la zona baja y los de marca conocida en la zona de la vista. ¿Dónde colocas la marca propia? Justifica («Coloco …, porque …»). Escribe 2 ventajas para el comerciante y 1 para el cliente.`,
+a8:`Elige el mejor soporte: relojes caros; calcetines sueltos de muchos colores; oferta en el pasillo. Justifica la pregunta 1 con una frase.`,
+a9:`Planifica una acción de barbacoa. Escribe 4 productos para la colocación combinada, 2 lugares para mostrar el carbón otra vez (colocación múltiple) y la ventaja para los clientes.`,
+a10:`Relaciona: mostrador de embutidos, supermercado, perfumería → forma de venta. Escribe 1 ventaja para el cliente y 1 para la empresa. Completa: «Buenos días, ¿… puedo … ayudarle?»`,
+b1:`Una tienda de moda quiere un surtido más profundo, pero no más amplio. Escribe 2 ventajas y 2 riesgos (costes de almacén, fidelización, espacio). Da una recomendación y justifícala.`,
+b2:`La zona 1 casi no vende. Planifica 3 medidas de mejora (artículos imán, acción, luz). ¿Cómo mides el éxito tras 4 semanas (ventas por m², conteo de clientes)?`,
+b3:`Una tienda ecológica y un discount diseñan distinto (luz, color, música, materiales). Compara en 4 líneas y explica cómo el diseño encaja con la estrategia (experiencia o precio).`,
+b4:`Escribe 5 medidas para clientes mayores, valora coste y beneficio, elige las 2 más importantes y justifica desde la empresa (ventas, fidelización).`,
+b5:`El fabricante paga por un lugar en la zona de la vista. ¿Le conviene al comerciante? Argumenta con beneficio por metro de estante y rotación. Da una recomendación.`,
+b6:`En caja el producto cuesta más que en el estante. El cliente exige el precio del estante. ¿Situación legal? ¿Cómo actúas? ¿Consecuencias para la empresa? ¿Ventajas de las etiquetas electrónicas?`,
+b7:`El líder del mercado amenaza con dejar de suministrar si la marca propia está a su lado. Sopesa (poder de negociación, margen, efecto en el cliente), decide y justifica.`,
+b8:`Sección de moda (vaqueros, accesorios, chaquetas premium): elige un soporte por grupo. Justifica según precio, efecto de combinación, protección antirrobo y espacio.`,
+b9:`Evalúa la acción con indicadores (ventas adicionales, compras extra por cliente, costes de espacio). Describe el riesgo de demasiada colocación múltiple.`,
+b10:`Una tienda especializada quiere pasar del servicio completo a la preselección. Analiza costes de personal, ventas, robos y calidad de asesoramiento. Da una recomendación justificada.`,
+c1:`Une: muchas clases de manzanas; fruta + pan + leche + jabón; vino caliente solo en invierno → tief / breit / Saison.`,
+c2:`¿Verdadero o falso? La caja es un buen lugar para el chicle. Atrás a la izquierda muchos clientes compran por impulso. Los clientes suelen ir a la derecha.`,
+c3:`¿Qué sentido? Olor a café, luz brillante, música.`,
+c4:`¿Qué es mejor? Pasillo: estrecho/ancho. Letra del precio: pequeña/grande. Entrada para silla de ruedas: escalón/rampa.`,
+c5:`Estante de 4 pisos (la zona de la vista es verde). ¿Qué zona está arriba, en medio y abajo?`,
+c6:`¿Qué va en la etiqueta de precio? Precio en euros; nombre del jefe; precio por kg/l.`,
+c7:`¿Qué marca es de la tienda? La marca propia suele ser ¿barata o cara?`,
+c8:`¿Qué palabra encaja con la imagen? Mercancía en medio del pasillo (Gondel o Vitrine); caja de cristal, caro.`,
+c9:`¿Qué va con qué? Pan, cepillo de dientes, café ↔ mantequilla, pasta de dientes, leche.`,
+c10:`¿Quién trae la mercancía? El carnicero trae el embutido; el cliente toma la leche él mismo.`
+};
+</script>
+<script>
+window.TR=window.TR||{};
+TR.pt={
+t1:`Sortimento: amplo, profundo, principal, complementar, sazonal`,t2:`Zonas de venda e percurso dos clientes`,t3:`Elementos de design e sentidos`,t4:`Critérios do design da loja`,t5:`Zonas da prateleira`,t6:`Indicação de preços (PAngV)`,t7:`Colocação de marcas próprias`,t8:`Suportes para mercadoria`,t9:`Colocação combinada e múltipla`,t10:`Formas de venda`,
+s1:`Sortimento amplo (breit) = muitos grupos de produtos. Sortimento profundo (tief) = muitas variantes dentro de um grupo.`,
+s2:`Os clientes costumam ir para a direita e em círculo. À direita da entrada e na caixa: zonas fortes (verkaufsstark). Atrás à esquerda e logo depois da entrada: zonas fracas (verkaufsschwach).`,
+s3:`Um bom design atinge os sentidos: visão, audição, olfato, tato, paladar. Desperta emoções e favorece a compra.`,
+s4:`Uma boa loja tem corredores largos, boa visão geral e prateleiras acessíveis. É sem barreiras e adequada para pessoas idosas.`,
+s5:`Uma prateleira tem 4 zonas. A zona do olhar (Sichtzone) e a zona da mão (Greifzone) vendem melhor. A zona alta (Reckzone) e a zona baixa (Bückzone) vendem menos.`,
+s6:`O preço total inclui o IVA. Em produtos vendidos por quantidade, a prateleira deve mostrar também o preço base (Grundpreis): preço por 1 kg ou 1 litro.`,
+s7:`A marca própria (Eigenmarke) pertence ao comerciante, por exemplo «ja!» da REWE. É mais barata para o cliente. O comerciante costuma ganhar mais.`,
+s8:`Os suportes mostram a mercadoria: prateleira, gôndola, vitrine, mesa, expositor, display, stopper. O suporte deve combinar com o produto.`,
+s9:`Colocação combinada (Verbundplatzierung): produtos que combinam ficam juntos. Colocação múltipla (Mehrfachplatzierung): o mesmo produto em vários lugares.`,
+s10:`Atendimento completo (Vollbedienung): o vendedor traz a mercadoria. Pré-seleção (Vorwahl): o cliente procura sozinho e o vendedor ajuda se necessário. Autosserviço (Selbstbedienung): o cliente pega tudo e paga na caixa.`,
+a1:`Complete com: Kernsortiment, Randsortiment, Saisonsortiment, breit, tief. Drogaria: shampoo, pasta de dentes, fraldas, ração → sortimento? 40 tipos de shampoo → sortimento? Shampoo dá mais vendas → a que grupo pertence? Pequenos presentes só como complemento → grupo? Protetor solar só no verão → grupo?`,
+a2:`Veja a planta. Para cada zona 1–7: forte ou fraca? Justifique 3 zonas com uma frase («A zona é …, porque os clientes …»). Onde coloca: pastilha elástica (Impulsartikel), farinha (Suchartikel), perfume (diebstahlgefährdet)?`,
+a3:`Ligue cada elemento de design ao sentido e ao efeito (luz de destaque, cheiro de pão, música calma, amostra de tecido). Escreva mais 3 elementos.`,
+a4:`Na loja «Lena’s Mode» há 6 erros: corredores de 60 cm, prateleiras de 2,20 m, degrau sem rampa, letra pequena e cinzenta, sem lugar para sentar, piso escorregadio e luz fraca. Escreva a melhoria para cada erro.`,
+a5:`Preencha a tabela: nome da zona, altura, forte/fraca, exemplo de produto. Onde fica a marca própria com maior margem? Justifique numa frase.`,
+a6:`Calcule: 250 g de café a 2,49 € → preço base por kg? 1,5 l de água a 0,69 € + 0,25 € de depósito → preço base por l e valor na caixa? Escreva 2 dados obrigatórios na etiqueta da prateleira.`,
+a7:`O macarrão de marca própria está na zona baixa e o de marca conhecida na zona do olhar. Onde coloca a marca própria? Justifique («Coloco …, porque …»). Escreva 2 vantagens para o comerciante e 1 para o cliente.`,
+a8:`Escolha o melhor suporte: relógios caros; meias soltas de várias cores; oferta no corredor. Justifique a pergunta 1 numa frase.`,
+a9:`Planeie uma ação de churrasco. Escreva 4 produtos para a colocação combinada, 2 lugares para mostrar o carvão de novo (colocação múltipla) e a vantagem para os clientes.`,
+a10:`Relacione: balcão de enchidos, supermercado, perfumaria → forma de venda. Escreva 1 vantagem para o cliente e 1 para a empresa. Complete: «Bom dia, … posso … ajudar?»`,
+b1:`Uma loja de moda quer um sortimento mais profundo, mas não mais amplo. Escreva 2 vantagens e 2 riscos (custos de armazém, fidelização, espaço). Dê uma recomendação e justifique.`,
+b2:`A zona 1 quase não vende. Planeie 3 medidas de melhoria (produtos-íman, ação, luz). Como mede o sucesso após 4 semanas (vendas por m², contagem de clientes)?`,
+b3:`Uma loja biológica e um discount desenham de forma diferente (luz, cor, música, materiais). Compare em 4 linhas e explique como o design combina com a estratégia (experiência ou preço).`,
+b4:`Escreva 5 medidas para clientes idosos, avalie custo e benefício, escolha as 2 mais importantes e justifique do ponto de vista da empresa (vendas, fidelização).`,
+b5:`O fabricante paga por um lugar na zona do olhar. Compensa ao comerciante? Argumente com lucro por metro de prateleira e rotação. Dê uma recomendação.`,
+b6:`Na caixa o produto custa mais do que na prateleira. O cliente exige o preço da prateleira. Situação legal? Como age? Consequências para a empresa? Vantagens das etiquetas eletrónicas?`,
+b7:`O líder de mercado ameaça parar o fornecimento se a marca própria ficar ao lado. Pondere (poder de negociação, margem, efeito no cliente), decida e justifique.`,
+b8:`Secção de moda (jeans, acessórios, casacos premium): escolha um suporte por grupo. Justifique por preço, efeito de combinação, proteção contra furto e espaço.`,
+b9:`Avalie a ação com indicadores (vendas adicionais, compras extra por cliente, custos de espaço). Descreva o risco de colocação múltipla em excesso.`,
+b10:`Uma loja especializada quer passar do atendimento completo para a pré-seleção. Analise custos de pessoal, vendas, furtos e qualidade da consultoria. Dê uma recomendação fundamentada.`,
+c1:`Ligue: muitas variedades de maçãs; fruta + pão + leite + sabonete; vinho quente só no inverno → tief / breit / Saison.`,
+c2:`Verdadeiro ou falso? A caixa é um bom lugar para pastilha elástica. Atrás à esquerda muitos clientes compram por impulso. Os clientes costumam ir para a direita.`,
+c3:`Que sentido? Cheiro de café, luz clara, música.`,
+c4:`O que é melhor? Corredor: estreito/largo. Letra no preço: pequena/grande. Entrada para cadeira de rodas: degrau/rampa.`,
+c5:`Prateleira de 4 andares (zona do olhar em verde). Que zona fica em cima, no meio e em baixo?`,
+c6:`O que vai na etiqueta de preço? Preço em euros; nome do chefe; preço por kg/l.`,
+c7:`Que marca é da loja? A marca própria é normalmente barata ou cara?`,
+c8:`Que palavra combina com a imagem? Mercadoria no meio do corredor (Gondel ou Vitrine); caixa de vidro, caro.`,
+c9:`O que combina com quê? Pão, escova de dentes, café ↔ manteiga, pasta de dentes, leite.`,
+c10:`Quem traz a mercadoria? O talhante traz a salsicha; o cliente pega o leite sozinho.`
+};
+</script>
+<script>
+window.TR=window.TR||{};
+TR.ru={
+t1:`Ассортимент: широкий, глубокий, основной, дополнительный, сезонный`,t2:`Зоны продаж и маршрут покупателей`,t3:`Элементы оформления и органы чувств`,t4:`Критерии оформления магазина`,t5:`Зоны полки`,t6:`Указание цен (PAngV)`,t7:`Размещение собственных марок`,t8:`Носители для товара`,t9:`Сопутствующее и многократное размещение`,t10:`Формы продажи`,
+s1:`Широкий ассортимент (breit) = много товарных групп. Глубокий ассортимент (tief) = много вариантов внутри одной группы.`,
+s2:`Покупатели обычно идут вправо и по кругу. Справа от входа и у кассы: сильные зоны продаж (verkaufsstark). Сзади слева и сразу за входом: слабые зоны (verkaufsschwach).`,
+s3:`Хорошее оформление действует на органы чувств: зрение, слух, обоняние, осязание, вкус. Оно вызывает эмоции и побуждает к покупке.`,
+s4:`В хорошем магазине широкие проходы, хороший обзор и доступные полки. Он без барьеров и подходит пожилым покупателям.`,
+s5:`У полки 4 зоны. Зона взгляда (Sichtzone) и зона руки (Greifzone) продают лучше всего. Верхняя зона (Reckzone) и нижняя зона (Bückzone) слабее.`,
+s6:`Итоговая цена включает НДС. Для товаров на вес или объём на полке должна быть и базовая цена (Grundpreis): цена за 1 кг или 1 л.`,
+s7:`Собственная марка (Eigenmarke) принадлежит торговцу, например «ja!» у REWE. Для покупателя она дешевле. Торговец часто зарабатывает больше.`,
+s8:`Носители показывают товар: стеллаж, гондола, витрина, стол, стойка, дисплей, стоппер. Носитель должен подходить товару.`,
+s9:`Сопутствующее размещение (Verbundplatzierung): подходящие товары рядом. Многократное размещение (Mehrfachplatzierung): один товар в нескольких местах.`,
+s10:`Полное обслуживание (Vollbedienung): продавец приносит товар. Предварительный выбор (Vorwahl): покупатель ищет сам, продавец помогает при необходимости. Самообслуживание (Selbstbedienung): покупатель всё берёт сам и платит на кассе.`,
+a1:`Вставь слова: Kernsortiment, Randsortiment, Saisonsortiment, breit, tief. Магазин бытовой химии: шампунь, зубная паста, подгузники, корм для животных → ассортимент? 40 видов шампуня → ассортимент? Шампунь приносит больше всего выручки → к какой группе? Мелкие подарки лишь дополнение → к какой? Солнцезащитный крем только летом → к какой?`,
+a2:`Посмотри на план. Для каждой зоны 1–7: сильная или слабая? Объясни 3 зоны одним предложением («Зона …, потому что покупатели …»). Куда ты поставишь: жвачку (Impulsartikel), муку (Suchartikel), духи (diebstahlgefährdet)?`,
+a3:`Соедини каждый элемент оформления с органом чувств и эффектом (акцентный свет, запах хлеба, тихая музыка, образец ткани). Напиши ещё 3 элемента.`,
+a4:`В магазине «Lena’s Mode» 6 ошибок: проходы 60 см, полки 2,20 м, ступенька без пандуса, мелкий серый шрифт, нет места для сидения, скользкий пол и тусклый свет. Напиши исправление для каждой.`,
+a5:`Заполни таблицу: название зоны, высота, сильная/слабая, пример товара. Где стоит собственная марка с самой высокой наценкой? Объясни одним предложением.`,
+a6:`Посчитай: 250 г кофе за 2,49 € → базовая цена за кг? 1,5 л воды за 0,69 € + 0,25 € залог → базовая цена за л и сумма на кассе? Напиши 2 обязательных данных на ценнике полки.`,
+a7:`Макароны собственной марки стоят в нижней зоне, брендовые — в зоне взгляда. Куда ты поставишь собственную марку? Объясни («Я ставлю …, потому что …»). Напиши 2 плюса для торговца и 1 для покупателя.`,
+a8:`Выбери лучший носитель: дорогие часы; россыпь носков разных цветов; акция в проходе. Объясни вопрос 1 одним предложением.`,
+a9:`Спланируй акцию «гриль». Напиши 4 товара для сопутствующего размещения, 2 места, где ещё показать уголь (многократное размещение), и пользу для покупателей.`,
+a10:`Соотнеси: колбасный прилавок, супермаркет, парфюмерный магазин → форма продажи. Напиши 1 плюс для покупателя и 1 для предприятия. Допиши: «Добрый день, … я … вам …?»`,
+b1:`Магазин одежды хочет сделать ассортимент глубже, но не шире. Напиши 2 плюса и 2 риска (затраты на склад, лояльность, место). Дай рекомендацию и обоснуй.`,
+b2:`Зона 1 почти не приносит выручки. Спланируй 3 меры по улучшению (товар-магнит, акция, свет). Как измерить успех через 4 недели (выручка на м², подсчёт покупателей)?`,
+b3:`Эко-магазин и дискаунтер оформляют по-разному (свет, цвет, музыка, материалы). Сравни в 4 строках и объясни, как оформление подходит стратегии (впечатление или цена).`,
+b4:`Назови 5 мер для пожилых покупателей, оцени затраты и пользу, выбери 2 важнейшие и обоснуй с точки зрения бизнеса (выручка, лояльность).`,
+b5:`Производитель платит за место в зоне взгляда. Выгодно ли это торговцу? Аргументируй прибылью на метр полки и оборачиваемостью. Дай рекомендацию.`,
+b6:`На кассе товар дороже, чем на полке. Покупатель требует цену с полки. Какова правовая ситуация? Как ты поступишь? Последствия для предприятия? Плюсы электронных ценников?`,
+b7:`Лидер рынка грозит прекратить поставки, если собственная марка стоит рядом. Взвесь (сила в переговорах, маржа, влияние на покупателей), прими решение и обоснуй.`,
+b8:`Отдел одежды (джинсы, аксессуары, премиальные куртки): выбери носитель для каждой группы. Обоснуй ценой, эффектом сочетания, защитой от краж и площадью.`,
+b9:`Оцени акцию по показателям (дополнительная выручка, доп. покупки на клиента, затраты на площадь). Опиши опасность чрезмерного многократного размещения.`,
+b10:`Специализированный магазин хочет перейти от полного обслуживания к предварительному выбору. Проанализируй расходы на персонал, выручку, кражи и качество консультации. Дай обоснованную рекомендацию.`,
+c1:`Соедини: много сортов яблок; фрукты + хлеб + молоко + мыло; глинтвейн только зимой → tief / breit / Saison.`,
+c2:`Верно или неверно? Касса — хорошее место для жвачки. Сзади слева многие покупают спонтанно. Покупатели обычно идут вправо.`,
+c3:`Какое чувство? Запах кофе, яркий свет, музыка.`,
+c4:`Что лучше? Проход: узкий/широкий. Шрифт на ценнике: мелкий/крупный. Вход для инвалидной коляски: ступенька/пандус.`,
+c5:`Полка в 4 яруса (зона взгляда зелёная). Какая зона вверху, посередине, внизу?`,
+c6:`Что пишут на ценнике? Цена в евро; имя начальника; цена за кг/л.`,
+c7:`Какая марка принадлежит магазину? Собственная марка обычно дешёвая или дорогая?`,
+c8:`Какое слово подходит к картинке? Товар посреди прохода (Gondel или Vitrine); стеклянный ящик, дорого.`,
+c9:`Что с чем сочетается? Хлеб, зубная щётка, кофе ↔ масло, зубная паста, молоко.`,
+c10:`Кто приносит товар? Мясник приносит колбасу; покупатель сам берёт молоко.`
+};
+</script>
+<script>
+window.TR=window.TR||{};
+TR.uk={
+t1:`Асортимент: широкий, глибокий, основний, додатковий, сезонний`,t2:`Зони продажу та маршрут покупців`,t3:`Елементи оформлення та органи чуття`,t4:`Критерії оформлення магазину`,t5:`Зони полиці`,t6:`Зазначення цін (PAngV)`,t7:`Розміщення власних марок`,t8:`Носії для товару`,t9:`Супутнє та багаторазове розміщення`,t10:`Форми продажу`,
+s1:`Широкий асортимент (breit) = багато товарних груп. Глибокий асортимент (tief) = багато варіантів усередині однієї групи.`,
+s2:`Покупці зазвичай ідуть праворуч і по колу. Праворуч від входу та біля каси: сильні зони продажу (verkaufsstark). Ззаду ліворуч і одразу за входом: слабкі зони (verkaufsschwach).`,
+s3:`Гарне оформлення діє на органи чуття: зір, слух, нюх, дотик, смак. Воно викликає емоції та заохочує до покупки.`,
+s4:`У хорошому магазині широкі проходи, гарний огляд і доступні полиці. Він без бар’єрів і підходить літнім покупцям.`,
+s5:`Полиця має 4 зони. Зона погляду (Sichtzone) і зона руки (Greifzone) продають найкраще. Верхня зона (Reckzone) і нижня зона (Bückzone) слабші.`,
+s6:`Підсумкова ціна містить ПДВ. Для товарів на вагу чи об’єм на полиці має бути також базова ціна (Grundpreis): ціна за 1 кг або 1 л.`,
+s7:`Власна марка (Eigenmarke) належить торговцю, наприклад «ja!» у REWE. Для покупця вона дешевша. Торговець часто заробляє більше.`,
+s8:`Носії показують товар: стелаж, гондола, вітрина, стіл, стійка, дисплей, стопер. Носій має пасувати до товару.`,
+s9:`Супутнє розміщення (Verbundplatzierung): товари, що пасують один до одного, поруч. Багаторазове розміщення (Mehrfachplatzierung): один товар у кількох місцях.`,
+s10:`Повне обслуговування (Vollbedienung): продавець приносить товар. Попередній вибір (Vorwahl): покупець шукає сам, продавець допомагає за потреби. Самообслуговування (Selbstbedienung): покупець усе бере сам і платить на касі.`,
+a1:`Встав слова: Kernsortiment, Randsortiment, Saisonsortiment, breit, tief. Магазин побутової хімії: шампунь, зубна паста, підгузки, корм для тварин → асортимент? 40 видів шампуню → асортимент? Шампунь приносить найбільше виручки → до якої групи? Дрібні подарунки лише доповнення → до якої? Сонцезахисний крем лише влітку → до якої?`,
+a2:`Подивись на план. Для кожної зони 1–7: сильна чи слабка? Поясни 3 зони одним реченням («Зона …, тому що покупці …»). Куди ти поставиш: жуйку (Impulsartikel), борошно (Suchartikel), парфуми (diebstahlgefährdet)?`,
+a3:`З’єднай кожен елемент оформлення з органом чуття та ефектом (акцентне світло, запах хліба, тиха музика, зразок тканини). Напиши ще 3 елементи.`,
+a4:`У магазині «Lena’s Mode» 6 помилок: проходи 60 см, полиці 2,20 м, сходинка без пандуса, дрібний сірий шрифт, немає місця для сидіння, слизька підлога і слабке світло. Напиши виправлення для кожної.`,
+a5:`Заповни таблицю: назва зони, висота, сильна/слабка, приклад товару. Де стоїть власна марка з найвищою націнкою? Поясни одним реченням.`,
+a6:`Порахуй: 250 г кави за 2,49 € → базова ціна за кг? 1,5 л води за 0,69 € + 0,25 € застави → базова ціна за л і сума на касі? Напиши 2 обов’язкові дані на цінику полиці.`,
+a7:`Макарони власної марки стоять у нижній зоні, брендові — у зоні погляду. Куди ти поставиш власну марку? Поясни («Я ставлю …, тому що …»). Напиши 2 переваги для торговця і 1 для покупця.`,
+a8:`Обери найкращий носій: дорогі годинники; насипом шкарпетки різних кольорів; акція в проході. Поясни питання 1 одним реченням.`,
+a9:`Сплануй акцію «гриль». Напиши 4 товари для супутнього розміщення, 2 місця, де ще показати вугілля (багаторазове розміщення), і користь для покупців.`,
+a10:`Співвідніси: ковбасний прилавок, супермаркет, парфумерний магазин → форма продажу. Напиши 1 перевагу для покупця та 1 для підприємства. Доповни: «Добрий день, … я … вам …?»`,
+b1:`Магазин одягу хоче зробити асортимент глибшим, але не ширшим. Напиши 2 переваги та 2 ризики (витрати на склад, лояльність, місце). Дай рекомендацію та обґрунтуй.`,
+b2:`Зона 1 майже не дає виручки. Сплануй 3 заходи для покращення (товар-магніт, акція, світло). Як виміряти успіх через 4 тижні (виручка на м², підрахунок покупців)?`,
+b3:`Еко-магазин і дискаунтер оформляють по-різному (світло, колір, музика, матеріали). Порівняй у 4 рядках і поясни, як оформлення пасує стратегії (враження чи ціна).`,
+b4:`Назви 5 заходів для літніх покупців, оціни витрати й користь, обери 2 найважливіші та обґрунтуй з погляду бізнесу (виручка, лояльність).`,
+b5:`Виробник платить за місце в зоні погляду. Чи вигідно це торговцю? Аргументуй прибутком на метр полиці й оборотністю. Дай рекомендацію.`,
+b6:`На касі товар дорожчий, ніж на полиці. Покупець вимагає ціну з полиці. Яка правова ситуація? Як ти вчиниш? Наслідки для підприємства? Переваги електронних цінників?`,
+b7:`Лідер ринку погрожує припинити постачання, якщо власна марка стоїть поруч. Зваж (сила в переговорах, маржа, вплив на покупців), ухвали рішення та обґрунтуй.`,
+b8:`Відділ одягу (джинси, аксесуари, преміальні куртки): обери носій для кожної групи. Обґрунтуй ціною, ефектом поєднання, захистом від крадіжок і площею.`,
+b9:`Оціни акцію за показниками (додаткова виручка, додаткові покупки на клієнта, витрати на площу). Опиши небезпеку надмірного багаторазового розміщення.`,
+b10:`Спеціалізований магазин хоче перейти від повного обслуговування до попереднього вибору. Проаналізуй витрати на персонал, виручку, крадіжки та якість консультації. Дай обґрунтовану рекомендацію.`,
+c1:`З’єднай: багато сортів яблук; фрукти + хліб + молоко + мило; глінтвейн лише взимку → tief / breit / Saison.`,
+c2:`Правильно чи неправильно? Каса — гарне місце для жуйки. Ззаду ліворуч багато хто купує спонтанно. Покупці зазвичай ідуть праворуч.`,
+c3:`Яке чуття? Запах кави, яскраве світло, музика.`,
+c4:`Що краще? Прохід: вузький/широкий. Шрифт на цінику: дрібний/великий. Вхід для інвалідного візка: сходинка/пандус.`,
+c5:`Полиця на 4 яруси (зона погляду зелена). Яка зона вгорі, посередині, внизу?`,
+c6:`Що пишуть на цінику? Ціна в євро; ім’я начальника; ціна за кг/л.`,
+c7:`Яка марка належить магазину? Власна марка зазвичай дешева чи дорога?`,
+c8:`Яке слово пасує до малюнка? Товар посеред проходу (Gondel чи Vitrine); скляна скринька, дорого.`,
+c9:`Що з чим пасує? Хліб, зубна щітка, кава ↔ масло, зубна паста, молоко.`,
+c10:`Хто приносить товар? М’ясник приносить ковбасу; покупець сам бере молоко.`
+};
+</script>
+</body>
+</html>

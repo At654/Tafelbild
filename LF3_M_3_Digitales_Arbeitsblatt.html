@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 3 · Modul 3 · Bargeld und Falschgeld</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="ar">🇸🇦 العربية</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+    <button class="pill" data-l="uk">🇺🇦 Українська</button>
+    <button class="pill" data-l="ti">🇪🇷 ትግርኛ</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 3 · Kunden im Servicebereich Kasse betreuen</p>
+  <h1 data-k="h1">Modul 3: Bargeld und Falschgeld</h1>
+  <p class="sub" data-k="meta">1 Doppelstunde (DS 5) · 4 Punkte · Lehrbuch S. 175–177 · Arbeitsheft S. 142–145</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann Gründe für Barzahlung nennen.</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann Sicherheitsmerkmale von Euro-Banknoten prüfen (Fühlen – Sehen – Kippen).</label></li>
+      <li><label data-k="can3"><input type="checkbox"> Ich kann richtig handeln, wenn ich Falschgeld vermute.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a1_h">Aufgabe 1 · Ankommen: Was weißt du noch aus Modul 2?</h2>
+    <p data-k="a1_p">Aus dem Kopf beantworten.</p>
+    <div data-items="a1"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 2 · Echt oder falsch? Die Prüfstation</h2>
+    <p data-k="a2_p">Untersucht an der Station einen echten Geldschein mit Fühlen – Sehen – Kippen. Notiert, was ihr bemerkt.</p>
+    <div data-items="a2"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> das Bargeld · die Banknote · die Münze · das Sicherheitsmerkmal · das Relief · das Wasserzeichen · der Sicherheitsfaden · das Hologramm · die Smaragdzahl · der Prüfstift · das Prüfgerät · das Falschgeld · der Verdacht · die Kassenaufsicht
+      <div id="gloss"></div></div>
+    <div id="reading"></div>
+
+    <h3 style="margin-top:24px" data-k="ech_h">Echt oder falsch? Fühlen – Sehen – Kippen</h3>
+    <table>
+      <tr><th data-k="th_fuehlen">Fühlen</th><th data-k="th_sehen">Sehen (gegen das Licht)</th><th data-k="th_kippen">Kippen</th></tr>
+      <tr><td data-k="e1">Papier aus Baumwolle: fest und griffig</td><td data-k="e2">Porträt-Wasserzeichen</td><td data-k="e3">Hologramm: Wertzahl, €-Symbol, Porträt</td></tr>
+      <tr><td data-k="e4">Relief: Schrift und Ränder sind erhaben</td><td data-k="e5">Sicherheitsfaden als dunkler Streifen</td><td data-k="e6">Smaragdzahl: Farbe wechselt von Grün zu Blau</td></tr>
+      <tr><td></td><td data-k="e7">Porträtfenster im Hologrammstreifen (ab 20 €)</td><td></td></tr>
+    </table>
+    <p style="margin-top:10px" data-k="e_hilf"><b>Hilfsmittel:</b> Prüfstift (prüft nur das Papier), UV-Lampe, elektronisches Prüfgerät (Scangerät). <b>Wichtig:</b> Immer mehrere Merkmale prüfen, nie nur eines.</p>
+
+    <h3 style="margin-top:24px" data-k="vd_h">Verdacht auf Falschgeld</h3>
+    <table>
+      <tr><th data-k="th_tust">Das tust du</th><th data-k="th_tustnicht">Das tust du nicht</th></tr>
+      <tr><td data-k="t1">ruhig und höflich bleiben</td><td data-k="n1">den Kunden beschuldigen oder laut werden</td></tr>
+      <tr><td data-k="t2">den Schein nicht zurückgeben</td><td data-k="n2">den Kunden festhalten</td></tr>
+      <tr><td data-k="t3">Vorgesetzte oder Kassenaufsicht rufen</td><td data-k="n3">den Schein zurückgeben und einen anderen verlangen</td></tr>
+      <tr><td data-k="t4">den Kunden bitten zu warten</td><td data-k="n4">den Schein behalten „zum Üben“</td></tr>
+      <tr><td data-k="t5">Polizei verständigen (macht die Vorgesetzte)</td><td></td></tr>
+      <tr><td data-k="t6">Zeugen hinzuziehen, sich den Kunden merken</td><td></td></tr>
+    </table>
+    <p style="margin-top:10px" data-k="vd_p">Falschgeld wird ohne Ersatz eingezogen. Wer Falschgeld wissentlich weitergibt, macht sich strafbar. Münzen: Niemand muss bei einer Zahlung mehr als 50 Münzen annehmen.</p>
+
+    <div class="merke" data-k="merke_pruef"><b>Merke:</b> Kunden empfinden die Echtheitsprüfung manchmal als Misstrauen. Erkläre freundlich: „Das machen wir bei allen Kunden so, das hat nichts mit Ihnen zu tun.“</div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a3_h">Aufgabe 3 · Vorgemacht: Verdacht auf Falschgeld</h2>
+    <p data-k="a3_p">So gehst du bei einer Prüfungsaufgabe vor. Lies die Schritte genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk0"><b>Die Aufgabe: Beim Prüfen eines Geldscheins vermuten Sie Falschgeld. Nennen Sie 3 Maßnahmen, die Sie jetzt ergreifen! (3 Punkte)</b></div>
+    <div class="worked" data-k="wk1"><b>1. Operator und Zahl:</b> „Geben Sie an“ = kurze Stichworte, 3 Maßnahmen.</div>
+    <div class="worked" data-k="wk2"><b>2. Reihenfolge denken:</b> Was tue ich sofort? Wen hole ich? Was passiert mit dem Schein?</div>
+    <div class="worked" data-k="wk3"><b>3. Aufschreiben:</b> Vorgesetzten benachrichtigen · Geldschein einbehalten · Kunden bitten zu warten</div>
+    <div class="worked" data-k="wk4"><b>4. Prüfen:</b> Nichts, was verboten ist (festhalten, beschuldigen)? Drei verschiedene Maßnahmen? Dann gibt es 3 Punkte.</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe die Beispiele gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a4_h">Aufgabe 4 · Geführte Übung</h2>
+    <p data-k="a4_p">4.1 Fühlen, Sehen oder Kippen? Ordne zu.</p>
+    <div data-items="a4"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a5_h">Aufgabe 5 · Prüfungs-Check <span class="pts" data-k="pts12">12 Punkte · etwa 12 Minuten</span></h2>
+    <div class="merke" data-k="a5_sit"><b>Situation:</b> Sie arbeiten an der Kasse und nehmen täglich Geldscheine an.</div>
+    <div data-items="a5"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a6p_h">Aufgabe 6 · Für Profis</h2>
+    <p data-k="a6p_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="a6p"></div>
+  </div>
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="a8_h">Aufgabe 8 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="a8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="a8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 7 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={vor:"Ankommen: Was weißt du noch aus Modul 2?",txt:"Textverständnis: Die Prüfstation",trans:"Transfer: Geldscheine prüfen und richtig handeln",wis:"Fachwissen: Prüfungs-Check",refl:"Betrieb & Weiterdenken"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{id:"a1_1",g:"a1",cat:"vor",mode:"self",q:"1.1 Nenne drei vorbereitende Tätigkeiten für das Kassieren.",rows:3,
+ h:["Denk an den Start vor der Öffnung des Ladens.","Kasse, Geld, Bonrolle, Scanner …"],
+ sol:"z. B. Kasse anmelden, Wechselgeld einzählen, Bonrolle prüfen, Scanner testen."},
+{id:"a1_2",g:"a1",cat:"vor",q:"1.2 Wann legst du den Geldschein des Kunden in die Kasse?",kw:[["nachdem","erst nach","danach","rueckgeld","wechselgeld","herausgegeben","herausgeben"]],min:1,rows:2,
+ h:["Denk an Streit: Der Kunde sagt später „Ich habe einen größeren Schein gegeben!“","Was muss vorher passiert sein?"],
+ sol:"Erst nachdem das Rückgeld herausgegeben ist."},
+{id:"a1_3",g:"a1",cat:"vor",q:"1.3 Ein Einkauf kostet 13,40 €, der Kunde gibt 20 €. Wie viel Rückgeld?",kw:[["6,60","6.60","6,6"]],min:1,rows:2,
+ h:["Rechne: Gegeben minus Preis.","Rechne 20,00 € − 13,40 €."],
+ sol:"20,00 € − 13,40 € = 6,60 € Rückgeld."},
+
+{id:"a2_1",g:"a2",cat:"txt",mode:"self",q:"Fühlen: Was habt ihr bemerkt?",rows:3,
+ h:["Nimm den Schein in die Hand und schließe die Augen.","Wie fühlt sich das Papier an? Was spürst du bei Schrift und Rändern?"],
+ sol:"Festes, griffiges Papier aus Baumwolle; Schrift und Ränder sind ertastbar (Relief, erhaben)."},
+{id:"a2_2",g:"a2",cat:"txt",mode:"self",q:"Sehen (gegen das Licht): Was habt ihr bemerkt?",rows:3,
+ h:["Halte den Schein gegen das Licht.","Was erscheint? Was zieht sich als Streifen durch den Schein?"],
+ sol:"Porträt-Wasserzeichen, Sicherheitsfaden (dunkler Streifen), Porträtfenster."},
+{id:"a2_3",g:"a2",cat:"txt",mode:"self",q:"Kippen: Was habt ihr bemerkt?",rows:3,
+ h:["Kippe den Schein hin und her.","Was ändert sich auf dem silbernen Streifen und bei der Zahl?"],
+ sol:"Hologramm mit Wertzahl, €-Symbol und Porträt; die Smaragdzahl wechselt die Farbe (Grün zu Blau)."},
+
+{id:"a4_1",g:"a4",cat:"trans",q:"Merkmal 1: Das Papier fühlt sich fest und griffig an, nicht glatt wie Kopierpapier. – Prüfen durch …?",kw:[["fuehl","tast"]],min:1,rows:1,
+ h:["Welchen Sinn brauchst du dafür?","Du spürst es mit den Fingern."],
+ sol:"Fühlen."},
+{id:"a4_2",g:"a4",cat:"trans",q:"Merkmal 2: Die Schrift und die Ränder sind ertastbar erhaben (Relief). – Prüfen durch …?",kw:[["fuehl","tast"]],min:1,rows:1,
+ h:["Das Wort „ertastbar“ sagt es dir.","Du spürst es mit den Fingern."],
+ sol:"Fühlen."},
+{id:"a4_3",g:"a4",cat:"trans",q:"Merkmal 3: Hält man den Schein gegen das Licht, erscheint ein Porträt als Wasserzeichen. – Prüfen durch …?",kw:[["sehen","licht","durchleucht"]],min:1,rows:1,
+ h:["Wo hältst du den Schein hin?","Du schaust durch den Schein."],
+ sol:"Sehen (gegen das Licht)."},
+{id:"a4_4",g:"a4",cat:"trans",q:"Merkmal 4: Gegen das Licht sieht man einen dunklen Streifen mit „€“ und dem Wert. – Prüfen durch …?",kw:[["sehen","licht","durchleucht"]],min:1,rows:1,
+ h:["Achte auf die Wörter „gegen das Licht“.","Du schaust durch den Schein."],
+ sol:"Sehen (gegen das Licht)."},
+{id:"a4_5",g:"a4",cat:"trans",q:"Merkmal 5: Die Wertzahl unten links ändert die Farbe von Smaragdgrün zu Tiefblau. – Prüfen durch …?",kw:[["kipp","neig","dreh","bewegen"]],min:1,rows:1,
+ h:["Wann ändert sich die Farbe?","Du bewegst den Schein hin und her."],
+ sol:"Kippen."},
+{id:"a4_6",g:"a4",cat:"trans",q:"Merkmal 6: Auf dem silbernen Streifen erscheinen Wertzahl, €-Symbol und ein Porträt. – Prüfen durch …?",kw:[["kipp","neig","dreh","bewegen"]],min:1,rows:1,
+ h:["Das Hologramm zeigt sich nicht immer gleich.","Du bewegst den Schein hin und her."],
+ sol:"Kippen."},
+{id:"a4_7",g:"a4",cat:"trans",q:"4.2 Sie erhalten einen falschen 50-€-Schein. Welche 2 Aussagen beschreiben richtiges Verhalten? Schreibe die Nummern auf.<br>1 Sie rufen die Vorgesetzte oder die Kassenaufsicht.<br>2 Sie geben den Schein zurück und verlangen einen echten.<br>3 Sie bleiben ruhig und höflich.<br>4 Sie halten den Kunden fest, bis die Polizei kommt.<br>5 Sie sagen dem Kunden laut, dass er Falschgeld benutzt.",kw:[["re:\\b1\\b","vorgesetzte","kassenaufsicht"],["re:\\b3\\b","ruhig","hoeflich"]],min:2,rows:2,
+ h:["Lies im Kasten „Das tust du“ und „Das tust du nicht“.","Zurückgeben, festhalten und laut beschuldigen steht bei „Das tust du nicht“."],
+ sol:"Richtig sind 1 und 3. Den Schein gibt man nicht zurück, den Kunden hält man nicht fest und beschuldigt ihn nicht laut."},
+{id:"a4_8",g:"a4",cat:"trans",q:"4.3 Ein Kunde möchte eine Rechnung von 24,80 € mit 90 Münzen bezahlen. Müssen Sie das annehmen? Antworte in wörtlicher Rede.",kw:[["50","fuenfzig","hoechstens","maximal","nicht mehr als"],["schein","karte","leid","entschuldig","bedauer"],["re:[„\"“]"]],min:2,rows:4,
+ h:["Wie viele Münzen muss man höchstens annehmen?","Antworte höflich, mit Anführungszeichen, und biete eine andere Zahlungsart an."],
+ sol:"„Es tut mir leid, bei einer Zahlung darf ich höchstens 50 Münzen annehmen. Haben Sie vielleicht einen Schein oder eine Karte dabei?“ (Man darf aber freiwillig mehr annehmen.)"},
+
+{id:"a5_1",g:"a5",cat:"wis",q:"5.1 Viele Kunden zahlen noch immer bar. Nennen Sie 2 Gründe dafür! (2 Punkte)",kw:[["gewohnheit","gewohnt"],["ueberblick","ausgaben","kontrolle"],["daten","anonym","speicher"],["misstrauen","technik"],["pin"],["keine karte","karte vorhanden","kein konto"],["trinkgeld","kleine betraege","kleinbetrag","kleine"]],min:2,rows:3,
+ h:["Denk an die Kunden an deiner Kasse: Warum holen sie Scheine heraus?","Es geht um Gewohnheit, Überblick, Datenschutz, Technik …"],
+ sol:"Je 1 Punkt, z. B. Gewohnheit, Überblick über die Ausgaben, keine Datenspeicherung, Misstrauen gegenüber Technik, PIN schwer zu merken."},
+{id:"a5_2",g:"a5",cat:"wis",q:"5.2 Welche 4 Sicherheitsmerkmale haben Euro-Banknoten? (4 Punkte)",kw:[["baumwolle","papier","griffig"],["relief","ertast","erhaben"],["sicherheitsfaden","faden","streifen"],["wasserzeichen"],["hologramm"],["portraetfenster","fenster"],["smaragd"]],min:4,rows:4,
+ h:["Denk an Fühlen – Sehen – Kippen.","Beim Fühlen: Papier, Relief. Beim Sehen: Wasserzeichen, Faden, Fenster. Beim Kippen: Hologramm, Smaragdzahl."],
+ sol:"Je 1 Punkt, z. B. Baumwollpapier, Relief, Sicherheitsfaden, Porträt-Wasserzeichen, Porträt-Hologramm, Porträtfenster, Smaragdzahl."},
+{id:"a5_3",g:"a5",cat:"wis",q:"5.3 Womit kann man technisch prüfen, ob ein Geldschein echt ist? Nennen Sie ein Hilfsmittel! (1 Punkt)",kw:[["pruefstift","stift"],["uv","lampe"],["pruefgeraet","geraet","scan"]],min:1,rows:2,
+ h:["Es gibt drei Hilfsmittel im Merkkasten.","Ein Stift, eine Lampe und ein elektronisches Gerät."],
+ sol:"Prüfstift, UV-Lampe oder (elektronisches) Prüfgerät. Der Prüfstift prüft nur das Papier."},
+{id:"a5_4",g:"a5",cat:"wis",q:"5.4 Sie prüfen einen 50-€-Schein. Der Kunde sagt verärgert: „Das ist doch eine Frechheit! Ich bin Stammkunde, Sie müssen meinen Schein nicht prüfen.“ Formulieren Sie Ihre Antwort in wörtlicher Rede! (3 Punkte)",kw:[["alle kunden","allen kunden","jeden kunden","bei allen","nichts mit ihnen","nichts mit ihrer person","kassieranweisung","vorschrift","routine"],["moment","kurz","schnell","dauert","entschuldig","verstaendnis","leid","bitte"],["re:[„\"“]"]],min:3,rows:5,
+ h:["Bleib freundlich. Wie erklärst du, dass du das bei jedem so machst?","Sag, dass es nichts mit der Person zu tun hat, und dass es nur einen Moment dauert. Setze Anführungszeichen."],
+ sol:"„Das machen wir bei allen Kunden so, das hat nichts mit Ihnen zu tun. Es dauert nur einen Moment. Vielen Dank für Ihr Verständnis.“"},
+{id:"a5_5",g:"a5",cat:"wis",q:"5.5 Bei einer anderen Kundin vermuten Sie, dass ein Schein gefälscht ist. Nennen Sie 2 Verhaltensweisen, mit denen Sie angemessen reagieren! (2 Punkte)",kw:[["vorgesetzte","kassenaufsicht","geschaeftsleitung","chef"],["polizei"],["diskret","zur seite","warten","bitten"],["einbehalt","behalten","nicht zurueck"],["zeugen","merken","ruhig","hoeflich"]],min:2,rows:3,
+ h:["Lies im Kasten „Das tust du“.","Wen holst du? Was passiert mit dem Schein? Wie bleibst du zur Kundin?"],
+ sol:"Je 1 Punkt, z. B. Vorgesetzte informieren, Polizei verständigen lassen, Kundin bitten zu warten, Schein einbehalten, ruhig und höflich bleiben."},
+
+{id:"a6p_1",g:"a6p",cat:"refl",mode:"self",q:"6.1 Bargeld verursacht auch dem Händler Kosten. Erläutern Sie zwei solche Kosten und vergleichen Sie sie mit den Kosten der Kartenzahlung.",rows:7,
+ h:["Denken Sie an die Arbeit mit dem Bargeld: Zählen, Abrechnen, Bringen zur Bank.","Was kostet bei der Kartenzahlung Geld? Wo spart der Betrieb dafür Arbeit und Risiko?"],
+ sol:"z. B. Zählen und Abrechnen kostet Arbeitszeit; Transport zur Bank (Geldtransporter) und Versicherung kosten Geld; Risiko von Falschgeld und Diebstahl. Kartenzahlung: Gebühren je Zahlung und Technik, dafür weniger Arbeit und Risiko. Welche Zahlung günstiger ist, hängt von der Höhe des Betrags ab."},
+{id:"a6p_2",g:"a6p",cat:"refl",mode:"self",q:"6.2 Begründen Sie, warum Sie den Wert eines Geldscheins laut nennen, sobald Sie ihn entgegennehmen.",rows:5,
+ h:["Wer weiß am Ende, welchen Schein der Kunde gegeben hat?","Was kann beim Rückgeld sonst passieren?"],
+ sol:"Kunde und Kassiererin wissen beide, welcher Schein gegeben wurde. So gibt es beim Rückgeld keinen Streit („Ich habe Ihnen doch einen 50er gegeben!“)."}
+];
+
+/* Lesetext: [[Richtig]] = gesuchter Begriff, {{Falsch}} = Ablenker */
+const READ=[
+{t:"Warum zahlen Kunden bar?",task:"Markiere die Gründe, warum viele Kunden bar zahlen.",
+ x:"Viele Kunden zahlen noch immer mit [[Bargeld]]. Gründe sind die [[Gewohnheit]] und dass man den [[Überblick über seine Ausgaben]] behält. Außerdem werden [[keine Daten gespeichert]]. Manche haben [[Misstrauen gegenüber der Technik]], finden die [[PIN]] schwer zu merken oder haben [[keine Karte]] dabei. Für [[Trinkgeld und kleine Beträge]] nimmt man gern Münzen. Ein {{Rabatt auf Bargeld}} ist kein Grund.",
+ q:"Welcher Grund für Barzahlung wird genannt?",o:["Man behält den Überblick über seine Ausgaben.","Bargeld ist immer billiger für den Händler.","Die Karte ist verboten."],c:0},
+{t:"Fühlen",task:"Markiere, woraus das Papier besteht, wie es sich anfühlt und was man ertasten kann.",
+ x:"Beim [[Fühlen]] prüfst du zuerst das Papier. Es besteht aus [[Baumwolle]] und ist [[fest und griffig]]. Die Schrift und die Ränder sind [[erhaben]]: Das nennt man [[Relief]]. Ein glattes Papier wie {{Kopierpapier}} ist ein Warnzeichen.",
+ q:"Was ist ein Relief?",o:["Schrift und Ränder, die man ertasten kann.","Ein Bild, das man nur im Licht sieht.","Ein Streifen, der die Farbe wechselt."],c:0},
+{t:"Sehen und Kippen",task:"Markiere die Merkmale, die man gegen das Licht sieht, und die Merkmale beim Kippen.",
+ x:"Gegen das Licht siehst du ein [[Porträt-Wasserzeichen]], den [[Sicherheitsfaden]] als dunklen Streifen und das [[Porträtfenster]] im Hologrammstreifen (ab 20 €). Beim [[Kippen]] zeigt das [[Hologramm]] Wertzahl, €-Symbol und Porträt. Die [[Smaragdzahl]] wechselt die Farbe von Grün zu Blau. Ein {{Magnet}} gehört nicht zur Prüfung.",
+ q:"Welche Farben wechselt die Smaragdzahl beim Kippen?",o:["Von Grün zu Blau.","Von Rot zu Gelb.","Von Schwarz zu Weiß."],c:0},
+{t:"Hilfsmittel",task:"Markiere die drei Hilfsmittel und die wichtigste Regel.",
+ x:"Als Hilfsmittel gibt es den [[Prüfstift]], die [[UV-Lampe]] und das elektronische [[Prüfgerät]] (Scangerät). Der Prüfstift prüft [[nur das Papier]]. Deshalb gilt: Immer [[mehrere Merkmale]] prüfen, nie {{nur eines}}.",
+ q:"Was prüft der Prüfstift?",o:["Nur das Papier.","Das Hologramm.","Die Smaragdzahl."],c:0},
+{t:"Verdacht auf Falschgeld",task:"Markiere, was du bei Verdacht tust, und was mit dem Falschgeld passiert.",
+ x:"Bei einem [[Verdacht]] bleibst du [[ruhig und höflich]]. Du gibst den Schein [[nicht zurück]], rufst die [[Vorgesetzte]] oder die [[Kassenaufsicht]] und [[bittest den Kunden zu warten]]. Die Polizei verständigt die Vorgesetzte. Du ziehst [[Zeugen]] hinzu und merkst dir den Kunden. Du darfst den Kunden nicht {{beschuldigen}} und nicht {{festhalten}}. Falschgeld wird [[ohne Ersatz eingezogen]].",
+ q:"Was tust du mit dem verdächtigen Schein?",o:["Ich gebe ihn nicht zurück.","Ich gebe ihn zurück und verlange einen anderen.","Ich behalte ihn „zum Üben“."],c:0},
+{t:"Münzen und freundliche Prüfung",task:"Markiere, wie viele Münzen man annehmen muss, und was man dem Kunden erklärt.",
+ x:"Bei einer Zahlung muss niemand mehr als [[50 Münzen]] annehmen. Kunden empfinden die Echtheitsprüfung manchmal als [[Misstrauen]]. Erkläre freundlich: „Das machen wir bei [[allen Kunden]] so, das hat [[nichts mit Ihnen]] zu tun.“ Wer Falschgeld [[wissentlich]] weitergibt, macht sich [[strafbar]]. Die Zahl {{100 Münzen}} stimmt nicht.",
+ q:"Wie erklärst du die Echtheitsprüfung freundlich?",o:["Das machen wir bei allen Kunden so.","Ich traue Ihnen nicht.","Das ist nur bei großen Scheinen Pflicht."],c:0}
+];
+
+/* Vertiefung (level v) – Zusatz, aus dem Material abgeleitet */
+ITEMS.push(
+{id:"v8_1",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.1 Warum gibst du einen verdächtigen Schein nicht zurück? Begründe.",rows:5,
+ h:["Was könnte der Kunde mit dem Schein tun, wenn er ihn zurückbekommt?","Denk an den Satz: Falschgeld wird ohne Ersatz eingezogen."],
+ sol:"Falschgeld wird ohne Ersatz eingezogen. Gibt man den Schein zurück, könnte der Kunde ihn weitergeben, und das Falschgeld bleibt im Umlauf. Außerdem muss die Vorgesetzte den Schein prüfen und die Polizei informieren."},
+{id:"v8_2",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.2 Warum prüft man immer mehrere Sicherheitsmerkmale und nicht nur eines? Begründe mit dem Prüfstift.",rows:5,
+ h:["Was prüft der Prüfstift – und was prüft er nicht?","Kann ein einzelnes Merkmal gefälscht werden?"],
+ sol:"Der Prüfstift prüft nur das Papier. Ein Schein kann ein Merkmal haben und trotzdem falsch sein. Je mehr Merkmale (Fühlen, Sehen, Kippen) übereinstimmen, desto sicherer ist die Prüfung."},
+{id:"v8_3",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.3 Was würde passieren, wenn du bei einem bloßen Verdacht den Kunden beschuldigst oder festhältst? Begründe.",rows:5,
+ h:["Ist ein Verdacht ein Beweis?","Wer gibt Falschgeld „wissentlich“ weiter – und wer vielleicht nicht?"],
+ sol:"Ein Verdacht ist kein Beweis. Der Kunde hat den Schein vielleicht selbst unwissentlich bekommen und wäre zu Unrecht beschuldigt. Das ist unhöflich und kann Ärger geben. Deshalb bleibt man ruhig und höflich und lässt die Vorgesetzte entscheiden."},
+{id:"v8_4",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.4 Warum erklärst du dem Kunden bei der Echtheitsprüfung, dass du das bei allen Kunden so machst? Begründe.",rows:5,
+ h:["Wie fühlt sich ein Kunde, der denkt: „Die misstraut mir“?","Was ändert der Satz „bei allen Kunden“?"],
+ sol:"Kunden empfinden die Prüfung manchmal als Misstrauen. Der Satz „Das machen wir bei allen Kunden so“ zeigt: Es hat nichts mit der Person zu tun. So bleibt der Kunde freundlich, und die Prüfung wird nicht zum Streit."}
+);
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={
+a1_1:[["Kasse","vorbereiten","Tätigkeit","Wechselgeld"],["Vor dem Kassieren …"]],
+a1_2:[["Rückgeld","Geldschein","Kasse","Kunde"],["Ich lege den Schein …"]],
+a1_3:[["Rückgeld","Preis","gegeben","rechnen"],["Das Rückgeld beträgt …"]],
+a2_1:[["Papier","Relief","Rand","Schrift"],["Wir haben bemerkt, dass …"]],
+a2_2:[["Licht","Wasserzeichen","Streifen","Porträt"],["Gegen das Licht sehen wir …"]],
+a2_3:[["Hologramm","Farbe","Streifen","Wertzahl"],["Beim Kippen sehen wir …"]],
+a4_1:[["Papier","Finger","Sinn"],["Das prüft man durch …"]],
+a4_2:[["Relief","Rand","Schrift"],["Das prüft man durch …"]],
+a4_3:[["Licht","Wasserzeichen","Porträt"],["Das prüft man durch …"]],
+a4_4:[["Licht","Streifen","Wert"],["Das prüft man durch …"]],
+a4_5:[["Farbe","Wertzahl","wechseln"],["Das prüft man durch …"]],
+a4_6:[["Hologramm","Streifen","Porträt"],["Das prüft man durch …"]],
+a4_7:[["Falschgeld","Vorgesetzte","ruhig","höflich"],["Richtig sind die Aussagen …"]],
+a4_8:[["Münzen","höchstens","Zahlung","Schein"],["„Es tut mir leid, …“","„Haben Sie vielleicht …?“"]],
+a5_1:[["Barzahlung","Kunde","Überblick","Daten"],["Ein Grund ist …"]],
+a5_2:[["Banknote","Merkmal","Fühlen","Kippen"],["Ein Sicherheitsmerkmal ist …"]],
+a5_3:[["Hilfsmittel","Echtheit","Geldschein"],["Ein Hilfsmittel ist …"]],
+a5_4:[["Prüfung","Kunde","freundlich","Moment"],["„Das machen wir …“","„Es dauert …“"]],
+a5_5:[["Verdacht","Schein","Kundin","Vorgesetzte"],["Ich reagiere, indem ich …"]],
+a6p_1:[["Arbeitszeit","Bank","Gebühr","Risiko"],["Bargeld kostet …","Bei der Kartenzahlung …"]],
+a6p_2:[["Rückgeld","Streit","Kunde","Geldschein"],["Ich nenne den Wert laut, weil …"]],
+v8_1:[["Falschgeld","Umlauf","Vorgesetzte","Polizei"],["Ich gebe den Schein nicht zurück, weil …"]],
+v8_2:[["Prüfstift","Papier","Merkmal","sicher"],["Ein Merkmal allein …"]],
+v8_3:[["Verdacht","Beweis","Kunde","Ärger"],["Dann würde …"]],
+v8_4:[["Misstrauen","Kunde","Person","freundlich"],["Ich erkläre das, weil …"]]
+};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+
+const GLOSS_DE=["das Bargeld","die Banknote","die Münze","das Sicherheitsmerkmal","das Relief","das Wasserzeichen","der Sicherheitsfaden","das Hologramm","die Smaragdzahl","der Prüfstift","das Prüfgerät","das Falschgeld","der Verdacht","die Kassenaufsicht"];
+
+const TX={"sub":["مجال التعلّم 3 · خدمة العملاء في منطقة الصندوق","Lĩnh vực học 3 · Phục vụ khách hàng tại khu vực quầy thu ngân","Навчальна галузь 3 · Обслуговування клієнтів у касовій зоні","ዓውዲ ትምህርቲ 3 · ኣብ ቦታ ካሳ ኣገልግሎት ዓማዊል"],"name":["الاسم","Họ tên","Ім'я","ሽም"],"date":["التاريخ","Ngày","Дата","ዕለት"],"can_h":["هذا ما سأستطيع فعله بعد ذلك","Sau bài này tôi có thể","Після цього я вмію","ድሕሪ እዚ እዚ ክገብር እኽእል እየ"],"can_note":["ضع علامة في النهاية على ما تستطيع فعله الآن.","Cuối bài, hãy đánh dấu những gì bạn đã làm được.","Наприкінці познач, що ти вже вмієш.","ኣብ መወዳእታ ሕጂ ክትገብሮ ዘኽእለካ ምልክት ግበር።"],"pts1":["نقطة واحدة","1 điểm","1 бал","1 ነጥቢ"],"pts2":["نقطتان","2 điểm","2 бали","2 ነጥቢ"],"read_h":["للقراءة والمراجعة · قراءة نشِطة","Đọc lại · đọc chủ động","Для читання · активне читання","ንምንባብ · ንጡፍ ንባብ"],"read_p":["اقرأ كل مقطع واضغط على المصطلحات المطلوبة (تصبح صفراء). انتبه: هناك مصطلحات خاطئة أيضًا! بعد ذلك تجيب عن سؤال قصير – وعندها فقط يُفتح المقطع التالي.","Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở.","Прочитай кожен абзац і торкнись потрібних слів (вони стануть жовтими). Увага: є й неправильні слова! Потім дай відповідь на коротке запитання – лише тоді відкриється наступний абзац.","ነፍሲ ወከፍ ክፍሊ ኣንብብ፣ እቶም ዝድለዩ ቃላት ተንከፎም (ብጫ ይኸውኑ)። ጥንቃቐ፡ ጌጋ ቃላት እውን ኣለዉ! ድሕሪኡ ሓጺር ሕቶ ምለስ – ሽዑ ጥራይ እቲ ዝቕጽል ክፍሊ ይኽፈት።"],"ws_h":["مخزن الكلمات (الترجمة)","Kho từ vựng (bản dịch)","Словник (переклад)","መዝገበ-ቃላት (ትርጉም)"],"a2btn":["قرأتُ الأمثلة","Tôi đã đọc các ví dụ","Я прочитав(ла) приклади","ኣብነታት ኣንቢበ ኣለኹ"],"a7_h":["المهمة 7 · قدِّر، اختبر، سجِّل","Bài 7 · Ước lượng, kiểm tra, ghi lại","Завдання 7 · Оціни, перевір, запиши","ዕዮ 7 · ገምግም፣ ፈትን፣ ጽሓፍ"],"a7_p":["كم نقطة من 20 ستحصل عليها في ورقة العمل هذه؟ سجِّل تقديرك قبل التقييم.","Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm.","Скільки з 20 балів ти отримаєш за цей аркуш? Запиши свою оцінку до перевірки.","ኣብዚ ወረቐት ስራሕ ካብ 20 ነጥቢ ክንደይ ክትረክብ ትሓስብ? ቅድሚ ግምጋሜ ግምትካ ጽሓፍ።"],"th1":["تقديري","Dự đoán của tôi","Моя оцінка","ግምተይ"],"th2":["نتيجتي","Kết quả của tôi","Мій результат","ውጽኢተይ"],"th3":["الفرق","Chênh lệch","Різниця","ፍሉይነት"],"th4":["نقاط لحساب النقاط","Điểm cho tài khoản điểm","Бали для рахунку балів","ነጥብታት ንናይ ነጥቢ ሕሳብ"],"submit_h":["انتهيت؟ إذن قيِّم!","Xong chưa? Hãy chấm điểm!","Готово? Тоді перевіряй!","ወዲእካ? እንተኾነ ገምግም!"],"submit_p":["يمكنك التقييم حتى لو لم تنجز كل شيء – المهام غير المنجزة تُحتسب بصفر.","Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm.","Можна оцінити, навіть якщо не все зроблено – незроблені завдання дають 0 балів.","ኩሉ ዘይተሰርሐ እኳ እንተኾነ ክትገምግም ትኽእል – ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"submit_b":["إرسال وتقييم","Gửi và chấm điểm","📊 Надіслати й оцінити","📊 ሰዲድካ ገምግም"],"res_h":["تقييمك","Kết quả của bạn","Твій результат","ውጽኢትካ"],"pdf_b":["تصدير كملف PDF (للمعلمة)","Xuất PDF (cho giáo viên)","🖨️ Експорт у PDF (для вчителя)","🖨️ ከም PDF ኣውጽእ (ንመምህር)"],"tip_t":["تلميح","Gợi ý","Підказка","ሓጋዚ ሓሳብ"],"tip_next":["تلميح آخر","Thêm gợi ý","Ще одна підказка","ካልእ ሓጋዚ ሓሳብ"],"close":["إغلاق","Đóng","Закрити","ዕጸው"],"chk":["تحقّق","Kiểm tra","✔ Перевірити","✔ ፈትሽ"],"shw":["إظهار الحل","Hiện lời giải","Показати розв'язок","መልሲ ርአይ"],"markb":["تحقّق من التظليل","Kiểm tra phần đánh dấu","Перевірити позначки","ምልክታት ፈትሽ"],"self_q":["ما مدى جودة إجابتك؟","Câu trả lời của bạn tốt đến đâu?","Наскільки добре ти відповів(ла)?","ምላስካ ክንደይ ጽቡቕ ነበረ?"],"self1":["نجحت","Đạt","✔ Вдалося","✔ ኣሸኒፈ"],"self2":["جزئيًا","Một phần","◐ Частково","◐ ብሓደ ኣቕጣጫ"],"self3":["ليس بعد","Chưa","✖ Ще ні","✖ ኣይተኻእለን"],"fb_ok":["ممتاز! أحسنت.","Đúng rồi! Làm tốt lắm.","✅ Правильно! Молодець.","✅ ቅኑዕ! ጽቡቕ ሰሪሕካ።"],"fb_part":["تقريبًا – ينقص جزء. قارن بالحل وأكمل.","Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung.","🟡 Майже – ще чогось бракує. Порівняй із розв'язком і доповни.","🟡 ቐረባ – ሓደ ክፍሊ ጎዲሉ። ምስ መልሲ ኣነጻጽርካ ወስኸሉ።"],"fb_bad":["ليس بعد. استعن بتلميح أو أعد قراءة النص.","Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản.","❌ Ще не те. Візьми підказку 💡 або перечитай текст.","❌ ገና ኣይቅኑዕን። ሓጋዚ ሓሳብ 💡 ውሰድ ወይ ጽሑፍ ዳግማይ ኣንብብ።"],"sol_lbl":["الحل:","Lời giải:","Розв'язок:","መልሲ፡"],"mk_ok":["تظليل صحيح! والآن السؤال:","Đánh dấu đúng! Giờ đến câu hỏi:","✅ Позначено правильно! Тепер запитання:","✅ ብቐንዱ ተሓሪዩ! ሕጂ እቲ ሕቶ፡"],"mk_bad":["ليس تمامًا بعد. اقرأ المهمة مرة أخرى.","Chưa hoàn toàn đúng. Hãy đọc lại đề bài.","Ще не зовсім. Прочитай завдання ще раз.","ገና ጥዑይ ኣይኮነን። ዕዮ ዳግማይ ኣንብብ።"],"zq_ok":["بالضبط! تم فتح المقطع التالي.","Chính xác! Đoạn tiếp theo đã mở.","✅ Точно! Наступний абзац відкрито.","✅ ልክዕ! እቲ ዝቕጽል ክፍሊ ተኸፊቱ።"],"zq_bad":["ليس تمامًا. أعد قراءة المقطع وحاول مجددًا.","Chưa đúng. Hãy đọc lại đoạn và thử lại.","Не зовсім. Перечитай абзац і спробуй ще раз.","ኣይኮነን ጥዑይ። ክፍሊ ዳግማይ ኣንብብ ከምኡውን እንደገና ፈትን።"],"res_pts":["من 20 نقطة","trên 20 điểm","з 20 балів","ካብ 20 ነጥቢ"],"res_an":["تحليل الأخطاء حسب مجالات الكفاءة","Phân tích lỗi theo lĩnh vực năng lực","Аналіз помилок за сферами компетенцій","ትንተና ጌጋታት ብዘርእስታት ክእለት"],"rep":["ما يجب أن تراجعه","Bạn nên ôn lại","Це треба повторити","እዚ ክትደግሞ ኣለካ"],"lab1":["ممتاز!","Tuyệt vời!","Чудово!","ብጣዕሚ ጽቡቕ!"],"lab2":["جيد – تحتاج مزيدًا من التمرين","Khá – cần luyện thêm","Добре – ще трохи практики","ጽቡቕ – ገለ ተወሳኺ ልምምድ"],"lab3":["تحتاج هنا إلى مزيد من التمرين","Phần này bạn cần luyện thêm","Тут тобі ще потрібна практика","ኣብዚ ገና ልምምድ የድልየካ"],"set_h":["الإعدادات","Cài đặt","Налаштування","ቅጥዕታት"],"set_mode":["الترجمة","Bản dịch","Переклад","ትርጉም"],"mode_tap":["بالنقر","Chạm để xem","Торкнутися","ብምንካፍ"],"mode_under":["تحت النص","Hiện bên dưới","Під текстом","ኣብ ትሕቲ ጽሑፍ"],"mode_off":["إيقاف","Tắt","Вимк.","ዕጹው"],"set_fs":["حجم الخط","Cỡ chữ","Розмір шрифту","ዓቐን ፊደል"],"set_level":["المستوى","Mức độ","Рівень","ደረጃ"],"lvl_b":["أساسي","Cơ bản","Базовий","መሰረታዊ"],"lvl_v":["تعمّق","Nâng cao","Поглиблений","ዓሚቝ"],"set_snd":["الصوت","Âm thanh","Звук","ድምጺ"],"set_reset":["البدء من جديد","Làm lại từ đầu","Почати спочатку","ካብ ሓድሽ ጀምር"],"dlg_reset":["حذف كل شيء والبدء من جديد؟ ستضيع إجاباتك في ورقة العمل هذه.","Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất.","Усе видалити й почати спочатку? Твої записи в цьому аркуші буде втрачено.","ኩሉ ይሰረዝ እሞ ካብ ሓድሽ ይጀመር? ኣብዚ ወረቐት ዘኣተኻዮ ይጥፍእ።"],"dlg_next":["الشخص التالي: سيتم حذف الإجابات والاسم.","Người tiếp theo: nội dung và tên sẽ bị xóa.","Наступна особа: записи та ім'я буде видалено.","ቀጻሊ ሰብ፡ ዘኣተኻዮን ስምን ይጥፍእ።"],"dlg_cancel":["إلغاء","Hủy","Скасувати","ሰርዝ"],"dlg_ok":["نعم","Đồng ý","Так","እወ"],"wg_h":["كلمات وبدايات جمل للمساعدة","Từ ngữ và gợi ý đầu câu","Слова та початки речень","ቃላትን መጀመርታ ሓሳባትን"],"a8_h":["المهمة 8 · التعمّق","Bài 8 · Nâng cao","Завдання 8 · Поглиблення","ዕዮ 8 · ምዕማቕ"],"pts_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"a8_p":["تظهر فقط في مستوى «التعمّق». علّل بجمل كاملة. هذه المهام تمنح نقاطًا إضافية ولا تخفض نقاطك الـ 20 أبدًا.","Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn.","Лише на рівні «Поглиблений». Обґрунтуй повними реченнями. Ці завдання дають бонусні бали й ніколи не зменшують твої 20 балів.","ኣብ ደረጃ «ዓሚቝ» ጥራይ። ብምሉእ ሓሳብ ኣብርህ። እዞም ዕዮታት ቦነስ ነጥቢ ይህቡ እሞ ኣብ 20 ነጥብታትካ ፈጺሞም ኣይጐድሉን።"],"res_card_h":["النتيجة للمعلمة","Kết quả cho giáo viên","Результат для вчителя","ውጽኢት ንመምህር"],"btn_img":["حفظ النتيجة كصورة","Lưu kết quả dưới dạng ảnh","🖼️ Зберегти результат як зображення","🖼️ ውጽኢት ከም ስእሊ ዓቅብ"],"btn_code":["نسخ الرمز","Sao chép mã","📋 Копіювати код","📋 ኮድ ቅዳሕ"],"btn_next":["الشخص التالي","Người tiếp theo","👤 Наступна особа","👤 ቀጻሊ ሰብ"],"res_open":["ملاحظة: المهام غير المنجزة تُحتسب بصفر.","Lưu ý: bài chưa làm tính 0 điểm.","Примітка: незроблені завдання дають 0 балів.","ሓበሬታ፡ ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"res_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"cat_bonus":["نقاط إضافية (التعمّق)","Điểm thưởng (Nâng cao)","Бонус (поглиблення)","ቦነስ (ምዕማቕ)"],"fb_peek":["صحيح – لكنك نظرت إلى الحل قبل ذلك، لذلك تحصل على نصف النقاط.","Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm.","✅ Правильно – але ти раніше дивився(лась) розв'язок, тому половина балів.","✅ ቅኑዕ – ግን ቅድም መልሲ ርእይካዮ፣ ስለዚ ፍርቂ ነጥቢ።"],"t25":["بداية جيدة!","Khởi đầu tốt!","Гарний початок!","ጽቡቕ ጅምር!"],"t50":["اكتمل النصف!","Xong một nửa rồi!","Півдороги!","ፍርቂ!"],"t75":["اقتربت من الهدف!","Sắp đến đích rồi!","Майже готово!","ቐረባ!"],"t100":["أنجزت كل شيء! الآن قيِّم.","Đã làm xong hết! Giờ hãy chấm điểm.","Усе зроблено! Тепер оціни.","ኩሉ ተሰሪሑ! ሕጂ ገምግም።"],"t_write":["اكتب شيئًا أولًا","Hãy viết gì đó trước","Спочатку щось напиши","ቅድም ገለ ጽሓፍ"],"t_saved":["تم التسجيل","Đã ghi","Збережено","ተዓቒቡ"],"t_read":["تمت القراءة","Đã đọc","Прочитано","ተነቢቡ"],"t_resume":["تابع من حيث توقفت","Tiếp tục từ chỗ bạn dừng","Продовжуй, де зупинився(лась)","ኣብ ዝደው ዝበልካዮ ቀጽል"],"t_copy":["تم نسخ الرمز","Đã sao chép mã","Код скопійовано","ኮድ ተቐዲሑ"],"t_img":["تم حفظ الصورة","Đã lưu ảnh","Зображення збережено","ስእሊ ተዓቒቡ"],"h1":["الوحدة 3: النقد والعملة المزيفة","Mô-đun 3: Tiền mặt và tiền giả","Модуль 3: Готівка і фальшиві гроші","ሞዱል 3፡ ጥረ ገንዘብን ሓሶት ገንዘብን"],"meta":["حصة مزدوجة واحدة (DS 5) · 4 نقاط · الكتاب المدرسي ص 175–177 · كراس التمارين ص 142–145","1 tiết đôi (DS 5) · 4 điểm · Sách giáo khoa tr. 175–177 · Sách bài tập tr. 142–145","1 подвійний урок (DS 5) · 4 бали · Підручник, с. 175–177 · Робочий зошит, с. 142–145","1 ድርብ ትምህርቲ (DS 5) · 4 ነጥቢ · መጽሓፍ ገጽ 175–177 · ናይ ስራሕ ደብተር ገጽ 142–145"],"can1":["أستطيع ذكر أسباب الدفع نقدًا.","Tôi có thể nêu các lý do trả tiền mặt.","Я можу назвати причини оплати готівкою.","ንምኽንያታት ክፍሊት ብጥረ ገንዘብ ክጠቅስ እኽእል።"],"can2":["أستطيع فحص السمات الأمنية لأوراق اليورو النقدية (اللمس – النظر – الإمالة).","Tôi có thể kiểm tra các dấu hiệu an ninh của tiền giấy Euro (Sờ – Nhìn – Nghiêng).","Я можу перевірити ознаки захисту банкнот євро (Торкатися – Дивитися – Нахиляти).","ምልክታት ድሕነት ናይ ዩሮ ወረቐት ገንዘብ ክምርምር እኽእል (ምትንካፍ – ምርኣይ – ምጥዋይ)።"],"can3":["أستطيع التصرف بشكل صحيح عندما أشك في وجود عملة مزيفة.","Tôi có thể xử lý đúng khi nghi ngờ có tiền giả.","Я можу правильно діяти, якщо підозрюю фальшиві гроші.","ሓሶት ገንዘብ ምስ ዝጠርጥር ቅኑዕ ክገብር እኽእል።"],"a1_h":["المهمة 1 · الانطلاق: ماذا تتذكر من الوحدة 2؟","Bài 1 · Khởi động: Bạn còn nhớ gì từ Mô-đun 2?","Завдання 1 · Початок: Що ти пам’ятаєш із модуля 2?","ዕዮ 1 · መጀመርታ፡ ካብ ሞዱል 2 እንታይ ትዝክር?"],"a1_p":["أجب من الذاكرة.","Trả lời theo trí nhớ.","Відповідай по пам’яті.","ብኣእምሮኻ መልሲ።"],"a2_h":["المهمة 2 · حقيقي أم مزيف؟ محطة الفحص","Bài 2 · Thật hay giả? Trạm kiểm tra","Завдання 2 · Справжня чи фальшива? Станція перевірки","ዕዮ 2 · ሓቀኛ ወይ ሓሶት? ጣብያ መርመሪ"],"a2_p":["افحصوا في المحطة ورقة نقدية حقيقية باللمس – النظر – الإمالة. دوّنوا ما لاحظتموه.","Tại trạm, hãy kiểm tra một tờ tiền thật bằng cách Sờ – Nhìn – Nghiêng. Ghi lại những gì các bạn nhận thấy.","На станції перевірте справжню банкноту: торкайтеся – дивіться – нахиляйте. Запишіть, що ви помітили.","ኣብ ጣብያ ሓቀኛ ወረቐት ገንዘብ ብምትንካፍ – ምርኣይ – ምጥዋይ ርኣይዎ። ዝሰተርኩምዎ ጽሓፉ።"],"ech_h":["حقيقي أم مزيف؟ اللمس – النظر – الإمالة","Thật hay giả? Sờ – Nhìn – Nghiêng","Справжня чи фальшива? Торкатися – Дивитися – Нахиляти","ሓቀኛ ወይ ሓሶት? ምትንካፍ – ምርኣይ – ምጥዋይ"],"th_fuehlen":["اللمس (Fühlen)","Sờ (Fühlen)","Торкатися (Fühlen)","ምትንካፍ (Fühlen)"],"th_sehen":["النظر (Sehen) (ضد الضوء)","Nhìn (Sehen) (soi dưới ánh sáng)","Дивитися (Sehen, проти світла)","ምርኣይ (Sehen፣ ኣንጻር ብርሃን)"],"th_kippen":["الإمالة (Kippen)","Nghiêng (Kippen)","Нахиляти (Kippen)","ምጥዋይ (Kippen)"],"e1":["ورق من القطن: متين وخشن الملمس","Giấy làm từ bông: dày và chắc tay","Папір із бавовни: щільний і шорсткуватий","ወረቐት ካብ ጥጥ፡ ጽኑዕን ጭንቁርን"],"e2":["علامة مائية على شكل صورة شخصية (Wasserzeichen)","Hình mờ chân dung (Wasserzeichen)","Водяний знак-портрет","ምልክት ማይ ናይ ስእሊ ገጽ"],"e3":["هولوغرام (Hologramm): الرقم والرمز € والصورة الشخصية","Hình ba chiều (Hologramm): số mệnh giá, ký hiệu €, chân dung","Голограма: цифра номіналу, символ €, портрет","ሆሎግራም፡ ቁጽሪ ዋጋ፣ ምልክት €፣ ስእሊ ገጽ"],"e4":["نقش بارز (Relief): الكتابة والحواف بارزة","Chữ nổi (Relief): chữ và mép giấy nổi lên","Рельєф: шрифт і краї рельєфні (відчутні на дотик)","ልዕል ዝበለ (Relief)፡ ጽሑፍን ጫፍን ልዕል ዝበለ እዩ"],"e5":["خيط الأمان (Sicherheitsfaden) على شكل شريط داكن","Sợi an ninh (Sicherheitsfaden) dạng vệt tối","Захисна нитка як темна смужка","ክሊ ድሕነት ከም ጸላም መስመር"],"e6":["رقم الزمرد (Smaragdzahl): يتغير اللون من الأخضر إلى الأزرق","Số màu ngọc lục bảo (Smaragdzahl): đổi màu từ xanh lá sang xanh dương","Смарагдове число: колір змінюється із зеленого на синій","ቁጽሪ ኣመራልድ፡ ሕብሪ ካብ ሰማያዊ ቆጽሊ ናብ ሰማያዊ ይቅየር"],"e7":["نافذة الصورة في شريط الهولوغرام (من 20 €)","Cửa sổ chân dung trong dải hình ba chiều (từ 20 €)","Вікно з портретом у смужці з голограмою (від 20 €)","መስኮት ስእሊ ገጽ ኣብ መስመር ሆሎግራም (ካብ 20 € ንላዕሊ)"],"e_hilf":["وسائل مساعدة: قلم الفحص (Prüfstift) (يفحص الورق فقط)، مصباح الأشعة فوق البنفسجية، جهاز فحص إلكتروني (Prüfgerät). مهم: افحص دائمًا عدة سمات، وليس سمة واحدة فقط.","Dụng cụ hỗ trợ: Bút thử tiền (Prüfstift) (chỉ kiểm tra giấy), đèn UV, máy kiểm tra điện tử (Prüfgerät). Quan trọng: Luôn kiểm tra nhiều dấu hiệu, không bao giờ chỉ một.","Допоміжні засоби: детектор-ручка (Prüfstift, перевіряє тільки папір), УФ-лампа, електронний прилад для перевірки (Prüfgerät, сканер). Важливо: завжди перевіряй кілька ознак, ніколи не одну.","ደገፍቲ፡ ስቲፎ መርመሪ (Prüfstift፣ ወረቐት ጥራይ የምርምር)፣ መብራህቲ UV፣ ኤለክትሮኒክ መርመሪ መሳርሒ (Prüfgerät)። ኣገዳሲ፡ ኩሉ ጊዜ ብዙሕ ምልክታት መርምር፣ ሓደ ጥራይ ኣይኰነን።"],"vd_h":["الاشتباه في عملة مزيفة","Nghi ngờ có tiền giả","Підозра на фальшиві гроші (Verdacht auf Falschgeld)","ጥርጣረ ሓሶት ገንዘብ (Verdacht auf Falschgeld)"],"th_tust":["ما تفعله","Việc bạn làm","Ти робиш так","እዚ ትገብር"],"th_tustnicht":["ما لا تفعله","Việc bạn không làm","Ти так не робиш","እዚ ኣይትገብርን"],"t1":["البقاء هادئًا ومهذبًا","giữ bình tĩnh và lịch sự","залишатися спокійним і ввічливим","ህዱእን ትሑትን ምዃን"],"n1":["اتهام العميل أو رفع الصوت","buộc tội khách hoặc to tiếng","звинувачувати клієнта або кричати","ንዓሚል ምኽሳስ ወይ ድምጽኻ ምልዋም"],"t2":["عدم إرجاع الورقة النقدية","không trả lại tờ tiền","не повертати банкноту","ወረቐት ገንዘብ ኣይትመልስ"],"n2":["إمساك العميل","giữ khách lại","утримувати клієнта","ንዓሚል ምሕዝ"],"t3":["استدعاء المسؤول أو مشرف الصندوق (Kassenaufsicht)","gọi cấp trên hoặc người giám sát quầy thu ngân (Kassenaufsicht)","покликати керівника або касового наглядача (Kassenaufsicht)","ንሓላፊ ወይ ተቖጻጻሪ ካሳ (Kassenaufsicht) ጸውዕ"],"n3":["إرجاع الورقة النقدية وطلب ورقة أخرى","trả lại tờ tiền và yêu cầu tờ khác","повернути банкноту і вимагати іншу","ወረቐት ገንዘብ ምምላስን ካልእ ምሕታትን"],"t4":["طلب الانتظار من العميل","đề nghị khách chờ","попросити клієнта зачекати","ንዓሚል ከተጽበ ሕተቶ"],"n4":["الاحتفاظ بالورقة النقدية „للتدرب“","giữ lại tờ tiền „để tập luyện“","залишити банкноту собі «для практики»","ወረቐት ገንዘብ „ንልምምድ“ ምጥላብ"],"t5":["إبلاغ الشرطة (يقوم بذلك المسؤول)","báo cảnh sát (cấp trên làm việc này)","викликати поліцію (це робить керівник)","ፖሊስ ጸውዕ (ሓላፊ እያ እተገብሮ)"],"t6":["إحضار شهود وتذكّر شكل العميل","gọi người làm chứng, ghi nhớ khách","залучити свідків, запам’ятати клієнта","ምስክራት ጸውዕ፣ ንዓሚል ዘክር"],"vd_p":["تُصادَر العملة المزيفة دون تعويض. من يمرّر عملة مزيفة عن علم يُعاقَب. العملات المعدنية: لا يجب على أحد قبول أكثر من 50 قطعة معدنية في الدفعة الواحدة.","Tiền giả bị thu giữ mà không được đền bù. Ai cố ý đưa tiền giả cho người khác là phạm pháp. Tiền xu: Không ai bắt buộc phải nhận quá 50 đồng xu trong một lần thanh toán.","Фальшиві гроші (Falschgeld) вилучають без компенсації. Хто свідомо передає фальшиві гроші, той карається законом. Монети: ніхто не зобов’язаний приймати за одну оплату більше 50 монет.","ሓሶት ገንዘብ (Falschgeld) ብዘይ ካሕሳ ይውሰድ። ሓሶት ገንዘብ ብፍላጥ ዘሕልፍ ሰብ ብሕጊ ይጸየፍ። ሳንቲም፡ ኣብ ሓንቲ ክፍሊት ካብ 50 ሳንቲም ንላዕሊ ክቕበል ዝግደድ የልቦን።"],"merke_pruef":["تذكّر: أحيانًا يشعر العملاء أن فحص الأصالة دليل على عدم الثقة. اشرح بلطف: „نفعل هذا مع جميع العملاء، وهذا لا علاقة له بكم.“","Ghi nhớ: Đôi khi khách hàng thấy việc kiểm tra tiền thật là sự thiếu tin tưởng. Hãy giải thích thân thiện: „Chúng tôi làm vậy với tất cả khách hàng, việc này không liên quan đến quý khách.“","Запам’ятай: клієнти іноді сприймають перевірку справжності як недовіру. Поясни привітно: „Ми так робимо з усіма клієнтами, це не стосується Вас особисто.“","ዘክር፡ ዓማዊል ምርምራ ሓቀኛነት ሓደ ሓደ ጊዜ ከም ዘይምትእምማን ይሰምዖም። ብርህራሄ ግለጽ፡ „ነዚ ንኹሎም ዓማዊል ንገብሮ፣ ምሳኻ ዝተሓሓዘ ኣይኰነን።“"],"a3_h":["المهمة 3 · مثال محلول: الاشتباه في عملة مزيفة","Bài 3 · Làm mẫu: Nghi ngờ có tiền giả","Завдання 3 · Приклад: підозра на фальшиві гроші","ዕዮ 3 · ኣብነት፡ ጥርጣረ ሓሶት ገንዘብ"],"a3_p":["هكذا تتعامل مع مهمة امتحان. اقرأ الخطوات جيدًا، فستحتاجها بعد قليل.","Bạn làm một bài thi như thế này. Hãy đọc kỹ các bước, lát nữa bạn sẽ cần.","Так діють у завданні на іспиті. Уважно прочитай кроки, вони скоро знадобляться.","ኣብ ሕቶ ፈተና ከምዚ ትሰርሕ። ስጉምታት ብጽቡቕ ኣንብብ፣ ሎሚ የድልዩኻ።"],"wk0":["المهمة: أثناء فحص ورقة نقدية تشكّون في أنها مزيفة. اذكروا 3 إجراءات تتخذونها الآن! (3 نقاط)","Đề bài: Khi kiểm tra một tờ tiền, bạn nghi ngờ đó là tiền giả. Hãy nêu 3 biện pháp bạn thực hiện ngay bây giờ! (3 điểm)","Завдання: Перевіряючи банкноту, Ви підозрюєте фальшиві гроші. Назвіть 3 заходи, які Ви тепер вживаєте! (3 бали)","እቲ ሕቶ፡ ወረቐት ገንዘብ ክትምርምሩ ከለኹም ሓሶት ገንዘብ ትጠርጥሩ። ሕጂ ክትወስዱ ዝግብኣኩም 3 ስጉምታት ጥቐሱ! (3 ነጥቢ)"],"wk1":["1. الفعل والعدد: „اذكر“ (Geben Sie an) = كلمات مفتاحية قصيرة، 3 إجراءات.","1. Động từ yêu cầu và số lượng: „Hãy nêu“ (Geben Sie an) = từ khóa ngắn, 3 biện pháp.","1. Оператор і число: „Назвіть“ = коротко, ключовими словами, 3 заходи.","1. ኦፐሬተርን ቁጽርን፡ „ጥቐስ“ = ሓጺር ቃላት፣ 3 ስጉምታት።"],"wk2":["2. فكّر في الترتيب: ماذا أفعل فورًا؟ من أستدعي؟ ماذا يحدث للورقة النقدية؟","2. Nghĩ về thứ tự: Tôi làm gì ngay? Tôi gọi ai? Tờ tiền sẽ ra sao?","2. Подумай про послідовність: що я роблю одразу? Кого я кличу? Що буде з банкнотою?","2. ተርታ ሕሰብ፡ ቀዳም እንታይ እገብር? ንመን እጽውዕ? ንወረቐት ገንዘብ እንታይ ይኸውን?"],"wk3":["3. الكتابة: إبلاغ المسؤول · الاحتفاظ بالورقة النقدية · طلب الانتظار من العميل","3. Viết ra: Báo cấp trên · giữ lại tờ tiền · đề nghị khách chờ","3. Записати: повідомити керівника · залишити банкноту у себе · попросити клієнта зачекати","3. ጽሓፍ፡ ንሓላፊ ምሕባር · ወረቐት ገንዘብ ምሕዳግ · ንዓሚል ከተጽበ ምሕታት"],"wk4":["4. التحقق: هل لا يوجد شيء ممنوع (إمساك العميل، اتهامه)؟ هل هناك ثلاثة إجراءات مختلفة؟ إذن تحصل على 3 نقاط.","4. Kiểm tra: Có việc nào bị cấm không (giữ khách, buộc tội)? Có ba biện pháp khác nhau không? Vậy là được 3 điểm.","4. Перевірити: нічого забороненого (утримувати, звинувачувати)? Три різні заходи? Тоді буде 3 бали.","4. ርኣይ፡ ዝተኸልከለ ነገር የለን ድዩ (ምሕዝ፣ ምኽሳስ)? ሰለስተ ዝተፈላለዩ ስጉምታት ድዮም? እንተኾነ 3 ነጥቢ ይረክብ።"],"a4_h":["المهمة 4 · تمرين موجَّه","Bài 4 · Luyện tập có hướng dẫn","Завдання 4 · Вправа з підказками","ዕዮ 4 · ብመምርሒ ልምምድ"],"a4_p":["4.1 لمس أم نظر أم إمالة؟ صنّف.","4.1 Sờ, Nhìn hay Nghiêng? Hãy ghép cho đúng.","4.1 Торкатися, Дивитися чи Нахиляти? Зістав.","4.1 ምትንካፍ፣ ምርኣይ ወይ ምጥዋይ? ኣዛምድ።"],"a5_h":["المهمة 5 · اختبار الامتحان","Bài 5 · Kiểm tra kiểu thi","Завдання 5 · Перевірка до іспиту, 12 балів · приблизно 12 хвилин","ዕዮ 5 · ምርግጋጽ ፈተና 12 ነጥቢ · ክሳብ 12 ደቒቕ"],"pts12":["12 نقطة · حوالي 12 دقيقة","12 điểm · khoảng 12 phút","12 балів · приблизно 12 хвилин","12 ነጥቢ · ክሳብ 12 ደቒቕ"],"a5_sit":["الموقف: أنتم تعملون على الصندوق وتستلمون كل يوم أوراقًا نقدية.","Tình huống: Bạn làm việc ở quầy thu ngân và mỗi ngày nhận tiền giấy.","Ситуація: Ви працюєте на касі й щодня приймаєте банкноти.","ኩነታት፡ ኣብ ካሳ ትሰርሑ፣ ብመዓልቲ ወረቐት ገንዘብ ትቕበሉ።"],"a6p_h":["المهمة 6 · للمحترفين","Bài 6 · Dành cho người giỏi","Завдання 6 · Для знавців","ዕዮ 6 · ንብዙሕ ዝፈልጡ"],"a6p_p":["للتفكير أكثر – بجمل كاملة ومع التعليل.","Để suy nghĩ sâu hơn – viết câu đầy đủ, có giải thích lý do.","Для роздумів – повними реченнями, з поясненням.","ንዝያዳ ሓሳብ – ብምሉእ ዓረፍተ ነገር፣ ምስ ምኽንያት።"],"a1_1.q":["1.1 اذكر ثلاثة أعمال تحضيرية قبل المحاسبة على الصندوق.","1.1 Nêu ba việc chuẩn bị trước khi thu tiền ở quầy.","1.1 Назви три підготовчі дії перед розрахунком на касі (Kassieren).","1.1 ሰለስተ ናይ ቅድሚ ምኽፋል ካሳ (Kassieren) ዕዮታት ጥቐስ።"],"a1_1.h0":["فكّر في البداية قبل فتح المتجر.","Hãy nghĩ đến lúc bắt đầu, trước khi cửa hàng mở cửa.","Подумай про початок роботи, до відкриття магазину.","ብዛዕባ መጀመርታ ቅድሚ ምኽፋት ድኳን ሕሰብ።"],"a1_1.h1":["الصندوق، النقود، لفة الإيصالات، الماسح الضوئي …","Máy tính tiền, tiền, cuộn giấy hóa đơn, máy quét …","Каса, гроші, чекова стрічка, сканер …","ካሳ፣ ገንዘብ፣ ሮል ደረሰኝ፣ ስካነር …"],"a1_1.s":["مثلًا: تسجيل الدخول إلى الصندوق، عدّ الفكة، فحص لفة الإيصالات، تجربة الماسح الضوئي.","Ví dụ: đăng nhập máy tính tiền, đếm tiền lẻ, kiểm tra cuộn giấy hóa đơn, thử máy quét.","напр. увійти в касу, порахувати дрібні гроші для решти, перевірити чекову стрічку, протестувати сканер.","ንኣብነት፡ ካሳ ምኽፋት፣ ናይ ምልውዋጥ ገንዘብ ምቝጻር፣ ሮል ደረሰኝ ምርግጋጽ፣ ስካነር ምፍታን።"],"a1_2.q":["1.2 متى تضع ورقة العميل النقدية في الصندوق؟","1.2 Khi nào bạn bỏ tờ tiền của khách vào ngăn kéo?","1.2 Коли ти кладеш банкноту клієнта в касу?","1.2 ወረቐት ገንዘብ ናይ ዓሚል መዓስ ኣብ ካሳ ተእትዎ?"],"a1_2.h0":["فكّر في الخلاف: يقول العميل لاحقًا „لقد أعطيتك ورقة أكبر!“","Hãy nghĩ đến tranh cãi: Sau đó khách nói „Tôi đã đưa tờ tiền mệnh giá lớn hơn!“","Подумай про суперечку: клієнт пізніше каже „Я давав більшу купюру!“","ብዛዕባ ጎነጽ ሕሰብ፡ ዓሚል ድሕሪኡ „ዝዓቢ ወረቐት ሂበ!“ ይብል።"],"a1_2.h1":["ماذا يجب أن يكون قد حدث قبل ذلك؟","Trước đó phải xảy ra điều gì?","Що має статися перед цим?","ቅድሚኡ እንታይ ክኸውን ኣለዎ?"],"a1_2.s":["فقط بعد إعطاء الباقي (Rückgeld).","Chỉ sau khi đã trả tiền thối (Rückgeld).","Лише після того, як решту (Rückgeld) видано.","ተመላሲ ገንዘብ (Rückgeld) ድሕሪ ዝወሃብ ጥራይ።"],"a1_3.q":["1.3 تبلغ تكلفة المشتريات 13,40 €، والعميل يعطي 20 €. كم الباقي (Rückgeld)؟","1.3 Hóa đơn là 13,40 €, khách đưa 20 €. Tiền thối (Rückgeld) là bao nhiêu?","1.3 Покупка коштує 13,40 €, клієнт дає 20 €. Скільки решти?","1.3 ዕዳጋ 13,40 € ዋጋ ኣለዎ፣ ዓሚል 20 € ይህብ። ክንደይ ተመላሲ ገንዘብ?"],"a1_3.h0":["احسب: المبلغ المعطى ناقص السعر.","Tính: số tiền đưa trừ giá tiền.","Рахуй: дано мінус ціна.","ሕሰብ፡ ዝተዋህበ ሲቀነስ ዋጋ።"],"a1_3.h1":["احسب 20,00 € − 13,40 €.","Hãy tính 20,00 € − 13,40 €.","Порахуй 20,00 € − 13,40 €.","20,00 € − 13,40 € ሕሰብ።"],"a1_3.s":["20,00 € − 13,40 € = 6,60 € باقٍ.","20,00 € − 13,40 € = 6,60 € tiền thối.","20,00 € − 13,40 € = 6,60 € решти.","20,00 € − 13,40 € = 6,60 € ተመላሲ ገንዘብ።"],"a2_1.q":["اللمس: ماذا لاحظتم؟","Sờ: Các bạn nhận thấy gì?","Торкатися: що ви помітили?","ምትንካፍ፡ እንታይ ርኢኹም?"],"a2_1.h0":["أمسك الورقة النقدية بيدك وأغمض عينيك.","Cầm tờ tiền trong tay và nhắm mắt lại.","Візьми банкноту в руку і заплющ очі.","ወረቐት ገንዘብ ብኢድካ ሓዝ፣ ኣዒንትኻ ዕጾ።"],"a2_1.h1":["كيف يبدو الورق عند اللمس؟ ماذا تشعر عند الكتابة والحواف؟","Giấy có cảm giác thế nào? Bạn cảm nhận gì ở chữ và mép giấy?","Який на дотик папір? Що ти відчуваєш на шрифті та краях?","ወረቐት ብኸመይ ይስምዕ? ኣብ ጽሑፍን ጫፍን እንታይ ይስምዐካ?"],"a2_1.s":["ورق قطني متين وخشن الملمس؛ الكتابة والحواف يمكن تحسسها (نقش بارز Relief).","Giấy bông dày, chắc tay; chữ và mép giấy sờ thấy được (chữ nổi, Relief).","Щільний, шорсткуватий бавовняний папір; шрифт і краї відчутні на дотик (рельєф, Relief).","ጽኑዕ ጭንቁር ወረቐት ካብ ጥጥ፤ ጽሑፍን ጫፍን ብምትንካፍ ይስምዑ (Relief፣ ልዕል ዝበለ)።"],"a2_2.q":["النظر (ضد الضوء): ماذا لاحظتم؟","Nhìn (soi dưới ánh sáng): Các bạn nhận thấy gì?","Дивитися (проти світла): що ви помітили?","ምርኣይ (ኣንጻር ብርሃን)፡ እንታይ ርኢኹም?"],"a2_2.h0":["ارفع الورقة النقدية ضد الضوء.","Giơ tờ tiền lên soi dưới ánh sáng.","Потримай банкноту проти світла.","ወረቐት ገንዘብ ኣንጻር ብርሃን ሓዝ።"],"a2_2.h1":["ماذا يظهر؟ ما الذي يمتد كشريط عبر الورقة؟","Cái gì hiện ra? Cái gì chạy thành một vệt dài xuyên qua tờ tiền?","Що з’являється? Що проходить крізь банкноту як смужка?","እንታይ ይረአ? ከም መስመር ኣብ ወረቐት እንታይ ይሓልፍ?"],"a2_2.s":["علامة مائية بصورة شخصية، خيط الأمان (شريط داكن)، نافذة الصورة.","Hình mờ chân dung, sợi an ninh (vệt tối), cửa sổ chân dung.","Водяний знак-портрет, захисна нитка (темна смужка), вікно з портретом.","ምልክት ማይ ናይ ስእሊ ገጽ፣ ክሊ ድሕነት (ጸላም መስመር)፣ መስኮት ስእሊ ገጽ።"],"a2_3.q":["الإمالة: ماذا لاحظتم؟","Nghiêng: Các bạn nhận thấy gì?","Нахиляти: що ви помітили?","ምጥዋይ፡ እንታይ ርኢኹም?"],"a2_3.h0":["أمِل الورقة النقدية يمينًا ويسارًا.","Nghiêng tờ tiền qua lại.","Нахиляй банкноту туди й сюди.","ወረቐት ገንዘብ ናብዚን ናብቲን ጥው ግበሮ።"],"a2_3.h1":["ماذا يتغير على الشريط الفضي وعند الرقم؟","Điều gì thay đổi trên dải bạc và ở con số?","Що змінюється на срібній смужці та біля цифри?","ኣብ ብሩር መስመርን ኣብ ቁጽርን እንታይ ይቕየር?"],"a2_3.s":["هولوغرام مع الرقم والرمز € والصورة الشخصية؛ رقم الزمرد يغيّر لونه (من الأخضر إلى الأزرق).","Hình ba chiều với số mệnh giá, ký hiệu € và chân dung; số màu ngọc lục bảo đổi màu (từ xanh lá sang xanh dương).","Голограма з цифрою номіналу, символом € і портретом; смарагдове число змінює колір (із зеленого на синій).","ሆሎግራም ምስ ቁጽሪ ዋጋ፣ ምልክት € ከምኡውን ስእሊ ገጽ፤ ቁጽሪ ኣመራልድ ሕብሪ ይቕይር (ካብ ቆጽሊ ናብ ሰማያዊ)።"],"a4_1.q":["السمة 1: الورق متين وخشن الملمس، وليس أملس مثل ورق التصوير. – الفحص عن طريق …؟","Dấu hiệu 1: Giấy dày và chắc tay, không trơn như giấy photo. – Kiểm tra bằng cách …?","Ознака 1: Папір щільний і шорсткуватий, не гладенький, як папір для копіювання. – Перевіряють за допомогою …?","ምልክት 1፡ ወረቐት ጽኑዕን ጭንቁርን እዩ ይስምዕ፣ ከም ወረቐት ኮፒ ለስሊሱ ኣይኰነን። – ብኸመይ ይምርመር …?"],"a4_1.h0":["أي حاسة تحتاجها لذلك؟","Bạn cần giác quan nào cho việc này?","Яке чуття тобі для цього потрібне?","ንዚ እንታይ ስምዒት የድልየካ?"],"a4_1.h1":["تشعر به بأصابعك.","Bạn cảm nhận bằng ngón tay.","Ти відчуваєш це пальцями.","ብኣጻብዕትኻ ትስምዖ።"],"a4_1.s":["اللمس (Fühlen).","Sờ (Fühlen).","Торкатися (Fühlen).","ምትንካፍ (Fühlen)።"],"a4_2.q":["السمة 2: الكتابة والحواف بارزة ويمكن تحسسها (نقش Relief). – الفحص عن طريق …؟","Dấu hiệu 2: Chữ và mép giấy nổi lên, sờ được (Relief). – Kiểm tra bằng cách …?","Ознака 2: Шрифт і краї відчутні на дотик, рельєфні (Relief). – Перевіряють за допомогою …?","ምልክት 2፡ ጽሑፍን ጫፍን ብምትንካፍ ልዕል ዝበለ እዩ (Relief)። – ብኸመይ ይምርመር …?"],"a4_2.h0":["كلمة „يمكن تحسسها“ (ertastbar) تدلك على الإجابة.","Từ „sờ được“ (ertastbar) đã cho bạn đáp án.","Слово „відчутні на дотик“ підказує відповідь.","እታ ቃል „ብምትንካፍ“ ትነግረካ።"],"a4_2.h1":["تشعر به بأصابعك.","Bạn cảm nhận bằng ngón tay.","Ти відчуваєш це пальцями.","ብኣጻብዕትኻ ትስምዖ።"],"a4_2.s":["اللمس (Fühlen).","Sờ (Fühlen).","Торкатися (Fühlen).","ምትንካፍ (Fühlen)።"],"a4_3.q":["السمة 3: عند رفع الورقة النقدية ضد الضوء تظهر صورة شخصية كعلامة مائية. – الفحص عن طريق …؟","Dấu hiệu 3: Khi giơ tờ tiền lên soi dưới ánh sáng, hiện ra một chân dung dạng hình mờ. – Kiểm tra bằng cách …?","Ознака 3: Якщо тримати банкноту проти світла, з’являється портрет як водяний знак. – Перевіряють за допомогою …?","ምልክት 3፡ ወረቐት ኣንጻር ብርሃን ምስ ተታሕዝ፣ ስእሊ ገጽ ከም ምልክት ማይ ይረአ። – ብኸመይ ይምርመር …?"],"a4_3.h0":["أين تضع الورقة النقدية؟","Bạn giơ tờ tiền ra đâu?","Куди ти тримаєш банкноту?","ወረቐት ናበይ ትሕዞ?"],"a4_3.h1":["تنظر من خلال الورقة.","Bạn nhìn xuyên qua tờ tiền.","Ти дивишся крізь банкноту.","ብወረቐት ተመልከት።"],"a4_3.s":["النظر (ضد الضوء) (Sehen).","Nhìn (soi dưới ánh sáng) (Sehen).","Дивитися (проти світла, Sehen).","ምርኣይ (ኣንጻር ብርሃን፣ Sehen)።"],"a4_4.q":["السمة 4: ضد الضوء يُرى شريط داكن عليه „€“ والقيمة. – الفحص عن طريق …؟","Dấu hiệu 4: Dưới ánh sáng thấy một vệt tối có „€“ và mệnh giá. – Kiểm tra bằng cách …?","Ознака 4: Проти світла видно темну смужку з „€“ і номіналом. – Перевіряють за допомогою …?","ምልክት 4፡ ኣንጻር ብርሃን ጸላም መስመር ምስ „€“ን ዋጋን ይረአ። – ብኸመይ ይምርመር …?"],"a4_4.h0":["انتبه إلى عبارة „ضد الضوء“.","Chú ý cụm từ „dưới ánh sáng“.","Зверни увагу на слова „проти світла“.","ንቃላት „ኣንጻር ብርሃን“ ኣስተውዕል።"],"a4_4.h1":["تنظر من خلال الورقة.","Bạn nhìn xuyên qua tờ tiền.","Ти дивишся крізь банкноту.","ብወረቐት ተመልከት።"],"a4_4.s":["النظر (ضد الضوء) (Sehen).","Nhìn (soi dưới ánh sáng) (Sehen).","Дивитися (проти світла, Sehen).","ምርኣይ (ኣንጻር ብርሃን፣ Sehen)።"],"a4_5.q":["السمة 5: يتغير لون الرقم أسفل اليسار من الأخضر الزمردي إلى الأزرق الداكن. – الفحص عن طريق …؟","Dấu hiệu 5: Số mệnh giá ở phía dưới bên trái đổi màu từ xanh ngọc lục bảo sang xanh dương đậm. – Kiểm tra bằng cách …?","Ознака 5: Цифра номіналу внизу ліворуч змінює колір зі смарагдово-зеленого на темно-синій. – Перевіряють за допомогою …?","ምልክት 5፡ ቁጽሪ ዋጋ ታሕቲ ጸጋም ሕብሪ ካብ ኣመራልድ ቆጽሊ ናብ ጽሩይ ሰማያዊ ይቕይር። – ብኸመይ ይምርመር …?"],"a4_5.h0":["متى يتغير اللون؟","Khi nào màu thay đổi?","Коли змінюється колір?","ሕብሪ መዓስ ይቕየር?"],"a4_5.h1":["تحرّك الورقة النقدية يمينًا ويسارًا.","Bạn di chuyển tờ tiền qua lại.","Ти рухаєш банкноту туди й сюди.","ወረቐት ናብዚን ናብቲን ተንቀሳቕስ።"],"a4_5.s":["الإمالة (Kippen).","Nghiêng (Kippen).","Нахиляти (Kippen).","ምጥዋይ (Kippen)።"],"a4_6.q":["السمة 6: على الشريط الفضي تظهر القيمة والرمز € وصورة شخصية. – الفحص عن طريق …؟","Dấu hiệu 6: Trên dải bạc hiện ra số mệnh giá, ký hiệu € và một chân dung. – Kiểm tra bằng cách …?","Ознака 6: На срібній смужці з’являються цифра номіналу, символ € і портрет. – Перевіряють за допомогою …?","ምልክት 6፡ ኣብ ብሩር መስመር ቁጽሪ ዋጋ፣ ምልክት € ከምኡውን ስእሊ ገጽ ይርአ። – ብኸመይ ይምርመር …?"],"a4_6.h0":["الهولوغرام لا يظهر دائمًا بنفس الشكل.","Hình ba chiều không phải lúc nào cũng hiện giống nhau.","Голограма виглядає не завжди однаково.","ሆሎግራም ኩሉ ጊዜ ብዘይ ሓደ ኣይርአን።"],"a4_6.h1":["تحرّك الورقة النقدية يمينًا ويسارًا.","Bạn di chuyển tờ tiền qua lại.","Ти рухаєш банкноту туди й сюди.","ወረቐት ናብዚን ናብቲን ተንቀሳቕስ።"],"a4_6.s":["الإمالة (Kippen).","Nghiêng (Kippen).","Нахиляти (Kippen).","ምጥዋይ (Kippen)።"],"a4_7.q":["4.2 استلمتم ورقة نقدية مزيفة من فئة 50 €. أي عبارتين تصفان التصرف الصحيح؟ اكتبوا الرقمين. 1 تستدعون المسؤول أو مشرف الصندوق. 2 تُرجعون الورقة النقدية وتطلبون ورقة حقيقية. 3 تبقون هادئين ومهذبين. 4 تُمسكون العميل حتى تصل الشرطة. 5 تقولون للعميل بصوت عالٍ إنه يستخدم عملة مزيفة.","4.2 Bạn nhận một tờ 50 € giả. Hai câu nào mô tả cách xử lý đúng? Viết số của hai câu. 1 Bạn gọi cấp trên hoặc người giám sát quầy thu ngân. 2 Bạn trả lại tờ tiền và yêu cầu tờ thật. 3 Bạn giữ bình tĩnh và lịch sự. 4 Bạn giữ khách lại cho đến khi cảnh sát đến. 5 Bạn nói to với khách rằng họ dùng tiền giả.","4.2 Ви отримали фальшиву банкноту в 50 €. Які 2 твердження описують правильну поведінку? Запиши номери. 1 Ви кличете керівника або касового наглядача. 2 Ви повертаєте банкноту і вимагаєте справжню. 3 Ви залишаєтеся спокійним і ввічливим. 4 Ви утримуєте клієнта, поки не приїде поліція. 5 Ви голосно кажете клієнтові, що він користується фальшивими грошима.","4.2 ሓሶት ናይ 50 € ወረቐት ገንዘብ ተቐቢልኩም። ኣየኖት 2 ሓሳባት ቅኑዕ ግብሪ ይገልጹ? ቁጽርታት ጽሓፉ። 1 ንሓላፊ ወይ ንተቖጻጻሪ ካሳ ትጽውዑ። 2 ወረቐት ገንዘብ ትመልሱን ሓቀኛ ትሓቱን። 3 ህዱእን ትሑትን ትኾኑ። 4 ክሳብ ፖሊስ ዝመጽእ ንዓሚል ትሕዙ። 5 ንዓሚል ብዓውታ „ሓሶት ገንዘብ ትጥቀም ኣሎኻ“ ትብሉ።"],"a4_7.h0":["اقرأ المربعين „ما تفعله“ و„ما لا تفعله“.","Đọc hai khung „Việc bạn làm“ và „Việc bạn không làm“.","Прочитай у рамці „Ти робиш так“ і „Ти так не робиш“.","ኣብ ሳጹን „እዚ ትገብር“ን „እዚ ኣይትገብርን“ ኣንብብ።"],"a4_7.h1":["الإرجاع والإمساك والاتهام بصوت عالٍ موجودة تحت „ما لا تفعله“.","Trả lại, giữ khách và buộc tội to tiếng nằm trong khung „Việc bạn không làm“.","Повернути, утримувати і голосно звинувачувати стоїть у розділі „Ти так не робиш“.","ምምላስ፣ ምሕዝን ብዓውታ ምኽሳስን ኣብ „እዚ ኣይትገብርን“ ኣሎ።"],"a4_7.s":["الصحيح هو 1 و3. لا تُرجَع الورقة النقدية، ولا يُمسَك العميل، ولا يُتَّهم بصوت عالٍ.","Đúng là 1 và 3. Không trả lại tờ tiền, không giữ khách lại và không buộc tội to tiếng.","Правильні 1 і 3. Банкноту не повертають, клієнта не утримують і не звинувачують голосно.","ቅኑዓት 1ን 3ን እዮም። ወረቐት ገንዘብ ኣይትመልስን፣ ንዓሚል ኣይትሕዝን ብዓውታ ኣይትኸስሰን።"],"a4_8.q":["4.3 يريد عميل دفع فاتورة بقيمة 24,80 € بـ 90 قطعة معدنية. هل يجب أن تقبلوا ذلك؟ أجب بالكلام المباشر.","4.3 Một khách muốn trả hóa đơn 24,80 € bằng 90 đồng xu. Bạn có phải nhận không? Trả lời bằng lời nói trực tiếp.","4.3 Клієнт хоче сплатити рахунок на 24,80 € дев’ятдесятьма монетами. Чи мусите Ви це прийняти? Дайте відповідь прямою мовою.","4.3 ዓሚል ሕሳብ 24,80 € ብ90 ሳንቲም ክኸፍል ይደሊ። ክትቅበልዎ ግዴታ ዲኹም? ብቀጥታ ዘረባ መልሱ።"],"a4_8.h0":["كم قطعة معدنية يجب قبولها كحد أقصى؟","Tối đa phải nhận bao nhiêu đồng xu?","Скільки монет максимум треба приймати?","ክሳብ ክንደይ ሳንቲም ክቕበል ይግብእ?"],"a4_8.h1":["أجب بأدب، مع علامات اقتباس، واقترح طريقة دفع أخرى.","Trả lời lịch sự, dùng dấu ngoặc kép và đề nghị cách thanh toán khác.","Відповідай ввічливо, в лапках, і запропонуй інший спосіб оплати.","ብትሕትና መልስ፣ ኣብ ውሽጢ ምልክት ጽሑፍ፣ ካልእ ኣገባብ ክፍሊት ሃብ።"],"a4_8.s":["„أنا آسف، لا يمكنني قبول أكثر من 50 قطعة معدنية في الدفعة الواحدة. هل لديكم ورقة نقدية أو بطاقة؟“ (لكن يجوز قبول المزيد طوعًا.)","„Tôi xin lỗi, mỗi lần thanh toán tôi chỉ được nhận tối đa 50 đồng xu. Quý khách có tờ tiền giấy hay thẻ không ạ?“ (Nhưng có thể tự nguyện nhận nhiều hơn.)","„Мені шкода, за одну оплату я можу прийняти щонайбільше 50 монет. Може, у Вас є банкнота або картка?“ (Але добровільно можна прийняти й більше.)","„ይቕረታ፣ ኣብ ሓንቲ ክፍሊት ክሳብ 50 ሳንቲም ጥራይ ክቕበል እኽእል። ምናልባት ወረቐት ገንዘብ ወይ ካርድ ኣለኩም?“ (ብፍቓድ ግን ዝያዳ ምቕባል ይከኣል።)"],"a5_1.q":["5.1 لا يزال كثير من العملاء يدفعون نقدًا. اذكروا سببين لذلك! (نقطتان)","5.1 Nhiều khách vẫn trả tiền mặt. Nêu 2 lý do cho việc đó! (2 điểm)","5.1 Багато клієнтів і далі платять готівкою. Назвіть 2 причини цього! (2 бали)","5.1 ብዙሓት ዓማዊል ገና ብጥረ ገንዘብ ይኸፍሉ። 2 ምኽንያታት ጥቐሱ! (2 ነጥቢ)"],"a5_1.h0":["فكّر في العملاء على صندوقك: لماذا يُخرجون الأوراق النقدية؟","Hãy nghĩ đến khách ở quầy của bạn: Vì sao họ lấy tiền giấy ra?","Подумай про клієнтів на твоїй касі: чому вони дістають банкноти?","ብዛዕባ ዓማዊል ኣብ ካሳኻ ሕሰብ፡ ንምንታይ ወረቐት ገንዘብ የውጽኡ?"],"a5_1.h1":["الأمر يتعلق بالعادة، ومتابعة المصروفات، وحماية البيانات، والتقنية …","Đó là thói quen, kiểm soát chi tiêu, bảo vệ dữ liệu, công nghệ …","Йдеться про звичку, огляд витрат, захист даних, техніку …","ልምዲ፣ ምቍጽጻር ወጻኢ፣ ሓለዋ ሓበሬታ፣ ቴክኖሎጂ …"],"a5_1.s":["نقطة لكل سبب، مثلًا: العادة، متابعة المصروفات، عدم تخزين البيانات، عدم الثقة بالتقنية، صعوبة تذكّر الرقم السري (PIN).","Mỗi lý do 1 điểm, ví dụ: thói quen, kiểm soát chi tiêu, không lưu dữ liệu, không tin công nghệ, khó nhớ mã PIN.","По 1 балу, напр. звичка, огляд витрат, дані не зберігаються, недовіра до техніки, важко запам’ятати PIN-код.","ነናብ 1 ነጥቢ፣ ንኣብነት ልምዲ፣ ምቍጽጻር ወጻኢ፣ ሓበሬታ ኣይእቶን፣ ንቴክኖሎጂ ዘይምትእምማን፣ PIN ንምዝካር ከቢድ።"],"a5_2.q":["5.2 ما السمات الأمنية الأربع لأوراق اليورو النقدية؟ (4 نقاط)","5.2 Tiền giấy Euro có 4 dấu hiệu an ninh nào? (4 điểm)","5.2 Які 4 ознаки захисту мають банкноти євро? (4 бали)","5.2 ኣየኖት 4 ምልክታት ድሕነት ኣለዋ ወረቐት ገንዘብ ዩሮ? (4 ነጥቢ)"],"a5_2.h0":["فكّر في اللمس – النظر – الإمالة.","Hãy nghĩ đến Sờ – Nhìn – Nghiêng.","Подумай про Торкатися – Дивитися – Нахиляти.","ብዛዕባ ምትንካፍ – ምርኣይ – ምጥዋይ ሕሰብ።"],"a5_2.h1":["عند اللمس: الورق، النقش البارز. عند النظر: العلامة المائية، الخيط، النافذة. عند الإمالة: الهولوغرام، رقم الزمرد.","Khi sờ: giấy, chữ nổi. Khi nhìn: hình mờ, sợi, cửa sổ. Khi nghiêng: hình ba chiều, số ngọc lục bảo.","Торкатися: папір, рельєф. Дивитися: водяний знак, нитка, вікно. Нахиляти: голограма, смарагдове число.","ምትንካፍ፡ ወረቐት፣ Relief። ምርኣይ፡ ምልክት ማይ፣ ክሊ፣ መስኮት። ምጥዋይ፡ ሆሎግራም፣ ቁጽሪ ኣመራልድ።"],"a5_2.s":["نقطة لكل سمة، مثلًا: ورق قطني، نقش بارز (Relief)، خيط الأمان (Sicherheitsfaden)، علامة مائية بصورة شخصية، هولوغرام بصورة شخصية، نافذة الصورة، رقم الزمرد (Smaragdzahl).","Mỗi dấu hiệu 1 điểm, ví dụ: giấy bông, chữ nổi (Relief), sợi an ninh (Sicherheitsfaden), hình mờ chân dung, hình ba chiều chân dung, cửa sổ chân dung, số màu ngọc lục bảo (Smaragdzahl).","По 1 балу, напр. бавовняний папір, рельєф, захисна нитка, водяний знак-портрет, голограма з портретом, вікно з портретом, смарагдове число.","ነናብ 1 ነጥቢ፣ ንኣብነት ወረቐት ጥጥ፣ Relief፣ ክሊ ድሕነት፣ ምልክት ማይ ስእሊ ገጽ፣ ሆሎግራም ስእሊ ገጽ፣ መስኮት ስእሊ ገጽ፣ ቁጽሪ ኣመራልድ።"],"a5_3.q":["5.3 بأي وسيلة تقنية يمكن فحص أصالة ورقة نقدية؟ اذكروا وسيلة واحدة! (نقطة واحدة)","5.3 Dùng dụng cụ kỹ thuật nào để kiểm tra tiền thật? Nêu một dụng cụ! (1 điểm)","5.3 Чим можна технічно перевірити, чи банкнота справжня? Назвіть один допоміжний засіб! (1 бал)","5.3 ወረቐት ገንዘብ ሓቀኛ ምዃኑ ብቴክኒክ ብምንታይ ይምርመር? ሓደ ደገፍ ጥቐስ! (1 ነጥቢ)"],"a5_3.h0":["في المربع التذكيري ثلاث وسائل مساعدة.","Trong khung ghi nhớ có ba dụng cụ hỗ trợ.","У пам’ятці є три допоміжні засоби.","ኣብ ሳጹን ዘክር ሰለስተ ደገፍቲ ኣለዉ።"],"a5_3.h1":["قلم، ومصباح، وجهاز إلكتروني.","Một cây bút, một cái đèn và một thiết bị điện tử.","Ручка, лампа та електронний прилад.","ስቲፎ፣ መብራህቲ ከምኡውን ኤለክትሮኒክ መሳርሒ።"],"a5_3.s":["قلم الفحص (Prüfstift) أو مصباح الأشعة فوق البنفسجية أو جهاز الفحص (Prüfgerät). قلم الفحص يفحص الورق فقط.","Bút thử tiền (Prüfstift), đèn UV hoặc máy kiểm tra (điện tử) (Prüfgerät). Bút thử tiền chỉ kiểm tra giấy.","Детектор-ручка (Prüfstift), УФ-лампа або (електронний) прилад для перевірки (Prüfgerät). Детектор-ручка перевіряє тільки папір.","ስቲፎ መርመሪ (Prüfstift)፣ መብራህቲ UV ወይ (ኤለክትሮኒክ) መርመሪ መሳርሒ (Prüfgerät)። ስቲፎ መርመሪ ወረቐት ጥራይ የምርምር።"],"a5_4.q":["5.4 أنتم تفحصون ورقة نقدية من فئة 50 €. يقول العميل غاضبًا: „هذه وقاحة! أنا عميل دائم، ولا داعي لفحص ورقتي.“ صوغوا ردّكم بالكلام المباشر! (3 نقاط)","5.4 Bạn kiểm tra một tờ 50 €. Khách bực bội nói: „Thật là xúc phạm! Tôi là khách quen, các bạn không cần kiểm tra tiền của tôi.“ Hãy viết câu trả lời bằng lời nói trực tiếp! (3 điểm)","5.4 Ви перевіряєте банкноту в 50 €. Клієнт роздратовано каже: „Це нахабство! Я постійний клієнт, Ви не повинні перевіряти мою банкноту.“ Сформулюйте свою відповідь прямою мовою! (3 бали)","5.4 ወረቐት ገንዘብ ናይ 50 € ትምርምሩ። ዓሚል ተቖጢዑ ይብል፡ „እዚ ኣይኰነን ዝግባእ! ተዓሚል እየ፣ ወረቐት ገንዘበይ ክትምርምርዎ ኣየድልን።“ መልስኹም ብቀጥታ ዘረባ ጽሓፉ! (3 ነጥቢ)"],"a5_4.h0":["ابقَ لطيفًا. كيف تشرح أنك تفعل ذلك مع الجميع؟","Giữ thái độ thân thiện. Bạn giải thích thế nào rằng bạn làm vậy với mọi người?","Будь привітним. Як ти поясниш, що робиш так з кожним?","ብርህራሄ ኩን። ንኹሉ ከምኡ ከም እትገብር ብኸመይ ትገልጽ?"],"a5_4.h1":["قل إن الأمر لا علاقة له بشخصه، وإنه لن يستغرق سوى لحظة. ضع علامات اقتباس.","Hãy nói việc này không liên quan đến cá nhân họ và chỉ mất một chút thời gian. Dùng dấu ngoặc kép.","Скажи, що це не стосується особи, і що це забере лише мить. Постав лапки.","ምስ ሰብ ዝተሓሓዘ ከም ዘይኰነ ከምኡውን ሓጺር ግዜ ከም ዝወስድ ንገር። ምልክት ጽሑፍ ግበር።"],"a5_4.s":["„نفعل هذا مع جميع العملاء، وهذا لا علاقة له بكم. الأمر يستغرق لحظة فقط. شكرًا جزيلًا على تفهمكم.“","„Chúng tôi làm vậy với tất cả khách hàng, việc này không liên quan đến quý khách. Chỉ mất một chút thôi ạ. Cảm ơn quý khách đã thông cảm.“","„Ми так робимо з усіма клієнтами, це не стосується Вас особисто. Це займе лише мить. Дякую за розуміння.“","„ነዚ ንኹሎም ዓማዊል ንገብሮ፣ ምሳኻ ዝተሓሓዘ ኣይኰነን። ሓጺር ግዜ ጥራይ ይወስድ። ንምስትውዓል የቐንየልና።“"],"a5_5.q":["5.5 لدى عميلة أخرى تشكّون في أن ورقة نقدية مزورة. اذكروا سلوكين تتصرفون بهما بشكل مناسب! (نقطتان)","5.5 Ở một khách nữ khác, bạn nghi một tờ tiền bị làm giả. Nêu 2 cách ứng xử phù hợp! (2 điểm)","5.5 У іншої клієнтки Ви підозрюєте, що банкнота підроблена. Назвіть 2 способи поведінки, якими Ви доречно реагуєте! (2 бали)","5.5 ኣብ ካልኣይ ዓሚላ ወረቐት ገንዘብ ሓሶት ምዃኑ ትጠርጥሩ። ብግቡእ ዝምልሱሉ 2 ኣገባባት ጥቐሱ! (2 ነጥቢ)"],"a5_5.h0":["اقرأ المربع „ما تفعله“.","Đọc khung „Việc bạn làm“.","Прочитай у рамці „Ти робиш так“.","ኣብ ሳጹን „እዚ ትገብር“ ኣንብብ።"],"a5_5.h1":["من تستدعي؟ ماذا يحدث للورقة النقدية؟ كيف تتعامل مع العميلة؟","Bạn gọi ai? Tờ tiền sẽ ra sao? Bạn ứng xử với khách thế nào?","Кого ти кличеш? Що буде з банкнотою? Як ти поводишся з клієнткою?","ንመን ትጽውዕ? ንወረቐት ገንዘብ እንታይ ይኸውን? ምስ ዓሚላ ብኸመይ ትጸንሕ?"],"a5_5.s":["نقطة لكل سلوك، مثلًا: إبلاغ المسؤول، إبلاغ الشرطة، طلب الانتظار من العميلة، الاحتفاظ بالورقة النقدية، البقاء هادئًا ومهذبًا.","Mỗi cách 1 điểm, ví dụ: báo cấp trên, nhờ báo cảnh sát, đề nghị khách chờ, giữ lại tờ tiền, giữ bình tĩnh và lịch sự.","По 1 балу, напр. повідомити керівника, попросити викликати поліцію, попросити клієнтку зачекати, залишити банкноту у себе, залишатися спокійним і ввічливим.","ነናብ 1 ነጥቢ፣ ንኣብነት ንሓላፊ ምሕባር፣ ፖሊስ ክጽዋዕ ምግባር፣ ንዓሚላ ከተጽበ ምሕታት፣ ወረቐት ገንዘብ ምሕዳግ፣ ህዱእን ትሑትን ምዃን።"],"a6p_1.q":["6.1 النقد يسبب للتاجر تكاليف أيضًا. اشرحوا تكلفتين من هذا النوع وقارنوهما بتكاليف الدفع بالبطاقة.","6.1 Tiền mặt cũng gây ra chi phí cho người bán. Hãy giải thích hai chi phí như vậy và so sánh với chi phí của thanh toán bằng thẻ.","6.1 Готівка коштує грошей і торговцеві. Поясніть дві такі витрати і порівняйте їх із витратами на оплату карткою.","6.1 ጥረ ገንዘብ ንነጋዳይ’ውን ወጻኢ የስዕብ። ክልተ ከምዚ ዝኣምሰሉ ወጻኢታት ግለጹ ምስ ወጻኢ ክፍሊት ብካርድ ኣወዳድቡ።"],"a6p_1.h0":["فكّروا في العمل مع النقد: العد، والمحاسبة، والنقل إلى البنك.","Hãy nghĩ đến công việc với tiền mặt: đếm, quyết toán, mang đến ngân hàng.","Подумайте про роботу з готівкою: рахувати, підбивати підсумок, відвозити в банк.","ብዛዕባ ስራሕ ምስ ጥረ ገንዘብ ሕሰቡ፡ ምቝጻር፣ ምጽብጻብ፣ ናብ ባንክ ምውሳድ።"],"a6p_1.h1":["ماذا يكلّف الدفع بالبطاقة؟ وأين توفّر الشركة بذلك جهدًا ومخاطر؟","Thanh toán bằng thẻ tốn tiền ở đâu? Doanh nghiệp tiết kiệm được công sức và rủi ro ở đâu?","Що коштує грошей при оплаті карткою? Де підприємство натомість економить працю і ризик?","ክፍሊት ብካርድ እንታይ ይሓስር? ኣብ ክንዲ ደጊም ትካል ኣብ ስራሕን ሓደጋን እንታይ የዘንብ?"],"a6p_1.s":["مثلًا: العد والمحاسبة يكلّفان وقت عمل؛ النقل إلى البنك (شاحنة نقل الأموال) والتأمين يكلّفان مالًا؛ خطر العملة المزيفة والسرقة. الدفع بالبطاقة: رسوم على كل عملية دفع وعلى التقنية، لكن جهد ومخاطر أقل. أي طريقة أرخص يعتمد على قيمة المبلغ.","Ví dụ: đếm và quyết toán tốn thời gian làm việc; vận chuyển đến ngân hàng (xe chở tiền) và bảo hiểm tốn tiền; rủi ro tiền giả và trộm cắp. Thanh toán bằng thẻ: phí cho mỗi lần thanh toán và cho công nghệ, nhưng ít công việc và rủi ro hơn. Cách nào rẻ hơn phụ thuộc vào số tiền.","напр. Підрахунок і звіряння коштують робочого часу; перевезення в банк (інкасація) і страхування коштують грошей; ризик фальшивих грошей і крадіжки. Оплата карткою: комісія за кожну оплату і техніка, зате менше роботи й ризику. Що вигідніше, залежить від розміру суми.","ንኣብነት፡ ምቝጻርን ምጽብጻብን ግዜ ስራሕ የሕልፍ፤ ናብ ባንክ ምጕዓዝ (ናይ ገንዘብ መጓዓዝያ) ከምኡውን ዋስትና ወጻኢ እዩ፤ ሓደጋ ሓሶት ገንዘብን ስሪቕን። ክፍሊት ብካርድ፡ ንነፍሲ ወከፍ ክፍሊት ሽልማትን ቴክኖሎጂን፣ ግን ውሑድ ስራሕን ሓደጋን። ዝሓሸ ክኸውን ዝኽእል ከም ዓቐን ሕሳብ እዩ።"],"a6p_2.q":["6.2 علّلوا لماذا تذكرون قيمة الورقة النقدية بصوت عالٍ بمجرد استلامها.","6.2 Hãy giải thích vì sao bạn nói to mệnh giá tờ tiền ngay khi nhận.","6.2 Обґрунтуйте, чому Ви називаєте номінал банкноти вголос, щойно її приймаєте.","6.2 ወረቐት ገንዘብ ምስ ተቕበሉ ዋጋኡ ንምንታይ ብዓውታ ትጠቕሱ፣ ምኽንያት ሃቡ።"],"a6p_2.h0":["من يعرف في النهاية أي ورقة أعطاها العميل؟","Cuối cùng ai biết khách đã đưa tờ nào?","Хто наприкінці знає, яку банкноту дав клієнт?","ኣብ መወዳእታ ዓሚል ኣየናይ ወረቐት ከም ሃበ መን የልብ?"],"a6p_2.h1":["ماذا يمكن أن يحدث عند إعطاء الباقي (Rückgeld) خلاف ذلك؟","Nếu không thì khi trả tiền thối (Rückgeld) có thể xảy ra điều gì?","Що інакше може статися з рештою?","ምስ ተመላሲ ገንዘብ ካልእ እንታይ ክኸውን ይኽእል?"],"a6p_2.s":["العميل وأمين الصندوق كلاهما يعرف أي ورقة تم إعطاؤها. وهكذا لا يحدث خلاف عند إعطاء الباقي („لقد أعطيتك ورقة من فئة 50!“).","Khách và nhân viên thu ngân đều biết tờ nào đã được đưa. Như vậy khi trả tiền thối không có tranh cãi („Tôi đã đưa bà tờ 50 mà!“).","І клієнт, і касирка знають, яку банкноту було дано. Тоді при видачі решти не буде суперечки („Я ж Вам дав 50!“).","ዓሚልን ካሲየርን ኣየናይ ወረቐት ከም ዝተዋህበ ይፈልጡ። ብዘይ ጎነጽ ተመላሲ ገንዘብ ይወሃብ („50 ሂበካ ኣለኹ!“)።"],"v8_1.q":["8.1 لماذا لا تُرجع ورقة نقدية مشكوكًا فيها؟ علّل.","8.1 Vì sao bạn không trả lại tờ tiền nghi ngờ? Hãy giải thích.","8.1 Чому ти не повертаєш підозрілу банкноту? Обґрунтуй.","8.1 ንምንታይ ጥርጡር ወረቐት ገንዘብ ኣይትመልስን? ምኽንያት ሃብ።"],"v8_1.h0":["ماذا يمكن أن يفعل العميل بالورقة إذا استعادها؟","Khách có thể làm gì với tờ tiền nếu được trả lại?","Що міг би зробити клієнт із банкнотою, якщо її повернути?","ዓሚል ምስ ተመልሰሉ ምስ ወረቐት እንታይ ክገብር ይኽእል?"],"v8_1.h1":["تذكّر الجملة: تُصادَر العملة المزيفة دون تعويض.","Hãy nhớ câu: Tiền giả bị thu giữ mà không được đền bù.","Подумай про речення: фальшиві гроші вилучають без компенсації.","ብዛዕባ እቲ ዓረፍተ ነገር ሕሰብ፡ ሓሶት ገንዘብ ብዘይ ካሕሳ ይውሰድ።"],"v8_1.s":["تُصادَر العملة المزيفة دون تعويض. إذا أُرجعت الورقة فقد يمرّرها العميل، وتبقى العملة المزيفة متداولة. كذلك يجب على المسؤول فحص الورقة وإبلاغ الشرطة.","Tiền giả bị thu giữ mà không được đền bù. Nếu trả lại tờ tiền, khách có thể đưa nó cho người khác và tiền giả vẫn lưu hành. Ngoài ra cấp trên phải kiểm tra tờ tiền và báo cảnh sát.","Фальшиві гроші вилучають без компенсації. Якщо повернути банкноту, клієнт міг би передати її далі, і фальшиві гроші лишаться в обігу. Крім того, керівник має перевірити банкноту й повідомити поліцію.","ሓሶት ገንዘብ ብዘይ ካሕሳ ይውሰድ። ወረቐት እንተተመልሰ ዓሚል ከሐሊፎ ይኽእል፣ ሓሶት ገንዘብ ከኣ ኣብ ኣዳለ ይተርፍ። ብተወሳኺ ሓላፊ ወረቐት ኪምርምርን ፖሊስ ኪሕብርን ኣለዎ።"],"v8_2.q":["8.2 لماذا نفحص دائمًا عدة سمات أمنية وليس سمة واحدة فقط؟ علّل بقلم الفحص.","8.2 Vì sao luôn kiểm tra nhiều dấu hiệu an ninh chứ không chỉ một? Hãy giải thích bằng bút thử tiền.","8.2 Чому завжди перевіряють кілька ознак захисту, а не одну? Обґрунтуй на прикладі детектора-ручки.","8.2 ንምንታይ ኩሉ ጊዜ ብዙሕ ምልክታት ድሕነት እምበር ሓደ ጥራይ ኣይምርመርን? ብስቲፎ መርመሪ ምኽንያት ሃብ።"],"v8_2.h0":["ماذا يفحص قلم الفحص – وماذا لا يفحص؟","Bút thử tiền kiểm tra gì – và không kiểm tra gì?","Що перевіряє детектор-ручка – а що ні?","ስቲፎ መርመሪ እንታይ የምርምር – እንታይከ ኣየምርምርን?"],"v8_2.h1":["هل يمكن تزوير سمة واحدة؟","Một dấu hiệu riêng lẻ có thể bị làm giả không?","Чи можна підробити одну окрему ознаку?","ሓደ ምልክት ክተመሳስል ይከኣል ዶ?"],"v8_2.s":["قلم الفحص يفحص الورق فقط. قد تحمل الورقة سمة واحدة وتكون مع ذلك مزيفة. كلما تطابقت سمات أكثر (اللمس، النظر، الإمالة) كان الفحص أكثر أمانًا.","Bút thử tiền chỉ kiểm tra giấy. Một tờ tiền có thể có một dấu hiệu mà vẫn là giả. Càng nhiều dấu hiệu khớp (Sờ, Nhìn, Nghiêng) thì việc kiểm tra càng chắc chắn.","Детектор-ручка перевіряє тільки папір. Банкнота може мати одну ознаку і все одно бути фальшивою. Чим більше ознак (торкатися, дивитися, нахиляти) збігається, тим надійніша перевірка.","ስቲፎ መርመሪ ወረቐት ጥራይ የምርምር። ወረቐት ሓደ ምልክት ክህልዎ ይኽእል ግን ሓሶት ክኸውን ይኽእል። ብዙሕ ምልክታት (ምትንካፍ፣ ምርኣይ፣ ምጥዋይ) ምስ ዝተሰማምዑ፣ ምርመራ እቲ ዝተኣማመነ እዩ።"],"v8_3.q":["8.3 ماذا سيحدث لو اتهمت العميل أو أمسكته لمجرد الاشتباه؟ علّل.","8.3 Điều gì xảy ra nếu bạn chỉ mới nghi ngờ mà đã buộc tội hoặc giữ khách lại? Hãy giải thích.","8.3 Що було б, якби ти при простій підозрі звинуватив клієнта або утримував його? Обґрунтуй.","8.3 ብጥርጣረ ጥራይ ንዓሚል እንተ ከሲስካዮ ወይ እንተ ሓዝካዮ እንታይ ይኸውን? ምኽንያት ሃብ።"],"v8_3.h0":["هل الاشتباه دليل؟","Nghi ngờ có phải là bằng chứng không?","Чи підозра є доказом?","ጥርጣረ መርትዖ ድዩ?"],"v8_3.h1":["من يمرّر العملة المزيفة „عن علم“ – ومن قد لا يفعل ذلك؟","Ai đưa tiền giả „cố ý“ – và ai có thể không biết?","Хто передає фальшиві гроші „свідомо“ – а хто, можливо, ні?","ሓሶት ገንዘብ „ብፍላጥ“ ዘሕልፍ መን እዩ – መን ከኣ ምናልባት ኣይኰነን?"],"v8_3.s":["الاشتباه ليس دليلًا. ربما استلم العميل الورقة بنفسه دون أن يعلم، وسيكون قد اتُّهم ظلمًا. هذا تصرف غير مهذب وقد يسبب مشاكل. لذلك نبقى هادئين ومهذبين ونترك القرار للمسؤول.","Nghi ngờ không phải là bằng chứng. Khách có thể tự nhận tờ tiền mà không biết và bị buộc tội oan. Việc đó thiếu lịch sự và có thể gây rắc rối. Vì vậy ta giữ bình tĩnh, lịch sự và để cấp trên quyết định.","Підозра не є доказом. Клієнт, можливо, сам отримав банкноту, не знаючи цього, і був би звинувачений несправедливо. Це нечемно і може призвести до неприємностей. Тому лишаються спокійними й ввічливими та дають керівникові вирішувати.","ጥርጣረ መርትዖ ኣይኰነን። ዓሚል ንወረቐት ብዘይ ፍላጥ ተቐቢሉ ክኸውን ይኽእል፣ ብጌጋ ይከሰስ። እዚ ዘይምትሕትና እዩ ጸገም ከኣ የምጽእ። ስለዚ ህዱእን ትሑትን ትኸውን ሓላፊ ከኣ ይውስን።"],"v8_4.q":["8.4 لماذا تشرح للعميل عند فحص الأصالة أنك تفعل ذلك مع جميع العملاء؟ علّل.","8.4 Vì sao khi kiểm tra tiền thật bạn giải thích với khách rằng bạn làm vậy với tất cả khách hàng? Hãy giải thích.","8.4 Чому ти пояснюєш клієнтові під час перевірки справжності, що робиш так з усіма клієнтами? Обґрунтуй.","8.4 ንምንታይ ኣብ ምርመራ ሓቀኛነት ንዓሚል ንኹሎም ዓማዊል ከምኡ ከም እትገብር ትገልጸሉ? ምኽንያት ሃብ።"],"v8_4.h0":["كيف يشعر العميل الذي يفكر: „إنه لا يثق بي“؟","Một khách nghĩ „Họ không tin mình“ sẽ cảm thấy thế nào?","Що відчуває клієнт, який думає: „Вона мені не довіряє“?","ዓሚል „ኣይተኣመነንን“ ኢሉ ዝሓስብ ብኸመይ ይስምዖ?"],"v8_4.h1":["ماذا تغيّر عبارة „مع جميع العملاء“؟","Câu „với tất cả khách hàng“ thay đổi điều gì?","Що змінює речення „з усіма клієнтами“?","እቲ ዓረፍተ ነገር „ንኹሎም ዓማዊል“ እንታይ ይቕይር?"],"v8_4.s":["أحيانًا يشعر العملاء أن الفحص دليل على عدم الثقة. عبارة „نفعل هذا مع جميع العملاء“ توضح أن الأمر لا علاقة له بالشخص. هكذا يبقى العميل ودودًا ولا يتحول الفحص إلى خلاف.","Đôi khi khách thấy việc kiểm tra là sự thiếu tin tưởng. Câu „Chúng tôi làm vậy với tất cả khách hàng“ cho thấy việc này không liên quan đến cá nhân. Nhờ vậy khách vẫn thân thiện và việc kiểm tra không thành tranh cãi.","Клієнти іноді сприймають перевірку як недовіру. Речення „Ми так робимо з усіма клієнтами“ показує: це не стосується особи. Так клієнт лишається привітним, і перевірка не стає суперечкою.","ዓማዊል ምርመራ ሓደ ሓደ ጊዜ ከም ዘይምትእምማን ይስምዖም። እቲ ዓረፍተ ነገር „ነዚ ንኹሎም ዓማዊል ንገብሮ“ ምስ ሰብ ዝተሓሓዘ ከም ዘይኰነ የርኢ። ከምዚ ዓሚል ርህሩህ ይጸንሕ ምርመራ ከኣ ጎነጽ ኣይከውንን።"],"r0.t":["لماذا يدفع العملاء نقدًا؟","Vì sao khách trả tiền mặt?","Чому клієнти платять готівкою?","ዓማዊል ንምንታይ ብጥረ ገንዘብ ይኸፍሉ?"],"r0.task":["ضع علامة على الأسباب التي تجعل كثيرًا من العملاء يدفعون نقدًا.","Đánh dấu các lý do khiến nhiều khách trả tiền mặt.","Познач причини, чому багато клієнтів платять готівкою.","ብዙሓት ዓማዊል ንምንታይ ብጥረ ገንዘብ ከም ዝኸፍሉ ምኽንያታት ምልክት ግበር።"],"r0.x":["لا يزال كثير من العملاء يدفعون بالنقد (Bargeld). من الأسباب العادة، والاحتفاظ بنظرة عامة على مصروفاتهم. كما أنه لا تُخزَّن أي بيانات. بعضهم لا يثق بالتقنية، أو يجد الرقم السري (PIN) صعب التذكّر، أو ليست معه بطاقة. ولأجل البقشيش والمبالغ الصغيرة يفضّل الناس العملات المعدنية. أما خصم على الدفع النقدي فليس سببًا.","Nhiều khách vẫn trả bằng tiền mặt (Bargeld). Lý do là thói quen và việc giữ được sự kiểm soát chi tiêu. Ngoài ra không có dữ liệu nào bị lưu lại. Một số người không tin công nghệ, thấy mã PIN khó nhớ hoặc không mang theo thẻ. Với tiền boa và số tiền nhỏ, người ta thích dùng tiền xu. Giảm giá khi trả tiền mặt không phải là một lý do.","Багато клієнтів і досі платять готівкою. Причини: звичка та те, що можна тримати витрати під контролем. До того ж дані не зберігаються. Дехто не довіряє техніці, вважає PIN-код важким для запам’ятовування або не має картки. На чайові та невеликі суми охоче беруть монети. Знижка на готівку причиною не є.","ብዙሓት ዓማዊል ገና ብጥረ ገንዘብ ይኸፍሉ። ምኽንያታት ልምድን ወጻኢ ምቍጽጻርን እዩ። ብተወሳኺ ሓበሬታ ኣይእቶን። ገሊኦም ንቴክኖሎጂ ኣይኣምኑን፣ PIN ንምዝካር ከቢድ ይረኽቡ ወይ ካርድ የብሎምን። ንቲፕን ንንእሽተይ ዓቐንን ሳንቲም ይጥቀሙ። ቅናሽ ኣብ ጥረ ገንዘብ ምኽንያት ኣይኰነን።"],"r0.q":["أي سبب للدفع النقدي ورد في النص؟","Lý do nào cho việc trả tiền mặt được nêu?","Яку причину оплати готівкою названо?","ኣየናይ ምኽንያት ክፍሊት ብጥረ ገንዘብ ተጠቒሱ?"],"r0.o0":["يحتفظ الإنسان بنظرة عامة على مصروفاته.","Người ta giữ được sự kiểm soát chi tiêu của mình.","Людина тримає свої витрати під контролем.","ሰብ ወጻኢኡ ይቆጻጸር።"],"r0.o1":["النقد دائمًا أرخص للتاجر.","Tiền mặt luôn rẻ hơn cho người bán.","Готівка завжди дешевша для торговця.","ጥረ ገንዘብ ኩሉ ጊዜ ንነጋዳይ ርካሽ እዩ።"],"r0.o2":["البطاقة ممنوعة.","Thẻ bị cấm.","Картка заборонена.","ካርድ ዝተኸልከለ እዩ።"],"r1.t":["اللمس (Fühlen)","Sờ (Fühlen)","Торкатися (Fühlen)","ምትንካፍ (Fühlen)"],"r1.task":["ضع علامة على مادة الورق، وكيف يبدو عند اللمس، وما الذي يمكن تحسسه.","Đánh dấu giấy làm từ gì, cảm giác thế nào và có thể sờ thấy gì.","Познач, з чого зроблений папір, який він на дотик і що можна відчути.","ወረቐት ካብ ምንታይ ከም ዝተሰርሐ፣ ብኸመይ ከም ዝስምዕ ከምኡውን ብምትንካፍ እንታይ ከም ዝስመዕ ምልክት ግበር።"],"r1.x":["عند اللمس (Fühlen) تفحص الورق أولًا. هو مصنوع من القطن وهو متين وخشن الملمس. الكتابة والحواف بارزة: وهذا ما يسمى النقش البارز (Relief). الورق الأملس مثل ورق التصوير علامة تحذير.","Khi sờ (Fühlen), trước hết bạn kiểm tra giấy. Giấy làm từ bông, dày và chắc tay. Chữ và mép giấy nổi lên: Đó gọi là chữ nổi (Relief). Giấy trơn như giấy photo là dấu hiệu cảnh báo.","Торкаючись, ти спершу перевіряєш папір. Він зроблений із бавовни, щільний і шорсткуватий. Шрифт і краї рельєфні: це називають рельєфом (Relief). Гладенький папір, як для копіювання, є тривожною ознакою.","ብምትንካፍ ኣቐዲምካ ወረቐት ትምርምር። ካብ ጥጥ እዩ፣ ጽኑዕን ጭንቁርን እዩ። ጽሑፍን ጫፍን ልዕል ዝበለ እዩ፡ እዚ Relief ይብሃል። ለስሊሱ ወረቐት ከም ወረቐት ኮፒ ሓደጋ ምልክት እዩ።"],"r1.q":["ما هو النقش البارز (Relief)؟","Chữ nổi (Relief) là gì?","Що таке рельєф?","Relief እንታይ እዩ?"],"r1.o0":["كتابة وحواف يمكن تحسسها.","Chữ và mép giấy mà ta sờ thấy được.","Шрифт і краї, які можна відчути на дотик.","ጽሑፍን ጫፍን ብምትንካፍ ዝስመዑ።"],"r1.o1":["صورة لا تُرى إلا في الضوء.","Một hình ảnh chỉ nhìn thấy dưới ánh sáng.","Зображення, яке видно тільки на світлі.","ኣብ ብርሃን ጥራይ ዝርአ ስእሊ።"],"r1.o2":["شريط يتغير لونه.","Một dải đổi màu.","Смужка, яка змінює колір.","ሕብሪ ዝቕይር መስመር።"],"r2.t":["النظر والإمالة","Nhìn và nghiêng","Дивитися і нахиляти","ምርኣይን ምጥዋይን"],"r2.task":["ضع علامة على السمات التي تُرى ضد الضوء والسمات التي تظهر عند الإمالة.","Đánh dấu các dấu hiệu nhìn thấy dưới ánh sáng và các dấu hiệu khi nghiêng.","Познач ознаки, які видно проти світла, і ознаки при нахилі.","ኣንጻር ብርሃን ዝርኣዩ ምልክታትን ኣብ ምጥዋይ ዝርኣዩን ምልክት ግበር።"],"r2.x":["ضد الضوء ترى علامة مائية بصورة شخصية (Wasserzeichen)، وخيط الأمان (Sicherheitsfaden) كشريط داكن، ونافذة الصورة في شريط الهولوغرام (من 20 €). عند الإمالة (Kippen) يُظهر الهولوغرام (Hologramm) الرقم والرمز € والصورة الشخصية. يغيّر رقم الزمرد (Smaragdzahl) لونه من الأخضر إلى الأزرق. المغناطيس ليس جزءًا من الفحص.","Dưới ánh sáng bạn thấy hình mờ chân dung (Wasserzeichen), sợi an ninh (Sicherheitsfaden) dạng vệt tối và cửa sổ chân dung trong dải hình ba chiều (từ 20 €). Khi nghiêng (Kippen), hình ba chiều (Hologramm) hiện số mệnh giá, ký hiệu € và chân dung. Số màu ngọc lục bảo (Smaragdzahl) đổi màu từ xanh lá sang xanh dương. Nam châm không thuộc việc kiểm tra.","Проти світла ти бачиш водяний знак-портрет, захисну нитку як темну смужку та вікно з портретом у смужці з голограмою (від 20 €). При нахилі голограма показує цифру номіналу, символ € і портрет. Смарагдове число змінює колір із зеленого на синій. Магніт до перевірки не належить.","ኣንጻር ብርሃን ምልክት ማይ ናይ ስእሊ ገጽ፣ ክሊ ድሕነት ከም ጸላም መስመርን መስኮት ስእሊ ገጽ ኣብ መስመር ሆሎግራም (ካብ 20 € ንላዕሊ) ትርኢ። ብምጥዋይ ሆሎግራም ቁጽሪ ዋጋ፣ ምልክት €ን ስእሊ ገጽን የርኢ። ቁጽሪ ኣመራልድ ሕብሪ ካብ ቆጽሊ ናብ ሰማያዊ ይቕይር። መግነጢስ ኣብ ምርመራ ኣይኣትውን።"],"r2.q":["بين أي لونين يتغير رقم الزمرد عند الإمالة؟","Số màu ngọc lục bảo đổi màu như thế nào khi nghiêng?","Які кольори змінює смарагдове число при нахилі?","ቁጽሪ ኣመራልድ ብምጥዋይ ኣየናይ ሕብሪ ይቕይር?"],"r2.o0":["من الأخضر إلى الأزرق.","Từ xanh lá sang xanh dương.","Із зеленого на синій.","ካብ ቆጽሊ ናብ ሰማያዊ።"],"r2.o1":["من الأحمر إلى الأصفر.","Từ đỏ sang vàng.","Із червоного на жовтий.","ካብ ቀይሕ ናብ ቢጫ።"],"r2.o2":["من الأسود إلى الأبيض.","Từ đen sang trắng.","Із чорного на білий.","ካብ ጸሊም ናብ ጻዕዳ።"],"r3.t":["وسائل مساعدة","Dụng cụ hỗ trợ","Допоміжні засоби","ደገፍቲ"],"r3.task":["ضع علامة على الوسائل الثلاث وعلى القاعدة الأهم.","Đánh dấu ba dụng cụ hỗ trợ và quy tắc quan trọng nhất.","Познач три допоміжні засоби і найважливіше правило.","ሰለስተ ደገፍትን እቲ ዝኸበረ ሕግን ምልክት ግበር።"],"r3.x":["من الوسائل المساعدة قلم الفحص (Prüfstift) ومصباح الأشعة فوق البنفسجية وجهاز الفحص الإلكتروني (Prüfgerät). قلم الفحص يفحص الورق فقط. لذلك القاعدة: افحص دائمًا عدة سمات، وليس سمة واحدة فقط.","Dụng cụ hỗ trợ có bút thử tiền (Prüfstift), đèn UV và máy kiểm tra điện tử (Prüfgerät). Bút thử tiền chỉ kiểm tra giấy. Vì vậy quy tắc là: Luôn kiểm tra nhiều dấu hiệu, không bao giờ chỉ một.","Допоміжні засоби: детектор-ручка (Prüfstift), УФ-лампа та електронний прилад для перевірки (Prüfgerät, сканер). Детектор-ручка перевіряє тільки папір. Тому діє правило: завжди перевіряй кілька ознак, ніколи не одну.","ከም ደገፍቲ ስቲፎ መርመሪ (Prüfstift)፣ መብራህቲ UV ከምኡውን ኤለክትሮኒክ መርመሪ መሳርሒ (Prüfgerät) ኣሎ። ስቲፎ መርመሪ ወረቐት ጥራይ የምርምር። ስለዚ ሕጊ፡ ኩሉ ጊዜ ብዙሕ ምልክታት መርምር፣ ሓደ ጥራይ ኣይኰነን።"],"r3.q":["ماذا يفحص قلم الفحص؟","Bút thử tiền kiểm tra gì?","Що перевіряє детектор-ручка?","ስቲፎ መርመሪ እንታይ የምርምር?"],"r3.o0":["الورق فقط.","Chỉ kiểm tra giấy.","Тільки папір.","ወረቐት ጥራይ።"],"r3.o1":["الهولوغرام.","Hình ba chiều.","Голограму.","ሆሎግራም።"],"r3.o2":["رقم الزمرد.","Số màu ngọc lục bảo.","Смарагдове число.","ቁጽሪ ኣመራልድ።"],"r4.t":["الاشتباه في عملة مزيفة","Nghi ngờ có tiền giả","Підозра на фальшиві гроші","ጥርጣረ ሓሶት ገንዘብ"],"r4.task":["ضع علامة على ما تفعله عند الاشتباه وعلى ما يحدث للعملة المزيفة.","Đánh dấu việc bạn làm khi nghi ngờ và điều xảy ra với tiền giả.","Познач, що ти робиш при підозрі і що буде з фальшивими грошима.","ብጥርጣረ እንታይ ከም እትገብርን ንሓሶት ገንዘብ እንታይ ከም ዝኸውንን ምልክት ግበር።"],"r4.x":["عند الاشتباه (Verdacht) تبقى هادئًا ومهذبًا. لا تُرجع الورقة النقدية، وتستدعي المسؤول أو مشرف الصندوق (Kassenaufsicht)، وتطلب من العميل الانتظار. المسؤول هو الذي يبلغ الشرطة. تستعين بشهود وتتذكر شكل العميل. لا يجوز لك اتهام العميل ولا إمساكه. تُصادَر العملة المزيفة (Falschgeld) دون تعويض.","Khi nghi ngờ (Verdacht), bạn giữ bình tĩnh và lịch sự. Bạn không trả lại tờ tiền, gọi cấp trên hoặc người giám sát quầy thu ngân (Kassenaufsicht) và đề nghị khách chờ. Cấp trên sẽ báo cảnh sát. Bạn gọi người làm chứng và ghi nhớ khách. Bạn không được buộc tội khách và không được giữ khách lại. Tiền giả (Falschgeld) bị thu giữ mà không được đền bù.","При підозрі ти залишаєшся спокійним і ввічливим. Ти не повертаєш банкноту, кличеш керівника або касового наглядача і просиш клієнта зачекати. Поліцію викликає керівник. Ти залучаєш свідків і запам’ятовуєш клієнта. Клієнта не можна звинувачувати й утримувати. Фальшиві гроші вилучають без компенсації.","ብጥርጣረ ህዱእን ትሑትን ትኸውን። ወረቐት ገንዘብ ኣይትመልስን፣ ንሓላፊ ወይ ንተቖጻጻሪ ካሳ ትጽውዕ፣ ንዓሚል ከተጽበ ትሓትት። ፖሊስ ሓላፊ እያ እተገብር። ምስክራት ትጽውዕ ንዓሚል ከኣ ትዝክር። ንዓሚል ምኽሳስን ምሕዝን ኣይፍቀድን። ሓሶት ገንዘብ ብዘይ ካሕሳ ይውሰድ።"],"r4.q":["ماذا تفعل بالورقة المشكوك فيها؟","Bạn làm gì với tờ tiền nghi ngờ?","Що ти робиш із підозрілою банкнотою?","ምስ ጥርጡር ወረቐት ገንዘብ እንታይ ትገብር?"],"r4.o0":["لا أُرجعها.","Tôi không trả lại.","Я її не повертаю.","ኣይመልሶን እየ።"],"r4.o1":["أُرجعها وأطلب ورقة أخرى.","Tôi trả lại và yêu cầu tờ khác.","Я її повертаю і вимагаю іншу.","እመልሶን ካልእ እሓትን እየ።"],"r4.o2":["أحتفظ بها „للتدرب“.","Tôi giữ lại „để tập luyện“.","Я залишаю її собі „для практики“.","„ንልምምድ“ እሕዶ እየ።"],"r5.t":["العملات المعدنية والفحص الودّي","Tiền xu và kiểm tra thân thiện","Монети і привітна перевірка","ሳንቲምን ርህሩህ ምርመራን"],"r5.task":["ضع علامة على عدد العملات المعدنية التي يجب قبولها وعلى ما تشرحه للعميل.","Đánh dấu phải nhận bao nhiêu đồng xu và bạn giải thích gì với khách.","Познач, скільки монет треба приймати і що пояснюють клієнтові.","ክንደይ ሳንቲም ክቕበል ከም ዝግብኦን ንዓሚል እንታይ ከም እትገልጽን ምልክት ግበር።"],"r5.x":["لا يجب على أحد قبول أكثر من 50 قطعة معدنية في الدفعة الواحدة. أحيانًا يشعر العملاء أن فحص الأصالة دليل على عدم الثقة. اشرح بلطف: „نفعل هذا مع جميع العملاء، وهذا لا علاقة له بكم.“ من يمرّر عملة مزيفة عن علم يُعاقَب. الرقم 100 قطعة معدنية غير صحيح.","Không ai bắt buộc phải nhận quá 50 đồng xu trong một lần thanh toán. Đôi khi khách thấy việc kiểm tra tiền thật là sự thiếu tin tưởng. Hãy giải thích thân thiện: „Chúng tôi làm vậy với tất cả khách hàng, việc này không liên quan đến quý khách.“ Ai cố ý đưa tiền giả cho người khác là phạm pháp. Con số 100 đồng xu là không đúng.","За одну оплату ніхто не мусить приймати більше 50 монет. Клієнти іноді сприймають перевірку справжності як недовіру. Поясни привітно: „Ми так робимо з усіма клієнтами, це не стосується Вас особисто.“ Хто свідомо передає фальшиві гроші, той карається законом. Число 100 монет неправильне.","ኣብ ሓንቲ ክፍሊት ካብ 50 ሳንቲም ንላዕሊ ክቕበል ዝግደድ ሰብ የለን። ዓማዊል ምርምራ ሓቀኛነት ሓደ ሓደ ጊዜ ከም ዘይምትእምማን ይስምዖም። ብርህራሄ ግለጽ፡ „ነዚ ንኹሎም ዓማዊል ንገብሮ፣ ምሳኻ ዝተሓሓዘ ኣይኰነን።“ ሓሶት ገንዘብ ብፍላጥ ዘሕልፍ ብሕጊ ይጸየፍ። እቲ ቁጽሪ 100 ሳንቲም ስሕተት እዩ።"],"r5.q":["كيف تشرح فحص الأصالة بلطف؟","Bạn giải thích việc kiểm tra tiền thật một cách thân thiện thế nào?","Як ти привітно пояснюєш перевірку справжності?","ንምርመራ ሓቀኛነት ብኸመይ ብርህራሄ ትገልጾ?"],"r5.o0":["نفعل هذا مع جميع العملاء.","Chúng tôi làm vậy với tất cả khách hàng.","Ми так робимо з усіма клієнтами.","ነዚ ንኹሎም ዓማዊል ንገብሮ።"],"r5.o1":["لا أثق بكم.","Tôi không tin quý khách.","Я Вам не довіряю.","ኣይኣምነካን እየ።"],"r5.o2":["هذا واجب فقط مع الأوراق الكبيرة.","Chỉ bắt buộc với tờ tiền mệnh giá lớn.","Це обов’язково лише для великих банкнот.","እዚ ንዓበይቲ ወረቐት ጥራይ ግዴታ እዩ።"],"cat_vor":["الانطلاق: ماذا تتذكر من الوحدة 2؟","Khởi động: Bạn còn nhớ gì từ Mô-đun 2?","Початок: Що ти ще пам’ятаєш із модуля 2?","መጀመርታ፡ ካብ ሞዱል 2 እንታይ ትዝክር?"],"cat_txt":["فهم النص: محطة الفحص","Hiểu văn bản: Trạm kiểm tra","Розуміння тексту: Станція перевірки","ምርዳእ ጽሑፍ፡ ጣብያ መርመሪ"],"cat_trans":["التطبيق: فحص الأوراق النقدية والتصرف الصحيح","Vận dụng: Kiểm tra tiền giấy và xử lý đúng","Перенесення: перевіряти банкноти і правильно діяти","ምስግጋር፡ ወረቐት ገንዘብ ምምርማርን ቅኑዕ ምግባርን"],"cat_wis":["المعرفة المهنية: اختبار الامتحان","Kiến thức nghề: Kiểm tra kiểu thi","Фахові знання: перевірка до іспиту","ፍልጠት፡ ምርግጋጽ ፈተና"],"cat_refl":["الشركة والتفكير الأعمق","Công ty và suy nghĩ sâu hơn","Підприємство і роздуми","ትካልን ዝያዳ ሓሳብን"]};
+const GLOSS=[["das Bargeld","النقد (das Bargeld)","tiền mặt (das Bargeld)","готівка","ጥረ ገንዘብ"],["die Banknote","الورقة النقدية (die Banknote)","tờ tiền giấy (die Banknote)","банкнота","ወረቐት ገንዘብ"],["die Münze","العملة المعدنية (die Münze)","đồng xu (die Münze)","монета","ሳንቲም"],["das Sicherheitsmerkmal","السمة الأمنية (das Sicherheitsmerkmal)","dấu hiệu an ninh (das Sicherheitsmerkmal)","ознака захисту","ምልክት ድሕነት"],["das Relief","النقش البارز (das Relief)","chữ nổi (das Relief)","рельєф","ልዕል ዝበለ ጽሑፍ"],["das Wasserzeichen","العلامة المائية (das Wasserzeichen)","hình mờ (das Wasserzeichen)","водяний знак","ምልክት ማይ"],["der Sicherheitsfaden","خيط الأمان (der Sicherheitsfaden)","sợi an ninh (der Sicherheitsfaden)","захисна нитка","ክሊ ድሕነት"],["das Hologramm","الهولوغرام (das Hologramm)","hình ba chiều (das Hologramm)","голограма","ሆሎግራም"],["die Smaragdzahl","رقم الزمرد (die Smaragdzahl)","số màu ngọc lục bảo (die Smaragdzahl)","смарагдове число","ቁጽሪ ኣመራልድ"],["der Prüfstift","قلم الفحص (der Prüfstift)","bút thử tiền (der Prüfstift)","детектор-ручка","ስቲፎ መርመሪ"],["das Prüfgerät","جهاز الفحص (das Prüfgerät)","máy kiểm tra (das Prüfgerät)","прилад для перевірки","መርመሪ መሳርሒ"],["das Falschgeld","العملة المزيفة (das Falschgeld)","tiền giả (das Falschgeld)","фальшиві гроші","ሓሶት ገንዘብ"],["der Verdacht","الاشتباه (der Verdacht)","sự nghi ngờ (der Verdacht)","підозра","ጥርጣረ"],["die Kassenaufsicht","مشرف الصندوق (die Kassenaufsicht)","người giám sát quầy thu ngân (die Kassenaufsicht)","касовий наглядач","ተቖጻጻሪ ካሳ"]];
+const WTX={"Kasse":["الصندوق","quầy thu ngân","каса","ካሳ"],"vorbereiten":["يحضّر","chuẩn bị","готувати","ምድላው"],"Tätigkeit":["عمل","công việc","дія","ዕዮ"],"Wechselgeld":["فكة","tiền lẻ","дрібні гроші для решти","ናይ ምልውዋጥ ገንዘብ"],"Vor dem Kassieren …":["قبل التحصيل …","Trước khi thanh toán …","Перед розрахунком на касі …","ቅድሚ ምኽፋል ካሳ …"],"Rückgeld":["الباقي","tiền thối","решта","ተመላሲ ገንዘብ"],"Geldschein":["ورقة نقدية","tờ tiền","банкнота","ወረቐት ገንዘብ"],"Kunde":["الزبون","khách hàng","клієнт","ዓሚል"],"Ich lege den Schein …":["أضع الورقة النقدية …","Tôi bỏ tờ tiền …","Я кладу банкноту …","ወረቐት ገንዘብ ኣእትዎ …"],"Preis":["السعر","giá","ціна","ዋጋ"],"gegeben":["معطى","đã đưa","дано","ዝተዋህበ"],"rechnen":["يحسب","tính","рахувати","ምሕሳብ"],"Das Rückgeld beträgt …":["الباقي هو …","Tiền thối là …","Решта становить …","ተመላሲ ገንዘብ …"],"Papier":["الورق","giấy","папір","ወረቐት"],"Relief":["نقش بارز","chữ nổi","рельєф","ልዕል ዝበለ ጽሑፍ"],"Rand":["حافة","mép","край","ጫፍ"],"Schrift":["كتابة","chữ","шрифт","ጽሑፍ"],"Wir haben bemerkt, dass …":["لاحظنا أن …","Chúng tôi nhận thấy rằng …","Ми помітили, що …","ርኢና ከም …"],"Licht":["ضوء","ánh sáng","світло","ብርሃን"],"Wasserzeichen":["علامة مائية","hình mờ","водяний знак","ምልክት ማይ"],"Streifen":["شريط","dải","смужка","መስመር"],"Porträt":["صورة شخصية","chân dung","портрет","ስእሊ ገጽ"],"Gegen das Licht sehen wir …":["ضد الضوء نرى …","Dưới ánh sáng chúng tôi thấy …","Проти світла ми бачимо …","ኣንጻር ብርሃን ንርኢ …"],"Hologramm":["هولوغرام","hình ba chiều","голограма","ሆሎግራም"],"Farbe":["لون","màu","колір","ሕብሪ"],"Wertzahl":["رقم القيمة","số mệnh giá","цифра номіналу","ቁጽሪ ዋጋ"],"Beim Kippen sehen wir …":["عند الإمالة نرى …","Khi nghiêng chúng tôi thấy …","При нахилі ми бачимо …","ብምጥዋይ ንርኢ …"],"Finger":["أصابع","ngón tay","палець","ኣጻብዕ"],"Sinn":["حاسة","giác quan","чуття","ስምዒት"],"Das prüft man durch …":["يُفحص هذا عن طريق …","Việc này được kiểm tra bằng cách …","Це перевіряють за допомогою …","እዚ ብ… ይምርመር"],"Wert":["قيمة","giá trị","номінал","ዋጋ"],"wechseln":["يتغير","đổi","змінювати","ምቕያር"],"Falschgeld":["عملة مزيفة","tiền giả","фальшиві гроші","ሓሶት ገንዘብ"],"Vorgesetzte":["مسؤولة","cấp trên","керівник(-ця)","ሓላፊ"],"ruhig":["هادئ","bình tĩnh","спокійно","ህዱእ"],"höflich":["مهذب","lịch sự","ввічливо","ትሑት"],"Richtig sind die Aussagen …":["العبارتان الصحيحتان هما …","Các câu đúng là …","Правильні твердження …","ቅኑዓት ሓሳባት …"],"Münzen":["عملات معدنية","đồng xu","монети","ሳንቲም"],"höchstens":["كحد أقصى","tối đa","щонайбільше","ብዝበዝሐ"],"Zahlung":["دفع","thanh toán","оплата","ክፍሊት"],"Schein":["ورقة نقدية","tờ tiền","банкнота","ወረቐት ገንዘብ"],"„Es tut mir leid, …“":["„أنا آسف، …“","„Tôi xin lỗi, …“","„Мені шкода, …“","„ይቕረታ፣ …“"],"„Haben Sie vielleicht …?“":["„هل لديكم ربما …؟“","„Quý khách có … không ạ?“","„Може, у Вас є …?“","„ምናልባት … ኣለኩም?“"],"Barzahlung":["دفع نقدي","trả tiền mặt","оплата готівкою","ክፍሊት ብጥረ ገንዘብ"],"Überblick":["نظرة عامة","sự kiểm soát","огляд, контроль","ምቍጽጻር"],"Daten":["بيانات","dữ liệu","дані","ሓበሬታ"],"Ein Grund ist …":["أحد الأسباب هو …","Một lý do là …","Одна причина — …","ሓደ ምኽንያት …"],"Banknote":["ورقة نقدية","tờ tiền giấy","банкнота","ወረቐት ገንዘብ"],"Merkmal":["سمة","dấu hiệu","ознака","ምልክት"],"Fühlen":["اللمس (Fühlen)","Sờ (Fühlen)","торкатися","ምትንካፍ"],"Kippen":["الإمالة (Kippen)","Nghiêng (Kippen)","нахиляти","ምጥዋይ"],"Ein Sicherheitsmerkmal ist …":["من السمات الأمنية …","Một dấu hiệu an ninh là …","Ознака захисту — це …","ሓደ ምልክት ድሕነት …"],"Hilfsmittel":["وسائل مساعدة","Dụng cụ hỗ trợ","допоміжний засіб","ደገፍ"],"Echtheit":["أصالة","tính xác thực","справжність","ሓቀኛነት"],"Ein Hilfsmittel ist …":["من الوسائل المساعدة …","Một dụng cụ hỗ trợ là …","Допоміжний засіб — це …","ሓደ ደገፍ …"],"Prüfung":["فحص","kiểm tra","перевірка","ምርመራ"],"freundlich":["ودّي","thân thiện","привітно","ርህሩህ"],"Moment":["لحظة","một chút","мить","ሓጺር ግዜ"],"„Das machen wir …“":["„نفعل هذا …“","„Chúng tôi làm việc này …“","„Ми так робимо …“","„ነዚ ንገብሮ …“"],"„Es dauert …“":["„يستغرق الأمر …“","„Việc này mất …“","„Це займе …“","„ይወስድ …“"],"Verdacht":["اشتباه","nghi ngờ","підозра","ጥርጣረ"],"Kundin":["الزبونة","khách nữ","клієнтка","ዓሚላ"],"Ich reagiere, indem ich …":["أتصرف بأن …","Tôi phản ứng bằng cách …","Я реагую так, що …","ብዝስዕብ ኣገባብ እመልስ …"],"Arbeitszeit":["وقت العمل","thời gian làm việc","робочий час","ግዜ ስራሕ"],"Bank":["بنك","ngân hàng","банк","ባንክ"],"Gebühr":["رسوم","phí","комісія","ሽልማት ክፍሊት"],"Risiko":["مخاطرة","rủi ro","ризик","ሓደጋ"],"Bargeld kostet …":["النقد يكلّف …","Tiền mặt tốn …","Готівка коштує …","ጥረ ገንዘብ ይሓስር …"],"Bei der Kartenzahlung …":["في الدفع بالبطاقة …","Với thanh toán bằng thẻ …","При оплаті карткою …","ኣብ ክፍሊት ብካርድ …"],"Streit":["خلاف","tranh cãi","суперечка","ጎነጽ"],"Ich nenne den Wert laut, weil …":["أذكر القيمة بصوت عالٍ لأن …","Tôi nói to mệnh giá vì …","Я називаю номінал вголос, тому що …","ዋጋ ብዓውታ እጠቅስ ምኽንያቱ …"],"Umlauf":["تداول","lưu hành","обіг","ኣዳለ"],"Polizei":["شرطة","cảnh sát","поліція","ፖሊስ"],"Ich gebe den Schein nicht zurück, weil …":["لا أُرجع الورقة النقدية لأن …","Tôi không trả lại tờ tiền vì …","Я не повертаю банкноту, тому що …","ወረቐት ገንዘብ ኣይመልስን ምኽንያቱ …"],"Prüfstift":["قلم الفحص","bút thử tiền","детектор-ручка","ስቲፎ መርመሪ"],"sicher":["آمن","chắc chắn","надійно","ዝተኣመነ"],"Ein Merkmal allein …":["سمة واحدة فقط …","Một dấu hiệu riêng lẻ …","Одна ознака сама по собі …","ሓደ ምልክት ጥራይ …"],"Beweis":["دليل","bằng chứng","доказ","መርትዖ"],"Ärger":["مشاكل","rắc rối","неприємності","ጸገም"],"Dann würde …":["عندها سوف …","Khi đó sẽ …","Тоді …","ደኣ …"],"Misstrauen":["عدم ثقة","sự thiếu tin tưởng","недовіра","ዘይምትእምማን"],"Person":["شخص","cá nhân","особа","ሰብ"],"Ich erkläre das, weil …":["أشرح ذلك لأن …","Tôi giải thích điều này vì …","Я пояснюю це, тому що …","ነዚ እገልጾ ምኽንያቱ …"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={ar:0,vi:1,uk:2,ti:3}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 3 · Modul 3 · Bargeld und Falschgeld";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf3m3_v2";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),document.getElementById("a2btn")?["a2"]:[]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+if($("#a2btn"))$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF3_Modul3.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done&&$("#a2btn"))$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>

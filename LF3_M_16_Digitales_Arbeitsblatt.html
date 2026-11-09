@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 3 · Modul 16 · Durchschnitt</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="ar">🇸🇦 العربية</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+    <button class="pill" data-l="uk">🇺🇦 Українська</button>
+    <button class="pill" data-l="ti">🇪🇷 ትግርኛ</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 3 · Kunden im Servicebereich Kasse betreuen</p>
+  <h1 data-k="h1">Modul 16: Durchschnitt</h1>
+  <p class="sub" data-k="meta">2 Doppelstunden (DS 32–33) · 4 Punkte · Lehrbuch S. 196–198</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann einfache Durchschnitte berechnen (Summe : Anzahl).</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann Kennzahlen an der Kasse berechnen, z. B. Kunden je Stunde und Umsatz je Kunde.</label></li>
+      <li><label data-k="can3"><input type="checkbox"> Ich kann gewogene Durchschnitte berechnen, z. B. den Durchschnittspreis.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a1_h">Aufgabe 1 · Ankommen: Was weißt du noch aus Modul 15?</h2>
+    <p data-k="a1_p">Aus dem Kopf beantworten.</p>
+    <div data-items="a1"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 2 · Klassen-Durchschnitt</h2>
+    <p data-k="a2_p">Jede Person nennt, wie viele Minuten ihr Weg zur Schule dauert. Schreibt die Zahlen an die Tafel.</p>
+    <div data-items="a2"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> der Durchschnitt (Ø) · der Mittelwert · die Summe · die Anzahl · der einfache Durchschnitt · der gewogene Durchschnitt · die Kennzahl · je Kunde · je Stunde · je m² · der Lagerbestand
+      <div id="gloss"></div></div>
+    <div id="reading"></div>
+
+    <h3 style="margin-top:24px" data-k="t1_h">1. Einfacher Durchschnitt (Buch S. 196)</h3>
+    <table>
+      <tr><th data-k="th_rez">Rezept</th><th data-k="th_bsp">Beispiel</th></tr>
+      <tr><td data-k="t1_r">Ø = Summe aller Werte : Anzahl der Werte</td><td data-k="t1_b">Umsätze 3.000 €, 3.500 €, 4.000 €: 10.500 : 3 = 3.500 €</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="t2_h">2. Kennzahlen an der Kasse</h3>
+    <table>
+      <tr><th data-k="th_kz">Kennzahl</th><th data-k="th_rez2">Rezept</th><th data-k="th_ach">Achtung</th></tr>
+      <tr><td data-k="t2_a0">Kunden je Stunde</td><td data-k="t2_a1">Kunden : Stunden</td><td data-k="t2_a2">Öffnungszeit genau zählen: 9:00–13:30 = 4,5 h; Mittagspause abziehen</td></tr>
+      <tr><td data-k="t2_b0">Umsatz je Kunde</td><td data-k="t2_b1">Umsatz : Kunden</td><td data-k="t2_b2">netto oder brutto? Die Aufgabe sagt es.</td></tr>
+      <tr><td data-k="t2_c0">Artikel je Kunde</td><td data-k="t2_c1">Artikel : Kunden</td><td data-k="t2_c2">oft auf 1 Nachkommastelle runden</td></tr>
+      <tr><td data-k="t2_d0">Umsatz je m²</td><td data-k="t2_d1">Umsatz : Fläche</td><td data-k="t2_d2">Fläche = Länge × Breite (9 m × 14 m = 126 m²)</td></tr>
+      <tr><td data-k="t2_e0">Umsatz je Tag</td><td data-k="t2_e1">Jahresumsatz : Verkaufstage</td><td>–</td></tr>
+      <tr><td data-k="t2_f0">Ø Lagerbestand</td><td data-k="t2_f1">alle Bestände : Anzahl der Bestände</td><td data-k="t2_f2">Jahresanfang + 12 Monatsenden = 13 Werte</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="t3_h">3. Gewogener Durchschnitt (Buch S. 197)</h3>
+    <p data-k="t3_p">Wenn es von den Preisen unterschiedlich viele Stück gibt, zählt jeder Preis so oft, wie es Stück gibt.</p>
+    <table>
+      <tr><th data-k="th_menge">Menge</th><th data-k="th_preis">Preis</th><th data-k="th_mp">Menge × Preis</th></tr>
+      <tr><td data-k="g_1">20 Paar</td><td>6,00 €</td><td>120,00 €</td></tr>
+      <tr><td data-k="g_2">12 Paar</td><td>8,00 €</td><td>96,00 €</td></tr>
+      <tr><td data-k="g_3">8 Paar</td><td>6,50 €</td><td>52,00 €</td></tr>
+      <tr><td data-k="g_4">40 Paar</td><td></td><td>268,00 €</td></tr>
+    </table>
+    <p data-k="t3_r">Ø-Preis = Summe (Menge × Preis) : Summe der Mengen = 268,00 : 40 = 6,70 €</p>
+    <div class="merke" data-k="merke_fal"><b>Merke:</b> Die Falle beim gewogenen Durchschnitt: die Preise einfach addieren und durch 3 teilen ((6,00 + 8,00 + 6,50) : 3 = 6,83 €) – das ist falsch, weil es mehr billige Socken gibt. Bei Kunden je Stunde: erst die Stunden richtig zählen. Menschen und Stück auf ganze Zahlen runden.</div>
+
+    <div class="merke" data-k="merke_plan"><b>Der Rechenfahrplan – bei jeder Aufgabe</b><br>1 Lesen: Was ist gesucht? Unterstreiche die Frage.<br>2 Notieren: Was ist gegeben? Zahlen mit Einheit aufschreiben.<br>3 Rezept wählen: Welche Rezeptkarte passt?<br>4 Rechnen: Taschenrechner – in einem Zug, Zwischenergebnisse nicht runden.<br>5 Prüfen: Runden wie verlangt, Einheit, passt das Ergebnis? Ergebnis ins Kästchen oder Antwortsatz.</div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a3_h">Aufgabe 3 · Vorgemacht: Durchschnittspreis für Schals</h2>
+    <p data-k="a3_p">So gehst du bei einer Rechenaufgabe vor. Lies die Schritte genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk0"><b>Die Aufgabe:</b> Zum Ende der Wintersaison haben Sie noch Restbestände verschiedener Strickschals, die Sie zu einem Durchschnittspreis verkaufen möchten: 6 Schals zu 8,00 € · 4 Schals zu 13,00 € · 5 Schals zu 10,00 € · 5 Schals zu 12,00 €. Zu welchem Durchschnittspreis (gewogener Durchschnitt) bieten Sie einen Schal an?</div>
+    <div class="worked" data-k="wk1"><b>1 Lesen:</b> Gesucht: Ø-Preis je Schal, gewogen</div>
+    <div class="worked" data-k="wk2"><b>2 Notieren:</b> vier Mengen und vier Preise</div>
+    <div class="worked" data-k="wk3"><b>3 Rezept:</b> Summe (Menge × Preis) : Summe der Mengen</div>
+    <div class="worked" data-k="wk4"><b>4 Rechnen:</b> 48,00 + 52,00 + 50,00 + 60,00 = 210,00 € · 6 + 4 + 5 + 5 = 20 Schals · 210,00 : 20 = 10,50 €</div>
+    <div class="worked" data-k="wk5"><b>5 Prüfen:</b> liegt zwischen dem billigsten (8,00 €) und dem teuersten Preis (13,00 €) ✓</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe die Beispiele gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a4_h">Aufgabe 4 · Geführte Übung</h2>
+    <h3 data-k="a41_h">4.1 Tagesumsätze einer Woche. Berechne den durchschnittlichen Tagesumsatz.</h3>
+    <div data-items="a41"></div>
+    <h3 style="margin-top:18px" data-k="a42_h">4.2 An einem Tag kamen 1.470 Kunden. Geöffnet war von 09:00 bis 12:30 Uhr und von 14:00 bis 19:00 Uhr. Wie viele Kunden kamen im Durchschnitt je Stunde? Ergänze.</h3>
+    <div data-items="a42"></div>
+    <h3 style="margin-top:18px" data-k="a43_h">4.3 Kassenauswertung: Umsatz netto 2.448,00 € · 144 Kunden · 396 Artikel · Kasse 6 Stunden geöffnet. Berechne die Kennzahlen.</h3>
+    <div data-items="a43"></div>
+    <h3 style="margin-top:18px" data-k="a44_h">4.4 Sondertisch mit Socken: 10 Paar zu 4,50 € · 15 Paar zu 6,00 € · 5 Paar zu 9,00 €. Berechne den gewogenen Durchschnittspreis.</h3>
+    <div data-items="a44"></div>
+    <h3 style="margin-top:18px" data-k="a45_h">4.5 Die Abteilung ist 12 m lang und 8 m breit. Der Wochenumsatz beträgt 67.200 €. Wie hoch ist der Umsatz je m²?</h3>
+    <div data-items="a45"></div>
+    <h3 style="margin-top:18px" data-k="a46_h">4.6 Lagerbestände eines Artikels: Jahresanfang 40 Stück, Ende der Quartale 55 · 62 · 48 · 35 Stück. Berechne den durchschnittlichen Lagerbestand (alle Werte).</h3>
+    <div data-items="a46"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a5_h">Aufgabe 5 · Freie Übung: Die Kundenzählung</h2>
+    <p data-k="a5_p">Die Tabelle zeigt, wie viele Kunden an einem Tag im Lebensmittelbereich eingekauft haben. Beantwortet die Fragen und erfindet eine eigene Frage für eure Nachbarn.</p>
+    <div style="overflow-x:auto"><table style="font-size:.85em">
+      <tr><th data-k="th_zeit">Zeit</th><th>09:00–10:00</th><th>10:00–11:00</th><th>11:00–12:00</th><th>12:00–13:00</th><th>13:00–14:00</th><th>14:00–15:00</th></tr>
+      <tr><td data-k="th_kd">Kunden</td><td>132</td><td>132</td><td>116</td><td>118</td><td>60</td><td>67</td></tr>
+    </table></div>
+    <div style="overflow-x:auto"><table style="font-size:.85em">
+      <tr><th data-k="th_zeit2">Zeit</th><th>15:00–16:00</th><th>16:00–17:00</th><th>17:00–18:00</th><th>18:00–19:00</th><th>19:00–20:00</th></tr>
+      <tr><td data-k="th_kd2">Kunden</td><td>121</td><td>147</td><td>164</td><td>176</td><td>127</td></tr>
+    </table></div>
+    <div data-items="a5"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a6_h">Aufgabe 6 · Prüfungs-Check <span class="pts" data-k="pts_a6">9 Aufgaben · etwa 15 Minuten</span></h2>
+    <div data-items="a6"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7p_h">Aufgabe 7 · Für Profis</h2>
+    <p data-k="a7p_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="a7p"></div>
+  </div>
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="a8_h">Aufgabe 9 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="a8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="a8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 8 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={"vor": "Ankommen: Wiederholung Modul 15", "txt": "Textverständnis: Klassen-Durchschnitt", "trans": "Transfer: Durchschnitte berechnen", "wis": "Fachwissen: Prüfungs-Check", "refl": "Kundenzählung & Weiterdenken"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{"id": "a1_1", "g": "a1", "cat": "vor", "q": "1.1 Wie rechnest du die USt aus einem Bruttopreis (19 %) heraus?", "kw": [["119", "1,19", "1.19"]], "min": 1, "rows": 2, "h": ["Der Bruttopreis ist 119 % – der Nettopreis ist 100 %.", "Brutto durch eine Zahl teilen und mit einer anderen malnehmen."], "sol": "brutto : 119 × 19"},
+{"id": "a1_2", "g": "a1", "cat": "vor", "q": "1.2 100 € mit 3 % Skonto. Wie viel Euro überweist du?", "kw": [["re:(^|[^\\d.,])97([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 1, "rows": 2, "h": ["Skonto ist ein Abzug vom Rechnungsbetrag.", "Rechne zuerst 3 % von 100 €, dann ziehe ab."], "sol": "97,00 €"},
+{"id": "a1_3", "g": "a1", "cat": "vor", "q": "1.3 Rabatt oder Skonto: Was gibt es für schnelles Bezahlen?", "kw": [["skonto"]], "min": 1, "rows": 2, "h": ["Es geht um die Zahlungsfrist auf der Rechnung.", "Ein Wort, das mit S anfängt."], "sol": "Skonto"},
+{"id": "a2_1", "g": "a2", "cat": "txt", "q": "2.1 Wie lange braucht die Klasse im Durchschnitt? Wie rechnet ihr?", "kw": [["addier", "summe", "zusammen", "plus", "zaehl"], ["teil", "durch", "anzahl", "dividier", ":"]], "min": 2, "rows": 4, "h": ["Zuerst machst du aus allen Minuten eine Zahl.", "Danach brauchst du die Anzahl der Personen."], "sol": "alle Minuten addieren und durch die Anzahl der Personen teilen"},
+{"id": "a41_1", "g": "a41", "cat": "trans", "q": "Montag 3.240,00 € · Dienstag 2.890,00 € · Mittwoch 3.110,00 € · Donnerstag 2.760,00 € · Freitag 3.580,00 € · Samstag 4.020,00 €. Berechne den durchschnittlichen Tagesumsatz.", "kw": [["re:(^|[^\\d.,])3[.]?266[,.]670*(?!\\d)", "re:(^|[^\\d.,])3[.]?266[,.]660*(?!\\d)", "re:(^|[^\\d.,])3[.]?266[,.]70*(?!\\d)", "re:(^|[^\\d.,])3[.]?267([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 1, "rows": 3, "h": ["Das ist ein einfacher Durchschnitt: alle Werte addieren.", "Wie viele Tage sind es? Durch diese Zahl teilen."], "sol": "Summe 19.600,00 € : 6 = 3.266,67 €"},
+{"id": "a42_1", "g": "a42", "cat": "trans", "q": "Schritt 1 – Stunden zählen: Wie viele Stunden war morgens (09:00–12:30) und wie viele nachmittags (14:00–19:00) geöffnet?", "kw": [["re:(^|[^\\d.,])3[,.]50*(?!\\d)"], ["re:(^|[^\\d.,])5([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 2, "rows": 2, "h": ["Zähle von 09:00 bis 12:00, dann kommt noch eine halbe Stunde.", "Die Mittagspause zählt nicht mit."], "sol": "09:00–12:30 = 3,5 h · 14:00–19:00 = 5 h"},
+{"id": "a42_2", "g": "a42", "cat": "trans", "q": "Schritt 2 – zusammen: Wie viele Stunden war die Kasse insgesamt geöffnet?", "kw": [["re:(^|[^\\d.,])8[,.]50*(?!\\d)"]], "min": 1, "rows": 2, "h": ["Beide Zeiten addieren.", "Ein halbe Stunde kommt dazu."], "sol": "3,5 + 5 = 8,5 h"},
+{"id": "a42_3", "g": "a42", "cat": "trans", "q": "Schritt 3 – Rechnen: Wie viele Kunden kamen im Durchschnitt je Stunde? (auf ganze Kunden runden)", "kw": [["re:(^|[^\\d.,])173([,.]0+)?(?!\\d|[,.]\\d)", "re:(^|[^\\d.,])172[,.]940*(?!\\d)", "re:(^|[^\\d.,])172[,.]90*(?!\\d)", "re:(^|[^\\d.,])172[,.]950*(?!\\d)"]], "min": 1, "rows": 2, "h": ["Kunden je Stunde = Kunden : Stunden.", "Teile 1.470 durch die Stunden aus Schritt 2. Menschen rundest du auf ganze Zahlen."], "sol": "1.470 : 8,5 = 172,94 → 173 Kunden"},
+{"id": "a43_1", "g": "a43", "cat": "trans", "q": "Umsatz netto je Kunde: Rechnung und Ergebnis?", "kw": [["re:(^|[^\\d.,])17([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 1, "rows": 2, "h": ["Umsatz je Kunde = Umsatz : Kunden.", "Teile 2.448 durch die Anzahl der Kunden."], "sol": "2.448 : 144 = 17,00 €"},
+{"id": "a43_2", "g": "a43", "cat": "trans", "q": "Artikel je Kunde (1 Nachkommastelle): Rechnung und Ergebnis?", "kw": [["re:(^|[^\\d.,])2[,.]80*(?!\\d)", "re:(^|[^\\d.,])2[,.]750*(?!\\d)"]], "min": 1, "rows": 2, "h": ["Artikel je Kunde = Artikel : Kunden.", "Runde am Ende auf eine Nachkommastelle."], "sol": "396 : 144 = 2,75 → 2,8 Artikel"},
+{"id": "a43_3", "g": "a43", "cat": "trans", "q": "Kunden je Stunde: Rechnung und Ergebnis?", "kw": [["re:(^|[^\\d.,])24([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 1, "rows": 2, "h": ["Kunden je Stunde = Kunden : Stunden.", "Die Kasse war 6 Stunden geöffnet."], "sol": "144 : 6 = 24 Kunden"},
+{"id": "a44_1", "g": "a44", "cat": "trans", "q": "Sondertisch mit Socken: 10 Paar zu 4,50 € · 15 Paar zu 6,00 € · 5 Paar zu 9,00 €. Berechne den gewogenen Durchschnittspreis.", "kw": [["re:(^|[^\\d.,])6([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 1, "rows": 3, "h": ["Rechne für jede Zeile Menge × Preis. Dann alle Beträge addieren.", "Teile die Summe durch die Summe der Mengen (nicht durch 3)."], "sol": "45,00 + 90,00 + 45,00 = 180,00 € · 10 + 15 + 5 = 30 Paar · 180,00 : 30 = 6,00 €"},
+{"id": "a45_1", "g": "a45", "cat": "trans", "q": "Die Abteilung ist 12 m lang und 8 m breit. Der Wochenumsatz beträgt 67.200 €. Wie hoch ist der Umsatz je m²?", "kw": [["re:(^|[^\\d.,])700([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 1, "rows": 3, "h": ["Erst die Fläche: Länge × Breite.", "Umsatz je m² = Umsatz : Fläche."], "sol": "12 × 8 = 96 m² · 67.200 : 96 = 700,00 € je m²"},
+{"id": "a46_1", "g": "a46", "cat": "trans", "q": "Lagerbestände eines Artikels: Jahresanfang 40 Stück, Ende der Quartale 55 · 62 · 48 · 35 Stück. Berechne den durchschnittlichen Lagerbestand (alle Werte).", "kw": [["re:(^|[^\\d.,])48([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 1, "rows": 3, "h": ["Zähle alle Werte: Der Jahresanfang gehört dazu.", "Summe aller Bestände : Anzahl der Bestände."], "sol": "(40 + 55 + 62 + 48 + 35) : 5 = 240 : 5 = 48 Stück"},
+{"id": "a5_1", "g": "a5", "cat": "refl", "q": "5.1 Wie viele Kunden kamen im Durchschnitt je Stunde zwischen 15:00 und 20:00 Uhr?", "kw": [["re:(^|[^\\d.,])147([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 1, "rows": 3, "h": ["Suche in der Tabelle die fünf Stunden von 15:00 bis 20:00.", "Einfacher Durchschnitt: Summe : Anzahl der Stunden."], "sol": "(121 + 147 + 164 + 176 + 127) : 5 = 735 : 5 = 147 Kunden"},
+{"id": "a5_2", "g": "a5", "cat": "refl", "q": "5.2 Wann sollten die meisten Kassen besetzt sein? Begründe mit den Zahlen.", "kw": [["17", "18", "164", "176", "abend"]], "min": 1, "rows": 3, "h": ["Suche die Stunden mit den meisten Kunden.", "Nenne die Uhrzeit und die Zahlen."], "sol": "von 17:00 bis 19:00 Uhr – dort kommen mit 164 und 176 die meisten Kunden"},
+{"id": "a5_3", "g": "a5", "cat": "refl", "q": "5.3 Unsere eigene Frage:", "mode": "self", "rows": 3, "h": ["Nimm die Tabelle: Welche Kennzahl kannst du ausrechnen?", "Schreibe eine Frage, die dein Nachbar mit Summe : Anzahl lösen kann."], "sol": "Prüfe selbst: (1) Passt deine Frage zur Tabelle? (2) Kann dein Nachbar sie mit einem Durchschnitt lösen? (3) Hast du die Lösung auf einem Zettel?"},
+{"id": "a6_1", "g": "a6", "cat": "wis", "q": "6.1 Auf einem Blumenmarkt zählen Sie an einem Tag 1.320 Kunden. Geöffnet ist von 07:00 bis 12:30 Uhr und von 15:00 bis 18:00 Uhr. Berechnen Sie, wie viele Kunden im Durchschnitt je Stunde kamen! (auf ganze Kunden runden)", "kw": [["re:(^|[^\\d.,])155([,.]0+)?(?!\\d|[,.]\\d)", "re:(^|[^\\d.,])155[,.]290*(?!\\d)", "re:(^|[^\\d.,])155[,.]30*(?!\\d)"]], "min": 1, "rows": 3, "h": ["Zähle zuerst die Öffnungszeit genau. Die Pause zählt nicht.", "Kunden : Stunden – Menschen rundest du auf ganze Zahlen."], "sol": "5,5 h + 3 h = 8,5 h · 1.320 : 8,5 = 155,29 → 155 Kunden"},
+{"id": "a6_2", "g": "a6", "cat": "wis", "q": "6.2 Kassenauswertung: Umsatz netto 2.337,50 € · 85 Kunden. Ermitteln Sie den durchschnittlichen Umsatz netto pro Kunde!", "kw": [["re:(^|[^\\d.,])27[,.]50*(?!\\d)"]], "min": 1, "rows": 2, "h": ["Welche Kennzahl ist gesucht? Schau in die Rezeptkarte.", "Umsatz : Kunden."], "sol": "2.337,50 : 85 = 27,50 €"},
+{"id": "a6_3a", "g": "a6", "cat": "wis", "q": "6.3 Kassenbericht: 270 Kunden · 702 Artikel · Kasse 5 Stunden geöffnet. a) Berechnen Sie die durchschnittliche Anzahl der Kunden je Stunde!", "kw": [["re:(^|[^\\d.,])54([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 1, "rows": 2, "h": ["Kunden je Stunde = Kunden : Stunden.", "Die Kasse war 5 Stunden offen."], "sol": "a) 270 : 5 = 54 Kunden"},
+{"id": "a6_3b", "g": "a6", "cat": "wis", "q": "6.3 b) Berechnen Sie die durchschnittliche Anzahl der Artikel je Kunde! (eine Nachkommastelle)", "kw": [["re:(^|[^\\d.,])2[,.]60*(?!\\d)"]], "min": 1, "rows": 2, "h": ["Artikel je Kunde = Artikel : Kunden.", "Runde auf eine Nachkommastelle."], "sol": "b) 702 : 270 = 2,6 Artikel"},
+{"id": "a6_4", "g": "a6", "cat": "wis", "q": "6.4 Quartalsumsätze: Schuhe 90 m² / 297.000 € · Taschen 40 m² / 150.000 € · Spielwaren 110 m² / 352.000 € · Haushalt 130 m² / 468.000 €. Ermitteln Sie den höchsten Umsatz in Euro pro m²!", "kw": [["re:(^|[^\\d.,])3[.]?750([,.]0+)?(?!\\d|[,.]\\d)", "taschen"]], "min": 1, "rows": 4, "h": ["Rechne für jede Abteilung Umsatz : Fläche.", "Vergleiche vier Ergebnisse und nimm das größte."], "sol": "3.300 · 3.750 · 3.200 · 3.600 → 3.750,00 € je m² (Taschen)"},
+{"id": "a6_5", "g": "a6", "cat": "wis", "q": "6.5 Duschgel auf einer Sonderfläche: 12 zu 4,90 € · 18 zu 3,90 € · 20 zu 2,90 €. Ermitteln Sie den gewogenen Durchschnittspreis!", "kw": [["re:(^|[^\\d.,])3[,.]740*(?!\\d)"]], "min": 1, "rows": 3, "h": ["Jeder Preis zählt so oft, wie es Stück gibt: Menge × Preis.", "Summe der Beträge : Summe der Mengen."], "sol": "58,80 + 70,20 + 58,00 = 187,00 € · 187,00 : 50 = 3,74 €"},
+{"id": "a6_6", "g": "a6", "cat": "wis", "q": "6.6 Teemischung: 20 kg Früchtetee zu 8,00 €/kg · 10 kg Kräutertee zu 12,00 €/kg · 30 kg Schwarztee zu 10,00 €/kg · 40 kg Grüntee zu 7,50 €/kg. Berechnen Sie den Durchschnittspreis für 1 kg!", "kw": [["re:(^|[^\\d.,])8[,.]80*(?!\\d)"]], "min": 1, "rows": 4, "h": ["Rechne Menge × Preis für jede Sorte.", "Teile die Summe durch alle Kilogramm zusammen."], "sol": "160 + 120 + 300 + 300 = 880 € · 880 : 100 kg = 8,80 €"},
+{"id": "a6_7a", "g": "a6", "cat": "wis", "q": "6.7 Mützen für einen Sondertisch: 20 Stück zu 12,00 € · 15 Stück zu 18,00 € · 15 Stück zu 14,00 €. a) Ermitteln Sie den einheitlichen Preis (gewogener Durchschnitt)!", "kw": [["re:(^|[^\\d.,])14[,.]40*(?!\\d)"]], "min": 1, "rows": 3, "h": ["Menge × Preis für jede Zeile, dann addieren.", "Durch die Gesamtzahl der Mützen teilen."], "sol": "a) 240 + 270 + 210 = 720 € · 720 : 50 = 14,40 €"},
+{"id": "a6_7b", "g": "a6", "cat": "wis", "q": "6.7 b) Nach einer Woche sind noch 8 Stück übrig. Ermitteln Sie den bisherigen Bruttoumsatz!", "kw": [["re:(^|[^\\d.,])604[,.]80*(?!\\d)"]], "min": 1, "rows": 3, "h": ["Wie viele Mützen wurden schon verkauft?", "Verkaufte Stück × einheitlicher Preis aus a)."], "sol": "b) 50 − 8 = 42 Stück · 42 × 14,40 = 604,80 €"},
+{"id": "a6_8", "g": "a6", "cat": "wis", "q": "6.8 Lagerbestände eines Bügeleisens: 01.01. 32 Stück · 31.03. 46 · 30.06. 60 · 30.09. 41 · 31.12. 36 Stück. Ermitteln Sie den durchschnittlichen Lagerbestand unter Berücksichtigung aller Bestände!", "kw": [["re:(^|[^\\d.,])43([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 1, "rows": 3, "h": ["Wie viele Bestände sind es? Zähle alle Termine.", "Summe aller Bestände : Anzahl der Bestände."], "sol": "215 : 5 = 43 Stück"},
+{"id": "a6_9", "g": "a6", "cat": "wis", "q": "6.9 Jahresanfangsbestand 64.000,00 € · Summe der 12 Monatsendbestände 716.000,00 €. Ermitteln Sie den durchschnittlichen Lagerbestand in Euro!", "kw": [["re:(^|[^\\d.,])60[.]?000([,.]0+)?(?!\\d|[,.]\\d)"]], "min": 1, "rows": 3, "h": ["Wie viele Werte gehören zum Durchschnitt? Schau in die Rezeptkarte „Ø Lagerbestand“.", "Jahresanfang + Summe der Monatsenden, dann durch die Anzahl der Werte."], "sol": "(64.000 + 716.000) : 13 = 60.000,00 €"},
+{"id": "a7p_1", "g": "a7p", "cat": "refl", "q": "7.1 Ein Kollege rechnet den Schalpreis aus Aufgabe 3 so: (8,00 + 13,00 + 10,00 + 12,00) : 4 = 10,75 €. Erklären Sie, warum das Kaufhaus mit diesem Preis mehr einnehmen würde als geplant.", "mode": "self", "rows": 5, "h": ["Zählt in dieser Rechnung jeder Preis gleich oft? Stimmt das mit den Stückzahlen?", "Von welchem Preis gibt es mehr Schals: vom billigen oder vom teuren?"], "sol": "Beim einfachen Durchschnitt zählt jeder Preis gleich oft. Es gibt aber mehr billige Schals (6 zu 8,00 €) als teure (4 zu 13,00 €). Der richtige gewogene Preis ist 10,50 €; mit 10,75 € wären die Schals zu teuer."},
+{"id": "a7p_2", "g": "a7p", "cat": "refl", "q": "7.2 Wochenwerte: Montag 2.310,60 € / 120 Kunden · Dienstag 1.710,40 € / 92 · Mittwoch 2.640,20 € / 140 · Donnerstag 1.392,00 € / 80 · Freitag 2.016,30 € / 105 · Samstag 3.120,50 € / 165. Berechnen Sie den Durchschnittsumsatz je Kunde für die Woche und begründen Sie Ihren Rechenweg.", "mode": "self", "rows": 6, "h": ["Rechne nicht sechs kleine Durchschnitte, sondern überlege: Welche zwei Summen brauchst du?", "Kamen an allen Tagen gleich viele Kunden? Was heißt das für den Rechenweg?"], "sol": "Summe Umsatz 13.190,00 € : Summe Kunden 702 = 18,79 €. Man darf nicht die sechs Tagesdurchschnitte mitteln (das ergäbe 18,70 €), weil an den Tagen unterschiedlich viele Kunden kamen."}
+];
+
+/* Lesetext: [[Richtig]] = gesuchter Begriff, {{Falsch}} = Ablenker */
+const READ=[
+{"t": "Einfacher Durchschnitt", "task": "Markiere, wie du den einfachen Durchschnitt rechnest.", "x": "Der [[Durchschnitt]] (Ø) zeigt einen typischen Wert. So rechnest du den [[einfachen Durchschnitt]]: Du [[addierst alle Werte]] und teilst die [[Summe]] durch die [[Anzahl der Werte]]. Beispiel: Umsätze von 3.000 €, 3.500 € und 4.000 € ergeben 10.500 € : 3 = [[3.500 €]]. Die {{Differenz}} brauchst du hier nicht.", "q": "Wie rechnest du den einfachen Durchschnitt?", "o": ["Summe aller Werte : Anzahl der Werte", "Größter Wert minus kleinster Wert", "Alle Werte miteinander malnehmen"], "c": 0},
+{"t": "Kennzahlen: Kunden und Umsatz", "task": "Markiere die Kennzahlen und worauf du achten musst.", "x": "Bei [[Kunden je Stunde]] rechnest du Kunden : Stunden. Zähle die [[Öffnungszeit]] genau: 9:00–13:30 Uhr sind [[4,5 Stunden]]. Eine [[Mittagspause]] zählst du nicht mit. Beim [[Umsatz je Kunde]] teilst du den Umsatz durch die Kunden. Die Aufgabe sagt, ob [[netto]] oder brutto gemeint ist. Bei [[Artikel je Kunde]] rundest du oft auf [[eine Nachkommastelle]]. Die {{Lieferzeit}} spielt keine Rolle.", "q": "Die Kasse ist von 9:00 bis 13:30 Uhr geöffnet. Wie viele Stunden sind das?", "o": ["4,5 Stunden", "4,3 Stunden", "5 Stunden"], "c": 0},
+{"t": "Kennzahlen: Fläche und Lager", "task": "Markiere, wie du Umsatz je m² und den Ø Lagerbestand rechnest.", "x": "Beim [[Umsatz je m²]] rechnest du Umsatz : Fläche. Die [[Fläche]] ist Länge × Breite: 9 m × 14 m = [[126 m²]]. Den [[Umsatz je Tag]] rechnest du so: Jahresumsatz : [[Verkaufstage]]. Beim [[Ø Lagerbestand]] zählst du alle Bestände: Der Bestand am Jahresanfang und die 12 Monatsenden sind zusammen [[13 Werte]]. Der {{Umfang}} der Fläche wird nicht gebraucht.", "q": "Wie viele Werte hat der Durchschnitt des Lagerbestands (Jahresanfang + 12 Monatsenden)?", "o": ["12 Werte", "13 Werte", "14 Werte"], "c": 1},
+{"t": "Gewogener Durchschnitt", "task": "Markiere, wie du den gewogenen Durchschnitt rechnest und was die Falle ist.", "x": "Gibt es von den Preisen unterschiedlich viele Stück, rechnest du den [[gewogenen Durchschnitt]]. Jeder Preis zählt so oft, wie es [[Stück]] gibt. Rechne [[Menge × Preis]] für jede Zeile, addiere diese Beträge und teile durch die [[Summe der Mengen]]. Beispiel: 268,00 € : 40 Paar = [[6,70 €]]. Die Falle: Die Preise einfach addieren und durch 3 teilen ergibt 6,83 € – das ist [[falsch]], weil es mehr billige Socken gibt. Menschen und Stück rundest du auf [[ganze Zahlen]]. Einen {{Skonto}} brauchst du hier nicht.", "q": "Warum ist (6,00 + 8,00 + 6,50) : 3 beim Sockenbeispiel falsch?", "o": ["Weil jeder Preis gleich oft gezählt wird, obwohl es unterschiedlich viele Stück gibt.", "Weil man Preise nie addieren darf.", "Weil man immer durch 40 teilen muss, ohne zu addieren."], "c": 0},
+{"t": "Der Rechenfahrplan", "task": "Markiere die fünf Schritte des Rechenfahrplans.", "x": "Bei jeder Aufgabe gehst du so vor: [[Lesen]] – was ist gesucht? [[Notieren]] – was ist gegeben? [[Rezept wählen]] – welche Rezeptkarte passt? [[Rechnen]] – im Taschenrechner in einem Zug, Zwischenergebnisse nicht runden. [[Prüfen]] – Runden wie verlangt, Einheit, passt das Ergebnis? Das {{Raten}} ist kein Schritt.", "q": "Wann rundest du?", "o": ["Erst am Ende, so wie die Aufgabe es verlangt.", "Nach jedem Zwischenschritt.", "Nie."], "c": 0}
+];
+
+/* Vertiefung (level v) – Zusatz, aus dem Material abgeleitet */
+ITEMS.push(
+{"id": "v9_1", "g": "a8", "cat": "bonus", "level": "v", "mode": "self", "q": "9.1 Warum ist bei den Socken im Merkkasten der gewogene Durchschnitt 6,70 € und nicht 6,83 €? Begründe.", "rows": 5, "h": ["Welche Rechnung zählt jeden Preis gleich oft – und stimmt das mit den Stückzahlen?", "Von welchem Preis gibt es die meisten Paar?"], "sol": "Bei 6,83 € wurden die drei Preise einfach addiert und durch 3 geteilt, also zählt jeder Preis gleich oft. Es gibt aber 20 Paar zu 6,00 €, aber nur 8 Paar zu 6,50 € und 12 Paar zu 8,00 €. Beim gewogenen Durchschnitt zählt jeder Preis so oft, wie es Stück gibt (Menge × Preis). Deshalb liegt das Ergebnis 6,70 € näher am billigen Preis."},
+{"id": "v9_2", "g": "a8", "cat": "bonus", "level": "v", "mode": "self", "q": "9.2 Warum zählt man bei „Kunden je Stunde“ die Mittagspause nicht mit? Was würde in Aufgabe 4.2 passieren, wenn man sie mitzählt (09:00–19:00)?", "rows": 5, "h": ["Wie viele Stunden war die Kasse in Aufgabe 4.2 wirklich offen?", "Wie ändert sich das Ergebnis, wenn du durch mehr Stunden teilst?"], "sol": "Kunden kommen nur, wenn die Kasse geöffnet ist. Zählt man die Pause mit, teilt man durch zu viele Stunden. In Aufgabe 4.2 wären es 10 Stunden statt 8,5 Stunden: 1.470 : 10 = 147 Kunden je Stunde statt 173. Das Ergebnis wäre zu klein."},
+{"id": "v9_3", "g": "a8", "cat": "bonus", "level": "v", "mode": "self", "q": "9.3 Warum hat der durchschnittliche Lagerbestand über ein Jahr 13 Werte und nicht 12? Begründe.", "rows": 5, "h": ["Wie viele Monatsenden hat ein Jahr?", "Was gehört außer den Monatsenden noch dazu?"], "sol": "Es gibt 12 Monatsenden. Dazu kommt der Bestand am Jahresanfang. Das sind 13 Werte, und der Durchschnitt ist die Summe aller 13 Bestände : 13."},
+{"id": "v9_4", "g": "a8", "cat": "bonus", "level": "v", "mode": "self", "q": "9.4 Warum muss der gewogene Durchschnittspreis immer zwischen dem billigsten und dem teuersten Preis liegen? Wie hilft dir das beim Prüfen?", "rows": 5, "h": ["Kann der Durchschnitt kleiner sein als der kleinste Preis?", "Schau in Aufgabe 3, Schritt 5 „Prüfen“."], "sol": "Jeder Preis zählt nur mehrfach, aber kein Preis kann größer als der teuerste oder kleiner als der billigste sein. Der Durchschnitt liegt deshalb dazwischen. Beim Prüfen vergleichst du dein Ergebnis mit dem billigsten und dem teuersten Preis. Liegt es außerhalb, hast du dich verrechnet."}
+);
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={"a1_1": [["Bruttopreis", "Nettopreis", "Prozent", "teilen"], ["Ich rechne …"]], "a1_2": [["Skonto", "Prozent", "abziehen", "Überweisung"], ["Ich überweise …"]], "a1_3": [["Zahlung", "schnell", "Rechnung", "Frist"], ["Für schnelles Bezahlen gibt es …"]], "a2_1": [["Minuten", "Summe", "Anzahl", "Personen"], ["Zuerst … ich …", "Dann … ich …"]], "a41_1": [["Tagesumsatz", "Summe", "Anzahl", "Durchschnitt"], ["Der Durchschnitt ist …"]], "a42_1": [["Stunden", "morgens", "nachmittags", "Öffnungszeit"], ["Morgens war … geöffnet."]], "a42_2": [["zusammen", "addieren", "Stunden", "geöffnet"], ["Insgesamt …"]], "a42_3": [["Kunden", "Stunden", "teilen", "runden"], ["Im Durchschnitt kamen …"]], "a43_1": [["Umsatz", "Kunden", "netto", "teilen"], ["Der Umsatz je Kunde ist …"]], "a43_2": [["Artikel", "Kunden", "Nachkommastelle", "runden"], ["Im Durchschnitt kauft ein Kunde …"]], "a43_3": [["Kunden", "Stunden", "geöffnet", "teilen"], ["Es kommen … Kunden je Stunde."]], "a44_1": [["Menge", "Preis", "Summe", "gewogen"], ["Der Durchschnittspreis ist …"]], "a45_1": [["Fläche", "Länge", "Breite", "Umsatz"], ["Der Umsatz je m² ist …"]], "a46_1": [["Bestand", "Jahresanfang", "Quartal", "Anzahl"], ["Der durchschnittliche Lagerbestand ist …"]], "a5_1": [["Stunden", "Kunden", "Summe", "Durchschnitt"], ["Im Durchschnitt kamen …"]], "a5_2": [["Kassen", "Kunden", "Uhr", "meisten"], ["Die meisten Kassen sollten … besetzt sein, weil …"]], "a5_3": [["Frage", "Tabelle", "Kunden", "Stunde"], ["Wie viele Kunden …?"]], "a6_1": [["Öffnungszeit", "Stunden", "Kunden", "Pause"], ["Im Durchschnitt kamen …"]], "a6_2": [["Umsatz", "netto", "Kunden", "teilen"], ["Der Umsatz je Kunde ist …"]], "a6_3a": [["Kunden", "Stunden", "geöffnet", "teilen"], ["Es kamen … Kunden je Stunde."]], "a6_3b": [["Artikel", "Kunden", "Nachkommastelle", "runden"], ["Ein Kunde kauft … Artikel."]], "a6_4": [["Umsatz", "Fläche", "Abteilung", "höchster"], ["Den höchsten Umsatz je m² hat …"]], "a6_5": [["Menge", "Preis", "gewogen", "Summe"], ["Der Durchschnittspreis ist …"]], "a6_6": [["Kilogramm", "Sorte", "Menge", "Preis"], ["Der Durchschnittspreis für 1 kg ist …"]], "a6_7a": [["Menge", "Preis", "einheitlich", "Summe"], ["Der einheitliche Preis ist …"]], "a6_7b": [["verkauft", "Stück", "Preis", "Umsatz"], ["Der bisherige Bruttoumsatz ist …"]], "a6_8": [["Bestand", "Anzahl", "Summe", "Stück"], ["Der durchschnittliche Lagerbestand ist …"]], "a6_9": [["Jahresanfang", "Monatsende", "Werte", "Bestand"], ["Der durchschnittliche Lagerbestand ist …"]], "a7p_1": [["einfach", "gewogen", "Stückzahl", "billig", "teuer"], ["Der Preis ist falsch, weil …"]], "a7p_2": [["Summe", "Kunden", "Tagesdurchschnitt", "unterschiedlich"], ["Ich rechne … : …, weil …"]], "v9_1": [["gewogen", "Preis", "Menge", "Stück"], ["Der Preis 6,83 € ist falsch, weil …"]], "v9_2": [["Öffnungszeit", "Pause", "Stunden", "Kunden"], ["Wenn man die Pause mitzählt, dann …"]], "v9_3": [["Jahresanfang", "Monatsende", "Bestand", "Werte"], ["Es sind 13 Werte, weil …"]], "v9_4": [["billigster", "teuerster", "dazwischen", "prüfen"], ["Der Durchschnitt liegt dazwischen, weil …"]]};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+
+const GLOSS_DE=["der Durchschnitt (Ø)", "der Mittelwert", "die Summe", "die Anzahl", "der einfache Durchschnitt", "der gewogene Durchschnitt", "die Kennzahl", "je Kunde", "je Stunde", "je m²", "der Lagerbestand"];
+
+const TX={"sub":["مجال التعلّم 3 · خدمة العملاء في منطقة الصندوق","Lĩnh vực học 3 · Phục vụ khách hàng tại khu vực quầy thu ngân","Навчальна галузь 3 · Обслуговування клієнтів у касовій зоні","ዓውዲ ትምህርቲ 3 · ኣብ ቦታ ካሳ ኣገልግሎት ዓማዊል"],"name":["الاسم","Họ tên","Ім'я","ሽም"],"date":["التاريخ","Ngày","Дата","ዕለት"],"can_h":["هذا ما سأستطيع فعله بعد ذلك","Sau bài này tôi có thể","Після цього я вмію","ድሕሪ እዚ እዚ ክገብር እኽእል እየ"],"can_note":["ضع علامة في النهاية على ما تستطيع فعله الآن.","Cuối bài, hãy đánh dấu những gì bạn đã làm được.","Наприкінці познач, що ти вже вмієш.","ኣብ መወዳእታ ሕጂ ክትገብሮ ዘኽእለካ ምልክት ግበር።"],"pts1":["نقطة واحدة","1 điểm","1 бал","1 ነጥቢ"],"pts2":["نقطتان","2 điểm","2 бали","2 ነጥቢ"],"read_h":["للقراءة والمراجعة · قراءة نشِطة","Đọc lại · đọc chủ động","Для читання · активне читання","ንምንባብ · ንጡፍ ንባብ"],"read_p":["اقرأ كل مقطع واضغط على المصطلحات المطلوبة (تصبح صفراء). انتبه: هناك مصطلحات خاطئة أيضًا! بعد ذلك تجيب عن سؤال قصير – وعندها فقط يُفتح المقطع التالي.","Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở.","Прочитай кожен абзац і торкнись потрібних слів (вони стануть жовтими). Увага: є й неправильні слова! Потім дай відповідь на коротке запитання – лише тоді відкриється наступний абзац.","ነፍሲ ወከፍ ክፍሊ ኣንብብ፣ እቶም ዝድለዩ ቃላት ተንከፎም (ብጫ ይኸውኑ)። ጥንቃቐ፡ ጌጋ ቃላት እውን ኣለዉ! ድሕሪኡ ሓጺር ሕቶ ምለስ – ሽዑ ጥራይ እቲ ዝቕጽል ክፍሊ ይኽፈት።"],"ws_h":["مخزن الكلمات (الترجمة)","Kho từ vựng (bản dịch)","Словник (переклад)","መዝገበ-ቃላት (ትርጉም)"],"a2btn":["قرأتُ الأمثلة","Tôi đã đọc các ví dụ","Я прочитав(ла) приклади","ኣብነታት ኣንቢበ ኣለኹ"],"a7_h":["المهمة 8 · قدِّر، اختبر، سجِّل","Bài 8 · Ước lượng, kiểm tra, ghi lại","Завдання 8 · Оціни, перевір, запиши","ዕዮ 8 · ገምግም፣ ፈትን፣ ጽሓፍ"],"a7_p":["كم نقطة من 20 ستحصل عليها في ورقة العمل هذه؟ سجِّل تقديرك قبل التقييم.","Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm.","Скільки з 20 балів ти отримаєш за цей аркуш? Запиши свою оцінку до перевірки.","ኣብዚ ወረቐት ስራሕ ካብ 20 ነጥቢ ክንደይ ክትረክብ ትሓስብ? ቅድሚ ግምጋሜ ግምትካ ጽሓፍ።"],"th1":["تقديري","Dự đoán của tôi","Моя оцінка","ግምተይ"],"th2":["نتيجتي","Kết quả của tôi","Мій результат","ውጽኢተይ"],"th3":["الفرق","Chênh lệch","Різниця","ፍሉይነት"],"th4":["نقاط لحساب النقاط","Điểm cho tài khoản điểm","Бали для рахунку балів","ነጥብታት ንናይ ነጥቢ ሕሳብ"],"submit_h":["انتهيت؟ إذن قيِّم!","Xong chưa? Hãy chấm điểm!","Готово? Тоді перевіряй!","ወዲእካ? እንተኾነ ገምግም!"],"submit_p":["يمكنك التقييم حتى لو لم تنجز كل شيء – المهام غير المنجزة تُحتسب بصفر.","Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm.","Можна оцінити, навіть якщо не все зроблено – незроблені завдання дають 0 балів.","ኩሉ ዘይተሰርሐ እኳ እንተኾነ ክትገምግም ትኽእል – ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"submit_b":["إرسال وتقييم","Gửi và chấm điểm","📊 Надіслати й оцінити","📊 ሰዲድካ ገምግም"],"res_h":["تقييمك","Kết quả của bạn","Твій результат","ውጽኢትካ"],"pdf_b":["تصدير كملف PDF (للمعلمة)","Xuất PDF (cho giáo viên)","🖨️ Експорт у PDF (для вчителя)","🖨️ ከም PDF ኣውጽእ (ንመምህር)"],"tip_t":["تلميح","Gợi ý","Підказка","ሓጋዚ ሓሳብ"],"tip_next":["تلميح آخر","Thêm gợi ý","Ще одна підказка","ካልእ ሓጋዚ ሓሳብ"],"close":["إغلاق","Đóng","Закрити","ዕጸው"],"chk":["تحقّق","Kiểm tra","✔ Перевірити","✔ ፈትሽ"],"shw":["إظهار الحل","Hiện lời giải","Показати розв'язок","መልሲ ርአይ"],"markb":["تحقّق من التظليل","Kiểm tra phần đánh dấu","Перевірити позначки","ምልክታት ፈትሽ"],"self_q":["ما مدى جودة إجابتك؟","Câu trả lời của bạn tốt đến đâu?","Наскільки добре ти відповів(ла)?","ምላስካ ክንደይ ጽቡቕ ነበረ?"],"self1":["نجحت","Đạt","✔ Вдалося","✔ ኣሸኒፈ"],"self2":["جزئيًا","Một phần","◐ Частково","◐ ብሓደ ኣቕጣጫ"],"self3":["ليس بعد","Chưa","✖ Ще ні","✖ ኣይተኻእለን"],"fb_ok":["ممتاز! أحسنت.","Đúng rồi! Làm tốt lắm.","✅ Правильно! Молодець.","✅ ቅኑዕ! ጽቡቕ ሰሪሕካ።"],"fb_part":["تقريبًا – ينقص جزء. قارن بالحل وأكمل.","Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung.","🟡 Майже – ще чогось бракує. Порівняй із розв'язком і доповни.","🟡 ቐረባ – ሓደ ክፍሊ ጎዲሉ። ምስ መልሲ ኣነጻጽርካ ወስኸሉ።"],"fb_bad":["ليس بعد. استعن بتلميح أو أعد قراءة النص.","Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản.","❌ Ще не те. Візьми підказку 💡 або перечитай текст.","❌ ገና ኣይቅኑዕን። ሓጋዚ ሓሳብ 💡 ውሰድ ወይ ጽሑፍ ዳግማይ ኣንብብ።"],"sol_lbl":["الحل:","Lời giải:","Розв'язок:","መልሲ፡"],"mk_ok":["تظليل صحيح! والآن السؤال:","Đánh dấu đúng! Giờ đến câu hỏi:","✅ Позначено правильно! Тепер запитання:","✅ ብቐንዱ ተሓሪዩ! ሕጂ እቲ ሕቶ፡"],"mk_bad":["ليس تمامًا بعد. اقرأ المهمة مرة أخرى.","Chưa hoàn toàn đúng. Hãy đọc lại đề bài.","Ще не зовсім. Прочитай завдання ще раз.","ገና ጥዑይ ኣይኮነን። ዕዮ ዳግማይ ኣንብብ።"],"zq_ok":["بالضبط! تم فتح المقطع التالي.","Chính xác! Đoạn tiếp theo đã mở.","✅ Точно! Наступний абзац відкрито.","✅ ልክዕ! እቲ ዝቕጽል ክፍሊ ተኸፊቱ።"],"zq_bad":["ليس تمامًا. أعد قراءة المقطع وحاول مجددًا.","Chưa đúng. Hãy đọc lại đoạn và thử lại.","Не зовсім. Перечитай абзац і спробуй ще раз.","ኣይኮነን ጥዑይ። ክፍሊ ዳግማይ ኣንብብ ከምኡውን እንደገና ፈትን።"],"res_pts":["من 20 نقطة","trên 20 điểm","з 20 балів","ካብ 20 ነጥቢ"],"res_an":["تحليل الأخطاء حسب مجالات الكفاءة","Phân tích lỗi theo lĩnh vực năng lực","Аналіз помилок за сферами компетенцій","ትንተና ጌጋታት ብዘርእስታት ክእለት"],"rep":["ما يجب أن تراجعه","Bạn nên ôn lại","Це треба повторити","እዚ ክትደግሞ ኣለካ"],"lab1":["ممتاز!","Tuyệt vời!","Чудово!","ብጣዕሚ ጽቡቕ!"],"lab2":["جيد – تحتاج مزيدًا من التمرين","Khá – cần luyện thêm","Добре – ще трохи практики","ጽቡቕ – ገለ ተወሳኺ ልምምድ"],"lab3":["تحتاج هنا إلى مزيد من التمرين","Phần này bạn cần luyện thêm","Тут тобі ще потрібна практика","ኣብዚ ገና ልምምድ የድልየካ"],"set_h":["الإعدادات","Cài đặt","Налаштування","ቅጥዕታት"],"set_mode":["الترجمة","Bản dịch","Переклад","ትርጉም"],"mode_tap":["بالنقر","Chạm để xem","Торкнутися","ብምንካፍ"],"mode_under":["تحت النص","Hiện bên dưới","Під текстом","ኣብ ትሕቲ ጽሑፍ"],"mode_off":["إيقاف","Tắt","Вимк.","ዕጹው"],"set_fs":["حجم الخط","Cỡ chữ","Розмір шрифту","ዓቐን ፊደል"],"set_level":["المستوى","Mức độ","Рівень","ደረጃ"],"lvl_b":["أساسي","Cơ bản","Базовий","መሰረታዊ"],"lvl_v":["تعمّق","Nâng cao","Поглиблений","ዓሚቝ"],"set_snd":["الصوت","Âm thanh","Звук","ድምጺ"],"set_reset":["البدء من جديد","Làm lại từ đầu","Почати спочатку","ካብ ሓድሽ ጀምር"],"dlg_reset":["حذف كل شيء والبدء من جديد؟ ستضيع إجاباتك في ورقة العمل هذه.","Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất.","Усе видалити й почати спочатку? Твої записи в цьому аркуші буде втрачено.","ኩሉ ይሰረዝ እሞ ካብ ሓድሽ ይጀመር? ኣብዚ ወረቐት ዘኣተኻዮ ይጥፍእ።"],"dlg_next":["الشخص التالي: سيتم حذف الإجابات والاسم.","Người tiếp theo: nội dung và tên sẽ bị xóa.","Наступна особа: записи та ім'я буде видалено.","ቀጻሊ ሰብ፡ ዘኣተኻዮን ስምን ይጥፍእ።"],"dlg_cancel":["إلغاء","Hủy","Скасувати","ሰርዝ"],"dlg_ok":["نعم","Đồng ý","Так","እወ"],"wg_h":["كلمات وبدايات جمل للمساعدة","Từ ngữ và gợi ý đầu câu","Слова та початки речень","ቃላትን መጀመርታ ሓሳባትን"],"a8_h":["المهمة 9 · التعمّق","Bài 9 · Nâng cao","Завдання 9 · Поглиблення","ዕዮ 9 · ምዕማቕ"],"pts_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"a8_p":["تظهر فقط في مستوى «التعمّق». علّل بجمل كاملة. هذه المهام تمنح نقاطًا إضافية ولا تخفض نقاطك الـ 20 أبدًا.","Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn.","Лише на рівні «Поглиблений». Обґрунтуй повними реченнями. Ці завдання дають бонусні бали й ніколи не зменшують твої 20 балів.","ኣብ ደረጃ «ዓሚቝ» ጥራይ። ብምሉእ ሓሳብ ኣብርህ። እዞም ዕዮታት ቦነስ ነጥቢ ይህቡ እሞ ኣብ 20 ነጥብታትካ ፈጺሞም ኣይጐድሉን።"],"res_card_h":["النتيجة للمعلمة","Kết quả cho giáo viên","Результат для вчителя","ውጽኢት ንመምህር"],"btn_img":["حفظ النتيجة كصورة","Lưu kết quả dưới dạng ảnh","🖼️ Зберегти результат як зображення","🖼️ ውጽኢት ከም ስእሊ ዓቅብ"],"btn_code":["نسخ الرمز","Sao chép mã","📋 Копіювати код","📋 ኮድ ቅዳሕ"],"btn_next":["الشخص التالي","Người tiếp theo","👤 Наступна особа","👤 ቀጻሊ ሰብ"],"res_open":["ملاحظة: المهام غير المنجزة تُحتسب بصفر.","Lưu ý: bài chưa làm tính 0 điểm.","Примітка: незроблені завдання дають 0 балів.","ሓበሬታ፡ ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"res_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"cat_bonus":["نقاط إضافية (التعمّق)","Điểm thưởng (Nâng cao)","Бонус (поглиблення)","ቦነስ (ምዕማቕ)"],"fb_peek":["صحيح – لكنك نظرت إلى الحل قبل ذلك، لذلك تحصل على نصف النقاط.","Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm.","✅ Правильно – але ти раніше дивився(лась) розв'язок, тому половина балів.","✅ ቅኑዕ – ግን ቅድም መልሲ ርእይካዮ፣ ስለዚ ፍርቂ ነጥቢ።"],"t25":["بداية جيدة!","Khởi đầu tốt!","Гарний початок!","ጽቡቕ ጅምር!"],"t50":["اكتمل النصف!","Xong một nửa rồi!","Півдороги!","ፍርቂ!"],"t75":["اقتربت من الهدف!","Sắp đến đích rồi!","Майже готово!","ቐረባ!"],"t100":["أنجزت كل شيء! الآن قيِّم.","Đã làm xong hết! Giờ hãy chấm điểm.","Усе зроблено! Тепер оціни.","ኩሉ ተሰሪሑ! ሕጂ ገምግም።"],"t_write":["اكتب شيئًا أولًا","Hãy viết gì đó trước","Спочатку щось напиши","ቅድም ገለ ጽሓፍ"],"t_saved":["تم التسجيل","Đã ghi","Збережено","ተዓቒቡ"],"t_read":["تمت القراءة","Đã đọc","Прочитано","ተነቢቡ"],"t_resume":["تابع من حيث توقفت","Tiếp tục từ chỗ bạn dừng","Продовжуй, де зупинився(лась)","ኣብ ዝደው ዝበልካዮ ቀጽል"],"t_copy":["تم نسخ الرمز","Đã sao chép mã","Код скопійовано","ኮድ ተቐዲሑ"],"t_img":["تم حفظ الصورة","Đã lưu ảnh","Зображення збережено","ስእሊ ተዓቒቡ"],"h1":["الوحدة 16: المتوسط (Durchschnitt)","Bài 16: Trung bình (Durchschnitt)","Модуль 16: Середнє значення (Durchschnitt)","ምዕራፍ 16: ማእከላይ ዋጋ (Durchschnitt)"],"meta":["حصّتان مزدوجتان (DS 32–33) · 4 نقاط · كتاب الدرس ص. 196–198","2 tiết đôi (DS 32–33) · 4 điểm · Sách giáo khoa tr. 196–198","2 здвоєні уроки (DS 32–33) · 4 бали · Підручник с. 196–198","2 ድርብ ትምህርቲ (DS 32–33) · 4 ነጥቢ · መጽሓፍ ገጽ 196–198"],"can1":["أستطيع حساب المتوسطات البسيطة (المجموع : العدد).","Tôi biết tính trung bình đơn giản (tổng : số lượng).","Я вмію рахувати просте середнє (сума : кількість).","ቀሊል ማእከላይ ዋጋ ክሰልብ እኽእል እየ (ጠቕላላ : ብዝሒ)።"],"can2":["أستطيع حساب المؤشرات عند الصندوق (Kennzahlen)، مثل الزبائن في الساعة والمبيعات لكل زبون.","Tôi biết tính các chỉ số ở quầy thu ngân, ví dụ số khách mỗi giờ và doanh thu mỗi khách.","Я вмію рахувати показники на касі, наприклад покупців за годину та виручку на одного покупця.","ኣብ ካሳ ዝሰርሑ ሒሳባት ክሰልብ እኽእል እየ፣ ንኣብነት ዝመጹ ዓማዊል ኣብ ሰዓት ከምኡውን ሽይጥ ንሓደ ዓሚል።"],"can3":["أستطيع حساب المتوسطات المرجَّحة (gewogener Durchschnitt)، مثل متوسط السعر.","Tôi biết tính trung bình có trọng số, ví dụ giá trung bình.","Я вмію рахувати зважене середнє, наприклад середню ціну.","ዝተመዘነ ማእከላይ ዋጋ ክሰልብ እኽእል እየ፣ ንኣብነት ማእከላይ ዋጋ።"],"a1_h":["المهمة 1 · الوصول: ماذا تتذكر من الوحدة 15؟","Bài 1 · Khởi động: Bạn còn nhớ gì từ Bài 15?","Завдання 1 · Розминка: Що ти ще пам'ятаєш з модуля 15?","መዓልቲ 1 · መእተዊ: ካብ ምዕራፍ 15 እንታይ ትዝክር?"],"a1_p":["أجب من الذاكرة.","Trả lời theo trí nhớ.","Відповідай з голови.","ካብ ሓንጎል መልሲ።"],"a2_h":["المهمة 2 · متوسط الصف","Bài 2 · Trung bình của cả lớp","Завдання 2 · Середнє значення класу","ስራሕ 2 · ማእከላይ ዋጋ ናይ ክላስ"],"a2_p":["يقول كل شخص كم دقيقة يستغرق طريقه إلى المدرسة. اكتبوا الأرقام على السبّورة.","Mỗi người nói đường đến trường mất bao nhiêu phút. Hãy viết các số lên bảng.","Кожен каже, скільки хвилин іде дорога до школи. Запишіть числа на дошці.","ነፍሲ ወከፍ ሰብ ናብ ቤት ትምህርቲ ክንደይ ደቒቕ ከም ዝወስደሉ ይነግር። ቁጽርታት ኣብ ሰሌዳ ጽሓፉ።"],"t1_h":["1. المتوسط البسيط (الكتاب ص. 196)","1. Trung bình đơn giản (sách tr. 196)","1. Просте середнє (підручник с. 196)","1. ቀሊል ማእከላይ ዋጋ (መጽሓፍ ገጽ 196)"],"th_rez":["الوصفة","Công thức","Правило","ቀመር"],"th_bsp":["مثال","Ví dụ","Приклад","ኣብነት"],"t1_r":["Ø = مجموع كل القيم : عدد القيم","Ø = tổng tất cả các giá trị : số các giá trị","Ø = сума всіх значень : кількість значень","Ø = ጠቕላላ ዅሉ ዋጋታት : ብዝሒ ዋጋታት"],"t1_b":["المبيعات 3.000 €، 3.500 €، 4.000 €: 10.500 : 3 = 3.500 €","Doanh thu 3.000 €, 3.500 €, 4.000 €: 10.500 : 3 = 3.500 €","Виручка 3.000 €, 3.500 €, 4.000 €: 10.500 : 3 = 3.500 €","ሽይጥ 3.000 €, 3.500 €, 4.000 €: 10.500 : 3 = 3.500 €"],"t2_h":["2. المؤشرات عند الصندوق (Kennzahlen)","2. Các chỉ số ở quầy thu ngân (Kennzahlen)","2. Показники на касі (Kennzahlen)","2. ሒሳባት ኣብ ካሳ (Kennzahlen)"],"th_kz":["المؤشر","Chỉ số (Kennzahl)","Показник (Kennzahl)","ሒሳብ (Kennzahl)"],"th_rez2":["الوصفة","Công thức","Правило","ቀመር"],"th_ach":["انتبه","Lưu ý","Увага","ተጠንቀቕ"],"t2_a0":["الزبائن في الساعة","Khách mỗi giờ","Покупців за годину","ዓማዊል ኣብ ሰዓት"],"t2_a1":["الزبائن : الساعات","Khách : giờ","покупці : години","ዓማዊል : ሰዓታት"],"t2_a2":["احسب وقت الفتح بدقة: 9:00–13:30 = 4,5 ساعة؛ اطرح استراحة الغداء","Đếm giờ mở cửa cho chính xác: 9:00–13:30 = 4,5 giờ; trừ giờ nghỉ trưa","Час роботи рахуй точно: 9:00–13:30 = 4,5 год; обідню перерву відніми","ሰዓት ክፉት ጽቡቕ ቍጸር: 9:00–13:30 = 4,5 ሰዓት፤ ናይ ቀትሪ ዕረፍቲ ኣወጽእ"],"t2_b0":["المبيعات لكل زبون","Doanh thu mỗi khách","Виручка на покупця","ሽይጥ ንሓደ ዓሚል"],"t2_b1":["المبيعات : الزبائن","Doanh thu : khách","виручка : покупці","ሽይጥ : ዓማዊል"],"t2_b2":["صافي (netto) أم إجمالي (brutto)؟ المسألة تقول ذلك.","giá net hay brutto? Đề bài sẽ nói rõ.","нетто чи брутто? Це сказано в завданні.","netto ወይ brutto? ሕቶ ይነግረካ።"],"t2_c0":["السلع لكل زبون","Món hàng mỗi khách","Товарів на покупця","ኣቑሑት ንሓደ ዓሚል"],"t2_c1":["السلع : الزبائن","Món hàng : khách","товари : покупці","ኣቑሑት : ዓማዊል"],"t2_c2":["غالبًا تقريب إلى منزلة عشرية واحدة","thường làm tròn đến 1 chữ số thập phân","часто округлюють до 1 знака після коми","ብዙሕ ግዜ ናብ 1 ድሕሪ ነጥቢ ቁጽሪ ተጸግዕ"],"t2_d0":["المبيعات لكل م²","Doanh thu mỗi m²","Виручка на м²","ሽይጥ ኣብ m²"],"t2_d1":["المبيعات : المساحة","Doanh thu : diện tích","виручка : площа","ሽይጥ : ስፍሓት"],"t2_d2":["المساحة = الطول × العرض (9 م × 14 م = 126 م²)","Diện tích = dài × rộng (9 m × 14 m = 126 m²)","Площа = довжина × ширина (9 м × 14 м = 126 м²)","ስፍሓት = ርዝመት × ወርዲ (9 ሜ × 14 ሜ = 126 m²)"],"t2_e0":["المبيعات في اليوم","Doanh thu mỗi ngày","Виручка за день","ሽይጥ ኣብ መዓልቲ"],"t2_e1":["مبيعات السنة : أيام البيع","Doanh thu cả năm : số ngày bán hàng","річна виручка : дні торгівлі","ዓመታዊ ሽይጥ : መዓልታት ሽያጥ"],"t2_f0":["Ø مخزون المستودع (Lagerbestand)","Ø tồn kho (Lagerbestand)","Ø запас на складі (Lagerbestand)","Ø ኣብ መኽዘን ዘሎ ኣቑሑት (Lagerbestand)"],"t2_f1":["كل المخزونات : عدد المخزونات","tất cả các mức tồn kho : số các mức tồn kho","усі запаси : кількість запасів","ኩሉ ኣብ መኽዘን ዘሎ ኣቑሑት : ብዝሒ ቍጽርታት"],"t2_f2":["بداية السنة + 12 نهاية شهر = 13 قيمة","Đầu năm + 12 cuối tháng = 13 giá trị","початок року + 12 кінців місяців = 13 значень","ጀማሪ ዓመት + 12 መወዳእታ ኣዋርሕ = 13 ዋጋታት"],"t3_h":["3. المتوسط المرجَّح (الكتاب ص. 197)","3. Trung bình có trọng số (gewogener Durchschnitt) (sách tr. 197)","3. Зважене середнє (gewogener Durchschnitt) (підручник с. 197)","3. ዝተመዘነ ማእከላይ ዋጋ (gewogener Durchschnitt) (መጽሓፍ ገጽ 197)"],"t3_p":["إذا وُجدت أعداد مختلفة من القطع لكل سعر، يُحتسب كل سعر بقدر عدد قطعه.","Nếu mỗi mức giá có số lượng khác nhau, thì mỗi giá được tính bấy nhiêu lần bằng số lượng của nó.","Якщо штук за різними цінами різна кількість, то кожна ціна враховується стільки разів, скільки є штук.","ኣብ ዝተፈላለዩ ዋጋታት ዝተፈላለየ ብዝሒ እንተሎ፣ ነፍሲ ወከፍ ዋጋ ከምቲ ብዝሒኡ ክንደይ ግዜ ይቝጸር።"],"th_menge":["الكمية","số lượng","кількість","መጠን"],"th_preis":["السعر","giá","ціна","ዋጋ"],"th_mp":["الكمية × السعر","Số lượng × giá","Кількість × ціна","ብዝሒ × ዋጋ"],"g_1":["20 زوجًا","20 đôi","20 пар","20 ጥንዲ"],"g_2":["12 زوجًا","12 đôi","12 пар","12 ጥንዲ"],"g_3":["8 أزواج","8 đôi","8 пар","8 ጥንዲ"],"g_4":["40 زوجًا","40 đôi","40 пар","40 ጥንዲ"],"t3_r":["Ø السعر = مجموع (الكمية × السعر) : مجموع الكميات = 268,00 : 40 = 6,70 €","Giá Ø = tổng (số lượng × giá) : tổng số lượng = 268,00 : 40 = 6,70 €","Ø-ціна = сума (кількість × ціна) : сума кількостей = 268,00 : 40 = 6,70 €","Ø-ዋጋ = ጠቕላላ (ብዝሒ × ዋጋ) : ጠቕላላ ብዝሒ = 268,00 : 40 = 6,70 €"],"merke_fal":["تذكّر: الفخّ في المتوسط المرجَّح: جمع الأسعار ببساطة وقسمتها على 3 ((6,00 + 8,00 + 6,50) : 3 = 6,83 €) – هذا خطأ، لأن عدد الجوارب الرخيصة أكبر. عند الزبائن في الساعة: احسب الساعات أولًا بشكل صحيح. قرّب الأشخاص والقطع إلى أعداد صحيحة.","Ghi nhớ: Cái bẫy của trung bình có trọng số: cộng các giá lại rồi chia cho 3 ((6,00 + 8,00 + 6,50) : 3 = 6,83 €) – cách này SAI, vì có nhiều tất rẻ hơn. Với khách mỗi giờ: trước hết đếm giờ cho đúng. Người và món hàng thì làm tròn thành số nguyên.","Запам'ятай: Пастка зваженого середнього: просто додати ціни й поділити на 3 ((6,00 + 8,00 + 6,50) : 3 = 6,83 €) – це неправильно, бо дешевих шкарпеток більше. Для покупців за годину: спочатку правильно порахуй години. Людей і штуки округлюй до цілих чисел.","ዘክር: ጌጋ ኣብ ዝተመዘነ ማእከላይ ዋጋ: ዋጋታት ብቐሊሉ ጠቒልካ ብ 3 ምፍላይ ((6,00 + 8,00 + 6,50) : 3 = 6,83 €) – እዚ ጌጋ እዩ፣ ምኽንያቱ ብዙሕ ሕሱም ዋጋ ዘለዎ ካልሲ ኣሎ። ኣብ ዓማዊል ኣብ ሰዓት: መጀመርታ ሰዓታት ብትኽክል ቍጸር። ሰባትን ቁርጽን ናብ ምሉእ ቁጽሪ ተጸግዕ።"],"merke_plan":["خطة الحساب – في كل مسألة. 1 اقرأ: ما المطلوب؟ ضع خطًّا تحت السؤال. 2 دوّن: ما المعطى؟ اكتب الأرقام مع الوحدة. 3 اختر الوصفة: أي بطاقة وصفة تناسب؟ 4 احسب: بالآلة الحاسبة دفعة واحدة، ولا تقرّب النتائج الوسيطة. 5 تحقّق: قرّب كما هو مطلوب، الوحدة، هل النتيجة منطقية؟ اكتب النتيجة في المربع أو في جملة الجواب.","Lộ trình tính toán – cho mọi bài 1 Đọc: Cần tìm gì? Gạch chân câu hỏi. 2 Ghi lại: Đã cho gì? Viết các số kèm đơn vị. 3 Chọn công thức: Thẻ công thức nào phù hợp? 4 Tính: Bằng máy tính, một lần liền, không làm tròn kết quả trung gian. 5 Kiểm tra: Làm tròn đúng yêu cầu, đơn vị, kết quả có hợp lý không? Ghi kết quả vào ô hoặc viết câu trả lời.","План розрахунку – для кожного завдання 1 Прочитати: Що шукаємо? Підкресли запитання. 2 Записати: Що дано? Запиши числа з одиницею. 3 Обрати правило: Яка картка з правилом підходить? 4 Рахувати: Калькулятор – за один раз, проміжні результати не округлюй. 5 Перевірити: Округли як потрібно, одиниця, чи результат підходить? Результат у віконце або відповідь реченням.","መስርሕ ሒሳብ – ንነፍሲ ወከፍ ሕቶ 1 ኣንብብ: እንታይ ንደሊ? ሕቶ ኣብ ትሕቲኡ መስመር ሃብ። 2 ጽሓፍ: እንታይ ተዋሂቡ? ቁጽርታት ምስ መለክዒ ጽሓፍ። 3 ቀመር ምረጽ: ኣየነይቲ ካርድ ቀመር ትኸውን? 4 ሰልብ: ብካልኩሌተር ብሓንቲ ግዜ፣ ናይ ማእከል ውጽኢት ኣይትጸግዕ። 5 ኣረጋግጽ: ከምቲ ዝተሓተተ ጸግዕ፣ መለክዒ፣ ውጽኢት ይሰማማዕ ዶ? ውጽኢት ኣብ ሳጹን ወይ ብምሉእ ሓረግ ጽሓፍ።"],"a3_h":["المهمة 3 · مثال محلول: متوسط سعر الأوشحة","Bài 3 · Làm mẫu: Giá trung bình của khăn len","Завдання 3 · Приклад: Середня ціна шаликів","ስራሕ 3 · ኣብነት: ማእከላይ ዋጋ ናይ ሻርፕ"],"a3_p":["هكذا تحلّ مسألة حسابية. اقرأ الخطوات جيدًا، فستحتاجها بعد قليل.","Bạn làm một bài tính như thế này. Đọc kỹ các bước, lát nữa bạn sẽ cần chúng.","Ось як ти розв'язуєш розрахункове завдання. Уважно прочитай кроки, вони скоро знадобляться.","ከምዚ ኢኻ ሕሳብ እትሰርሕ። ስጉምታት ጽቡቕ ኣንብብ፣ ኣዝዩ ክትጥቀመሎም ኢኻ።"],"wk0":["المسألة: في نهاية موسم الشتاء بقيت لديكم أوشحة صوفية مختلفة تريدون بيعها بمتوسط سعر: 6 أوشحة بسعر 8,00 € · 4 أوشحة بسعر 13,00 € · 5 أوشحة بسعر 10,00 € · 5 أوشحة بسعر 12,00 €. بأي متوسط سعر (متوسط مرجَّح) تعرضون الوشاح؟","Đề bài: Cuối mùa đông bạn còn hàng tồn là các loại khăn len khác nhau, muốn bán với một giá trung bình: 6 khăn giá 8,00 € · 4 khăn giá 13,00 € · 5 khăn giá 10,00 € · 5 khăn giá 12,00 €. Bạn chào bán mỗi chiếc khăn với giá trung bình bao nhiêu (trung bình có trọng số)?","Завдання: Наприкінці зимового сезону у вас залишилися різні в'язані шалики, які ви хочете продати за середньою ціною: 6 шаликів по 8,00 € · 4 шалики по 13,00 € · 5 шаликів по 10,00 € · 5 шаликів по 12,00 €. За якою середньою ціною (зважене середнє) ви запропонуєте один шалик?","ሕቶ: ኣብ መወዳእታ ናይ ክረምቲ ሰሙን ዝተፈላለዩ ዝተጠምዘዙ ሻርፕ ተሪፎምኩም፣ ብማእከላይ ዋጋ ክትሸጡ ትደልዩ: 6 ሻርፕ ብ 8,00 € · 4 ሻርፕ ብ 13,00 € · 5 ሻርፕ ብ 10,00 € · 5 ሻርፕ ብ 12,00 €። ንሓደ ሻርፕ ብኽንደይ ማእከላይ ዋጋ (ዝተመዘነ ማእከላይ ዋጋ) ትሸጡ?"],"wk1":["1 اقرأ: المطلوب: متوسط سعر الوشاح، مرجَّح","1 Đọc: Cần tìm: giá Ø mỗi chiếc khăn, có trọng số","1 Прочитати: Шукаємо: Ø-ціну за шалик, зважену","1 ኣንብብ: ንደሊ: Ø-ዋጋ ንሓደ ሻርፕ፣ ዝተመዘነ"],"wk2":["2 دوّن: أربع كميات وأربعة أسعار","2 Ghi lại: bốn số lượng và bốn mức giá","2 Записати: чотири кількості та чотири ціни","2 ጽሓፍ: ኣርባዕተ ብዝሒታትን ኣርባዕተ ዋጋታትን"],"wk3":["3 الوصفة: مجموع (الكمية × السعر) : مجموع الكميات","3 Công thức: tổng (số lượng × giá) : tổng số lượng","3 Правило: сума (кількість × ціна) : сума кількостей","3 ቀመር: ጠቕላላ (ብዝሒ × ዋጋ) : ጠቕላላ ብዝሒ"],"wk4":["4 احسب: 48,00 + 52,00 + 50,00 + 60,00 = 210,00 € · 6 + 4 + 5 + 5 = 20 وشاحًا · 210,00 : 20 = 10,50 €","4 Tính: 48,00 + 52,00 + 50,00 + 60,00 = 210,00 € · 6 + 4 + 5 + 5 = 20 khăn · 210,00 : 20 = 10,50 €","4 Рахувати: 48,00 + 52,00 + 50,00 + 60,00 = 210,00 € · 6 + 4 + 5 + 5 = 20 шаликів · 210,00 : 20 = 10,50 €","4 ሰልብ: 48,00 + 52,00 + 50,00 + 60,00 = 210,00 € · 6 + 4 + 5 + 5 = 20 ሻርፕ · 210,00 : 20 = 10,50 €"],"wk5":["5 تحقّق: النتيجة بين أرخص سعر (8,00 €) وأغلى سعر (13,00 €) ✓","5 Kiểm tra: nằm giữa giá rẻ nhất (8,00 €) và giá đắt nhất (13,00 €) ✓","5 Перевірити: лежить між найдешевшою (8,00 €) і найдорожчою ціною (13,00 €) ✓","5 ኣረጋግጽ: ኣብ መንጎ ዝሑል ዋጋ (8,00 €) ከምኡውን ዝዓቢ ዋጋ (13,00 €) እዩ ✓"],"a4_h":["المهمة 4 · تمرين موجَّه","Bài 4 · Luyện tập có hướng dẫn","Завдання 4 · Вправа з підказками","ስራሕ 4 · ብመምርሒ ልምምድ"],"a41_h":["4.1 مبيعات أيام الأسبوع. احسب متوسط المبيعات اليومية.","4.1 Doanh thu các ngày trong tuần. Hãy tính doanh thu trung bình mỗi ngày.","4.1 Денна виручка за тиждень. Обчисли середню денну виручку.","4.1 ሽይጥ መዓልታት ሰሙን። ማእከላይ ሽይጥ ንመዓልቲ ሰልብ።"],"a42_h":["4.2 في أحد الأيام جاء 1.470 زبونًا. كان المحل مفتوحًا من 09:00 إلى 12:30 ومن 14:00 إلى 19:00. كم زبونًا جاء في المتوسط في الساعة؟ أكمل.","4.2 Một ngày có 1.470 khách. Cửa hàng mở từ 09:00 đến 12:30 và từ 14:00 đến 19:00. Trung bình mỗi giờ có bao nhiêu khách? Hãy điền tiếp.","4.2 Одного дня прийшло 1.470 покупців. Магазин був відкритий з 09:00 до 12:30 і з 14:00 до 19:00. Скільки покупців у середньому приходило за годину? Доповни.","4.2 ኣብ ሓንቲ መዓልቲ 1.470 ዓማዊል መጹ። ድኳን ካብ 09:00 ክሳብ 12:30 ከምኡውን ካብ 14:00 ክሳብ 19:00 ክፉት ነበረ። ብማእከላይ ኣብ ሰዓት ክንደይ ዓማዊል መጹ? ምልእ።"],"a43_h":["4.3 تقرير الصندوق: المبيعات الصافية 2.448,00 € · 144 زبونًا · 396 سلعة · الصندوق مفتوح 6 ساعات. احسب المؤشرات.","4.3 Báo cáo quầy thu ngân: doanh thu net 2.448,00 € · 144 khách · 396 món hàng · quầy mở 6 giờ. Hãy tính các chỉ số.","4.3 Звіт каси: виручка нетто 2.448,00 € · 144 покупці · 396 товарів · каса працювала 6 годин. Обчисли показники.","4.3 ጸብጻብ ካሳ: ሽይጥ netto 2.448,00 € · 144 ዓማዊል · 396 ኣቑሑት · ካሳ 6 ሰዓታት ክፉት ነበረት። ሒሳባት ሰልብ።"],"a44_h":["4.4 طاولة خاصة للجوارب: 10 أزواج بسعر 4,50 € · 15 زوجًا بسعر 6,00 € · 5 أزواج بسعر 9,00 €. احسب متوسط السعر المرجَّح.","4.4 Bàn hàng đặc biệt bán tất: 10 đôi giá 4,50 € · 15 đôi giá 6,00 € · 5 đôi giá 9,00 €. Hãy tính giá trung bình có trọng số.","4.4 Окремий стіл із шкарпетками: 10 пар по 4,50 € · 15 пар по 6,00 € · 5 пар по 9,00 €. Обчисли зважену середню ціну.","4.4 ፍሉይ ሰሌዳ ካልሲ: 10 ጥንዲ ብ 4,50 € · 15 ጥንዲ ብ 6,00 € · 5 ጥንዲ ብ 9,00 €። ዝተመዘነ ማእከላይ ዋጋ ሰልብ።"],"a45_h":["4.5 القسم طوله 12 م وعرضه 8 م. مبيعات الأسبوع 67.200 €. كم تبلغ المبيعات لكل م²؟","4.5 Khu bán hàng dài 12 m và rộng 8 m. Doanh thu cả tuần là 67.200 €. Doanh thu mỗi m² là bao nhiêu?","4.5 Відділ має довжину 12 м і ширину 8 м. Тижнева виручка становить 67.200 €. Яка виручка на м²?","4.5 ክፍሊ 12 ሜ ርዝመትን 8 ሜ ወርድን ኣለዎ። ሽይጥ ሰሙን 67.200 € እዩ። ሽይጥ ኣብ m² ክንደይ እዩ?"],"a46_h":["4.6 مخزون سلعة: بداية السنة 40 قطعة، نهاية الأرباع 55 · 62 · 48 · 35 قطعة. احسب متوسط المخزون (كل القيم).","4.6 Tồn kho của một mặt hàng: đầu năm 40 chiếc, cuối các quý 55 · 62 · 48 · 35 chiếc. Hãy tính tồn kho trung bình (tất cả các giá trị).","4.6 Запаси товару на складі: початок року 40 штук, кінці кварталів 55 · 62 · 48 · 35 штук. Обчисли середній запас (усі значення).","4.6 ኣብ መኽዘን ዘሎ ሓደ ኣቑሑት: ጀማሪ ዓመት 40 ቁርጽ፣ መወዳእታ ርብዒታት 55 · 62 · 48 · 35 ቁርጽ። ማእከላይ ኣብ መኽዘን ዘሎ ሰልብ (ኩሉ ዋጋታት)።"],"a5_h":["المهمة 5 · تمرين حر: عدّ الزبائن","Bài 5 · Tự luyện: Đếm khách","Завдання 5 · Вільна вправа: Підрахунок покупців","ስራሕ 5 · ናጻ ልምምድ: ቆጸራ ዓማዊል"],"a5_p":["يبيّن الجدول كم زبونًا تسوّق في قسم المواد الغذائية في أحد الأيام. أجيبوا عن الأسئلة واخترعوا سؤالًا خاصًا بكم لجيرانكم.","Bảng cho thấy trong một ngày có bao nhiêu khách mua ở khu thực phẩm. Hãy trả lời các câu hỏi và tự nghĩ một câu hỏi cho bạn ngồi cạnh.","Таблиця показує, скільки покупців за день робили покупки у відділі продуктів. Дайте відповіді на запитання й придумайте власне запитання для сусіда.","እቲ ሰንጠረዥ ኣብ ክፍሊ መግቢ ኣብ ሓንቲ መዓልቲ ክንደይ ዓማዊል ከም ዝገዝኡ የርኢ። ሕቶታት መልሱ፣ ከምኡውን ንጎረቤትኩም ናትኩም ሕቶ ጽሓፉ።"],"th_zeit":["الوقت","thời gian","Час","ግዜ"],"th_kd":["الزبائن","khách hàng","клієнти","ዓማዊል"],"th_zeit2":["الوقت","thời gian","Час","ግዜ"],"th_kd2":["الزبائن","khách hàng","клієнти","ዓማዊል"],"a6_h":["المهمة 6 · فحص الامتحان 9 مسائل · حوالي 15 دقيقة","Bài 6 · Kiểm tra kiểu thi 9 bài · khoảng 15 phút","Завдання 6 · Перевірка до іспиту 9 завдань · приблизно 15 хвилин","ስራሕ 6 · ፈተና-ምርመራ 9 ሕቶታት · ወግዒ 15 ደቒቕ"],"pts_a6":["9 مسائل · حوالي 15 دقيقة","9 bài · khoảng 15 phút","9 завдань · приблизно 15 хвилин","9 ሕቶታት · ወግዒ 15 ደቒቕ"],"a7p_h":["المهمة 7 · للمحترفين","Bài 7 · Dành cho người giỏi","Завдання 7 · Для профі","ዕዮ 7 · ንክኢላታት"],"a7p_p":["للتفكير أكثر – بجمل كاملة ومع التعليل.","Để suy nghĩ sâu hơn – viết câu đầy đủ, có giải thích lý do.","Для подальшого мислення – повні речення, з обґрунтуванням.","ንተወሳኺ ሓሳብ – ምሉእ ሓረጋት፣ ምስ ምኽንያት።"],"a1_1.q":["1.1 كيف تحسب ضريبة القيمة المضافة (USt) من السعر الإجمالي (Bruttopreis) بنسبة 19 %؟","1.1 Bạn tính thuế VAT (USt) từ giá brutto (19 %) như thế nào?","1.1 Як ти виділяєш ПДВ (USt) з ціни брутто (19 %)?","1.1 USt ካብ ዋጋ brutto (19 %) ብኸመይ ትወጽእ?"],"a1_1.h0":["السعر الإجمالي هو 119 % – والسعر الصافي هو 100 %.","Giá brutto là 119 % – giá netto là 100 %.","Ціна брутто – це 119 %, ціна нетто – 100 %.","ዋጋ brutto 119 % እዩ – ዋጋ netto 100 % እዩ።"],"a1_1.h1":["اقسم الإجمالي على رقم واحد واضربه في رقم آخر.","Chia brutto cho một số rồi nhân với một số khác.","Поділи брутто на одне число й помнож на інше.","Brutto ብሓደ ቁጽሪ ምፍላይ ብካልእ ከኣ ምድማር።"],"a1_1.s":["الإجمالي : 119 × 19","brutto : 119 × 19","ціна брутто : 119 × 19","ዋጋ brutto : 119 × 19"],"a1_2.q":["1.2 100 € مع خصم نقدي (Skonto) 3 %. كم يورو تحوّل؟","1.2 100 € với 3 % Skonto (chiết khấu thanh toán nhanh). Bạn chuyển khoản bao nhiêu euro?","1.2 100 € зі знижкою Skonto 3 %. Скільки євро ти переказуєш?","1.2 100 € ምስ 3 % Skonto (ቅናሽ ቅልጡፍ ክፍሊት)። ክንደይ ዩሮ ትከፍል?"],"a1_2.h0":["الخصم النقدي (Skonto) يُطرح من مبلغ الفاتورة.","Skonto là khoản trừ khỏi số tiền hóa đơn.","Skonto (знижка за швидку оплату) – це віднімання від суми рахунку.","Skonto ካብ ጠቕላላ ክፍሊት ዝውጻእ እዩ።"],"a1_2.h1":["احسب أولًا 3 % من 100 €، ثم اطرح.","Trước hết tính 3 % của 100 €, rồi trừ đi.","Спочатку порахуй 3 % від 100 €, потім відніми.","መጀመርታ 3 % ካብ 100 € ሰልብ፣ ድሕሪኡ ኣውጽእ።"],"a1_2.s":["97,00 €","97,00 €","97,00 €","97,00 €"],"a1_3.q":["1.3 خصم (Rabatt) أم خصم نقدي (Skonto): ماذا يُمنح مقابل الدفع السريع؟","1.3 Rabatt hay Skonto: cái nào dành cho việc trả tiền nhanh?","1.3 Rabatt чи Skonto: що дають за швидку оплату?","1.3 Rabatt ወይ Skonto: ንቅልጡፍ ክፍሊት እንታይ ይወሃብ?"],"a1_3.h0":["الأمر يتعلق بمهلة الدفع على الفاتورة.","Liên quan đến thời hạn thanh toán trên hóa đơn.","Йдеться про термін оплати в рахунку.","ብዛዕባ ናይ ክፍሊት ግዜ ኣብ ደረሰኝ እዩ።"],"a1_3.h1":["كلمة تبدأ بحرف S.","Một từ bắt đầu bằng chữ S.","Слово, що починається на S.","ብ S ዝጅምር ቃል።"],"a1_3.s":["خصم نقدي (Skonto)","Skonto","Skonto (знижка за швидку оплату)","Skonto (ቅናሽ ቅልጡፍ ክፍሊት)"],"a2_1.q":["2.1 كم يحتاج الصف في المتوسط؟ كيف تحسبون؟","2.1 Trung bình cả lớp đi mất bao lâu? Các bạn tính như thế nào?","2.1 Скільки в середньому часу потрібно класу? Як ви рахуєте?","2.1 ክላስ ብማእከላይ ክንደይ ግዜ ይወስድ? ብኸመይ ትሰልቡ?"],"a2_1.h0":["أولًا اجعل كل الدقائق رقمًا واحدًا.","Trước hết gộp tất cả số phút thành một số.","Спочатку з усіх хвилин зроби одне число.","መጀመርታ ኩሉ ደቓይቕ ናብ ሓደ ቁጽሪ ግበር።"],"a2_1.h1":["بعد ذلك تحتاج إلى عدد الأشخاص.","Sau đó bạn cần số người.","Потім тобі потрібна кількість людей.","ድሕሪኡ ብዝሒ ሰባት የድልየካ።"],"a2_1.s":["نجمع كل الدقائق ونقسمها على عدد الأشخاص","cộng tất cả số phút rồi chia cho số người","додати всі хвилини й поділити на кількість людей","ኩሉ ደቓይቕ ደምር ብብዝሒ ሰባት ፈሊ"],"a41_1.q":["الاثنين 3.240,00 € · الثلاثاء 2.890,00 € · الأربعاء 3.110,00 € · الخميس 2.760,00 € · الجمعة 3.580,00 € · السبت 4.020,00 €. احسب متوسط المبيعات اليومية.","Thứ hai 3.240,00 € · thứ ba 2.890,00 € · thứ tư 3.110,00 € · thứ năm 2.760,00 € · thứ sáu 3.580,00 € · thứ bảy 4.020,00 €. Hãy tính doanh thu trung bình mỗi ngày.","Понеділок 3.240,00 € · вівторок 2.890,00 € · середа 3.110,00 € · четвер 2.760,00 € · п'ятниця 3.580,00 € · субота 4.020,00 €. Обчисли середню денну виручку.","ሰኑይ 3.240,00 € · ሠሉስ 2.890,00 € · ረቡዕ 3.110,00 € · ሓሙስ 2.760,00 € · ዓርቢ 3.580,00 € · ቀዳም 4.020,00 €። ማእከላይ ሽይጥ ንመዓልቲ ሰልብ።"],"a41_1.h0":["هذا متوسط بسيط: اجمع كل القيم.","Đây là trung bình đơn giản: cộng tất cả các giá trị.","Це просте середнє: додай усі значення.","እዚ ቀሊል ማእከላይ ዋጋ እዩ: ኩሉ ዋጋታት ደምር።"],"a41_1.h1":["كم يومًا هناك؟ اقسم على هذا العدد.","Có bao nhiêu ngày? Chia cho số đó.","Скільки це днів? Поділи на це число.","ክንደይ መዓልታት እየን? በዚ ቁጽሪ ፈሊ።"],"a41_1.s":["المجموع 19.600,00 € : 6 = 3.266,67 €","Tổng 19.600,00 € : 6 = 3.266,67 €","Сума 19.600,00 € : 6 = 3.266,67 €","ጠቕላላ 19.600,00 € : 6 = 3.266,67 €"],"a42_1.q":["الخطوة 1 – عدّ الساعات: كم ساعة كان المحل مفتوحًا صباحًا (09:00–12:30) وكم ساعة بعد الظهر (14:00–19:00)؟","Bước 1 – Đếm giờ: Buổi sáng (09:00–12:30) và buổi chiều (14:00–19:00) mở cửa mấy giờ?","Крок 1 – Порахувати години: Скільки годин було відкрито зранку (09:00–12:30) і скільки по обіді (14:00–19:00)?","ስጉምቲ 1 – ሰዓታት ቍጸር: ንግሆ (09:00–12:30) ከምኡውን ድሕሪ ቀትሪ (14:00–19:00) ክንደይ ሰዓታት ክፉት ነበረ?"],"a42_1.h0":["عدّ من 09:00 إلى 12:00، ثم تبقى نصف ساعة.","Đếm từ 09:00 đến 12:00, rồi còn thêm nửa giờ.","Рахуй від 09:00 до 12:00, потім ще півгодини.","ካብ 09:00 ክሳብ 12:00 ቍጸር፣ ድሕሪኡ ፍርቂ ሰዓት ይውስኽ።"],"a42_1.h1":["استراحة الغداء لا تُحسب.","Giờ nghỉ trưa không tính.","Обідня перерва не враховується.","ዕረፍቲ ቀትሪ ኣይቝጸርን።"],"a42_1.s":["09:00–12:30 = 3,5 ساعة · 14:00–19:00 = 5 ساعات","09:00–12:30 = 3,5 giờ · 14:00–19:00 = 5 giờ","09:00–12:30 = 3,5 год · 14:00–19:00 = 5 год","09:00–12:30 = 3,5 ሰዓት · 14:00–19:00 = 5 ሰዓት"],"a42_2.q":["الخطوة 2 – المجموع: كم ساعة كان الصندوق مفتوحًا في المجموع؟","Bước 2 – Cộng lại: Quầy mở tổng cộng bao nhiêu giờ?","Крок 2 – Разом: Скільки годин каса була відкрита загалом?","ስጉምቲ 2 – ብሓባር: ካሳ ብጠቕላላ ክንደይ ሰዓታት ክፉት ነበረት?"],"a42_2.h0":["اجمع الوقتين.","Cộng hai khoảng thời gian.","Додай обидва часи.","ክልቲኦም ግዜታት ደምር።"],"a42_2.h1":["تُضاف نصف ساعة.","Có thêm nửa giờ.","Додається ще півгодини.","ፍርቂ ሰዓት ይውስኽ።"],"a42_2.s":["3,5 + 5 = 8,5 ساعة","3,5 + 5 = 8,5 giờ","3,5 + 5 = 8,5 год","3,5 + 5 = 8,5 ሰዓት"],"a42_3.q":["الخطوة 3 – الحساب: كم زبونًا جاء في المتوسط في الساعة؟ (قرّب إلى عدد صحيح من الزبائن)","Bước 3 – Tính: Trung bình mỗi giờ có bao nhiêu khách? (làm tròn thành số khách nguyên)","Крок 3 – Рахувати: Скільки покупців у середньому приходило за годину? (округли до цілих покупців)","ስጉምቲ 3 – ሰልብ: ብማእከላይ ኣብ ሰዓት ክንደይ ዓማዊል መጹ? (ናብ ምሉእ ዓማዊል ጸግዕ)"],"a42_3.h0":["الزبائن في الساعة = الزبائن : الساعات.","Khách mỗi giờ = khách : giờ.","Покупців за годину = покупці : години.","ዓማዊል ኣብ ሰዓት = ዓማዊል : ሰዓታት።"],"a42_3.h1":["اقسم 1.470 على الساعات من الخطوة 2. قرّب الأشخاص إلى أعداد صحيحة.","Chia 1.470 cho số giờ ở bước 2. Người thì làm tròn thành số nguyên.","Поділи 1.470 на години з кроку 2. Людей округлюй до цілих чисел.","1.470 ብሰዓታት ካብ ስጉምቲ 2 ፈሊ። ሰባት ናብ ምሉእ ቁጽሪ ጸግዕ።"],"a42_3.s":["1.470 : 8,5 = 172,94 ← 173 زبونًا","1.470 : 8,5 = 172,94 → 173 khách","1.470 : 8,5 = 172,94 → 173 покупці","1.470 : 8,5 = 172,94 → 173 ዓማዊል"],"a43_1.q":["المبيعات الصافية لكل زبون: الحساب والنتيجة؟","Doanh thu net mỗi khách: phép tính và kết quả?","Виручка нетто на покупця: обчислення і результат?","ሽይጥ netto ንሓደ ዓሚል: ሕሳብን ውጽኢትን?"],"a43_1.h0":["المبيعات لكل زبون = المبيعات : الزبائن.","Doanh thu mỗi khách = doanh thu : khách.","Виручка на покупця = виручка : покупці.","ሽይጥ ንሓደ ዓሚል = ሽይጥ : ዓማዊል።"],"a43_1.h1":["اقسم 2.448 على عدد الزبائن.","Chia 2.448 cho số khách.","Поділи 2.448 на кількість покупців.","2.448 ብብዝሒ ዓማዊል ፈሊ።"],"a43_1.s":["2.448 : 144 = 17,00 €","2.448 : 144 = 17,00 €","2.448 : 144 = 17,00 €","2.448 : 144 = 17,00 €"],"a43_2.q":["السلع لكل زبون (منزلة عشرية واحدة): الحساب والنتيجة؟","Món hàng mỗi khách (1 chữ số thập phân): phép tính và kết quả?","Товарів на покупця (1 знак після коми): обчислення і результат?","ኣቑሑት ንሓደ ዓሚል (1 ድሕሪ ነጥቢ ቁጽሪ): ሕሳብን ውጽኢትን?"],"a43_2.h0":["السلع لكل زبون = السلع : الزبائن.","Món hàng mỗi khách = món hàng : khách.","Товарів на покупця = товари : покупці.","ኣቑሑት ንሓደ ዓሚል = ኣቑሑት : ዓማዊል።"],"a43_2.h1":["قرّب في النهاية إلى منزلة عشرية واحدة.","Làm tròn ở cuối đến một chữ số thập phân.","Округли наприкінці до одного знака після коми.","ኣብ መወዳእታ ናብ 1 ድሕሪ ነጥቢ ቁጽሪ ጸግዕ።"],"a43_2.s":["396 : 144 = 2,75 ← 2,8 سلعة","396 : 144 = 2,75 → 2,8 món hàng","396 : 144 = 2,75 → 2,8 товару","396 : 144 = 2,75 → 2,8 ኣቑሑት"],"a43_3.q":["الزبائن في الساعة: الحساب والنتيجة؟","Khách mỗi giờ: phép tính và kết quả?","Покупців за годину: обчислення і результат?","ዓማዊል ኣብ ሰዓት: ሕሳብን ውጽኢትን?"],"a43_3.h0":["الزبائن في الساعة = الزبائن : الساعات.","Khách mỗi giờ = khách : giờ.","Покупців за годину = покупці : години.","ዓማዊል ኣብ ሰዓት = ዓማዊል : ሰዓታት።"],"a43_3.h1":["كان الصندوق مفتوحًا 6 ساعات.","Quầy mở 6 giờ.","Каса працювала 6 годин.","ካሳ 6 ሰዓታት ክፉት ነበረት።"],"a43_3.s":["144 : 6 = 24 زبونًا","144 : 6 = 24 khách","144 : 6 = 24 покупці","144 : 6 = 24 ዓማዊል"],"a44_1.q":["طاولة خاصة للجوارب: 10 أزواج بسعر 4,50 € · 15 زوجًا بسعر 6,00 € · 5 أزواج بسعر 9,00 €. احسب متوسط السعر المرجَّح.","Bàn hàng đặc biệt bán tất: 10 đôi giá 4,50 € · 15 đôi giá 6,00 € · 5 đôi giá 9,00 €. Hãy tính giá trung bình có trọng số.","Окремий стіл із шкарпетками: 10 пар по 4,50 € · 15 пар по 6,00 € · 5 пар по 9,00 €. Обчисли зважену середню ціну.","ፍሉይ ሰሌዳ ካልሲ: 10 ጥንዲ ብ 4,50 € · 15 ጥንዲ ብ 6,00 € · 5 ጥንዲ ብ 9,00 €። ዝተመዘነ ማእከላይ ዋጋ ሰልብ።"],"a44_1.h0":["احسب لكل سطر الكمية × السعر. ثم اجمع كل المبالغ.","Mỗi dòng tính số lượng × giá. Rồi cộng tất cả các số tiền.","Для кожного рядка порахуй кількість × ціна. Потім додай усі суми.","ንነፍሲ ወከፍ መስመር ብዝሒ × ዋጋ ሰልብ። ድሕሪኡ ኩሉ ጠቕላላታት ደምር።"],"a44_1.h1":["اقسم المجموع على مجموع الكميات (وليس على 3).","Chia tổng cho tổng số lượng (không chia cho 3).","Поділи суму на суму кількостей (не на 3).","ጠቕላላ ብጠቕላላ ብዝሒ ፈሊ (ብ 3 ኣይኮነን)።"],"a44_1.s":["45,00 + 90,00 + 45,00 = 180,00 € · 10 + 15 + 5 = 30 زوجًا · 180,00 : 30 = 6,00 €","45,00 + 90,00 + 45,00 = 180,00 € · 10 + 15 + 5 = 30 đôi · 180,00 : 30 = 6,00 €","45,00 + 90,00 + 45,00 = 180,00 € · 10 + 15 + 5 = 30 пар · 180,00 : 30 = 6,00 €","45,00 + 90,00 + 45,00 = 180,00 € · 10 + 15 + 5 = 30 ጥንዲ · 180,00 : 30 = 6,00 €"],"a45_1.q":["القسم طوله 12 م وعرضه 8 م. مبيعات الأسبوع 67.200 €. كم تبلغ المبيعات لكل م²؟","Khu bán hàng dài 12 m và rộng 8 m. Doanh thu cả tuần là 67.200 €. Doanh thu mỗi m² là bao nhiêu?","Відділ має довжину 12 м і ширину 8 м. Тижнева виручка становить 67.200 €. Яка виручка на м²?","ክፍሊ 12 ሜ ርዝመትን 8 ሜ ወርድን ኣለዎ። ሽይጥ ሰሙን 67.200 € እዩ። ሽይጥ ኣብ m² ክንደይ እዩ?"],"a45_1.h0":["أولًا المساحة: الطول × العرض.","Trước hết tính diện tích: dài × rộng.","Спочатку площа: довжина × ширина.","መጀመርታ ስፍሓት: ርዝመት × ወርዲ።"],"a45_1.h1":["المبيعات لكل م² = المبيعات : المساحة.","Doanh thu mỗi m² = doanh thu : diện tích.","Виручка на м² = виручка : площа.","ሽይጥ ኣብ m² = ሽይጥ : ስፍሓት።"],"a45_1.s":["12 × 8 = 96 م² · 67.200 : 96 = 700,00 € لكل م²","12 × 8 = 96 m² · 67.200 : 96 = 700,00 € mỗi m²","12 × 8 = 96 м² · 67.200 : 96 = 700,00 € на м²","12 × 8 = 96 m² · 67.200 : 96 = 700,00 € ኣብ m²"],"a46_1.q":["مخزون سلعة: بداية السنة 40 قطعة، نهاية الأرباع 55 · 62 · 48 · 35 قطعة. احسب متوسط المخزون (كل القيم).","Tồn kho của một mặt hàng: đầu năm 40 chiếc, cuối các quý 55 · 62 · 48 · 35 chiếc. Hãy tính tồn kho trung bình (tất cả các giá trị).","Запаси товару на складі: початок року 40 штук, кінці кварталів 55 · 62 · 48 · 35 штук. Обчисли середній запас (усі значення).","ኣብ መኽዘን ዘሎ ሓደ ኣቑሑት: ጀማሪ ዓመት 40 ቁርጽ፣ መወዳእታ ርብዒታት 55 · 62 · 48 · 35 ቁርጽ። ማእከላይ ኣብ መኽዘን ዘሎ ሰልብ (ኩሉ ዋጋታት)።"],"a46_1.h0":["عدّ كل القيم: بداية السنة جزء منها.","Đếm tất cả các giá trị: đầu năm cũng tính.","Порахуй усі значення: початок року теж входить.","ኩሉ ዋጋታት ቍጸር: ጀማሪ ዓመት እውን ይስራዕ።"],"a46_1.h1":["مجموع كل المخزونات : عدد المخزونات.","Tổng tất cả tồn kho : số các mức tồn kho.","Сума всіх запасів : кількість запасів.","ጠቕላላ ኩሉ ኣብ መኽዘን ዘሎ : ብዝሒ ቁጽርታት።"],"a46_1.s":["(40 + 55 + 62 + 48 + 35) : 5 = 240 : 5 = 48 قطعة","(40 + 55 + 62 + 48 + 35) : 5 = 240 : 5 = 48 chiếc","(40 + 55 + 62 + 48 + 35) : 5 = 240 : 5 = 48 штук","(40 + 55 + 62 + 48 + 35) : 5 = 240 : 5 = 48 ቁርጽ"],"a5_1.q":["5.1 كم زبونًا جاء في المتوسط في الساعة بين 15:00 و20:00؟","5.1 Trung bình mỗi giờ có bao nhiêu khách từ 15:00 đến 20:00?","5.1 Скільки покупців у середньому приходило за годину між 15:00 і 20:00?","5.1 ኣብ መንጎ 15:00 ክሳብ 20:00 ብማእከላይ ኣብ ሰዓት ክንደይ ዓማዊል መጹ?"],"a5_1.h0":["ابحث في الجدول عن الساعات الخمس من 15:00 إلى 20:00.","Tìm trong bảng năm giờ từ 15:00 đến 20:00.","Знайди в таблиці п'ять годин з 15:00 до 20:00.","ኣብ ሰንጠረዥ ሓሙሽተ ሰዓታት ካብ 15:00 ክሳብ 20:00 ድለ።"],"a5_1.h1":["متوسط بسيط: المجموع : عدد الساعات.","Trung bình đơn giản: tổng : số giờ.","Просте середнє: сума : кількість годин.","ቀሊል ማእከላይ ዋጋ: ጠቕላላ : ብዝሒ ሰዓታት።"],"a5_1.s":["(121 + 147 + 164 + 176 + 127) : 5 = 735 : 5 = 147 زبونًا","(121 + 147 + 164 + 176 + 127) : 5 = 735 : 5 = 147 khách","(121 + 147 + 164 + 176 + 127) : 5 = 735 : 5 = 147 покупців","(121 + 147 + 164 + 176 + 127) : 5 = 735 : 5 = 147 ዓማዊል"],"a5_2.q":["5.2 متى يجب أن تكون أغلب الصناديق مشغولة؟ علّل بالأرقام.","5.2 Khi nào nên mở nhiều quầy thu ngân nhất? Hãy giải thích bằng các con số.","5.2 Коли має бути зайнято найбільше кас? Поясни числами.","5.2 መዓስ እዩ ብዙሓት ካሳታት ክሕዙ ዘለዎም? ብቁጽርታት ግለጽ።"],"a5_2.h0":["ابحث عن الساعات التي فيها أكثر الزبائن.","Tìm những giờ có nhiều khách nhất.","Знайди години з найбільшою кількістю покупців.","ዝበዝሑ ዓማዊል ዘለዎም ሰዓታት ድለ።"],"a5_2.h1":["اذكر الوقت والأرقام.","Nêu giờ và các con số.","Назви час і числа.","ሰዓትን ቁጽርታትን ሰምዩ።"],"a5_2.s":["من 17:00 إلى 19:00 – ففيها يأتي أكثر الزبائن: 164 و176","từ 17:00 đến 19:00 – ở đó có nhiều khách nhất, với 164 và 176","з 17:00 до 19:00 – там найбільше покупців: 164 і 176","ካብ 17:00 ክሳብ 19:00 – ኣብኡ ብ 164 ከምኡውን 176 ዝበዝሑ ዓማዊል ይመጹ"],"a5_3.q":["5.3 سؤالنا الخاص:","5.3 Câu hỏi của chúng tôi:","5.3 Наше власне запитання:","5.3 ናትና ሕቶ:"],"a5_3.h0":["خذ الجدول: أي مؤشر يمكنك حسابه؟","Nhìn vào bảng: bạn có thể tính chỉ số nào?","Подивись на таблицю: який показник ти можеш обчислити?","ሰንጠረዥ ርአዮ: እንታይ ሒሳብ ክትሰልብ ትኽእል?"],"a5_3.h1":["اكتب سؤالًا يستطيع جارك حلّه بالمجموع : العدد.","Viết một câu hỏi mà bạn ngồi cạnh giải được bằng tổng : số lượng.","Напиши запитання, яке твій сусід розв'яже через суму : кількість.","ጎረቤትካ ብጠቕላላ : ብዝሒ ዝፈትሖ ሕቶ ጽሓፍ።"],"a5_3.s":["افحص بنفسك: (1) هل يناسب سؤالك الجدول؟ (2) هل يستطيع جارك حلّه بمتوسط؟ (3) هل كتبت الحل على ورقة؟","Tự kiểm tra: (1) Câu hỏi có hợp với bảng không? (2) Bạn ngồi cạnh có giải được bằng một phép trung bình không? (3) Bạn đã ghi lời giải ra một mảnh giấy chưa?","Перевір сам: (1) Чи запитання підходить до таблиці? (2) Чи може сусід розв'язати його через середнє значення? (3) Чи є в тебе розв'язок на аркуші?","ባዕልኻ ኣረጋግጽ: (1) ሕቶኻ ምስ ሰንጠረዥ ይሰማማዕ ዶ? (2) ጎረቤትካ ብማእከላይ ዋጋ ክፈትሖ ይኽእል ዶ? (3) መልሲ ኣብ ወረቐት ኣለካ ዶ?"],"a6_1.q":["6.1 في سوق للزهور تعدّون في أحد الأيام 1.320 زبونًا. السوق مفتوح من 07:00 إلى 12:30 ومن 15:00 إلى 18:00. احسبوا كم زبونًا جاء في المتوسط في الساعة! (قرّبوا إلى عدد صحيح من الزبائن)","6.1 Ở một chợ hoa, bạn đếm được 1.320 khách trong một ngày. Chợ mở từ 07:00 đến 12:30 và từ 15:00 đến 18:00. Hãy tính trung bình mỗi giờ có bao nhiêu khách! (làm tròn thành số khách nguyên)","6.1 На квітковому ринку ви за день нарахували 1.320 покупців. Ринок відкритий з 07:00 до 12:30 і з 15:00 до 18:00. Обчисліть, скільки покупців у середньому приходило за годину! (округліть до цілих покупців)","6.1 ኣብ ዕዳጋ ዕምባባ ኣብ ሓንቲ መዓልቲ 1.320 ዓማዊል ትቝጽሩ። ዕዳጋ ካብ 07:00 ክሳብ 12:30 ከምኡውን ካብ 15:00 ክሳብ 18:00 ክፉት እዩ። ብማእከላይ ኣብ ሰዓት ክንደይ ዓማዊል ከም ዝመጹ ሰልቡ! (ናብ ምሉእ ዓማዊል ጸግዑ)"],"a6_1.h0":["عدّ وقت الفتح بدقة أولًا. الاستراحة لا تُحسب.","Trước hết đếm chính xác giờ mở cửa. Giờ nghỉ không tính.","Спочатку точно порахуй час роботи. Перерва не враховується.","መጀመርታ ሰዓት ክፉት ብትኽክል ቍጸር። ዕረፍቲ ኣይቝጸርን።"],"a6_1.h1":["الزبائن : الساعات – قرّب الأشخاص إلى أعداد صحيحة.","Khách : giờ – người thì làm tròn thành số nguyên.","Покупці : години – людей округлюй до цілих чисел.","ዓማዊል : ሰዓታት – ሰባት ናብ ምሉእ ቁጽሪ ጸግዕ።"],"a6_1.s":["5,5 ساعة + 3 ساعات = 8,5 ساعة · 1.320 : 8,5 = 155,29 ← 155 زبونًا","5,5 giờ + 3 giờ = 8,5 giờ · 1.320 : 8,5 = 155,29 → 155 khách","5,5 год + 3 год = 8,5 год · 1.320 : 8,5 = 155,29 → 155 покупців","5,5 ሰዓት + 3 ሰዓት = 8,5 ሰዓት · 1.320 : 8,5 = 155,29 → 155 ዓማዊል"],"a6_2.q":["6.2 تقرير الصندوق: المبيعات الصافية 2.337,50 € · 85 زبونًا. احسبوا متوسط المبيعات الصافية لكل زبون!","6.2 Báo cáo quầy thu ngân: doanh thu net 2.337,50 € · 85 khách. Hãy tính doanh thu net trung bình mỗi khách!","6.2 Звіт каси: виручка нетто 2.337,50 € · 85 покупців. Визначте середню виручку нетто на одного покупця!","6.2 ጸብጻብ ካሳ: ሽይጥ netto 2.337,50 € · 85 ዓማዊል። ማእከላይ ሽይጥ netto ንሓደ ዓሚል ርኸቡ!"],"a6_2.h0":["أي مؤشر مطلوب؟ انظر إلى بطاقة الوصفة.","Cần tìm chỉ số nào? Xem thẻ công thức.","Який показник шукаємо? Подивись на картку з правилом.","እንታይ ሒሳብ ንደሊ? ካርድ ቀመር ርአ።"],"a6_2.h1":["المبيعات : الزبائن.","Doanh thu : khách.","Виручка : покупці.","ሽይጥ : ዓማዊል።"],"a6_2.s":["2.337,50 : 85 = 27,50 €","2.337,50 : 85 = 27,50 €","2.337,50 : 85 = 27,50 €","2.337,50 : 85 = 27,50 €"],"a6_3a.q":["6.3 تقرير الصندوق: 270 زبونًا · 702 سلعة · الصندوق مفتوح 5 ساعات. أ) احسبوا متوسط عدد الزبائن في الساعة!","6.3 Báo cáo quầy: 270 khách · 702 món hàng · quầy mở 5 giờ. a) Hãy tính số khách trung bình mỗi giờ!","6.3 Звіт каси: 270 покупців · 702 товари · каса працювала 5 годин. а) Обчисліть середню кількість покупців за годину!","6.3 ጸብጻብ ካሳ: 270 ዓማዊል · 702 ኣቑሑት · ካሳ 5 ሰዓታት ክፉት ነበረት። ሀ) ማእከላይ ብዝሒ ዓማዊል ኣብ ሰዓት ሰልቡ!"],"a6_3a.h0":["الزبائن في الساعة = الزبائن : الساعات.","Khách mỗi giờ = khách : giờ.","Покупців за годину = покупці : години.","ዓማዊል ኣብ ሰዓት = ዓማዊል : ሰዓታት።"],"a6_3a.h1":["كان الصندوق مفتوحًا 5 ساعات.","Quầy mở 5 giờ.","Каса була відкрита 5 годин.","ካሳ 5 ሰዓታት ክፉት ነበረት።"],"a6_3a.s":["أ) 270 : 5 = 54 زبونًا","a) 270 : 5 = 54 khách","а) 270 : 5 = 54 покупці","ሀ) 270 : 5 = 54 ዓማዊል"],"a6_3b.q":["6.3 ب) احسبوا متوسط عدد السلع لكل زبون! (منزلة عشرية واحدة)","6.3 b) Hãy tính số món hàng trung bình mỗi khách! (một chữ số thập phân)","6.3 б) Обчисліть середню кількість товарів на одного покупця! (один знак після коми)","6.3 ለ) ማእከላይ ብዝሒ ኣቑሑት ንሓደ ዓሚል ሰልቡ! (1 ድሕሪ ነጥቢ ቁጽሪ)"],"a6_3b.h0":["السلع لكل زبون = السلع : الزبائن.","Món hàng mỗi khách = món hàng : khách.","Товарів на покупця = товари : покупці.","ኣቑሑት ንሓደ ዓሚል = ኣቑሑት : ዓማዊል።"],"a6_3b.h1":["قرّب إلى منزلة عشرية واحدة.","Làm tròn đến một chữ số thập phân.","Округли до одного знака після коми.","ናብ 1 ድሕሪ ነጥቢ ቁጽሪ ጸግዕ።"],"a6_3b.s":["ب) 702 : 270 = 2,6 سلعة","b) 702 : 270 = 2,6 món hàng","б) 702 : 270 = 2,6 товару","ለ) 702 : 270 = 2,6 ኣቑሑት"],"a6_4.q":["6.4 مبيعات الربع: أحذية 90 م² / 297.000 € · حقائب 40 م² / 150.000 € · ألعاب 110 م² / 352.000 € · أدوات منزلية 130 م² / 468.000 €. حدّدوا أعلى مبيعات بالـ€ لكل م²!","6.4 Doanh thu quý: Giày 90 m² / 297.000 € · Túi 40 m² / 150.000 € · Đồ chơi 110 m² / 352.000 € · Đồ gia dụng 130 m² / 468.000 €. Hãy tìm doanh thu cao nhất tính bằng euro mỗi m²!","6.4 Квартальна виручка: Взуття 90 м² / 297.000 € · Сумки 40 м² / 150.000 € · Іграшки 110 м² / 352.000 € · Господарські товари 130 м² / 468.000 €. Визначте найвищу виручку в євро на м²!","6.4 ሽይጥ ርብዒ ዓመት: ጫማ 90 m² / 297.000 € · ሸንጣ 40 m² / 150.000 € · መጻወቲ 110 m² / 352.000 € · ናይ ቤት ኣቑሑት 130 m² / 468.000 €። ዝለዓለ ሽይጥ ብዩሮ ኣብ m² ርኸቡ!"],"a6_4.h0":["احسب لكل قسم المبيعات : المساحة.","Mỗi bộ phận tính doanh thu : diện tích.","Для кожного відділу порахуй виручка : площа.","ንነፍሲ ወከፍ ክፍሊ ሽይጥ : ስፍሓት ሰልብ።"],"a6_4.h1":["قارن أربع نتائج وخذ الأكبر.","So sánh bốn kết quả và lấy số lớn nhất.","Порівняй чотири результати й візьми найбільший.","ኣርባዕተ ውጽኢታት ኣወዳድር ዝዓቢ ውሰድ።"],"a6_4.s":["3.300 · 3.750 · 3.200 · 3.600 ← 3.750,00 € لكل م² (حقائب)","3.300 · 3.750 · 3.200 · 3.600 → 3.750,00 € mỗi m² (Túi)","3.300 · 3.750 · 3.200 · 3.600 → 3.750,00 € на м² (Сумки)","3.300 · 3.750 · 3.200 · 3.600 → 3.750,00 € ኣብ m² (ሸንጣ)"],"a6_5.q":["6.5 جل استحمام في منطقة عرض خاصة: 12 قطعة بسعر 4,90 € · 18 بسعر 3,90 € · 20 بسعر 2,90 €. حدّدوا متوسط السعر المرجَّح!","6.5 Sữa tắm ở khu bán đặc biệt: 12 chai giá 4,90 € · 18 chai giá 3,90 € · 20 chai giá 2,90 €. Hãy tính giá trung bình có trọng số!","6.5 Гель для душу на спеціальній площі: 12 по 4,90 € · 18 по 3,90 € · 20 по 2,90 €. Визначте зважену середню ціну!","6.5 ሳሙና ኣብ ፍሉይ ቦታ: 12 ብ 4,90 € · 18 ብ 3,90 € · 20 ብ 2,90 €። ዝተመዘነ ማእከላይ ዋጋ ርኸቡ!"],"a6_5.h0":["كل سعر يُحتسب بقدر عدد قطعه: الكمية × السعر.","Mỗi giá được tính bấy nhiêu lần bằng số lượng: số lượng × giá.","Кожна ціна враховується стільки разів, скільки є штук: кількість × ціна.","ነፍሲ ወከፍ ዋጋ ከምቲ ብዝሒኡ ይቝጸር: ብዝሒ × ዋጋ።"],"a6_5.h1":["مجموع المبالغ : مجموع الكميات.","Tổng các số tiền : tổng số lượng.","Сума всіх сум : сума кількостей.","ጠቕላላ ብዝሒ : ጠቕላላ ብዝሒ ቁርጽ።"],"a6_5.s":["58,80 + 70,20 + 58,00 = 187,00 € · 187,00 : 50 = 3,74 €","58,80 + 70,20 + 58,00 = 187,00 € · 187,00 : 50 = 3,74 €","58,80 + 70,20 + 58,00 = 187,00 € · 187,00 : 50 = 3,74 €","58,80 + 70,20 + 58,00 = 187,00 € · 187,00 : 50 = 3,74 €"],"a6_6.q":["6.6 خليط شاي: 20 كغ شاي فواكه بسعر 8,00 €/كغ · 10 كغ شاي أعشاب بسعر 12,00 €/كغ · 30 كغ شاي أسود بسعر 10,00 €/كغ · 40 كغ شاي أخضر بسعر 7,50 €/كغ. احسبوا متوسط السعر لكل 1 كغ!","6.6 Hỗn hợp trà: 20 kg trà trái cây giá 8,00 €/kg · 10 kg trà thảo mộc giá 12,00 €/kg · 30 kg trà đen giá 10,00 €/kg · 40 kg trà xanh giá 7,50 €/kg. Hãy tính giá trung bình cho 1 kg!","6.6 Чайна суміш: 20 кг фруктового чаю по 8,00 €/кг · 10 кг трав'яного чаю по 12,00 €/кг · 30 кг чорного чаю по 10,00 €/кг · 40 кг зеленого чаю по 7,50 €/кг. Обчисліть середню ціну за 1 кг!","6.6 ሻሂ ሕብርቲ: 20 ኪሎ ናይ ፍረ ሻሂ ብ 8,00 €/ኪሎ · 10 ኪሎ ናይ ሳዕሪ ሻሂ ብ 12,00 €/ኪሎ · 30 ኪሎ ጸሊም ሻሂ ብ 10,00 €/ኪሎ · 40 ኪሎ ሰማያዊ ሻሂ ብ 7,50 €/ኪሎ። ማእከላይ ዋጋ ንሓደ ኪሎ ሰልቡ!"],"a6_6.h0":["احسب الكمية × السعر لكل نوع.","Mỗi loại tính số lượng × giá.","Для кожного сорту порахуй кількість × ціна.","ንነፍሲ ወከፍ ዓይነት ብዝሒ × ዋጋ ሰልብ።"],"a6_6.h1":["اقسم المجموع على كل الكيلوغرامات معًا.","Chia tổng cho tổng số kilôgam.","Поділи суму на всі кілограми разом.","ጠቕላላ ብኩሉ ኪሎግራም ብሓባር ፈሊ።"],"a6_6.s":["160 + 120 + 300 + 300 = 880 € · 880 : 100 كغ = 8,80 €","160 + 120 + 300 + 300 = 880 € · 880 : 100 kg = 8,80 €","160 + 120 + 300 + 300 = 880 € · 880 : 100 кг = 8,80 €","160 + 120 + 300 + 300 = 880 € · 880 : 100 ኪሎ = 8,80 €"],"a6_7a.q":["6.7 قبعات لطاولة خاصة: 20 قطعة بسعر 12,00 € · 15 قطعة بسعر 18,00 € · 15 قطعة بسعر 14,00 €. أ) حدّدوا السعر الموحَّد (المتوسط المرجَّح)!","6.7 Mũ len cho bàn hàng đặc biệt: 20 chiếc giá 12,00 € · 15 chiếc giá 18,00 € · 15 chiếc giá 14,00 €. a) Hãy tìm giá đồng nhất (trung bình có trọng số)!","6.7 Шапки для окремого столу: 20 штук по 12,00 € · 15 штук по 18,00 € · 15 штук по 14,00 €. а) Визначте єдину ціну (зважене середнє)!","6.7 ቆብዕ ንፍሉይ ሰሌዳ: 20 ቁርጽ ብ 12,00 € · 15 ቁርጽ ብ 18,00 € · 15 ቁርጽ ብ 14,00 €። ሀ) ሓደ ዋጋ (ዝተመዘነ ማእከላይ ዋጋ) ርኸቡ!"],"a6_7a.h0":["الكمية × السعر لكل سطر، ثم اجمع.","Mỗi dòng tính số lượng × giá, rồi cộng lại.","Для кожного рядка кількість × ціна, потім додай.","ንነፍሲ ወከፍ መስመር ብዝሒ × ዋጋ፣ ድሕሪኡ ደምር።"],"a6_7a.h1":["اقسم على العدد الكلي للقبعات.","Chia cho tổng số mũ.","Поділи на загальну кількість шапок.","ብጠቕላላ ብዝሒ ቆብዕ ፈሊ።"],"a6_7a.s":["أ) 240 + 270 + 210 = 720 € · 720 : 50 = 14,40 €","a) 240 + 270 + 210 = 720 € · 720 : 50 = 14,40 €","а) 240 + 270 + 210 = 720 € · 720 : 50 = 14,40 €","ሀ) 240 + 270 + 210 = 720 € · 720 : 50 = 14,40 €"],"a6_7b.q":["6.7 ب) بعد أسبوع بقيت 8 قطع. حدّدوا إجمالي المبيعات (Bruttoumsatz) حتى الآن!","6.7 b) Sau một tuần còn lại 8 chiếc. Hãy tính doanh thu brutto cho đến nay!","6.7 б) Через тиждень залишилося ще 8 штук. Визначте досягнуту виручку брутто!","6.7 ለ) ድሕሪ ሓንቲ ሰሙን 8 ቁርጽ ተሪፉ። ክሳብ ሕጂ ዝሸጠ ሽይጥ brutto ርኸቡ!"],"a6_7b.h0":["كم قبعة بيعت حتى الآن؟","Đã bán được bao nhiêu chiếc mũ?","Скільки шапок уже продано?","ክንደይ ቆብዕ ተሸይጡ?"],"a6_7b.h1":["القطع المباعة × السعر الموحَّد من أ).","Số chiếc đã bán × giá đồng nhất ở câu a).","Продані штуки × єдина ціна з пункту а).","ዝተሸጠ ቁርጽ × ሓደ ዋጋ ካብ ሀ)።"],"a6_7b.s":["ب) 50 − 8 = 42 قطعة · 42 × 14,40 = 604,80 €","b) 50 − 8 = 42 chiếc · 42 × 14,40 = 604,80 €","б) 50 − 8 = 42 штуки · 42 × 14,40 = 604,80 €","ለ) 50 − 8 = 42 ቁርጽ · 42 × 14,40 = 604,80 €"],"a6_8.q":["6.8 مخزون مكواة: 01.01. 32 قطعة · 31.03. 46 · 30.06. 60 · 30.09. 41 · 31.12. 36 قطعة. حدّدوا متوسط المخزون مع احتساب كل القيم!","6.8 Tồn kho của một chiếc bàn là: 01.01. 32 chiếc · 31.03. 46 · 30.06. 60 · 30.09. 41 · 31.12. 36 chiếc. Hãy tính tồn kho trung bình, có tính tất cả các mức tồn kho!","6.8 Запаси праски на складі: 01.01. 32 штуки · 31.03. 46 · 30.06. 60 · 30.09. 41 · 31.12. 36 штук. Визначте середній запас з урахуванням усіх значень!","6.8 ኣብ መኽዘን ዘሎ ናይ ብረት ኣቑሑት: 01.01. 32 ቁርጽ · 31.03. 46 · 30.06. 60 · 30.09. 41 · 31.12. 36 ቁርጽ። ማእከላይ ኣብ መኽዘን ዘሎ ብምውሳድ ኩሉ ዋጋታት ርኸቡ!"],"a6_8.h0":["كم قيمة هناك؟ عدّ كل المواعيد.","Có bao nhiêu mức tồn kho? Đếm tất cả các mốc.","Скільки є значень запасу? Порахуй усі дати.","ክንደይ ዋጋታት እየን? ኩሉ ዕለታት ቍጸር።"],"a6_8.h1":["مجموع كل المخزونات : عدد المخزونات.","Tổng tất cả tồn kho : số các mức tồn kho.","Сума всіх запасів : кількість запасів.","ጠቕላላ ኩሉ ኣብ መኽዘን ዘሎ : ብዝሒ ቁጽርታት።"],"a6_8.s":["215 : 5 = 43 قطعة","215 : 5 = 43 chiếc","215 : 5 = 43 штуки","215 : 5 = 43 ቁርጽ"],"a6_9.q":["6.9 مخزون بداية السنة 64.000,00 € · مجموع مخزونات نهايات الأشهر الـ12 هو 716.000,00 €. حدّدوا متوسط المخزون باليورو!","6.9 Tồn kho đầu năm 64.000,00 € · tổng 12 tồn kho cuối tháng 716.000,00 €. Hãy tính tồn kho trung bình bằng euro!","6.9 Запас на початок року 64.000,00 € · сума 12 запасів на кінець місяця 716.000,00 €. Визначте середній запас на складі в євро!","6.9 ጀማሪ ዓመት ኣብ መኽዘን 64.000,00 € · ጠቕላላ 12 መወዳእታ ኣዋርሕ 716.000,00 €። ማእከላይ ኣብ መኽዘን ዘሎ ብዩሮ ርኸቡ!"],"a6_9.h0":["كم قيمة تدخل في المتوسط؟ انظر إلى بطاقة الوصفة „Ø Lagerbestand“.","Có bao nhiêu giá trị trong phép trung bình? Xem thẻ công thức „Ø Lagerbestand“.","Скільки значень входить у середнє? Подивись на картку „Ø Lagerbestand“.","ክንደይ ዋጋታት ኣብ ማእከላይ ይኣቱ? ካርድ ቀመር „Ø Lagerbestand“ ርአ።"],"a6_9.h1":["بداية السنة + مجموع نهايات الأشهر، ثم اقسم على عدد القيم.","Đầu năm + tổng các cuối tháng, rồi chia cho số giá trị.","Початок року + сума кінців місяців, потім поділи на кількість значень.","ጀማሪ ዓመት + ጠቕላላ መወዳእታ ኣዋርሕ፣ ድሕሪኡ ብብዝሒ ዋጋታት ፈሊ።"],"a6_9.s":["(64.000 + 716.000) : 13 = 60.000,00 €","(64.000 + 716.000) : 13 = 60.000,00 €","(64.000 + 716.000) : 13 = 60.000,00 €","(64.000 + 716.000) : 13 = 60.000,00 €"],"a7p_1.q":["7.1 زميل يحسب سعر الوشاح من المهمة 3 هكذا: (8,00 + 13,00 + 10,00 + 12,00) : 4 = 10,75 €. اشرحوا لماذا سيحصّل المتجر بهذا السعر أكثر مما خُطِّط له.","7.1 Một đồng nghiệp tính giá khăn ở Bài 3 như sau: (8,00 + 13,00 + 10,00 + 12,00) : 4 = 10,75 €. Hãy giải thích vì sao với giá này cửa hàng sẽ thu nhiều tiền hơn dự kiến.","7.1 Колега рахує ціну шалика із завдання 3 так: (8,00 + 13,00 + 10,00 + 12,00) : 4 = 10,75 €. Поясніть, чому універмаг отримав би за цією ціною більше, ніж планував.","7.1 ሓደ መሳርሕ ዋጋ ሻርፕ ካብ ስራሕ 3 ከምዚ ይሰሉብ: (8,00 + 13,00 + 10,00 + 12,00) : 4 = 10,75 €። ሱቕ ብዚ ዋጋ ካብ ዝተመደበ ንላዕሊ ስለምንታይ ከም ዝረክብ ግለጹ።"],"a7p_1.h0":["هل يُحتسب كل سعر بالعدد نفسه في هذه العملية؟ هل يتفق هذا مع أعداد القطع؟","Trong phép tính này mỗi giá có được tính số lần như nhau không? Điều đó có khớp với số lượng không?","Чи в цьому розрахунку кожна ціна враховується однаково разів? Чи це збігається з кількістю штук?","ኣብዚ ሕሳብ ነፍሲ ወከፍ ዋጋ ሓደ ዓይነት ግዜ ይቝጸር ዶ? ምስ ብዝሒ ቁርጽ ይሰማማዕ ዶ?"],"a7p_1.h1":["من أي سعر توجد أوشحة أكثر: من الرخيص أم من الغالي؟","Giá nào có nhiều khăn hơn: giá rẻ hay giá đắt?","Яких шаликів більше: дешевих чи дорогих?","ካየናይ ዋጋ ብዙሕ ሻርፕ ኣሎ: ካብ ሕሱም ወይ ካብ ክቡር?"],"a7p_1.s":["في المتوسط البسيط يُحتسب كل سعر مرة واحدة. لكن الأوشحة الرخيصة (6 بسعر 8,00 €) أكثر من الغالية (4 بسعر 13,00 €). السعر المرجَّح الصحيح هو 10,50 €؛ وبـ 10,75 € ستكون الأوشحة غالية جدًا.","Ở trung bình đơn giản, mỗi giá được tính số lần như nhau. Nhưng khăn rẻ (6 chiếc giá 8,00 €) nhiều hơn khăn đắt (4 chiếc giá 13,00 €). Giá có trọng số đúng là 10,50 €; với 10,75 € khăn sẽ quá đắt.","У простому середньому кожна ціна враховується однаково разів. Але дешевих шаликів (6 по 8,00 €) більше, ніж дорогих (4 по 13,00 €). Правильна зважена ціна – 10,50 €; за 10,75 € шалики були б задорогі.","ኣብ ቀሊል ማእከላይ ዋጋ ነፍሲ ወከፍ ዋጋ ሓደ ዓይነት ግዜ ይቝጸር። ግን ካብ ክቡር ሻርፕ (4 ብ 13,00 €) ንላዕሊ ሕሱም ሻርፕ (6 ብ 8,00 €) ይበዝሕ። ቅኑዕ ዝተመዘነ ዋጋ 10,50 € እዩ፤ ብ 10,75 € ሻርፕ ኣዝዩ ክቡር ምኾነ።"],"a7p_2.q":["7.2 قيم الأسبوع: الاثنين 2.310,60 € / 120 زبونًا · الثلاثاء 1.710,40 € / 92 · الأربعاء 2.640,20 € / 140 · الخميس 1.392,00 € / 80 · الجمعة 2.016,30 € / 105 · السبت 3.120,50 € / 165. احسبوا متوسط المبيعات لكل زبون للأسبوع وعلّلوا طريقة حسابكم.","7.2 Số liệu cả tuần: thứ hai 2.310,60 € / 120 khách · thứ ba 1.710,40 € / 92 · thứ tư 2.640,20 € / 140 · thứ năm 1.392,00 € / 80 · thứ sáu 2.016,30 € / 105 · thứ bảy 3.120,50 € / 165. Hãy tính doanh thu trung bình mỗi khách của cả tuần và giải thích cách tính của bạn.","7.2 Тижневі дані: понеділок 2.310,60 € / 120 покупців · вівторок 1.710,40 € / 92 · середа 2.640,20 € / 140 · четвер 1.392,00 € / 80 · п'ятниця 2.016,30 € / 105 · субота 3.120,50 € / 165. Обчисліть середню виручку на покупця за тиждень і обґрунтуйте свій хід розв'язання.","7.2 ዋጋታት ሰሙን: ሰኑይ 2.310,60 € / 120 ዓማዊል · ሠሉስ 1.710,40 € / 92 · ረቡዕ 2.640,20 € / 140 · ሓሙስ 1.392,00 € / 80 · ዓርቢ 2.016,30 € / 105 · ቀዳም 3.120,50 € / 165። ማእከላይ ሽይጥ ንሓደ ዓሚል ንሰሙን ሰልቡ ከምኡውን መስርሕ ሕሳብኩም ግለጹ።"],"a7p_2.h0":["لا تحسب ستة متوسطات صغيرة، بل فكّر: أي مجموعين تحتاج؟","Đừng tính sáu số trung bình nhỏ, hãy nghĩ: bạn cần hai tổng nào?","Не рахуй шість малих середніх, а подумай: які дві суми тобі потрібні?","ሽዱሽተ ንኣሽቱ ማእከላይ ዋጋታት ኣይትሰልብ፣ ግን ሕሰብ: እንታይ ክልተ ጠቕላላታት የድልዩኻ?"],"a7p_2.h1":["هل جاء العدد نفسه من الزبائن كل يوم؟ ماذا يعني هذا لطريقة الحساب؟","Mọi ngày có số khách bằng nhau không? Điều đó có nghĩa gì cho cách tính?","Чи в усі дні приходило однаково покупців? Що це означає для ходу розв'язання?","ኣብ ኩሉ መዓልታት ሓደ ዓይነት ብዝሒ ዓማዊል መጹ ዶ? ንመስርሕ ሕሳብ እንታይ ማለት እዩ?"],"a7p_2.s":["مجموع المبيعات 13.190,00 € : مجموع الزبائن 702 = 18,79 €. لا يجوز حساب متوسط المتوسطات الستة اليومية (فالنتيجة 18,70 €)، لأن عدد الزبائن اختلف من يوم إلى آخر.","Tổng doanh thu 13.190,00 € : tổng khách 702 = 18,79 €. Không được lấy trung bình của sáu số trung bình ngày (sẽ ra 18,70 €), vì mỗi ngày có số khách khác nhau.","Сума виручки 13.190,00 € : сума покупців 702 = 18,79 €. Не можна брати середнє від шести денних середніх (вийшло б 18,70 €), бо в різні дні було різна кількість покупців.","ጠቕላላ ሽይጥ 13.190,00 € : ጠቕላላ ዓማዊል 702 = 18,79 €። ናይ ሽዱሽተ መዓልታት ማእከላይ ዋጋታት ምምጥጣን ኣይፍቀድን (18,70 € ምወጸ)፣ ምኽንያቱ ኣብ ነፍሲ ወከፍ መዓልቲ ዝተፈላለየ ብዝሒ ዓማዊል መጹ።"],"v9_1.q":["9.1 لماذا المتوسط المرجَّح للجوارب في صندوق التذكير 6,70 € وليس 6,83 €؟ علّل.","9.1 Vì sao ở ví dụ tất trong khung ghi nhớ, trung bình có trọng số là 6,70 € mà không phải 6,83 €? Hãy giải thích.","9.1 Чому для шкарпеток із запам'ятовувальної рамки зважене середнє становить 6,70 €, а не 6,83 €? Поясни.","9.1 ኣብ ኣብነት ካልሲ ኣብ ሳጹን ምዝካር ዝተመዘነ ማእከላይ ዋጋ ስለምንታይ 6,70 € እዩ እምበር 6,83 € ኣይኮነን? ግለጽ።"],"v9_1.h0":["أي عملية تحتسب كل سعر بالعدد نفسه – وهل يتفق هذا مع أعداد القطع؟","Phép tính nào tính mỗi giá số lần như nhau – và điều đó có khớp với số lượng không?","Який розрахунок враховує кожну ціну однаково разів – і чи це збігається з кількістю штук?","ኣየነይቲ ሕሳብ ነፍሲ ወከፍ ዋጋ ሓደ ዓይነት ግዜ ትቝጽር – ምስ ብዝሒ ቁርጽ ይሰማማዕ ዶ?"],"v9_1.h1":["من أي سعر توجد أكثر الأزواج؟","Giá nào có nhiều đôi nhất?","За якою ціною найбільше пар?","ካየናይ ዋጋ እዩ ዝበዝሕ ጥንዲ ዘሎ?"],"v9_1.s":["في 6,83 € جُمعت الأسعار الثلاثة ببساطة وقُسمت على 3، أي أن كل سعر يُحتسب بالعدد نفسه. لكن هناك 20 زوجًا بسعر 6,00 €، و8 أزواج فقط بسعر 6,50 €، و12 زوجًا بسعر 8,00 €. في المتوسط المرجَّح يُحتسب كل سعر بقدر عدد قطعه (الكمية × السعر). لذلك تقترب النتيجة 6,70 € من السعر الرخيص.","Với 6,83 € người ta cộng ba giá rồi chia cho 3, nên mỗi giá được tính số lần như nhau. Nhưng có 20 đôi giá 6,00 €, chỉ có 8 đôi giá 6,50 € và 12 đôi giá 8,00 €. Ở trung bình có trọng số, mỗi giá được tính bấy nhiêu lần bằng số lượng (số lượng × giá). Vì vậy kết quả 6,70 € gần giá rẻ hơn.","У 6,83 € три ціни просто додали й поділили на 3, тому кожна ціна враховується однаково разів. Але є 20 пар по 6,00 €, а по 6,50 € лише 8 пар і по 8,00 € 12 пар. У зваженому середньому кожна ціна враховується стільки разів, скільки є штук (кількість × ціна). Тому результат 6,70 € ближчий до дешевої ціни.","ኣብ 6,83 € ሰለስተ ዋጋታት ብቐሊሉ ተደሚሮም ብ 3 ተፈልዮም፣ ስለዚ ነፍሲ ወከፍ ዋጋ ሓደ ዓይነት ግዜ ይቝጸር። ግን 20 ጥንዲ ብ 6,00 € ኣሎ፣ ብ 6,50 € ግና 8 ጥንዲ ጥራይ ከምኡውን ብ 8,00 € 12 ጥንዲ። ኣብ ዝተመዘነ ማእከላይ ዋጋ ነፍሲ ወከፍ ዋጋ ከምቲ ብዝሒኡ ይቝጸር (ብዝሒ × ዋጋ)። ስለዚ ውጽኢት 6,70 € ናብ ሕሱም ዋጋ ይቐርብ።"],"v9_2.q":["9.2 لماذا لا نحسب استراحة الغداء في „الزبائن في الساعة“؟ ماذا سيحدث في المسألة 4.2 لو حسبناها (09:00–19:00)؟","9.2 Vì sao ở „khách mỗi giờ“ không tính giờ nghỉ trưa? Nếu tính giờ nghỉ (09:00–19:00) thì ở Bài 4.2 sẽ ra sao?","9.2 Чому при „покупців за годину“ обідню перерву не враховують? Що сталося б у завданні 4.2, якби її врахували (09:00–19:00)?","9.2 ኣብ „ዓማዊል ኣብ ሰዓት“ ዕረፍቲ ቀትሪ ስለምንታይ ኣይቝጸርን? ኣብ ስራሕ 4.2 እንተ ተቐጺሩ (09:00–19:00) እንታይ ምኾነ?"],"v9_2.h0":["كم ساعة كان الصندوق مفتوحًا فعلًا في المسألة 4.2؟","Ở Bài 4.2 quầy thật sự mở bao nhiêu giờ?","Скільки годин каса в завданні 4.2 була справді відкрита?","ኣብ ስራሕ 4.2 ካሳ ብሓቂ ክንደይ ሰዓታት ክፉት ነበረት?"],"v9_2.h1":["كيف تتغير النتيجة إذا قسمت على ساعات أكثر؟","Kết quả thay đổi thế nào nếu bạn chia cho nhiều giờ hơn?","Як змінюється результат, якщо ділити на більше годин?","ብዝያዳ ሰዓታት እንተ ፈሊኻ ውጽኢት ብኸመይ ይቕየር?"],"v9_2.s":["لا يأتي الزبائن إلا عندما يكون الصندوق مفتوحًا. إذا حسبنا الاستراحة نقسم على ساعات كثيرة جدًا. في المسألة 4.2 ستكون 10 ساعات بدل 8,5 ساعة: 1.470 : 10 = 147 زبونًا في الساعة بدل 173. فتكون النتيجة صغيرة جدًا.","Khách chỉ đến khi quầy mở cửa. Nếu tính cả giờ nghỉ thì chia cho quá nhiều giờ. Ở Bài 4.2 sẽ là 10 giờ thay vì 8,5 giờ: 1.470 : 10 = 147 khách mỗi giờ thay vì 173. Kết quả sẽ quá nhỏ.","Покупці приходять, лише коли каса відкрита. Якщо врахувати перерву, ділимо на забагато годин. У завданні 4.2 було б 10 годин замість 8,5 години: 1.470 : 10 = 147 покупців за годину замість 173. Результат був би замалий.","ዓማዊል እንተ ክፉት ካሳ ጥራይ እዮም ዝመጹ። ዕረፍቲ እንተ ተቐጺሩ ብዙሕ ሰዓታት ይፍለ። ኣብ ስራሕ 4.2 ብ 8,5 ሰዓት ፈንታ 10 ሰዓታት ምኾነ: 1.470 : 10 = 147 ዓማዊል ኣብ ሰዓት ብ 173 ፈንታ። ውጽኢት ኣዝዩ ንኣሽቶ ምኾነ።"],"v9_3.q":["9.3 لماذا لمتوسط المخزون على مدى سنة 13 قيمة وليس 12؟ علّل.","9.3 Vì sao tồn kho trung bình trong một năm có 13 giá trị mà không phải 12? Hãy giải thích.","9.3 Чому в середньому запасі за рік 13 значень, а не 12? Поясни.","9.3 ማእከላይ ኣብ መኽዘን ዘሎ ንሓደ ዓመት ስለምንታይ 13 ዋጋታት ኣለዎ እምበር 12 ኣይኮነን? ግለጽ።"],"v9_3.h0":["كم نهاية شهر في السنة؟","Một năm có bao nhiêu cuối tháng?","Скільки кінців місяців має рік?","ሓደ ዓመት ክንደይ መወዳእታ ኣዋርሕ ኣለዎ?"],"v9_3.h1":["ما الذي يُضاف أيضًا إلى نهايات الأشهر؟","Ngoài các cuối tháng còn có gì nữa?","Що ще входить, крім кінців місяців?","ብተወሳኺ ካብ መወዳእታ ኣዋርሕ እንታይ ይኣቱ?"],"v9_3.s":["هناك 12 نهاية شهر. ويُضاف إليها مخزون بداية السنة. فتكون 13 قيمة، والمتوسط هو مجموع المخزونات الـ13 : 13.","Có 12 cuối tháng. Thêm tồn kho đầu năm. Như vậy là 13 giá trị, và trung bình là tổng của cả 13 mức tồn kho : 13.","Є 12 кінців місяців. До них додається запас на початок року. Це 13 значень, і середнє – це сума всіх 13 запасів : 13.","12 መወዳእታ ኣዋርሕ ኣሎ። ብተወሳኺ ኣብ መኽዘን ዘሎ ኣብ ጀማሪ ዓመት ይመጽእ። እዚ 13 ዋጋታት እዩ፣ ማእከላይ ዋጋ ከኣ ጠቕላላ ኩሉ 13 : 13 እዩ።"],"v9_4.q":["9.4 لماذا يجب أن يكون متوسط السعر المرجَّح دائمًا بين أرخص سعر وأغلى سعر؟ كيف يساعدك هذا في التحقق؟","9.4 Vì sao giá trung bình có trọng số luôn nằm giữa giá rẻ nhất và giá đắt nhất? Điều này giúp bạn kiểm tra thế nào?","9.4 Чому зважена середня ціна завжди має лежати між найдешевшою та найдорожчою ціною? Як це допомагає при перевірці?","9.4 ዝተመዘነ ማእከላይ ዋጋ ወትሩ ኣብ መንጎ ዝሑል ዋጋን ዝዓቢ ዋጋን ስለምንታይ ክኸውን ኣለዎ? ኣብ ምርግጋጽ ብኸመይ የሕግዘካ?"],"v9_4.h0":["هل يمكن أن يكون المتوسط أصغر من أصغر سعر؟","Trung bình có thể nhỏ hơn giá nhỏ nhất không?","Чи може середнє бути меншим за найменшу ціну?","ማእከላይ ካብ ዝንኣሰ ዋጋ ክንእስ ይኽእል ዶ?"],"v9_4.h1":["انظر المهمة 3، الخطوة 5 „تحقّق“.","Xem Bài 3, bước 5 „Kiểm tra“.","Подивись у завдання 3, крок 5 „Перевірити“.","ኣብ ስራሕ 3፣ ስጉምቲ 5 „ኣረጋግጽ“ ርአ።"],"v9_4.s":["كل سعر يُحتسب مرات عدة، لكن لا يمكن أن يكون أي سعر أكبر من الأغلى أو أصغر من الأرخص. لذلك يقع المتوسط بينهما. عند التحقق قارن نتيجتك بأرخص سعر وأغلى سعر. إذا كانت خارجهما فقد أخطأت في الحساب.","Mỗi giá chỉ được tính nhiều lần, nhưng không giá nào lớn hơn giá đắt nhất hay nhỏ hơn giá rẻ nhất. Vì vậy trung bình nằm ở giữa. Khi kiểm tra, bạn so sánh kết quả với giá rẻ nhất và giá đắt nhất. Nếu nằm ngoài, bạn đã tính sai.","Кожна ціна враховується кілька разів, але жодна ціна не може бути більшою за найдорожчу чи меншою за найдешевшу. Тому середнє лежить між ними. Під час перевірки порівняй результат з найдешевшою та найдорожчою ціною. Якщо він за межами, ти помилився в розрахунку.","ነፍሲ ወከፍ ዋጋ ብዙሕ ግዜ ጥራይ ይቝጸር፣ ግን ዋላ ሓደ ዋጋ ካብ ዝዓቢ ዋጋ ኣይዓቢን ካብ ዝሑል ዋጋ ኣይንእስን። ስለዚ ማእከላይ ኣብ መንጎ እዩ። ኣብ ምርግጋጽ ውጽኢትካ ምስ ዝሑል ዋጋን ዝዓቢ ዋጋን ተወዳድር። ኣብ ወጻኢ እንተ ኮይኑ፣ ሰሊብካ ጌጋ ገይርካ።"],"r0.t":["المتوسط البسيط","Trung bình đơn giản","Просте середнє","ቀሊል ማእከላይ ዋጋ"],"r0.task":["ظلّل كيف تحسب المتوسط البسيط.","Đánh dấu cách tính trung bình đơn giản.","Познач, як рахується просте середнє.","ቀሊል ማእከላይ ዋጋ ብኸመይ ከም እትሰልብ ምልክት ግበር።"],"r0.x":["المتوسط (Ø) يُظهر قيمة نموذجية. هكذا تحسب المتوسط البسيط: تجمع كل القيم وتقسم المجموع على عدد القيم. مثال: مبيعات 3.000 € و3.500 € و4.000 € تعطي 10.500 € : 3 = 3.500 €. الفرق لا تحتاجه هنا.","Trung bình (Ø) cho thấy một giá trị tiêu biểu. Cách tính trung bình đơn giản: bạn cộng tất cả các giá trị rồi chia tổng cho số các giá trị. Ví dụ: doanh thu 3.000 €, 3.500 € và 4.000 € cho 10.500 € : 3 = 3.500 €. Hiệu số thì ở đây bạn không cần.","Середнє (Ø) показує типове значення. Просте середнє рахується так: ти додаєш усі значення й ділиш суму на кількість значень. Приклад: виручка 3.000 €, 3.500 € і 4.000 € дає 10.500 € : 3 = 3.500 €. Різниця тут не потрібна.","ማእከላይ ዋጋ (Ø) ልሙድ ዋጋ የርኢ። ቀሊል ማእከላይ ዋጋ ከምዚ ትሰልብ: ኩሉ ዋጋታት ትደምር ጠቕላላ ድማ ብብዝሒ ዋጋታት ትፈሊ። ኣብነት: ሽይጥ 3.000 €፣ 3.500 € ከምኡውን 4.000 € 10.500 € : 3 = 3.500 € ይህቡ። ፍልልይ ኣብዚ ኣየድልየካን።"],"r0.q":["كيف تحسب المتوسط البسيط؟","Bạn tính trung bình đơn giản như thế nào?","Як рахується просте середнє?","ቀሊል ማእከላይ ዋጋ ብኸመይ ትሰልብ?"],"r0.o0":["مجموع كل القيم : عدد القيم","Tổng tất cả các giá trị : số các giá trị","Сума всіх значень : кількість значень","ጠቕላላ ኩሉ ዋጋታት : ብዝሒ ዋጋታት"],"r0.o1":["أكبر قيمة ناقص أصغر قيمة","Giá trị lớn nhất trừ giá trị nhỏ nhất","Найбільше значення мінус найменше значення","ዝዓቢ ዋጋ ሲቀነስ ዝንኣሰ ዋጋ"],"r0.o2":["ضرب كل القيم ببعضها","Nhân tất cả các giá trị với nhau","Помножити всі значення одне на одне","ኩሉ ዋጋታት ምስ ሓድሕዶም ምድማር ብምብዛሕ"],"r1.t":["المؤشرات: الزبائن والمبيعات","Các chỉ số: khách và doanh thu","Показники: покупці та виручка","ሒሳባት: ዓማዊልን ሽይጥን"],"r1.task":["ظلّل المؤشرات وما يجب الانتباه إليه.","Đánh dấu các chỉ số và điều bạn phải chú ý.","Познач показники та на що треба звертати увагу.","ሒሳባትን እንታይ ክትጥንቀቕ ከም ዘለካን ምልክት ግበር።"],"r1.x":["في الزبائن في الساعة تحسب الزبائن : الساعات. احسب وقت الفتح بدقة: من 9:00 إلى 13:30 تساوي 4,5 ساعة. استراحة الغداء لا تحسبها. في المبيعات لكل زبون تقسم المبيعات على الزبائن. المسألة تقول هل المقصود الصافي (netto) أم الإجمالي. في السلع لكل زبون تقرّب غالبًا إلى منزلة عشرية واحدة. وقت التسليم لا دور له.","Với khách mỗi giờ, bạn tính khách : giờ. Hãy đếm giờ mở cửa chính xác: 9:00–13:30 là 4,5 giờ. Giờ nghỉ trưa không tính. Với doanh thu mỗi khách, bạn chia doanh thu cho số khách. Đề bài sẽ nói là net hay brutto. Với món hàng mỗi khách, thường làm tròn đến một chữ số thập phân. Thời gian giao hàng không quan trọng.","Для покупців за годину ти рахуєш покупці : години. Час роботи рахуй точно: 9:00–13:30 – це 4,5 години. Обідню перерву не враховуй. Для виручки на покупця ділиш виручку на кількість покупців. У завданні сказано, нетто чи брутто. Для товарів на покупця часто округлюють до одного знака після коми. Час доставки не має значення.","ንዓማዊል ኣብ ሰዓት ዓማዊል : ሰዓታት ትሰልብ። ሰዓት ክፉት ብትኽክል ቍጸር: 9:00–13:30 4,5 ሰዓት እዩ። ዕረፍቲ ቀትሪ ኣይትቝጽሮ። ንሽይጥ ንሓደ ዓሚል ሽይጥ ብዓማዊል ትፈሊ። ሕቶ netto ወይ brutto ከም ዝኾነ ይነግር። ንኣቑሑት ንሓደ ዓሚል ብዙሕ ግዜ ናብ 1 ድሕሪ ነጥቢ ቁጽሪ ትጸግዕ። ግዜ ምምጻእ ኣቑሑት ኣየድልን።"],"r1.q":["الصندوق مفتوح من 9:00 إلى 13:30. كم ساعة هذه؟","Quầy mở từ 9:00 đến 13:30. Đó là bao nhiêu giờ?","Каса відкрита з 9:00 до 13:30. Скільки це годин?","ካሳ ካብ 9:00 ክሳብ 13:30 ክፉት እያ። ክንደይ ሰዓታት እዩ?"],"r1.o0":["4,5 ساعة","4,5 giờ","4,5 години","4,5 ሰዓታት"],"r1.o1":["4,3 ساعة","4,3 giờ","4,3 години","4,3 ሰዓታት"],"r1.o2":["5 ساعات","5 giờ","5 годин","5 ሰዓታት"],"r2.t":["المؤشرات: المساحة والمخزون","Các chỉ số: diện tích và kho","Показники: площа та склад","ሒሳባት: ስፍሓትን መኽዘንን"],"r2.task":["ظلّل كيف تحسب المبيعات لكل م² ومتوسط المخزون.","Đánh dấu cách tính doanh thu mỗi m² và Ø tồn kho.","Познач, як рахується виручка на м² та Ø запас на складі.","ሽይጥ ኣብ m² ከምኡውን Ø ኣብ መኽዘን ዘሎ ብኸመይ ከም እትሰልብ ምልክት ግበር።"],"r2.x":["في المبيعات لكل م² تحسب المبيعات : المساحة. المساحة هي الطول × العرض: 9 م × 14 م = 126 م². المبيعات في اليوم تحسبها هكذا: مبيعات السنة : أيام البيع. في Ø مخزون المستودع تعدّ كل المخزونات: مخزون بداية السنة ونهايات الأشهر الـ12 معًا 13 قيمة. محيط المساحة غير مطلوب.","Với doanh thu mỗi m², bạn tính doanh thu : diện tích. Diện tích là dài × rộng: 9 m × 14 m = 126 m². Doanh thu mỗi ngày tính như sau: doanh thu cả năm : số ngày bán hàng. Với Ø tồn kho, bạn đếm tất cả các mức tồn kho: tồn kho đầu năm và 12 cuối tháng là 13 giá trị. Chu vi của diện tích không cần dùng.","Для виручки на м² ти рахуєш виручка : площа. Площа – це довжина × ширина: 9 м × 14 м = 126 м². Виручку за день рахуєш так: річна виручка : дні торгівлі. Для Ø запасу на складі враховуєш усі запаси: запас на початок року та 12 кінців місяців – разом 13 значень. Периметр площі не потрібен.","ንሽይጥ ኣብ m² ሽይጥ : ስፍሓት ትሰልብ። ስፍሓት ርዝመት × ወርዲ እዩ: 9 ሜ × 14 ሜ = 126 m²። ሽይጥ ኣብ መዓልቲ ከምዚ ትሰልብ: ዓመታዊ ሽይጥ : መዓልታት ሽያጥ። ንØ ኣብ መኽዘን ዘሎ ኩሉ ዋጋታት ትቝጽር: ኣብ ጀማሪ ዓመትን 12 መወዳእታ ኣዋርሕን ብሓባር 13 ዋጋታት እዮም። ዙርያ ስፍሓት ኣየድልን።"],"r2.q":["كم قيمة في متوسط المخزون (بداية السنة + 12 نهاية شهر)؟","Trung bình tồn kho có bao nhiêu giá trị (đầu năm + 12 cuối tháng)?","Скільки значень має середнє значення запасу на складі (початок року + 12 кінців місяців)?","ማእከላይ ኣብ መኽዘን ዘሎ ክንደይ ዋጋታት ኣለዎ (ጀማሪ ዓመት + 12 መወዳእታ ኣዋርሕ)?"],"r2.o0":["12 قيمة","12 giá trị","12 значень","12 ዋጋታት"],"r2.o1":["13 قيمة","13 giá trị","13 значень","13 ዋጋታት"],"r2.o2":["14 قيمة","14 giá trị","14 значень","14 ዋጋታት"],"r3.t":["المتوسط المرجَّح","Trung bình có trọng số","Зважене середнє","ዝተመዘነ ማእከላይ ዋጋ"],"r3.task":["ظلّل كيف تحسب المتوسط المرجَّح وما هو الفخّ.","Đánh dấu cách tính trung bình có trọng số và cái bẫy là gì.","Познач, як рахується зважене середнє і в чому пастка.","ዝተመዘነ ማእከላይ ዋጋ ብኸመይ ከም እትሰልብን እንታይ እዩ ጌጋ ከም ዝኾነን ምልክት ግበር።"],"r3.x":["إذا وُجدت أعداد مختلفة من القطع لكل سعر، تحسب المتوسط المرجَّح. كل سعر يُحتسب بقدر عدد قطعه. احسب الكمية × السعر لكل سطر، واجمع هذه المبالغ واقسم على مجموع الكميات. مثال: 268,00 € : 40 زوجًا = 6,70 €. الفخّ: جمع الأسعار ببساطة وقسمتها على 3 يعطي 6,83 € – وهذا خطأ، لأن عدد الجوارب الرخيصة أكبر. قرّب الأشخاص والقطع إلى أعداد صحيحة. الخصم النقدي (Skonto) لا تحتاجه هنا.","Nếu các mức giá có số lượng khác nhau, bạn tính trung bình có trọng số. Mỗi giá được tính bấy nhiêu lần bằng số lượng. Mỗi dòng tính số lượng × giá, cộng các số tiền đó rồi chia cho tổng số lượng. Ví dụ: 268,00 € : 40 đôi = 6,70 €. Cái bẫy: cộng các giá lại rồi chia cho 3 ra 6,83 € – cách này sai, vì có nhiều tất rẻ hơn. Người và món hàng làm tròn thành số nguyên. Skonto ở đây bạn không cần.","Якщо штук за різними цінами різна кількість, ти рахуєш зважене середнє. Кожна ціна враховується стільки разів, скільки є штук. Для кожного рядка рахуй кількість × ціна, додай ці суми й поділи на суму кількостей. Приклад: 268,00 € : 40 пар = 6,70 €. Пастка: просто додати ціни й поділити на 3 дає 6,83 € – це неправильно, бо дешевих шкарпеток більше. Людей і штуки округлюй до цілих чисел. Skonto (знижка за швидку оплату) тут не потрібне.","ዝተፈላለየ ብዝሒ ቁርጽ ኣብ ዋጋታት እንተሎ፣ ዝተመዘነ ማእከላይ ዋጋ ትሰልብ። ነፍሲ ወከፍ ዋጋ ከምቲ ብዝሒኡ ይቝጸር። ንነፍሲ ወከፍ መስመር ብዝሒ × ዋጋ ሰልብ፣ እዘን ጠቕላላታት ደምር ብጠቕላላ ብዝሒ ድማ ፈሊ። ኣብነት: 268,00 € : 40 ጥንዲ = 6,70 €። ጌጋ: ዋጋታት ብቐሊሉ ደሚርካ ብ 3 ምፍላይ 6,83 € ይህብ – እዚ ጌጋ እዩ፣ ምኽንያቱ ብዙሕ ሕሱም ካልሲ ኣሎ። ሰባትን ቁርጽን ናብ ምሉእ ቁጽሪ ጸግዕ። Skonto (ቅናሽ ቅልጡፍ ክፍሊት) ኣብዚ ኣየድልየካን።"],"r3.q":["لماذا العملية (6,00 + 8,00 + 6,50) : 3 خطأ في مثال الجوارب؟","Vì sao (6,00 + 8,00 + 6,50) : 3 ở ví dụ tất là sai?","Чому (6,00 + 8,00 + 6,50) : 3 для прикладу зі шкарпетками неправильно?","(6,00 + 8,00 + 6,50) : 3 ኣብ ኣብነት ካልሲ ስለምንታይ ጌጋ እዩ?"],"r3.o0":["لأن كل سعر يُحتسب بالعدد نفسه مع أن أعداد القطع مختلفة.","Vì mỗi giá được tính số lần như nhau, dù số lượng khác nhau.","Бо кожна ціна враховується однаково разів, хоча штук різна кількість.","ምኽንያቱ ብዝሒ ቁርጽ ዝተፈላለየ እኳ እንተኾነ ነፍሲ ወከፍ ዋጋ ሓደ ዓይነት ግዜ ይቝጸር።"],"r3.o1":["لأنه لا يجوز جمع الأسعار أبدًا.","Vì không bao giờ được cộng các giá.","Бо ціни ніколи не можна додавати.","ምኽንያቱ ዋጋታት ፈጺሙ ክድመር ኣይግባእን።"],"r3.o2":["لأنه يجب دائمًا القسمة على 40 دون جمع.","Vì luôn phải chia cho 40 mà không cộng.","Бо завжди треба ділити на 40, не додаючи.","ምኽንያቱ ወትሩ ብ 40 ከይደመርካ ክትፈሊ ኣለካ።"],"r4.t":["خطة الحساب","Lộ trình tính toán","План розрахунку","መስርሕ ሒሳብ"],"r4.task":["ظلّل الخطوات الخمس في خطة الحساب.","Đánh dấu năm bước của lộ trình tính toán.","Познач п'ять кроків плану розрахунку.","ሓሙሽተ ስጉምትታት ናይ መስርሕ ሒሳብ ምልክት ግበር።"],"r4.x":["في كل مسألة تسير هكذا: اقرأ – ما المطلوب؟ دوّن – ما المعطى؟ اختر الوصفة – أي بطاقة وصفة تناسب؟ احسب – بالآلة الحاسبة دفعة واحدة، ولا تقرّب النتائج الوسيطة. تحقّق – التقريب كما هو مطلوب، الوحدة، هل النتيجة منطقية؟ التخمين ليس خطوة.","Với mọi bài, bạn làm như sau: Đọc – cần tìm gì? Ghi lại – đã cho gì? Chọn công thức – thẻ công thức nào phù hợp? Tính – bằng máy tính một lần liền, không làm tròn kết quả trung gian. Kiểm tra – làm tròn đúng yêu cầu, đơn vị, kết quả có hợp lý không? Đoán mò không phải là một bước.","У кожному завданні ти дієш так: Прочитати – що шукаємо? Записати – що дано? Обрати правило – яка картка з правилом підходить? Рахувати – на калькуляторі за один раз, проміжні результати не округлювати. Перевірити – округлити як потрібно, одиниця, чи результат підходить? Вгадування – це не крок.","ኣብ ነፍሲ ወከፍ ሕቶ ከምዚ ትገብር: ኣንብብ – እንታይ ንደሊ? ጽሓፍ – እንታይ ተዋሂቡ? ቀመር ምረጽ – ኣየነይቲ ካርድ ቀመር ትኸውን? ሰልብ – ብካልኩሌተር ብሓንቲ ግዜ፣ ናይ ማእከል ውጽኢት ኣይትጸግዕ። ኣረጋግጽ – ከምቲ ዝተሓተተ ጸግዕ፣ መለክዒ፣ ውጽኢት ይሰማማዕ ዶ? ምግማት ስጉምቲ ኣይኮነን።"],"r4.q":["متى تقرّب؟","Khi nào bạn làm tròn?","Коли ти округлюєш?","መዓስ ትጸግዕ?"],"r4.o0":["في النهاية فقط، كما تطلب المسألة.","Chỉ ở cuối, đúng như đề bài yêu cầu.","Лише наприкінці, як вимагає завдання.","ኣብ መወዳእታ ጥራይ፣ ከምቲ ሕቶ ዝሓተተ።"],"r4.o1":["بعد كل خطوة وسيطة.","Sau mỗi bước trung gian.","Після кожного проміжного кроку.","ድሕሪ ነፍሲ ወከፍ ናይ ማእከል ስጉምቲ።"],"r4.o2":["أبدًا.","Không bao giờ.","Ніколи.","ፈጺሙ ኣይትጸግዕን።"],"cat_vor":["الوصول: مراجعة الوحدة 15","Khởi động: Ôn lại Bài 15","Розминка: Повторення модуля 15","መእተዊ: ምድጋም ምዕራፍ 15"],"cat_txt":["فهم النص: متوسط الصف","Hiểu văn bản: Trung bình của cả lớp","Розуміння тексту: Середнє значення класу","ምርዳእ ጽሑፍ: ማእከላይ ዋጋ ናይ ክላስ"],"cat_trans":["التطبيق: حساب المتوسطات","Vận dụng: Tính các giá trị trung bình","Перенесення: Обчислення середніх значень","ምትግባር: ማእከላይ ዋጋታት ምስላብ"],"cat_wis":["المعرفة المهنية: اختبار الامتحان","Kiến thức nghề: Kiểm tra kiểu thi","Фахові знання: Перевірка до іспиту","ክእለት ሞያ: ፈተና-ምርመራ"],"cat_refl":["عدّ الزبائن وتفكير أعمق","Đếm khách & suy nghĩ thêm","Підрахунок покупців і подальші думки","ቆጸራ ዓማዊል ከምኡውን ተወሳኺ ሓሳብ"]};
+const GLOSS=[["der Durchschnitt (Ø)","المتوسط (Durchschnitt, Ø)","trung bình (der Durchschnitt, Ø)","середнє значення (der Durchschnitt, Ø)","ማእከላይ ዋጋ (der Durchschnitt, Ø)"],["der Mittelwert","القيمة الوسطى (Mittelwert)","giá trị trung bình (der Mittelwert)","середня величина (der Mittelwert)","ማእከላይ ዋጋ (der Mittelwert)"],["die Summe","المجموع (Summe)","tổng (die Summe)","сума (die Summe)","ጠቕላላ (die Summe)"],["die Anzahl","العدد (Anzahl)","số lượng (die Anzahl)","кількість (die Anzahl)","ብዝሒ (die Anzahl)"],["der einfache Durchschnitt","المتوسط البسيط (einfacher Durchschnitt)","trung bình đơn giản (der einfache Durchschnitt)","просте середнє (der einfache Durchschnitt)","ቀሊል ማእከላይ ዋጋ (der einfache Durchschnitt)"],["der gewogene Durchschnitt","المتوسط المرجَّح (gewogener Durchschnitt)","trung bình có trọng số (der gewogene Durchschnitt)","зважене середнє (der gewogene Durchschnitt)","ዝተመዘነ ማእከላይ ዋጋ (der gewogene Durchschnitt)"],["die Kennzahl","المؤشر (Kennzahl)","chỉ số (die Kennzahl)","показник (die Kennzahl)","ሒሳብ (die Kennzahl)"],["je Kunde","لكل زبون (je Kunde)","mỗi khách (je Kunde)","на покупця (je Kunde)","ንሓደ ዓሚል (je Kunde)"],["je Stunde","في الساعة (je Stunde)","mỗi giờ (je Stunde)","за годину (je Stunde)","ኣብ ሰዓት (je Stunde)"],["je m²","لكل م² (je m²)","mỗi m² (je m²)","на м² (je m²)","ኣብ m² (je m²)"],["der Lagerbestand","مخزون المستودع (Lagerbestand)","tồn kho (der Lagerbestand)","запас на складі (der Lagerbestand)","ኣብ መኽዘን ዘሎ ኣቑሑት (der Lagerbestand)"]];
+const WTX={"Bruttopreis":["السعر الإجمالي","giá brutto","ціна брутто","ዋጋ brutto"],"Nettopreis":["السعر الصافي","giá netto","ціна нетто","ዋጋ netto"],"Prozent":["بالمئة","phần trăm","відсоток","ሚእታዊ"],"teilen":["يقسم","chia","ділити","ምፍላይ"],"Ich rechne …":["أحسب …","Tôi tính …","Я рахую …","ኣነ ይሰልብ …"],"Skonto":["خصم نقدي","chiết khấu thanh toán nhanh (Skonto)","знижка за швидку оплату (Skonto)","ቅናሽ ቅልጡፍ ክፍሊት (Skonto)"],"abziehen":["يطرح","trừ đi","відняти","ምውጻእ"],"Überweisung":["تحويل","chuyển khoản","переказ","ምስግጋር ገንዘብ"],"Ich überweise …":["أحوّل …","Tôi chuyển khoản …","Я переказую …","ኣነ የሰግር …"],"Zahlung":["دفع","thanh toán","оплата","ክፍሊት"],"schnell":["سريع","nhanh","швидко","ቅልጡፍ"],"Rechnung":["فاتورة","hóa đơn","рахунок","ደረሰኝ"],"Frist":["مهلة","thời hạn","термін","ዕቅራብ ግዜ"],"Für schnelles Bezahlen gibt es …":["مقابل الدفع السريع يوجد …","Trả tiền nhanh thì có …","За швидку оплату дають …","ንቅልጡፍ ክፍሊት ይወሃብ …"],"Minuten":["دقائق","phút","хвилини","ደቓይቕ"],"Summe":["المبلغ","số tiền","сума","ጠቕላላ"],"Anzahl":["العدد","số lượng","кількість","ብዝሒ"],"Personen":["أشخاص","số người","люди","ሰባት"],"Zuerst … ich …":["أولًا … أنا …","Trước hết tôi …","Спочатку я …","መጀመርታ ኣነ …"],"Dann … ich …":["بعد ذلك … أنا …","Sau đó tôi …","Потім я …","ድሕሪኡ ኣነ …"],"Tagesumsatz":["إجمالي مبيعات اليوم (Tagesumsatz)","doanh thu ngày","денна виручка","ሽይጥ መዓልቲ"],"Durchschnitt":["متوسط","trung bình","середнє значення","ማእከላይ ዋጋ"],"Der Durchschnitt ist …":["المتوسط هو …","Trung bình là …","Середнє значення – це …","ማእከላይ ዋጋ …"],"Stunden":["ساعات","giờ","години","ሰዓታት"],"morgens":["صباحًا","buổi sáng","зранку","ንግሆ"],"nachmittags":["بعد الظهر","buổi chiều","по обіді","ድሕሪ ቀትሪ"],"Öffnungszeit":["وقت الفتح","giờ mở cửa","час роботи","ሰዓት ክፉት"],"Morgens war … geöffnet.":["صباحًا كان المحل مفتوحًا …","Buổi sáng mở cửa …","Зранку було відкрито …","ንግሆ … ክፉት ነበረ።"],"zusammen":["معًا","cộng lại","разом","ብሓባር"],"addieren":["جمع","cộng","додавати","ምድማር"],"geöffnet":["مفتوح","mở cửa","відкрито","ክፉት"],"Insgesamt …":["في المجموع …","Tổng cộng …","Загалом …","ብጠቕላላ …"],"Kunden":["الزبائن","khách hàng","клієнти","ዓማዊል"],"runden":["يقرّب","làm tròn","округлювати","ምጽጋዕ"],"Im Durchschnitt kamen …":["في المتوسط جاء …","Trung bình có … khách đến.","У середньому приходило …","ብማእከላይ መጹ …"],"Umsatz":["المبيعات","doanh thu","виручка","ሽይጥ"],"netto":["صافي","net (netto)","нетто","netto (ኔቶ)"],"Der Umsatz je Kunde ist …":["المبيعات لكل زبون هي …","Doanh thu mỗi khách là …","Виручка на покупця – це …","ሽይጥ ንሓደ ዓሚል …"],"Artikel":["السلعة","món hàng","товар","ኣቑሑት"],"Nachkommastelle":["منزلة عشرية","chữ số thập phân","знак після коми","ድሕሪ ነጥቢ ቁጽሪ"],"Im Durchschnitt kauft ein Kunde …":["في المتوسط يشتري الزبون …","Trung bình một khách mua …","У середньому покупець купує …","ብማእከላይ ሓደ ዓሚል ይገዝእ …"],"Es kommen … Kunden je Stunde.":["يأتي … زبونًا في الساعة.","Mỗi giờ có … khách đến.","За годину приходить … покупців.","ኣብ ሰዓት … ዓማዊል ይመጹ።"],"Menge":["الكمية","số lượng","кількість","መጠን"],"Preis":["السعر","giá","ціна","ዋጋ"],"gewogen":["مرجَّح","có trọng số","зважений","ዝተመዘነ"],"Der Durchschnittspreis ist …":["متوسط السعر هو …","Giá trung bình là …","Середня ціна – це …","ማእከላይ ዋጋ …"],"Fläche":["مساحة","diện tích","площа","ስፍሓት"],"Länge":["الطول","độ dài","довжина","ርዝመት"],"Breite":["العرض","chiều rộng","ширина","ወርዲ"],"Der Umsatz je m² ist …":["المبيعات لكل م² هي …","Doanh thu mỗi m² là …","Виручка на м² – це …","ሽይጥ ኣብ m² …"],"Bestand":["مخزون","tồn kho","запас","ኣብ መኽዘን ዘሎ"],"Jahresanfang":["بداية السنة","đầu năm","початок року","ጀማሪ ዓመት"],"Quartal":["ربع سنة","quý","квартал","ርብዒ ዓመት"],"Der durchschnittliche Lagerbestand ist …":["متوسط مخزون المستودع هو …","Tồn kho trung bình là …","Середній запас на складі – це …","ማእከላይ ኣብ መኽዘን ዘሎ …"],"Kassen":["صناديق","quầy thu ngân","каси","ካሳታት"],"Uhr":["ساعة","đồng hồ","година (на годиннику)","ሰዓት (ኣብ ሰዓት)"],"meisten":["أكثر","nhiều nhất","найбільше","ዝበዝሑ"],"Die meisten Kassen sollten … besetzt sein, weil …":["يجب أن تكون أغلب الصناديق مشغولة … لأن …","Nhiều quầy thu ngân nhất nên có người trực vào …, vì …","Найбільше кас має бути зайнято …, тому що …","ዝበዝሑ ካሳታት … ክሕዙ ኣለዎም፣ ምኽንያቱ …"],"Frage":["سؤال","câu hỏi","запитання","ሕቶ"],"Tabelle":["جدول","Bảng","таблиця","ሰንጠረዥ"],"Stunde":["ساعة","giờ","година","ሰዓት"],"Wie viele Kunden …?":["كم زبونًا …؟","Có bao nhiêu khách …?","Скільки покупців …?","ክንደይ ዓማዊል …?"],"Pause":["الاستراحة","giờ nghỉ","перерва","ዕረፍቲ"],"Es kamen … Kunden je Stunde.":["جاء … زبونًا في الساعة.","Mỗi giờ có … khách đến.","За годину приходило … покупців.","ኣብ ሰዓት … ዓማዊል መጹ።"],"Ein Kunde kauft … Artikel.":["يشتري الزبون … سلعة.","Một khách mua … món hàng.","Покупець купує … товарів.","ሓደ ዓሚል … ኣቑሑት ይገዝእ።"],"Abteilung":["قسم","bộ phận","відділ","ክፍሊ"],"höchster":["الأعلى","cao nhất","найвищий","ዝለዓለ"],"Den höchsten Umsatz je m² hat …":["أعلى مبيعات لكل م² لدى …","Doanh thu mỗi m² cao nhất là của …","Найвищу виручку на м² має …","ዝለዓለ ሽይጥ ኣብ m² ዘለዎ …"],"Kilogramm":["كيلوغرام","kilôgam","кілограм","ኪሎግራም"],"Sorte":["نوع","loại","сорт","ዓይነት"],"Der Durchschnittspreis für 1 kg ist …":["متوسط السعر لكل 1 كغ هو …","Giá trung bình cho 1 kg là …","Середня ціна за 1 кг – це …","ማእከላይ ዋጋ ንሓደ ኪሎ …"],"einheitlich":["موحَّد","đồng nhất","єдиний","ሓደ ዓይነት"],"Der einheitliche Preis ist …":["السعر الموحَّد هو …","Giá đồng nhất là …","Єдина ціна – це …","እቲ ሓደ ዋጋ …"],"verkauft":["مُباع","đã bán","продано","ዝተሸጠ"],"Stück":["قطعة","chiếc","штука","ቁርጽ"],"Der bisherige Bruttoumsatz ist …":["إجمالي المبيعات حتى الآن هو …","Doanh thu brutto cho đến nay là …","Досягнута виручка брутто – це …","ክሳብ ሕጂ ሽይጥ brutto …"],"Monatsende":["نهاية الشهر","cuối tháng","кінець місяця","መወዳእታ ወርሒ"],"Werte":["قيم","các giá trị","значення","ዋጋታት"],"einfach":["عادي","đơn giản","простий","ቀሊል"],"Stückzahl":["عدد القطع","số lượng (chiếc)","кількість штук","ብዝሒ ቁርጽ"],"billig":["رخيص","rẻ","дешевий","ሕሱም ዋጋ"],"teuer":["غالٍ","đắt","дорогий","ክቡር"],"Der Preis ist falsch, weil …":["السعر خطأ لأن …","Giá này sai, vì …","Ціна неправильна, тому що …","እቲ ዋጋ ጌጋ እዩ፣ ምኽንያቱ …"],"Tagesdurchschnitt":["متوسط اليوم","trung bình ngày","денне середнє","ማእከላይ መዓልቲ"],"unterschiedlich":["مختلف","khác nhau","різний","ዝተፈላለየ"],"Ich rechne … : …, weil …":["أحسب … : …، لأن …","Tôi tính … : …, vì …","Я рахую … : …, тому що …","ኣነ ይሰልብ … : …፣ ምኽንያቱ …"],"Der Preis 6,83 € ist falsch, weil …":["السعر 6,83 € خطأ لأن …","Giá 6,83 € sai, vì …","Ціна 6,83 € неправильна, тому що …","እቲ ዋጋ 6,83 € ጌጋ እዩ፣ ምኽንያቱ …"],"Wenn man die Pause mitzählt, dann …":["إذا حسبنا الاستراحة، فإن …","Nếu tính cả giờ nghỉ, thì …","Якщо врахувати перерву, то …","ዕረፍቲ እንተ ተቐጺሩ፣ ሽዑ …"],"Es sind 13 Werte, weil …":["هناك 13 قيمة لأن …","Có 13 giá trị, vì …","Це 13 значень, тому що …","13 ዋጋታት እዮም፣ ምኽንያቱ …"],"billigster":["الأرخص","rẻ nhất","найдешевший","ዝሑል"],"teuerster":["الأغلى","đắt nhất","найдорожчий","ዝዓቢ ዋጋ"],"dazwischen":["بينهما","ở giữa","між ними","ኣብ መንጎ"],"prüfen":["يتحقق","kiểm tra","перевіряти","ምርግጋጽ"],"Der Durchschnitt liegt dazwischen, weil …":["المتوسط يقع بينهما لأن …","Trung bình nằm ở giữa, vì …","Середнє лежить між ними, тому що …","ማእከላይ ኣብ መንጎ እዩ፣ ምኽንያቱ …"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={ar:0,vi:1,uk:2,ti:3}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 3 · Modul 16 · Durchschnitt";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf3m16_v2";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),document.getElementById("a2btn")?["a2"]:[]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+if($("#a2btn"))$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF3_Modul16.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done&&$("#a2btn"))$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 3 · Modul 6 · Kassenabrechnung</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="ar">🇸🇦 العربية</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+    <button class="pill" data-l="uk">🇺🇦 Українська</button>
+    <button class="pill" data-l="ti">🇪🇷 ትግርኛ</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 3 · Kunden im Servicebereich Kasse betreuen</p>
+  <h1 data-k="h1">Modul 6: Kassenabrechnung</h1>
+  <p class="sub" data-k="meta">2 Doppelstunden · 8 Punkte · Lehrbuch S. 182–186 · Arbeitsheft S. 152–155</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann Tageslosung und Tagesumsatz unterscheiden und berechnen.</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann einen Kassenbericht aufstellen und eine Kassendifferenz berechnen.</label></li>
+      <li><label data-k="can3"><input type="checkbox"> Ich kann Ursachen für Kassendifferenzen nennen.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a1_h">Aufgabe 1 · Ankommen: Was weißt du noch aus Modul 5?</h2>
+    <p data-k="a1_p">Aus dem Kopf beantworten.</p>
+    <div data-items="a1"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 2 · Feierabend: Stimmt die Kasse?</h2>
+    <div class="merke" data-k="a2_sit"><b>Situation:</b> Es ist 20 Uhr. Mia hat den ganzen Tag an Kasse 2 gearbeitet. Morgens hat sie 300,00 € Wechselgeld eingezählt. Mittags hat die Kassenaufsicht 2.000,00 € aus der Kasse genommen (Abschöpfung). Jetzt zählt Mia 1.845,60 € in der Kasse. Mit Karte wurde für 4.120,50 € bezahlt.</div>
+    <div data-items="a2"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> das Wechselgeld (Kassenanfangsbestand) · die Abschöpfung · der Kassenschlussbestand · die Tageslosung · der Tagesumsatz · der Kassenbericht · der Soll-Bestand · der Ist-Bestand · die Kassendifferenz · der Überschuss · der Fehlbetrag · der Kassensturz
+      <div id="gloss"></div></div>
+    <div id="reading"></div>
+
+    <h3 style="margin-top:24px" data-k="bg_h">Die wichtigsten Begriffe (Buch S. 182)</h3>
+    <table>
+      <tr><th data-k="th_begriff">Begriff</th><th data-k="th_bedeutung">Bedeutung</th></tr>
+      <tr><td data-k="bg1">Wechselgeld (Kassenanfangsbestand)</td><td data-k="bg1b">Geld, das morgens in der Kasse ist, damit man herausgeben kann. Es ist kein Umsatz.</td></tr>
+      <tr><td data-k="bg2">Abschöpfung</td><td data-k="bg2b">Geld, das während des Tages aus der Kasse genommen wird (Sicherheit). Es ist Umsatz, nur nicht mehr in der Kasse.</td></tr>
+      <tr><td data-k="bg3">Tageslosung</td><td data-k="bg3b">alle Bareinnahmen eines Tages</td></tr>
+      <tr><td data-k="bg4">Tagesumsatz</td><td data-k="bg4b">alle Einnahmen eines Tages: bar + Karte</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="kb_h">Der Kassenbericht (Buch S. 182–183)</h3>
+    <table>
+      <tr><th data-k="th_schritt">Rechenschritt</th><th data-k="th_mia">Beispiel Mia</th></tr>
+      <tr><td data-k="kb1">Kassenschlussbestand (gezählt)</td><td>1.845,60 €</td></tr>
+      <tr><td data-k="kb2">+ Abschöpfungen und bar bezahlte Ausgaben</td><td>+ 2.000,00 €</td></tr>
+      <tr><td data-k="kb3">− Wechselgeld (Kassenanfangsbestand)</td><td>− 300,00 €</td></tr>
+      <tr><td data-k="kb4">= Tageslosung (Bareinnahmen)</td><td>= 3.545,60 €</td></tr>
+      <tr><td data-k="kb5">+ Kartenzahlungen</td><td>+ 4.120,50 €</td></tr>
+      <tr><td data-k="kb6">= Tagesumsatz</td><td>= 7.666,10 €</td></tr>
+    </table>
+    <div class="merke" data-k="merksatz"><b>Merksatz:</b> Alles, was aus der Kasse genommen wurde, wird addiert. Das Wechselgeld, das schon morgens drin war, wird abgezogen.</div>
+
+    <h3 style="margin-top:24px" data-k="si_h">Soll und Ist: die Kassendifferenz (Buch S. 185)</h3>
+    <table>
+      <tr><th data-k="th_begriff2">Begriff</th><th data-k="th_bedeutung2">Bedeutung</th></tr>
+      <tr><td data-k="si1">Soll-Bestand</td><td data-k="si1b">so viel Geld sollte in der Kasse sein: Wechselgeld + Bareinnahmen laut Kasse − Rückgaben bar − Abschöpfungen</td></tr>
+      <tr><td data-k="si2">Ist-Bestand</td><td data-k="si2b">so viel Geld ist tatsächlich in der Kasse (gezählt)</td></tr>
+      <tr><td data-k="si3">Kassendifferenz</td><td data-k="si3b">Ist − Soll. Plus = Überschuss (zu viel Geld), Minus = Fehlbetrag (zu wenig Geld)</td></tr>
+    </table>
+    <div class="merke" data-k="ursachen"><b>Ursachen:</b> falsches Rückgeld (zu viel oder zu wenig) · Wechselgeld stimmte schon morgens nicht · zwei Scheine klebten aneinander · Eingabefehler · Storno vergessen · Diebstahl. Ein Kassensturz ist ein überraschender Soll-Ist-Vergleich während des Tages.</div>
+
+    <div class="merke" data-k="merke_pruef"><b>Merke:</b> In der Prüfung heißt es oft: „Ermitteln Sie den Tagesumsatz! Geben Sie den Rechenweg an!“ Dann gibt es je einen Punkt für das Addieren, das Subtrahieren und das Ergebnis. Schreib die Rechnung immer in eine Zeile mit Plus und Minus.</div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a3_h">Aufgabe 3 · Vorgemacht: Tagesumsatz im Prüfungsformat</h2>
+    <p data-k="a3_p">So gehst du bei einer Prüfungsaufgabe vor. Lies die Schritte genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk0"><b>Die Aufgabe: Am Ende Ihres Kasseneinsatzes rechnen Sie ab: Bargeld in Scheinen 1.280,00 €; Bargeld in Münzen 36,50 €; Kartenzahlungen 1.905,40 €; Wechselgeld 200,00 €. Ermitteln Sie den Tagesumsatz in Euro! Geben Sie den Rechenweg an! (2 Punkte)</b></div>
+    <div class="worked" data-k="wk1"><b>1. Gesucht:</b> Tagesumsatz = bar + Karte.</div>
+    <div class="worked" data-k="wk2"><b>2. Sortieren:</b> In der Kasse: Scheine und Münzen → plus. Karte → plus. Wechselgeld war schon morgens drin → minus.</div>
+    <div class="worked" data-k="wk3"><b>3. Rechnen:</b> 1.280,00 + 36,50 + 1.905,40 − 200,00 = 3.021,90 €</div>
+    <div class="worked" data-k="wk4"><b>4. Prüfen:</b> Einheit €? Zwei Stellen nach dem Komma? Rechenweg in einer Zeile? Dann gibt es volle Punkte.</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe die Beispiele gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a4_h">Aufgabe 4 · Geführte Übung</h2>
+    <div data-items="a4"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a5_h">Aufgabe 5 · Freie Übung: Der Kassenbericht von Leon <span class="pts" data-k="pts3">3 Punkte</span></h2>
+    <p data-k="a5_p">Dein Kollege Leon hat seinen ersten Kassenbericht geschrieben. Er hat zwei Fehler gemacht. Finde die Fehler, erkläre sie und rechne richtig.</p>
+    <table>
+      <tr><th data-k="th_leon">Leons Kassenbericht, Kasse 2</th><th data-k="th_betrag">Betrag</th></tr>
+      <tr><td data-k="lk1">Kassenschlussbestand (gezählt)</td><td>1.845,60 €</td></tr>
+      <tr><td data-k="lk2">− Abschöpfung</td><td>− 2.000,00 €</td></tr>
+      <tr><td data-k="lk3">+ bar bezahlte Ausgabe (Briefmarken)</td><td>+ 12,40 €</td></tr>
+      <tr><td data-k="lk4">+ Wechselgeld</td><td>+ 300,00 €</td></tr>
+      <tr><td data-k="lk5">= Tageslosung</td><td>= 158,00 €</td></tr>
+      <tr><td data-k="lk6">+ Kartenzahlungen</td><td>+ 4.120,50 €</td></tr>
+      <tr><td data-k="lk7">= Tagesumsatz</td><td>= 4.278,50 €</td></tr>
+    </table>
+    <div data-items="a5"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a6_h">Aufgabe 6 · Prüfungs-Check <span class="pts" data-k="pts9">9 Punkte · etwa 10 Minuten</span></h2>
+    <div class="merke" data-k="a6_sit"><b>Situation:</b> Am Ende Ihrer Schicht erstellen Sie den Kassenabschluss.</div>
+    <div data-items="a6"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7p_h">Aufgabe 7 · Für Profis</h2>
+    <p data-k="a7p_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="a7p"></div>
+  </div>
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="a8_h">Aufgabe 9 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="a8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="a8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 8 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={vor:"Ankommen: Was weißt du noch?",txt:"Textverständnis: Feierabend an der Kasse",trans:"Transfer: Kassenabrechnung üben",wis:"Fachwissen: Prüfungs-Check",refl:"Fehler finden & Weiterdenken"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{id:"a1_1",g:"a1",cat:"vor",q:"1.1 Ab welchem Alter darf man Bier kaufen – und ab wann Schnaps?",kw:[["re:\\b16\\b","sechzehn"],["re:\\b18\\b","achtzehn"]],min:2,rows:2,
+ h:["Denk an das Jugendschutzgesetz: Es gibt zwei Altersgrenzen.","Eine Grenze gilt für Bier und Wein, die andere für Branntwein (Schnaps)."],
+ sol:"Bier ab 16, Schnaps (Branntwein) ab 18."},
+{id:"a1_2",g:"a1",cat:"vor",q:"1.2 Wie viele Punkte gibt es in der Prüfung für eine Situation mit wörtlicher Rede?",kw:[["re:\\b3\\b","drei"],["aspekt"],["ansprache","anrede"]],min:2,rows:2,
+ h:["Die Punkte teilen sich in zwei Teile auf.","Ein Teil gilt dem fachlichen Aspekt, der andere der Ansprache."],
+ sol:"3 Punkte: 1 für den Aspekt, 2 für die Ansprache."},
+{id:"a1_3",g:"a1",cat:"vor",q:"1.3 Nenne eine ergonomische Maßnahme an der Kasse.",kw:[["stuhl","sitz","stehen","scanner","pause","hoehe","einstell","ergonom","matte","wechsel"]],min:1,rows:2,
+ h:["Ergonomie heißt: Die Arbeit soll den Körper schonen.","Denk an Sitzen, Stehen, Geräte und Pausen."],
+ sol:"z. B. Stuhl einstellen, Sitzen und Stehen wechseln, Handscanner, Pausen."},
+
+{id:"a2_1",g:"a2",cat:"txt",q:"2.1 Wie viel Bargeld hat Mia heute eingenommen? Überlegt zu zweit – ohne Formel. Schreibe das Ergebnis und kurz den Rechenweg auf.",kw:[["3.545,6","3545,6","3.545.6","3545.6"]],min:1,rows:4,
+ h:["Was liegt jetzt in der Kasse – und was wurde schon herausgenommen?","Ein Teil des Bargelds war schon morgens in der Kasse. Das ist keine Einnahme."],
+ sol:"Gezählt 1.845,60 € + weggenommen 2.000,00 € = 3.845,60 € Bargeld, davon waren 300,00 € schon morgens drin. 3.845,60 € − 300,00 € = 3.545,60 € Bareinnahmen."},
+{id:"a2_2",g:"a2",cat:"txt",q:"2.2 Wie hoch ist der Umsatz des Tages?",kw:[["7.666,1","7666,1","7.666.1","7666.1"]],min:1,rows:3,
+ h:["Der Umsatz des Tages ist mehr als nur das Bargeld.","Zähle zu den Bareinnahmen etwas dazu: Wie wurde noch bezahlt?"],
+ sol:"3.545,60 € + 4.120,50 € = 7.666,10 €"},
+
+{id:"a4_1",g:"a4",cat:"trans",q:"4.1 Kassenschlussbestand 2.960,40 € · Abschöpfung 1.500,00 € · Wechselgeld 250,00 € · Kartenzahlungen 3.389,90 €. Berechne die Tageslosung und den Tagesumsatz.",kw:[["4.210,4","4210,4","4.210.4","4210.4"],["7.600,3","7600,3","7.600.3","7600.3"]],min:2,rows:4,
+ h:["Tageslosung = alle Bareinnahmen: Schaue in den Kassenbericht im Text.","Tagesumsatz = Tageslosung plus Kartenzahlungen."],
+ sol:"Tageslosung: 2.960,40 + 1.500,00 − 250,00 = 4.210,40 €. Tagesumsatz: 4.210,40 + 3.389,90 = 7.600,30 €."},
+{id:"a4_2",g:"a4",cat:"trans",q:"4.2 An einem Sondertisch am Eingang werden Schals zu 12,95 € verkauft. Abends sind 38 Schals verkauft. Morgens waren 50,00 € Wechselgeld in der Kasse, jetzt zählst du 545,60 €. Ermittle die Kassendifferenz in Euro. Ist es ein Überschuss oder ein Fehlbetrag?",kw:[["3,5","3.5"],["ueberschuss","plus"]],min:2,rows:5,
+ h:["Rechne zuerst den Soll-Bestand aus: Was sollte in der Kasse sein?","Differenz = Ist − Soll. Plus oder Minus?"],
+ sol:"Soll: 38 × 12,95 € = 492,10 € + 50,00 € Wechselgeld = 542,10 €. Ist: 545,60 €. Differenz: 545,60 − 542,10 = +3,50 € → Überschuss von 3,50 €."},
+{id:"a4_3",g:"a4",cat:"trans",q:"4.3 Morgens sollten 60,00 € Münzgeld in der Kasse sein. Du zählst: 10 × 2 € · 20 × 1 € · 20 × 0,50 € · 15 × 0,20 € · 20 × 0,10 € · 20 × 0,05 € · 25 × 0,02 € · 50 × 0,01 €. Wie groß ist die Differenz?",kw:[["57,0","57 ","57€","57.0"],["3,0","-3","− 3","–3","3 euro","3 €","fehl","minus"]],min:2,rows:5,
+ h:["Rechne jede Münzsorte einzeln: Anzahl mal Wert. Dann addiere alles.","Differenz = Ist − Soll."],
+ sol:"20,00 + 20,00 + 10,00 + 3,00 + 2,00 + 1,00 + 0,50 + 0,50 = 57,00 €. Differenz: 57,00 − 60,00 = −3,00 € (3,00 € fehlen)."},
+{id:"a4_4",g:"a4",cat:"trans",q:"4.4 Nach der Abrechnung fehlen 8,00 € in der Kasse. Nenne 2 mögliche Gründe.",kw:[["zu viel rueckgeld","zu viel wechselgeld","zu viel herausgegeben","zu viel zurueck","zu viel gegeben","mehr herausgegeben","re:(rueckgeld|wechselgeld|herausgegeben).{0,20}zu viel","re:zu viel.{0,20}(rueckgeld|wechselgeld|herausgegeben)"],["wechselgeld stimmte","morgens","einzaehl","anfangsbestand","wechselgeld falsch"],["eingabefehler","vertippt","eingabe","falsch eingegeben","falsch kassiert"],["schein","kleb","aneinander"],["diebstahl","gestohlen","klau"],["storno","falsch gebucht"]],min:2,rows:4,
+ h:["Es fehlt Geld: Was kann beim Herausgeben oder Eintippen schiefgehen?","Denk an die Ursachen-Liste im Text. Es müssen nur zwei sein."],
+ sol:"z. B. einem Kunden zu viel Rückgeld gegeben; das Wechselgeld stimmte morgens nicht; Eingabefehler; zwei Scheine klebten aneinander; Diebstahl."},
+
+{id:"a5_1",g:"a5",cat:"refl",mode:"self",q:"5.1 Finde Leons zwei Fehler und erkläre sie.",rows:5,
+ h:["Vergleiche Leons Tabelle mit dem Kassenbericht von Mia im Text: Welche Zeichen (+ oder −) sind anders?","Zwei Zeilen haben das falsche Zeichen: eine bei einem Geld, das aus der Kasse genommen wurde, eine beim Geld, das morgens schon drin war."],
+ sol:"Fehler 1: Die Abschöpfung muss addiert werden, denn sie ist eingenommenes Geld, das nur nicht mehr in der Kasse ist. Fehler 2: Das Wechselgeld muss abgezogen werden, denn es war schon morgens in der Kasse und ist kein Umsatz."},
+{id:"a5_2",g:"a5",cat:"refl",q:"5.2 Rechne richtig: Wie hoch sind Tageslosung und Tagesumsatz?",kw:[["3.558","3558"],["7.678,5","7678,5","7.678.5","7678.5"]],min:2,rows:4,
+ h:["Schreibe die Rechnung in eine Zeile mit Plus und Minus. Die bar bezahlte Ausgabe wird addiert.","Tagesumsatz = Tageslosung plus Kartenzahlungen."],
+ sol:"Tageslosung: 1.845,60 + 2.000,00 + 12,40 − 300,00 = 3.558,00 €. Tagesumsatz: 3.558,00 + 4.120,50 = 7.678,50 €."},
+
+{id:"a6_1",g:"a6",cat:"wis",mode:"self",q:"6.1 Berechnen Sie den Tagesumsatz anhand dieser Daten! Kartenzahlungen 3.260,00 €; Wechselgeld zu Schichtbeginn 400,00 €; Kassenbestand zu Schichtende 2.750,00 €; Bargeldabschöpfung 2.000,00 €. Geben Sie den Rechenweg an! (3 Punkte)",rows:4,
+ h:["Schreibe die Rechnung in einer Zeile mit Plus und Minus.","Was ist aus der Kasse genommen worden – und was war schon morgens drin?"],
+ sol:"2.750,00 + 2.000,00 + 3.260,00 − 400,00 = 7.610,00 € (1 P. Addition, 1 P. Subtraktion, 1 P. Ergebnis)."},
+{id:"a6_2",g:"a6",cat:"wis",q:"6.2 Beim Kassenabschluss stellen Sie eine Kassendifferenz fest: In der Kasse sind 4,00 € zu viel. Nennen Sie 2 mögliche Gründe dafür! (2 Punkte)",kw:[["zu wenig rueckgeld","zu wenig wechselgeld","zu wenig herausgegeben","zu wenig zurueck","zu wenig gegeben","weniger herausgegeben","re:(rueckgeld|wechselgeld|herausgegeben).{0,20}zu wenig","re:zu wenig.{0,20}(rueckgeld|wechselgeld|herausgegeben)"],["wechselgeld stimmte","morgens","einzaehl","anfangsbestand","wechselgeld falsch"],["eingabefehler","vertippt","eingabe","falsch eingegeben","falsch kassiert"],["storno"],["schein","kleb","aneinander"]],min:2,rows:4,
+ h:["Es ist zu viel Geld da: Wo kann ein Kunde zu wenig bekommen haben?","Denk an die Ursachen-Liste im Text. Je ein Grund gibt 1 Punkt."],
+ sol:"Je 1 Punkt, z. B. zu wenig Wechselgeld herausgegeben, Wechselgeld stimmte schon beim Einzählen nicht, Eingabefehler, Storno nicht gebucht."},
+{id:"a6_3",g:"a6",cat:"wis",q:"6.3 Beim Kassenabschluss am Abend gibt es eine Kassendifferenz. Welcher Vorgang kann sie verursacht haben? Schreibe die Nummer auf. (2 Punkte)<br>1 Ein Kunde hat mit Karte bezahlt, und der Betrag wurde am Kartenterminal richtig abgebucht.<br>2 Sie haben einen Tippfehler sofort korrekt storniert und den Artikel neu eingegeben.<br>3 Ein Kunde hat einen Pullover für 24,95 € mit einem 50-€-Schein bezahlt, und Sie haben ihm 15,05 € herausgegeben.<br>4 Sie haben 2 Schals zu je 9,90 € richtig eingegeben und bar kassiert.",kw:[["re:\\b3\\b","15,05","rueckgeld"]],min:1,rows:2,
+ h:["Eine Kassendifferenz entsteht, wenn Geld falsch bewegt wird. Bei welchem Vorgang stimmt das Geld nicht?","Rechne bei 3 nach: 50,00 − 24,95 = ? Stimmt das Rückgeld?"],
+ sol:"Antwort 3: Richtig wären 25,05 € Rückgeld. Mit 15,05 € hat der Kunde 10,00 € zu wenig bekommen – das gibt einen Überschuss in der Kasse. Bei 1, 2 und 4 ist alles richtig gebucht."},
+{id:"a6_4",g:"a6",cat:"wis",q:"6.4 Abrechnung: Gesamtumsatz bar 3.950,00 € · Gesamtumsatz Karte 2.480,00 € · Rückgabe bar 60,00 € · Kassenentnahme 3.500,00 € · Kassen-Soll-Bestand 640,00 €. Wie hoch war der Betrag, mit dem die Kasse eröffnet wurde? (2 Punkte)",kw:[["re:\\b250\\b"]],min:1,rows:4,
+ h:["Schreibe die Formel für den Soll-Bestand auf (siehe Text) und stelle sie nach dem Anfangsbetrag um.","Kartenumsätze liegen nicht in der Kasse. Lass sie weg."],
+ sol:"Soll = Eröffnung + bar − Rückgabe − Entnahme → Eröffnung = 640,00 − 3.950,00 + 60,00 + 3.500,00 = 250,00 € (die Kartenumsätze sind nicht in der Kasse)."},
+
+{id:"a7p_1",g:"a7p",cat:"refl",mode:"self",q:"7.1 Ein Betrieb möchte, dass die Kassiererinnen Fehlbeträge aus eigener Tasche ersetzen. Beurteilen Sie das. (Stichwort: Mankogeld)",rows:6,
+ h:["Wann haften Beschäftigte für Fehler, wann nicht?","Was muss zusätzlich vereinbart sein, und was bekommen die Beschäftigten dafür?"],
+ sol:"Ohne besondere Vereinbarung haften Beschäftigte nur, wenn sie vorsätzlich oder grob fahrlässig handeln. Eine Mankohaftung muss ausdrücklich vereinbart werden, und dafür gibt es ein Mankogeld als Ausgleich. Einfach vom Lohn abziehen darf der Betrieb nicht."},
+{id:"a7p_2",g:"a7p",cat:"refl",mode:"self",q:"7.2 Erläutern Sie, warum ein Kassensturz überraschend stattfindet.",rows:5,
+ h:["Was könnte jemand tun, wenn er den Termin vorher kennt?","Was zeigt ein überraschender Kassensturz?"],
+ sol:"Wenn er angekündigt wäre, könnte man Fehler oder Unterschlagungen vorher verdecken. Überraschend zeigt er den echten Stand und schreckt ab."}
+];
+
+/* Lesetext: [[Richtig]] = gesuchter Begriff, {{Falsch}} = Ablenker */
+const READ=[
+{t:"Die wichtigsten Begriffe",task:"Markiere die vier Begriffe: Geld vom Morgen, Geld, das herausgenommen wird, alle Bareinnahmen, alle Einnahmen.",
+ x:"Das [[Wechselgeld]] (Kassenanfangsbestand) liegt morgens in der Kasse, damit man herausgeben kann. Es ist kein Umsatz. Die [[Abschöpfung]] ist Geld, das während des Tages zur Sicherheit aus der Kasse genommen wird. Die [[Tageslosung]] sind alle Bareinnahmen eines Tages. Der [[Tagesumsatz]] sind alle Einnahmen eines Tages: bar plus Karte. Die {{Kassendifferenz}} und der {{Kassensturz}} kommen erst später.",
+ q:"Ist das Wechselgeld Umsatz?",o:["Nein, es war schon morgens in der Kasse.","Ja, es liegt ja in der Kasse.","Ja, aber nur bei Kartenzahlung."],c:0},
+{t:"Der Kassenbericht",task:"Markiere, womit du startest, was du addierst, was du abziehst und was am Ende herauskommt.",
+ x:"Du startest mit dem [[Kassenschlussbestand]] (gezählt). Dazu [[addierst]] du die [[Abschöpfungen]] und bar bezahlte Ausgaben. Das [[Wechselgeld]] [[ziehst du ab]], denn es war schon morgens drin. Ergebnis: die [[Tageslosung]]. Plus die [[Kartenzahlungen]] ergibt den [[Tagesumsatz]]. Den {{Soll-Bestand}} brauchst du dafür nicht.",
+ q:"Was wird im Kassenbericht abgezogen?",o:["Das Wechselgeld vom Morgen.","Die Abschöpfung.","Die Kartenzahlungen."],c:0},
+{t:"Soll und Ist",task:"Markiere die zwei Bestände, die Differenz und die beiden Ergebnisse.",
+ x:"Der [[Soll-Bestand]] ist die Summe, die in der Kasse sein sollte: Wechselgeld plus Bareinnahmen laut Kasse minus Rückgaben bar minus Abschöpfungen. Der [[Ist-Bestand]] ist das Geld, das du wirklich zählst. Die [[Kassendifferenz]] ist Ist minus Soll. Plus ist ein [[Überschuss]] (zu viel Geld), Minus ist ein [[Fehlbetrag]] (zu wenig Geld). Die {{Tageslosung}} wird dafür nicht gebraucht.",
+ q:"In der Kasse sind 4 € weniger als der Soll-Bestand. Was ist das?",o:["Ein Fehlbetrag.","Ein Überschuss.","Die Tageslosung."],c:0},
+{t:"Ursachen und Kassensturz",task:"Markiere sechs Ursachen für eine Kassendifferenz und den Begriff für die überraschende Kontrolle.",
+ x:"Eine Kassendifferenz hat Ursachen: falsches [[Rückgeld]] (zu viel oder zu wenig), das [[Wechselgeld]] stimmte schon morgens nicht, zwei [[Scheine]] klebten aneinander, ein [[Eingabefehler]], ein vergessener [[Storno]] oder [[Diebstahl]]. Ein [[Kassensturz]] ist ein überraschender Soll-Ist-Vergleich während des Tages. Die {{Abschöpfung}} ist keine Ursache, sondern ein normaler Vorgang.",
+ q:"Was ist ein Kassensturz?",o:["Ein überraschender Soll-Ist-Vergleich während des Tages.","Die Abrechnung am Ende des Monats.","Das Einzählen des Wechselgelds am Morgen."],c:0}
+];
+
+/* Vertiefung (level v) – Zusatz, aus dem Material abgeleitet */
+ITEMS.push(
+{id:"v9_1",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.1 Die Abschöpfung liegt nicht mehr in der Kasse. Warum zählt sie trotzdem zum Umsatz? Begründe.",rows:5,
+ h:["Woher kommt das Geld, das die Kassenaufsicht herausnimmt?","Was würde mit dem Tagesumsatz passieren, wenn man die Abschöpfung vergisst?"],
+ sol:"Die Abschöpfung ist Geld, das Kunden bezahlt haben und das nur zur Sicherheit aus der Kasse genommen wurde. Es ist also eingenommenes Geld und gehört zur Tageslosung und zum Tagesumsatz. Würde man sie nicht addieren, wäre der Umsatz zu niedrig."},
+{id:"v9_2",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.2 Warum wird das Wechselgeld im Kassenbericht abgezogen? Was würde passieren, wenn man es nicht abzieht? Begründe.",rows:5,
+ h:["Wann kam das Wechselgeld in die Kasse – und von wem?","Was wäre dann der Tagesumsatz im Vergleich zu dem, was wirklich verkauft wurde?"],
+ sol:"Das Wechselgeld war schon morgens in der Kasse und wurde nicht von Kunden bezahlt. Es ist kein Umsatz. Zieht man es nicht ab, ist der Tagesumsatz zu hoch, weil Geld mitgezählt wird, das gar nicht verkauft wurde."},
+{id:"v9_3",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.3 Warum zählen die Kartenzahlungen zum Tagesumsatz, aber nicht zur Tageslosung? Begründe.",rows:5,
+ h:["Lies noch einmal die beiden Begriffe in der Tabelle: Was gehört jeweils dazu?","Liegt das Geld einer Kartenzahlung in der Kasse?"],
+ sol:"Die Tageslosung sind nur die Bareinnahmen. Kartenzahlungen sind keine Bareinnahmen, das Geld liegt nicht in der Kasse. Der Tagesumsatz umfasst alle Einnahmen: bar plus Karte. Deshalb werden die Kartenzahlungen erst zur Tageslosung addiert."},
+{id:"v9_4",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.4 Eine Kollegin sagt: „Fünf Euro zu viel in der Kasse – das ist doch gut für den Betrieb.“ Begründe, warum ein Überschuss trotzdem ein Problem ist.",rows:5,
+ h:["Denk an die Ursachen für einen Überschuss: Wer hat dabei vielleicht zu wenig bekommen?","Was sagt eine Kassendifferenz über die Arbeit an der Kasse aus?"],
+ sol:"Ein Überschuss zeigt, dass etwas nicht stimmt: z. B. wurde einem Kunden zu wenig Rückgeld gegeben, oder es gab einen Eingabefehler. Der Kunde hat dann zu wenig bekommen. Die Kasse stimmt nicht, und die Fehler müssen gesucht und vermieden werden."}
+);
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={
+a1_1:[["Alter","Jugendschutz","Bier","Schnaps"],["Man darf … ab … Jahren kaufen."]],
+a1_2:[["Prüfung","Punkte","wörtliche Rede","Ansprache"],["In der Prüfung gibt es …"]],
+a1_3:[["Ergonomie","Kasse","Körper","Maßnahme"],["Eine Maßnahme ist …"]],
+a2_1:[["Bargeld","Kasse","Rechenweg","morgens"],["Mia hat … eingenommen."]],
+a2_2:[["Umsatz","bar","Karte","Tag"],["Der Umsatz des Tages ist …"]],
+a4_1:[["Kassenbericht","Rechenweg","bar","Karte"],["Die Tageslosung ist …","Der Tagesumsatz ist …"]],
+a4_2:[["Soll-Bestand","Ist-Bestand","Differenz","Wechselgeld"],["Die Differenz ist … Das ist ein …"]],
+a4_3:[["Münzen","Anzahl","Wert","Differenz"],["Die Differenz beträgt …"]],
+a4_4:[["Fehlbetrag","Kasse","Kunde","Fehler"],["Ein Grund ist …","Ein weiterer Grund ist …"]],
+a5_1:[["Abschöpfung","Wechselgeld","addieren","abziehen"],["Fehler 1 ist …","Fehler 2 ist …"]],
+a5_2:[["Rechenweg","Tageslosung","Tagesumsatz","Kartenzahlung"],["Die richtige Rechnung ist …"]],
+a6_1:[["Rechenweg","Tagesumsatz","addieren","subtrahieren"],["Der Tagesumsatz beträgt …"]],
+a6_2:[["Überschuss","Kasse","Kunde","Fehler"],["Ein möglicher Grund ist …"]],
+a6_3:[["Kassendifferenz","Schein","Vorgang","Kunde"],["Richtig ist der Vorgang …"]],
+a6_4:[["Soll-Bestand","Eröffnung","Rückgabe","Entnahme"],["Die Kasse wurde mit … eröffnet."]],
+a7p_1:[["Haftung","Mankogeld","Beschäftigte","Betrieb"],["Der Betrieb darf …","Eine Haftung gibt es nur, wenn …"]],
+a7p_2:[["Kassensturz","überraschend","Unterschlagung","Soll-Ist-Vergleich"],["Ein Kassensturz ist überraschend, weil …"]],
+v9_1:[["Abschöpfung","Sicherheit","Umsatz","Kunde"],["Die Abschöpfung zählt zum Umsatz, weil …"]],
+v9_2:[["Wechselgeld","Umsatz","verkauft","morgens"],["Das Wechselgeld wird abgezogen, weil …","Sonst wäre …"]],
+v9_3:[["Tageslosung","Bareinnahmen","Kasse","Karte"],["Die Tageslosung enthält …, weil …"]],
+v9_4:[["Überschuss","Rückgeld","Kunde","Fehler"],["Ein Überschuss ist ein Problem, weil …"]]
+};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+
+const GLOSS_DE=["das Wechselgeld (Kassenanfangsbestand)","die Abschöpfung","der Kassenschlussbestand","die Tageslosung","der Tagesumsatz","der Kassenbericht","der Soll-Bestand","der Ist-Bestand","die Kassendifferenz","der Überschuss","der Fehlbetrag","der Kassensturz"];
+
+const TX={"sub":["مجال التعلّم 3 · خدمة العملاء في منطقة الصندوق","Lĩnh vực học 3 · Phục vụ khách hàng tại khu vực quầy thu ngân","Навчальна галузь 3 · Обслуговування клієнтів у касовій зоні","ዓውዲ ትምህርቲ 3 · ኣብ ቦታ ካሳ ኣገልግሎት ዓማዊል"],"name":["الاسم","Họ tên","Ім'я","ሽም"],"date":["التاريخ","Ngày","Дата","ዕለት"],"can_h":["هذا ما سأستطيع فعله بعد ذلك","Sau bài này tôi có thể","Після цього я вмію","ድሕሪ እዚ እዚ ክገብር እኽእል እየ"],"can_note":["ضع علامة في النهاية على ما تستطيع فعله الآن.","Cuối bài, hãy đánh dấu những gì bạn đã làm được.","Наприкінці познач, що ти вже вмієш.","ኣብ መወዳእታ ሕጂ ክትገብሮ ዘኽእለካ ምልክት ግበር።"],"pts1":["نقطة واحدة","1 điểm","1 бал","1 ነጥቢ"],"pts2":["نقطتان","2 điểm","2 бали","2 ነጥቢ"],"read_h":["للقراءة والمراجعة · قراءة نشِطة","Đọc lại · đọc chủ động","Для читання · активне читання","ንምንባብ · ንጡፍ ንባብ"],"read_p":["اقرأ كل مقطع واضغط على المصطلحات المطلوبة (تصبح صفراء). انتبه: هناك مصطلحات خاطئة أيضًا! بعد ذلك تجيب عن سؤال قصير – وعندها فقط يُفتح المقطع التالي.","Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở.","Прочитай кожен абзац і торкнись потрібних слів (вони стануть жовтими). Увага: є й неправильні слова! Потім дай відповідь на коротке запитання – лише тоді відкриється наступний абзац.","ነፍሲ ወከፍ ክፍሊ ኣንብብ፣ እቶም ዝድለዩ ቃላት ተንከፎም (ብጫ ይኸውኑ)። ጥንቃቐ፡ ጌጋ ቃላት እውን ኣለዉ! ድሕሪኡ ሓጺር ሕቶ ምለስ – ሽዑ ጥራይ እቲ ዝቕጽል ክፍሊ ይኽፈት።"],"ws_h":["مخزن الكلمات (الترجمة)","Kho từ vựng (bản dịch)","Словник (переклад)","መዝገበ-ቃላት (ትርጉም)"],"a2btn":["قرأتُ الأمثلة","Tôi đã đọc các ví dụ","Я прочитав(ла) приклади","ኣብነታት ኣንቢበ ኣለኹ"],"a7_h":["المهمة 8 · قدِّر، اختبر، سجِّل","Bài 8 · Ước lượng, kiểm tra, ghi lại","Завдання 8 · Оціни, перевір, запиши","ዕዮ 8 · ገምግም፣ ፈትን፣ ጽሓፍ"],"a7_p":["كم نقطة من 20 ستحصل عليها في ورقة العمل هذه؟ سجِّل تقديرك قبل التقييم.","Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm.","Скільки з 20 балів ти отримаєш за цей аркуш? Запиши свою оцінку до перевірки.","ኣብዚ ወረቐት ስራሕ ካብ 20 ነጥቢ ክንደይ ክትረክብ ትሓስብ? ቅድሚ ግምጋሜ ግምትካ ጽሓፍ።"],"th1":["تقديري","Dự đoán của tôi","Моя оцінка","ግምተይ"],"th2":["نتيجتي","Kết quả của tôi","Мій результат","ውጽኢተይ"],"th3":["الفرق","Chênh lệch","Різниця","ፍሉይነት"],"th4":["نقاط لحساب النقاط","Điểm cho tài khoản điểm","Бали для рахунку балів","ነጥብታት ንናይ ነጥቢ ሕሳብ"],"submit_h":["انتهيت؟ إذن قيِّم!","Xong chưa? Hãy chấm điểm!","Готово? Тоді перевіряй!","ወዲእካ? እንተኾነ ገምግም!"],"submit_p":["يمكنك التقييم حتى لو لم تنجز كل شيء – المهام غير المنجزة تُحتسب بصفر.","Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm.","Можна оцінити, навіть якщо не все зроблено – незроблені завдання дають 0 балів.","ኩሉ ዘይተሰርሐ እኳ እንተኾነ ክትገምግም ትኽእል – ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"submit_b":["إرسال وتقييم","Gửi và chấm điểm","📊 Надіслати й оцінити","📊 ሰዲድካ ገምግም"],"res_h":["تقييمك","Kết quả của bạn","Твій результат","ውጽኢትካ"],"pdf_b":["تصدير كملف PDF (للمعلمة)","Xuất PDF (cho giáo viên)","🖨️ Експорт у PDF (для вчителя)","🖨️ ከም PDF ኣውጽእ (ንመምህር)"],"tip_t":["تلميح","Gợi ý","Підказка","ሓጋዚ ሓሳብ"],"tip_next":["تلميح آخر","Thêm gợi ý","Ще одна підказка","ካልእ ሓጋዚ ሓሳብ"],"close":["إغلاق","Đóng","Закрити","ዕጸው"],"chk":["تحقّق","Kiểm tra","✔ Перевірити","✔ ፈትሽ"],"shw":["إظهار الحل","Hiện lời giải","Показати розв'язок","መልሲ ርአይ"],"markb":["تحقّق من التظليل","Kiểm tra phần đánh dấu","Перевірити позначки","ምልክታት ፈትሽ"],"self_q":["ما مدى جودة إجابتك؟","Câu trả lời của bạn tốt đến đâu?","Наскільки добре ти відповів(ла)?","ምላስካ ክንደይ ጽቡቕ ነበረ?"],"self1":["نجحت","Đạt","✔ Вдалося","✔ ኣሸኒፈ"],"self2":["جزئيًا","Một phần","◐ Частково","◐ ብሓደ ኣቕጣጫ"],"self3":["ليس بعد","Chưa","✖ Ще ні","✖ ኣይተኻእለን"],"fb_ok":["ممتاز! أحسنت.","Đúng rồi! Làm tốt lắm.","✅ Правильно! Молодець.","✅ ቅኑዕ! ጽቡቕ ሰሪሕካ።"],"fb_part":["تقريبًا – ينقص جزء. قارن بالحل وأكمل.","Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung.","🟡 Майже – ще чогось бракує. Порівняй із розв'язком і доповни.","🟡 ቐረባ – ሓደ ክፍሊ ጎዲሉ። ምስ መልሲ ኣነጻጽርካ ወስኸሉ።"],"fb_bad":["ليس بعد. استعن بتلميح أو أعد قراءة النص.","Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản.","❌ Ще не те. Візьми підказку 💡 або перечитай текст.","❌ ገና ኣይቅኑዕን። ሓጋዚ ሓሳብ 💡 ውሰድ ወይ ጽሑፍ ዳግማይ ኣንብብ።"],"sol_lbl":["الحل:","Lời giải:","Розв'язок:","መልሲ፡"],"mk_ok":["تظليل صحيح! والآن السؤال:","Đánh dấu đúng! Giờ đến câu hỏi:","✅ Позначено правильно! Тепер запитання:","✅ ብቐንዱ ተሓሪዩ! ሕጂ እቲ ሕቶ፡"],"mk_bad":["ليس تمامًا بعد. اقرأ المهمة مرة أخرى.","Chưa hoàn toàn đúng. Hãy đọc lại đề bài.","Ще не зовсім. Прочитай завдання ще раз.","ገና ጥዑይ ኣይኮነን። ዕዮ ዳግማይ ኣንብብ።"],"zq_ok":["بالضبط! تم فتح المقطع التالي.","Chính xác! Đoạn tiếp theo đã mở.","✅ Точно! Наступний абзац відкрито.","✅ ልክዕ! እቲ ዝቕጽል ክፍሊ ተኸፊቱ።"],"zq_bad":["ليس تمامًا. أعد قراءة المقطع وحاول مجددًا.","Chưa đúng. Hãy đọc lại đoạn và thử lại.","Не зовсім. Перечитай абзац і спробуй ще раз.","ኣይኮነን ጥዑይ። ክፍሊ ዳግማይ ኣንብብ ከምኡውን እንደገና ፈትን።"],"res_pts":["من 20 نقطة","trên 20 điểm","з 20 балів","ካብ 20 ነጥቢ"],"res_an":["تحليل الأخطاء حسب مجالات الكفاءة","Phân tích lỗi theo lĩnh vực năng lực","Аналіз помилок за сферами компетенцій","ትንተና ጌጋታት ብዘርእስታት ክእለት"],"rep":["ما يجب أن تراجعه","Bạn nên ôn lại","Це треба повторити","እዚ ክትደግሞ ኣለካ"],"lab1":["ممتاز!","Tuyệt vời!","Чудово!","ብጣዕሚ ጽቡቕ!"],"lab2":["جيد – تحتاج مزيدًا من التمرين","Khá – cần luyện thêm","Добре – ще трохи практики","ጽቡቕ – ገለ ተወሳኺ ልምምድ"],"lab3":["تحتاج هنا إلى مزيد من التمرين","Phần này bạn cần luyện thêm","Тут тобі ще потрібна практика","ኣብዚ ገና ልምምድ የድልየካ"],"set_h":["الإعدادات","Cài đặt","Налаштування","ቅጥዕታት"],"set_mode":["الترجمة","Bản dịch","Переклад","ትርጉም"],"mode_tap":["بالنقر","Chạm để xem","Торкнутися","ብምንካፍ"],"mode_under":["تحت النص","Hiện bên dưới","Під текстом","ኣብ ትሕቲ ጽሑፍ"],"mode_off":["إيقاف","Tắt","Вимк.","ዕጹው"],"set_fs":["حجم الخط","Cỡ chữ","Розмір шрифту","ዓቐን ፊደል"],"set_level":["المستوى","Mức độ","Рівень","ደረጃ"],"lvl_b":["أساسي","Cơ bản","Базовий","መሰረታዊ"],"lvl_v":["تعمّق","Nâng cao","Поглиблений","ዓሚቝ"],"set_snd":["الصوت","Âm thanh","Звук","ድምጺ"],"set_reset":["البدء من جديد","Làm lại từ đầu","Почати спочатку","ካብ ሓድሽ ጀምር"],"dlg_reset":["حذف كل شيء والبدء من جديد؟ ستضيع إجاباتك في ورقة العمل هذه.","Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất.","Усе видалити й почати спочатку? Твої записи в цьому аркуші буде втрачено.","ኩሉ ይሰረዝ እሞ ካብ ሓድሽ ይጀመር? ኣብዚ ወረቐት ዘኣተኻዮ ይጥፍእ።"],"dlg_next":["الشخص التالي: سيتم حذف الإجابات والاسم.","Người tiếp theo: nội dung và tên sẽ bị xóa.","Наступна особа: записи та ім'я буде видалено.","ቀጻሊ ሰብ፡ ዘኣተኻዮን ስምን ይጥፍእ።"],"dlg_cancel":["إلغاء","Hủy","Скасувати","ሰርዝ"],"dlg_ok":["نعم","Đồng ý","Так","እወ"],"wg_h":["كلمات وبدايات جمل للمساعدة","Từ ngữ và gợi ý đầu câu","Слова та початки речень","ቃላትን መጀመርታ ሓሳባትን"],"a8_h":["المهمة 9 · التعمّق","Bài 9 · Nâng cao","Завдання 9 · Поглиблення","ዕዮ 9 · ምዕማቕ"],"pts_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"a8_p":["تظهر فقط في مستوى «التعمّق». علّل بجمل كاملة. هذه المهام تمنح نقاطًا إضافية ولا تخفض نقاطك الـ 20 أبدًا.","Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn.","Лише на рівні «Поглиблений». Обґрунтуй повними реченнями. Ці завдання дають бонусні бали й ніколи не зменшують твої 20 балів.","ኣብ ደረጃ «ዓሚቝ» ጥራይ። ብምሉእ ሓሳብ ኣብርህ። እዞም ዕዮታት ቦነስ ነጥቢ ይህቡ እሞ ኣብ 20 ነጥብታትካ ፈጺሞም ኣይጐድሉን።"],"res_card_h":["النتيجة للمعلمة","Kết quả cho giáo viên","Результат для вчителя","ውጽኢት ንመምህር"],"btn_img":["حفظ النتيجة كصورة","Lưu kết quả dưới dạng ảnh","🖼️ Зберегти результат як зображення","🖼️ ውጽኢት ከም ስእሊ ዓቅብ"],"btn_code":["نسخ الرمز","Sao chép mã","📋 Копіювати код","📋 ኮድ ቅዳሕ"],"btn_next":["الشخص التالي","Người tiếp theo","👤 Наступна особа","👤 ቀጻሊ ሰብ"],"res_open":["ملاحظة: المهام غير المنجزة تُحتسب بصفر.","Lưu ý: bài chưa làm tính 0 điểm.","Примітка: незроблені завдання дають 0 балів.","ሓበሬታ፡ ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"res_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"cat_bonus":["نقاط إضافية (التعمّق)","Điểm thưởng (Nâng cao)","Бонус (поглиблення)","ቦነስ (ምዕማቕ)"],"fb_peek":["صحيح – لكنك نظرت إلى الحل قبل ذلك، لذلك تحصل على نصف النقاط.","Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm.","✅ Правильно – але ти раніше дивився(лась) розв'язок, тому половина балів.","✅ ቅኑዕ – ግን ቅድም መልሲ ርእይካዮ፣ ስለዚ ፍርቂ ነጥቢ።"],"t25":["بداية جيدة!","Khởi đầu tốt!","Гарний початок!","ጽቡቕ ጅምር!"],"t50":["اكتمل النصف!","Xong một nửa rồi!","Півдороги!","ፍርቂ!"],"t75":["اقتربت من الهدف!","Sắp đến đích rồi!","Майже готово!","ቐረባ!"],"t100":["أنجزت كل شيء! الآن قيِّم.","Đã làm xong hết! Giờ hãy chấm điểm.","Усе зроблено! Тепер оціни.","ኩሉ ተሰሪሑ! ሕጂ ገምግም።"],"t_write":["اكتب شيئًا أولًا","Hãy viết gì đó trước","Спочатку щось напиши","ቅድም ገለ ጽሓፍ"],"t_saved":["تم التسجيل","Đã ghi","Збережено","ተዓቒቡ"],"t_read":["تمت القراءة","Đã đọc","Прочитано","ተነቢቡ"],"t_resume":["تابع من حيث توقفت","Tiếp tục từ chỗ bạn dừng","Продовжуй, де зупинився(лась)","ኣብ ዝደው ዝበልካዮ ቀጽል"],"t_copy":["تم نسخ الرمز","Đã sao chép mã","Код скопійовано","ኮድ ተቐዲሑ"],"t_img":["تم حفظ الصورة","Đã lưu ảnh","Зображення збережено","ስእሊ ተዓቒቡ"],"h1":["الوحدة 6: حساب الصندوق (Kassenabrechnung)","Bài 6: Quyết toán quầy thu ngân (Kassenabrechnung)","Модуль 6: Касовий розрахунок (Kassenabrechnung)","ምዕራፍ 6: ሒሳብ ካሳ (Kassenabrechnung)"],"meta":["حصتان مزدوجتان · 8 نقاط · الكتاب المدرسي ص 182–186 · كراس التمارين ص 152–155","2 tiết đôi · 8 điểm · Sách giáo khoa tr. 182–186 · Sách bài tập tr. 152–155","2 подвійні уроки · 8 балів · Підручник с. 182–186 · Робочий зошит с. 152–155","2 ዕጽፊ ትምህርቲ · 8 ነጥቢ · መጽሓፍ ገጽ 182–186 · መስርሒ መጽሓፍ ገጽ 152–155"],"can1":["أستطيع التمييز بين إيراد النقد اليومي (Tageslosung) وإجمالي مبيعات اليوم (Tagesumsatz) وحسابهما.","Tôi có thể phân biệt và tính doanh thu tiền mặt trong ngày (Tageslosung) và tổng doanh thu trong ngày (Tagesumsatz).","Я можу розрізняти й обчислювати денну виручку готівкою (Tageslosung) та загальний денний оборот (Tagesumsatz).","ናይ መዓልቲ ጥረ ገንዘብ ኣታዊ (Tageslosung) ከምኡ’ውን ጠቕላላ ናይ መዓልቲ ሽያጥ (Tagesumsatz) ክፈላለየሉን ከሕሲቦሞን እኽእል እየ።"],"can2":["أستطيع إعداد تقرير الصندوق (Kassenbericht) وحساب فرق الصندوق (Kassendifferenz).","Tôi có thể lập báo cáo quầy thu ngân (Kassenbericht) và tính chênh lệch quầy (Kassendifferenz).","Я можу скласти касовий звіт (Kassenbericht) і обчислити касову різницю (Kassendifferenz).","ጸብጻብ ካሳ (Kassenbericht) ከዳሉን ፍልልይ ካሳ (Kassendifferenz) ከሕሲቦን እኽእል እየ።"],"can3":["أستطيع ذكر أسباب فروق الصندوق.","Tôi có thể nêu các nguyên nhân gây chênh lệch quầy.","Я можу назвати причини касової різниці.","ኣብ ካሳ ዝፍጠር ፍልልይ ዘስዕብ ምኽንያታት ክጠቅስ እኽእል እየ።"],"a1_h":["المهمة 1 · البداية: ماذا تتذكر من الوحدة 5؟","Bài 1 · Khởi động: Bạn còn nhớ gì từ Bài 5?","Завдання 1 · Розминка: Що ти ще пам'ятаєш з Модуля 5?","ዕዮ 1 · መእተዊ: ካብ ምዕራፍ 5 እንታይ ትዝክር?"],"a1_p":["أجب من الذاكرة.","Trả lời theo trí nhớ.","Відповідай по пам'яті.","ብዘክሪ መልሲ።"],"a2_h":["المهمة 2 · نهاية الدوام: هل الصندوق مضبوط؟","Bài 2 · Hết ca: Quầy có khớp không?","Завдання 2 · Кінець зміни: Чи сходиться каса?","ዕዮ 2 · ድሕሪ ስራሕ: ካሳ ትሰማማዕ ዶ?"],"a2_sit":["الوضع: الساعة الثامنة مساءً. اشتغلت ميا طوال اليوم على الصندوق 2. في الصباح وضعت 300,00 يورو فكّة للصرف (Wechselgeld). عند الظهر أخذ مشرف الصندوق 2.000,00 يورو من الصندوق (Abschöpfung). الآن تعدّ ميا 1.845,60 يورو في الصندوق. وتم الدفع بالبطاقة بمبلغ 4.120,50 يورو.","Tình huống: Bây giờ là 20 giờ. Mia làm ở quầy 2 cả ngày. Buổi sáng cô ấy bỏ vào quầy 300,00 € tiền lẻ. Buổi trưa người giám sát quầy lấy 2.000,00 € ra khỏi quầy (Abschöpfung). Bây giờ Mia đếm được 1.845,60 € trong quầy. Khách trả bằng thẻ tổng cộng 4.120,50 €.","Ситуація: Двадцята година. Мія цілий день працювала на касі 2. Зранку вона поклала в касу 300,00 € розмінних грошей. Опівдні касовий наглядач забрав з каси 2.000,00 € (Abschöpfung). Тепер Мія нараховує в касі 1.845,60 €. Карткою заплатили на 4.120,50 €.","ኩነታት: ሰዓት 20 እያ። ሚያ ብምሉኡ መዓልቲ ኣብ ካሳ 2 ሰሪሓ። ንጽባሒቶ 300,00 € ናይ ለውጢ ገንዘብ ኣብ ካሳ ኣእትያ። ቀትሪ ሓላዪ ካሳ 2.000,00 € ካብ ካሳ ወሲዱ (Abschöpfung)። ሕጂ ሚያ ኣብ ካሳ 1.845,60 € ትቆጽር። ብካርዲ 4.120,50 € ተኸፊሉ።"],"bg_h":["أهم المصطلحات (الكتاب ص 182)","Các khái niệm quan trọng nhất (Sách tr. 182)","Найважливіші поняття (Підручник с. 182)","ኣገደስቲ ቃላት (መጽሓፍ ገጽ 182)"],"th_begriff":["المصطلح","Khái niệm","Поняття","ቃል"],"th_bedeutung":["المعنى","Ý nghĩa","Значення","ትርጉም"],"bg1":["فكّة الصرف (Wechselgeld) = رصيد بداية الصندوق (Kassenanfangsbestand)","Tiền lẻ đầu ngày (Wechselgeld / Kassenanfangsbestand)","Розмінні гроші (Wechselgeld / Kassenanfangsbestand)","ናይ ለውጢ ገንዘብ (Wechselgeld / Kassenanfangsbestand)"],"bg1b":["نقود موجودة في الصندوق صباحًا لكي نستطيع إعطاء الباقي للزبون. وهي ليست مبيعات.","Tiền có trong quầy từ buổi sáng để thối cho khách. Đây không phải doanh thu.","Гроші, які лежать у касі зранку, щоб давати решту. Це не виручка.","ንጽባሒቶ ኣብ ካሳ ዝህሉ ገንዘብ፡ ንደለይቲ ዝምለስ ንምሃብ። እዚ ሽያጥ ኣይኮነን።"],"bg2":["سحب النقود من الصندوق (Abschöpfung)","Rút tiền bớt khỏi quầy (Abschöpfung)","Вилучення готівки з каси (Abschöpfung)","ካብ ካሳ ገንዘብ ምውጻእ (Abschöpfung)"],"bg2b":["نقود تُؤخذ من الصندوق أثناء اليوم (للأمان). وهي من المبيعات، لكنها لم تعد في الصندوق.","Tiền được lấy ra khỏi quầy trong ngày (để an toàn). Đây vẫn là doanh thu, chỉ là không còn nằm trong quầy.","Гроші, які протягом дня забирають з каси (для безпеки). Це виручка, вона тільки більше не лежить у касі.","ኣብ ዝሓለፈ መዓልቲ ንውሕስነት ካብ ካሳ ዝውጽእ ገንዘብ። እዚ ሽያጥ እዩ፣ ግን ኣብ ካሳ ኣይርከብን።"],"bg3":["إيراد النقد اليومي (Tageslosung)","Doanh thu tiền mặt trong ngày (Tageslosung)","Денна виручка готівкою (Tageslosung)","ናይ መዓልቲ ጥረ ገንዘብ ኣታዊ (Tageslosung)"],"bg3b":["كل المبالغ النقدية المقبوضة في اليوم","tất cả tiền mặt thu được trong một ngày","вся готівка, отримана за день","ኣብ ሓንቲ መዓልቲ ዝተረኽበ ኩሉ ጥረ ገንዘብ"],"bg4":["إجمالي مبيعات اليوم (Tagesumsatz)","Tổng doanh thu trong ngày (Tagesumsatz)","Загальний денний оборот (Tagesumsatz)","ጠቕላላ ናይ መዓልቲ ሽያጥ (Tagesumsatz)"],"bg4b":["كل المبالغ المقبوضة في اليوم: نقدًا + بالبطاقة","tất cả tiền thu được trong một ngày: tiền mặt + thẻ","усі надходження за день: готівка + картка","ኣብ ሓንቲ መዓልቲ ዝተረኽበ ኩሉ ኣታዊ፡ ጥረ ገንዘብ + ካርዲ"],"kb_h":["تقرير الصندوق (الكتاب ص 182–183)","Báo cáo quầy thu ngân (Kassenbericht) (Sách tr. 182–183)","Касовий звіт (Kassenbericht) (Підручник с. 182–183)","ጸብጻብ ካሳ (Kassenbericht) (መጽሓፍ ገጽ 182–183)"],"th_schritt":["خطوة الحساب","Bước tính","Крок розрахунку","ስጉምቲ ሕሳብ"],"th_mia":["مثال ميا","Ví dụ của Mia","Приклад Мії","ኣብነት ሚያ"],"kb1":["رصيد نهاية الصندوق (Kassenschlussbestand) (بعد العدّ)","Số tiền trong quầy lúc kết thúc (Kassenschlussbestand) (đã đếm)","Залишок у касі в кінці дня (Kassenschlussbestand) (нарахований)","ኣብ መወዳእታ ኣብ ካሳ ዘሎ (Kassenschlussbestand) (ዝተቖጸረ)"],"kb2":["+ المبالغ المسحوبة (Abschöpfungen) والمصاريف المدفوعة نقدًا","+ tiền rút bớt (Abschöpfungen) và chi tiêu bằng tiền mặt","+ вилучена готівка (Abschöpfungen) і витрати готівкою","+ ካብ ካሳ ዝወጸ (Abschöpfungen) ከምኡ’ውን ብጥረ ገንዘብ ዝተኸፍለ ወጻኢ"],"kb3":["− فكّة الصرف (رصيد بداية الصندوق)","− tiền lẻ đầu ngày (Kassenanfangsbestand)","− розмінні гроші (Kassenanfangsbestand)","− ናይ ለውጢ ገንዘብ (Kassenanfangsbestand)"],"kb4":["= إيراد النقد اليومي (Tageslosung) (المقبوضات النقدية)","= doanh thu tiền mặt trong ngày (Tageslosung)","= денна виручка готівкою (Tageslosung)","= ናይ መዓልቲ ጥረ ገንዘብ ኣታዊ (Tageslosung)"],"kb5":["+ المدفوعات بالبطاقة","+ thanh toán bằng thẻ","+ оплата карткою","+ ብካርዲ ዝተኸፍለ"],"kb6":["= إجمالي مبيعات اليوم (Tagesumsatz)","= tổng doanh thu trong ngày (Tagesumsatz)","= загальний денний оборот (Tagesumsatz)","= ጠቕላላ ናይ መዓልቲ ሽያጥ (Tagesumsatz)"],"merksatz":["القاعدة: كل ما أُخذ من الصندوق يُجمَع. وفكّة الصرف التي كانت في الصندوق منذ الصباح تُطرَح.","Ghi nhớ: Tất cả tiền đã lấy ra khỏi quầy thì cộng vào. Tiền lẻ đã có từ buổi sáng thì trừ đi.","Запам'ятай: Усе, що забрали з каси, додається. Розмінні гроші, які були в касі вже зранку, віднімаються.","ክትዝክር: ካብ ካሳ ዝወጸ ኩሉ ይወሰኽ። ካብ ንጽባሒቶ ኣብ ካሳ ዝነበረ ናይ ለውጢ ገንዘብ ይቕነስ።"],"si_h":["المطلوب والفعلي: فرق الصندوق (الكتاب ص 185)","Soll và Ist: chênh lệch quầy (Kassendifferenz) (Sách tr. 185)","Soll і Ist: касова різниця (Kassendifferenz) (Підручник с. 185)","Soll ከምኡ’ውን Ist: ፍልልይ ካሳ (Kassendifferenz) (መጽሓፍ ገጽ 185)"],"th_begriff2":["المصطلح","Khái niệm","Поняття","ቃል"],"th_bedeutung2":["المعنى","Ý nghĩa","Значення","ትርጉም"],"si1":["الرصيد المطلوب (Soll-Bestand)","Số tiền lẽ ra phải có (Soll-Bestand)","Розрахунковий залишок (Soll-Bestand)","ክህሉ ዘለዎ መጠን (Soll-Bestand)"],"si1b":["المبلغ الذي يجب أن يكون في الصندوق: فكّة الصرف + المقبوضات النقدية حسب الصندوق − المرتجعات نقدًا − المبالغ المسحوبة","số tiền lẽ ra phải có trong quầy: tiền lẻ đầu ngày + tiền mặt thu theo máy − tiền mặt trả lại khách − tiền rút bớt","стільки грошей має бути в касі: розмінні гроші + готівкові надходження за касою − готівкові повернення − вилучення","ኣብ ካሳ ክህሉ ዘለዎ ገንዘብ፡ ናይ ለውጢ ገንዘብ + ብመሰረት ካሳ ዝተኸፍለ ጥረ ገንዘብ − ብጥረ ገንዘብ ዝተመለሰ − ዝወጸ"],"si2":["الرصيد الفعلي (Ist-Bestand)","Số tiền thực tế (Ist-Bestand)","Фактичний залишок (Ist-Bestand)","ብሓቂ ዘሎ መጠን (Ist-Bestand)"],"si2b":["المبلغ الموجود فعلًا في الصندوق (بعد العدّ)","số tiền thực sự có trong quầy (đã đếm)","стільки грошей справді є в касі (нараховано)","ብሓቂ ኣብ ካሳ ዘሎ ገንዘብ (ዝተቖጸረ)"],"si3":["فرق الصندوق","chênh lệch quầy","касова різниця","ፍልልይ ካሳ"],"si3b":["الفعلي − المطلوب. زائد = زيادة (Überschuss) (مال أكثر من اللازم)، ناقص = عجز (Fehlbetrag) (مال أقل من اللازم)","Ist − Soll. Dấu cộng = thừa tiền (Überschuss), dấu trừ = thiếu tiền (Fehlbetrag)","Ist − Soll. Плюс = надлишок (Überschuss, забагато грошей), мінус = нестача (Fehlbetrag, замало грошей)","Ist − Soll። ሲዒ (+) = ትርፊ (ብዙሕ ገንዘብ)፣ ኣዋጽዮ (−) = ጉድለት (ውሑድ ገንዘብ)"],"ursachen":["الأسباب: باقي خاطئ للزبون (أكثر أو أقل من اللازم) · فكّة الصرف لم تكن صحيحة منذ الصباح · ورقتان نقديتان التصقتا ببعضهما · خطأ في الإدخال · نسيان الإلغاء (Storno) · سرقة. جرد الصندوق المفاجئ (Kassensturz) هو مقارنة مفاجئة بين المطلوب والفعلي أثناء اليوم.","Nguyên nhân: thối tiền sai (thừa hoặc thiếu) · tiền lẻ buổi sáng đã không đúng · hai tờ tiền dính vào nhau · nhập sai · quên hủy giao dịch (Storno) · trộm cắp. Kiểm quỹ đột xuất (Kassensturz) là việc so sánh Soll-Ist bất ngờ trong ngày.","Причини: неправильна решта (забагато або замало) · розмінні гроші не збігалися вже зранку · дві банкноти склеїлися · помилка введення · забули сторно (Storno) · крадіжка. Раптова касова ревізія (Kassensturz) — це несподіване порівняння Soll і Ist протягом дня.","ምኽንያታት: ጌጋ ዝምለስ ገንዘብ (ብዙሕ ወይ ውሑድ) · ናይ ለውጢ ገንዘብ ካብ ንጽባሒቶ ጌጋ ነይሩ · ክልተ ኣግራብ ተጣቢቐን · ጌጋ ኣብ ምእታው · ስቶርኖ (Storno) ተረሲዑ · ስርቂ። ድንገተኛ ምፍታሽ ካሳ (Kassensturz) ኣብ ዝሓለፈ መዓልቲ ድንገት ዝግበር Soll-Ist ምንጽጻር እዩ።"],"merke_pruef":["تذكّر: في الامتحان يُقال غالبًا: «احسب إجمالي مبيعات اليوم! اكتب طريقة الحساب!» عندها تحصل على نقطة للجمع ونقطة للطرح ونقطة للنتيجة. اكتب العملية دائمًا في سطر واحد مع زائد وناقص.","Ghi nhớ: Trong kỳ thi thường có yêu cầu: „Ermitteln Sie den Tagesumsatz! Geben Sie den Rechenweg an!“ (Hãy tính tổng doanh thu trong ngày! Hãy ghi cách tính!) Khi đó mỗi bước cộng, trừ và kết quả được 1 điểm. Luôn viết phép tính trên một dòng với dấu cộng và dấu trừ.","Запам'ятай: На іспиті часто пишуть: „Ermitteln Sie den Tagesumsatz! Geben Sie den Rechenweg an!“ (Визначте загальний денний оборот! Вкажіть хід розрахунку!) Тоді дають по одному балу за додавання, віднімання та результат. Завжди пиши розрахунок в один рядок із плюсом і мінусом.","ክትዝክር: ኣብ ፈተና ብዙሕ ጊዜ „Ermitteln Sie den Tagesumsatz! Geben Sie den Rechenweg an!“ (ጠቕላላ ናይ መዓልቲ ሽያጥ ረኽብ! መገዲ ሕሳብ ሕተት!) ይብል። ንምውሳኽ፣ ንምቁጻር ከምኡ’ውን ንውጽኢት ነፍስወከፍ 1 ነጥቢ ኣሎ። ሕሳብ ኩሉ ጊዜ ብሓደ መስመር ምስ ሲዒ ከምኡ’ውን ኣዋጽዮ ጸሓፎ።"],"a3_h":["المهمة 3 · مثال محلول: إجمالي مبيعات اليوم بصيغة الامتحان","Bài 3 · Làm mẫu: Tổng doanh thu trong ngày theo dạng đề thi","Завдання 3 · Приклад: Загальний денний оборот у форматі іспиту","ዕዮ 3 · ኣብነት: ጠቕላላ ናይ መዓልቲ ሽያጥ ብፈተና ኣገባብ"],"a3_p":["هكذا تتعامل مع مهمة امتحان. اقرأ الخطوات جيدًا، فستحتاجها بعد قليل.","Bạn làm một bài thi như thế này. Hãy đọc kỹ các bước, lát nữa bạn sẽ cần.","Так ти виконуєш іспитове завдання. Уважно прочитай кроки, вони тобі зараз знадобляться.","ፈተናዊ ሕቶ ከምዚ ትሰርሖ። ስጉምቲታት ብጥንቃቐ ኣንብብ፣ ድሕሪ ሕጂ ከድልየካ እዩ።"],"wk0":["المسألة: في نهاية عملك على الصندوق تقوم بالحساب: نقود ورقية 1.280,00 يورو؛ نقود معدنية 36,50 يورو؛ مدفوعات بالبطاقة 1.905,40 يورو؛ فكّة الصرف 200,00 يورو. احسب إجمالي مبيعات اليوم باليورو! اكتب طريقة الحساب! (نقطتان)","Đề bài: Cuối ca làm ở quầy, bạn quyết toán: tiền mặt là tờ 1.280,00 €; tiền mặt là đồng xu 36,50 €; thanh toán bằng thẻ 1.905,40 €; tiền lẻ 200,00 €. Hãy tính tổng doanh thu trong ngày bằng euro! Hãy ghi cách tính! (2 điểm)","Завдання: Наприкінці роботи на касі ви підбиваєте підсумок: готівка банкнотами 1.280,00 €; готівка монетами 36,50 €; оплата карткою 1.905,40 €; розмінні гроші 200,00 €. Визначте загальний денний оборот у євро! Вкажіть хід розрахунку! (2 бали)","ሕቶ: ኣብ መወዳእታ ስራሕ ኣብ ካሳ ሒሳብ ትገብር: ጥረ ገንዘብ ብኣግራብ 1.280,00 €፤ ጥረ ገንዘብ ብሳንቲማት 36,50 €፤ ብካርዲ ዝተኸፍለ 1.905,40 €፤ ናይ ለውጢ ገንዘብ 200,00 €። ጠቕላላ ናይ መዓልቲ ሽያጥ ብኤውሮ ረኽብ! መገዲ ሕሳብ ጸሓፍ! (2 ነጥቢ)"],"wk1":["1. المطلوب: إجمالي مبيعات اليوم = نقدًا + بالبطاقة.","1. Cần tìm: Tổng doanh thu trong ngày = tiền mặt + thẻ.","1. Шукаємо: Загальний денний оборот = готівка + картка.","1. እንታይ ንደሊ: ጠቕላላ ናይ መዓልቲ ሽያጥ = ጥረ ገንዘብ + ካርዲ።"],"wk2":["2. الترتيب: في الصندوق: الأوراق والعملات المعدنية ← زائد. البطاقة ← زائد. فكّة الصرف كانت موجودة منذ الصباح ← ناقص.","2. Sắp xếp: Trong quầy: tờ tiền và đồng xu → cộng. Thẻ → cộng. Tiền lẻ đã có từ buổi sáng → trừ.","2. Сортуємо: У касі: банкноти й монети → плюс. Картка → плюс. Розмінні гроші були вже зранку → мінус.","2. ምድላው: ኣብ ካሳ: ኣግራብን ሳንቲማትን → ሲዒ (+)። ካርዲ → ሲዒ (+)። ናይ ለውጢ ገንዘብ ካብ ንጽባሒቶ ነይሩ → ኣዋጽዮ (−)።"],"wk3":["3. الحساب: 1.280,00 + 36,50 + 1.905,40 − 200,00 = 3.021,90 يورو","3. Tính: 1.280,00 + 36,50 + 1.905,40 − 200,00 = 3.021,90 €","3. Рахуємо: 1.280,00 + 36,50 + 1.905,40 − 200,00 = 3.021,90 €","3. ምሕሳብ: 1.280,00 + 36,50 + 1.905,40 − 200,00 = 3.021,90 €"],"wk4":["4. التحقق: هل كتبت الوحدة (يورو)؟ هل هناك رقمان بعد الفاصلة؟ هل العملية في سطر واحد؟ عندها تحصل على كل النقاط.","4. Kiểm tra: Có đơn vị € chưa? Có hai chữ số sau dấu phẩy chưa? Cách tính viết trên một dòng chưa? Như vậy bạn được điểm tối đa.","4. Перевіряємо: Є одиниця €? Два знаки після коми? Розрахунок в один рядок? Тоді буде повна кількість балів.","4. ምርግጋጽ: € ኣሎ ዶ? ድሕሪ ነጥቢ ክልተ ቁጽሪ ኣለዉ ዶ? ሕሳብ ብሓደ መስመር ተጻሒፉ ዶ? ሽዑ ምሉእ ነጥቢ ኢኻ ትረክብ።"],"a4_h":["المهمة 4 · تمرين موجَّه","Bài 4 · Luyện tập có hướng dẫn","Завдання 4 · Вправа з підказками","ዕዮ 4 · ብመሪሕነት ልምምድ"],"a5_h":["المهمة 5 · تمرين حر: تقرير الصندوق عند ليون","Bài 5 · Luyện tập tự do: Báo cáo quầy của Leon 3 điểm","Завдання 5 · Вільна вправа: Касовий звіт Леона 3 бали","ዕዮ 5 · ነጻ ልምምድ: ጸብጻብ ካሳ ናይ ሌኦን 3 ነጥቢ"],"pts3":["3 نقاط","3 điểm","3 бали","3 ነጥቢ"],"a5_p":["زميلك ليون كتب أول تقرير صندوق له. ارتكب خطأين. اعثر على الخطأين، واشرحهما، ثم احسب بشكل صحيح.","Đồng nghiệp Leon của bạn đã viết báo cáo quầy đầu tiên. Bạn ấy mắc hai lỗi. Hãy tìm lỗi, giải thích và tính lại cho đúng.","Твій колега Леон склав свій перший касовий звіт. Він зробив дві помилки. Знайди помилки, поясни їх і порахуй правильно.","መተሓባባሪኻ ሌኦን ቀዳማይ ጸብጻብ ካሳ ጽሒፉ። ክልተ ጌጋታት ሰሪሑ። ጌጋታት ድለ፣ ግለጾም ከምኡ’ውን ትክክል ሓስብ።"],"th_leon":["تقرير الصندوق عند ليون، الصندوق 2","Báo cáo quầy của Leon, quầy 2","Касовий звіт Леона, каса 2","ጸብጻብ ካሳ ሌኦን፣ ካሳ 2"],"th_betrag":["المبلغ","số tiền","сума","መጠን"],"lk1":["رصيد نهاية الصندوق (Kassenschlussbestand) (بعد العدّ)","Số tiền trong quầy lúc kết thúc (Kassenschlussbestand) (đã đếm)","Залишок у касі в кінці дня (Kassenschlussbestand) (нарахований)","ኣብ መወዳእታ ኣብ ካሳ ዘሎ (Kassenschlussbestand) (ዝተቖጸረ)"],"lk2":["− المبلغ المسحوب (Abschöpfung)","− tiền rút bớt (Abschöpfung)","− вилучення (Abschöpfung)","− ካብ ካሳ ዝወጸ (Abschöpfung)"],"lk3":["+ مصروف مدفوع نقدًا (طوابع بريد)","+ chi tiêu bằng tiền mặt (tem thư)","+ витрата готівкою (поштові марки)","+ ብጥረ ገንዘብ ዝተኸፍለ ወጻኢ (ቴምብር)"],"lk4":["+ فكّة الصرف","+ tiền lẻ (Wechselgeld)","+ розмінні гроші (Wechselgeld)","+ ናይ ለውጢ ገንዘብ (Wechselgeld)"],"lk5":["= إيراد النقد اليومي (Tageslosung)","= doanh thu tiền mặt trong ngày (Tageslosung)","= денна виручка готівкою (Tageslosung)","= ናይ መዓልቲ ጥረ ገንዘብ ኣታዊ (Tageslosung)"],"lk6":["+ المدفوعات بالبطاقة","+ thanh toán bằng thẻ","+ оплата карткою","+ ብካርዲ ዝተኸፍለ"],"lk7":["= إجمالي مبيعات اليوم (Tagesumsatz)","= tổng doanh thu trong ngày (Tagesumsatz)","= загальний денний оборот (Tagesumsatz)","= ጠቕላላ ናይ መዓልቲ ሽያጥ (Tagesumsatz)"],"a6_h":["المهمة 6 · اختبار الامتحان","Bài 6 · Kiểm tra kiểu thi (Prüfungs-Check) 9 điểm · khoảng 10 phút","Завдання 6 · Іспитова перевірка (Prüfungs-Check) 9 балів · близько 10 хвилин","ዕዮ 6 · ፈተና (Prüfungs-Check) 9 ነጥቢ · ዳርጋ 10 ደቒቕ"],"pts9":["9 نقاط · حوالي 10 دقائق","9 điểm · khoảng 10 phút","9 балів · близько 10 хвилин","9 ነጥቢ · ዳርጋ 10 ደቒቕ"],"a6_sit":["الوضع: في نهاية ورديّتك تُعدّ إقفال الصندوق.","Tình huống: Cuối ca làm, bạn lập quyết toán quầy.","Ситуація: Наприкінці зміни ви складаєте касовий звіт за день.","ኩነታት: ኣብ መወዳእታ ስራሕ ሒሳብ ካሳ ትገብር።"],"a7p_h":["المهمة 7 · للمحترفين","Bài 7 · Dành cho người giỏi","Завдання 7 · Для профі","ዕዮ 7 · ንክኢላታት"],"a7p_p":["للتفكير أكثر – بجمل كاملة ومع التعليل.","Để suy nghĩ sâu hơn – viết câu đầy đủ, có giải thích lý do.","Для глибшого осмислення – повними реченнями, з поясненням.","ንዝያዳ ሓሳብ – ምሉእ ዓረፍተ ነገር፣ ምስ ምኽንያት።"],"a1_1.q":["1.1 من أي عمر يُسمح بشراء البيرة – ومن أي عمر الشنابس (المشروبات الروحية)؟","1.1 Từ bao nhiêu tuổi được mua bia – và từ khi nào được mua rượu mạnh?","1.1 З якого віку можна купувати пиво – і з якого міцні напої (шнапс)?","1.1 ካብ ዕድመ ክንደይ ቢራ ምግዛእ ይፍቀድ – ከምኡ’ውን ሽናፕስ (ኣልኮል ብርቱዕ)?"],"a1_1.h0":["فكّر في قانون حماية الشباب: هناك حدّان للعمر.","Hãy nghĩ đến Luật Bảo vệ thanh thiếu niên (Jugendschutzgesetz): có hai giới hạn tuổi.","Згадай закон про захист молоді (Jugendschutzgesetz): є дві вікові межі.","ሕጊ ሓለዋ መንእሰያት (Jugendschutzgesetz) ሕሰብ: ክልተ ድሕሪ ዕድመ ወሰን ኣለዉ።"],"a1_1.h1":["حدّ للبيرة والنبيذ، وحدّ آخر للمشروبات الروحية (Schnaps).","Một giới hạn cho bia và rượu vang, giới hạn kia cho rượu mạnh (Branntwein).","Одна межа діє для пива й вина, інша — для міцних напоїв (Branntwein).","ሓደ ወሰን ንቢራን ንወይንን እዩ፣ ካልእ ንብርቱዕ ኣልኮል (Branntwein) እዩ።"],"a1_1.s":["البيرة من 16 سنة، والشنابس (المشروبات الروحية) من 18 سنة.","Bia từ 16 tuổi, rượu mạnh (Branntwein) từ 18 tuổi.","Пиво з 16, шнапс (Branntwein) з 18 років.","ቢራ ካብ 16፣ ሽናፕስ (Branntwein) ካብ 18።"],"a1_2.q":["1.2 كم نقطة تُعطى في الامتحان لموقف فيه كلام مباشر (wörtliche Rede)؟","1.2 Trong kỳ thi, một tình huống có lời nói trực tiếp được bao nhiêu điểm?","1.2 Скільки балів дають на іспиті за ситуацію з прямою мовою?","1.2 ኣብ ፈተና ንኩነታት ምስ ቀጥታዊ ዝርርብ ክንደይ ነጥቢ ይወሃብ?"],"a1_2.h0":["النقاط مقسومة إلى جزأين.","Điểm được chia thành hai phần.","Бали ділять на дві частини.","ነጥቢ ኣብ ክልተ ክፋል ይመቓቐል።"],"a1_2.h1":["جزء للنقطة المهنية (Aspekt)، وجزء آخر للمخاطبة (Ansprache).","Một phần cho nội dung chuyên môn, phần kia cho cách nói chuyện với khách.","Одна частина — за фаховий аспект, інша — за звернення до клієнта.","ሓደ ክፋል ንሞያዊ ሓሳብ፣ ካልእ ንኣዛራርባ ምስ ዓሚል እዩ።"],"a1_2.s":["3 نقاط: 1 للنقطة المهنية (Aspekt)، و2 للمخاطبة (Ansprache).","3 điểm: 1 điểm cho nội dung chuyên môn, 2 điểm cho cách nói chuyện với khách.","3 бали: 1 за фаховий аспект, 2 за звернення до клієнта.","3 ነጥቢ: 1 ንሞያዊ ሓሳብ፣ 2 ንኣዛራርባ ምስ ዓሚል።"],"a1_3.q":["1.3 اذكر إجراءً مريحًا للجسم (ergonomisch) عند الصندوق.","1.3 Hãy nêu một biện pháp công thái học (Ergonomie) ở quầy thu ngân.","1.3 Назви один ергономічний захід на касі.","1.3 ኣብ ካሳ ሓደ ናይ ኤርጎኖሚ (Ergonomie) መሳርሒ ጥቐስ።"],"a1_3.h0":["الإرغونوميا تعني: العمل يجب أن يحافظ على صحة الجسم.","Công thái học nghĩa là: công việc phải bảo vệ cơ thể.","Ергономіка означає: робота має берегти тіло.","ኤርጎኖሚ ማለት: ስራሕ ንኣካል ክሕሉ ኣለዎ።"],"a1_3.h1":["فكّر في الجلوس والوقوف والأجهزة والاستراحات.","Hãy nghĩ đến việc ngồi, đứng, thiết bị và giờ nghỉ.","Подумай про сидіння, стояння, пристрої й перерви.","ብዛዕባ ምቅማጥ፣ ምቍማም፣ መሳርሒታትን ዕረፍትን ሕሰብ።"],"a1_3.s":["مثلًا: ضبط الكرسي، التبديل بين الجلوس والوقوف، ماسح يدوي، استراحات.","Ví dụ: chỉnh ghế, đổi giữa ngồi và đứng, máy quét cầm tay, giờ nghỉ.","Напр., налаштувати стілець, чергувати сидіння й стояння, ручний сканер, перерви.","ንኣብነት: ወንበር ምስራዕ፣ ምቅማጥን ምቍማምን ምቕያር፣ ናይ ኢድ ስካነር፣ ዕረፍቲ።"],"a2_1.q":["2.1 كم نقدًا قبضت ميا اليوم؟ فكّرا معًا – دون قانون. اكتب النتيجة وطريقة الحساب باختصار.","2.1 Hôm nay Mia đã thu được bao nhiêu tiền mặt? Hãy cùng nghĩ theo cặp – không dùng công thức. Viết kết quả và cách tính ngắn gọn.","2.1 Скільки готівки отримала Мія сьогодні? Подумайте удвох – без формули. Запиши результат і коротко хід розрахунку.","2.1 ሚያ ሎሚ ክንደይ ጥረ ገንዘብ ረኺባ? ክልተ ኮይንኩም ሕሰቡ – ብዘይ ቀመር። ውጽኢትን ሒደት መገዲ ሕሳብን ጸሓፍ።"],"a2_1.h0":["ماذا في الصندوق الآن – وما الذي أُخذ منه سابقًا؟","Bây giờ trong quầy có bao nhiêu – và đã lấy ra bao nhiêu?","Що лежить у касі зараз – і що вже забрали?","ሕጂ ኣብ ካሳ እንታይ ኣሎ – ከምኡ’ውን እንታይ ተወሲዱ?"],"a2_1.h1":["جزء من النقود كان في الصندوق منذ الصباح. وهذا ليس مقبوضات.","Một phần tiền mặt đã có trong quầy từ buổi sáng. Đó không phải tiền thu được.","Частина готівки була в касі вже зранку. Це не надходження.","ሓደ ክፋል ጥረ ገንዘብ ካብ ንጽባሒቶ ኣብ ካሳ ነይሩ። እዚ ኣታዊ ኣይኮነን።"],"a2_1.s":["المعدود 1.845,60 يورو + المأخوذ 2.000,00 يورو = 3.845,60 يورو نقودًا، منها 300,00 يورو كانت في الصندوق منذ الصباح. 3.845,60 − 300,00 = 3.545,60 يورو مقبوضات نقدية.","Đã đếm 1.845,60 € + đã lấy ra 2.000,00 € = 3.845,60 € tiền mặt, trong đó 300,00 € đã có từ buổi sáng. 3.845,60 € − 300,00 € = 3.545,60 € tiền mặt thu được.","Нараховано 1.845,60 € + забрано 2.000,00 € = 3.845,60 € готівки, з яких 300,00 € були в касі вже зранку. 3.845,60 € − 300,00 € = 3.545,60 € готівкових надходжень.","ዝተቖጸረ 1.845,60 € + ዝተወሰደ 2.000,00 € = 3.845,60 € ጥረ ገንዘብ፣ ካብዚ 300,00 € ካብ ንጽባሒቶ ነይሩ። 3.845,60 € − 300,00 € = 3.545,60 € ጥረ ገንዘብ ኣታዊ።"],"a2_2.q":["2.2 كم بلغت مبيعات اليوم؟","2.2 Doanh thu của ngày hôm nay là bao nhiêu?","2.2 Який оборот за день?","2.2 ሽያጥ እታ መዓልቲ ክንደይ እዩ?"],"a2_2.h0":["مبيعات اليوم أكثر من النقود فقط.","Doanh thu của ngày không chỉ là tiền mặt.","Оборот за день — це більше, ніж лише готівка.","ሽያጥ እታ መዓልቲ ካብ ጥረ ገንዘብ ጥራይ ይበዝሕ።"],"a2_2.h1":["أضف شيئًا إلى المقبوضات النقدية: كيف تم الدفع أيضًا؟","Hãy cộng thêm vào tiền mặt thu được: còn có cách trả tiền nào khác?","Додай до готівкових надходжень ще дещо: як ще платили?","ንጥረ ገንዘብ ኣታዊ ሓደ ነገር ወስኽ: ካልእ ከመይ ተኸፊሉ?"],"a2_2.s":["3.545,60 + 4.120,50 = 7.666,10 يورو","3.545,60 € + 4.120,50 € = 7.666,10 €","3.545,60 € + 4.120,50 € = 7.666,10 €","3.545,60 € + 4.120,50 € = 7.666,10 €"],"a4_1.q":["4.1 رصيد نهاية الصندوق 2.960,40 يورو · المبلغ المسحوب 1.500,00 يورو · فكّة الصرف 250,00 يورو · المدفوعات بالبطاقة 3.389,90 يورو. احسب إيراد النقد اليومي (Tageslosung) وإجمالي مبيعات اليوم (Tagesumsatz).","4.1 Số tiền trong quầy lúc kết thúc 2.960,40 € · tiền rút bớt 1.500,00 € · tiền lẻ 250,00 € · thanh toán bằng thẻ 3.389,90 €. Hãy tính doanh thu tiền mặt trong ngày (Tageslosung) và tổng doanh thu trong ngày (Tagesumsatz).","4.1 Залишок у касі в кінці дня 2.960,40 € · вилучення 1.500,00 € · розмінні гроші 250,00 € · оплата карткою 3.389,90 €. Обчисли денну виручку готівкою (Tageslosung) і загальний денний оборот (Tagesumsatz).","4.1 ኣብ መወዳእታ ኣብ ካሳ 2.960,40 € · ካብ ካሳ ዝወጸ 1.500,00 € · ናይ ለውጢ ገንዘብ 250,00 € · ብካርዲ ዝተኸፍለ 3.389,90 €። ናይ መዓልቲ ጥረ ገንዘብ ኣታዊ (Tageslosung) ከምኡ’ውን ጠቕላላ ናይ መዓልቲ ሽያጥ (Tagesumsatz) ሓስብ።"],"a4_1.h0":["إيراد النقد اليومي = كل المقبوضات النقدية: انظر إلى تقرير الصندوق في النص.","Tageslosung = tất cả tiền mặt thu được: hãy xem báo cáo quầy trong bài đọc.","Tageslosung = усі готівкові надходження: подивись на касовий звіт у тексті.","Tageslosung = ኩሉ ጥረ ገንዘብ ኣታዊ: ኣብ ጽሑፍ ዘሎ ጸብጻብ ካሳ ርአይ።"],"a4_1.h1":["إجمالي مبيعات اليوم = إيراد النقد اليومي + المدفوعات بالبطاقة.","Tagesumsatz = Tageslosung cộng thanh toán bằng thẻ.","Tagesumsatz = Tageslosung плюс оплата карткою.","Tagesumsatz = Tageslosung ሲዒ ብካርዲ ዝተኸፍለ።"],"a4_1.s":["إيراد النقد اليومي: 2.960,40 + 1.500,00 − 250,00 = 4.210,40 يورو. إجمالي مبيعات اليوم: 4.210,40 + 3.389,90 = 7.600,30 يورو.","Tageslosung: 2.960,40 + 1.500,00 − 250,00 = 4.210,40 €. Tagesumsatz: 4.210,40 + 3.389,90 = 7.600,30 €.","Tageslosung: 2.960,40 + 1.500,00 − 250,00 = 4.210,40 €. Tagesumsatz: 4.210,40 + 3.389,90 = 7.600,30 €.","Tageslosung: 2.960,40 + 1.500,00 − 250,00 = 4.210,40 €። Tagesumsatz: 4.210,40 + 3.389,90 = 7.600,30 €።"],"a4_2.q":["4.2 على طاولة خاصة عند المدخل تُباع أوشحة بسعر 12,95 يورو. في المساء بِيع 38 وشاحًا. في الصباح كان في الصندوق 50,00 يورو فكّة، والآن تعدّ 545,60 يورو. احسب فرق الصندوق باليورو. هل هو زيادة (Überschuss) أم عجز (Fehlbetrag)؟","4.2 Ở một bàn bán hàng đặc biệt gần lối vào, khăn quàng được bán với giá 12,95 €. Buổi tối đã bán được 38 chiếc. Buổi sáng trong quầy có 50,00 € tiền lẻ, bây giờ bạn đếm được 545,60 €. Hãy tính chênh lệch quầy bằng euro. Đây là thừa tiền hay thiếu tiền?","4.2 На спеціальному столі біля входу продають шарфи по 12,95 €. Увечері продано 38 шарфів. Зранку в касі було 50,00 € розмінних грошей, тепер ти нараховуєш 545,60 €. Визначте касову різницю в євро. Це надлишок чи нестача?","4.2 ኣብ ፍሉይ ጠረጴዛ ኣብ እንዳ መእተዊ ሻርፕ ብ12,95 € ይሽየጥ። ምሸት 38 ሻርፕ ተሸይጡ። ንጽባሒቶ ኣብ ካሳ 50,00 € ናይ ለውጢ ገንዘብ ነይሩ፣ ሕጂ 545,60 € ትቆጽር። ፍልልይ ካሳ ብኤውሮ ሓስብ። ትርፊ ድዩ ጉድለት?"],"a4_2.h0":["احسب أولًا الرصيد المطلوب (Soll-Bestand): كم يجب أن يكون في الصندوق؟","Trước hết hãy tính Soll-Bestand: trong quầy lẽ ra phải có bao nhiêu?","Спочатку порахуй Soll-Bestand: скільки мало бути в касі?","መጀመርታ Soll-Bestand ሓስብ: ኣብ ካሳ እንታይ ክህሉ ነይርዎ?"],"a4_2.h1":["الفرق = الفعلي − المطلوب. زائد أم ناقص؟","Chênh lệch = Ist − Soll. Dấu cộng hay dấu trừ?","Різниця = Ist − Soll. Плюс чи мінус?","ፍልልይ = Ist − Soll። ሲዒ ድዩ ኣዋጽዮ?"],"a4_2.s":["المطلوب: 38 × 12,95 = 492,10 يورو + 50,00 يورو فكّة = 542,10 يورو. الفعلي: 545,60 يورو. الفرق: 545,60 − 542,10 = +3,50 يورو ← زيادة (Überschuss) قدرها 3,50 يورو.","Soll: 38 × 12,95 € = 492,10 € + 50,00 € tiền lẻ = 542,10 €. Ist: 545,60 €. Chênh lệch: 545,60 − 542,10 = +3,50 € → thừa tiền (Überschuss) 3,50 €.","Soll: 38 × 12,95 € = 492,10 € + 50,00 € розмінних грошей = 542,10 €. Ist: 545,60 €. Різниця: 545,60 − 542,10 = +3,50 € → надлишок (Überschuss) 3,50 €.","Soll: 38 × 12,95 € = 492,10 € + 50,00 € ናይ ለውጢ ገንዘብ = 542,10 €። Ist: 545,60 €። ፍልልይ: 545,60 − 542,10 = +3,50 € → ትርፊ (Überschuss) 3,50 €።"],"a4_3.q":["4.3 في الصباح كان يجب أن يكون في الصندوق 60,00 يورو من العملات المعدنية. تعدّ: 10 × 2 يورو · 20 × 1 يورو · 20 × 0,50 يورو · 15 × 0,20 يورو · 20 × 0,10 يورو · 20 × 0,05 يورو · 25 × 0,02 يورو · 50 × 0,01 يورو. كم الفرق؟","4.3 Buổi sáng trong quầy lẽ ra phải có 60,00 € tiền xu. Bạn đếm được: 10 × 2 € · 20 × 1 € · 20 × 0,50 € · 15 × 0,20 € · 20 × 0,10 € · 20 × 0,05 € · 25 × 0,02 € · 50 × 0,01 €. Chênh lệch là bao nhiêu?","4.3 Зранку в касі мало бути 60,00 € монетами. Ти нараховуєш: 10 × 2 € · 20 × 1 € · 20 × 0,50 € · 15 × 0,20 € · 20 × 0,10 € · 20 × 0,05 € · 25 × 0,02 € · 50 × 0,01 €. Яка різниця?","4.3 ንጽባሒቶ ኣብ ካሳ 60,00 € ሳንቲማት ክህሉ ነይርዎ። ትቆጽር: 10 × 2 € · 20 × 1 € · 20 × 0,50 € · 15 × 0,20 € · 20 × 0,10 € · 20 × 0,05 € · 25 × 0,02 € · 50 × 0,01 €። ፍልልይ ክንደይ እዩ?"],"a4_3.h0":["احسب كل فئة من العملات على حدة: العدد × القيمة. ثم اجمع الكل.","Tính từng loại xu riêng: số lượng nhân giá trị. Sau đó cộng tất cả lại.","Рахуй кожен вид монет окремо: кількість помножити на вартість. Потім додай усе.","ነፍስወከፍ ዓይነት ሳንቲም ፍሉይ ሓስብ: ቁጽሪ ሓሙሽተ ዋጋ። ድሕሪኡ ኩሉ ኣወሳስኽ።"],"a4_3.h1":["الفرق = الفعلي − المطلوب.","Chênh lệch = Ist − Soll.","Різниця = Ist − Soll.","ፍልልይ = Ist − Soll።"],"a4_3.s":["20,00 + 20,00 + 10,00 + 3,00 + 2,00 + 1,00 + 0,50 + 0,50 = 57,00 يورو. الفرق: 57,00 − 60,00 = −3,00 يورو (ينقص 3,00 يورو).","20,00 + 20,00 + 10,00 + 3,00 + 2,00 + 1,00 + 0,50 + 0,50 = 57,00 €. Chênh lệch: 57,00 − 60,00 = −3,00 € (thiếu 3,00 €).","20,00 + 20,00 + 10,00 + 3,00 + 2,00 + 1,00 + 0,50 + 0,50 = 57,00 €. Різниця: 57,00 − 60,00 = −3,00 € (бракує 3,00 €).","20,00 + 20,00 + 10,00 + 3,00 + 2,00 + 1,00 + 0,50 + 0,50 = 57,00 €። ፍልልይ: 57,00 − 60,00 = −3,00 € (3,00 € ጎዲሉ)።"],"a4_4.q":["4.4 بعد الحساب ينقص 8,00 يورو من الصندوق. اذكر سببين محتملين.","4.4 Sau khi quyết toán, trong quầy thiếu 8,00 €. Hãy nêu 2 nguyên nhân có thể.","4.4 Після розрахунку в касі бракує 8,00 €. Назви 2 можливі причини.","4.4 ድሕሪ ሒሳብ ኣብ ካሳ 8,00 € ጎዲሉ። 2 ክኾኑ ዝኽእሉ ምኽንያታት ጥቐስ።"],"a4_4.h0":["المال ناقص: ما الخطأ الذي قد يحدث عند إعطاء الباقي أو عند الكتابة على الصندوق؟","Thiếu tiền: khi thối tiền hoặc khi nhập số có thể sai ở đâu?","Грошей бракує: що може піти не так під час видачі решти або введення?","ገንዘብ ጎዲሉ: ኣብ ምምላስ ወይ ኣብ ምእታው እንታይ ክጋገ ይኽእል?"],"a4_4.h1":["فكّر في قائمة الأسباب في النص. يكفي سببان.","Hãy nghĩ đến danh sách nguyên nhân trong bài đọc. Chỉ cần hai nguyên nhân.","Згадай перелік причин у тексті. Потрібні лише дві.","ኣብ ጽሑፍ ዘሎ ዝርዝር ምኽንያታት ሕሰብ። ክልተ ጥራይ የድልዩ።"],"a4_4.s":["مثلًا: أُعطي زبون باقيًا أكثر من اللازم؛ فكّة الصرف لم تكن صحيحة صباحًا؛ خطأ في الإدخال؛ التصقت ورقتان نقديتان ببعضهما؛ سرقة.","Ví dụ: thối cho khách quá nhiều tiền; tiền lẻ buổi sáng đã không đúng; nhập sai; hai tờ tiền dính vào nhau; trộm cắp.","Напр.: покупцю дали забагато решти; розмінні гроші не збігалися зранку; помилка введення; дві банкноти склеїлися; крадіжка.","ንኣብነት: ንዓሚል ብዙሕ ዝምለስ ተዋሂቡ፤ ናይ ለውጢ ገንዘብ ካብ ንጽባሒቶ ጌጋ ነይሩ፤ ጌጋ ኣብ ምእታው፤ ክልተ ኣግራብ ተጣቢቐን፤ ስርቂ።"],"a5_1.q":["5.1 اعثر على خطأَي ليون واشرحهما.","5.1 Hãy tìm hai lỗi của Leon và giải thích.","5.1 Знайди дві помилки Леона й поясни їх.","5.1 ክልተ ጌጋታት ሌኦን ድለ ከምኡ’ውን ግለጾም።"],"a5_1.h0":["قارن جدول ليون بتقرير الصندوق عند ميا في النص: أي الإشارات (+ أو −) مختلفة؟","So sánh bảng của Leon với báo cáo quầy của Mia trong bài đọc: dấu nào (+ hay −) khác nhau?","Порівняй таблицю Леона з касовим звітом Мії в тексті: які знаки (+ або −) інші?","ሰንጠረዥ ሌኦንን ጸብጻብ ካሳ ሚያ ኣብ ጽሑፍን ኣወዳድር: ኣየናይ ምልክታት (+ ወይ −) ዝተፈለዩ?"],"a5_1.h1":["في سطرين الإشارة خاطئة: واحد عن مال أُخذ من الصندوق، والآخر عن مال كان في الصندوق منذ الصباح.","Hai dòng có dấu sai: một dòng là tiền đã lấy ra khỏi quầy, một dòng là tiền đã có từ buổi sáng.","У двох рядках неправильний знак: в одному — гроші, які забрали з каси, в другому — гроші, що були в касі вже зранку.","ኣብ ክልተ መስመራት ጌጋ ምልክት ኣሎ: ሓደ ካብ ካሳ ዝወጸ ገንዘብ፣ ሓደ ካብ ንጽባሒቶ ኣብ ካሳ ዝነበረ ገንዘብ።"],"a5_1.s":["الخطأ 1: يجب جمع المبلغ المسحوب (Abschöpfung)، لأنه مال مقبوض لكنه لم يعد في الصندوق. الخطأ 2: يجب طرح فكّة الصرف (Wechselgeld)، لأنها كانت في الصندوق منذ الصباح وليست مبيعات.","Lỗi 1: Tiền rút bớt (Abschöpfung) phải được cộng vào, vì đó là tiền đã thu được, chỉ là không còn nằm trong quầy. Lỗi 2: Tiền lẻ (Wechselgeld) phải được trừ đi, vì nó đã có trong quầy từ buổi sáng và không phải doanh thu.","Помилка 1: Вилучення (Abschöpfung) треба додавати, бо це отримані гроші, які просто більше не лежать у касі. Помилка 2: Розмінні гроші (Wechselgeld) треба віднімати, бо вони були в касі вже зранку й не є виручкою.","ጌጋ 1: Abschöpfung ክውሰኽ ኣለዎ፣ ምኽንያቱ ዝተረኽበ ገንዘብ እዩ፣ ግን ኣብ ካሳ ኣይርከብን። ጌጋ 2: Wechselgeld ክቍነስ ኣለዎ፣ ምኽንያቱ ካብ ንጽባሒቶ ኣብ ካሳ ነይሩ ከምኡ’ውን ሽያጥ ኣይኮነን።"],"a5_2.q":["5.2 احسب بشكل صحيح: كم يبلغ إيراد النقد اليومي (Tageslosung) وإجمالي مبيعات اليوم (Tagesumsatz)؟","5.2 Hãy tính đúng: Tageslosung và Tagesumsatz là bao nhiêu?","5.2 Порахуй правильно: Яка Tageslosung і який Tagesumsatz?","5.2 ትክክል ሓስብ: Tageslosung ከምኡ’ውን Tagesumsatz ክንደይ እዮም?"],"a5_2.h0":["اكتب العملية في سطر واحد مع زائد وناقص. المصروف المدفوع نقدًا يُجمَع.","Viết phép tính trên một dòng với dấu cộng và dấu trừ. Chi tiêu bằng tiền mặt thì cộng vào.","Запиши розрахунок в один рядок із плюсом і мінусом. Витрата готівкою додається.","ሕሳብ ብሓደ መስመር ምስ ሲዒን ኣዋጽዮን ጸሓፍ። ብጥረ ገንዘብ ዝተኸፍለ ወጻኢ ይወሰኽ።"],"a5_2.h1":["إجمالي مبيعات اليوم = إيراد النقد اليومي + المدفوعات بالبطاقة.","Tagesumsatz = Tageslosung cộng thanh toán bằng thẻ.","Tagesumsatz = Tageslosung плюс оплата карткою.","Tagesumsatz = Tageslosung ሲዒ ብካርዲ ዝተኸፍለ።"],"a5_2.s":["إيراد النقد اليومي: 1.845,60 + 2.000,00 + 12,40 − 300,00 = 3.558,00 يورو. إجمالي مبيعات اليوم: 3.558,00 + 4.120,50 = 7.678,50 يورو.","Tageslosung: 1.845,60 + 2.000,00 + 12,40 − 300,00 = 3.558,00 €. Tagesumsatz: 3.558,00 + 4.120,50 = 7.678,50 €.","Tageslosung: 1.845,60 + 2.000,00 + 12,40 − 300,00 = 3.558,00 €. Tagesumsatz: 3.558,00 + 4.120,50 = 7.678,50 €.","Tageslosung: 1.845,60 + 2.000,00 + 12,40 − 300,00 = 3.558,00 €። Tagesumsatz: 3.558,00 + 4.120,50 = 7.678,50 €።"],"a6_1.q":["6.1 احسب إجمالي مبيعات اليوم (Tagesumsatz) من هذه البيانات! المدفوعات بالبطاقة 3.260,00 يورو؛ فكّة الصرف عند بداية الوردية 400,00 يورو؛ رصيد الصندوق عند نهاية الوردية 2.750,00 يورو؛ المبلغ المسحوب 2.000,00 يورو. اكتب طريقة الحساب! (3 نقاط)","6.1 Hãy tính tổng doanh thu trong ngày từ các dữ liệu sau! Thanh toán bằng thẻ 3.260,00 €; tiền lẻ đầu ca 400,00 €; số tiền trong quầy cuối ca 2.750,00 €; tiền mặt rút bớt 2.000,00 €. Hãy ghi cách tính! (3 điểm)","6.1 Обчисліть загальний денний оборот за цими даними! Оплата карткою 3.260,00 €; розмінні гроші на початку зміни 400,00 €; залишок у касі наприкінці зміни 2.750,00 €; вилучена готівка 2.000,00 €. Вкажіть хід розрахунку! (3 бали)","6.1 ብዚ ሓበሬታ ጠቕላላ ናይ መዓልቲ ሽያጥ ሓስብ! ብካርዲ ዝተኸፍለ 3.260,00 €፤ ናይ ለውጢ ገንዘብ ኣብ መጀመርታ ስራሕ 400,00 €፤ ኣብ መወዳእታ ስራሕ ኣብ ካሳ 2.750,00 €፤ ካብ ካሳ ዝወጸ ጥረ ገንዘብ 2.000,00 €። መገዲ ሕሳብ ጸሓፍ! (3 ነጥቢ)"],"a6_1.h0":["اكتب العملية في سطر واحد مع زائد وناقص.","Viết phép tính trên một dòng với dấu cộng và dấu trừ.","Запиши розрахунок в один рядок із плюсом і мінусом.","ሕሳብ ብሓደ መስመር ምስ ሲዒን ኣዋጽዮን ጸሓፍ።"],"a6_1.h1":["ما الذي أُخذ من الصندوق – وما الذي كان فيه منذ الصباح؟","Cái gì đã được lấy ra khỏi quầy – và cái gì đã có từ buổi sáng?","Що забрали з каси – і що було в касі вже зранку?","ካብ ካሳ እንታይ ተወሲዱ – ከምኡ’ውን እንታይ ካብ ንጽባሒቶ ነይሩ?"],"a6_1.s":["2.750,00 + 2.000,00 + 3.260,00 − 400,00 = 7.610,00 يورو (نقطة للجمع، نقطة للطرح، نقطة للنتيجة).","2.750,00 + 2.000,00 + 3.260,00 − 400,00 = 7.610,00 € (1 điểm phép cộng, 1 điểm phép trừ, 1 điểm kết quả).","2.750,00 + 2.000,00 + 3.260,00 − 400,00 = 7.610,00 € (1 б. додавання, 1 б. віднімання, 1 б. результат).","2.750,00 + 2.000,00 + 3.260,00 − 400,00 = 7.610,00 € (1 ነጥቢ ምውሳኽ፣ 1 ነጥቢ ምቅናስ፣ 1 ነጥቢ ውጽኢት)።"],"a6_2.q":["6.2 عند إقفال الصندوق تلاحظ فرقًا: في الصندوق 4,00 يورو زيادة. اذكر سببين محتملين لذلك! (نقطتان)","6.2 Khi quyết toán quầy, bạn thấy có chênh lệch quầy: trong quầy thừa 4,00 €. Hãy nêu 2 nguyên nhân có thể! (2 điểm)","6.2 Під час закриття каси ви виявили касову різницю: у касі на 4,00 € забагато. Назвіть 2 можливі причини! (2 бали)","6.2 ኣብ መወዳእታ ሒሳብ ካሳ ፍልልይ ካሳ ረኺብካ: ኣብ ካሳ 4,00 € ዝያዳ እዩ። 2 ክኾኑ ዝኽእሉ ምኽንያታት ጥቐስ! (2 ነጥቢ)"],"a6_2.h0":["المال زائد: أين يمكن أن يكون الزبون قد أخذ أقل من حقه؟","Đang thừa tiền: khách hàng có thể đã nhận thiếu ở đâu?","Грошей забагато: де покупець міг отримати замало?","ብዙሕ ገንዘብ ኣሎ: ዓሚል ኣበይ ውሑድ ክረክብ ይኽእል?"],"a6_2.h1":["فكّر في قائمة الأسباب في النص. كل سبب يعطي نقطة.","Hãy nghĩ đến danh sách nguyên nhân trong bài đọc. Mỗi nguyên nhân được 1 điểm.","Згадай перелік причин у тексті. За кожну причину 1 бал.","ኣብ ጽሑፍ ዘሎ ዝርዝር ምኽንያታት ሕሰብ። ነፍስወከፍ ምኽንያት 1 ነጥቢ።"],"a6_2.s":["كل سبب بنقطة، مثلًا: أُعطي الزبون باقيًا أقل من اللازم، فكّة الصرف لم تكن صحيحة عند العدّ، خطأ في الإدخال، لم يُسجَّل الإلغاء (Storno).","Mỗi ý 1 điểm, ví dụ: thối cho khách quá ít tiền, tiền lẻ đã không đúng khi đếm buổi sáng, nhập sai, quên hủy giao dịch (Storno).","По 1 балу, напр.: видали замало решти, розмінні гроші не збігалися вже під час підрахунку, помилка введення, сторно не проведено.","ነፍስወከፍ 1 ነጥቢ፣ ንኣብነት: ውሑድ ዝምለስ ተዋሂቡ፣ ናይ ለውጢ ገንዘብ ኣብ ምቍጻር ጌጋ ነይሩ፣ ጌጋ ኣብ ምእታው፣ Storno ኣይተኣተወን።"],"a6_3.q":["6.3 عند إقفال الصندوق في المساء يوجد فرق. أي عملية يمكن أن تسبّبه؟ اكتب الرقم. (نقطتان) 1 دفع زبون بالبطاقة، وخُصم المبلغ من جهاز البطاقة بشكل صحيح. 2 صحّحتَ خطأ كتابة فورًا بالإلغاء الصحيح وأدخلتَ المنتج من جديد. 3 دفع زبون ثمن بلوفر 24,95 يورو بورقة 50 يورو، وأعطيتَه 15,05 يورو باقيًا. 4 أدخلتَ وشاحَين بسعر 9,90 يورو للواحد بشكل صحيح وقبضتَ نقدًا.","6.3 Khi quyết toán quầy buổi tối có chênh lệch quầy. Giao dịch nào có thể gây ra? Hãy viết số. (2 điểm) 1 Một khách trả bằng thẻ, và số tiền đã được trừ đúng trên máy thẻ. 2 Bạn đã hủy ngay và đúng một lỗi gõ, rồi nhập lại món hàng. 3 Một khách trả tiền áo len 24,95 € bằng tờ 50 €, và bạn thối cho khách 15,05 €. 4 Bạn đã nhập đúng 2 chiếc khăn quàng, mỗi chiếc 9,90 €, và thu tiền mặt.","6.3 Під час закриття каси ввечері є касова різниця. Яка дія могла її спричинити? Запиши номер. (2 бали) 1 Покупець заплатив карткою, і суму правильно списали на терміналі. 2 Ви одразу правильно сторнували помилку набору й ввели товар заново. 3 Покупець заплатив за светр 24,95 € купюрою 50 €, і ви дали йому 15,05 € решти. 4 Ви правильно ввели 2 шарфи по 9,90 € і отримали готівку.","6.3 ምሸት ኣብ ሒሳብ ካሳ ፍልልይ ኣሎ። እንታይ ተግባር ክፈጥሮ ይኽእል? ቁጽሪ ጸሓፍ። (2 ነጥቢ) 1 ሓደ ዓሚል ብካርዲ ከፊሉ፣ መጠን ድማ ኣብ መሳርሒ ካርዲ ትክክል ተቖሪጹ። 2 ጌጋ ጽሕፈት ብቕጽበት ትክክል ሰርዝካዮ ከምኡ’ውን ዕሊ ከም ሓድሽ ኣእቲኻዮ። 3 ሓደ ዓሚል ሹሩባ ብ24,95 € ብ50-€ ኣግራብ ከፊሉ፣ ንዓኡ 15,05 € መሊስካሉ። 4 2 ሻርፕ ነፍስወከፍ 9,90 € ትክክል ኣእቲኻ ብጥረ ገንዘብ ተቐቢልካ።"],"a6_3.h0":["فرق الصندوق يحدث عندما يتحرك المال بشكل خاطئ. في أي عملية لا يكون المال صحيحًا؟","Chênh lệch quầy xảy ra khi tiền bị chuyển sai. Ở giao dịch nào tiền không khớp?","Касова різниця виникає, коли гроші рухаються неправильно. У якій дії гроші не сходяться?","ፍልልይ ካሳ ገንዘብ ጌጋ ክንቀሳቐስ ከሎ ይፍጠር። ኣብ ኣየናይ ተግባር ገንዘብ ኣይሰማማዕን?"],"a6_3.h1":["احسب في الحالة 3: 50,00 − 24,95 = ؟ هل الباقي صحيح؟","Hãy tính lại ở số 3: 50,00 − 24,95 = ? Tiền thối có đúng không?","Перерахуй у пункті 3: 50,00 − 24,95 = ? Чи правильна решта?","ኣብ 3 ዳግማይ ሓስብ: 50,00 − 24,95 = ? ዝምለስ ገንዘብ ትክክል ድዩ?"],"a6_3.s":["الجواب 3: الباقي الصحيح هو 25,05 يورو. بإعطاء 15,05 يورو أخذ الزبون 10,00 يورو أقل من حقه – فتكون زيادة في الصندوق. في 1 و2 و4 كل شيء مسجَّل بشكل صحيح.","Đáp án 3: Tiền thối đúng phải là 25,05 €. Với 15,05 € khách nhận thiếu 10,00 € – nên trong quầy bị thừa tiền. Ở 1, 2 và 4 mọi thứ đều được ghi đúng.","Відповідь 3: Правильна решта була б 25,05 €. З 15,05 € покупець отримав на 10,00 € менше – у касі виникає надлишок. У пунктах 1, 2 і 4 усе проведено правильно.","መልሲ 3: ትክክል ዝምለስ 25,05 € ነይሩ። ብ15,05 € ዓሚል 10,00 € ውሑድ ረኺቡ – ኣብ ካሳ ትርፊ ይፍጠር። ኣብ 1፣ 2 ከምኡ’ውን 4 ኩሉ ትክክል ተመዝጊቡ።"],"a6_4.q":["6.4 الحساب: إجمالي المبيعات نقدًا 3.950,00 يورو · إجمالي المبيعات بالبطاقة 2.480,00 يورو · مرتجع نقدًا 60,00 يورو · المبلغ المأخوذ من الصندوق 3.500,00 يورو · الرصيد المطلوب للصندوق (Soll-Bestand) 640,00 يورو. كم كان المبلغ الذي فُتح به الصندوق؟ (نقطتان)","6.4 Quyết toán: tổng doanh thu tiền mặt 3.950,00 € · tổng doanh thu thẻ 2.480,00 € · trả lại tiền mặt 60,00 € · rút tiền khỏi quầy 3.500,00 € · số tiền quầy lẽ ra phải có (Soll-Bestand) 640,00 €. Số tiền lúc mở quầy là bao nhiêu? (2 điểm)","6.4 Розрахунок: загальний оборот готівкою 3.950,00 € · загальний оборот карткою 2.480,00 € · готівкове повернення 60,00 € · вилучення з каси 3.500,00 € · розрахунковий залишок каси (Soll-Bestand) 640,00 €. Якою була сума, з якою відкрили касу? (2 бали)","6.4 ሒሳብ: ጠቕላላ ሽያጥ ጥረ ገንዘብ 3.950,00 € · ጠቕላላ ሽያጥ ካርዲ 2.480,00 € · ብጥረ ገንዘብ ዝተመለሰ 60,00 € · ካብ ካሳ ዝወጸ 3.500,00 € · Soll-Bestand ናይ ካሳ 640,00 €። ካሳ ብኸንደይ ተኸፊታ? (2 ነጥቢ)"],"a6_4.h0":["اكتب قانون الرصيد المطلوب (انظر النص) وغيّره لتجد مبلغ البداية.","Viết công thức của Soll-Bestand (xem bài đọc) và biến đổi để tìm số tiền ban đầu.","Запиши формулу для Soll-Bestand (див. текст) і виведи з неї початкову суму.","ቀመር ናይ Soll-Bestand (ርአ ጽሑፍ) ጸሓፍ ከምኡ’ውን ንመጀመርታ መጠን ኣውጽኦ።"],"a6_4.h1":["مبيعات البطاقة ليست في الصندوق. لا تستعملها.","Doanh thu thẻ không nằm trong quầy. Bỏ qua chúng.","Оборот карткою не лежить у касі. Не враховуй його.","ሽያጥ ካርዲ ኣብ ካሳ የለን። ግደፎ።"],"a6_4.s":["المطلوب = مبلغ الافتتاح + النقد − المرتجع − المأخوذ ← مبلغ الافتتاح = 640,00 − 3.950,00 + 60,00 + 3.500,00 = 250,00 يورو (مبيعات البطاقة ليست في الصندوق).","Soll = tiền mở quầy + tiền mặt − trả lại − rút ra → tiền mở quầy = 640,00 − 3.950,00 + 60,00 + 3.500,00 = 250,00 € (doanh thu thẻ không nằm trong quầy).","Soll = відкриття + готівка − повернення − вилучення → відкриття = 640,00 − 3.950,00 + 60,00 + 3.500,00 = 250,00 € (обороти карткою не лежать у касі).","Soll = ምኽፋት + ጥረ ገንዘብ − ዝተመለሰ − ዝወጸ → ምኽፋት = 640,00 − 3.950,00 + 60,00 + 3.500,00 = 250,00 € (ሽያጥ ካርዲ ኣብ ካሳ የለን)።"],"a7p_1.q":["7.1 يريد صاحب العمل أن تعوّض أمينات الصندوق العجز (Fehlbeträge) من جيبهن. قيّم ذلك. (كلمة مفتاحية: Mankogeld، بدل عجز الصندوق)","7.1 Một doanh nghiệp muốn nhân viên thu ngân tự bù số tiền thiếu bằng tiền túi của mình. Hãy đánh giá việc này. (Từ khóa: Mankogeld)","7.1 Підприємство хоче, щоб касири відшкодовували нестачі зі своєї кишені. Оціни це. (Ключове слово: Mankogeld)","7.1 ሓደ ትካል ሰራሕተኛታት ካሳ ጉድለት ካብ ጁባኦም ክኸፍሉ ይደሊ። እዚ ገምግም። (ቃል: Mankogeld)"],"a7p_1.h0":["متى يتحمّل الموظفون مسؤولية الأخطاء ومتى لا؟","Khi nào nhân viên phải chịu trách nhiệm về lỗi, khi nào không?","Коли працівники відповідають за помилки, а коли ні?","መዓስ ሰራሕተኛታት ንጌጋ ይሕተቱ፣ መዓስ ኣይሕተቱን?"],"a7p_1.h1":["ماذا يجب الاتفاق عليه إضافةً، وماذا يحصل عليه الموظفون مقابل ذلك؟","Cần thỏa thuận thêm điều gì, và nhân viên nhận được gì để đổi lại?","Що має бути додатково домовлено і що працівники отримують натомість?","ተወሳኺ እንታይ ክስማዕ ኣለዎ፣ ሰራሕተኛታትከ ብኽሳብ እንታይ ይረኽቡ?"],"a7p_1.s":["بدون اتفاق خاص يتحمّل الموظفون المسؤولية فقط إذا تصرفوا عمدًا أو بإهمال جسيم. مسؤولية العجز (Mankohaftung) يجب الاتفاق عليها صراحةً، ومقابلها يُعطى بدل عجز الصندوق (Mankogeld). ولا يجوز لصاحب العمل أن يخصم ببساطة من الراتب.","Nếu không có thỏa thuận đặc biệt, nhân viên chỉ chịu trách nhiệm khi cố ý hoặc cực kỳ bất cẩn. Trách nhiệm về tiền thiếu (Mankohaftung) phải được thỏa thuận rõ ràng, và nhân viên được nhận phụ cấp bù thiếu hụt (Mankogeld) để đổi lại. Doanh nghiệp không được tự ý trừ vào lương.","Без особливої домовленості працівники відповідають лише за умисел або грубу недбалість. Відповідальність за нестачу (Mankohaftung) має бути прямо домовлена, а як компенсацію виплачують надбавку за ризик нестачі (Mankogeld). Просто вирахувати із зарплати підприємство не може.","ብዘይ ፍሉይ ስምምዕ ሰራሕተኛታት ብመድለይቲ ወይ ብከቢድ ድንዛዝ ጥራይ ይሕተቱ። Mankohaftung ብግልጺ ክስማዕ ኣለዎ፣ ከምኡ’ውን Mankogeld ከም ካሳ ይወሃብ። ትካል ካብ ደሞዝ ብቐሊሉ ክቐንስ ኣይኽእልን።"],"a7p_2.q":["7.2 اشرح لماذا يحدث جرد الصندوق (Kassensturz) بشكل مفاجئ.","7.2 Hãy giải thích vì sao kiểm quỹ đột xuất (Kassensturz) diễn ra bất ngờ.","7.2 Поясніть, чому касова ревізія (Kassensturz) проводиться несподівано.","7.2 ስለምንታይ ምፍታሽ ካሳ (Kassensturz) ድንገት ከም ዝግበር ግለጽ።"],"a7p_2.h0":["ماذا يمكن أن يفعل شخص يعرف الموعد مسبقًا؟","Một người biết trước ngày kiểm tra có thể làm gì?","Що міг би зробити той, хто знає термін заздалегідь?","ሓደ ሰብ ቅድሚ ግዜ እንተፈሊጡ እንታይ ክገብር ይኽእል?"],"a7p_2.h1":["ماذا يُظهر جرد الصندوق المفاجئ؟","Một cuộc kiểm quỹ bất ngờ cho thấy điều gì?","Що показує несподівана ревізія?","ድንገተኛ ምፍታሽ እንታይ የርኢ?"],"a7p_2.s":["لو كان معلنًا مسبقًا لأمكن إخفاء الأخطاء أو الاختلاس قبله. المفاجأة تُظهر الوضع الحقيقي وتردع.","Nếu được báo trước, người ta có thể che giấu lỗi hoặc việc biển thủ (Unterschlagung) từ trước. Khi bất ngờ, nó cho thấy tình hình thật và có tác dụng răn đe.","Якби її оголосили заздалегідь, помилки чи привласнення (Unterschlagung) можна було б приховати. Несподівана ревізія показує справжній стан і стримує.","ቅድሚኡ እንተተነጊሩ፣ ጌጋታት ወይ ስርቂ (Unterschlagung) ክሽፈን ይኽእል። ድንገት ክኸውን ከሎ ሓቀኛ ኩነታት የርኢ ከምኡ’ውን የፍርሕ።"],"v9_1.q":["9.1 المبلغ المسحوب (Abschöpfung) لم يعد في الصندوق. لماذا يُحتسب مع ذلك ضمن المبيعات؟ علّل.","9.1 Tiền rút bớt (Abschöpfung) không còn nằm trong quầy. Vì sao nó vẫn tính vào doanh thu? Hãy giải thích.","9.1 Вилучення (Abschöpfung) більше не лежить у касі. Чому воно все одно входить в оборот? Обґрунтуй.","9.1 Abschöpfung ኣብ ካሳ ኣይኣሎን። ስለምንታይ ግን ኣብ ሽያጥ ይቍጸር? ምኽንያት ሃብ።"],"v9_1.h0":["من أين جاء المال الذي يأخذه مشرف الصندوق؟","Tiền mà người giám sát quầy lấy ra là từ đâu?","Звідки беруться гроші, які забирає касовий наглядач?","ሓላዪ ካሳ ዝወስዶ ገንዘብ ካበይ እዩ?"],"v9_1.h1":["ماذا يحدث لإجمالي مبيعات اليوم إذا نسينا المبلغ المسحوب؟","Tổng doanh thu trong ngày sẽ ra sao nếu quên tiền rút bớt?","Що станеться із загальним денним оборотом, якщо забути про вилучення?","Abschöpfung እንተተረሲዑ ንTagesumsatz እንታይ ይኸውን?"],"v9_1.s":["المبلغ المسحوب هو مال دفعه الزبائن وأُخذ من الصندوق للأمان فقط. فهو مال مقبوض ويدخل في إيراد النقد اليومي وإجمالي مبيعات اليوم. ولو لم نجمعه لكانت المبيعات أقل من الحقيقة.","Tiền rút bớt là tiền khách đã trả và chỉ được lấy ra khỏi quầy để an toàn. Vì vậy đó là tiền đã thu được và thuộc về Tageslosung và Tagesumsatz. Nếu không cộng vào thì doanh thu sẽ quá thấp.","Вилучення — це гроші, які заплатили покупці й які лише з міркувань безпеки забрали з каси. Отже, це отримані гроші, і вони належать до Tageslosung та Tagesumsatz. Якщо їх не додати, оборот буде занадто низьким.","Abschöpfung ዓማይል ዝኸፈሉ ገንዘብ እዩ፣ ንውሕስነት ጥራይ ካብ ካሳ ተወሲዱ። ስለዚ ዝተረኽበ ገንዘብ እዩ ከምኡ’ውን ናይ Tageslosung ከምኡ’ውን ናይ Tagesumsatz እዩ። እንተዘይተወሲኹ ሽያጥ ዝተሓተ ይኸውን።"],"v9_2.q":["9.2 لماذا تُطرح فكّة الصرف في تقرير الصندوق؟ ماذا يحدث لو لم نطرحها؟ علّل.","9.2 Vì sao tiền lẻ bị trừ đi trong báo cáo quầy? Điều gì xảy ra nếu không trừ? Hãy giải thích.","9.2 Чому розмінні гроші віднімають у касовому звіті? Що станеться, якщо їх не віднімати? Обґрунтуй.","9.2 ስለምንታይ Wechselgeld ኣብ ጸብጻብ ካሳ ይቕነስ? እንተዘይተቐንሰ እንታይ ይኸውን? ምኽንያት ሃብ።"],"v9_2.h0":["متى دخلت فكّة الصرف إلى الصندوق – ومن وضعها؟","Tiền lẻ vào quầy khi nào – và do ai bỏ vào?","Коли розмінні гроші потрапили в касу – і від кого?","Wechselgeld መዓስ ኣብ ካሳ ኣተወ – ብመን?"],"v9_2.h1":["كيف سيكون إجمالي مبيعات اليوم مقارنةً بما بِيع فعلًا؟","Khi đó tổng doanh thu so với những gì thực sự đã bán sẽ thế nào?","Яким тоді буде загальний денний оборот порівняно з тим, що справді продали?","ሽዑ Tagesumsatz ምስ ብሓቂ ዝተሸጠ ዝወዳደር እንታይ ይኸውን?"],"v9_2.s":["كانت فكّة الصرف في الصندوق منذ الصباح ولم يدفعها الزبائن. فهي ليست مبيعات. لو لم نطرحها لكان إجمالي مبيعات اليوم أكبر من الحقيقة، لأننا نحسب مالًا لم يُبَع.","Tiền lẻ đã có trong quầy từ buổi sáng và không phải do khách trả. Nó không phải doanh thu. Nếu không trừ đi, Tagesumsatz sẽ quá cao, vì đã tính cả tiền không hề bán hàng mà có.","Розмінні гроші були в касі вже зранку й не були сплачені покупцями. Це не виручка. Якщо їх не віднімати, Tagesumsatz буде занадто високим, бо враховано гроші, за які нічого не продавали.","Wechselgeld ካብ ንጽባሒቶ ኣብ ካሳ ነይሩ ከምኡ’ውን ዓማይል ኣይከፈልዎን። ሽያጥ ኣይኮነን። እንተዘይተቐንሰ Tagesumsatz ልዕሊ ዝግባእ ይኸውን፣ ምኽንያቱ ዘይተሸጠ ገንዘብ ይቝጸር።"],"v9_3.q":["9.3 لماذا تدخل المدفوعات بالبطاقة في إجمالي مبيعات اليوم لكن ليس في إيراد النقد اليومي؟ علّل.","9.3 Vì sao thanh toán bằng thẻ tính vào Tagesumsatz nhưng không tính vào Tageslosung? Hãy giải thích.","9.3 Чому оплата карткою входить у Tagesumsatz, але не входить у Tageslosung? Обґрунтуй.","9.3 ስለምንታይ ብካርዲ ዝተኸፍለ ኣብ Tagesumsatz ይቍጸር ግን ኣብ Tageslosung ኣይቍጸርን? ምኽንያት ሃብ።"],"v9_3.h0":["اقرأ المصطلحين في الجدول مرة أخرى: ماذا يدخل في كل منهما؟","Đọc lại hai khái niệm trong bảng: mỗi khái niệm gồm những gì?","Ще раз прочитай обидва поняття в таблиці: що до кожного входить?","ክልቲኡ ቃላት ኣብ ሰንጠረዥ ደጊምካ ኣንብብ: ነፍስወከፍ እንታይ የጠቓልል?"],"v9_3.h1":["هل مال الدفع بالبطاقة موجود في الصندوق؟","Tiền thanh toán bằng thẻ có nằm trong quầy không?","Чи лежать гроші від оплати карткою в касі?","ገንዘብ ናይ ካርዲ ክፍሊት ኣብ ካሳ ይርከብ ዶ?"],"v9_3.s":["إيراد النقد اليومي هو المقبوضات النقدية فقط. المدفوعات بالبطاقة ليست نقدًا، والمال ليس في الصندوق. أما إجمالي مبيعات اليوم فيشمل كل المقبوضات: نقدًا + بالبطاقة. لذلك تُضاف المدفوعات بالبطاقة بعد إيراد النقد اليومي.","Tageslosung chỉ là tiền mặt thu được. Thanh toán bằng thẻ không phải tiền mặt, tiền không nằm trong quầy. Tagesumsatz gồm tất cả tiền thu được: tiền mặt cộng thẻ. Vì vậy thanh toán bằng thẻ chỉ được cộng vào Tageslosung sau cùng để ra Tagesumsatz.","Tageslosung — це лише готівкові надходження. Оплата карткою не є готівкою, гроші не лежать у касі. Tagesumsatz охоплює всі надходження: готівка плюс картка. Тому оплату карткою додають до Tageslosung лише наприкінці.","Tageslosung ጥረ ገንዘብ ኣታዊ ጥራይ እዩ። ክፍሊት ብካርዲ ጥረ ገንዘብ ኣይኮነን፣ ገንዘቡ ኣብ ካሳ የለን። Tagesumsatz ኩሉ ኣታዊ የጠቓልል: ጥረ ገንዘብ ሲዒ ካርዲ። ስለዚ ክፍሊት ብካርዲ ኣብ መወዳእታ ጥራይ ንTageslosung ይወሰኽ።"],"v9_4.q":["9.4 تقول زميلة: «خمسة يورو زيادة في الصندوق – هذا جيد للمتجر.» علّل لماذا تُعدّ الزيادة (Überschuss) مع ذلك مشكلة.","9.4 Một đồng nghiệp nói: „Thừa năm euro trong quầy – như vậy là tốt cho doanh nghiệp.“ Hãy giải thích vì sao thừa tiền vẫn là một vấn đề.","9.4 Колега каже: „П'ять євро зайвих у касі – це ж добре для підприємства.“ Обґрунтуй, чому надлишок усе одно є проблемою.","9.4 ሓንቲ መተሓባባሪት ትብል: „ሓሙሽተ ኤውሮ ዝያዳ ኣብ ካሳ – እዚ ንትካል ሰናይ እዩ።“ ስለምንታይ ትርፊ ግን ጸገም ከም ዝኾነ ምኽንያት ሃብ።"],"v9_4.h0":["فكّر في أسباب الزيادة: من ربما أخذ أقل من حقه؟","Hãy nghĩ đến nguyên nhân gây thừa tiền: ai có thể đã nhận thiếu?","Згадай причини надлишку: хто при цьому, можливо, отримав замало?","ምኽንያታት ትርፊ ሕሰብ: መን ክኸውን ይኽእል ውሑድ ዝረኸበ?"],"v9_4.h1":["ماذا يقول فرق الصندوق عن العمل على الصندوق؟","Chênh lệch quầy nói lên điều gì về công việc ở quầy?","Про що говорить касова різниця щодо роботи на касі?","ፍልልይ ካሳ ብዛዕባ ስራሕ ኣብ ካሳ እንታይ የርኢ?"],"v9_4.s":["الزيادة تدل على أن هناك شيئًا غير صحيح: مثلًا أُعطي الزبون باقيًا أقل من اللازم، أو حدث خطأ في الإدخال. الزبون أخذ أقل من حقه. الصندوق غير مضبوط، ويجب البحث عن الأخطاء وتجنّبها.","Thừa tiền cho thấy có điều gì đó không đúng: ví dụ thối cho khách quá ít hoặc nhập sai. Khi đó khách đã nhận thiếu. Quầy không khớp, và phải tìm ra lỗi để tránh lặp lại.","Надлишок показує, що щось не так: напр., покупцю дали замало решти або була помилка введення. Покупець тоді отримав замало. Каса не сходиться, і помилки треба шукати та уникати.","ትርፊ ገለ ነገር ጌጋ ምዃኑ የርኢ: ንኣብነት ንዓሚል ውሑድ ዝምለስ ተዋሂቡ ወይ ጌጋ ኣብ ምእታው ነይሩ። ዓሚል ሽዑ ውሑድ ረኺቡ። ካሳ ኣይሰማማዕን፣ ጌጋታት ክድለዩን ክንገሉን ኣለዎም።"],"r0.t":["أهم المصطلحات","Các khái niệm quan trọng nhất","Найважливіші поняття","ኣገደስቲ ቃላት"],"r0.task":["ظلّل المصطلحات الأربعة: مال الصباح، مال يُؤخذ من الصندوق، كل المقبوضات النقدية، كل المقبوضات.","Đánh dấu bốn khái niệm: tiền từ buổi sáng, tiền được lấy ra, tất cả tiền mặt thu được, tất cả tiền thu được.","Познач чотири поняття: гроші з ранку, гроші, які забирають, уся готівка, усі надходження.","ኣርባዕተ ቃላት ምልክት ግበር: ገንዘብ ካብ ንጽባሒቶ፣ ዝወጸ ገንዘብ፣ ኩሉ ጥረ ገንዘብ ኣታዊ፣ ኩሉ ኣታዊ።"],"r0.x":["فكّة الصرف (Wechselgeld) (رصيد بداية الصندوق) تكون في الصندوق صباحًا لكي نستطيع إعطاء الباقي. وهي ليست مبيعات. سحب النقود (Abschöpfung) هو مال يُؤخذ من الصندوق أثناء اليوم للأمان. إيراد النقد اليومي (Tageslosung) هو كل المقبوضات النقدية في اليوم. إجمالي مبيعات اليوم (Tagesumsatz) هو كل المقبوضات في اليوم: نقدًا زائد بالبطاقة. فرق الصندوق (Kassendifferenz) وجرد الصندوق (Kassensturz) يأتيان لاحقًا.","Tiền lẻ đầu ngày (Wechselgeld / Kassenanfangsbestand) nằm trong quầy từ buổi sáng để thối cho khách. Nó không phải doanh thu. Tiền rút bớt (Abschöpfung) là tiền được lấy ra khỏi quầy trong ngày để an toàn. Tageslosung là tất cả tiền mặt thu được trong một ngày. Tagesumsatz là tất cả tiền thu được trong một ngày: tiền mặt cộng thẻ. Chênh lệch quầy (Kassendifferenz) và kiểm quỹ đột xuất (Kassensturz) sẽ học sau.","Розмінні гроші (Wechselgeld / Kassenanfangsbestand) лежать у касі зранку, щоб давати решту. Це не виручка. Вилучення (Abschöpfung) — це гроші, які протягом дня забирають з каси для безпеки. Tageslosung — це вся готівка, отримана за день. Tagesumsatz — це всі надходження за день: готівка плюс картка. Касова різниця (Kassendifferenz) і касова ревізія (Kassensturz) будуть пізніше.","Wechselgeld (Kassenanfangsbestand) ንጽባሒቶ ኣብ ካሳ ይህሉ፣ ዝምለስ ንምሃብ። ሽያጥ ኣይኮነን። Abschöpfung ኣብ ዝሓለፈ መዓልቲ ንውሕስነት ካብ ካሳ ዝውጽእ ገንዘብ እዩ። Tageslosung ኣብ ሓንቲ መዓልቲ ኩሉ ጥረ ገንዘብ ኣታዊ እዩ። Tagesumsatz ኣብ ሓንቲ መዓልቲ ኩሉ ኣታዊ እዩ: ጥረ ገንዘብ ሲዒ ካርዲ። Kassendifferenz ከምኡ’ውን Kassensturz ድሒሩ ይመጽእ።"],"r0.q":["هل فكّة الصرف من المبيعات؟","Tiền lẻ có phải là doanh thu không?","Чи є розмінні гроші виручкою?","Wechselgeld ሽያጥ ድዩ?"],"r0.o0":["لا، كانت في الصندوق منذ الصباح.","Không, nó đã có trong quầy từ buổi sáng.","Ні, вони були в касі вже зранку.","ኣይኮነን፣ ካብ ንጽባሒቶ ኣብ ካሳ ነይሩ።"],"r0.o1":["نعم، لأنها في الصندوق.","Có, vì nó nằm trong quầy.","Так, адже вони лежать у касі.","እወ፣ ኣብ ካሳ ኣሎ እኮ።"],"r0.o2":["نعم، لكن فقط عند الدفع بالبطاقة.","Có, nhưng chỉ khi trả bằng thẻ.","Так, але лише при оплаті карткою.","እወ፣ ግን ብካርዲ ክኸፈል ከሎ ጥራይ።"],"r1.t":["تقرير الصندوق","Báo cáo quầy thu ngân (Kassenbericht)","Касовий звіт (Kassenbericht)","ጸብጻብ ካሳ (Kassenbericht)"],"r1.task":["ظلّل: بماذا تبدأ، وماذا تجمع، وماذا تطرح، وما النتيجة في النهاية.","Đánh dấu: bạn bắt đầu từ đâu, cộng gì, trừ gì và cuối cùng ra gì.","Познач, з чого ти починаєш, що додаєш, що віднімаєш і що виходить наприкінці.","ምልክት ግበር: ካበይ ትጅምር፣ እንታይ ትውስኽ፣ እንታይ ትቅንስ፣ ኣብ መወዳእታ እንታይ ይወጽእ።"],"r1.x":["تبدأ برصيد نهاية الصندوق (Kassenschlussbestand) (بعد العدّ). ثم تجمع إليه المبالغ المسحوبة (Abschöpfungen) والمصاريف المدفوعة نقدًا. أما فكّة الصرف (Wechselgeld) فتطرحها، لأنها كانت في الصندوق منذ الصباح. النتيجة: إيراد النقد اليومي (Tageslosung). وبإضافة المدفوعات بالبطاقة تحصل على إجمالي مبيعات اليوم (Tagesumsatz). لا تحتاج هنا إلى الرصيد المطلوب (Soll-Bestand).","Bạn bắt đầu từ số tiền trong quầy lúc kết thúc (Kassenschlussbestand) (đã đếm). Cộng thêm tiền rút bớt và chi tiêu bằng tiền mặt. Tiền lẻ thì trừ đi, vì nó đã có từ buổi sáng. Kết quả: Tageslosung. Cộng thêm thanh toán bằng thẻ ra Tagesumsatz. Bạn không cần Soll-Bestand cho việc này.","Ти починаєш із залишку в касі в кінці дня (Kassenschlussbestand) (нарахованого). Додаєш вилучення та витрати готівкою. Розмінні гроші віднімаєш, бо вони були в касі вже зранку. Результат: Tageslosung. Плюс оплата карткою — це Tagesumsatz. Soll-Bestand для цього не потрібен.","ካብ Kassenschlussbestand (ዝተቖጸረ) ትጅምር። ድሕሪኡ Abschöpfung ከምኡ’ውን ብጥረ ገንዘብ ዝተኸፍለ ወጻኢ ትውስኽ። Wechselgeld ትቅንስ፣ ምኽንያቱ ካብ ንጽባሒቶ ኣብ ካሳ ነይሩ። ውጽኢት: Tageslosung። ሲዒ ብካርዲ ዝተኸፍለ ድማ Tagesumsatz ይኸውን። Soll-Bestand ንዚ ኣየድልየካን።"],"r1.q":["ماذا يُطرح في تقرير الصندوق؟","Trong báo cáo quầy, cái gì bị trừ đi?","Що віднімають у касовому звіті?","ኣብ ጸብጻብ ካሳ እንታይ ይቕነስ?"],"r1.o0":["فكّة الصرف من الصباح.","Tiền lẻ từ buổi sáng.","Розмінні гроші з ранку.","Wechselgeld ካብ ንጽባሒቶ።"],"r1.o1":["المبلغ المسحوب.","Tiền rút bớt.","Вилучення.","Abschöpfung።"],"r1.o2":["المدفوعات بالبطاقة.","Thanh toán bằng thẻ.","Оплату карткою.","ብካርዲ ዝተኸፍለ።"],"r2.t":["المطلوب والفعلي","Soll và Ist","Soll і Ist","Soll ከምኡ’ውን Ist"],"r2.task":["ظلّل الرصيدين، والفرق، والنتيجتين.","Đánh dấu hai số tiền, phần chênh lệch và hai kết quả.","Познач два залишки, різницю та два результати.","ክልተ መጠናት፣ ፍልልይን ክልተ ውጽኢታትን ምልክት ግበር።"],"r2.x":["الرصيد المطلوب (Soll-Bestand) هو المبلغ الذي يجب أن يكون في الصندوق: فكّة الصرف زائد المقبوضات النقدية حسب الصندوق ناقص المرتجعات نقدًا ناقص المبالغ المسحوبة. الرصيد الفعلي (Ist-Bestand) هو المال الذي تعدّه فعلًا. فرق الصندوق (Kassendifferenz) هو الفعلي ناقص المطلوب. الزائد يسمى زيادة (Überschuss) (مال أكثر من اللازم)، والناقص يسمى عجزًا (Fehlbetrag) (مال أقل من اللازم). إيراد النقد اليومي (Tageslosung) لا نحتاجه هنا.","Soll-Bestand là số tiền lẽ ra phải có trong quầy: tiền lẻ cộng tiền mặt thu theo máy trừ tiền mặt trả lại trừ tiền rút bớt. Ist-Bestand là số tiền bạn thực sự đếm được. Chênh lệch quầy là Ist trừ Soll. Dấu cộng là thừa tiền (Überschuss), dấu trừ là thiếu tiền (Fehlbetrag). Tageslosung không cần cho việc này.","Soll-Bestand — це сума, яка має бути в касі: розмінні гроші плюс готівкові надходження за касою мінус готівкові повернення мінус вилучення. Ist-Bestand — це гроші, які ти справді нараховуєш. Касова різниця — це Ist мінус Soll. Плюс — надлишок (Überschuss, забагато грошей), мінус — нестача (Fehlbetrag, замало грошей). Tageslosung для цього не потрібна.","Soll-Bestand ኣብ ካሳ ክህሉ ዘለዎ መጠን እዩ: Wechselgeld ሲዒ ብመሰረት ካሳ ጥረ ገንዘብ ኣታዊ ኣዋጽዮ ብጥረ ገንዘብ ዝተመለሰ ኣዋጽዮ Abschöpfung። Ist-Bestand ብሓቂ ዝቖጸርካዮ ገንዘብ እዩ። Kassendifferenz Ist ኣዋጽዮ Soll እዩ። ሲዒ ትርፊ (Überschuss: ብዙሕ ገንዘብ)፣ ኣዋጽዮ ጉድለት (Fehlbetrag: ውሑድ ገንዘብ) እዩ። Tageslosung ንዚ ኣየድልን።"],"r2.q":["في الصندوق 4 يورو أقل من الرصيد المطلوب. ماذا يُسمى هذا؟","Trong quầy ít hơn Soll-Bestand 4 €. Đó là gì?","У касі на 4 € менше, ніж Soll-Bestand. Що це?","ኣብ ካሳ ካብ Soll-Bestand 4 € ውሑድ ኣሎ። እዚ እንታይ እዩ?"],"r2.o0":["عجز (Fehlbetrag).","Thiếu tiền (Fehlbetrag).","Нестача (Fehlbetrag).","ጉድለት (Fehlbetrag)።"],"r2.o1":["زيادة (Überschuss).","Thừa tiền (Überschuss).","Надлишок (Überschuss).","ትርፊ (Überschuss)።"],"r2.o2":["إيراد النقد اليومي (Tageslosung).","Tageslosung.","Tageslosung.","Tageslosung።"],"r3.t":["الأسباب وجرد الصندوق","Nguyên nhân và kiểm quỹ đột xuất","Причини та касова ревізія","ምኽንያታትን Kassensturz"],"r3.task":["ظلّل ستة أسباب لفرق الصندوق والمصطلح الخاص بالمراقبة المفاجئة.","Đánh dấu sáu nguyên nhân gây chênh lệch quầy và từ chỉ cuộc kiểm tra bất ngờ.","Познач шість причин касової різниці та слово для несподіваної перевірки.","ሽዱሽተ ምኽንያታት ፍልልይ ካሳ ከምኡ’ውን ቃል ንድንገተኛ ምርመራ ምልክት ግበር።"],"r3.x":["لفرق الصندوق أسباب: باقي (Rückgeld) خاطئ (أكثر أو أقل من اللازم)، أو فكّة الصرف (Wechselgeld) لم تكن صحيحة منذ الصباح، أو التصقت ورقتان نقديتان (Scheine) ببعضهما، أو خطأ في الإدخال (Eingabefehler)، أو نسيان الإلغاء (Storno)، أو سرقة (Diebstahl). جرد الصندوق المفاجئ (Kassensturz) هو مقارنة مفاجئة بين المطلوب والفعلي أثناء اليوم. سحب النقود (Abschöpfung) ليس سببًا، بل إجراء عادي.","Chênh lệch quầy có nguyên nhân: thối tiền sai (thừa hoặc thiếu), tiền lẻ buổi sáng đã không đúng, hai tờ tiền dính vào nhau, nhập sai, quên hủy giao dịch (Storno) hoặc trộm cắp. Kiểm quỹ đột xuất (Kassensturz) là việc so sánh Soll-Ist bất ngờ trong ngày. Tiền rút bớt không phải nguyên nhân, mà là một việc bình thường.","Касова різниця має причини: неправильна решта (забагато або замало), розмінні гроші не збігалися вже зранку, дві банкноти склеїлися, помилка введення, забуте сторно (Storno) або крадіжка. Касова ревізія (Kassensturz) — це несподіване порівняння Soll і Ist протягом дня. Вилучення — не причина, а звичайна дія.","ፍልልይ ካሳ ምኽንያታት ኣለዎ: ጌጋ ዝምለስ ገንዘብ (ብዙሕ ወይ ውሑድ)፣ Wechselgeld ካብ ንጽባሒቶ ጌጋ ነይሩ፣ ክልተ ኣግራብ ተጣቢቐን፣ ጌጋ ኣብ ምእታው፣ ዝተረሰዐ Storno ወይ ስርቂ። Kassensturz ኣብ ዝሓለፈ መዓልቲ ድንገተኛ Soll-Ist ምንጽጻር እዩ። Abschöpfung ምኽንያት ኣይኮነን፣ ተራ ተግባር እዩ።"],"r3.q":["ما هو جرد الصندوق المفاجئ (Kassensturz)؟","Kassensturz là gì?","Що таке Kassensturz?","Kassensturz እንታይ እዩ?"],"r3.o0":["مقارنة مفاجئة بين المطلوب والفعلي أثناء اليوم.","Việc so sánh Soll-Ist bất ngờ trong ngày.","Несподіване порівняння Soll і Ist протягом дня.","ኣብ ዝሓለፈ መዓልቲ ድንገተኛ Soll-Ist ምንጽጻር።"],"r3.o1":["حساب في نهاية الشهر.","Việc quyết toán cuối tháng.","Підсумок наприкінці місяця.","ሒሳብ መወዳእታ ወርሒ።"],"r3.o2":["عدّ فكّة الصرف في الصباح.","Việc đếm tiền lẻ vào buổi sáng.","Підрахунок розмінних грошей зранку.","ንጽባሒቶ Wechselgeld ምቍጻር።"],"cat_vor":["البداية: ماذا تتذكر؟","Khởi động: Bạn còn nhớ gì?","Розминка: Що ти ще пам'ятаєш?","መእተዊ: እንታይ ትዝክር?"],"cat_txt":["فهم النص: نهاية الدوام عند الصندوق","Hiểu bài đọc: Hết ca ở quầy thu ngân","Розуміння тексту: Кінець зміни на касі","ምርዳእ ጽሑፍ: ድሕሪ ስራሕ ኣብ ካሳ"],"cat_trans":["التطبيق: تمرين على حساب الصندوق","Vận dụng: Luyện quyết toán quầy","Перенесення: Тренуємо касовий розрахунок","ምትግባር: ሒሳብ ካሳ ምልምማድ"],"cat_wis":["المعرفة المهنية: اختبار الامتحان","Kiến thức nghề: Kiểm tra kiểu thi","Фахові знання: Іспитова перевірка","ሞያዊ ፍልጠት: ፈተና"],"cat_refl":["إيجاد الأخطاء والتفكير أكثر","Tìm lỗi và suy nghĩ sâu hơn","Знайти помилки й подумати глибше","ጌጋታት ምርካብን ዝያዳ ምሕሳብን"]};
+const GLOSS=[["das Wechselgeld (Kassenanfangsbestand)","فكّة الصرف (Wechselgeld) = رصيد بداية الصندوق","tiền lẻ đầu ngày (Wechselgeld)","розмінні гроші (Wechselgeld)","ናይ ለውጢ ገንዘብ (Wechselgeld)"],["die Abschöpfung","سحب النقود من الصندوق (Abschöpfung)","rút tiền bớt khỏi quầy (Abschöpfung)","вилучення готівки з каси (Abschöpfung)","ካብ ካሳ ገንዘብ ምውጻእ (Abschöpfung)"],["der Kassenschlussbestand","رصيد نهاية الصندوق (Kassenschlussbestand)","số tiền trong quầy lúc kết thúc (Kassenschlussbestand)","залишок у касі в кінці дня (Kassenschlussbestand)","ኣብ መወዳእታ ኣብ ካሳ ዘሎ (Kassenschlussbestand)"],["die Tageslosung","إيراد النقد اليومي (Tageslosung)","doanh thu tiền mặt trong ngày (Tageslosung)","денна виручка готівкою (Tageslosung)","ናይ መዓልቲ ጥረ ገንዘብ ኣታዊ (Tageslosung)"],["der Tagesumsatz","إجمالي مبيعات اليوم (Tagesumsatz)","tổng doanh thu trong ngày (Tagesumsatz)","загальний денний оборот (Tagesumsatz)","ጠቕላላ ናይ መዓልቲ ሽያጥ (Tagesumsatz)"],["der Kassenbericht","تقرير الصندوق (Kassenbericht)","báo cáo quầy thu ngân (Kassenbericht)","касовий звіт (Kassenbericht)","ጸብጻብ ካሳ (Kassenbericht)"],["der Soll-Bestand","الرصيد المطلوب (Soll-Bestand)","số tiền lẽ ra phải có (Soll-Bestand)","розрахунковий залишок (Soll-Bestand)","ክህሉ ዘለዎ መጠን (Soll-Bestand)"],["der Ist-Bestand","الرصيد الفعلي (Ist-Bestand)","số tiền thực tế có (Ist-Bestand)","фактичний залишок (Ist-Bestand)","ብሓቂ ዘሎ መጠን (Ist-Bestand)"],["die Kassendifferenz","فرق الصندوق (Kassendifferenz)","chênh lệch quầy (Kassendifferenz)","касова різниця (Kassendifferenz)","ፍልልይ ካሳ (Kassendifferenz)"],["der Überschuss","زيادة (Überschuss)","thừa tiền (Überschuss)","надлишок (Überschuss)","ትርፊ (Überschuss)"],["der Fehlbetrag","عجز (Fehlbetrag)","thiếu tiền (Fehlbetrag)","нестача (Fehlbetrag)","ጉድለት (Fehlbetrag)"],["der Kassensturz","جرد الصندوق المفاجئ (Kassensturz)","kiểm quỹ đột xuất (Kassensturz)","касова ревізія (Kassensturz)","ድንገተኛ ምፍታሽ ካሳ (Kassensturz)"]];
+const WTX={"Alter":["العمر","tuổi","вік","ዕድመ"],"Jugendschutz":["حماية الشباب (Jugendschutz)","bảo vệ thanh thiếu niên","захист молоді","ሓለዋ መንእሰያት (Jugendschutz)"],"Bier":["البيرة","bia","пиво","ቢራ"],"Schnaps":["مشروب روحي (شنابس)","rượu mạnh","шнапс","ብርቱዕ ኣልኮል (Schnaps)"],"Man darf … ab … Jahren kaufen.":["يُسمح بالشراء من عمر … سنة.","Được phép mua từ … tuổi.","Купувати можна з … років.","ካብ … ዓመት ክትገዝእ ይፍቀድ።"],"Prüfung":["فحص","kiểm tra","іспит","ፈተና (Prüfung)"],"Punkte":["نقاط","điểm","бали","ነጥቢ"],"wörtliche Rede":["كلام مباشر","Lời nói trực tiếp","пряма мова","ቀጥታ ዘረባ (wörtliche Rede)"],"Ansprache":["مخاطبة","cách nói chuyện với khách","звернення до клієнта","ምርኻብ ዓሚል (Ansprache)"],"In der Prüfung gibt es …":["في الامتحان تُعطى …","Trong kỳ thi có …","На іспиті дають …","ኣብ ፈተና … ኣሎ።"],"Ergonomie":["الإرغونوميا (Ergonomie)","công thái học","ергономіка","ምቹእ ኣሰራርባ ስራሕ (Ergonomie)"],"Kasse":["الصندوق","quầy thu ngân","каса","ካሳ"],"Körper":["جسم","cơ thể","тіло","ኣካል"],"Maßnahme":["إجراء","biện pháp","захід","ስጉምቲ"],"Eine Maßnahme ist …":["من الإجراءات …","Một biện pháp là …","Один із заходів — …","ሓደ ስጉምቲ … እዩ።"],"Bargeld":["نقد","tiền mặt","готівка","ጥረ ገንዘብ (Bargeld)"],"Rechenweg":["طريقة الحساب","cách tính","хід розрахунку","መንገዲ ሒሳብ (Rechenweg)"],"morgens":["صباحًا","buổi sáng","зранку","ንጽባሒቶ (morgens)"],"Mia hat … eingenommen.":["قبضت ميا …","Mia đã thu được …","Мія отримала …","ሚያ … ኣእቲያ።"],"Umsatz":["المبيعات","doanh thu","оборот","ሽያጥ (Umsatz)"],"bar":["نقدًا","tiền mặt","готівкою","ጥረ ገንዘብ (bar)"],"Karte":["بطاقة","thẻ","картка","ካርዲ"],"Tag":["يوم","ngày","день","መዓልቲ"],"Der Umsatz des Tages ist …":["مبيعات اليوم هي …","Doanh thu của ngày là …","Оборот за день — …","ሽያጥ እታ መዓልቲ … እዩ።"],"Kassenbericht":["تقرير الصندوق","báo cáo quầy thu ngân","касовий звіт","ጸብጻብ ካሳ (Kassenbericht)"],"Die Tageslosung ist …":["إيراد النقد اليومي هو …","Tageslosung là …","Tageslosung — це …","ናይ መዓልቲ ጥረ ገንዘብ ኣታዊ (Tageslosung) … እዩ።"],"Der Tagesumsatz ist …":["إجمالي مبيعات اليوم هو …","Tagesumsatz là …","Tagesumsatz — це …","ጠቕላላ ናይ መዓልቲ ሽያጥ (Tagesumsatz) … እዩ።"],"Soll-Bestand":["الرصيد المطلوب (Soll-Bestand)","Soll-Bestand (số tiền lẽ ra phải có)","Soll-Bestand (розрахунковий залишок)","ክህሉ ዘለዎ መጠን (Soll-Bestand)"],"Ist-Bestand":["الرصيد الفعلي (Ist-Bestand)","Ist-Bestand (số tiền thực tế)","Ist-Bestand (фактичний залишок)","ብሓቂ ዘሎ መጠን (Ist-Bestand)"],"Differenz":["فرق","chênh lệch","різниця","ፍልልይ (Differenz)"],"Wechselgeld":["فكة","tiền lẻ","розмінні гроші","ናይ ለውጢ ገንዘብ (Wechselgeld)"],"Die Differenz ist … Das ist ein …":["الفرق هو … وهذا …","Chênh lệch là … Đó là …","Різниця — … Це …","እቲ ፍልልይ … እዩ። እዚ … እዩ።"],"Münzen":["عملات معدنية","đồng xu","монети","ሳንቲም"],"Anzahl":["العدد","số lượng","кількість","ብዝሒ"],"Wert":["قيمة","giá trị","вартість","ዋጋ"],"Die Differenz beträgt …":["الفرق يساوي …","Chênh lệch là …","Різниця становить …","እቲ ፍልልይ … እዩ።"],"Fehlbetrag":["عجز","thiếu tiền","нестача","ጉድለት (Fehlbetrag)"],"Kunde":["الزبون","khách hàng","покупець","ዓሚል"],"Fehler":["خطأ","lỗi","помилка","ጌጋ"],"Ein Grund ist …":["أحد الأسباب هو …","Một lý do là …","Одна причина — …","ሓደ ምክንያት … እዩ።"],"Ein weiterer Grund ist …":["وسبب آخر هو …","Một lý do khác là …","Ще одна причина — …","ካልእ ምክንያት … እዩ።"],"Abschöpfung":["سحب النقود من الصندوق (Abschöpfung)","rút tiền bớt","вилучення готівки","ካብ ካሳ ገንዘብ ምውጻእ (Abschöpfung)"],"addieren":["جمع","cộng","додавати","ምምዕባል (addieren)"],"abziehen":["يطرح","trừ","віднімати","ምጉዳል (abziehen)"],"Fehler 1 ist …":["الخطأ 1 هو …","Lỗi 1 là …","Помилка 1 — …","ጌጋ 1 … እዩ።"],"Fehler 2 ist …":["الخطأ 2 هو …","Lỗi 2 là …","Помилка 2 — …","ጌጋ 2 … እዩ።"],"Tageslosung":["إيراد النقد اليومي (Tageslosung)","Tageslosung (doanh thu tiền mặt)","Tageslosung (денна виручка готівкою)","ናይ መዓልቲ ጥረ ገንዘብ ኣታዊ (Tageslosung)"],"Tagesumsatz":["إجمالي مبيعات اليوم (Tagesumsatz)","Tagesumsatz (tổng doanh thu)","Tagesumsatz (загальний денний оборот)","ጠቕላላ ናይ መዓልቲ ሽያጥ (Tagesumsatz)"],"Kartenzahlung":["الدفع بالبطاقة","thanh toán bằng thẻ","оплата карткою","ክፍሊት ብካርዲ (Kartenzahlung)"],"Die richtige Rechnung ist …":["الحساب الصحيح هو …","Phép tính đúng là …","Правильний розрахунок — …","ቅኑዕ ሒሳብ … እዩ።"],"subtrahieren":["طرح","trừ","віднімати","ምጉዳል (subtrahieren)"],"Der Tagesumsatz beträgt …":["إجمالي مبيعات اليوم يساوي …","Tagesumsatz là …","Tagesumsatz становить …","ጠቕላላ ናይ መዓልቲ ሽያጥ … እዩ።"],"Überschuss":["الفائض","phần dư","надлишок","ትርፊ"],"Ein möglicher Grund ist …":["من الأسباب المحتملة …","Một lý do có thể là …","Можлива причина — …","ሓደ ክኸውን ዝኽእል ምክንያት … እዩ።"],"Kassendifferenz":["فرق الصندوق","chênh lệch quầy","касова різниця","ፍልልይ ካሳ (Kassendifferenz)"],"Schein":["ورقة نقدية","tờ tiền","банкнота","ወረቐት ገንዘብ (Schein)"],"Vorgang":["العملية","giao dịch","операція","ተግባር"],"Richtig ist der Vorgang …":["العملية الصحيحة هي …","Giao dịch đúng là …","Правильна операція — …","ቅኑዕ ተግባር … እዩ።"],"Eröffnung":["افتتاح","câu mở đầu","відкриття каси","ምኽፋት ካሳ (Eröffnung)"],"Rückgabe":["مرتجع","trả lại","повернення","ምምላስ (Rückgabe)"],"Entnahme":["مبلغ مأخوذ","rút ra","вилучення з каси","ምውሳድ ገንዘብ (Entnahme)"],"Die Kasse wurde mit … eröffnet.":["فُتح الصندوق بمبلغ …","Quầy được mở với số tiền …","Касу відкрили з сумою …","እታ ካሳ ብ… ተኸፊታ።"],"Haftung":["مسؤولية","trách nhiệm bồi thường","відповідальність","ሓላፍነት ንምኽፋል (Haftung)"],"Mankogeld":["بدل عجز الصندوق","phụ cấp bù thiếu hụt (Mankogeld)","надбавка за ризик нестачі (Mankogeld)","ካሕሳ ጉድለት ካሳ (Mankogeld)"],"Beschäftigte":["موظفون","nhân viên","працівники","ሰራሕተኛታት"],"Betrieb":["الشركة","doanh nghiệp","Підприємство","ትካል"],"Der Betrieb darf …":["يحق لصاحب العمل …","Doanh nghiệp được phép …","Підприємство може …","እቲ ትካል … ይኽእል።"],"Eine Haftung gibt es nur, wenn …":["لا مسؤولية إلا إذا …","Chỉ có trách nhiệm bồi thường khi …","Відповідальність є лише тоді, коли …","ሓላፍነት ምክፋል ዘሎ እንተ … ጥራይ እዩ።"],"Kassensturz":["جرد الصندوق المفاجئ","kiểm quỹ đột xuất (Kassensturz)","касова ревізія (Kassensturz)","ድንገተኛ ምፍታሽ ካሳ (Kassensturz)"],"überraschend":["مفاجئ","bất ngờ","несподівано","ድንገት (überraschend)"],"Unterschlagung":["اختلاس","biển thủ","привласнення","ምስራቕ ገንዘብ (Unterschlagung)"],"Soll-Ist-Vergleich":["مقارنة المطلوب بالفعلي","so sánh Soll-Ist","порівняння Soll і Ist","ምምልካት ክህሉ ዘለዎን ዘሎን (Soll-Ist-Vergleich)"],"Ein Kassensturz ist überraschend, weil …":["جرد الصندوق يكون مفاجئًا لأن …","Kassensturz diễn ra bất ngờ vì …","Kassensturz проводять несподівано, бо …","ድንገተኛ ምፍታሽ ካሳ ድንገት እዩ፣ ምኽንያቱ …"],"Sicherheit":["أمان","an toàn","безпека","ውሕስነት"],"Die Abschöpfung zählt zum Umsatz, weil …":["المبلغ المسحوب يُحتسب من المبيعات لأن …","Tiền rút bớt tính vào doanh thu vì …","Вилучення входить в оборот, бо …","ካብ ካሳ ዝወጸ ገንዘብ ኣብ ሽያጥ ይቑጸር፣ ምኽንያቱ …"],"verkauft":["مُباع","đã bán","продано","ተሸይጡ"],"Das Wechselgeld wird abgezogen, weil …":["تُطرح فكّة الصرف لأن …","Tiền lẻ bị trừ đi vì …","Розмінні гроші віднімають, бо …","ናይ ለውጢ ገንዘብ ይጉደል፣ ምኽንያቱ …"],"Sonst wäre …":["وإلا لكان …","Nếu không thì …","Інакше було б …","እንተዘይኮነ … ምኾነ።"],"Bareinnahmen":["مقبوضات نقدية","tiền mặt thu được","готівкові надходження","ጥረ ገንዘብ ኣታዊ (Bareinnahmen)"],"Die Tageslosung enthält …, weil …":["إيراد النقد اليومي يتضمن …، لأن …","Tageslosung gồm …, vì …","Tageslosung містить …, бо …","ናይ መዓልቲ ጥረ ገንዘብ ኣታዊ … ይሕዝ፣ ምኽንያቱ …"],"Rückgeld":["الباقي","tiền thối","решта","ዝምለስ ገንዘብ (Rückgeld)"],"Ein Überschuss ist ein Problem, weil …":["الزيادة مشكلة لأن …","Thừa tiền là một vấn đề vì …","Надлишок — це проблема, бо …","ትርፊ ጸገም እዩ፣ ምኽንያቱ …"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={ar:0,vi:1,uk:2,ti:3}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 3 · Modul 6 · Kassenabrechnung";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf3m6_v2";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),document.getElementById("a2btn")?["a2"]:[]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+if($("#a2btn"))$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF3_Modul6.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done&&$("#a2btn"))$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>

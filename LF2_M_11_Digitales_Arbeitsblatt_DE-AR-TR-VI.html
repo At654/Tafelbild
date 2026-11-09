@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 2 · Modul 11 · Kundeneinwände</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="ar">🇸🇦 العربية</button>
+    <button class="pill" data-l="tr">🇹🇷 Türkçe</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 2 · Verkaufsgespräche kundenorientiert führen</p>
+  <h1 data-k="h1">Modul 11: Kundeneinwände</h1>
+  <p class="sub" data-k="meta">3 Doppelstunden · 12 Punkte · Lehrbuch S. 133–136 · Arbeitsheft S. 89–98 (Kap. 8)</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann erklären, warum ein Kundeneinwand eine Chance für den Verkauf ist.</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann die vier Arten berechtigter Kundeneinwände nennen und je ein Beispiel geben.</label></li>
+      <li><label data-k="can3"><input type="checkbox"> Ich kann einen echten Einwand von einem Vorwand unterscheiden.</label></li>
+      <li><label data-k="can4"><input type="checkbox"> Ich kann die fünf Methoden der Einwandbehandlung nennen und auf einen Einwand in wörtlicher Rede antworten, ohne dem Kunden zu widersprechen.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a1_h">Aufgabe 1 · Ankommen: Was weißt du noch? <span class="pts" data-k="pts05">0,5 Punkte</span></h2>
+    <p data-k="a1_p">Beantworte die Fragen aus dem Kopf. Nicht nachschlagen – es geht darum, was aus den letzten Modulen hängengeblieben ist.</p>
+    <div data-items="a1"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> Kundeneinwand · berechtigter Einwand · echter Einwand · unechter Einwand (Vorwand) · Preis-Leistungs-Verhältnis · Gesichtsverlust · Ja-Aber-Methode · Vergleichs-Methode · Gegenfrage-Methode · Umkehr-Methode (Bumerang-Methode) · Preiseinwands-Methode · entkräften · Preisnachlass
+      <div id="gloss"></div></div>
+    <p class="noprint" style="font-size:16px" data-k="tip_fast"><b>Tipp für Schnelle:</b> Sammle die drei Einwände, die du in deinem Betrieb am häufigsten hörst – und schreib zu jedem zwei verschiedene Antworten.</p>
+    <div id="reading"></div>
+
+    <div class="merke" data-k="merke_chance"><b>Merke:</b> Kundeneinwände sind ein normaler Bestandteil im Ablauf des Verkaufsgesprächs. Sie zeigen, dass der Kunde an der Ware interessiert ist, ihm aber der Nutzen des Kaufs noch nicht deutlich ist. Ein Kundeneinwand ist eine Chance für den Verkauf.</div>
+    <div class="merke" data-k="merke_ernst"><b>Merke:</b> Der Verkäufer sollte die Kundeneinwände ernst nehmen und versuchen, sie mit neuen Argumenten auszuräumen.</div>
+
+    <h3 style="margin-top:24px" data-k="arten_h">Die vier Arten berechtigter Einwände</h3>
+    <table>
+      <tr><th data-k="th_art">Art</th><th data-k="th_worum">Worum es geht</th><th data-k="th_bsp">Beispiel</th></tr>
+      <tr><td data-k="ar1">Einwände gegen die Qualität der Ware</td><td data-k="ar1w">Material, Herstellung, Verarbeitung, Frische, Aussehen.</td><td data-k="ar1b">„Welche Laufzeit hat ein kabelloser Staubsauger?“ · „Die verwendeten Materialien sind nicht recycelbar.“ · „Die Salate sehen nicht gerade frisch aus.“</td></tr>
+      <tr><td data-k="ar2">Einwände gegen das Preis-Leistungs-Verhältnis</td><td data-k="ar2w">Der Preis erscheint zu hoch für die gebotene Qualität – oder im Vergleich zum Mitbewerber.</td><td data-k="ar2b">„Der Preis des Mantels ist für diese Qualität zu hoch.“ · „Der Preis für diesen Wäschetrockner ist im Onlinehandel viel niedriger.“</td></tr>
+      <tr><td data-k="ar3">Einwände gegen das Geschäft</td><td data-k="ar3w">Umfang der Warenauswahl, fehlende Serviceleistungen, Art des Sortiments.</td><td data-k="ar3b">„Ist das alles, was Sie an Blusen haben?“ · „Früher hatten Sie eine großzügigere Umtauschregelung.“ · „Sie haben zu wenig Auswahl für unsere Altersstufe.“</td></tr>
+      <tr><td data-k="ar4">Einwände gegen das Personal</td><td data-k="ar4w">Fachkompetenz, Beratung, Freundlichkeit.</td><td data-k="ar4b">„Ich habe nicht den Eindruck, dass Sie mich fachkompetent beraten können.“ · „Ich warte hier schon zehn Minuten auf einen Verkäufer, der mich beraten kann.“ · „Sie könnten mir die Ware ruhig etwas freundlicher zeigen.“</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="vorwand_h">Der Einwand als Vorwand</h3>
+    <p data-k="vorwand_p">Manchmal möchte der Kunde den Artikel nicht kaufen und sucht einen Vorwand, um das Geschäft verlassen zu können. Das ist ein unechter Einwand. Eine Argumentation kann sich der Verkäufer hier sparen.</p>
+    <div class="merke">
+      <b data-k="vw_h">Typische Vorwände</b>
+      <div data-k="vw_s" style="margin-top:6px">„Ich will mich noch woanders umschauen.“ · „Das muss ich mir noch einmal in Ruhe überlegen.“ · „Ich komme morgen wieder, heute habe ich keine Zeit mehr.“ · „Da muss ich meinen Mann / meine Frau fragen.“</div>
+      <div data-k="vw_r" style="margin-top:6px"><b>Richtig ist:</b> Verständnis zeigen und dem Kunden den Rückzug ohne Gesichtsverlust erleichtern. Eine nette Verabschiedung erhöht die Chance, dass der Kunde wiederkommt.</div></div>
+
+    <h3 style="margin-top:24px" data-k="meth_h">Die fünf Methoden der Einwandbehandlung</h3>
+    <table>
+      <tr><th data-k="th_meth">Methode</th><th data-k="th_wie">So funktioniert sie</th><th data-k="th_bsp">Beispiel</th></tr>
+      <tr><td data-k="m1">Ja-Aber-Methode</td><td data-k="m1w">Dem Kunden wird zunächst zugestimmt und damit gezeigt, dass der Einwand ernst genommen wird. Danach wird ihm mit einem Gegenargument widersprochen.</td><td data-k="m1b">K: „Die Jacke gibt es online zu einem viel günstigeren Preis!“ V: „Natürlich bekommen Sie diese Jacke online zu einem anderen Preis. Sie sollten jedoch nicht übersehen, dass Sie sich hier bei uns vor Ort die Jacke direkt anschauen und anprobieren können. Außerdem erhalten Sie von mir noch wichtige Zusatzinformationen.“</td></tr>
+      <tr><td data-k="m2">Vergleichs-Methode</td><td data-k="m2w">Der Verkäufer vergleicht die Ware mit einer alternativen Ware, um die Vorteile herauszustellen und den Einwand abzuschwächen.</td><td data-k="m2b">K: „Mir genügt eine einfache Sportsocke!“ V: „Wenn Sie die Skisocken mit den normalen Sportsocken vergleichen, dann sehen Sie, dass diese speziell auf die Bedürfnisse in Skistiefeln abgestimmt sind. Der Schaft ist höher und die Polsterungen befinden sich an den richtigen Stellen.“</td></tr>
+      <tr><td data-k="m3">Gegenfrage-Methode</td><td data-k="m3w">Der Verkäufer antwortet mit einer Gegenfrage, um herauszufinden, welche Bedenken der Kunde konkret hat. Sinnvoll bei ungenauen Einwänden.</td><td data-k="m3b">K: „Das Fahrrad ist wohl nicht das Richtige für meinen Sohn.“ V: „Welche Bedenken haben Sie? Worin liegen Ihre Zweifel?“</td></tr>
+      <tr><td data-k="m4">Umkehr-Methode (Bumerang-Methode)</td><td data-k="m4w">Der Kunde führt einen Nachteil an. Der Verkäufer macht deutlich, dass der scheinbare Nachteil aus anderer Sicht ein Vorteil ist.</td><td data-k="m4b">K: „Das Handy ist viel zu klein!“ V: „Gerade das ist das Besondere an diesem Handy. Es braucht keinen unnötigen Platz. Sie können es sogar in der Hemdtasche tragen.“</td></tr>
+      <tr><td data-k="m5">Preiseinwands-Methode</td><td data-k="m5w">Als letztes Mittel fragt der Verkäufer den Kunden direkt, unter welchen Bedingungen er zum Kauf bereit wäre.</td><td data-k="m5b">„Unterbreiten Sie mir einen Vorschlag, unter welchen Bedingungen Sie diesen Artikel kaufen würden.“ · „Was muss ich tun, damit …?“</td></tr>
+    </table>
+
+    <div class="merke" style="background:var(--pri2);border-color:var(--pri)"><b data-k="sbk_h">Satzbaukasten – Einwände behandeln</b>
+      <div data-k="sbk_ja" style="margin-top:6px"><b>Ja-Aber:</b> „Sie haben recht, allerdings …“ · „Genau. Dies gilt jedoch nur …“ · „Bedenken Sie bitte, …“ · „Dafür erhalten Sie jedoch …“ · „Darf ich Sie aber darauf hinweisen, …“</div>
+      <div data-k="sbk_um" style="margin-top:6px"><b>Umkehr:</b> „Genau aus diesem Grund …“ · „Gerade deshalb …“ · „Dafür haben Sie …“ · „Deswegen ist …“</div>
+      <div data-k="sbk_ge" style="margin-top:6px"><b>Gegenfrage:</b> „Welche Bedenken haben Sie?“ · „Worin liegen Ihre Zweifel?“ · „Was müsste denn anders sein?“</div></div>
+
+    <h3 style="margin-top:24px" data-k="nachlass_h">Wenn der Kunde einen Preisnachlass möchte</h3>
+    <p data-k="nachlass_p1">Ist der Verkäufer befugt, Preisnachlässe zu gewähren, hält er diese Reihenfolge ein: erst eine kleine Zugabe, dann eine kleine Serviceleistung und erst dann einen Preisnachlass.</p>
+    <p data-k="nachlass_p2">Behauptet der Kunde, er habe die gleiche Ware woanders billiger gesehen, darf der Verkäufer keinesfalls erwidern, das sei unmöglich. Er erbittet zuerst nähere Angaben über das billigere Konkurrenzangebot und geht erst danach auf die denkbaren Ursachen ein: unterschiedliche Größen, gestaffelte Preise, Qualitätsunterschiede, die man am Äußeren nicht sofort erkennt.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 2 · Vorgemacht: welche Methode?</h2>
+    <p data-k="a2_p">So gehst du bei jedem Einwand vor. Lies die Beispiele genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk1"><b>K: „Der Rucksack hat aber viel zu wenig Fächer.“</b><br>1. Ist der Einwand echt? Ja, er bezieht sich auf die Ware. 2. Ist der genannte Nachteil vielleicht ein Vorteil? Ja – wenige Fächer heißt geringes Gewicht und schnelles Packen. 3. Ergebnis: Umkehr-Methode. „Gerade deshalb wiegt er nur 700 Gramm – Sie finden alles sofort, ohne sechs Reißverschlüsse zu öffnen.“</div>
+    <div class="worked" data-k="wk2"><b>K: „Das gefällt mir nicht.“</b><br>1. Ist der Einwand konkret? Nein, er ist völlig unbestimmt. 2. Was fehlt mir? Die Information, was genau stört. 3. Ergebnis: Gegenfrage-Methode. „Was müsste denn anders sein – die Farbe, die Form oder das Material?“</div>
+    <div class="worked" data-k="wk3"><b>K: „Ich muss noch einmal darüber schlafen.“</b><br>1. Ist das ein echter Einwand? Eher ein Vorwand – es wird nichts an der Ware kritisiert. 2. Was hilft jetzt? Keine weitere Argumentation. 3. Ergebnis: Verständnis zeigen, freundlich verabschieden, die Tür offen lassen: „Das verstehe ich gut. Ich lege Ihnen die Modellnummer auf einen Zettel – dann finden Sie das Gerät sofort wieder.“</div>
+    <div class="merke" data-k="a2_res"><b>Ergebnis:</b> Die erste Frage lautet immer: Ist das ein echter Einwand oder ein Vorwand? Erst danach lohnt es sich, über die Methode nachzudenken.</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe die Beispiele gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a3_h">Aufgabe 3 · Geführte Übung <span class="pts" data-k="pts2">2 Punkte</span></h2>
+    <p data-k="a3_p">Nenne die Methode und formuliere die Antwort der Verkäuferin in wörtlicher Rede.</p>
+    <div data-items="a3"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a4_h">Aufgabe 4 · Freie Übung <span class="pts" data-k="pts3">3 Punkte</span></h2>
+    <div data-items="a4"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a5_h">Aufgabe 5 · Aus deinem Betrieb <span class="pts" data-k="pts15">1,5 Punkte</span></h2>
+    <div data-items="a5"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a6_h">Aufgabe 6 · Für Profis</h2>
+    <p data-k="a6_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="a6"></div>
+  </div>
+
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="a8_h">Aufgabe 8 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="a8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="a8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 7 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={vor:"Vorwissen aus den letzten Modulen",txt:"Textverständnis",trans:"Transfer: Einwände behandeln",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{id:"a1_1",g:"a1",cat:"vor",q:"1. Nenne zwei Arten der Preisnennung.",kw:[["verkleiner"],["vergleich"],["zerleg"],["verharmlos"],["sandwich"]],min:2,rows:3,
+ h:["Denk an Modul 10: Wie kann man einen Preis geschickt nennen?","Die Namen der Arten enden alle auf „-methode“."],
+ sol:"Zum Beispiel Verkleinerungsmethode und Vergleichsmethode; außerdem Zerlegungs- und Verharmlosungsmethode."},
+{id:"a1_2",g:"a1",cat:"vor",q:"2. Was ist die Sandwich-Methode?",kw:[["zwischen","eingebettet","eingepackt","umgeben"],["nutzen","vorteil","argument"]],min:2,rows:3,
+ h:["Denk an ein Sandwich: Was liegt innen, was liegt außen?","Der Preis ist die Füllung. Was kommt davor und danach?"],
+ sol:"Der Preis wird zwischen zwei Nutzenaussagen genannt, damit er weniger hoch erscheint."},
+{id:"a1_3",g:"a1",cat:"vor",q:"3. Was löst ein „nackter“ Preis beim Kunden aus?",kw:[["schock","erschreck","abschreck","zu teuer","teuer","hoch","negativ"]],min:1,rows:3,
+ h:["Der Kunde hört nur eine Zahl – ohne zu wissen, was er dafür bekommt.","Stell dir vor, du hörst nur „389 Euro“ ohne Erklärung. Wie fühlst du dich?"],
+ sol:"Einen Preisschock – der Kunde hört nur die Zahl, ohne den Nutzen dazu."},
+{id:"a1_4",g:"a1",cat:"vor",q:"4. Nenne die drei Schritte einer Verkaufsargumentation.",kw:[["merkmal"],["vorteil"],["nutzen"]],min:3,rows:3,
+ h:["Die Schritte gehen von der Ware zum Kunden.","Der erste Schritt beschreibt, wie die Ware ist. Der letzte, was der Kunde davon hat."],
+ sol:"Warenmerkmal benennen, Warenvorteil aufzeigen, Kundennutzen darlegen."},
+{id:"a1_5",g:"a1",cat:"vor",q:"5. Wovon hängt es ab, ob ein Preis als hoch empfunden wird?",kw:[["nutzenerwartung","nutzen","erwartung","beimisst","persoenlich","wert"]],min:1,rows:3,
+ h:["Es kommt nicht nur auf die Zahl an, sondern auf den Kunden.","Eine Ware ist so viel wert, wie der Kunde ihr … – was erwartet er von ihr?"],
+ sol:"Von der persönlichen Nutzenerwartung des Kunden. Eine Ware ist so viel wert, wie der Kunde ihr beimisst."},
+
+{id:"a3_1",g:"a3",cat:"trans",q:"1. K: „Diese Kaffeemaschine ist mir zu kompliziert.“",kw:[["gegenfrage","gegen frage"],["was genau","welche","worin","was muesste","was stoert","was erscheint","re:\\?"]],min:2,rows:4,
+ h:["Der Einwand ist zu unbestimmt, um ihn zu entkräften.","Schau in die Tabelle der fünf Methoden: Welche ist für ungenaue Einwände gedacht?"],
+ sol:"Gegenfrage-Methode: „Was genau erscheint Ihnen kompliziert – die Bedienung oder die Reinigung?“ Danach kann gezielt argumentiert werden."},
+{id:"a3_2",g:"a3",cat:"trans",q:"2. K: „Der Mantel ist mir zu schwer.“",kw:[["umkehr","bumerang","boomerang"],["gerade","genau","deshalb","deswegen","vorteil","dafuer","form","schuetzt","warm","stabil","wind"]],min:2,rows:4,
+ h:["Der Nachteil lässt sich als Vorteil zeigen.","Wofür ist ein schwerer Mantel gut? Beginne mit „Gerade deshalb …“ oder „Genau das …“."],
+ sol:"Umkehr-Methode: „Genau das Gewicht gibt dem Mantel seinen Fall – er behält auch nach Jahren seine Form und schützt Sie bei Wind.“"},
+{id:"a3_3",g:"a3",cat:"trans",q:"3. K: „Im Internet kostet das Gerät 40 Euro weniger.“",kw:[["ja-aber","ja aber","jaaber","ja, aber"],["recht","stimme","natuerlich","allerdings","jedoch","dafuer","vor ort","service","umtausch","defekt","anschliess","schliessen"]],min:2,rows:4,
+ h:["Zustimmen, dann den eigenen Nutzen dagegensetzen.","Schau in den Satzbaukasten: Wie fangen die Sätze an? „Sie haben recht, allerdings …“"],
+ sol:"Ja-Aber-Methode: „Sie haben recht, online ist der Preis niedriger. Dafür schließen wir Ihnen das Gerät hier an, nehmen die Verpackung mit und tauschen es bei einem Defekt sofort um.“"},
+{id:"a3_4",g:"a3",cat:"trans",q:"4. K: „Ein einfacher Wanderschuh reicht mir völlig.“",kw:[["vergleich"],["nebeneinander","wenn sie","unterschied","sohle","knoechel","stuetz","spezial","vergleichen","im gegensatz","waehrend","haelt","besser","geroell"]],min:2,rows:4,
+ h:["Zwei Waren nebeneinander legen.","Welche Methode vergleicht die Ware mit einer anderen? Was kann der teurere Schuh besser?"],
+ sol:"Vergleichs-Methode: „Wenn Sie beide Schuhe nebeneinander sehen: Dieser hat eine durchgehende Sohle und stützt den Knöchel. Auf Geröll merken Sie den Unterschied sofort.“"},
+{id:"a3_5",g:"a3",cat:"trans",q:"5. K: „Für den Preis kaufe ich das nicht.“ – Alle Argumente sind schon genannt.",kw:[["preiseinwand"],["bedingung","vorschlag","unter welchen","was muss ich tun","damit","wuerden sie","mitnehmen","kaufen"]],min:2,rows:4,
+ h:["Letztes Mittel, wenn sonst nichts mehr hilft.","Du fragst den Kunden direkt, was sich ändern müsste, damit er kauft."],
+ sol:"Preiseinwands-Methode: „Unterbreiten Sie mir einen Vorschlag – unter welchen Bedingungen würden Sie den Artikel mitnehmen?“"},
+
+{id:"a4_1",g:"a4",cat:"wis",q:"1. Warum ist ein Kundeneinwand eine Chance für den Verkauf?",kw:[["interesse","interessiert"],["ansetzen","an welcher stelle","stelle","wo er","hinweis","zeigt dem verkaeufer","verkaeufer weiss"],["ueberzeug","gelegenheit","richtigkeit","kaufwunsch","kauf","nutzen"]],min:2,rows:5,
+ h:["Was sagt der Einwand über das Interesse des Kunden?","Der Einwand zeigt dem Verkäufer außerdem, wo er mit seiner Argumentation weitermachen muss."],
+ sol:"Er zeigt, dass der Kunde an der Ware interessiert ist. Er sagt dem Verkäufer außerdem, an welcher Stelle er mit seiner Argumentation ansetzen muss, und gibt ihm die Gelegenheit, den Kunden von der Richtigkeit seines Kaufwunsches zu überzeugen."},
+{id:"a4_2",g:"a4",cat:"wis",q:"2. Nenne die vier Arten berechtigter Kundeneinwände mit je einem Beispiel.",kw:[["qualitaet","material","verarbeitung","frisch"],["preis-leistung","preis leistung","preis"],["geschaeft","auswahl","sortiment","umtausch","service"],["personal","beratung","freundlich","kompetent","warte"]],min:3,rows:7,
+ h:["Schau in die Tabelle „Die vier Arten berechtigter Einwände“.","Die Arten richten sich gegen: die Ware – den Preis – das Geschäft – das Personal."],
+ sol:"Einwände gegen die Qualität der Ware („Die Salate sehen nicht frisch aus.“) · gegen das Preis-Leistungs-Verhältnis („Der Preis ist für diese Qualität zu hoch.“) · gegen das Geschäft („Ist das alles, was Sie an Blusen haben?“) · gegen das Personal („Ich warte schon zehn Minuten auf eine Beratung.“)"},
+{id:"a4_3",g:"a4",cat:"wis",q:"3. Woran erkennst du einen Vorwand? Nenne zwei Beispielsätze.",kw:[["vorwand","unecht","nicht echt","vorgeschoben","schiebt","vorschieben","aeusser"],["woanders","umschauen","ueberlegen","morgen","keine zeit","mann","frau","wiederkomm","schlafen"],["kritisiert nichts","nichts an der ware","keine kritik","nicht an der ware","verlassen","ohne gesichtsverlust"]],min:2,rows:5,
+ h:["Kritisiert der Kunde etwas an der Ware?","Schau in den Kasten „Typische Vorwände“."],
+ sol:"Der Kunde kritisiert nichts an der Ware, sondern schiebt einen äußeren Grund vor, um das Geschäft ohne Gesichtsverlust verlassen zu können. Zum Beispiel: „Ich komme morgen wieder.“ · „Da muss ich erst meinen Mann fragen.“"},
+{id:"a4_4",g:"a4",cat:"wis",q:"4. Wie verhältst du dich bei einem Vorwand? Begründe.",kw:[["verstaendnis"],["nicht weiter","keine weitere","nicht mehr","kein argument","keine argument","nicht argument","sparen","nicht ueberreden","nicht draengen","aufhoeren"],["verabschied","freundlich","nett","wiederkomm","gesichtsverlust","rueckzug","tuer"]],min:2,rows:5,
+ h:["Hilft es, jetzt weiter zu argumentieren?","Was soll der Kunde fühlen, wenn er geht – und was soll er später tun?"],
+ sol:"Verständnis zeigen, nicht weiter argumentieren und freundlich verabschieden. So erleichtert man dem Kunden den Rückzug ohne Gesichtsverlust – und eine nette Verabschiedung erhöht die Chance, dass er wiederkommt."},
+{id:"a4_5",g:"a4",cat:"wis",q:"5. Erkläre die Ja-Aber-Methode und formuliere ein Beispiel aus deiner Branche.",kw:[["zustimm","recht","stimmt","einverstanden","bestaetig","ernst"],["gegenargument","aber","jedoch","allerdings","widerspr","dafuer","danach"],["sie haben recht","allerdings","jedoch","dafuer","natuerlich","genau"]],min:2,rows:6,
+ h:["Was macht der Verkäufer zuerst – und was danach?","Schau in den Satzbaukasten: „Sie haben recht, allerdings …“"],
+ sol:"Dem Einwand wird zunächst zugestimmt, damit der Kunde sich ernst genommen fühlt. Danach folgt das Gegenargument. Beispiel: „Sie haben recht, das Modell ist schwerer. Dafür hat es einen Metallrahmen – damit hält es auch dann, wenn Sie es täglich transportieren.“"},
+{id:"a4_6",g:"a4",cat:"wis",q:"6. In welcher Reihenfolge reagiert ein Verkäufer, der Preisnachlässe gewähren darf?",kw:[["zugabe"],["service"],["preisnachlass","nachlass","rabatt"]],min:3,rows:3,
+ h:["Der Preisnachlass kommt nicht zuerst.","Schau in den Abschnitt „Wenn der Kunde einen Preisnachlass möchte“."],
+ sol:"Erst eine kleine Zugabe, dann eine kleine Serviceleistung und erst dann einen Preisnachlass."},
+
+{id:"a5_1",g:"a5",cat:"refl",mode:"self",q:"Nenne zwei Einwände, die du in deinem Betrieb häufig hörst. Ordne jeden einer der vier Arten zu und antworte in wörtlicher Rede – jeweils mit einer anderen Methode.",rows:8,
+ h:["Schreibe den Einwand genau so auf, wie der Kunde ihn sagt – mit Anführungszeichen.","Zu welcher Art gehört er: Ware, Preis-Leistungs-Verhältnis, Geschäft oder Personal? Nimm für jeden Einwand eine andere Methode."],
+ sol:"Individuelle Lösung. Prüfe selbst: (1) Ist jeder Einwand richtig einer der vier Arten zugeordnet? (2) Hast du die Methode benannt – und für den zweiten Einwand eine andere? (3) Steht deine Antwort in wörtlicher Rede? (4) Widerspricht deine Antwort dem Kunden nicht offen?"},
+
+{id:"a6_1",g:"a6",cat:"refl",mode:"self",q:"6.1 Manche Einwände lassen sich gar nicht entkräften. Nennen Sie drei solche Fälle und erklären Sie, warum jedes weitere Argument hier schadet.",rows:8,
+ h:["Denken Sie an Wünsche, die das Geschäft nicht erfüllen kann, an die Ware selbst und an den Vorwand.","Wie fühlt sich ein Kunde, wenn der Verkäufer trotzdem weiter argumentiert?"],
+ sol:"Musterlösung (Vorschlag): Erstens: Der Kunde hat bestimmte Vorstellungen hinsichtlich Material, Farbe oder Design, die das Geschäft nicht erfüllen kann. Zweitens: Die Ware stört den Kunden in seinem Wohlbefinden – die Bluse ist zu eng, der Wanderschuh drückt. Drittens: Der Kunde gibt ein Kaufinteresse vor, möchte sich aber nur informieren. In allen drei Fällen ist die Sache sachlich entschieden. Jedes weitere Argument wirkt jetzt wie Druck: Der Kunde muss sich rechtfertigen, fühlt sich bedrängt und verlässt das Geschäft mit einem schlechten Gefühl – und kommt nicht wieder. Richtig ist, Verständnis zu zeigen und freundlich zu verabschieden."},
+{id:"a6_2",g:"a6",cat:"refl",mode:"self",q:"6.2 Die Ja-Aber-Methode ist die bekannteste – und auch die gefährlichste. Erklären Sie, warum das Wort „aber“ ausgesprochen werden sollte, und was passiert, wenn der Verkäufer den Ja-Teil nur so tut.",rows:8,
+ h:["Was soll der Kunde beim „Ja“ merken? Was bleibt stehen, wenn das Gegenargument fehlt?","Wie klingt ein „Ja, aber …“, das in einem Atemzug gesagt wird?"],
+ sol:"Musterlösung (Vorschlag): Das „Ja“ ist nur dann wirksam, wenn es echt ist: Der Kunde muss merken, dass sein Einwand wirklich angekommen ist. Wer den Zustimmungsteil nur formelhaft abspult („Ja, aber …“ in einem Atemzug), erreicht das Gegenteil – der Kunde hört heraus, dass ihm widersprochen wird, und verteidigt seinen Einwand jetzt erst recht. Der Widerspruch gehört trotzdem dazu, sonst bleibt der Einwand stehen. Praktisch heißt das: erst den Einwand mit eigenen Worten bestätigen, eine kurze Pause, dann das Gegenargument – und viele Verkäufer ersetzen das harte „aber“ durch „allerdings“, „jedoch“ oder „gleichzeitig“, weil es weniger nach Widerspruch klingt."},
+{id:"a6_3",g:"a6",cat:"refl",mode:"self",q:"6.3 Ein Kunde sagt: „Ihr Kollege hat mich neulich sehr unfreundlich behandelt.“ Entwickeln Sie eine Antwort, ohne den Kollegen schlechtzumachen und ohne den Kunden abzuwiegeln.",rows:8,
+ h:["Zu welcher der vier Arten gehört dieser Einwand?","Der Kunde soll sich ernst genommen fühlen – und das Gespräch soll zur Ware zurückkehren."],
+ sol:"Musterlösung (Vorschlag): Dieser Einwand richtet sich gegen das Personal und ist damit berechtigt. Ein möglicher Weg: „Das tut mir leid, so soll sich hier niemand behandelt fühlen. Danke, dass Sie es mir sagen – ich gebe es an unsere Abteilungsleitung weiter. Und jetzt nehme ich mir für Sie die Zeit: Wofür suchen Sie die Jacke?“ Darin passiert dreierlei: Der Kunde wird ernst genommen, der Kollege wird nicht vor dem Kunden verurteilt (das wäre unloyal und würde den Kunden am Betrieb zweifeln lassen), und das Gespräch kehrt zur Ware zurück. Sätze wie „Das kann ich mir nicht vorstellen“ oder „Der hat eben einen schlechten Tag gehabt“ wären beide falsch – der erste nennt den Kunden einen Lügner, der zweite bestätigt den Vorwurf, ohne ihn zu lösen."}
+];
+
+/* Lesetext: [[Richtig]] = gesuchter Begriff, {{Falsch}} = Ablenker */
+const READ=[
+{t:"Der Einwand ist eine Chance",task:"Markiere, was ein Einwand zeigt und was er für den Verkauf ist.",
+ x:"Kundeneinwände sind ein [[normaler Bestandteil]] des Verkaufsgesprächs. Sie zeigen, dass der Kunde an der Ware [[interessiert]] ist, ihm aber der [[Nutzen des Kaufs]] noch nicht deutlich ist. Darum ist ein Einwand eine [[Chance für den Verkauf]]. Der Verkäufer nimmt ihn ernst und versucht, ihn mit [[neuen Argumenten]] auszuräumen. Ein Einwand ist {{ein Zeichen, dass der Kunde schon gehen will}} – das stimmt nicht.",
+ q:"Warum ist ein Kundeneinwand eine Chance?",o:["Weil der Kunde damit zeigt, dass er an der Ware interessiert ist.","Weil das Gespräch damit automatisch zu Ende ist.","Weil der Verkäufer den Preis sofort senken darf."],c:0},
+{t:"Die vier Arten berechtigter Einwände",task:"Markiere die vier Arten.",
+ x:"Berechtigte Einwände richten sich gegen die [[Qualität der Ware]], gegen das [[Preis-Leistungs-Verhältnis]], gegen das [[Geschäft]] oder gegen das [[Personal]]. Zum Geschäft gehören Warenauswahl, Serviceleistungen und Sortiment. Zum Personal gehören Fachkompetenz, Beratung und Freundlichkeit. Einwände gegen das {{Wetter}} gehören nicht dazu.",
+ q:"Der Kunde sagt: „Ich warte hier schon zehn Minuten auf einen Verkäufer.“ Gegen welche Art richtet sich das?",o:["Gegen die Qualität der Ware.","Gegen das Personal.","Gegen das Preis-Leistungs-Verhältnis."],c:1},
+{t:"Der Einwand als Vorwand",task:"Markiere, was ein Vorwand ist und was der Verkäufer tut.",
+ x:"Manchmal möchte der Kunde den Artikel gar nicht kaufen. Er sucht einen [[Vorwand]], um das Geschäft zu verlassen. Das ist ein [[unechter Einwand]]. Eine [[Argumentation]] kann sich der Verkäufer hier sparen. Richtig ist: [[Verständnis zeigen]] und dem Kunden den Rückzug ohne [[Gesichtsverlust]] erleichtern. Eine nette [[Verabschiedung]] erhöht die Chance, dass der Kunde wiederkommt. {{Weiter auf den Kunden einreden}} ist falsch.",
+ q:"Welcher Satz ist ein typischer Vorwand?",o:["„Der Mantel ist mir zu schwer.“","„Ich komme morgen wieder, heute habe ich keine Zeit mehr.“","„Der Preis ist für diese Qualität zu hoch.“"],c:1},
+{t:"Die fünf Methoden",task:"Markiere die fünf Methoden der Einwandbehandlung.",
+ x:"Es gibt fünf Methoden. Bei der [[Ja-Aber-Methode]] wird dem Kunden zuerst zugestimmt, danach folgt ein Gegenargument. Bei der [[Vergleichs-Methode]] wird die Ware mit einer anderen Ware verglichen. Die [[Gegenfrage-Methode]] hilft bei ungenauen Einwänden. Bei der [[Umkehr-Methode]] (auch Bumerang-Methode) zeigt der Verkäufer, dass ein Nachteil aus anderer Sicht ein Vorteil ist. Die [[Preiseinwands-Methode]] ist das letzte Mittel. Eine {{Sandwich-Methode}} gehört nicht zu den fünf Methoden der Einwandbehandlung.",
+ q:"Wann ist die Gegenfrage-Methode sinnvoll?",o:["Bei ungenauen Einwänden – der Verkäufer will wissen, welche Bedenken der Kunde konkret hat.","Immer als Erstes beim Preis.","Wenn der Kunde einen Nachteil nennt, der eigentlich ein Vorteil ist."],c:0},
+{t:"Wenn der Kunde einen Preisnachlass möchte",task:"Markiere die Reihenfolge und das richtige Verhalten.",
+ x:"Darf der Verkäufer Preisnachlässe geben, hält er eine Reihenfolge ein: erst eine kleine [[Zugabe]], dann eine kleine [[Serviceleistung]] und erst dann einen [[Preisnachlass]]. Sagt der Kunde, er habe die Ware woanders billiger gesehen, erbittet der Verkäufer zuerst [[nähere Angaben]] über das billigere Angebot. Erst danach geht er auf mögliche Ursachen ein, zum Beispiel auf [[Qualitätsunterschiede]]. Er sagt nicht {{„Das gibt es nicht“}}.",
+ q:"Der Kunde sagt: „Das habe ich woanders billiger gesehen.“ Was tust du zuerst?",o:["Ich sage, das sei unmöglich.","Ich erbitte nähere Angaben über das billigere Angebot.","Ich gebe sofort einen Preisnachlass."],c:1}
+];
+
+/* Vertiefung (level v) – Zusatz, aus dem Material abgeleitet */
+ITEMS.push(
+{id:"v8_1",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.1 Begründe: Warum zeigt ein Einwand, dass der Kunde Interesse hat, obwohl er etwas kritisiert?",rows:5,
+ h:["Denk an den Merksatz: Was ist dem Kunden noch nicht deutlich?","Beschäftigt sich der Kunde mit der Ware – oder will er nur gehen?"],
+ sol:"Der Kunde beschäftigt sich mit der Ware, sonst würde er keinen Einwand nennen. Er ist an der Ware interessiert, nur der Nutzen des Kaufs ist ihm noch nicht deutlich. Genau dort kann der Verkäufer mit neuen Argumenten ansetzen."},
+{id:"v8_2",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.2 Ein Kunde sagt: „Das habe ich woanders billiger gesehen.“ Begründe, warum der Verkäufer nicht sagen darf: „Das ist unmöglich.“",rows:5,
+ h:["Was sagt der Verkäufer damit über den Kunden?","Was soll der Verkäufer stattdessen zuerst tun?"],
+ sol:"Wer sagt „Das ist unmöglich“, widerspricht dem Kunden offen und wirkt, als würde er ihm nicht glauben. Besser: zuerst nähere Angaben über das billigere Angebot erbitten und erst danach auf mögliche Ursachen eingehen, zum Beispiel unterschiedliche Größen, gestaffelte Preise oder Qualitätsunterschiede."},
+{id:"v8_3",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.3 Was würde passieren, wenn der Verkäufer bei einem Vorwand immer weiter argumentiert? Begründe.",rows:5,
+ h:["Hat der Kunde etwas an der Ware kritisiert?","Wie fühlt sich der Kunde, wenn er sich rechtfertigen muss?"],
+ sol:"Beim Vorwand wird nichts an der Ware kritisiert, deshalb helfen Argumente nicht. Jedes weitere Argument wirkt wie Druck: Der Kunde fühlt sich bedrängt, verlässt das Geschäft mit einem schlechten Gefühl und kommt nicht wieder. Besser ist es, Verständnis zu zeigen und freundlich zu verabschieden."},
+{id:"v8_4",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.4 Warum ist die Gegenfrage-Methode bei ungenauen Einwänden besser als sofort zu argumentieren? Erkläre am Beispiel „Das gefällt mir nicht.“",rows:6,
+ h:["Weiß der Verkäufer bei „Das gefällt mir nicht“, was genau stört?","Was kann er nach der Antwort des Kunden tun?"],
+ sol:"Bei „Das gefällt mir nicht“ ist der Einwand völlig unbestimmt. Der Verkäufer weiß nicht, was genau stört, und würde mit seinen Argumenten ins Leere reden. Mit der Gegenfrage („Was müsste denn anders sein – die Farbe, die Form oder das Material?“) erfährt er die konkreten Bedenken und kann danach gezielt argumentieren."}
+);
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={
+a1_1:[["Preis","Kunde","nennen","Modul 10"],["Zwei Arten sind …"]],
+a1_2:[["Preis","Aussage","davor","danach"],["Bei der Sandwich-Methode wird …"]],
+a1_3:[["Zahl","Preis","Kunde","Gefühl"],["Ein „nackter“ Preis löst … aus."]],
+a1_4:[["Ware","Kunde","Schritt","Reihenfolge"],["Zuerst …, dann …, zuletzt …"]],
+a1_5:[["Preis","Kunde","hoch","empfinden"],["Es hängt davon ab, …"]],
+a3_1:[["Einwand","unbestimmt","Frage","Verkäuferin","Methode"],["Die Methode heißt …","Die Verkäuferin sagt: „…“"]],
+a3_2:[["Nachteil","Mantel","Gewicht","Einwand","Methode"],["Die Methode heißt …","Die Verkäuferin sagt: „…“"]],
+a3_3:[["Internet","Preis","Gerät","Kunde","Methode"],["Die Methode heißt …","Die Verkäuferin sagt: „…“"]],
+a3_4:[["Wanderschuh","Ware","Schuhe","einfach","Methode"],["Die Methode heißt …","Die Verkäuferin sagt: „…“"]],
+a3_5:[["Preis","Argumente","kaufen","letztes Mittel","Methode"],["Die Methode heißt …","Die Verkäuferin sagt: „…“"]],
+a4_1:[["Einwand","Verkäufer","Kunde","Ware"],["Ein Einwand ist eine Chance, weil …"]],
+a4_2:[["Einwand","Art","Beispiel","Kunde"],["Die erste Art ist …","Ein Beispiel dafür ist: „…“"]],
+a4_3:[["Kunde","Beispielsatz","kritisieren","Ware"],["Einen Vorwand erkenne ich daran, dass …","Ein Beispielsatz ist: „…“"]],
+a4_4:[["Vorwand","Kunde","Argument","Gefühl"],["Bei einem Vorwand …","Ich verhalte mich so, weil …"]],
+a4_5:[["Einwand","Kunde","Verkäufer","Beispiel","Branche"],["Bei der Ja-Aber-Methode …","Ein Beispiel: „…“"]],
+a4_6:[["Reihenfolge","Preis","Kunde","erst … dann"],["Zuerst …, dann …, zuletzt …"]],
+a5_1:[["Einwand","Art","Methode","wörtliche Rede"],["Ein Einwand in meinem Betrieb ist: „…“","Er gehört zur Art …","Ich antworte mit der … Methode: „…“"]],
+a6_1:[["Einwand","Druck","Kunde","bedrängt","Vorwand"],["Ein Fall ist, wenn …","Ein weiteres Argument schadet, weil …"]],
+a6_2:[["Zustimmung","Widerspruch","Kunde","Einwand","echt"],["Das Wort „aber“ gehört dazu, weil …","Wenn das „Ja“ nur gespielt ist, dann …"]],
+a6_3:[["Personal","Kollege","Kunde","ernst nehmen","Ware"],["Ich antworte: „…“","Ich mache den Kollegen nicht schlecht, weil …"]],
+v8_1:[["Einwand","Interesse","Nutzen","Kunde"],["Der Kunde ist interessiert, weil …"]],
+v8_2:[["Kunde","Angaben","Konkurrenzangebot","Ursachen"],["Der Verkäufer darf das nicht sagen, weil …","Besser ist: …"]],
+v8_3:[["Vorwand","Druck","Kunde","Gefühl"],["Wenn der Verkäufer weiter argumentiert, dann …"]],
+v8_4:[["Einwand","unbestimmt","Frage","Bedenken"],["Der Einwand ist unbestimmt, deshalb …","Die Gegenfrage lautet: „…“"]]
+};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+
+const GLOSS_DE=["Kundeneinwand", "berechtigter Einwand", "echter Einwand", "unechter Einwand (Vorwand)", "Preis-Leistungs-Verhältnis", "Gesichtsverlust", "Ja-Aber-Methode", "Vergleichs-Methode", "Gegenfrage-Methode", "Umkehr-Methode (Bumerang-Methode)", "Preiseinwands-Methode", "entkräften", "Preisnachlass"];
+
+const TX={"sub":["مجال التعلّم 2 · إجراء حوارات البيع بما يلائم العميل","Öğrenme alanı 2 · Satış görüşmelerini müşteri odaklı yürütmek","Lĩnh vực học 2 · Tiến hành cuộc trò chuyện bán hàng hướng đến khách hàng"],"name":["الاسم","Ad Soyad","Họ tên"],"date":["التاريخ","Tarih","Ngày"],"can_h":["هذا ما سأستطيع فعله بعد ذلك","Sonrasında bunu yapabileceğim","Sau bài này tôi có thể"],"can_note":["ضع علامة في النهاية على ما تستطيع فعله الآن.","Sonunda şu an yapabildiklerini işaretle.","Cuối bài, hãy đánh dấu những gì bạn đã làm được."],"pts1":["نقطة واحدة","1 puan","1 điểm"],"pts2":["نقطتان","2 puan","2 điểm"],"read_h":["للقراءة والمراجعة · قراءة نشِطة","Okuma bölümü · aktif okuma","Đọc lại · đọc chủ động"],"read_p":["اقرأ كل مقطع واضغط على المصطلحات المطلوبة (تصبح صفراء). انتبه: هناك مصطلحات خاطئة أيضًا! بعد ذلك تجيب عن سؤال قصير – وعندها فقط يُفتح المقطع التالي.","Her bölümü oku ve istenen sözcüklere dokun (sarı olurlar). Dikkat: Yanlış sözcükler de var! Sonra kısa bir soruyu cevapla – ancak ondan sonra sonraki bölüm açılır.","Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở."],"ws_h":["مخزن الكلمات (الترجمة)","Sözcük deposu (çeviri)","Kho từ vựng (bản dịch)"],"a2btn":["قرأتُ الأمثلة","Örnekleri okudum","Tôi đã đọc các ví dụ"],"a7_h":["المهمة 7 · قدِّر، اختبر، سجِّل","Görev 7 · Tahmin et, test et, kaydet","Bài 7 · Ước lượng, kiểm tra, ghi lại"],"a7_p":["كم نقطة من 20 ستحصل عليها في ورقة العمل هذه؟ سجِّل تقديرك قبل التقييم.","Bu çalışma kâğıdında 20 puanın kaçını alacaksın? Tahminini değerlendirmeden önce yaz.","Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm."],"th1":["تقديري","Tahminim","Dự đoán của tôi"],"th2":["نتيجتي","Sonucum","Kết quả của tôi"],"th3":["الفرق","Fark","Chênh lệch"],"th4":["نقاط لحساب النقاط","Puan hesabı için puan","Điểm cho tài khoản điểm"],"submit_h":["انتهيت؟ إذن قيِّم!","Bitti mi? O zaman değerlendir!","Xong chưa? Hãy chấm điểm!"],"submit_p":["يمكنك التقييم حتى لو لم تنجز كل شيء – المهام غير المنجزة تُحتسب بصفر.","Her şeyi bitirmesen de değerlendirebilirsin – boş kalan görevler 0 puan sayılır.","Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm."],"submit_b":["إرسال وتقييم","Gönder ve değerlendir","Gửi và chấm điểm"],"res_h":["تقييمك","Değerlendirmen","Kết quả của bạn"],"pdf_b":["تصدير كملف PDF (للمعلمة)","PDF olarak dışa aktar (öğretmen için)","Xuất PDF (cho giáo viên)"],"tip_t":["تلميح","İpucu","Gợi ý"],"tip_next":["تلميح آخر","Bir ipucu daha","Thêm gợi ý"],"close":["إغلاق","Kapat","Đóng"],"chk":["تحقّق","Kontrol et","Kiểm tra"],"shw":["إظهار الحل","Çözümü göster","Hiện lời giải"],"markb":["تحقّق من التظليل","İşaretlemeyi kontrol et","Kiểm tra phần đánh dấu"],"self_q":["ما مدى جودة إجابتك؟","Cevabın ne kadar iyiydi?","Câu trả lời của bạn tốt đến đâu?"],"self1":["نجحت","Başardım","Đạt"],"self2":["جزئيًا","Kısmen","Một phần"],"self3":["ليس بعد","Henüz değil","Chưa"],"fb_ok":["ممتاز! أحسنت.","Doğru! Aferin.","Đúng rồi! Làm tốt lắm."],"fb_part":["تقريبًا – ينقص جزء. قارن بالحل وأكمل.","Neredeyse – bir kısmı eksik. Çözümle karşılaştır ve tamamla.","Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung."],"fb_bad":["ليس بعد. استعن بتلميح أو أعد قراءة النص.","Henüz değil. Bir ipucu al ya da metni tekrar oku.","Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản."],"sol_lbl":["الحل:","Çözüm:","Lời giải:"],"mk_ok":["تظليل صحيح! والآن السؤال:","Doğru işaretledin! Şimdi soru:","Đánh dấu đúng! Giờ đến câu hỏi:"],"mk_bad":["ليس تمامًا بعد. اقرأ المهمة مرة أخرى.","Henüz tam değil. Görevi tekrar oku.","Chưa hoàn toàn đúng. Hãy đọc lại đề bài."],"zq_ok":["بالضبط! تم فتح المقطع التالي.","Aynen öyle! Sonraki bölüm açıldı.","Chính xác! Đoạn tiếp theo đã mở."],"zq_bad":["ليس تمامًا. أعد قراءة المقطع وحاول مجددًا.","Tam değil. Bölümü tekrar oku ve yeniden dene.","Chưa đúng. Hãy đọc lại đoạn và thử lại."],"res_pts":["من 20 نقطة","20 puan üzerinden","trên 20 điểm"],"res_an":["تحليل الأخطاء حسب مجالات الكفاءة","Yeterlilik alanlarına göre hata analizi","Phân tích lỗi theo lĩnh vực năng lực"],"rep":["ما يجب أن تراجعه","Tekrar etmen gerekenler","Bạn nên ôn lại"],"lab1":["ممتاز!","Harika!","Tuyệt vời!"],"lab2":["جيد – تحتاج مزيدًا من التمرين","İyi – biraz daha alıştırma","Khá – cần luyện thêm"],"lab3":["تحتاج هنا إلى مزيد من التمرين","Burada hâlâ alıştırmaya ihtiyacın var","Phần này bạn cần luyện thêm"],"set_h":["الإعدادات","Ayarlar","Cài đặt"],"set_mode":["الترجمة","Çeviri","Bản dịch"],"mode_tap":["بالنقر","Dokunarak","Chạm để xem"],"mode_under":["تحت النص","Metnin altında","Hiện bên dưới"],"mode_off":["إيقاف","Kapalı","Tắt"],"set_fs":["حجم الخط","Yazı boyutu","Cỡ chữ"],"set_level":["المستوى","Seviye","Mức độ"],"lvl_b":["أساسي","Temel","Cơ bản"],"lvl_v":["تعمّق","Derinleştirme","Nâng cao"],"set_snd":["الصوت","Ses","Âm thanh"],"set_reset":["البدء من جديد","Yeniden başla","Làm lại từ đầu"],"dlg_reset":["حذف كل شيء والبدء من جديد؟ ستضيع إجاباتك في ورقة العمل هذه.","Her şey silinsin ve yeniden başlansın mı? Bu çalışma kâğıdındaki girdilerin kaybolur.","Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất."],"dlg_next":["الشخص التالي: سيتم حذف الإجابات والاسم.","Sonraki kişi: Girdiler ve ad silinir.","Người tiếp theo: nội dung và tên sẽ bị xóa."],"dlg_cancel":["إلغاء","İptal","Hủy"],"dlg_ok":["نعم","Evet","Đồng ý"],"wg_h":["كلمات وبدايات جمل للمساعدة","Sözcükler ve cümle başlangıcı yardımları","Từ ngữ và gợi ý đầu câu"],"a8_h":["المهمة 8 · التعمّق","Görev 8 · Derinleştirme","Bài 8 · Nâng cao"],"pts_bonus":["نقاط إضافية","Bonus","Điểm thưởng"],"a8_p":["تظهر فقط في مستوى «التعمّق». علّل بجمل كاملة. هذه المهام تمنح نقاطًا إضافية ولا تخفض نقاطك الـ 20 أبدًا.","Sadece „Derinleştirme“ seviyesinde. Tam cümlelerle gerekçelendir. Bu görevler bonus puan verir ve 20 puanını asla düşürmez.","Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn."],"res_card_h":["النتيجة للمعلمة","Öğretmen için sonuç","Kết quả cho giáo viên"],"btn_img":["حفظ النتيجة كصورة","Sonucu resim olarak kaydet","Lưu kết quả dưới dạng ảnh"],"btn_code":["نسخ الرمز","Kodu kopyala","Sao chép mã"],"btn_next":["الشخص التالي","Sonraki kişi","Người tiếp theo"],"res_open":["ملاحظة: المهام غير المنجزة تُحتسب بصفر.","Not: Yapılmayan görevler 0 puan sayılır.","Lưu ý: bài chưa làm tính 0 điểm."],"res_bonus":["نقاط إضافية","Bonus","Điểm thưởng"],"cat_bonus":["نقاط إضافية (التعمّق)","Bonus (Derinleştirme)","Điểm thưởng (Nâng cao)"],"fb_peek":["صحيح – لكنك نظرت إلى الحل قبل ذلك، لذلك تحصل على نصف النقاط.","Doğru – ama önce çözüme baktın, bu yüzden yarım puan.","Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm."],"t25":["بداية جيدة!","İyi başlangıç!","Khởi đầu tốt!"],"t50":["اكتمل النصف!","Yarısı tamam!","Xong một nửa rồi!"],"t75":["اقتربت من الهدف!","Neredeyse bitti!","Sắp đến đích rồi!"],"t100":["أنجزت كل شيء! الآن قيِّم.","Hepsi tamam! Şimdi değerlendir.","Đã làm xong hết! Giờ hãy chấm điểm."],"t_write":["اكتب شيئًا أولًا","Önce bir şeyler yaz","Hãy viết gì đó trước"],"t_saved":["تم التسجيل","Kaydedildi","Đã ghi"],"t_read":["تمت القراءة","Okundu","Đã đọc"],"t_resume":["تابع من حيث توقفت","Kaldığın yerden devam et","Tiếp tục từ chỗ bạn dừng"],"t_copy":["تم نسخ الرمز","Kod kopyalandı","Đã sao chép mã"],"t_img":["تم حفظ الصورة","Resim kaydedildi","Đã lưu ảnh"],"h1":["الوحدة 11: اعتراضات العملاء (Kundeneinwände)","Modül 11: Müşteri itirazları (Kundeneinwände)","Bài 11: Phản đối của khách hàng (Kundeneinwände)"],"meta":["3 حصص مزدوجة · 12 نقطة · الكتاب المدرسي ص 133–136 · دفتر التمارين ص 89–98 (الفصل 8)","3 çift ders · 12 puan · Ders kitabı s. 133–136 · Çalışma defteri s. 89–98 (Bölüm 8)","3 tiết đôi · 12 điểm · Sách giáo khoa tr. 133–136 · Sách bài tập tr. 89–98 (Chương 8)"],"can1":["أستطيع أن أشرح لماذا يُعدّ اعتراض العميل فرصة للبيع.","Bir müşteri itirazının neden satış için bir fırsat olduğunu açıklayabilirim.","Tôi có thể giải thích vì sao phản đối của khách hàng là cơ hội để bán hàng."],"can2":["أستطيع أن أذكر الأنواع الأربعة للاعتراضات المشروعة مع مثال لكل نوع.","Haklı müşteri itirazlarının dört türünü sayabilir ve her biri için örnek verebilirim.","Tôi có thể nêu bốn loại phản đối chính đáng và cho một ví dụ cho mỗi loại."],"can3":["أستطيع أن أميّز الاعتراض الحقيقي من الذريعة (Vorwand).","Gerçek bir itirazı bahaneden (Vorwand) ayırt edebilirim.","Tôi có thể phân biệt phản đối thật với cái cớ (Vorwand)."],"can4":["أستطيع أن أذكر الطرق الخمس لمعالجة الاعتراضات وأن أردّ على اعتراض بجملة منطوقة دون أن أعارض العميل.","İtirazları ele almanın beş yöntemini sayabilir ve müşteriye karşı çıkmadan, doğrudan konuşma cümlesiyle bir itiraza cevap verebilirim.","Tôi có thể nêu năm phương pháp xử lý phản đối và trả lời một phản đối bằng lời nói trực tiếp mà không cãi lại khách hàng."],"a1_h":["المهمة 1 · الانطلاق: ماذا تتذكّر؟","Görev 1 · Isınma: Neleri hâlâ biliyorsun?","Bài tập 1 · Khởi động: Bạn còn nhớ gì?"],"pts05":["نصف نقطة","0,5 puan","0,5 điểm"],"a1_p":["أجب عن الأسئلة من ذاكرتك. لا تبحث في الكتاب – المهم ما بقي في ذهنك من الوحدات السابقة.","Soruları aklından cevapla. Bakma – önceki modüllerden aklında ne kaldığı önemli.","Hãy trả lời các câu hỏi bằng trí nhớ. Đừng tra cứu – quan trọng là những gì còn đọng lại từ các bài trước."],"tip_fast":["نصيحة للسريعين: اجمع ثلاثة اعتراضات تسمعها كثيرًا في مكان تدريبك، واكتب لكل اعتراض جوابين مختلفين.","Hızlılar için ipucu: İşletmende en sık duyduğun üç itirazı topla ve her biri için iki farklı cevap yaz.","Gợi ý cho bạn làm nhanh: Hãy ghi lại ba phản đối mà bạn nghe nhiều nhất ở nơi thực tập và viết hai cách trả lời khác nhau cho mỗi phản đối."],"merke_chance":["تذكّر: اعتراضات العملاء جزء طبيعي من سير محادثة البيع. إنها تُظهر أن العميل مهتمّ بالبضاعة، لكن فائدة الشراء لم تتّضح له بعد. اعتراض العميل فرصة للبيع.","Unutma: Müşteri itirazları satış görüşmesinin akışının normal bir parçasıdır. Müşterinin ürünle ilgilendiğini, ama satın almanın yararının ona henüz net olmadığını gösterirler. Müşteri itirazı satış için bir fırsattır.","Ghi nhớ: Phản đối của khách hàng là một phần bình thường trong diễn tiến của cuộc trò chuyện bán hàng. Chúng cho thấy khách quan tâm đến hàng hóa nhưng chưa thấy rõ lợi ích của việc mua. Phản đối của khách hàng là một cơ hội để bán hàng."],"merke_ernst":["تذكّر: على البائع أن يأخذ اعتراضات العملاء على محمل الجد وأن يحاول إزالتها بحجج جديدة.","Unutma: Satıcı müşteri itirazlarını ciddiye almalı ve yeni argümanlarla gidermeye çalışmalıdır.","Ghi nhớ: Người bán hàng nên xem trọng các phản đối của khách và cố gắng giải tỏa chúng bằng những lập luận mới."],"arten_h":["الأنواع الأربعة للاعتراضات المشروعة","Haklı itirazların dört türü","Bốn loại phản đối chính đáng"],"th_art":["النوع","Tür","Loại"],"th_worum":["ما المقصود","Ne ile ilgili","Nói về điều gì"],"th_bsp":["مثال","Örnek","Ví dụ"],"ar1":["اعتراضات على جودة البضاعة","Ürünün kalitesine karşı itirazlar","Phản đối về chất lượng hàng hóa"],"ar1w":["المادة، التصنيع، جودة الصنع، النضارة، المظهر.","Malzeme, üretim, işçilik, tazelik, görünüş.","Chất liệu, cách sản xuất, độ hoàn thiện, độ tươi, vẻ ngoài."],"ar1b":["«كم مدة تشغيل المكنسة الكهربائية اللاسلكية؟» · «المواد المستخدمة غير قابلة لإعادة التدوير.» · «السلطات لا تبدو طازجة.»","„Kablosuz bir elektrikli süpürgenin çalışma süresi ne kadar?“ · „Kullanılan malzemeler geri dönüştürülemez.“ · „Salatalar pek taze görünmüyor.“","„Máy hút bụi không dây chạy được bao lâu?“ · „Các vật liệu được dùng không thể tái chế.“ · „Món salad trông không tươi lắm.“"],"ar2":["اعتراضات على نسبة السعر إلى الجودة (Preis-Leistungs-Verhältnis)","Fiyat-performans oranına (Preis-Leistungs-Verhältnis) karşı itirazlar","Phản đối về quan hệ giá – chất lượng (Preis-Leistungs-Verhältnis)"],"ar2w":["السعر يبدو مرتفعًا بالنسبة إلى الجودة المقدَّمة – أو بالمقارنة مع المنافس.","Fiyat, sunulan kaliteye göre – ya da rakibe kıyasla – çok yüksek görünür.","Giá có vẻ quá cao so với chất lượng được cung cấp – hoặc so với đối thủ cạnh tranh."],"ar2b":["«سعر المعطف مرتفع جدًا لهذه الجودة.» · «سعر هذه المجفِّفة أقل بكثير في التجارة الإلكترونية.»","„Paltonun fiyatı bu kalite için çok yüksek.“ · „Bu kurutma makinesinin fiyatı internette çok daha düşük.“","„Giá chiếc áo khoác này quá cao so với chất lượng.“ · „Giá máy sấy này trên mạng thấp hơn nhiều.“"],"ar3":["اعتراضات على المتجر","Mağazaya karşı itirazlar","Phản đối về cửa hàng"],"ar3w":["حجم تشكيلة البضائع، نقص الخدمات، نوع التشكيلة.","Ürün çeşidinin genişliği, eksik hizmetler, ürün yelpazesinin türü.","Mức độ đa dạng của hàng hóa, thiếu dịch vụ, loại mặt hàng."],"ar3b":["«هل هذا كل ما لديكم من البلوزات؟» · «في السابق كانت سياسة الاستبدال عندكم أكثر سخاءً.» · «الخيارات عندكم قليلة جدًا لفئتنا العمرية.»","„Bluzlarınız bundan ibaret mi?“ · „Eskiden değişim kuralınız daha cömertti.“ · „Bizim yaş grubumuz için çok az seçeneğiniz var.“","„Áo sơ mi nữ chỉ có bấy nhiêu thôi à?“ · „Trước đây quy định đổi hàng của cửa hàng rộng rãi hơn.“ · „Cửa hàng có quá ít lựa chọn cho lứa tuổi của chúng tôi.“"],"ar4":["اعتراضات على الموظفين","Personele karşı itirazlar","Phản đối về nhân viên"],"ar4w":["الكفاءة المهنية، الاستشارة، اللطف.","Uzmanlık, danışmanlık, nezaket.","Chuyên môn, tư vấn, sự thân thiện."],"ar4b":["«لا أشعر أنكم قادرون على استشاري بكفاءة.» · «أنتظر هنا منذ عشر دقائق بائعًا يقدّم لي الاستشارة.» · «كان بإمكانكم أن تعرضوا عليّ البضاعة بلطف أكبر.»","„Bana yetkin bir şekilde danışmanlık yapabileceğiniz izlenimini edinmedim.“ · „Burada on dakikadır bana danışmanlık yapacak bir satıcı bekliyorum.“ · „Ürünü bana biraz daha nazik gösterebilirdiniz.“","„Tôi không có cảm giác anh/chị có thể tư vấn chuyên môn cho tôi.“ · „Tôi đợi ở đây mười phút rồi mà chưa có nhân viên nào tư vấn.“ · „Anh/chị có thể giới thiệu hàng cho tôi thân thiện hơn một chút.“"],"vorwand_h":["الاعتراض كذريعة (Vorwand)","Bahane olarak itiraz (Vorwand)","Phản đối như một cái cớ (Vorwand)"],"vorwand_p":["أحيانًا لا يريد العميل شراء السلعة ويبحث عن ذريعة (Vorwand) ليغادر المتجر. هذا اعتراض غير حقيقي (unechter Einwand). يستطيع البائع أن يوفّر على نفسه الحجج هنا.","Bazen müşteri ürünü satın almak istemez ve mağazadan ayrılmak için bir bahane (Vorwand) arar. Bu gerçek olmayan bir itirazdır (unechter Einwand). Satıcı burada argüman sunmaktan vazgeçebilir.","Đôi khi khách không muốn mua món hàng và tìm một cái cớ (Vorwand) để rời cửa hàng. Đó là phản đối không thật (unechter Einwand). Người bán có thể không cần lập luận thêm ở đây."],"vw_h":["ذرائع نموذجية","Tipik bahaneler","Những cái cớ điển hình"],"vw_s":["«أريد أن أتجوّل في مكان آخر أولًا.» · «يجب أن أفكّر في الأمر بهدوء.» · «سأعود غدًا، ليس لدي وقت اليوم.» · «يجب أن أسأل زوجي / زوجتي.»","„Önce başka yerlere de bakmak istiyorum.“ · „Bunu bir de sakin sakin düşünmem lazım.“ · „Yarın tekrar gelirim, bugün vaktim kalmadı.“ · „Eşime sormam lazım.“","„Tôi muốn xem thêm chỗ khác.“ · „Tôi phải suy nghĩ thêm cho kỹ.“ · „Mai tôi quay lại, hôm nay tôi hết thời gian rồi.“ · „Tôi phải hỏi chồng / vợ tôi.“"],"vw_r":["الصواب: أن تُظهر تفهّمًا وتسهّل على العميل الانسحاب دون فقدان ماء الوجه (Gesichtsverlust). الوداع اللطيف يزيد احتمال عودة العميل.","Doğrusu: Anlayış göstermek ve müşterinin yüzünü kaybetmeden (Gesichtsverlust) geri çekilmesini kolaylaştırmak. Nazik bir veda, müşterinin tekrar gelme ihtimalini artırır.","Cách đúng: tỏ ra thông cảm và giúp khách rút lui mà không mất mặt (Gesichtsverlust). Một lời chào tạm biệt lịch sự làm tăng khả năng khách quay lại."],"meth_h":["الطرق الخمس لمعالجة الاعتراضات","İtirazları ele almanın beş yöntemi","Năm phương pháp xử lý phản đối"],"th_meth":["الطريقة","Yöntem","Phương pháp"],"th_wie":["كيف تعمل","Nasıl işler","Cách thực hiện"],"m1":["طريقة «نعم، لكن» (Ja-Aber-Methode)","„Evet, ama“ yöntemi (Ja-Aber-Methode)","Phương pháp „Vâng, nhưng“ (Ja-Aber-Methode)"],"m1w":["يُوافَق العميل أولًا، وبذلك يظهر أن اعتراضه أُخذ على محمل الجد. بعد ذلك يُعارَض بحجة مضادة.","Müşteriye önce hak verilir ve böylece itirazının ciddiye alındığı gösterilir. Ardından bir karşı argümanla ona karşı çıkılır.","Trước hết đồng ý với khách, qua đó cho thấy phản đối của họ được coi trọng. Sau đó đáp lại bằng một lập luận ngược lại."],"m1b":["العميل: «هذه السترة أرخص بكثير على الإنترنت!» البائع: «طبعًا تجد هذه السترة على الإنترنت بسعر مختلف. لكن لا تنسَ أنك هنا عندنا تستطيع أن ترى السترة مباشرة وتجرّبها. وبالإضافة إلى ذلك تحصل مني على معلومات مهمة إضافية.»","M: „Bu ceket internette çok daha ucuz!“ S: „Elbette bu ceketi internette başka bir fiyata bulabilirsiniz. Ama burada, bizde ceketi doğrudan görüp deneyebileceğinizi unutmayın. Ayrıca benden önemli ek bilgiler de alırsınız.“","KH: „Cái áo khoác này mua trên mạng rẻ hơn nhiều!“ NV: „Đúng là trên mạng anh/chị có thể mua áo khoác này với giá khác. Nhưng xin đừng quên rằng ở đây anh/chị có thể xem trực tiếp và mặc thử. Ngoài ra tôi còn cho anh/chị thêm những thông tin quan trọng.“"],"m2":["طريقة المقارنة (Vergleichs-Methode)","Karşılaştırma yöntemi (Vergleichs-Methode)","Phương pháp so sánh (Vergleichs-Methode)"],"m2w":["يقارن البائع البضاعة ببضاعة بديلة ليُبرز المزايا ويُضعف الاعتراض.","Satıcı, avantajları öne çıkarmak ve itirazı zayıflatmak için ürünü alternatif bir ürünle karşılaştırır.","Người bán so sánh món hàng với một món hàng khác để làm nổi bật ưu điểm và làm yếu đi phản đối."],"m2b":["العميل: «تكفيني جوارب رياضية عادية!» البائع: «إذا قارنتَ جوارب التزلّج بالجوارب الرياضية العادية فسترى أنها مصمَّمة خصيصًا لحاجات أحذية التزلّج. الساق أعلى والحشوات في الأماكن الصحيحة.»","M: „Bana basit bir spor çorabı yeter!“ S: „Kayak çoraplarını normal spor çoraplarıyla karşılaştırırsanız, bunların özellikle kayak botlarının ihtiyaçlarına göre yapıldığını görürsünüz. Konç daha yüksek, dolgular da doğru yerlerde.“","KH: „Tôi chỉ cần đôi tất thể thao đơn giản thôi!“ NV: „Nếu anh/chị so sánh tất trượt tuyết với tất thể thao thường, anh/chị sẽ thấy tất này được làm riêng cho giày trượt tuyết. Phần cổ cao hơn và các miếng đệm nằm đúng chỗ.“"],"m3":["طريقة السؤال المضاد (Gegenfrage-Methode)","Karşı soru yöntemi (Gegenfrage-Methode)","Phương pháp hỏi ngược (Gegenfrage-Methode)"],"m3w":["يردّ البائع بسؤال مضاد ليعرف ما هي مخاوف العميل بالتحديد. مفيدة عندما يكون الاعتراض غير دقيق.","Satıcı, müşterinin somut olarak hangi endişelere sahip olduğunu öğrenmek için karşı soruyla cevap verir. Belirsiz itirazlarda mantıklıdır.","Người bán trả lời bằng một câu hỏi ngược để tìm hiểu khách cụ thể đang lo ngại điều gì. Hữu ích khi phản đối chưa rõ ràng."],"m3b":["العميل: «يبدو أن هذه الدراجة ليست مناسبة لابني.» البائع: «ما هي مخاوفك؟ أين تكمن شكوكك؟»","M: „Bu bisiklet oğlum için pek uygun değil galiba.“ S: „Hangi endişeleriniz var? Şüpheleriniz nerede?“","KH: „Chiếc xe đạp này có lẽ không hợp với con trai tôi.“ NV: „Anh/chị đang lo ngại điều gì? Anh/chị còn nghi ngờ ở điểm nào?“"],"m4":["طريقة العكس (Umkehr-Methode) أو طريقة البوميرانغ (Bumerang-Methode)","Tersine çevirme yöntemi (Umkehr-Methode) / Bumerang yöntemi (Bumerang-Methode)","Phương pháp đảo ngược (Umkehr-Methode) hay phương pháp Bumerang (Bumerang-Methode)"],"m4w":["يذكر العميل عيبًا. يوضّح البائع أن هذا العيب الظاهري هو ميزة من زاوية أخرى.","Müşteri bir dezavantaj söyler. Satıcı, görünürdeki bu dezavantajın başka bir açıdan avantaj olduğunu gösterir.","Khách nêu một nhược điểm. Người bán làm rõ rằng nhược điểm bề ngoài đó, nhìn từ góc khác, lại là ưu điểm."],"m4b":["العميل: «هذا الهاتف صغير جدًا!» البائع: «هذا بالذات ما يميّز هذا الهاتف. إنه لا يحتاج مساحة لا لزوم لها. تستطيع حتى أن تحمله في جيب القميص.»","M: „Bu telefon çok küçük!“ S: „Tam da bu, bu telefonu özel yapan şey. Gereksiz yer kaplamaz. Hatta gömlek cebinde taşıyabilirsiniz.“","KH: „Chiếc điện thoại này nhỏ quá!“ NV: „Chính điều đó làm nên nét đặc biệt của chiếc điện thoại này. Nó không chiếm chỗ vô ích. Anh/chị thậm chí có thể bỏ vào túi áo sơ mi.“"],"m5":["طريقة اعتراض السعر (Preiseinwands-Methode)","Fiyat itirazı yöntemi (Preiseinwands-Methode)","Phương pháp phản đối về giá (Preiseinwands-Methode)"],"m5w":["كحلّ أخير يسأل البائع العميل مباشرة: بأي شروط يكون مستعدًا للشراء.","Son çare olarak satıcı müşteriye doğrudan hangi koşullarda satın almaya hazır olacağını sorar.","Là biện pháp cuối cùng, người bán hỏi thẳng khách rằng họ sẵn sàng mua với điều kiện nào."],"m5b":["«اقترح عليّ بأي شروط ستشتري هذه السلعة.» · «ماذا عليّ أن أفعل حتى …؟»","„Bana bir teklifte bulunun: Bu ürünü hangi koşullarda alırsınız?“ · „… için ne yapmam gerekiyor?“","„Xin anh/chị đề nghị cho tôi: với điều kiện nào anh/chị sẽ mua món này?“ · „Tôi phải làm gì để …?“"],"sbk_h":["صندوق الجمل – معالجة الاعتراضات","Cümle kalıpları – itirazları böyle ele alırsın","Hộp mẫu câu – xử lý phản đối"],"sbk_ja":["نعم، لكن: «معك حق، ولكن …» · «بالضبط. لكن هذا ينطبق فقط على …» · «من فضلك انتبه إلى …» · «في المقابل تحصل على …» · «هل لي أن ألفت انتباهك إلى …؟»","Evet, ama: „Haklısınız, ancak …“ · „Aynen. Ama bu yalnızca … için geçerli.“ · „Lütfen şunu da düşünün: …“ · „Buna karşılık şunu alırsınız: …“ · „Size şunu hatırlatabilir miyim: …?“","Vâng, nhưng: „Anh/chị nói đúng, tuy nhiên …“ · „Đúng vậy. Nhưng điều này chỉ đúng khi …“ · „Xin anh/chị lưu ý …“ · „Đổi lại anh/chị được …“ · „Tôi xin phép nhắc anh/chị rằng …“"],"sbk_um":["العكس: «لهذا السبب بالذات …» · «لذلك بالذات …» · «في المقابل لديك …» · «ولذلك فإن …»","Tersine çevirme: „Tam bu nedenle …“ · „Tam da bu yüzden …“ · „Buna karşılık … var.“ · „Bu yüzden … .“","Đảo ngược: „Chính vì lý do đó …“ · „Chính vì vậy …“ · „Đổi lại anh/chị có …“ · „Vì thế …“"],"sbk_ge":["السؤال المضاد: «ما هي مخاوفك؟» · «أين تكمن شكوكك؟» · «وما الذي يجب أن يكون مختلفًا؟»","Karşı soru: „Hangi endişeleriniz var?“ · „Şüpheleriniz nerede?“ · „Peki neyin farklı olması gerekirdi?“","Hỏi ngược: „Anh/chị lo ngại điều gì?“ · „Anh/chị còn nghi ngờ ở đâu?“ · „Vậy cần thay đổi điều gì ạ?“"],"nachlass_h":["عندما يريد العميل تخفيضًا في السعر","Müşteri indirim istediğinde","Khi khách muốn giảm giá"],"nachlass_p1":["إذا كان البائع مخوَّلًا بمنح تخفيضات، فإنه يلتزم بهذا الترتيب: أولًا هدية صغيرة (Zugabe)، ثم خدمة صغيرة، وبعد ذلك فقط تخفيض السعر (Preisnachlass).","Satıcının indirim verme yetkisi varsa şu sırayı izler: önce küçük bir hediye (Zugabe), sonra küçük bir hizmet ve ancak en son indirim (Preisnachlass).","Nếu người bán có quyền giảm giá, họ giữ thứ tự này: trước tiên là một món quà tặng kèm nhỏ (Zugabe), rồi một dịch vụ nhỏ, và chỉ sau cùng mới giảm giá (Preisnachlass)."],"nachlass_p2":["إذا ادّعى العميل أنه رأى البضاعة نفسها أرخص في مكان آخر، فلا يجوز للبائع أبدًا أن يردّ بأن هذا مستحيل. يطلب أولًا تفاصيل أكثر عن العرض الأرخص لدى المنافس، وبعد ذلك فقط يتناول الأسباب الممكنة: اختلاف المقاسات، أسعار متدرّجة، فروق في الجودة لا تُلاحَظ من المظهر الخارجي فورًا.","Müşteri aynı ürünü başka yerde daha ucuza gördüğünü söylerse, satıcı kesinlikle bunun imkânsız olduğunu söylememelidir. Önce daha ucuz rakip teklif hakkında ayrıntılı bilgi ister, ancak ondan sonra olası nedenlere geçer: farklı bedenler, kademeli fiyatlar, dıştan hemen anlaşılmayan kalite farkları.","Nếu khách nói đã thấy cùng món hàng rẻ hơn ở nơi khác, người bán tuyệt đối không được đáp rằng điều đó là không thể. Trước tiên người bán xin thêm thông tin về ưu đãi rẻ hơn của đối thủ, rồi mới nói đến các nguyên nhân có thể: kích cỡ khác nhau, giá theo bậc, khác biệt về chất lượng mà nhìn bên ngoài không thấy ngay."],"a2_h":["المهمة 2 · المثال المحلول: أي طريقة؟","Görev 2 · Örnek çözüm: hangi yöntem?","Bài tập 2 · Làm mẫu: phương pháp nào?"],"a2_p":["هكذا تتعامل مع كل اعتراض. اقرأ الأمثلة جيدًا، فستحتاجها بعد قليل.","Her itirazda böyle ilerlersin. Örnekleri dikkatle oku, birazdan lazım olacak.","Bạn làm như vậy với mọi phản đối. Hãy đọc kỹ các ví dụ, lát nữa bạn sẽ cần đến."],"wk1":["العميل: «الحقيبة فيها جيوب قليلة جدًا.» 1. هل الاعتراض حقيقي؟ نعم، فهو يتعلق بالبضاعة. 2. هل العيب المذكور ميزة ربما؟ نعم – جيوب قليلة تعني وزنًا خفيفًا وتعبئة سريعة. 3. النتيجة: طريقة العكس (Umkehr-Methode). «لهذا السبب بالذات لا يزن إلا 700 غرام – تجد كل شيء فورًا دون أن تفتح ستة سحّابات.»","M: „Sırt çantasının gözü gerçekten çok az.“ 1. İtiraz gerçek mi? Evet, ürünle ilgili. 2. Söylenen dezavantaj belki bir avantaj mı? Evet – az göz, hafif ağırlık ve hızlı paketleme demek. 3. Sonuç: Tersine çevirme yöntemi (Umkehr-Methode). „Gerade deshalb wiegt er nur 700 Gramm – Sie finden alles sofort, ohne sechs Reißverschlüsse zu öffnen.“ (Tam da bu yüzden sadece 700 gram – altı fermuar açmadan her şeyi hemen bulursunuz.)","KH: „Cái ba lô này có quá ít ngăn.“ 1. Phản đối có thật không? Có, nó liên quan đến hàng hóa. 2. Nhược điểm được nêu có thể là ưu điểm không? Có – ít ngăn nghĩa là nhẹ và đóng gói nhanh. 3. Kết quả: phương pháp đảo ngược (Umkehr-Methode). „Gerade deshalb wiegt er nur 700 Gramm – Sie finden alles sofort, ohne sechs Reißverschlüsse zu öffnen.“ (Chính vì vậy nó chỉ nặng 700 gram – anh/chị tìm thấy mọi thứ ngay mà không phải mở sáu khóa kéo.)"],"wk2":["العميل: «هذا لا يعجبني.» 1. هل الاعتراض محدّد؟ لا، إنه غير واضح تمامًا. 2. ماذا ينقصني؟ المعلومة: ما الذي يزعجه بالتحديد. 3. النتيجة: طريقة السؤال المضاد (Gegenfrage-Methode). «وما الذي يجب أن يكون مختلفًا – اللون أم الشكل أم المادة؟»","M: „Bu hoşuma gitmedi.“ 1. İtiraz somut mu? Hayır, tamamen belirsiz. 2. Bende ne eksik? Tam olarak neyin rahatsız ettiği bilgisi. 3. Sonuç: Karşı soru yöntemi (Gegenfrage-Methode). „Was müsste denn anders sein – die Farbe, die Form oder das Material?“ (Peki neyin farklı olması gerekirdi – renk, biçim ya da malzeme?)","KH: „Tôi không thích cái này.“ 1. Phản đối có cụ thể không? Không, hoàn toàn mơ hồ. 2. Tôi còn thiếu gì? Thông tin: chính xác điều gì làm khách khó chịu. 3. Kết quả: phương pháp hỏi ngược (Gegenfrage-Methode). „Was müsste denn anders sein – die Farbe, die Form oder das Material?“ (Vậy cần khác đi ở điểm nào – màu sắc, hình dáng hay chất liệu?)"],"wk3":["العميل: «يجب أن أنام على الموضوع.» 1. هل هذا اعتراض حقيقي؟ هو أقرب إلى ذريعة (Vorwand) – فلا يُنتقَد شيء في البضاعة. 2. ما الذي يفيد الآن؟ لا مزيد من الحجج. 3. النتيجة: إظهار التفهّم، والوداع بلطف، وترك الباب مفتوحًا: «أتفهّم ذلك. سأكتب لك رقم الطراز على ورقة – فتجد الجهاز بسهولة مرة أخرى.»","M: „Bunun üzerine bir gece uyumam lazım.“ 1. Bu gerçek bir itiraz mı? Daha çok bir bahane (Vorwand) – üründe hiçbir şey eleştirilmiyor. 2. Şimdi ne işe yarar? Daha fazla argüman sunmamak. 3. Sonuç: Anlayış göstermek, nazikçe vedalaşmak, kapıyı açık bırakmak: „Das verstehe ich gut. Ich lege Ihnen die Modellnummer auf einen Zettel – dann finden Sie das Gerät sofort wieder.“ (Bunu çok iyi anlıyorum. Model numarasını bir kâğıda yazıp vereyim – cihazı hemen tekrar bulursunuz.)","KH: „Tôi phải ngủ một đêm để nghĩ lại.“ 1. Đây có phải phản đối thật không? Giống một cái cớ (Vorwand) hơn – không có gì về hàng hóa bị chê. 2. Điều gì giúp ích bây giờ? Không lập luận thêm. 3. Kết quả: tỏ ra thông cảm, chào tạm biệt thân thiện, để ngỏ cửa: „Das verstehe ich gut. Ich lege Ihnen die Modellnummer auf einen Zettel – dann finden Sie das Gerät sofort wieder.“ (Tôi hiểu rất rõ. Tôi sẽ ghi số mẫu ra một mảnh giấy cho anh/chị – như vậy anh/chị sẽ dễ dàng tìm lại món này.)"],"a2_res":["النتيجة: السؤال الأول دائمًا: هل هذا اعتراض حقيقي أم ذريعة (Vorwand)؟ بعد ذلك فقط يستحق الأمر أن تفكّر في الطريقة.","Sonuç: İlk soru her zaman şudur: Bu gerçek bir itiraz mı, yoksa bahane (Vorwand) mi? Yöntemi düşünmeye ancak ondan sonra değer.","Kết quả: Câu hỏi đầu tiên luôn là: Đây là phản đối thật hay cái cớ (Vorwand)? Chỉ sau đó mới đáng để nghĩ đến phương pháp."],"a3_h":["المهمة 3 · تمرين موجَّه","Görev 3 · Yönlendirmeli alıştırma","Bài tập 3 · Bài tập có hướng dẫn"],"a3_p":["اذكر الطريقة واكتب جواب البائعة بجملة منطوقة.","Yöntemi söyle ve satıcı kadının cevabını doğrudan konuşma cümlesiyle yaz.","Hãy nêu phương pháp và viết câu trả lời của nhân viên bán hàng bằng lời nói trực tiếp."],"a4_h":["المهمة 4 · تمرين حر","Görev 4 · Serbest alıştırma","Bài tập 4 · Bài tập tự do"],"pts3":["3 نقاط","3 puan","3 điểm"],"a5_h":["المهمة 5 · من مكان تدريبك","Görev 5 · Kendi işletmenden","Bài tập 5 · Từ doanh nghiệp của bạn"],"pts15":["نقطة ونصف","1,5 puan","1,5 điểm"],"a6_h":["المهمة 6 · للمتمكّنين","Görev 6 · Profiler için","Bài tập 6 · Dành cho người giỏi"],"a6_p":["للتفكير أبعد – بجمل كاملة ومع تعليل.","Daha ileri düşünmek için – tam cümlelerle ve gerekçeyle.","Để suy nghĩ sâu hơn – viết thành câu đầy đủ, có giải thích lý do."],"a1_1.q":["1. اذكر نوعين من أنواع ذكر السعر (Preisnennung).","1. Fiyat belirtmenin (Preisnennung) iki türünü say.","1. Hãy nêu hai cách nêu giá (Preisnennung)."],"a1_1.h0":["تذكّر الوحدة 10: كيف يمكن ذكر السعر بذكاء؟","Modül 10'u hatırla: Bir fiyat akıllıca nasıl söylenir?","Nhớ lại Bài 10: Làm thế nào để nêu giá một cách khéo léo?"],"a1_1.h1":["أسماء الأنواع تنتهي كلها بكلمة «-methode» (طريقة).","Türlerin adlarının hepsi „-methode“ (yöntem) ile biter.","Tên các cách đều kết thúc bằng „-methode“ (phương pháp)."],"a1_1.s":["مثلًا طريقة التصغير (Verkleinerungsmethode) وطريقة المقارنة (Vergleichsmethode)؛ وكذلك طريقة التجزئة (Zerlegungsmethode) وطريقة التهوين (Verharmlosungsmethode).","Örneğin küçültme yöntemi (Verkleinerungsmethode) ve karşılaştırma yöntemi (Vergleichsmethode); ayrıca parçalara bölme (Zerlegungsmethode) ve önemsizleştirme yöntemi (Verharmlosungsmethode).","Ví dụ phương pháp thu nhỏ (Verkleinerungsmethode) và phương pháp so sánh (Vergleichsmethode); ngoài ra còn phương pháp chia nhỏ (Zerlegungsmethode) và phương pháp làm nhẹ đi (Verharmlosungsmethode)."],"a1_2.q":["2. ما هي طريقة الساندويتش (Sandwich-Methode)؟","2. Sandviç yöntemi (Sandwich-Methode) nedir?","2. Phương pháp Sandwich (Sandwich-Methode) là gì?"],"a1_2.h0":["فكّر في الساندويتش: ما الذي في الداخل وما الذي في الخارج؟","Bir sandviçi düşün: İçinde ne var, dışında ne var?","Hãy nghĩ đến một chiếc bánh sandwich: bên trong có gì, bên ngoài có gì?"],"a1_2.h1":["السعر هو الحشوة. ما الذي يأتي قبله وبعده؟","Fiyat iç malzemedir. Öncesinde ve sonrasında ne gelir?","Giá là phần nhân. Trước và sau nó là gì?"],"a1_2.s":["يُذكر السعر بين عبارتين عن الفائدة، حتى يبدو أقل ارتفاعًا.","Fiyat, yarara dair iki ifadenin arasında söylenir; böylece daha az yüksek görünür.","Giá được nêu ở giữa hai câu nói về lợi ích, để giá trông bớt cao."],"a1_3.q":["3. ماذا يثير السعر «العاري» (nackter Preis) عند العميل؟","3. „Çıplak“ bir fiyat (nackter Preis) müşteride neye yol açar?","3. Một mức giá „trần trụi“ (nackter Preis) gây ra điều gì ở khách hàng?"],"a1_3.h0":["العميل يسمع رقمًا فقط – دون أن يعرف ماذا سيحصل مقابله.","Müşteri sadece bir rakam duyar – karşılığında ne alacağını bilmez.","Khách chỉ nghe một con số – mà không biết mình nhận được gì."],"a1_3.h1":["تخيّل أنك تسمع فقط «389 يورو» دون أي شرح. كيف تشعر؟","Sadece „389 euro“ duyduğunu, hiçbir açıklama olmadığını düşün. Nasıl hissedersin?","Hãy tưởng tượng bạn chỉ nghe „389 euro“ mà không có lời giải thích nào. Bạn cảm thấy thế nào?"],"a1_3.s":["صدمة سعر (Preisschock) – العميل يسمع الرقم فقط دون الفائدة.","Fiyat şokuna (Preisschock) – müşteri yarar olmadan yalnızca rakamı duyar.","Một cú sốc giá (Preisschock) – khách chỉ nghe con số mà không nghe lợi ích đi kèm."],"a1_4.q":["4. اذكر الخطوات الثلاث لحجة البيع (Verkaufsargumentation).","4. Bir satış argümantasyonunun (Verkaufsargumentation) üç adımını say.","4. Hãy nêu ba bước của một lập luận bán hàng (Verkaufsargumentation)."],"a1_4.h0":["الخطوات تنتقل من البضاعة إلى العميل.","Adımlar üründen müşteriye doğru gider.","Các bước đi từ hàng hóa đến khách hàng."],"a1_4.h1":["الخطوة الأولى تصف كيف هي البضاعة. والأخيرة ماذا يستفيد العميل منها.","İlk adım ürünün nasıl olduğunu anlatır. Son adım müşterinin bundan ne kazandığını.","Bước đầu mô tả hàng hóa như thế nào. Bước cuối nói khách được lợi gì từ đó."],"a1_4.s":["ذكر ميزة البضاعة (Warenmerkmal)، وإظهار فائدة البضاعة (Warenvorteil)، وتوضيح فائدة العميل (Kundennutzen).","Ürün özelliğini belirtmek (Warenmerkmal), ürün avantajını göstermek (Warenvorteil), müşteri yararını açıklamak (Kundennutzen).","Nêu đặc điểm hàng hóa (Warenmerkmal), chỉ ra ưu điểm hàng hóa (Warenvorteil), trình bày lợi ích cho khách (Kundennutzen)."],"a1_5.q":["5. من ماذا يتوقف كون السعر يُشعَر به مرتفعًا؟","5. Bir fiyatın yüksek bulunup bulunmaması neye bağlıdır?","5. Giá có được cảm nhận là cao hay không phụ thuộc vào điều gì?"],"a1_5.h0":["لا يهمّ الرقم وحده، بل العميل أيضًا.","Yalnızca rakam değil, müşteri de önemlidir.","Không chỉ con số, mà còn tùy vào khách hàng."],"a1_5.h1":["قيمة البضاعة بقدر ما يعطيها العميل – ماذا يتوقع العميل منها؟","Bir ürün, müşterinin ona verdiği değer kadar değerlidir – müşteri ondan ne bekler?","Món hàng có giá trị bằng mức mà khách gán cho nó – khách kỳ vọng gì ở nó?"],"a1_5.s":["من توقّع العميل الشخصي للفائدة. قيمة البضاعة بقدر ما يعطيها العميل.","Müşterinin kişisel yarar beklentisine. Bir ürün, müşterinin ona biçtiği değer kadar değerlidir.","Vào kỳ vọng lợi ích cá nhân của khách. Món hàng đáng giá bằng mức mà khách gán cho nó."],"a3_1.q":["1. العميل: «آلة القهوة هذه معقّدة جدًا عليّ.»","1. M: „Bu kahve makinesi benim için çok karmaşık.“","1. KH: „Cái máy pha cà phê này phức tạp quá với tôi.“"],"a3_1.h0":["الاعتراض غير محدّد، فلا يمكن دحضه (entkräften) بعد.","İtiraz çok belirsiz; henüz giderilemez (entkräften).","Phản đối quá mơ hồ nên chưa thể bác bỏ (entkräften)."],"a3_1.h1":["انظر إلى جدول الطرق الخمس: أي طريقة مخصّصة للاعتراضات غير الدقيقة؟","Beş yöntemin tablosuna bak: Hangi yöntem belirsiz itirazlar için uygun?","Xem bảng năm phương pháp: phương pháp nào dành cho phản đối chưa rõ ràng?"],"a3_1.s":["طريقة السؤال المضاد (Gegenfrage-Methode): «Was genau erscheint Ihnen kompliziert – die Bedienung oder die Reinigung?» (ما الذي يبدو لك معقّدًا بالتحديد – التشغيل أم التنظيف؟) بعد ذلك يمكن الحجاج بشكل موجَّه.","Karşı soru yöntemi (Gegenfrage-Methode): „Was genau erscheint Ihnen kompliziert – die Bedienung oder die Reinigung?“ (Tam olarak neyi karmaşık buluyorsunuz – kullanımı mı, temizliği mi?) Ardından hedefli argüman sunulabilir.","Phương pháp hỏi ngược (Gegenfrage-Methode): „Was genau erscheint Ihnen kompliziert – die Bedienung oder die Reinigung?“ (Chính xác điều gì làm anh/chị thấy phức tạp – cách sử dụng hay việc vệ sinh?) Sau đó có thể lập luận có trọng tâm."],"a3_2.q":["2. العميل: «المعطف ثقيل جدًا عليّ.»","2. M: „Palto benim için çok ağır.“","2. KH: „Cái áo măng tô này nặng quá với tôi.“"],"a3_2.h0":["يمكن إظهار العيب كميزة.","Dezavantaj bir avantaj olarak gösterilebilir.","Nhược điểm có thể được trình bày thành ưu điểm."],"a3_2.h1":["ما فائدة المعطف الثقيل؟ ابدأ بـ «لهذا السبب بالذات …» أو «هذا بالذات …».","Ağır bir paltonun ne yararı var? „Tam da bu yüzden …“ veya „Tam da bu …“ ile başla.","Áo măng tô nặng có lợi gì? Hãy bắt đầu bằng „Chính vì vậy …“ hoặc „Chính điều đó …“."],"a3_2.s":["طريقة العكس (Umkehr-Methode): «Genau das Gewicht gibt dem Mantel seinen Fall – er behält auch nach Jahren seine Form und schützt Sie bei Wind.» (وزنه بالذات يعطي المعطف انسدالته – يحافظ على شكله بعد سنوات ويحميك من الريح.)","Tersine çevirme yöntemi (Umkehr-Methode): „Genau das Gewicht gibt dem Mantel seinen Fall – er behält auch nach Jahren seine Form und schützt Sie bei Wind.“ (Tam da ağırlık paltoya dökümünü verir – yıllar sonra bile şeklini korur ve sizi rüzgârdan korur.)","Phương pháp đảo ngược (Umkehr-Methode): „Genau das Gewicht gibt dem Mantel seinen Fall – er behält auch nach Jahren seine Form und schützt Sie bei Wind.“ (Chính trọng lượng làm cho áo rủ đẹp – áo giữ được dáng sau nhiều năm và che gió cho anh/chị.)"],"a3_3.q":["3. العميل: «هذا الجهاز أرخص بـ 40 يورو على الإنترنت.»","3. M: „İnternette bu cihaz 40 euro daha ucuz.“","3. KH: „Trên mạng thiết bị này rẻ hơn 40 euro.“"],"a3_3.h0":["وافق أولًا، ثم ضع فائدتك في المقابل.","Önce hak ver, sonra kendi yararını karşısına koy.","Đồng ý trước, rồi đưa lợi ích của mình ra đối lại."],"a3_3.h1":["انظر إلى صندوق الجمل: كيف تبدأ الجمل؟ «معك حق، ولكن …»","Cümle kalıplarına bak: Cümleler nasıl başlıyor? „Haklısınız, ancak …“","Xem hộp mẫu câu: các câu bắt đầu thế nào? „Anh/chị nói đúng, tuy nhiên …“"],"a3_3.s":["طريقة «نعم، لكن» (Ja-Aber-Methode): «Sie haben recht, online ist der Preis niedriger. Dafür schließen wir Ihnen das Gerät hier an, nehmen die Verpackung mit und tauschen es bei einem Defekt sofort um.» (معك حق، السعر على الإنترنت أقل. في المقابل نوصل لك الجهاز هنا، ونأخذ العبوة، ونستبدله فورًا عند وجود عطل.)","„Evet, ama“ yöntemi (Ja-Aber-Methode): „Sie haben recht, online ist der Preis niedriger. Dafür schließen wir Ihnen das Gerät hier an, nehmen die Verpackung mit und tauschen es bei einem Defekt sofort um.“ (Haklısınız, internette fiyat daha düşük. Buna karşılık cihazı burada sizin için bağlarız, ambalajı alırız ve arıza durumunda hemen değiştiririz.)","Phương pháp „Vâng, nhưng“ (Ja-Aber-Methode): „Sie haben recht, online ist der Preis niedriger. Dafür schließen wir Ihnen das Gerät hier an, nehmen die Verpackung mit und tauschen es bei einem Defekt sofort um.“ (Anh/chị nói đúng, giá trên mạng thấp hơn. Đổi lại chúng tôi lắp đặt thiết bị cho anh/chị tại đây, mang bao bì đi và đổi ngay nếu bị lỗi.)"],"a3_4.q":["4. العميل: «حذاء المشي العادي يكفيني تمامًا.»","4. M: „Basit bir yürüyüş ayakkabısı bana tamamen yeter.“","4. KH: „Một đôi giày đi bộ đường dài đơn giản là đủ với tôi rồi.“"],"a3_4.h0":["ضع بضاعتين جنبًا إلى جنب.","İki ürünü yan yana koy.","Đặt hai món hàng cạnh nhau."],"a3_4.h1":["أي طريقة تقارن البضاعة ببضاعة أخرى؟ ما الذي يفعله الحذاء الأغلى بشكل أفضل؟","Hangi yöntem ürünü başka bir ürünle karşılaştırır? Daha pahalı ayakkabı neyi daha iyi yapar?","Phương pháp nào so sánh món hàng với món khác? Đôi giày đắt hơn tốt hơn ở điểm nào?"],"a3_4.s":["طريقة المقارنة (Vergleichs-Methode): «Wenn Sie beide Schuhe nebeneinander sehen: Dieser hat eine durchgehende Sohle und stützt den Knöchel. Auf Geröll merken Sie den Unterschied sofort.» (عندما ترى الحذاءين جنبًا إلى جنب: هذا له نعل كامل ويدعم الكاحل. على الحصى ستلاحظ الفرق فورًا.)","Karşılaştırma yöntemi (Vergleichs-Methode): „Wenn Sie beide Schuhe nebeneinander sehen: Dieser hat eine durchgehende Sohle und stützt den Knöchel. Auf Geröll merken Sie den Unterschied sofort.“ (İki ayakkabıyı yan yana görürseniz: Bunun tabanı bütün ve bileği destekliyor. Çakıllı zeminde farkı hemen hissedersiniz.)","Phương pháp so sánh (Vergleichs-Methode): „Wenn Sie beide Schuhe nebeneinander sehen: Dieser hat eine durchgehende Sohle und stützt den Knöchel. Auf Geröll merken Sie den Unterschied sofort.“ (Nếu anh/chị đặt hai đôi giày cạnh nhau: đôi này có đế liền và đỡ cổ chân. Trên đá sỏi anh/chị sẽ thấy khác biệt ngay.)"],"a3_5.q":["5. العميل: «لن أشتري هذا بهذا السعر.» – كل الحجج ذُكرت بالفعل.","5. M: „Bu fiyata bunu almam.“ – Bütün argümanlar zaten söylendi.","5. KH: „Với giá này tôi không mua.“ – Mọi lập luận đã được nêu hết."],"a3_5.h0":["الحلّ الأخير عندما لا ينفع شيء آخر.","Başka hiçbir şey işe yaramadığında son çare.","Biện pháp cuối cùng khi không còn cách nào khác."],"a3_5.h1":["تسأل العميل مباشرة: ما الذي يجب أن يتغيّر حتى يشتري؟","Müşteriye doğrudan sorarsın: Satın alması için neyin değişmesi gerekir?","Bạn hỏi thẳng khách: cần thay đổi điều gì để khách mua?"],"a3_5.s":["طريقة اعتراض السعر (Preiseinwands-Methode): «Unterbreiten Sie mir einen Vorschlag – unter welchen Bedingungen würden Sie den Artikel mitnehmen?» (اقترح عليّ – بأي شروط ستأخذ السلعة؟)","Fiyat itirazı yöntemi (Preiseinwands-Methode): „Unterbreiten Sie mir einen Vorschlag – unter welchen Bedingungen würden Sie den Artikel mitnehmen?“ (Bana bir teklifte bulunun – ürünü hangi koşullarda alırsınız?)","Phương pháp phản đối về giá (Preiseinwands-Methode): „Unterbreiten Sie mir einen Vorschlag – unter welchen Bedingungen würden Sie den Artikel mitnehmen?“ (Xin anh/chị đề nghị cho tôi – với điều kiện nào anh/chị sẽ mua món này?)"],"a4_1.q":["1. لماذا يُعدّ اعتراض العميل فرصة للبيع؟","1. Bir müşteri itirazı neden satış için bir fırsattır?","1. Vì sao phản đối của khách hàng là cơ hội để bán hàng?"],"a4_1.h0":["ماذا يقول الاعتراض عن اهتمام العميل؟","İtiraz, müşterinin ilgisi hakkında ne söyler?","Phản đối cho biết điều gì về sự quan tâm của khách?"],"a4_1.h1":["يُظهر الاعتراض للبائع أيضًا من أين يواصل في حجته.","İtiraz satıcıya ayrıca argümantasyonuna nereden devam etmesi gerektiğini gösterir.","Phản đối còn cho người bán biết nên tiếp tục lập luận từ chỗ nào."],"a4_1.s":["لأنه يُظهر أن العميل مهتمّ بالبضاعة. كما يقول للبائع في أي نقطة يجب أن يبدأ حجته، ويمنحه فرصة لإقناع العميل بصحة رغبته في الشراء.","Çünkü müşterinin ürünle ilgilendiğini gösterir. Ayrıca satıcıya argümantasyonuna hangi noktadan başlaması gerektiğini söyler ve müşteriyi satın alma isteğinin doğruluğuna ikna etme fırsatı verir.","Vì nó cho thấy khách quan tâm đến hàng hóa. Nó còn cho người bán biết phải bắt đầu lập luận từ điểm nào và tạo cơ hội thuyết phục khách rằng mong muốn mua của họ là đúng."],"a4_2.q":["2. اذكر الأنواع الأربعة للاعتراضات المشروعة مع مثال لكل نوع.","2. Haklı müşteri itirazlarının dört türünü her biri için bir örnekle say.","2. Hãy nêu bốn loại phản đối chính đáng của khách hàng, mỗi loại kèm một ví dụ."],"a4_2.h0":["انظر إلى جدول «الأنواع الأربعة للاعتراضات المشروعة».","„Haklı itirazların dört türü“ tablosuna bak.","Xem bảng „Bốn loại phản đối chính đáng“."],"a4_2.h1":["الاعتراضات موجَّهة ضد: البضاعة – السعر – المتجر – الموظفين.","İtirazlar şunlara karşıdır: ürün – fiyat – mağaza – personel.","Phản đối nhắm vào: hàng hóa – giá – cửa hàng – nhân viên."],"a4_2.s":["اعتراضات على جودة البضاعة («السلطات لا تبدو طازجة.») · على نسبة السعر إلى الجودة («السعر مرتفع جدًا لهذه الجودة.») · على المتجر («هل هذا كل ما لديكم من البلوزات؟») · على الموظفين («أنتظر منذ عشر دقائق استشارة.»)","Ürünün kalitesine karşı („Salatalar taze görünmüyor.“) · fiyat-performans oranına karşı („Fiyat bu kalite için çok yüksek.“) · mağazaya karşı („Bluzlarınız bundan ibaret mi?“) · personele karşı („On dakikadır danışmanlık bekliyorum.“)","Phản đối về chất lượng hàng hóa („Món salad trông không tươi.“) · về quan hệ giá – chất lượng („Giá quá cao so với chất lượng.“) · về cửa hàng („Áo sơ mi nữ chỉ có bấy nhiêu thôi à?“) · về nhân viên („Tôi đợi mười phút rồi mà chưa được tư vấn.“)"],"a4_3.q":["3. كيف تميّز الذريعة (Vorwand)؟ اذكر جملتين كمثال.","3. Bir bahaneyi (Vorwand) nereden anlarsın? İki örnek cümle söyle.","3. Bạn nhận ra một cái cớ (Vorwand) qua đâu? Hãy nêu hai câu ví dụ."],"a4_3.h0":["هل ينتقد العميل شيئًا في البضاعة؟","Müşteri üründe bir şeyi eleştiriyor mu?","Khách có chê điều gì ở hàng hóa không?"],"a4_3.h1":["انظر إلى مربع «ذرائع نموذجية».","„Tipik bahaneler“ kutusuna bak.","Xem khung „Những cái cớ điển hình“."],"a4_3.s":["العميل لا ينتقد شيئًا في البضاعة، بل يختلق سببًا خارجيًا ليغادر المتجر دون فقدان ماء الوجه. مثلًا: «سأعود غدًا.» · «يجب أن أسأل زوجي أولًا.»","Müşteri üründe hiçbir şeyi eleştirmez, mağazadan yüzünü kaybetmeden ayrılabilmek için dışarıdan bir neden öne sürer. Örneğin: „Yarın tekrar gelirim.“ · „Önce eşime sormam lazım.“","Khách không chê gì ở hàng hóa mà viện một lý do bên ngoài để rời cửa hàng mà không mất mặt. Ví dụ: „Mai tôi quay lại.“ · „Tôi phải hỏi chồng tôi trước đã.“"],"a4_4.q":["4. كيف تتصرّف أمام الذريعة (Vorwand)؟ علّل.","4. Bir bahanede (Vorwand) nasıl davranırsın? Gerekçelendir.","4. Bạn cư xử thế nào khi gặp một cái cớ (Vorwand)? Hãy giải thích lý do."],"a4_4.h0":["هل يفيد الاستمرار في الحجاج الآن؟","Şimdi argüman sunmaya devam etmek işe yarar mı?","Tiếp tục lập luận lúc này có giúp ích không?"],"a4_4.h1":["كيف يجب أن يشعر العميل وهو يغادر – وماذا نريد منه لاحقًا؟","Müşteri giderken nasıl hissetmeli – ve daha sonra ne yapmasını istiyoruz?","Khách nên cảm thấy thế nào khi ra về – và sau này ta muốn họ làm gì?"],"a4_4.s":["إظهار التفهّم، وعدم الاستمرار في الحجاج، والوداع بلطف. هكذا نسهّل على العميل الانسحاب دون فقدان ماء الوجه – والوداع اللطيف يزيد احتمال عودته.","Anlayış göstermek, daha fazla argüman sunmamak ve nazikçe vedalaşmak. Böylece müşterinin yüzünü kaybetmeden geri çekilmesi kolaylaşır – ve nazik bir veda, tekrar gelme ihtimalini artırır.","Tỏ ra thông cảm, không lập luận thêm và chào tạm biệt thân thiện. Như vậy ta giúp khách rút lui mà không mất mặt – và lời tạm biệt lịch sự làm tăng khả năng khách quay lại."],"a4_5.q":["5. اشرح طريقة «نعم، لكن» (Ja-Aber-Methode) واكتب مثالًا من مجال عملك.","5. „Evet, ama“ yöntemini (Ja-Aber-Methode) açıkla ve kendi alanından bir örnek yaz.","5. Hãy giải thích phương pháp „Vâng, nhưng“ (Ja-Aber-Methode) và viết một ví dụ từ ngành của bạn."],"a4_5.h0":["ماذا يفعل البائع أولًا – وماذا بعد ذلك؟","Satıcı önce ne yapar – sonra ne yapar?","Người bán làm gì trước – và làm gì sau?"],"a4_5.h1":["انظر إلى صندوق الجمل: «معك حق، ولكن …»","Cümle kalıplarına bak: „Haklısınız, ancak …“","Xem hộp mẫu câu: „Anh/chị nói đúng, tuy nhiên …“"],"a4_5.s":["يُوافَق الاعتراض أولًا، حتى يشعر العميل أنه أُخذ على محمل الجد. بعد ذلك تأتي الحجة المضادة. مثال: «معك حق، هذا الطراز أثقل. في المقابل له هيكل معدني – ولذلك يتحمّل حتى لو نقلته كل يوم.»","İtiraza önce hak verilir; müşteri ciddiye alındığını hissetsin diye. Ardından karşı argüman gelir. Örnek: „Haklısınız, bu model daha ağır. Buna karşılık metal bir çerçevesi var – bu yüzden her gün taşısanız bile dayanır.“","Trước hết đồng ý với phản đối để khách cảm thấy được coi trọng. Sau đó đưa ra lập luận ngược lại. Ví dụ: „Anh/chị nói đúng, mẫu này nặng hơn. Đổi lại nó có khung kim loại – nên dù anh/chị mang đi hằng ngày nó vẫn bền.“"],"a4_6.q":["6. بأي ترتيب يتصرّف البائع المسموح له بمنح تخفيضات؟","6. İndirim verme yetkisi olan bir satıcı hangi sırayla tepki verir?","6. Người bán được phép giảm giá sẽ phản ứng theo thứ tự nào?"],"a4_6.h0":["التخفيض ليس أول شيء.","İndirim ilk sırada gelmez.","Giảm giá không đến đầu tiên."],"a4_6.h1":["انظر إلى قسم «عندما يريد العميل تخفيضًا في السعر».","„Müşteri indirim istediğinde“ bölümüne bak.","Xem phần „Khi khách muốn giảm giá“."],"a4_6.s":["أولًا هدية صغيرة (Zugabe)، ثم خدمة صغيرة، وبعد ذلك فقط تخفيض السعر (Preisnachlass).","Önce küçük bir hediye (Zugabe), sonra küçük bir hizmet ve ancak en son indirim (Preisnachlass).","Trước tiên là một món quà tặng kèm nhỏ (Zugabe), rồi một dịch vụ nhỏ, và chỉ sau cùng mới giảm giá (Preisnachlass)."],"a5_1.q":["اذكر اعتراضين تسمعهما كثيرًا في مكان تدريبك. صنّف كل اعتراض ضمن أحد الأنواع الأربعة وأجب بجملة منطوقة – كل مرة بطريقة مختلفة.","İşletmende sık duyduğun iki itirazı yaz. Her birini dört türden birine yerleştir ve doğrudan konuşma cümlesiyle cevap ver – her seferinde farklı bir yöntemle.","Hãy nêu hai phản đối mà bạn thường nghe ở nơi thực tập. Xếp mỗi phản đối vào một trong bốn loại và trả lời bằng lời nói trực tiếp – mỗi lần dùng một phương pháp khác nhau."],"a5_1.h0":["اكتب الاعتراض كما يقوله العميل تمامًا – بين علامتي اقتباس.","İtirazı müşterinin söylediği gibi yaz – tırnak işaretleriyle.","Viết phản đối đúng như khách nói – trong dấu ngoặc kép."],"a5_1.h1":["إلى أي نوع ينتمي: البضاعة، نسبة السعر إلى الجودة، المتجر أم الموظفون؟ استخدم لكل اعتراض طريقة مختلفة.","Hangi türe ait: ürün, fiyat-performans oranı, mağaza ya da personel? Her itiraz için farklı bir yöntem kullan.","Nó thuộc loại nào: hàng hóa, quan hệ giá – chất lượng, cửa hàng hay nhân viên? Mỗi phản đối dùng một phương pháp khác."],"a5_1.s":["إجابة فردية. تحقّق بنفسك: (1) هل صُنّف كل اعتراض بشكل صحيح ضمن أحد الأنواع الأربعة؟ (2) هل ذكرت الطريقة – وطريقة أخرى للاعتراض الثاني؟ (3) هل جوابك بجملة منطوقة؟ (4) هل جوابك لا يعارض العميل علنًا؟","Kişisel cevap. Kendin kontrol et: (1) Her itiraz doğru şekilde dört türden birine yerleştirildi mi? (2) Yöntemi adlandırdın mı – ikinci itiraz için farklı bir yöntem mi seçtin? (3) Cevabın doğrudan konuşma cümlesiyle mi yazılı? (4) Cevabın müşteriye açıkça karşı çıkmıyor mu?","Đáp án cá nhân. Hãy tự kiểm tra: (1) Mỗi phản đối đã được xếp đúng vào một trong bốn loại chưa? (2) Bạn đã nêu tên phương pháp chưa – và dùng phương pháp khác cho phản đối thứ hai? (3) Câu trả lời của bạn có viết bằng lời nói trực tiếp không? (4) Câu trả lời có không cãi lại khách một cách công khai không?"],"a6_1.q":["6.1 بعض الاعتراضات لا يمكن دحضها أصلًا. اذكروا ثلاث حالات من هذا النوع واشرحوا لماذا يضرّ كل دليل إضافي هنا.","6.1 Bazı itirazlar hiçbir şekilde giderilemez. Böyle üç durum söyleyin ve neden her ek argümanın burada zarar verdiğini açıklayın.","6.1 Một số phản đối hoàn toàn không thể bác bỏ. Hãy nêu ba trường hợp như vậy và giải thích vì sao mỗi lập luận thêm ở đây đều có hại."],"a6_1.h0":["فكّروا في رغبات لا يستطيع المتجر تلبيتها، وفي البضاعة نفسها، وفي الذريعة.","Mağazanın karşılayamayacağı isteklere, ürünün kendisine ve bahaneye düşünün.","Hãy nghĩ đến những mong muốn cửa hàng không đáp ứng được, đến chính món hàng, và đến cái cớ."],"a6_1.h1":["كيف يشعر العميل عندما يواصل البائع الحجاج رغم ذلك؟","Satıcı yine de argüman sunmaya devam ederse müşteri nasıl hisseder?","Khách cảm thấy thế nào khi người bán vẫn tiếp tục lập luận?"],"a6_1.s":["حلّ نموذجي (اقتراح): أولًا: لدى العميل تصوّرات محدّدة عن المادة أو اللون أو التصميم لا يستطيع المتجر تلبيتها. ثانيًا: البضاعة تزعج العميل في راحته – البلوزة ضيقة، حذاء المشي يضغط. ثالثًا: يتظاهر العميل بالرغبة في الشراء لكنه يريد أن يستعلم فقط. في الحالات الثلاث الأمر محسوم موضوعيًا. كل حجة إضافية تبدو الآن كضغط: العميل يضطر لتبرير نفسه ويشعر بالإحراج ويغادر المتجر بشعور سيئ – ولا يعود. الصواب هو إظهار التفهّم والوداع بلطف.","Örnek çözüm (öneri): Birincisi: Müşterinin malzeme, renk veya tasarım konusunda mağazanın karşılayamayacağı belirli beklentileri vardır. İkincisi: Ürün müşterinin rahatını bozar – bluz dar, yürüyüş ayakkabısı sıkıyor. Üçüncüsü: Müşteri satın alma ilgisi gösterir ama aslında yalnızca bilgi almak ister. Üç durumda da konu esasen kararlaştırılmıştır. Her ek argüman şimdi baskı gibi görünür: Müşteri kendini savunmak zorunda kalır, bunaldığını hisseder ve mağazadan kötü bir hisle ayrılır – ve geri gelmez. Doğrusu anlayış göstermek ve nazikçe vedalaşmaktır.","Đáp án mẫu (gợi ý): Thứ nhất: khách có những hình dung cụ thể về chất liệu, màu sắc hay thiết kế mà cửa hàng không đáp ứng được. Thứ hai: món hàng làm khách khó chịu – áo sơ mi quá chật, giày đi bộ bị chật. Thứ ba: khách giả vờ muốn mua nhưng chỉ muốn tìm hiểu. Trong cả ba trường hợp, vấn đề đã được quyết định về mặt thực tế. Mỗi lập luận thêm lúc này đều như một sự ép buộc: khách phải biện minh, cảm thấy bị làm phiền và rời cửa hàng với cảm giác không tốt – và không quay lại. Cách đúng là tỏ ra thông cảm và chào tạm biệt thân thiện."],"a6_2.q":["6.2 طريقة «نعم، لكن» هي الأشهر – وهي أيضًا الأخطر. اشرحوا لماذا يجب النطق بكلمة «لكن»، وماذا يحدث إذا تظاهر البائع بجزء «نعم» فقط.","6.2 „Evet, ama“ yöntemi en bilinen – ve aynı zamanda en tehlikeli yöntemdir. „Ama“ sözcüğünün neden söylenmesi gerektiğini ve satıcı „evet“ kısmını sadece rol icabı yaparsa ne olacağını açıklayın.","6.2 Phương pháp „Vâng, nhưng“ là phương pháp nổi tiếng nhất – và cũng nguy hiểm nhất. Hãy giải thích vì sao nên nói ra chữ „nhưng“, và điều gì xảy ra nếu người bán chỉ giả vờ phần „vâng“."],"a6_2.h0":["ماذا يجب أن يلاحظ العميل في جزء «نعم»؟ وماذا يبقى قائمًا إذا غابت الحجة المضادة؟","Müşteri „evet“ kısmında neyi fark etmeli? Karşı argüman yoksa ne kalır?","Khách phải nhận thấy điều gì ở phần „vâng“? Điều gì còn lại nếu thiếu lập luận ngược lại?"],"a6_2.h1":["كيف يبدو «نعم، لكن …» المنطوق في نَفَس واحد؟","Tek nefeste söylenen bir „Evet, ama …“ nasıl duyulur?","Một câu „Vâng, nhưng …“ nói liền một hơi nghe như thế nào?"],"a6_2.s":["حلّ نموذجي (اقتراح): جزء «نعم» لا يؤثّر إلا إذا كان صادقًا: يجب أن يشعر العميل بأن اعتراضه وصل فعلًا. من يردّد جزء الموافقة كصيغة جاهزة («نعم، لكن …» في نَفَس واحد) يحقق عكس المطلوب – العميل يسمع أنه يُعارَض ويدافع عن اعتراضه أكثر. ومع ذلك فالمعارضة جزء من الطريقة، وإلا بقي الاعتراض قائمًا. عمليًا: أولًا أؤكد الاعتراض بكلماتي، ثم وقفة قصيرة، ثم الحجة المضادة – وكثير من البائعين يستبدلون «لكن» القاسية بـ «غير أن» أو «مع ذلك» أو «وفي الوقت نفسه» لأنها تبدو أقل معارضة.","Örnek çözüm (öneri): „Evet“ ancak gerçekse etkilidir: Müşteri, itirazının gerçekten anlaşıldığını fark etmelidir. Onay kısmını kalıp gibi ezbere söyleyen („Evet, ama …“ tek nefeste) tersini başarır – müşteri kendisine karşı çıkıldığını duyar ve itirazını şimdi daha da çok savunur. Yine de karşı çıkma işin bir parçasıdır, yoksa itiraz ortada kalır. Pratikte bu şu demektir: Önce itirazı kendi sözlerinizle onaylayın, kısa bir duraklama, sonra karşı argüman – ve birçok satıcı sert „ama“ yerine „ancak“, „fakat“ veya „aynı zamanda“ der, çünkü bu daha az karşı çıkma gibi duyulur.","Đáp án mẫu (gợi ý): Chữ „vâng“ chỉ có tác dụng khi nó thật lòng: khách phải nhận thấy phản đối của mình thực sự được tiếp nhận. Ai chỉ đọc phần đồng ý như một công thức („Vâng, nhưng …“ liền một hơi) sẽ đạt kết quả ngược lại – khách nghe ra là mình đang bị cãi lại và càng bảo vệ phản đối của mình hơn. Dù vậy phần phản bác vẫn cần có, nếu không phản đối vẫn còn nguyên. Trong thực tế: trước tiên xác nhận phản đối bằng lời của mình, dừng một chút, rồi mới nêu lập luận ngược lại – và nhiều người bán thay chữ „nhưng“ cứng nhắc bằng „tuy nhiên“, „song“ hoặc „đồng thời“ vì nghe ít giống phản bác hơn."],"a6_3.q":["6.3 يقول عميل: «زميلك عاملني بشكل غير ودّي جدًا قبل مدة.» ضعوا جوابًا دون الإساءة إلى الزميل ودون التقليل من شأن العميل.","6.3 Bir müşteri şöyle diyor: „Meslektaşınız geçenlerde bana çok kaba davrandı.“ Meslektaşı kötülemeden ve müşteriyi geçiştirmeden bir cevap geliştirin.","6.3 Một khách nói: „Đồng nghiệp của anh/chị hôm trước đã đối xử với tôi rất thiếu thân thiện.“ Hãy xây dựng một câu trả lời mà không nói xấu đồng nghiệp và không xem nhẹ khách."],"a6_3.h0":["إلى أي نوع من الأنواع الأربعة ينتمي هذا الاعتراض؟","Bu itiraz dört türden hangisine ait?","Phản đối này thuộc loại nào trong bốn loại?"],"a6_3.h1":["يجب أن يشعر العميل أنه أُخذ على محمل الجد – ويجب أن تعود المحادثة إلى البضاعة.","Müşteri ciddiye alındığını hissetmeli – ve görüşme ürüne geri dönmeli.","Khách phải cảm thấy được coi trọng – và cuộc trò chuyện phải quay lại với món hàng."],"a6_3.s":["حلّ نموذجي (اقتراح): هذا الاعتراض موجَّه ضد الموظفين، فهو مشروع. طريق ممكن: «يؤسفني ذلك، لا ينبغي أن يشعر أحد هنا بأنه عومل هكذا. شكرًا لأنك أخبرتني – سأنقل ذلك إلى إدارة القسم. والآن سأخصّص لك وقتي: لأي غرض تبحث عن السترة؟» يحدث هنا ثلاثة أمور: العميل يؤخذ على محمل الجد، والزميل لا يُدان أمام العميل (وهذا يكون عدم وفاء ويجعل العميل يشكّ في المتجر)، والمحادثة تعود إلى البضاعة. جمل مثل «لا أستطيع تصوّر ذلك» أو «كان يومه سيئًا» خاطئة كلتاهما – الأولى تتهم العميل بالكذب، والثانية تؤكد الاتهام دون حلّه.","Örnek çözüm (öneri): Bu itiraz personele yöneliktir ve dolayısıyla haklıdır. Olası bir yol: „Üzüldüm, burada kimse böyle muamele gördüğünü hissetmemeli. Bana söylediğiniz için teşekkürler – bunu bölüm sorumlumuza iletirim. Şimdi de size zaman ayırıyorum: Ceketi ne için arıyorsunuz?“ Burada üç şey olur: Müşteri ciddiye alınır, meslektaş müşterinin önünde yargılanmaz (bu sadakatsizlik olur ve müşteriyi işletmeden şüphelendirir) ve görüşme ürüne geri döner. „Bunu hayal edemiyorum“ veya „Canı sıkkındı herhalde“ gibi cümleler ikisi de yanlıştır – birincisi müşteriye yalancı demek olur, ikincisi suçlamayı çözmeden onaylar.","Đáp án mẫu (gợi ý): Phản đối này nhắm vào nhân viên nên là phản đối chính đáng. Một cách có thể: „Tôi rất tiếc, ở đây không ai nên cảm thấy bị đối xử như vậy. Cảm ơn anh/chị đã cho tôi biết – tôi sẽ chuyển lại cho trưởng bộ phận. Và bây giờ tôi dành thời gian cho anh/chị: Anh/chị đang tìm áo khoác để dùng vào việc gì ạ?“ Trong đó có ba điều: khách được coi trọng, đồng nghiệp không bị phán xét trước mặt khách (như vậy là thiếu trung thành và khiến khách nghi ngờ cả cửa hàng), và cuộc trò chuyện quay lại với món hàng. Những câu như „Tôi không thể tưởng tượng được“ hoặc „Anh ấy hôm đó có ngày không tốt“ đều sai – câu đầu coi khách là kẻ nói dối, câu sau xác nhận lời trách mà không giải quyết gì."],"v8_1.q":["8.1 علّل: لماذا يُظهر الاعتراض أن العميل مهتمّ، مع أنه ينتقد شيئًا؟","8.1 Gerekçelendir: Bir müşteri bir şeyi eleştirdiği hâlde, itiraz neden müşterinin ilgili olduğunu gösterir?","8.1 Hãy giải thích: Vì sao một phản đối cho thấy khách quan tâm, dù họ đang chê điều gì đó?"],"v8_1.h0":["فكّر في جملة «تذكّر»: ما الذي لم يتّضح للعميل بعد؟","„Unutma“ cümlesini düşün: Müşteriye henüz ne net değil?","Nghĩ đến câu ghi nhớ: Khách còn chưa thấy rõ điều gì?"],"v8_1.h1":["هل يهتمّ العميل بالبضاعة – أم يريد فقط أن يغادر؟","Müşteri ürünle mi ilgileniyor – yoksa sadece gitmek mi istiyor?","Khách đang quan tâm đến món hàng – hay chỉ muốn đi?"],"v8_1.s":["العميل منشغل بالبضاعة، وإلا لما ذكر اعتراضًا. هو مهتمّ بالبضاعة، لكن فائدة الشراء لم تتّضح له بعد. وهنا بالذات يستطيع البائع أن يبدأ بحجج جديدة.","Müşteri ürünle ilgileniyor, yoksa itiraz etmezdi. Ürünle ilgileniyor, yalnızca satın almanın yararı ona henüz net değil. Satıcı tam burada yeni argümanlarla devreye girebilir.","Khách đang bận tâm đến món hàng, nếu không họ đã không nêu phản đối. Họ quan tâm đến hàng hóa, chỉ là lợi ích của việc mua chưa rõ với họ. Chính ở đó người bán có thể bắt đầu bằng những lập luận mới."],"v8_2.q":["8.2 يقول عميل: «رأيت هذا في مكان آخر أرخص.» علّل لماذا لا يجوز للبائع أن يقول: «هذا مستحيل.»","8.2 Bir müşteri şöyle diyor: „Bunu başka yerde daha ucuza gördüm.“ Satıcının neden „Bu imkânsız.“ dememesi gerektiğini gerekçelendir.","8.2 Một khách nói: „Tôi thấy món này ở nơi khác rẻ hơn.“ Hãy giải thích vì sao người bán không được nói: „Điều đó không thể.“"],"v8_2.h0":["ماذا يقول البائع بذلك عن العميل؟","Satıcı bununla müşteri hakkında ne söylemiş olur?","Người bán nói vậy là ám chỉ điều gì về khách?"],"v8_2.h1":["ماذا يجب على البائع أن يفعل بدلًا من ذلك أولًا؟","Satıcı bunun yerine önce ne yapmalı?","Thay vào đó, người bán nên làm gì trước tiên?"],"v8_2.s":["من يقول «هذا مستحيل» يعارض العميل علنًا ويبدو كأنه لا يصدّقه. الأفضل: أن يطلب أولًا تفاصيل أكثر عن العرض الأرخص، وبعد ذلك فقط يتناول الأسباب الممكنة، مثل اختلاف المقاسات أو الأسعار المتدرّجة أو فروق الجودة.","„Bu imkânsız“ diyen, müşteriye açıkça karşı çıkar ve ona inanmıyormuş gibi görünür. Daha iyisi: Önce daha ucuz teklif hakkında ayrıntılı bilgi istemek, ancak ondan sonra olası nedenlere geçmek, örneğin farklı bedenler, kademeli fiyatlar veya kalite farkları.","Ai nói „Điều đó không thể“ là cãi lại khách một cách công khai và có vẻ như không tin khách. Tốt hơn: trước tiên xin thêm thông tin về ưu đãi rẻ hơn, rồi mới nói đến các nguyên nhân có thể như kích cỡ khác nhau, giá theo bậc hoặc khác biệt chất lượng."],"v8_3.q":["8.3 ماذا سيحدث لو واصل البائع الحجاج دائمًا أمام الذريعة (Vorwand)؟ علّل.","8.3 Satıcı bir bahanede (Vorwand) sürekli argüman sunmaya devam ederse ne olur? Gerekçelendir.","8.3 Điều gì sẽ xảy ra nếu người bán cứ tiếp tục lập luận khi gặp một cái cớ (Vorwand)? Hãy giải thích lý do."],"v8_3.h0":["هل انتقد العميل شيئًا في البضاعة؟","Müşteri üründe bir şeyi eleştirdi mi?","Khách có chê điều gì ở hàng hóa không?"],"v8_3.h1":["كيف يشعر العميل عندما يضطر إلى تبرير نفسه؟","Müşteri kendini savunmak zorunda kalınca nasıl hisseder?","Khách cảm thấy thế nào khi phải biện minh?"],"v8_3.s":["في الذريعة لا يُنتقد شيء في البضاعة، لذلك لا تنفع الحجج. كل حجة إضافية تبدو كضغط: العميل يشعر بالإحراج ويغادر المتجر بشعور سيئ ولا يعود. الأفضل إظهار التفهّم والوداع بلطف.","Bahanede üründe hiçbir şey eleştirilmediği için argümanlar işe yaramaz. Her ek argüman baskı gibi görünür: Müşteri bunalır, mağazadan kötü bir hisle ayrılır ve geri gelmez. Daha iyisi anlayış göstermek ve nazikçe vedalaşmaktır.","Với cái cớ, không có gì về hàng hóa bị chê nên lập luận không giúp ích. Mỗi lập luận thêm đều như sự ép buộc: khách cảm thấy bị làm phiền, rời cửa hàng với cảm giác không tốt và không quay lại. Tốt hơn là tỏ ra thông cảm và chào tạm biệt thân thiện."],"v8_4.q":["8.4 لماذا طريقة السؤال المضاد (Gegenfrage-Methode) أفضل من الحجاج الفوري في الاعتراضات غير الدقيقة؟ اشرح بمثال «هذا لا يعجبني.»","8.4 Belirsiz itirazlarda karşı soru yöntemi (Gegenfrage-Methode) neden hemen argüman sunmaktan daha iyidir? „Bu hoşuma gitmedi.“ örneğiyle açıkla.","8.4 Vì sao phương pháp hỏi ngược (Gegenfrage-Methode) tốt hơn việc lập luận ngay khi phản đối chưa rõ ràng? Hãy giải thích bằng ví dụ „Tôi không thích cái này.“"],"v8_4.h0":["هل يعرف البائع في «هذا لا يعجبني» ما الذي يزعج بالتحديد؟","„Bu hoşuma gitmedi“ denince satıcı tam olarak neyin rahatsız ettiğini biliyor mu?","Với „Tôi không thích cái này“, người bán có biết chính xác điều gì làm khách khó chịu không?"],"v8_4.h1":["ماذا يستطيع أن يفعل بعد جواب العميل؟","Müşterinin cevabından sonra ne yapabilir?","Sau câu trả lời của khách, người bán có thể làm gì?"],"v8_4.s":["«هذا لا يعجبني» اعتراض غير محدّد تمامًا. لا يعرف البائع ما الذي يزعج بالتحديد، وستذهب حججه في الفراغ. بالسؤال المضاد («وما الذي يجب أن يكون مختلفًا – اللون أم الشكل أم المادة؟») يعرف المخاوف الملموسة، وبعد ذلك يستطيع أن يحاجج بشكل موجَّه.","„Bu hoşuma gitmedi“ tamamen belirsiz bir itirazdır. Satıcı tam olarak neyin rahatsız ettiğini bilmez ve argümanlarıyla boşa konuşur. Karşı soruyla („Peki neyin farklı olması gerekirdi – renk, biçim ya da malzeme?“) somut endişeleri öğrenir ve ondan sonra hedefli argüman sunabilir.","„Tôi không thích cái này“ là một phản đối hoàn toàn mơ hồ. Người bán không biết chính xác điều gì làm khách khó chịu và các lập luận sẽ nói vào khoảng trống. Với câu hỏi ngược („Vậy cần khác đi ở điểm nào – màu sắc, hình dáng hay chất liệu?“), người bán biết được những lo ngại cụ thể và sau đó có thể lập luận có trọng tâm."],"r0.t":["الاعتراض فرصة","İtiraz bir fırsattır","Phản đối là một cơ hội"],"r0.task":["ظلّل ما يُظهره الاعتراض وما هو بالنسبة إلى البيع.","Bir itirazın neyi gösterdiğini ve satış için ne olduğunu işaretle.","Đánh dấu điều mà phản đối cho thấy và nó là gì đối với việc bán hàng."],"r0.x":["اعتراضات العملاء جزء طبيعي من محادثة البيع. إنها تُظهر أن العميل مهتمّ بالبضاعة، لكن فائدة الشراء لم تتّضح له بعد. لذلك فالاعتراض فرصة للبيع. يأخذه البائع على محمل الجد ويحاول إزالته بحجج جديدة. الاعتراض علامة على أن العميل يريد المغادرة فعلًا – هذا غير صحيح.","Müşteri itirazları satış görüşmesinin normal bir parçasıdır. Müşterinin ürünle ilgilendiğini, ama satın almanın yararının ona henüz net olmadığını gösterirler. Bu yüzden bir itiraz satış için bir fırsattır. Satıcı onu ciddiye alır ve yeni argümanlarla gidermeye çalışır. İtiraz, müşterinin aslında gitmek istediğinin işaretidir – bu doğru değil.","Phản đối của khách hàng là một phần bình thường của cuộc trò chuyện bán hàng. Chúng cho thấy khách quan tâm đến hàng hóa nhưng chưa thấy rõ lợi ích của việc mua. Vì vậy phản đối là một cơ hội để bán hàng. Người bán xem trọng nó và cố gắng giải tỏa bằng những lập luận mới. Phản đối là dấu hiệu khách đã muốn đi – điều này không đúng."],"r0.q":["لماذا يُعدّ اعتراض العميل فرصة؟","Bir müşteri itirazı neden bir fırsattır?","Vì sao phản đối của khách hàng là một cơ hội?"],"r0.o0":["لأن العميل يُظهر بذلك أنه مهتمّ بالبضاعة.","Çünkü müşteri bununla ürünle ilgilendiğini gösterir.","Vì qua đó khách cho thấy họ quan tâm đến hàng hóa."],"r0.o1":["لأن المحادثة تنتهي بذلك تلقائيًا.","Çünkü görüşme bununla otomatik olarak biter.","Vì cuộc trò chuyện tự động kết thúc."],"r0.o2":["لأن البائع يستطيع تخفيض السعر فورًا.","Çünkü satıcı fiyatı hemen düşürebilir.","Vì người bán có thể giảm giá ngay."],"r1.t":["الأنواع الأربعة للاعتراضات المشروعة","Haklı itirazların dört türü","Bốn loại phản đối chính đáng"],"r1.task":["ظلّل الأنواع الأربعة.","Dört türü işaretle.","Đánh dấu bốn loại."],"r1.x":["الاعتراضات المشروعة موجَّهة ضد جودة البضاعة، أو ضد نسبة السعر إلى الجودة، أو ضد المتجر، أو ضد الموظفين. يشمل المتجر تشكيلة البضائع والخدمات والمعروضات. ويشمل الموظفون الكفاءة المهنية والاستشارة واللطف. الاعتراضات على الطقس ليست منها.","Haklı itirazlar ürünün kalitesine, fiyat-performans oranına, mağazaya veya personele yöneliktir. Mağazaya ürün çeşidi, hizmetler ve ürün yelpazesi girer. Personele uzmanlık, danışmanlık ve nezaket girer. Havaya yönelik itirazlar bunlara dahil değildir.","Phản đối chính đáng nhắm vào chất lượng hàng hóa, quan hệ giá – chất lượng, cửa hàng hoặc nhân viên. Cửa hàng gồm độ đa dạng hàng hóa, dịch vụ và mặt hàng. Nhân viên gồm chuyên môn, tư vấn và sự thân thiện. Phản đối về thời tiết không thuộc các loại này."],"r1.q":["يقول العميل: «أنتظر هنا منذ عشر دقائق بائعًا.» ضد أي نوع هذا؟","Müşteri şöyle diyor: „Burada on dakikadır bir satıcı bekliyorum.“ Bu hangi türe yöneliktir?","Khách nói: „Tôi đợi ở đây mười phút rồi mà chưa có nhân viên nào.“ Đây là phản đối thuộc loại nào?"],"r1.o0":["ضد جودة البضاعة.","Ürünün kalitesine.","Về chất lượng hàng hóa."],"r1.o1":["ضد الموظفين.","Personele.","Về nhân viên."],"r1.o2":["ضد نسبة السعر إلى الجودة.","Fiyat-performans oranına.","Về quan hệ giá – chất lượng."],"r2.t":["الاعتراض كذريعة","Bahane olarak itiraz","Phản đối như một cái cớ"],"r2.task":["ظلّل ما هي الذريعة وماذا يفعل البائع.","Bahanenin ne olduğunu ve satıcının ne yaptığını işaretle.","Đánh dấu cái cớ là gì và người bán làm gì."],"r2.x":["أحيانًا لا يريد العميل شراء السلعة أصلًا. يبحث عن ذريعة ليغادر المتجر. هذا اعتراض غير حقيقي. يستطيع البائع توفير الحجاج هنا. الصواب: إظهار التفهّم وتسهيل انسحاب العميل دون فقدان ماء الوجه. الوداع اللطيف يزيد احتمال عودة العميل. الاستمرار في الإلحاح على العميل خطأ.","Bazen müşteri ürünü hiç satın almak istemez. Mağazadan ayrılmak için bir bahane arar. Bu gerçek olmayan bir itirazdır. Satıcı burada argüman sunmaktan vazgeçebilir. Doğrusu: Anlayış göstermek ve müşterinin yüzünü kaybetmeden geri çekilmesini kolaylaştırmak. Nazik bir veda, müşterinin tekrar gelme ihtimalini artırır. Müşterinin üstüne gitmeye devam etmek yanlıştır.","Đôi khi khách hoàn toàn không muốn mua món hàng. Họ tìm một cái cớ để rời cửa hàng. Đó là phản đối không thật. Người bán có thể không cần lập luận ở đây. Cách đúng: tỏ ra thông cảm và giúp khách rút lui mà không mất mặt. Một lời tạm biệt lịch sự làm tăng khả năng khách quay lại. Tiếp tục nài ép khách là sai."],"r2.q":["أي جملة هي ذريعة نموذجية؟","Hangi cümle tipik bir bahanedir?","Câu nào là một cái cớ điển hình?"],"r2.o0":["«المعطف ثقيل جدًا عليّ.»","„Palto benim için çok ağır.“","„Cái áo măng tô này nặng quá với tôi.“"],"r2.o1":["«سأعود غدًا، ليس لدي وقت اليوم.»","„Yarın tekrar gelirim, bugün vaktim kalmadı.“","„Mai tôi quay lại, hôm nay tôi hết thời gian rồi.“"],"r2.o2":["«السعر مرتفع جدًا لهذه الجودة.»","„Fiyat bu kalite için çok yüksek.“","„Giá quá cao so với chất lượng.“"],"r3.t":["الطرق الخمس","Beş yöntem","Năm phương pháp"],"r3.task":["ظلّل الطرق الخمس لمعالجة الاعتراضات.","İtirazları ele almanın beş yöntemini işaretle.","Đánh dấu năm phương pháp xử lý phản đối."],"r3.x":["هناك خمس طرق. في طريقة «نعم، لكن» يُوافَق العميل أولًا ثم تأتي حجة مضادة. في طريقة المقارنة تُقارَن البضاعة ببضاعة أخرى. طريقة السؤال المضاد تساعد في الاعتراضات غير الدقيقة. في طريقة العكس (تُسمّى أيضًا طريقة البوميرانغ) يُظهر البائع أن العيب ميزة من زاوية أخرى. طريقة اعتراض السعر هي الحلّ الأخير. طريقة الساندويتش ليست من الطرق الخمس لمعالجة الاعتراضات.","Beş yöntem vardır. „Evet, ama“ yönteminde müşteriye önce hak verilir, ardından bir karşı argüman gelir. Karşılaştırma yönteminde ürün başka bir ürünle karşılaştırılır. Karşı soru yöntemi belirsiz itirazlarda yardımcı olur. Tersine çevirme yönteminde (Bumerang yöntemi de denir) satıcı, bir dezavantajın başka bir açıdan avantaj olduğunu gösterir. Fiyat itirazı yöntemi son çaredir. Sandviç yöntemi, itirazları ele almanın beş yönteminden biri değildir.","Có năm phương pháp. Với phương pháp „Vâng, nhưng“, trước hết đồng ý với khách, sau đó nêu lập luận ngược lại. Với phương pháp so sánh, món hàng được so với món hàng khác. Phương pháp hỏi ngược giúp ích khi phản đối chưa rõ ràng. Với phương pháp đảo ngược (còn gọi là phương pháp Bumerang), người bán cho thấy một nhược điểm nhìn từ góc khác là ưu điểm. Phương pháp phản đối về giá là biện pháp cuối cùng. Phương pháp Sandwich không thuộc năm phương pháp xử lý phản đối."],"r3.q":["متى تكون طريقة السؤال المضاد مفيدة؟","Karşı soru yöntemi ne zaman mantıklıdır?","Khi nào phương pháp hỏi ngược có ích?"],"r3.o0":["في الاعتراضات غير الدقيقة – يريد البائع أن يعرف ما هي مخاوف العميل بالتحديد.","Belirsiz itirazlarda – satıcı müşterinin somut olarak hangi endişelere sahip olduğunu öğrenmek ister.","Khi phản đối chưa rõ ràng – người bán muốn biết khách cụ thể lo ngại điều gì."],"r3.o1":["دائمًا أولًا عند السعر.","Fiyatta her zaman ilk olarak.","Luôn luôn là bước đầu tiên khi nói về giá."],"r3.o2":["عندما يذكر العميل عيبًا هو في الحقيقة ميزة.","Müşteri aslında bir avantaj olan bir dezavantajı söylediğinde.","Khi khách nêu một nhược điểm mà thật ra là ưu điểm."],"r4.t":["عندما يريد العميل تخفيضًا في السعر","Müşteri indirim istediğinde","Khi khách muốn giảm giá"],"r4.task":["ظلّل الترتيب والتصرف الصحيح.","Sırayı ve doğru davranışı işaretle.","Đánh dấu thứ tự và cách cư xử đúng."],"r4.x":["إذا كان يحق للبائع منح تخفيضات، فإنه يلتزم بترتيب: أولًا هدية صغيرة، ثم خدمة صغيرة، وبعد ذلك فقط تخفيض السعر. إذا قال العميل إنه رأى البضاعة أرخص في مكان آخر، يطلب البائع أولًا تفاصيل أكثر عن العرض الأرخص. بعد ذلك فقط يتناول الأسباب الممكنة، مثل فروق الجودة. لا يقول «لا يوجد شيء كهذا».","Satıcı indirim verebiliyorsa bir sıraya uyar: önce küçük bir hediye, sonra küçük bir hizmet ve ancak en son indirim. Müşteri ürünü başka yerde daha ucuza gördüğünü söylerse, satıcı önce daha ucuz teklif hakkında ayrıntılı bilgi ister. Ancak ondan sonra olası nedenlere geçer, örneğin kalite farklarına. „Böyle bir şey yok“ demez.","Nếu người bán được phép giảm giá, họ giữ một thứ tự: trước tiên là một món quà tặng kèm nhỏ, rồi một dịch vụ nhỏ, và chỉ sau cùng mới giảm giá. Nếu khách nói đã thấy món hàng rẻ hơn ở nơi khác, người bán trước tiên xin thêm thông tin về ưu đãi rẻ hơn. Chỉ sau đó mới nói đến các nguyên nhân có thể, ví dụ khác biệt về chất lượng. Người bán không nói „Làm gì có chuyện đó“."],"r4.q":["يقول العميل: «رأيت هذا في مكان آخر أرخص.» ماذا تفعل أولًا؟","Müşteri şöyle diyor: „Bunu başka yerde daha ucuza gördüm.“ Önce ne yaparsın?","Khách nói: „Tôi thấy món này ở nơi khác rẻ hơn.“ Bạn làm gì trước tiên?"],"r4.o0":["أقول إن هذا مستحيل.","Bunun imkânsız olduğunu söylerim.","Tôi nói điều đó là không thể."],"r4.o1":["أطلب تفاصيل أكثر عن العرض الأرخص.","Daha ucuz teklif hakkında ayrıntılı bilgi isterim.","Tôi xin thêm thông tin về ưu đãi rẻ hơn."],"r4.o2":["أعطي تخفيضًا فورًا.","Hemen indirim veririm.","Tôi giảm giá ngay."],"cat_vor":["معرفة سابقة من الوحدات الأخيرة","Önceki modüllerden ön bilgi","Kiến thức từ các bài trước"],"cat_txt":["فهم النص","Metin anlama","Hiểu văn bản"],"cat_trans":["التطبيق: معالجة الاعتراضات","Aktarım: İtirazları ele alma","Vận dụng: xử lý phản đối"],"cat_wis":["المعرفة المهنية","Mesleki bilgi","Kiến thức chuyên môn"],"cat_refl":["مكان التدريب والتفكير الأعمق","İşletme ve derinlemesine düşünme","Doanh nghiệp và suy nghĩ sâu hơn"]};
+const GLOSS=[["Kundeneinwand","اعتراض العميل","müşteri itirazı","phản đối của khách hàng"],["berechtigter Einwand","اعتراض مشروع","haklı itiraz","phản đối chính đáng"],["echter Einwand","اعتراض حقيقي","gerçek itiraz","phản đối thật"],["unechter Einwand (Vorwand)","اعتراض غير حقيقي (ذريعة)","gerçek olmayan itiraz (bahane)","phản đối không thật (cái cớ)"],["Preis-Leistungs-Verhältnis","نسبة السعر إلى الجودة","fiyat-performans oranı","quan hệ giá – chất lượng"],["Gesichtsverlust","فقدان ماء الوجه","yüz kaybı","mất mặt"],["Ja-Aber-Methode","طريقة «نعم، لكن»","„Evet, ama“ yöntemi","phương pháp „Vâng, nhưng“"],["Vergleichs-Methode","طريقة المقارنة","karşılaştırma yöntemi","phương pháp so sánh"],["Gegenfrage-Methode","طريقة السؤال المضاد","karşı soru yöntemi","phương pháp hỏi ngược"],["Umkehr-Methode (Bumerang-Methode)","طريقة العكس (البوميرانغ)","tersine çevirme yöntemi (Bumerang yöntemi)","phương pháp đảo ngược (phương pháp Bumerang)"],["Preiseinwands-Methode","طريقة اعتراض السعر","fiyat itirazı yöntemi","phương pháp phản đối về giá"],["entkräften","دحض الاعتراض","itirazı gidermek","bác bỏ phản đối"],["Preisnachlass","تخفيض السعر","indirim","giảm giá"]];
+const WTX={"Preis":["السعر","fiyat","giá"],"Kunde":["العميل","müşteri","khách hàng"],"nennen":["يذكر","söylemek","nêu"],"Modul 10":["الوحدة 10","Modül 10","Bài 10"],"Zwei Arten sind …":["نوعان منها: …","İki tür şunlardır: …","Hai cách là: …"],"Aussage":["عبارة","ifade","câu nói"],"davor":["قبله","öncesinde","trước đó"],"danach":["بعده","sonrasında","sau đó"],"Bei der Sandwich-Methode wird …":["في طريقة الساندويتش …","Sandviç yönteminde …","Ở phương pháp Sandwich, …"],"Zahl":["رقم","rakam","con số"],"Gefühl":["شعور","his","cảm giác"],"Ein „nackter“ Preis löst … aus.":["السعر «العاري» يثير …","„Çıplak“ bir fiyat … yol açar.","Một mức giá „trần trụi“ gây ra …"],"Ware":["البضاعة","ürün","hàng hóa"],"Schritt":["خطوة","adım","bước"],"Reihenfolge":["الترتيب","sıra","thứ tự"],"Zuerst …, dann …, zuletzt …":["أولًا …، ثم …، وأخيرًا …","Önce …, sonra …, en son …","Trước tiên …, rồi …, cuối cùng …"],"hoch":["مرتفع","yüksek","cao"],"empfinden":["يشعر بـ","hissetmek","cảm nhận"],"Es hängt davon ab, …":["يتوقف ذلك على …","Şuna bağlıdır: …","Điều đó phụ thuộc vào …"],"Einwand":["الاعتراض","itiraz","phản đối"],"unbestimmt":["غير محدّد","belirsiz","mơ hồ"],"Frage":["سؤال","soru","câu hỏi"],"Verkäuferin":["البائعة","satıcı kadın","nhân viên bán hàng nữ"],"Methode":["الطريقة","yöntem","phương pháp"],"Die Methode heißt …":["اسم الطريقة: …","Yöntemin adı: …","Phương pháp có tên là …"],"Die Verkäuferin sagt: „…“":["تقول البائعة: «…»","Satıcı kadın şöyle der: „…“","Nhân viên bán hàng nói: „…“"],"Nachteil":["عيب","dezavantaj","nhược điểm"],"Mantel":["المعطف","palto","áo măng tô"],"Gewicht":["الوزن","ağırlık","trọng lượng"],"Internet":["الإنترنت","internet","internet"],"Gerät":["الجهاز","cihaz","thiết bị"],"Wanderschuh":["حذاء المشي","yürüyüş ayakkabısı","giày đi bộ đường dài"],"Schuhe":["الأحذية","ayakkabılar","đôi giày"],"einfach":["عادي","basit","đơn giản"],"Argumente":["الحجج","argümanlar","lập luận"],"kaufen":["يشتري","satın almak","mua"],"letztes Mittel":["الحلّ الأخير","son çare","biện pháp cuối cùng"],"Verkäufer":["البائع","satıcı","người bán hàng"],"Ein Einwand ist eine Chance, weil …":["الاعتراض فرصة لأن …","İtiraz bir fırsattır, çünkü …","Phản đối là cơ hội vì …"],"Art":["نوع","tür","loại"],"Beispiel":["مثال","örnek","ví dụ"],"Die erste Art ist …":["النوع الأول هو …","Birinci tür …","Loại thứ nhất là …"],"Ein Beispiel dafür ist: „…“":["مثال على ذلك: «…»","Bunun bir örneği: „…“","Một ví dụ cho điều đó là: „…“"],"Beispielsatz":["جملة مثال","örnek cümle","câu ví dụ"],"kritisieren":["ينتقد","eleştirmek","chê"],"Einen Vorwand erkenne ich daran, dass …":["أميّز الذريعة من أن …","Bir bahaneyi şuradan anlarım: …","Tôi nhận ra cái cớ vì …"],"Ein Beispielsatz ist: „…“":["جملة مثال: «…»","Bir örnek cümle: „…“","Một câu ví dụ là: „…“"],"Vorwand":["ذريعة","bahane","cái cớ"],"Argument":["حجة","argüman","lập luận"],"Bei einem Vorwand …":["عند الذريعة …","Bir bahanede …","Với một cái cớ, …"],"Ich verhalte mich so, weil …":["أتصرّف هكذا لأن …","Böyle davranırım, çünkü …","Tôi cư xử như vậy vì …"],"Branche":["مجال العمل","sektör","ngành"],"Bei der Ja-Aber-Methode …":["في طريقة «نعم، لكن» …","„Evet, ama“ yönteminde …","Ở phương pháp „Vâng, nhưng“, …"],"Ein Beispiel: „…“":["مثال: «…»","Bir örnek: „…“","Một ví dụ: „…“"],"erst … dann":["أولًا … ثم","önce … sonra","trước … rồi"],"wörtliche Rede":["جملة منطوقة","doğrudan konuşma","lời nói trực tiếp"],"Ein Einwand in meinem Betrieb ist: „…“":["اعتراض في مكان تدريبي هو: «…»","İşletmemdeki bir itiraz: „…“","Một phản đối ở nơi thực tập của tôi là: „…“"],"Er gehört zur Art …":["ينتمي إلى النوع …","… türüne aittir.","Nó thuộc loại …"],"Ich antworte mit der … Methode: „…“":["أجيب بطريقة … : «…»","… yöntemiyle cevap veririm: „…“","Tôi trả lời bằng phương pháp …: „…“"],"Druck":["ضغط","baskı","sự ép buộc"],"bedrängt":["محرَج / مضغوط","bunalmış","bị làm phiền"],"Ein Fall ist, wenn …":["حالة منها: عندما …","Bir durum şudur: …","Một trường hợp là khi …"],"Ein weiteres Argument schadet, weil …":["حجة إضافية تضرّ لأن …","Bir ek argüman zarar verir, çünkü …","Một lập luận thêm có hại vì …"],"Zustimmung":["موافقة","onay","sự đồng ý"],"Widerspruch":["معارضة","karşı çıkma","sự phản bác"],"echt":["صادق","içten","chân thật"],"Das Wort „aber“ gehört dazu, weil …":["كلمة «لكن» ضرورية لأن …","„Ama“ sözcüğü gereklidir, çünkü …","Chữ „nhưng“ cần có vì …"],"Wenn das „Ja“ nur gespielt ist, dann …":["إذا كان «نعم» تمثيلًا فقط، فإن …","„Evet“ sadece rol icabıysa, o zaman …","Nếu chữ „vâng“ chỉ là giả vờ thì …"],"Personal":["الموظفون","personel","nhân viên"],"Kollege":["الزميل","meslektaş","đồng nghiệp"],"ernst nehmen":["أخذ الأمر على محمل الجد","ciddiye almak","xem trọng"],"Ich antworte: „…“":["أجيب: «…»","Cevap veririm: „…“","Tôi trả lời: „…“"],"Ich mache den Kollegen nicht schlecht, weil …":["لا أسيء إلى الزميل لأن …","Meslektaşı kötülemem, çünkü …","Tôi không nói xấu đồng nghiệp vì …"],"Interesse":["اهتمام","ilgi","sự quan tâm"],"Nutzen":["فائدة","yarar","lợi ích"],"Der Kunde ist interessiert, weil …":["العميل مهتمّ لأن …","Müşteri ilgilidir, çünkü …","Khách quan tâm vì …"],"Angaben":["تفاصيل","ayrıntılı bilgi","thông tin"],"Konkurrenzangebot":["عرض المنافس","rakip teklif","ưu đãi của đối thủ"],"Ursachen":["أسباب","nedenler","nguyên nhân"],"Der Verkäufer darf das nicht sagen, weil …":["لا يجوز للبائع أن يقول ذلك لأن …","Satıcı bunu söylememeli, çünkü …","Người bán không được nói vậy vì …"],"Besser ist: …":["الأفضل: …","Daha iyisi: …","Tốt hơn là: …"],"Wenn der Verkäufer weiter argumentiert, dann …":["إذا واصل البائع الحجاج، فإن …","Satıcı argüman sunmaya devam ederse, o zaman …","Nếu người bán cứ tiếp tục lập luận thì …"],"Bedenken":["مخاوف","endişe","lo ngại"],"Der Einwand ist unbestimmt, deshalb …":["الاعتراض غير محدّد، لذلك …","İtiraz belirsiz, bu yüzden …","Phản đối còn mơ hồ nên …"],"Die Gegenfrage lautet: „…“":["السؤال المضاد هو: «…»","Karşı soru şöyle: „…“","Câu hỏi ngược là: „…“"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={ar:0,tr:1,vi:2}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 2 · Modul 11 · Kundeneinwände";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf2m11_v2";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),document.getElementById("a2btn")?["a2"]:[]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+if($("#a2btn"))$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF2_Modul4.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done&&$("#a2btn"))$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>

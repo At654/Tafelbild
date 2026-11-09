@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 3 · Modul 2 · Kassieren Schritt für Schritt</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="ar">🇸🇦 العربية</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+    <button class="pill" data-l="uk">🇺🇦 Українська</button>
+    <button class="pill" data-l="ti">🇪🇷 ትግርኛ</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 3 · Kunden im Servicebereich Kasse betreuen</p>
+  <h1 data-k="h1">Modul 2: Kassieren Schritt für Schritt</h1>
+  <p class="sub" data-k="meta">2 Doppelstunden · 8 Punkte · Lehrbuch S. 167–171 · Arbeitsheft S. 134–141</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann vorbereitende Tätigkeiten für das Kassieren nennen.</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann einen Kassiervorgang mit Bargeld in der richtigen Reihenfolge beschreiben.</label></li>
+      <li><label data-k="can3"><input type="checkbox"> Ich kann kundenorientiertes Verhalten an der Kasse zeigen und begründen.</label></li>
+      <li><label data-k="can4"><input type="checkbox"> Ich kann Kassieranweisungen nennen und einhalten.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a1_h">Aufgabe 1 · Ankommen: Was weißt du noch aus Modul 1?</h2>
+    <p data-k="a1_p">Aus dem Kopf beantworten. Nicht nachschlagen.</p>
+    <div data-items="a1"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 2 · Kasse im Klassenraum: Was fällt euch auf?</h2>
+    <p data-k="a2_p">Zwei Personen spielen Kassiererin und Kunde (Kundenkarte von der Lehrkraft), die anderen beobachten. Notiert: Was hat gut geklappt? Was hat die Kassiererin vergessen?</p>
+    <div data-items="a2"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> die Kassieranweisung · das Wechselgeld · einzählen · die Bonrolle · sich anmelden · der Geldscheinhalter · vorzählen · das Rückgeld · der Blickkontakt · kundenorientiert · die Kundenbindung · der Zusatzartikel
+      <div id="gloss"></div></div>
+    <div id="reading"></div>
+
+    <h3 style="margin-top:24px" data-k="vor_h">1. Vor dem Kassieren (Buch S. 167)</h3>
+    <div data-k="vor_t">Kasse starten und anmelden · Wechselgeld holen, einzählen und prüfen · Bonrolle und Ersatzrollen prüfen · Scanner, Kartengerät und Waage testen · Tüten, Packmaterial und Formulare bereitlegen · für Ordnung und Sauberkeit am Kassenplatz sorgen.</div>
+
+    <h3 style="margin-top:24px" data-k="vorg_h">2. Der Kassiervorgang mit Bargeld (Buch S. 169–170)</h3>
+    <table>
+      <tr><td>1</td><td data-k="s1">Die Artikel erfassen (scannen).</td></tr>
+      <tr><td>2</td><td data-k="s2">Die Kaufsumme ermitteln.</td></tr>
+      <tr><td>3</td><td data-k="s3">Dem Kunden den Betrag laut und deutlich nennen – ggf. nach der Kundenkarte fragen.</td></tr>
+      <tr><td>4</td><td data-k="s4">Den Geldschein entgegennehmen, den Wert laut nennen und auf Echtheit prüfen.</td></tr>
+      <tr><td>5</td><td data-k="s5">Den Geldschein sichtbar in den Geldscheinhalter klemmen.</td></tr>
+      <tr><td>6</td><td data-k="s6">Das Rückgeld nennen und dem Kunden vorzählen.</td></tr>
+      <tr><td>7</td><td data-k="s7">Den Geldschein in die Kasse legen und die Kasse schließen.</td></tr>
+      <tr><td>8</td><td data-k="s8">Bon und Ware übergeben und sich verabschieden.</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="ka_h">3. Kassieranweisungen</h3>
+    <div data-k="ka_t">Jeder Betrieb hat eine Kassieranweisung. Typisch sind: freundlich grüßen und verabschieden · Blickkontakt · jeden Artikel einzeln erfassen · Einkaufswagen und Umverpackungen kontrollieren · Geldscheine prüfen · Rückgeld vorzählen · Ware sorgsam behandeln · kein privates Geld im Kassenbereich · keine Familienangehörigen selbst abkassieren · Fehler stornieren und den falschen Bon aufbewahren.</div>
+
+    <h3 style="margin-top:24px" data-k="ko_h">4. Kundenorientiert an der Kasse (Buch S. 168)</h3>
+    <table>
+      <tr><th data-k="th_wie">So verhalte ich mich</th><th data-k="th_darum">Darum ist das wichtig</th></tr>
+      <tr><td data-k="ko1">Begrüßung und Verabschiedung</td><td data-k="ko1b">Die Kasse ist der erste und letzte Eindruck im Geschäft.</td></tr>
+      <tr><td data-k="ko2">Blickkontakt und Lächeln</td><td></td></tr>
+      <tr><td data-k="ko3">Kauf positiv bestätigen („Gute Wahl!“)</td><td data-k="ko3b">Zufriedene Kunden kommen wieder (Kundenbindung).</td></tr>
+      <tr><td data-k="ko4">Ware sorgsam behandeln</td><td data-k="ko4b">Sie empfehlen das Geschäft weiter.</td></tr>
+      <tr><td data-k="ko5">nach Kundenkarte oder Kunden-App fragen</td><td data-k="ko5b">Das Geschäft hat ein positives Image und hebt sich von Mitbewerbern ab.</td></tr>
+      <tr><td data-k="ko6">Service anbieten (Tüte, Geschenkverpackung)</td><td></td></tr>
+      <tr><td data-k="ko7">sich bedanken</td><td></td></tr>
+    </table>
+
+    <div class="merke" data-k="merke_schein"><b>Merke:</b> Den Geldschein des Kunden erst nach dem Herausgeben des Rückgeldes in die Kasse legen. Bis dahin liegt er sichtbar im Geldscheinhalter – dann gibt es keinen Streit, ob es ein 50er oder ein 100er war.</div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a3_h">Aufgabe 3 · Vorgemacht: fehlende Schritte ergänzen</h2>
+    <p data-k="a3_p">So gehst du bei einer Prüfungsaufgabe vor. Lies die Schritte genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk0"><b>Die Aufgabe: Eine Kundin zahlt bar. Welche 4 Schritte fehlen im Kassiervorgang? Nennen Sie sie in der richtigen Reihenfolge! (4 Punkte)</b><br>Vorgegeben: – Kaufsumme ermitteln (scannen) · _______ · _______ · _______ · _______ · – Verabschiedung</div>
+    <div class="worked" data-k="wk1"><b>1. Rahmen ansehen:</b> Anfang (scannen) und Ende (Verabschiedung) sind vorgegeben. Ich brauche die vier Schritte dazwischen.</div>
+    <div class="worked" data-k="wk2"><b>2. Den Vorgang im Kopf spielen:</b> Was sage ich? Was bekomme ich? Wohin damit? Was gebe ich zurück?</div>
+    <div class="worked" data-k="wk3"><b>3. Aufschreiben:</b> Betrag nennen · Geld entgegennehmen, prüfen und den Wert nennen · Geld sichtbar ablegen · Rückgeld vorzählen</div>
+    <div class="worked" data-k="wk4"><b>4. Prüfen:</b> Genau vier? In der richtigen Reihenfolge? Dann gibt es 4 Punkte.</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe die Beispiele gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a4_h">Aufgabe 4 · Geführte Übung: Reihenfolge und Vorzählen</h2>
+    <div data-items="a4"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a5_h">Aufgabe 5 · Freie Übung: Kasse im Klassenraum <span class="pts" data-k="pts_lp3">3 Leistungspunkte</span></h2>
+    <p data-k="a5_p">Spielt in Dreiergruppen: Kassiererin, Kunde, Beobachter. Jede Person ist einmal an der Kasse. Der Beobachter füllt den Bogen aus (siehe unten). Bewertung: 7–8 × ja = 3 LP · 5–6 × ja = 2 LP · 3–4 × ja = 1 LP.</p>
+    <ul>
+      <li data-k="b1">Kasse vorbereitet (Wechselgeld eingezählt, Ordnung)</li>
+      <li data-k="b2">Begrüßung und Blickkontakt</li>
+      <li data-k="b3">Artikel einzeln erfasst, Betrag laut genannt</li>
+      <li data-k="b4">nach Kundenkarte gefragt</li>
+      <li data-k="b5">Geldschein geprüft, Wert genannt, sichtbar abgelegt</li>
+      <li data-k="b6">Rückgeld richtig und laut vorgezählt</li>
+      <li data-k="b7">Schein erst danach in die Kasse gelegt</li>
+      <li data-k="b8">Bon übergeben, bedankt, verabschiedet</li>
+    </ul>
+    <div data-items="a5"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a6_h">Aufgabe 6 · Prüfungs-Check <span class="pts" data-k="pts10">10 Punkte · etwa 10 Minuten</span></h2>
+    <div class="merke" data-k="a6_sit"><b>Situation:</b> Sie arbeiten im Kassenbereich des Kaufhauses Hansa GmbH.</div>
+    <div data-items="a6"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7p_h">Aufgabe 7 · Für Profis</h2>
+    <p data-k="a7p_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="a7p"></div>
+  </div>
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="a8_h">Aufgabe 9 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="a8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="a8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 8 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={vor:"Ankommen: Was weißt du noch?",txt:"Textverständnis: Kassieren Schritt für Schritt",trans:"Transfer: Reihenfolge und Vorzählen",wis:"Fachwissen: Prüfungs-Check",refl:"Kasse im Klassenraum & Weiterdenken"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{id:"a1_1",g:"a1",cat:"vor",q:"1.1 Was liest der Scanner an der Kasse?",kw:[["gtin","artikelnummer","strichcode","barcode","ean"]],min:1,rows:2,
+ h:["Denk an den Strichcode auf der Verpackung.","Wie heißt die 13-stellige Nummer unter dem Strichcode?"],
+ sol:"Die GTIN (13-stellige Artikelnummer im Strichcode)."},
+{id:"a1_2",g:"a1",cat:"vor",q:"1.2 Wozu dient die TSE?",kw:[["speicher","gespeichert","aufzeichn","signier"],["manipulation","schutz","schuetz","veraender","loesch","betrug","faelsch"]],min:2,rows:3,
+ h:["Die TSE ist eine technische Sicherheitseinrichtung.","Was passiert mit jedem Kassenvorgang, und wovor wird er geschützt?"],
+ sol:"Sie speichert und schützt alle Kassenvorgänge vor Manipulation."},
+{id:"a1_3",g:"a1",cat:"vor",q:"1.3 Nenne drei Angaben auf einem Kassenbon.",kw:[["datum","uhrzeit"],["artikel","ware","bezeichnung"],["einzelpreis","preis"],["summe","gesamt","betrag"],["zahlungsart","girocard","bar","karte"],["umsatzsteuer","mehrwertsteuer","mwst","ust","steuer"],["bonnummer","bon-nummer","nummer","bon nr"]],min:3,rows:3,
+ h:["Nimm in Gedanken einen Bon in die Hand: oben, in der Mitte, unten.","Was wurde gekauft, was kostet es, wie wurde bezahlt?"],
+ sol:"z. B. Datum, Artikel, Einzelpreis, Summe, Zahlungsart, Umsatzsteuer, Bonnummer."},
+
+{id:"a2_1",g:"a2",cat:"refl",mode:"self",q:"Was hat gut geklappt? Was hat die Kassiererin vergessen oder was kann sie verbessern?",rows:6,
+ h:["Geh den Ablauf der Reihe nach durch: Begrüßung, Betrag, Geldschein, Rückgeld, Verabschiedung.","Schreibe zwei Spalten: „Gut gemacht“ und „Vergessen oder verbesserungswürdig“."],
+ sol:"Individuelle Antwort, abhängig vom Rollenspiel. Beispiel: Gut gemacht: Begrüßung, Blickkontakt, Betrag laut genannt. Vergessen oder verbesserungswürdig: Schein nicht geprüft, Rückgeld nicht vorgezählt, keine Verabschiedung."},
+
+{id:"a4_1",g:"a4",cat:"trans",q:"4.1 Ein Kunde kauft Waren für 89,75 € und bezahlt mit einem 100-€-Schein. Bringe die Schritte in die richtige Reihenfolge. Schreibe die Buchstaben in der richtigen Reihenfolge auf (z. B. A B C …).<br>A Den Geldschein sichtbar in den Geldscheinhalter klemmen.<br>B Die Kaufsumme ermitteln.<br>C Bon und Ware übergeben und sich verabschieden.<br>D Dem Kunden den Betrag laut und deutlich nennen – ggf. nach der Kundenkarte fragen.<br>E Den Geldschein in die Kasse legen und die Kasse schließen.<br>F Die Artikel erfassen (scannen).<br>G Das Rückgeld nennen und dem Kunden vorzählen.<br>H Den Geldschein entgegennehmen, den Wert laut nennen und auf Echtheit prüfen.",kw:[["re:f\\W*b\\W*d\\W*h\\W*a\\W*g\\W*e\\W*c"]],min:1,rows:2,
+ h:["Beginne mit dem ersten und dem letzten Schritt: Was passiert zuerst, was zuletzt?","Der Geldschein wird erst nach dem Rückgeld in die Kasse gelegt. Lies das Kästchen „Der Kassiervorgang mit Bargeld“."],
+ sol:"F – B – D – H – A – G – E – C (1 Artikel erfassen, 2 Kaufsumme ermitteln, 3 Betrag nennen, 4 Schein entgegennehmen und prüfen, 5 Schein in den Geldscheinhalter klemmen, 6 Rückgeld nennen und vorzählen, 7 Schein in die Kasse legen, 8 Bon und Ware übergeben und verabschieden)."},
+{id:"a4_2",g:"a4",cat:"trans",q:"4.2 Wie viel Rückgeld bekommt der Kunde (89,75 € Kaufsumme, 100-€-Schein)? Zähle so vor, wie du es an der Kasse sagen würdest.",kw:[["re:10[,.]25"],["plus","vorzaehl","bitte","zurueck","cent","euro"]],min:2,rows:4,
+ h:["Rechne 100,00 € minus 89,75 €.","Beim Vorzählen beginnst du beim Betrag der Kaufsumme und zählst bis zum Schein hoch: erst die Cent, dann die Euro."],
+ sol:"Rückgeld: 100,00 € − 89,75 € = 10,25 €. Vorzählen: „89,75 … plus 25 Cent sind 90 Euro, plus 10 Euro sind 100 Euro. Bitte schön, 10,25 € zurück.“"},
+{id:"a4_3",g:"a4",cat:"trans",q:"4.3 (1) Richtig oder falsch? Begründe: „Ich kassiere meine Schwester ab, damit sie nicht warten muss.“",kw:[["falsch"],["familie","angehoeri","freund","schwester","selbst","kontroll","streit"]],min:2,rows:2,
+ h:["Denk an die Kassieranweisung: Wer darf nicht von dir kassiert werden?","Lies das Kästchen „Kassieranweisungen“."],
+ sol:"Falsch. Familienangehörige und Freunde werden nicht selbst abkassiert."},
+{id:"a4_4",g:"a4",cat:"trans",q:"4.3 (2) Richtig oder falsch? Begründe: „Ich werfe einen Blick in den Einkaufswagen und unter den Korb.“",kw:[["richtig"],["einkaufswagen","kontroll","vergessen","versteckt","korb","umverpackung"]],min:2,rows:2,
+ h:["Was könnte unter dem Korb liegen bleiben?","Lies das Kästchen „Kassieranweisungen“: Was wird kontrolliert?"],
+ sol:"Richtig. Kontrolle des Einkaufswagens, damit nichts vergessen oder versteckt wird."},
+{id:"a4_5",g:"a4",cat:"trans",q:"4.3 (3) Richtig oder falsch? Begründe: „Mein privates Portemonnaie liegt neben der Kasse, damit ich es im Blick habe.“",kw:[["falsch"],["privat","streit","differenz","kassenbereich","vermisch","kein"]],min:2,rows:2,
+ h:["Was passiert, wenn privates Geld und Kassengeld nebeneinander liegen?","Wie gehen Betriebe mit Differenzen in der Kasse um?"],
+ sol:"Falsch. Kein privates Geld im Kassenbereich – sonst gibt es Streit bei Differenzen."},
+{id:"a4_6",g:"a4",cat:"trans",q:"4.3 (4) Richtig oder falsch? Begründe: „Ich zähle das Rückgeld laut vor.“",kw:[["richtig"],["kunde","sieht","stimmt","nachvollzieh","nachpruef","kontroll","vertrauen"]],min:2,rows:2,
+ h:["Wer soll merken, dass das Rückgeld stimmt?","Lies Schritt 6 im Kassiervorgang."],
+ sol:"Richtig. So sieht der Kunde, dass alles stimmt."},
+{id:"a4_7",g:"a4",cat:"trans",q:"4.3 (5) Richtig oder falsch? Begründe: „Den 50-€-Schein lege ich sofort in die Kasse, dann suche ich das Rückgeld.“",kw:[["falsch"],["nach","streit","sichtbar","geldscheinhalter","rueckgeld","100","schein"]],min:2,rows:2,
+ h:["Lies das Kästchen „Merke“.","Wo liegt der Schein, solange das Rückgeld noch nicht übergeben ist?"],
+ sol:"Falsch. Erst nach dem Rückgeld in die Kasse legen, damit es keinen Streit über den Schein gibt."},
+{id:"a4_8",g:"a4",cat:"trans",q:"4.3 (6) Richtig oder falsch? Begründe: „Einen falschen Bon werfe ich sofort weg.“",kw:[["falsch"],["storn","aufbewahr","kassenabrechnung","abrechnung"]],min:2,rows:2,
+ h:["Was passiert mit einem Fehler an der Kasse?","Lies das Kästchen „Kassieranweisungen“ bis zum Ende."],
+ sol:"Falsch. Falsche Bons werden storniert und aufbewahrt."},
+
+{id:"a5_1",g:"a5",cat:"refl",mode:"self",q:"Wie viele Punkte hat die Kassiererin im Bogen erreicht (× ja von 8)? Welche Punkte hat sie vergessen? Schreibe dein Ergebnis und einen Tipp auf.",rows:5,
+ h:["Zähle zuerst alle „ja“ im Bogen. Wie viele von 8?","7–8 × ja = 3 LP, 5–6 × ja = 2 LP, 3–4 × ja = 1 LP."],
+ sol:"Individuelle Antwort. Prüfe selbst: (1) Hast du die Anzahl „ja“ gezählt? (2) Hast du die fehlenden Punkte genannt (z. B. Rückgeld nicht vorgezählt)? (3) Hast du einen Tipp aufgeschrieben? Bewertung: 7–8 × ja = 3 LP · 5–6 × ja = 2 LP · 3–4 × ja = 1 LP."},
+
+{id:"a6_1",g:"a6",cat:"wis",q:"6.1 Welche 3 Tätigkeiten erledigen Sie, bevor Sie mit dem Kassieren beginnen? (3 Punkte)",kw:[["anmeld","starten","kasse an"],["wechselgeld","kassenbestand","nachzaehl","einzaehl"],["ordnung","sauber"],["bonrolle","ersatzrolle","kassenrolle","rolle"],["scanner","kartenger","waage","testen"],["tuete","packmaterial","formular"]],min:3,rows:4,
+ h:["Denk an den Anfang des Arbeitstages: Was brauchst du, bevor der erste Kunde kommt?","Geld, Papier, Geräte, Ordnung."],
+ sol:"Je 1 Punkt, z. B. Kasse anmelden, Wechselgeld prüfen, Kassenbestand nachzählen, Ordnung und Sauberkeit prüfen, Ersatzkassenrollen bereitlegen."},
+{id:"a6_2",g:"a6",cat:"wis",q:"6.2 Eine Kundin legt ihre Artikel aufs Band. Nennen Sie 4 weitere kundenorientierte Verhaltensweisen an der Kasse! Vorgegeben: – Begrüßung, – Verabschiedung (4 Punkte)",kw:[["blickkontakt","laecheln"],["bestaetig","gute wahl"],["sorgsam","vorsichtig"],["verpackung","tuete","service"],["kundenkarte","kunden-app","app"],["bedank","danke"]],min:4,rows:5,
+ h:["Lies die Tabelle „Kundenorientiert an der Kasse“ (linke Spalte).","Begrüßung und Verabschiedung sind schon vorgegeben – du brauchst vier andere."],
+ sol:"Je 1 Punkt, z. B. Blickkontakt, Kauf bestätigen, Ware sorgsam behandeln, Geschenkverpackung anbieten, nach Kundenkarte oder Kunden-App fragen."},
+{id:"a6_3",g:"a6",cat:"wis",q:"6.3 Warum ist kundenorientiertes Verhalten an der Kasse wichtig? Nennen Sie 3 Gründe! (3 Punkte)",kw:[["kundenbindung","wiederkommen","wieder kommen","stammkunde"],["zufrieden"],["image","ruf"],["eindruck"],["mitbewerber","konkurrenz","abheben","unterscheid"],["empfehl","weiterempfehl"]],min:3,rows:4,
+ h:["Lies die rechte Spalte der Tabelle „Kundenorientiert an der Kasse“.","Was bringt das dem Geschäft: Kunden, Ruf, Konkurrenz?"],
+ sol:"Je 1 Punkt, z. B. Kundenbindung, Kundenzufriedenheit, positives Image, erster und letzter Eindruck, Abheben von Mitbewerbern, Weiterempfehlung."},
+
+{id:"a7p_1",g:"a7p",cat:"refl",mode:"self",q:"7.1 Erläutern Sie, warum der Geldschein des Kunden erst nach dem Herausgeben des Rückgeldes in die Kasse gelegt wird.",rows:5,
+ h:["Wo liegt der Schein, solange das Rückgeld noch nicht übergeben ist?","Was kann ein Kunde behaupten, wenn niemand mehr sehen kann, welchen Schein er gegeben hat?"],
+ sol:"Solange der Schein sichtbar liegt, können Kassiererin und Kunde nachprüfen, welcher Schein gegeben wurde. Behauptet der Kunde, er habe mit einem 100er statt mit einem 50er bezahlt, lässt sich das sofort klären."},
+{id:"a7p_2",g:"a7p",cat:"refl",mode:"self",q:"7.2 An vielen Kassen sollen Mitarbeiter Zusatzartikel anbieten („Darf es noch ein Kaffee zum Mitnehmen sein?“). Formulieren Sie ein Angebot in wörtlicher Rede und beurteilen Sie, wann solche Angebote Kunden stören.",rows:7,
+ h:["Überlegen Sie, welcher Zusatzartikel zu einem Einkauf passt. Schreiben Sie das Angebot mit Anführungszeichen.","Wann haben Kunden keine Lust auf ein Angebot: Wartezeit, Wiederholung, Passung zum Einkauf?"],
+ sol:"z. B. „Zu den Grillwürstchen passt unser neuer Senf – der ist heute im Angebot. Möchten Sie ihn probieren?“ Stören: bei langer Schlange, bei jedem Kunden gleich, aufdringlich wiederholt, wenn das Angebot nicht zum Einkauf passt."}
+];
+
+/* Lesetext: [[Richtig]] = gesuchter Begriff, {{Falsch}} = Ablenker */
+const READ=[
+{t:"Vor dem Kassieren",task:"Markiere die Tätigkeiten vor dem Kassieren.",
+ x:"Bevor der erste Kunde kommt, startet und [[meldet man die Kasse an]]. Man holt [[Wechselgeld]], zählt es [[ein]] und prüft es. Man prüft die [[Bonrolle]] und die Ersatzrollen und testet [[Scanner]], [[Kartengerät]] und Waage. [[Tüten]], Packmaterial und Formulare werden bereitgelegt, und der Kassenplatz ist [[ordentlich und sauber]]. Das {{Mittagessen}} und das {{Handy}} gehören nicht dazu.",
+ q:"Was bedeutet „Wechselgeld einzählen“?",o:["Man zählt das Wechselgeld vor dem Kassieren und prüft es.","Man gibt dem Kunden das Wechselgeld.","Man tauscht Geld bei der Bank."],c:0},
+{t:"Der Kassiervorgang: Artikel und Betrag",task:"Markiere die ersten Schritte beim Kassieren.",
+ x:"Zuerst werden die Artikel [[erfasst (gescannt)]], dann wird die [[Kaufsumme]] ermittelt. Danach nennt man dem Kunden den [[Betrag]] laut und deutlich. Wenn nötig, fragt man nach der [[Kundenkarte]]. Das {{Rückgeld}} ist in diesem Schritt noch kein Thema.",
+ q:"Welcher Schritt kommt direkt nach dem Scannen?",o:["Die Kaufsumme ermitteln.","Den Bon übergeben.","Das Rückgeld vorzählen."],c:0},
+{t:"Der Kassiervorgang: Geld und Rückgeld",task:"Markiere, was mit dem Geldschein und dem Rückgeld passiert.",
+ x:"Man nimmt den [[Geldschein]] entgegen, nennt den [[Wert]] laut und prüft die [[Echtheit]]. Der Schein wird sichtbar in den [[Geldscheinhalter]] geklemmt. Dann nennt man das [[Rückgeld]] und [[zählt es vor]]. Erst danach legt man den Schein in die [[Kasse]] und schließt sie. Zum Schluss werden [[Bon und Ware]] übergeben, und man [[verabschiedet]] sich. Den Schein sofort {{in die Kasse}} zu legen ist falsch.",
+ q:"Wann legt man den Geldschein des Kunden in die Kasse?",o:["Sofort nach dem Entgegennehmen.","Erst nach dem Herausgeben des Rückgeldes.","Nie, er bleibt im Geldscheinhalter."],c:1},
+{t:"Kassieranweisungen",task:"Markiere, was in einer Kassieranweisung typisch ist und was nicht erlaubt ist.",
+ x:"Jeder Betrieb hat eine [[Kassieranweisung]]. Typisch sind: freundlich [[grüßen und verabschieden]], [[Blickkontakt]], jeden Artikel [[einzeln erfassen]], [[Einkaufswagen]] und Umverpackungen kontrollieren, Geldscheine prüfen und Rückgeld vorzählen. Nicht erlaubt: [[privates Geld]] im Kassenbereich und das Kassieren von [[Familienangehörigen]]. Fehler werden [[storniert]], und der falsche Bon wird [[aufbewahrt]] – nicht {{weggeworfen}}.",
+ q:"Was passiert mit einem falschen Bon?",o:["Er wird sofort weggeworfen.","Er wird storniert und aufbewahrt.","Er wird dem Kunden mitgegeben."],c:1},
+{t:"Kundenorientiert an der Kasse",task:"Markiere, wie man sich verhält und warum das wichtig ist.",
+ x:"Kundenorientiert heißt: [[Begrüßung und Verabschiedung]], Blickkontakt und [[Lächeln]], den Kauf positiv bestätigen („Gute Wahl!“), Ware [[sorgsam]] behandeln, nach [[Kundenkarte oder Kunden-App]] fragen, [[Service]] anbieten (Tüte, Geschenkverpackung) und sich bedanken. Das ist wichtig, denn die Kasse ist der [[erste und letzte Eindruck]] im Geschäft. Zufriedene Kunden kommen wieder (Kundenbindung) und empfehlen das Geschäft [[weiter]]. Das Geschäft hat ein positives [[Image]] und hebt sich von [[Mitbewerbern]] ab. {{Schnelles Kassieren ohne Gruß}} ist nicht kundenorientiert.",
+ q:"Warum ist die Kasse für den Eindruck des Geschäfts wichtig?",o:["Dort ist der erste und letzte Eindruck.","Dort steht der Chef.","Dort sind die Preise am niedrigsten."],c:0}
+];
+
+/* Vertiefung (level v) – Zusatz, aus dem Material abgeleitet */
+ITEMS.push(
+{id:"v9_1",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.1 Warum wird der Geldschein sichtbar im Geldscheinhalter abgelegt? Begründe und beschreibe, was ohne diese Regel passieren könnte.",rows:5,
+ h:["Wer kann den Schein sehen, solange er im Geldscheinhalter klemmt?","Was könnte ein Kunde nachher behaupten, wenn der Schein schon in der Kasse liegt?"],
+ sol:"Der Schein liegt sichtbar, bis das Rückgeld übergeben ist. So können Kassiererin und Kunde jederzeit prüfen, ob es ein 50er oder ein 100er war. Ohne diese Regel könnte es Streit geben, weil niemand beweisen kann, welchen Schein der Kunde gegeben hat."},
+{id:"v9_2",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.2 Warum wird das Rückgeld laut vorgezählt, statt nur den Betrag zu nennen? Begründe aus Sicht des Kunden und aus Sicht der Kassiererin.",rows:5,
+ h:["Was sieht und hört der Kunde beim Vorzählen?","Wie hilft das Vorzählen der Kassiererin, keinen Fehler zu machen?"],
+ sol:"Der Kunde sieht und hört, dass das Rückgeld stimmt, und kann mitzählen. Er hat Vertrauen. Die Kassiererin zählt Schritt für Schritt vom Kaufbetrag bis zum Schein hoch und macht so weniger Fehler. Das vermeidet Streit und Kassendifferenzen."},
+{id:"v9_3",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.3 Warum soll kein privates Geld im Kassenbereich liegen und warum werden Familienangehörige nicht selbst abkassiert? Begründe beide Regeln.",rows:5,
+ h:["Was ist, wenn am Ende des Tages Geld in der Kasse fehlt oder zu viel da ist?","Wer könnte dem Betrieb vorwerfen, etwas falsch gemacht zu haben, wenn eine Verwandte kassiert wird?"],
+ sol:"Privates und Kassengeld dürfen sich nicht vermischen – sonst gibt es Streit bei Differenzen und man weiß nicht, wem das Geld gehört. Bei Familienangehörigen und Freunden besteht die Gefahr, dass nicht richtig oder nicht vollständig kassiert wird; das schadet dem Vertrauen in die Kasse. Beide Regeln schützen die Kassiererin und den Betrieb."},
+{id:"v9_4",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.4 Was würde passieren, wenn eine Kassiererin die Kasse nicht vorbereitet (kein Wechselgeld, Bonrolle leer)? Begründe die Folgen für Kunden und Betrieb.",rows:5,
+ h:["Was ist, wenn mitten im Kassieren das Wechselgeld fehlt oder die Bonrolle leer ist?","Wie reagieren Kunden, die warten müssen?"],
+ sol:"Der Vorgang wird unterbrochen: Der Kunde muss warten, es entsteht eine Schlange, und das Geschäft wirkt unorganisiert. Ohne Wechselgeld kann kein Rückgeld gegeben werden; ohne Bon fehlt der Beleg. Deshalb werden Wechselgeld, Bonrolle und Geräte vor dem Kassieren geprüft. Das schützt die Kundenzufriedenheit und das Image."}
+);
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={
+a1_1:[["Scanner","Strichcode","Artikel","Nummer"],["Der Scanner liest …"]],
+a1_2:[["Kassenvorgang","Betrug","Sicherheit","Steuer"],["Die TSE dient dazu, …"]],
+a1_3:[["Kassenbon","Angabe","Zahlung","Steuer"],["Auf dem Bon steht …"]],
+a2_1:[["Begrüßung","Rückgeld","Verabschiedung","Geldschein"],["Gut gemacht hat die Kassiererin …","Vergessen hat sie …"]],
+a4_1:[["Reihenfolge","Geldschein","Rückgeld","Kasse"],["Zuerst …, dann …, zuletzt …"]],
+a4_2:[["Rückgeld","Geldschein","vorzählen","Cent"],["„Bitte schön, … zurück.“"]],
+a4_3:[["Familie","Kasse","Kassieranweisung","Freunde"],["Das ist …, weil …"]],
+a4_4:[["Einkaufswagen","Korb","Kontrolle","Ware"],["Das ist …, weil …"]],
+a4_5:[["privat","Kassenbereich","Differenz","Streit"],["Das ist …, weil …"]],
+a4_6:[["Rückgeld","Kunde","vorzählen","Vertrauen"],["Das ist …, weil …"]],
+a4_7:[["Geldscheinhalter","Rückgeld","Schein","Streit"],["Das ist …, weil …"]],
+a4_8:[["Bon","Fehler","Kassenabrechnung","Kasse"],["Das ist …, weil …"]],
+a5_1:[["Bogen","Kassiererin","Rückgeld","Verabschiedung"],["Die Kassiererin hat … × „ja“ erreicht.","Mein Tipp: …"]],
+a6_1:[["Kasse","Wechselgeld","Bonrolle","Kassenplatz"],["Vor dem Kassieren …"]],
+a6_2:[["Kunde","Service","Kundenkarte","Ware"],["Kundenorientiert ist auch …"]],
+a6_3:[["Kundenbindung","Image","Eindruck","Mitbewerber"],["Kundenorientiertes Verhalten ist wichtig, weil …"]],
+a7p_1:[["Geldscheinhalter","Rückgeld","Streit","Kunde"],["Der Schein bleibt sichtbar, weil …"]],
+a7p_2:[["Zusatzartikel","Angebot","Schlange","aufdringlich"],["„Darf ich Ihnen … anbieten?“","Solche Angebote stören, wenn …"]],
+v9_1:[["sichtbar","Schein","Streit","beweisen"],["Der Schein liegt sichtbar, damit …"]],
+v9_2:[["Vorzählen","Vertrauen","Fehler","Kassendifferenz"],["Aus Sicht des Kunden …","Aus Sicht der Kassiererin …"]],
+v9_3:[["privat","Differenz","Familienangehörige","Vertrauen"],["Die erste Regel schützt …","Die zweite Regel verhindert …"]],
+v9_4:[["Wechselgeld","Bonrolle","Wartezeit","Image"],["Dann würde …","Für den Betrieb bedeutet das …"]]
+};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+
+const GLOSS_DE=["die Kassieranweisung","das Wechselgeld","einzählen","die Bonrolle","sich anmelden","der Geldscheinhalter","vorzählen","das Rückgeld","der Blickkontakt","kundenorientiert","die Kundenbindung","der Zusatzartikel"];
+
+const TX={"sub":["مجال التعلّم 3 · خدمة العملاء في منطقة الصندوق","Lĩnh vực học 3 · Phục vụ khách hàng tại khu vực quầy thu ngân","Навчальна галузь 3 · Обслуговування клієнтів у касовій зоні","ዓውዲ ትምህርቲ 3 · ኣብ ቦታ ካሳ ኣገልግሎት ዓማዊል"],"name":["الاسم","Họ tên","Ім'я","ሽም"],"date":["التاريخ","Ngày","Дата","ዕለት"],"can_h":["هذا ما سأستطيع فعله بعد ذلك","Sau bài này tôi có thể","Після цього я вмію","ድሕሪ እዚ እዚ ክገብር እኽእል እየ"],"can_note":["ضع علامة في النهاية على ما تستطيع فعله الآن.","Cuối bài, hãy đánh dấu những gì bạn đã làm được.","Наприкінці познач, що ти вже вмієш.","ኣብ መወዳእታ ሕጂ ክትገብሮ ዘኽእለካ ምልክት ግበር።"],"pts1":["نقطة واحدة","1 điểm","1 бал","1 ነጥቢ"],"pts2":["نقطتان","2 điểm","2 бали","2 ነጥቢ"],"read_h":["للقراءة والمراجعة · قراءة نشِطة","Đọc lại · đọc chủ động","Для читання · активне читання","ንምንባብ · ንጡፍ ንባብ"],"read_p":["اقرأ كل مقطع واضغط على المصطلحات المطلوبة (تصبح صفراء). انتبه: هناك مصطلحات خاطئة أيضًا! بعد ذلك تجيب عن سؤال قصير – وعندها فقط يُفتح المقطع التالي.","Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở.","Прочитай кожен абзац і торкнись потрібних слів (вони стануть жовтими). Увага: є й неправильні слова! Потім дай відповідь на коротке запитання – лише тоді відкриється наступний абзац.","ነፍሲ ወከፍ ክፍሊ ኣንብብ፣ እቶም ዝድለዩ ቃላት ተንከፎም (ብጫ ይኸውኑ)። ጥንቃቐ፡ ጌጋ ቃላት እውን ኣለዉ! ድሕሪኡ ሓጺር ሕቶ ምለስ – ሽዑ ጥራይ እቲ ዝቕጽል ክፍሊ ይኽፈት።"],"ws_h":["مخزن الكلمات (الترجمة)","Kho từ vựng (bản dịch)","Словник (переклад)","መዝገበ-ቃላት (ትርጉም)"],"a2btn":["قرأتُ الأمثلة","Tôi đã đọc các ví dụ","Я прочитав(ла) приклади","ኣብነታት ኣንቢበ ኣለኹ"],"a7_h":["المهمة 8 · قدِّر، اختبر، سجِّل","Bài 8 · Ước lượng, kiểm tra, ghi lại","Завдання 8 · Оціни, перевір, запиши","ዕዮ 8 · ገምግም፣ ፈትን፣ ጽሓፍ"],"a7_p":["كم نقطة من 20 ستحصل عليها في ورقة العمل هذه؟ سجِّل تقديرك قبل التقييم.","Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm.","Скільки з 20 балів ти отримаєш за цей аркуш? Запиши свою оцінку до перевірки.","ኣብዚ ወረቐት ስራሕ ካብ 20 ነጥቢ ክንደይ ክትረክብ ትሓስብ? ቅድሚ ግምጋሜ ግምትካ ጽሓፍ።"],"th1":["تقديري","Dự đoán của tôi","Моя оцінка","ግምተይ"],"th2":["نتيجتي","Kết quả của tôi","Мій результат","ውጽኢተይ"],"th3":["الفرق","Chênh lệch","Різниця","ፍሉይነት"],"th4":["نقاط لحساب النقاط","Điểm cho tài khoản điểm","Бали для рахунку балів","ነጥብታት ንናይ ነጥቢ ሕሳብ"],"submit_h":["انتهيت؟ إذن قيِّم!","Xong chưa? Hãy chấm điểm!","Готово? Тоді перевіряй!","ወዲእካ? እንተኾነ ገምግም!"],"submit_p":["يمكنك التقييم حتى لو لم تنجز كل شيء – المهام غير المنجزة تُحتسب بصفر.","Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm.","Можна оцінити, навіть якщо не все зроблено – незроблені завдання дають 0 балів.","ኩሉ ዘይተሰርሐ እኳ እንተኾነ ክትገምግም ትኽእል – ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"submit_b":["إرسال وتقييم","Gửi và chấm điểm","📊 Надіслати й оцінити","📊 ሰዲድካ ገምግም"],"res_h":["تقييمك","Kết quả của bạn","Твій результат","ውጽኢትካ"],"pdf_b":["تصدير كملف PDF (للمعلمة)","Xuất PDF (cho giáo viên)","🖨️ Експорт у PDF (для вчителя)","🖨️ ከም PDF ኣውጽእ (ንመምህር)"],"tip_t":["تلميح","Gợi ý","Підказка","ሓጋዚ ሓሳብ"],"tip_next":["تلميح آخر","Thêm gợi ý","Ще одна підказка","ካልእ ሓጋዚ ሓሳብ"],"close":["إغلاق","Đóng","Закрити","ዕጸው"],"chk":["تحقّق","Kiểm tra","✔ Перевірити","✔ ፈትሽ"],"shw":["إظهار الحل","Hiện lời giải","Показати розв'язок","መልሲ ርአይ"],"markb":["تحقّق من التظليل","Kiểm tra phần đánh dấu","Перевірити позначки","ምልክታት ፈትሽ"],"self_q":["ما مدى جودة إجابتك؟","Câu trả lời của bạn tốt đến đâu?","Наскільки добре ти відповів(ла)?","ምላስካ ክንደይ ጽቡቕ ነበረ?"],"self1":["نجحت","Đạt","✔ Вдалося","✔ ኣሸኒፈ"],"self2":["جزئيًا","Một phần","◐ Частково","◐ ብሓደ ኣቕጣጫ"],"self3":["ليس بعد","Chưa","✖ Ще ні","✖ ኣይተኻእለን"],"fb_ok":["ممتاز! أحسنت.","Đúng rồi! Làm tốt lắm.","✅ Правильно! Молодець.","✅ ቅኑዕ! ጽቡቕ ሰሪሕካ።"],"fb_part":["تقريبًا – ينقص جزء. قارن بالحل وأكمل.","Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung.","🟡 Майже – ще чогось бракує. Порівняй із розв'язком і доповни.","🟡 ቐረባ – ሓደ ክፍሊ ጎዲሉ። ምስ መልሲ ኣነጻጽርካ ወስኸሉ።"],"fb_bad":["ليس بعد. استعن بتلميح أو أعد قراءة النص.","Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản.","❌ Ще не те. Візьми підказку 💡 або перечитай текст.","❌ ገና ኣይቅኑዕን። ሓጋዚ ሓሳብ 💡 ውሰድ ወይ ጽሑፍ ዳግማይ ኣንብብ።"],"sol_lbl":["الحل:","Lời giải:","Розв'язок:","መልሲ፡"],"mk_ok":["تظليل صحيح! والآن السؤال:","Đánh dấu đúng! Giờ đến câu hỏi:","✅ Позначено правильно! Тепер запитання:","✅ ብቐንዱ ተሓሪዩ! ሕጂ እቲ ሕቶ፡"],"mk_bad":["ليس تمامًا بعد. اقرأ المهمة مرة أخرى.","Chưa hoàn toàn đúng. Hãy đọc lại đề bài.","Ще не зовсім. Прочитай завдання ще раз.","ገና ጥዑይ ኣይኮነን። ዕዮ ዳግማይ ኣንብብ።"],"zq_ok":["بالضبط! تم فتح المقطع التالي.","Chính xác! Đoạn tiếp theo đã mở.","✅ Точно! Наступний абзац відкрито.","✅ ልክዕ! እቲ ዝቕጽል ክፍሊ ተኸፊቱ።"],"zq_bad":["ليس تمامًا. أعد قراءة المقطع وحاول مجددًا.","Chưa đúng. Hãy đọc lại đoạn và thử lại.","Не зовсім. Перечитай абзац і спробуй ще раз.","ኣይኮነን ጥዑይ። ክፍሊ ዳግማይ ኣንብብ ከምኡውን እንደገና ፈትን።"],"res_pts":["من 20 نقطة","trên 20 điểm","з 20 балів","ካብ 20 ነጥቢ"],"res_an":["تحليل الأخطاء حسب مجالات الكفاءة","Phân tích lỗi theo lĩnh vực năng lực","Аналіз помилок за сферами компетенцій","ትንተና ጌጋታት ብዘርእስታት ክእለት"],"rep":["ما يجب أن تراجعه","Bạn nên ôn lại","Це треба повторити","እዚ ክትደግሞ ኣለካ"],"lab1":["ممتاز!","Tuyệt vời!","Чудово!","ብጣዕሚ ጽቡቕ!"],"lab2":["جيد – تحتاج مزيدًا من التمرين","Khá – cần luyện thêm","Добре – ще трохи практики","ጽቡቕ – ገለ ተወሳኺ ልምምድ"],"lab3":["تحتاج هنا إلى مزيد من التمرين","Phần này bạn cần luyện thêm","Тут тобі ще потрібна практика","ኣብዚ ገና ልምምድ የድልየካ"],"set_h":["الإعدادات","Cài đặt","Налаштування","ቅጥዕታት"],"set_mode":["الترجمة","Bản dịch","Переклад","ትርጉም"],"mode_tap":["بالنقر","Chạm để xem","Торкнутися","ብምንካፍ"],"mode_under":["تحت النص","Hiện bên dưới","Під текстом","ኣብ ትሕቲ ጽሑፍ"],"mode_off":["إيقاف","Tắt","Вимк.","ዕጹው"],"set_fs":["حجم الخط","Cỡ chữ","Розмір шрифту","ዓቐን ፊደል"],"set_level":["المستوى","Mức độ","Рівень","ደረጃ"],"lvl_b":["أساسي","Cơ bản","Базовий","መሰረታዊ"],"lvl_v":["تعمّق","Nâng cao","Поглиблений","ዓሚቝ"],"set_snd":["الصوت","Âm thanh","Звук","ድምጺ"],"set_reset":["البدء من جديد","Làm lại từ đầu","Почати спочатку","ካብ ሓድሽ ጀምር"],"dlg_reset":["حذف كل شيء والبدء من جديد؟ ستضيع إجاباتك في ورقة العمل هذه.","Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất.","Усе видалити й почати спочатку? Твої записи в цьому аркуші буде втрачено.","ኩሉ ይሰረዝ እሞ ካብ ሓድሽ ይጀመር? ኣብዚ ወረቐት ዘኣተኻዮ ይጥፍእ።"],"dlg_next":["الشخص التالي: سيتم حذف الإجابات والاسم.","Người tiếp theo: nội dung và tên sẽ bị xóa.","Наступна особа: записи та ім'я буде видалено.","ቀጻሊ ሰብ፡ ዘኣተኻዮን ስምን ይጥፍእ።"],"dlg_cancel":["إلغاء","Hủy","Скасувати","ሰርዝ"],"dlg_ok":["نعم","Đồng ý","Так","እወ"],"wg_h":["كلمات وبدايات جمل للمساعدة","Từ ngữ và gợi ý đầu câu","Слова та початки речень","ቃላትን መጀመርታ ሓሳባትን"],"a8_h":["المهمة 9 · التعمّق","Bài 9 · Nâng cao","Завдання 9 · Поглиблення","ዕዮ 9 · ምዕማቕ"],"pts_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"a8_p":["تظهر فقط في مستوى «التعمّق». علّل بجمل كاملة. هذه المهام تمنح نقاطًا إضافية ولا تخفض نقاطك الـ 20 أبدًا.","Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn.","Лише на рівні «Поглиблений». Обґрунтуй повними реченнями. Ці завдання дають бонусні бали й ніколи не зменшують твої 20 балів.","ኣብ ደረጃ «ዓሚቝ» ጥራይ። ብምሉእ ሓሳብ ኣብርህ። እዞም ዕዮታት ቦነስ ነጥቢ ይህቡ እሞ ኣብ 20 ነጥብታትካ ፈጺሞም ኣይጐድሉን።"],"res_card_h":["النتيجة للمعلمة","Kết quả cho giáo viên","Результат для вчителя","ውጽኢት ንመምህር"],"btn_img":["حفظ النتيجة كصورة","Lưu kết quả dưới dạng ảnh","🖼️ Зберегти результат як зображення","🖼️ ውጽኢት ከም ስእሊ ዓቅብ"],"btn_code":["نسخ الرمز","Sao chép mã","📋 Копіювати код","📋 ኮድ ቅዳሕ"],"btn_next":["الشخص التالي","Người tiếp theo","👤 Наступна особа","👤 ቀጻሊ ሰብ"],"res_open":["ملاحظة: المهام غير المنجزة تُحتسب بصفر.","Lưu ý: bài chưa làm tính 0 điểm.","Примітка: незроблені завдання дають 0 балів.","ሓበሬታ፡ ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"res_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"cat_bonus":["نقاط إضافية (التعمّق)","Điểm thưởng (Nâng cao)","Бонус (поглиблення)","ቦነስ (ምዕማቕ)"],"fb_peek":["صحيح – لكنك نظرت إلى الحل قبل ذلك، لذلك تحصل على نصف النقاط.","Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm.","✅ Правильно – але ти раніше дивився(лась) розв'язок, тому половина балів.","✅ ቅኑዕ – ግን ቅድም መልሲ ርእይካዮ፣ ስለዚ ፍርቂ ነጥቢ።"],"t25":["بداية جيدة!","Khởi đầu tốt!","Гарний початок!","ጽቡቕ ጅምር!"],"t50":["اكتمل النصف!","Xong một nửa rồi!","Півдороги!","ፍርቂ!"],"t75":["اقتربت من الهدف!","Sắp đến đích rồi!","Майже готово!","ቐረባ!"],"t100":["أنجزت كل شيء! الآن قيِّم.","Đã làm xong hết! Giờ hãy chấm điểm.","Усе зроблено! Тепер оціни.","ኩሉ ተሰሪሑ! ሕጂ ገምግም።"],"t_write":["اكتب شيئًا أولًا","Hãy viết gì đó trước","Спочатку щось напиши","ቅድም ገለ ጽሓፍ"],"t_saved":["تم التسجيل","Đã ghi","Збережено","ተዓቒቡ"],"t_read":["تمت القراءة","Đã đọc","Прочитано","ተነቢቡ"],"t_resume":["تابع من حيث توقفت","Tiếp tục từ chỗ bạn dừng","Продовжуй, де зупинився(лась)","ኣብ ዝደው ዝበልካዮ ቀጽል"],"t_copy":["تم نسخ الرمز","Đã sao chép mã","Код скопійовано","ኮድ ተቐዲሑ"],"t_img":["تم حفظ الصورة","Đã lưu ảnh","Зображення збережено","ስእሊ ተዓቒቡ"],"h1":["الوحدة 2: التحصيل خطوة بخطوة (Kassieren Schritt für Schritt)","Bài 2: Thanh toán tại quầy từng bước (Kassieren Schritt für Schritt)","Модуль 2: Робота на касі крок за кроком","ምዕራፍ 2: ኣብ ካሳ ስጉምቲ ብስጉምቲ"],"meta":["حصتان مزدوجتان · 8 نقاط · الكتاب المدرسي ص 167–171 · كراس التمارين ص 134–141","2 tiết đôi · 8 điểm · Sách giáo khoa tr. 167–171 · Sách bài tập tr. 134–141","2 подвійні уроки · 8 балів · Підручник с. 167–171 · Робочий зошит с. 134–141","2 ድርብ ትምህርቲ · 8 ነጥቢ · መጽሓፍ ገጽ 167–171 · መምርሒ ዕዮ ገጽ 134–141"],"can1":["أستطيع ذكر الأعمال التحضيرية قبل التحصيل عند الصندوق.","Tôi có thể kể tên các việc chuẩn bị trước khi thanh toán tại quầy.","Я можу назвати підготовчі дії перед роботою на касі.","ቅድሚ ካሳ ዝግበሩ ዕዮታት ክጽሕፍ እኽእል።"],"can2":["أستطيع وصف عملية التحصيل نقدًا بالترتيب الصحيح.","Tôi có thể mô tả một lần thanh toán bằng tiền mặt theo đúng thứ tự.","Я можу описати розрахунок готівкою в правильній послідовності.","ብጥረ ገንዘብ ዝግበር ክፍሊት ብቅጸል ክገልጽ እኽእል።"],"can3":["أستطيع إظهار السلوك المراعي للزبون عند الصندوق وتعليله.","Tôi có thể thể hiện và giải thích cách cư xử hướng đến khách hàng tại quầy.","Я можу поводитися на касі орієнтуючись на клієнта і пояснити чому.","ኣብ ካሳ ንዓሚል ዘኽብር ኣካይዳ ክሕዝን ምኽንያቱ ክገልጽ እኽእል።"],"can4":["أستطيع ذكر تعليمات الصندوق (Kassieranweisung) والالتزام بها.","Tôi có thể kể tên và tuân thủ quy định thu ngân (Kassieranweisung).","Я можу назвати правила роботи на касі (Kassieranweisungen) і дотримуватися їх.","ሕግታት ካሳ (Kassieranweisungen) ክጽሕፍን ክሕሉን እኽእል።"],"a1_h":["المهمة 1 · البداية: ماذا تتذكر من الوحدة 1؟","Bài tập 1 · Khởi động: Bạn còn nhớ gì từ Bài 1?","Завдання 1 · Початок: Що ти ще пам'ятаєш з модуля 1?","ዕዮ 1 · ጅማሮ: ካብ ምዕራፍ 1 እንታይ ትዝክር?"],"a1_p":["أجب من الذاكرة. لا تبحث في الكتاب.","Trả lời theo trí nhớ. Không tra cứu.","Відповідай з пам'яті. Не підглядай.","ካብ ሓሳብካ መልሲ። ኣይትረአ።"],"a2_h":["المهمة 2 · الصندوق في الفصل: ماذا لاحظتم؟","Bài tập 2 · Quầy thu ngân trong lớp: Các bạn nhận thấy gì?","Завдання 2 · Каса в класі: Що вам впадає в око?","ዕዮ 2 · ካሳ ኣብ ክላስ: እንታይ ይርአየኩም?"],"a2_p":["يلعب شخصان دور أمينة الصندوق والزبون (بطاقة الزبون من المعلم/ة)، ويراقب الباقون. دوّنوا: ما الذي نجح؟ وما الذي نسيته أمينة الصندوق؟","Hai người đóng vai thu ngân và khách hàng (thẻ khách hàng do giáo viên đưa), những người khác quan sát. Ghi lại: Điều gì đã làm tốt? Thu ngân đã quên điều gì?","Двоє учнів грають касира і клієнта (картка клієнта від викладача), решта спостерігає. Запишіть: Що вдалося добре? Що забув касир?","ክልተ ሰባት ከሳሪትን ዓሚልን ይጻወቱ (ካርድ ዓሚል ካብ መምህር)፣ እቶም ካልኦት ይዕዘቡ። ጽሓፉ: እንታይ ጽቡቕ ኮይኑ? እንታይ ረሲዓ ከሳሪት?"],"vor_h":["1. قبل التحصيل (الكتاب ص 167)","1. Trước khi thanh toán (Sách tr. 167)","1. Перед початком роботи на касі (підручник с. 167)","1. ቅድሚ ካሳ (መጽሓፍ ገጽ 167)"],"vor_t":["تشغيل الصندوق وتسجيل الدخول · إحضار الفكة (Wechselgeld) وعدّها وفحصها · فحص لفافة الإيصالات واللفافات الاحتياطية · اختبار الماسح وجهاز البطاقات والميزان · تجهيز الأكياس ومواد التغليف والنماذج · العناية بنظافة وترتيب مكان الصندوق.","Mở máy và đăng nhập · lấy tiền lẻ (Wechselgeld), đếm và kiểm tra · kiểm tra cuộn giấy hóa đơn và cuộn dự phòng · thử máy quét, máy thẻ và cân · chuẩn bị túi, vật liệu đóng gói và biểu mẫu · giữ quầy gọn gàng và sạch sẽ.","Запустити касу і ввійти в систему · взяти розмінну монету, перерахувати і перевірити · перевірити рулон для чеків і запасні рулони · перевірити сканер, термінал для карток і ваги · приготувати пакети, пакувальний матеріал і бланки · підтримувати порядок і чистоту на робочому місці.","ካሳ ምእላይን ምእታውን · ንእሽቶ ገንዘብ ምምጻእ፣ ምቑጻርን ምርግጋጽን · ጥቕላል ወረቐት ቦን (Bonrolle) ምርግጋጽ · ስካነር፣ መሳርሒ ካርድን ሚዛንን ምፍታን · ከረጢታት፣ ማዕሸጊን ፎርማትን ምድላው · ቦታ ካሳ ንጹህን ስሩዕን ምግባር።"],"vorg_h":["2. عملية التحصيل نقدًا (الكتاب ص 169–170)","2. Thanh toán bằng tiền mặt (Sách tr. 169–170)","2. Розрахунок готівкою (підручник с. 169–170)","2. ክፍሊት ብጥረ ገንዘብ (መጽሓፍ ገጽ 169–170)"],"s1":["تسجيل الأصناف (بالمسح الضوئي).","Ghi nhận các mặt hàng (quét).","Зареєструвати (відсканувати) товари.","ኣቕሑት ምምዝጋብ (ስካን ምግባር)።"],"s2":["حساب مجموع الشراء.","Tính tổng tiền mua hàng.","Визначити суму покупки.","ጠቕላላ ዋጋ ምውሳድ።"],"s3":["ذكر المبلغ للزبون بصوت عالٍ وواضح – وعند الحاجة السؤال عن بطاقة الزبون.","Nói số tiền với khách to và rõ – nếu cần thì hỏi thẻ khách hàng.","Голосно і чітко назвати клієнту суму – за потреби запитати про картку клієнта.","ንዓሚል ጠቕላላ ዋጋ ብቐዳማይ ደሃይን ብንጹርን ምሕባር – እንተድሊ ብዛዕባ ካርድ ዓሚል ምሕታት።"],"s4":["استلام الورقة النقدية وذكر قيمتها بصوت عالٍ والتحقق من أنها حقيقية.","Nhận tờ tiền, nói to giá trị và kiểm tra xem có thật không.","Прийняти банкноту, голосно назвати номінал і перевірити справжність.","ወረቐት ገንዘብ ምቕባል፣ ዋጋኡ ብዓውታ ምጥዋቕን ጭሩቕ ምዃኑ ምርግጋጽን።"],"s5":["تثبيت الورقة النقدية بشكل ظاهر في ماسك الأوراق النقدية (Geldscheinhalter).","Kẹp tờ tiền vào kẹp giữ tiền (Geldscheinhalter) ở chỗ nhìn thấy được.","Покласти банкноту на видноті в затискач для банкнот.","ወረቐት ገንዘብ ብቕንዕና ኣብ መታሕዚ ወረቐት ገንዘብ (Geldscheinhalter) ምትሓዝ።"],"s6":["ذكر الباقي (Rückgeld) وعدّه أمام الزبون.","Nói số tiền thối (Rückgeld) và đếm trả cho khách.","Назвати решту і відрахувати її клієнту вголос.","ተመላሲ ገንዘብ ምሕባርን ንዓሚል ብዓውታ ምቝጻርን።"],"s7":["وضع الورقة النقدية في الصندوق وإغلاقه.","Cho tờ tiền vào máy và đóng ngăn kéo.","Покласти банкноту в касу і закрити касу.","ወረቐት ገንዘብ ኣብ ካሳ ምዕቃብን ካሳ ምዕጻውን።"],"s8":["تسليم الإيصال والبضاعة والتوديع.","Đưa hóa đơn và hàng, rồi chào tạm biệt.","Віддати чек і товар та попрощатися.","ቦንን ኣቕሑትን ምሃብን ምስንባትን።"],"ka_h":["3. تعليمات الصندوق (Kassieranweisungen)","3. Quy định thu ngân (Kassieranweisungen)","3. Правила роботи на касі (Kassieranweisungen)","3. ሕግታት ካሳ (Kassieranweisungen)"],"ka_t":["لكل شركة تعليمات للصندوق (Kassieranweisung). المعتاد: التحية والتوديع بلطف · التواصل البصري · تسجيل كل صنف على حدة · فحص عربة التسوق والعبوات الخارجية · فحص الأوراق النقدية · عدّ الباقي أمام الزبون · التعامل بعناية مع البضاعة · لا نقود خاصة في منطقة الصندوق · عدم محاسبة أفراد العائلة بنفسك · إلغاء الأخطاء (stornieren) وحفظ الإيصال الخاطئ.","Mỗi cửa hàng có một quy định thu ngân (Kassieranweisung). Thường gồm: chào hỏi và tạm biệt thân thiện · giao tiếp bằng mắt · quét từng mặt hàng một · kiểm tra xe đẩy và bao bì ngoài · kiểm tra tiền giấy · đếm trả tiền thối · cầm hàng cẩn thận · không để tiền riêng ở khu vực quầy · không tự tính tiền cho người thân · hủy lỗi (stornieren) và giữ lại hóa đơn sai.","У кожному підприємстві є інструкція для касирів (Kassieranweisung). Типові правила: привітно вітатися і прощатися · зоровий контакт · реєструвати кожен товар окремо · перевіряти візок і зовнішню упаковку · перевіряти банкноти · відраховувати решту вголос · дбайливо поводитися з товаром · жодних приватних грошей біля каси · не обслуговувати на касі членів своєї родини · помилки сторнувати, а хибний чек зберегти.","ነፍሲ ወከፍ ትካል ሕግታት ካሳ ኣለዎ። ልሙድ: ብሓጎስ ምሰላምን ምስንባትን · ምርኣኢ ዓይኒ · ነፍሲ ወከፍ ኣቕሓ ንበይኑ ምምዝጋብ · ጋሪን ማዕሸጊን ምምርማር · ወረቐት ገንዘብ ምርግጋጽ · ተመላሲ ገንዘብ ብዓውታ ምቝጻር · ኣቕሑት ብጥንቃቕ ምሓዝ · ናይ ርእሱ ገንዘብ ኣብ ቦታ ካሳ ኣይህሉ · ኣባላት ስድራ ብርእሱ ኣይከፍል · ጌጋ ምስረዝ (stornieren) ጌጋ ቦን ከኣ ምሕላው።"],"ko_h":["4. مراعاة الزبون عند الصندوق (الكتاب ص 168)","4. Hướng đến khách hàng tại quầy (Sách tr. 168)","4. Орієнтація на клієнта на касі (підручник с. 168)","4. ኣብ ካሳ ንዓሚል ዘኽብር ኣካይዳ (መጽሓፍ ገጽ 168)"],"th_wie":["هكذا أتصرف","Tôi cư xử như thế này","Так я поводжуся","ከመይ ይመላለ"],"th_darum":["لماذا هذا مهم","Vì sao điều này quan trọng","Тому це важливо","ስለዚ እዩ ኣገዳሲ"],"ko1":["الترحيب والتوديع","Chào hỏi và tạm biệt","Привітання і прощання","ሰላምታን ምስንባትን"],"ko1b":["الصندوق هو الانطباع الأول والأخير في المتجر.","Quầy thu ngân là ấn tượng đầu tiên và cuối cùng trong cửa hàng.","Каса – це перше і останнє враження в магазині.","ካሳ ቀዳማይን ዳሕረዋይን ርእይቶ ኣብ ድኳን እዩ።"],"ko2":["التواصل البصري والابتسامة","Giao tiếp bằng mắt và mỉm cười","Зоровий контакт і усмішка","ምርኣኢ ዓይንን ጥምየትን"],"ko3":["تأكيد الشراء بإيجابية („Gute Wahl!“ = اختيار موفق!)","Xác nhận việc mua hàng một cách tích cực („Gute Wahl!“ = Chọn hay lắm!)","Позитивно підтвердити покупку («Гарний вибір!»)","ዕድጊ ብጽቡቕ ምግላጽ (“ጽቡቕ ምርጫ!”)"],"ko3b":["الزبائن الراضون يعودون (ولاء العملاء Kundenbindung).","Khách hàng hài lòng sẽ quay lại (gắn bó khách hàng, Kundenbindung).","Задоволені клієнти повертаються (Kundenbindung – прив'язаність клієнтів).","ዕጉባት ዓማዊል ይምለሱ (Kundenbindung – ምጥርናፍ ዓማዊል)።"],"ko4":["التعامل بعناية مع البضاعة","Cầm hàng cẩn thận","Дбайливо поводитися з товаром","ኣቕሑት ብጥንቃቕ ምሓዝ"],"ko4b":["هم يوصون الآخرين بالمتجر.","Họ giới thiệu cửa hàng cho người khác.","Вони рекомендують магазин іншим.","ንድኳን ንካልኦት የመኽሩ።"],"ko5":["السؤال عن بطاقة الزبون أو تطبيق الزبائن","Hỏi thẻ khách hàng hoặc ứng dụng khách hàng","запитати про картку клієнта або додаток","ብዛዕባ ካርድ ዓሚል ወይ ኣፕ ምሕታት"],"ko5b":["تكون للمتجر صورة إيجابية (Image) ويتميز عن المنافسين.","Cửa hàng có hình ảnh (Image) tốt và nổi bật hơn đối thủ.","Магазин має позитивний імідж і вирізняється серед конкурентів.","እቲ ድኳን ጽቡቕ ስም ኣለዎ ካብ ተወዳደርቲ ድማ ፍሉይ እዩ።"],"ko6":["تقديم خدمة (كيس، تغليف هدايا)","Đề nghị dịch vụ (túi, gói quà)","Запропонувати сервіс (пакет, святкове пакування)","ኣገልግሎት ምቕራብ (ከረጢት፣ ማዕሸጊ ሓዱሽ)"],"ko7":["الشكر","Cảm ơn","подякувати","ምስጋና"],"merke_schein":["تذكّر: لا تضع الورقة النقدية للزبون في الصندوق إلا بعد إعطائه الباقي. حتى ذلك الحين تبقى ظاهرة في ماسك الأوراق النقدية – عندها لا يحدث خلاف حول كونها 50 أو 100.","Ghi nhớ: Chỉ cho tờ tiền của khách vào máy sau khi đã đưa tiền thối. Cho đến lúc đó tờ tiền nằm trong kẹp giữ tiền ở chỗ nhìn thấy được – như vậy không có tranh cãi đó là tờ 50 hay tờ 100.","Запам'ятай: Банкноту клієнта клади в касу лише після того, як віддав решту. До цього вона лежить на видноті в затискачі – тоді не буде суперечки, чи це була банкнота 50 чи 100.","ኣስተውዕል: ወረቐት ገንዘብ ናይ ዓሚል ድሕሪ ተመላሲ ገንዘብ ምሃብ ጥራይ ኣብ ካሳ ኣቐምጥ። ክሳብ ሽዑ ኣብ መታሕዚ ብቕንዕና ይኸውን – ሽዑ ብዛዕባ 50 ወይ 100 ክትናቶ ኣይኰነን።"],"a3_h":["المهمة 3 · نموذج محلول: إكمال الخطوات الناقصة","Bài tập 3 · Làm mẫu: bổ sung các bước còn thiếu","Завдання 3 · Показую приклад: доповнити пропущені кроки","ዕዮ 3 · ምርኢት: ዝጎደሉ ስጉምትታት ምምላእ"],"a3_p":["هكذا تتعامل مع مهمة امتحان. اقرأ الخطوات جيدًا، فستحتاجها بعد قليل.","Bạn làm một bài thi như thế này. Hãy đọc kỹ các bước, lát nữa bạn sẽ cần.","Так ти дієш у екзаменаційному завданні. Уважно прочитай кроки, вони тобі зараз знадобляться.","ኣብ ሕቶ ፈተና ከምዚ ትገብር። ስጉምትታት ብጽቡቕ ኣንብብ፣ ሕጂ የድልዩኻ።"],"wk0":["السؤال: تدفع زبونة نقدًا. ما الخطوات الأربع الناقصة في عملية التحصيل؟ اذكرها بالترتيب الصحيح! (4 نقاط) المعطى: – حساب مجموع الشراء (المسح) · _______ · _______ · _______ · _______ · – التوديع","Đề bài: Một khách hàng trả bằng tiền mặt. Thiếu 4 bước nào trong quy trình thanh toán? Hãy nêu theo đúng thứ tự! (4 điểm) Đã cho: – Tính tổng tiền (quét) · _______ · _______ · _______ · _______ · – Chào tạm biệt","Завдання: Клієнтка платить готівкою. Які 4 кроки пропущені в процесі розрахунку? Назвіть їх у правильній послідовності! (4 бали) Задано: – Визначити суму покупки (сканування) · _______ · _______ · _______ · _______ · – Прощання","ሕቶ: ሓንቲ ዓሚል ብጥረ ገንዘብ ትከፍል። ኣየኖት 4 ስጉምትታት ኣብ ክፍሊት ይጎድሉ? ብቅጸል ጽሓፎም! (4 ነጥቢ) ዝተዋህበ: – ጠቕላላ ዋጋ ምውሳድ (ስካን) · _______ · _______ · _______ · _______ · – ምስንባት"],"wk1":["1. انظر إلى الإطار: البداية (المسح) والنهاية (التوديع) معطاتان. أحتاج الخطوات الأربع بينهما.","1. Nhìn khung: Bước đầu (quét) và bước cuối (chào tạm biệt) đã cho sẵn. Tôi cần bốn bước ở giữa.","1. Подивися на рамку: початок (сканування) і кінець (прощання) задані. Мені потрібні чотири кроки між ними.","1. ሕቶ ርአ: መጀመርታ (ስካን) መደምደምታ (ምስንባት) ተዋሂቡ። እቶም ኣብ ማእከል ዘለዉ ኣርባዕተ ስጉምትታት የድልዩኒ።"],"wk2":["2. أمثّل العملية في ذهني: ماذا أقول؟ ماذا أستلم؟ أين أضعه؟ ماذا أعيد؟","2. Hình dung quy trình trong đầu: Tôi nói gì? Tôi nhận gì? Để vào đâu? Tôi trả lại gì?","2. Уяви процес: Що я кажу? Що я отримую? Куди це кладу? Що віддаю назад?","2. ኣብ ሓሳብካ ተጻወት: እንታይ እብል? እንታይ ይቕበል? ኣበይ የንብሮ? እንታይ እምልስ?"],"wk3":["3. أكتب: ذكر المبلغ · استلام النقود وفحصها وذكر قيمتها · وضع النقود بشكل ظاهر · عدّ الباقي أمام الزبون","3. Viết ra: Nói số tiền · nhận tiền, kiểm tra và nói giá trị · đặt tiền ở chỗ nhìn thấy · đếm trả tiền thối","3. Записати: назвати суму · прийняти гроші, перевірити і назвати номінал · покласти гроші на видноті · відрахувати решту вголос","3. ጽሓፍ: ዋጋ ምሕባር · ገንዘብ ምቕባል፣ ምርግጋጽን ዋጋኡ ምጥዋቕን · ገንዘብ ብቕንዕና ምቕማጥ · ተመላሲ ገንዘብ ብዓውታ ምቝጻር"],"wk4":["4. أراجع: هل هي أربع بالضبط؟ وبالترتيب الصحيح؟ إذن تحصل على 4 نقاط.","4. Kiểm tra: Đúng bốn bước không? Đúng thứ tự không? Vậy thì được 4 điểm.","4. Перевірити: Рівно чотири? У правильній послідовності? Тоді буде 4 бали.","4. ርግጸኛ ኩን: ልክዕ ኣርባዕተ? ብቅጸል? ሽዑ 4 ነጥቢ ትረክብ።"],"a4_h":["المهمة 4 · تمرين موجَّه: الترتيب والعدّ أمام الزبون","Bài tập 4 · Luyện tập có hướng dẫn: thứ tự và đếm trả tiền","Завдання 4 · Вправа з підказками: послідовність і відраховування решти","ዕዮ 4 · ብመሪሕነት ልምምድ: ቅጸልን ምቝጻር ተመላሲ ገንዘብን"],"a5_h":["المهمة 5 · تمرين حر: الصندوق في الفصل","Bài tập 5 · Luyện tập tự do: Quầy thu ngân trong lớp","Завдання 5 · Вільна вправа: Каса в класі 3 бали за досягнення","ዕዮ 5 · ነጻ ልምምድ: ካሳ ኣብ ክላስ 3 ነጥቢ ዓወት"],"pts_lp3":["3 نقاط إنجاز","3 điểm thành tích","3 бали за досягнення","3 ነጥቢ ዓወት"],"a5_p":["العبوا في مجموعات من ثلاثة: أمينة الصندوق، الزبون، المراقب. يكون كل شخص عند الصندوق مرة واحدة. يملأ المراقب الاستمارة (انظر أدناه). التقييم: 7–8 × نعم = 3 نقاط أداء · 5–6 × نعم = نقطتان · 3–4 × نعم = نقطة واحدة.","Chơi theo nhóm ba người: thu ngân, khách hàng, người quan sát. Mỗi người làm thu ngân một lần. Người quan sát điền phiếu (xem bên dưới). Chấm điểm: 7–8 × có = 3 điểm · 5–6 × có = 2 điểm · 3–4 × có = 1 điểm.","Грайте групами по троє: касир, клієнт, спостерігач. Кожен один раз сидить на касі. Спостерігач заповнює аркуш (див. нижче). Оцінювання: 7–8 × так = 3 бали · 5–6 × так = 2 бали · 3–4 × так = 1 бал.","ብሰለስተ ሰባት ተጻወቱ: ከሳሪት፣ ዓሚል፣ ተዓዛቢ። ነፍሲ ወከፍ ሓንዘፍ ኣብ ካሳ ትኸውን። ተዓዛቢ ወረቐት ይመልእ (ኣብ ታሕቲ ርአ)። ነጥቢ: 7–8 × እወ = 3 · 5–6 × እወ = 2 · 3–4 × እወ = 1።"],"b1":["جهّزت الصندوق (عدّت الفكة، رتّبت المكان)","Đã chuẩn bị quầy (đếm tiền lẻ, gọn gàng)","Каса підготовлена (розмінна монета перерахована, порядок)","ካሳ ተዳልዩ (ንእሽቶ ገንዘብ ተቆጺሩ፣ ስርዓት)"],"b2":["التحية والتواصل البصري","Chào hỏi và giao tiếp bằng mắt","Привітання і зоровий контакт","ሰላምታን ምርኣኢ ዓይንን"],"b3":["سجّلت كل صنف على حدة، وذكرت المبلغ بصوت عالٍ","Quét từng mặt hàng, nói to số tiền","Товари зареєстровані по одному, суму названо вголос","ኣቕሑት ንበይኑ ተመዝጊቡ፣ ዋጋ ብዓውታ ተሓቢሩ"],"b4":["سألت عن بطاقة الزبون","Đã hỏi thẻ khách hàng","запитали про картку клієнта","ብዛዕባ ካርድ ዓሚል ተሓቲቱ"],"b5":["فحصت الورقة النقدية، وذكرت قيمتها، ووضعتها بشكل ظاهر","Kiểm tra tờ tiền, nói giá trị, đặt ở chỗ nhìn thấy","Банкноту перевірено, номінал названо, покладено на видноті","ወረቐት ገንዘብ ተረጋጊጹ፣ ዋጋኡ ተጠዊቑ፣ ብቕንዕና ተቀሚጡ"],"b6":["عدّت الباقي بشكل صحيح وبصوت عالٍ أمام الزبون","Đếm trả tiền thối đúng và to","Решту відраховано правильно і вголос","ተመላሲ ገንዘብ ብትኽክል ብዓውታ ተቘጺሩ"],"b7":["وضعت الورقة في الصندوق بعد ذلك فقط","Chỉ sau đó mới cho tờ tiền vào máy","Банкноту покладено в касу лише після цього","ወረቐት ገንዘብ ድሕሪኡ ጥራይ ኣብ ካሳ ተቐሚጡ"],"b8":["سلّمت الإيصال، وشكرت، ودّعت","Đưa hóa đơn, cảm ơn, chào tạm biệt","Чек віддано, подякували, попрощалися","ቦን ተዋሂቡ፣ ተመስጊኑ፣ ተሰንቢቱ"],"a6_h":["المهمة 6 · اختبار الامتحان","Bài 6 · Kiểm tra kiểu thi","Завдання 6 · Екзаменаційна перевірка 10 балів · близько 10 хвилин","ዕዮ 6 · ፈተና ምርግጋጽ 10 ነጥቢ · ኣስታት 10 ደቒቕ"],"pts10":["10 نقاط · حوالي 10 دقائق","10 điểm · khoảng 10 phút","10 балів · близько 10 хвилин","10 ነጥቢ · ኣስታት 10 ደቒቕ"],"a6_sit":["الوضع: تعمل في قسم الصناديق في متجر Hansa GmbH.","Tình huống: Bạn làm việc ở khu vực quầy thu ngân của cửa hàng Hansa GmbH.","Ситуація: Ви працюєте на касі універмагу Hansa GmbH.","ኩነት: ኣብ ቦታ ካሳ ናይ ድኳን Hansa GmbH ትሰርሑ።"],"a7p_h":["المهمة 7 · للمحترفين","Bài 7 · Dành cho người giỏi","Завдання 7 · Для профі","ዕዮ 7 · ንክኢላታት"],"a7p_p":["للتفكير أكثر – بجمل كاملة ومع التعليل.","Để suy nghĩ sâu hơn – viết câu đầy đủ, có giải thích lý do.","Для подальших роздумів – повні речення, з обґрунтуванням.","ንምሕሳብ ተወሳኺ – ምሉእ ሓጸርቲ ሓሳባት፣ ምስ ምኽንያት።"],"a1_1.q":["1.1 ماذا يقرأ الماسح الضوئي عند الصندوق؟","1.1 Máy quét ở quầy đọc cái gì?","1.1 Що зчитує сканер на касі?","1.1 እቲ ስካነር ኣብ ካሳ እንታይ የንብብ?"],"a1_1.h0":["فكّر في الباركود على العبوة.","Hãy nghĩ đến mã vạch trên bao bì.","Подумай про штрихкод на упаковці.","ብዛዕባ ባር ኮድ (Strichcode) ኣብ ማዕሸጊ ሓሲብ።"],"a1_1.h1":["ما اسم الرقم المكوَّن من 13 خانة تحت الباركود؟","Dãy số 13 chữ số dưới mã vạch gọi là gì?","Як називається 13-значний номер під штрихкодом?","እቲ 13 ኣሃዝ ዘለዎ ቁጽሪ ኣብ ትሕቲ ባር ኮድ እንታይ ይበሃል?"],"a1_1.s":["رقم GTIN (رقم الصنف المكوَّن من 13 خانة في الباركود).","GTIN (mã số mặt hàng 13 chữ số trong mã vạch).","GTIN (13-значний артикульний номер у штрихкоді).","GTIN (ቁጽሪ ኣቕሓ ብ13 ኣሃዝ ኣብ ባር ኮድ)።"],"a1_2.q":["1.2 ما فائدة الـ TSE؟","1.2 TSE dùng để làm gì?","1.2 Для чого потрібна TSE?","1.2 TSE ንምንታይ ይጠቅም?"],"a1_2.h0":["الـ TSE هو جهاز أمان تقني (technische Sicherheitseinrichtung).","TSE là thiết bị an toàn kỹ thuật (technische Sicherheitseinrichtung).","TSE – це технічний пристрій безпеки.","TSE ቴክኒካዊ መሳርሒ ድሕነት እዩ።"],"a1_2.h1":["ماذا يحدث لكل عملية في الصندوق، ومن ماذا تُحمى؟","Mỗi giao dịch ở quầy được làm gì, và được bảo vệ khỏi điều gì?","Що відбувається з кожною касовою операцією і від чого вона захищена?","ነፍሲ ወከፍ ስራሕ ካሳ እንታይ ይሓልፎ፣ ካብ እንታይከ ይሕሎ?"],"a1_2.s":["يخزّن جميع عمليات الصندوق ويحميها من التلاعب.","Nó lưu trữ tất cả giao dịch ở quầy và bảo vệ khỏi việc gian lận, chỉnh sửa.","Вона зберігає всі касові операції і захищає їх від маніпуляцій.","ኩሉ ስራሕ ካሳ የቐምጥ ካብ ምሕራይ ድማ የድሕን።"],"a1_3.q":["1.3 اذكر ثلاث بيانات موجودة على إيصال الدفع (Kassenbon).","1.3 Nêu ba thông tin có trên hóa đơn (Kassenbon).","1.3 Назви три дані на касовому чеку.","1.3 ሰለስተ ሓበሬታ ኣብ ቦን ካሳ ጽሓፍ።"],"a1_3.h0":["تخيّل أنك تمسك إيصالًا: الأعلى، الوسط، الأسفل.","Hãy tưởng tượng cầm một tờ hóa đơn: phần trên, giữa, dưới.","Уяви, що тримаєш чек у руці: зверху, посередині, внизу.","ቦን ኣብ ኢድካ ሓዝ: ላዕሊ፣ ኣብ ማእከል፣ ታሕቲ።"],"a1_3.h1":["ماذا اشتُري؟ كم سعره؟ كيف دُفع؟","Đã mua gì, giá bao nhiêu, thanh toán thế nào?","Що куплено, скільки коштує, як сплачено?","እንታይ ተገዚኡ፣ ክንደይ ዋጋ፣ ከመይ ተከፊሉ?"],"a1_3.s":["مثلًا: التاريخ، الصنف، سعر الوحدة، المجموع، طريقة الدفع، ضريبة المبيعات، رقم الإيصال.","Ví dụ: ngày, mặt hàng, đơn giá, tổng tiền, hình thức thanh toán, thuế doanh thu (Umsatzsteuer), số hóa đơn.","напр. дата, товар, ціна за одиницю, сума, спосіб оплати, податок (ПДВ), номер чека.","ንኣብነት ዕለት፣ ኣቕሓ፣ ዋጋ ሓደ፣ ጠቕላላ፣ ኣገባብ ክፍሊት፣ ግብሪ (ተ.ወ.ተ.)፣ ቁጽሪ ቦን።"],"a2_1.q":["ما الذي نجح؟ ما الذي نسيته أمينة الصندوق أو يمكن تحسينه؟","Điều gì đã làm tốt? Thu ngân đã quên điều gì hoặc có thể cải thiện điều gì?","Що вдалося добре? Що забула касир або що вона може покращити?","እንታይ ጽቡቕ ኮይኑ? እንታይ ረሲዓ ወይ እንታይ ክትመሓየሽ ትኽእል?"],"a2_1.h0":["مرّ على سير العملية بالترتيب: التحية، المبلغ، الورقة النقدية، الباقي، التوديع.","Đi qua quy trình theo thứ tự: chào hỏi, số tiền, tờ tiền, tiền thối, tạm biệt.","Пройди процес по порядку: привітання, сума, банкнота, решта, прощання.","ኩሉ ብቅጸል ሓልፎ: ሰላምታ፣ ዋጋ፣ ወረቐት ገንዘብ፣ ተመላሲ ገንዘብ፣ ምስንባት።"],"a2_1.h1":["اكتب عمودين: „ما أُنجز جيدًا“ و„ما نُسي أو يحتاج إلى تحسين“.","Viết hai cột: „Làm tốt“ và „Quên hoặc cần cải thiện“.","Зроби дві колонки: «Добре зроблено» і «Забуто або можна покращити».","ክልተ ዓምዲ ጽሓፍ: “ጽቡቕ ዝተገብረ” “ዝተረስዐ ወይ ክመሓየሽ ዝኽእል”።"],"a2_1.s":["إجابة فردية حسب لعب الأدوار. مثال: أُنجز جيدًا: التحية، التواصل البصري، ذكر المبلغ بصوت عالٍ. نُسي أو يحتاج إلى تحسين: لم تُفحص الورقة، لم يُعدّ الباقي أمام الزبون، لا توديع.","Câu trả lời cá nhân, tùy theo màn đóng vai. Ví dụ: Làm tốt: chào hỏi, giao tiếp bằng mắt, nói to số tiền. Quên hoặc cần cải thiện: không kiểm tra tờ tiền, không đếm trả tiền thối, không chào tạm biệt.","Індивідуальна відповідь, залежить від рольової гри. Приклад: Добре зроблено: привітання, зоровий контакт, суму названо вголос. Забуто або можна покращити: банкноту не перевірено, решту не відраховано вголос, не попрощалися.","ናይ ነፍሲ ወከፍ መልሲ፣ ብጸወታ ይውሰን። ኣብነት: ጽቡቕ ዝተገብረ: ሰላምታ፣ ምርኣኢ ዓይኒ፣ ዋጋ ብዓውታ። ዝተረስዐ: ወረቐት ገንዘብ ኣይተረጋገጸን፣ ተመላሲ ገንዘብ ብዓውታ ኣይተቘጽረን፣ ምስንባት የለን።"],"a4_1.q":["4.1 يشتري زبون بضاعة بمبلغ 89,75 € ويدفع بورقة نقدية من فئة 100 €. رتّب الخطوات بالترتيب الصحيح. اكتب الحروف بالترتيب الصحيح (مثلًا: A B C …).<br>A تثبيت الورقة النقدية بشكل ظاهر في ماسك الأوراق النقدية.<br>B حساب مجموع الشراء.<br>C تسليم الإيصال والبضاعة والتوديع.<br>D ذكر المبلغ للزبون بصوت عالٍ وواضح – وعند الحاجة السؤال عن بطاقة الزبون.<br>E وضع الورقة النقدية في الصندوق وإغلاقه.<br>F تسجيل الأصناف (بالمسح الضوئي).<br>G ذكر الباقي وعدّه أمام الزبون.<br>H استلام الورقة النقدية وذكر قيمتها بصوت عالٍ والتحقق من أنها حقيقية.","4.1 Một khách mua hàng giá 89,75 € và trả bằng tờ 100 €. Sắp xếp các bước theo đúng thứ tự. Viết các chữ cái theo đúng thứ tự (ví dụ: A B C …).<br>A Kẹp tờ tiền vào kẹp giữ tiền ở chỗ nhìn thấy được.<br>B Tính tổng tiền mua hàng.<br>C Đưa hóa đơn và hàng, rồi chào tạm biệt.<br>D Nói số tiền với khách to và rõ – nếu cần thì hỏi thẻ khách hàng.<br>E Cho tờ tiền vào máy và đóng ngăn kéo.<br>F Ghi nhận các mặt hàng (quét).<br>G Nói số tiền thối và đếm trả cho khách.<br>H Nhận tờ tiền, nói to giá trị và kiểm tra xem có thật không.","4.1 Клієнт купує товари на 89,75 € і платить банкнотою 100 €. Розстав кроки в правильній послідовності. Запиши літери в правильному порядку (напр. A B C …). A Покласти банкноту на видноті в затискач для банкнот. B Визначити суму покупки. C Віддати чек і товар та попрощатися. D Голосно і чітко назвати клієнту суму – за потреби запитати про картку клієнта. E Покласти банкноту в касу і закрити касу. F Зареєструвати (відсканувати) товари. G Назвати решту і відрахувати її клієнту вголос. H Прийняти банкноту, голосно назвати номінал і перевірити справжність.","4.1 ሓደ ዓሚል ኣቕሑት ብ89,75 € ይዕድግ ብወረቐት ገንዘብ 100 € ይከፍል። ስጉምትታት ብቅጸል ኣሰርዕ። ፊደላት ብቅጸል ጽሓፍ (ንኣብነት A B C …). A ወረቐት ገንዘብ ብቕንዕና ኣብ መታሕዚ ምትሓዝ። B ጠቕላላ ዋጋ ምውሳድ። C ቦንን ኣቕሑትን ምሃብን ምስንባትን። D ንዓሚል ጠቕላላ ዋጋ ብቐዳማይ ደሃይን ብንጹርን ምሕባር – እንተድሊ ብዛዕባ ካርድ ዓሚል ምሕታት። E ወረቐት ገንዘብ ኣብ ካሳ ምዕቃብን ካሳ ምዕጻውን። F ኣቕሑት ምምዝጋብ (ስካን ምግባር)። G ተመላሲ ገንዘብ ምሕባርን ንዓሚል ብዓውታ ምቝጻርን። H ወረቐት ገንዘብ ምቕባል፣ ዋጋኡ ብዓውታ ምጥዋቕን ጭሩቕ ምዃኑ ምርግጋጽን።"],"a4_1.h0":["ابدأ بالخطوة الأولى والأخيرة: ماذا يحدث أولًا وماذا يحدث أخيرًا؟","Bắt đầu với bước đầu và bước cuối: Điều gì xảy ra đầu tiên, điều gì cuối cùng?","Почни з першого і останнього кроку: Що відбувається першим, що останнім?","ብቐዳማይን ዳሕረዋይን ስጉምቲ ጀምር: እንታይ ቀዳማይ፣ እንታይ መወዳእታ?"],"a4_1.h1":["لا توضع الورقة النقدية في الصندوق إلا بعد الباقي. اقرأ المربع „عملية التحصيل نقدًا“.","Tờ tiền chỉ được cho vào máy sau khi đưa tiền thối. Đọc khung „Thanh toán bằng tiền mặt“.","Банкноту кладуть у касу лише після решти. Прочитай рамку «Розрахунок готівкою».","ወረቐት ገንዘብ ድሕሪ ተመላሲ ገንዘብ ጥራይ ኣብ ካሳ ይቕመጥ። ሳጹን “ክፍሊት ብጥረ ገንዘብ” ኣንብብ።"],"a4_1.s":["F – B – D – H – A – G – E – C (1 تسجيل الأصناف، 2 حساب المجموع، 3 ذكر المبلغ، 4 استلام الورقة وفحصها، 5 تثبيت الورقة في ماسك الأوراق النقدية، 6 ذكر الباقي وعدّه، 7 وضع الورقة في الصندوق، 8 تسليم الإيصال والبضاعة والتوديع).","F – B – D – H – A – G – E – C (1 Quét hàng, 2 Tính tổng tiền, 3 Nói số tiền, 4 Nhận và kiểm tra tờ tiền, 5 Kẹp tờ tiền vào kẹp giữ tiền, 6 Nói và đếm trả tiền thối, 7 Cho tờ tiền vào máy, 8 Đưa hóa đơn và hàng, chào tạm biệt).","F – B – D – H – A – G – E – C (1 зареєструвати товари, 2 визначити суму, 3 назвати суму, 4 прийняти банкноту і перевірити, 5 затиснути банкноту в затискач, 6 назвати решту і відрахувати вголос, 7 покласти банкноту в касу, 8 віддати чек і товар та попрощатися).","F – B – D – H – A – G – E – C (1 ኣቕሑት ምምዝጋብ፣ 2 ጠቕላላ ዋጋ፣ 3 ዋጋ ምሕባር፣ 4 ወረቐት ገንዘብ ምቕባልን ምርግጋጽን፣ 5 ኣብ መታሕዚ ምትሓዝ፣ 6 ተመላሲ ገንዘብ ምሕባርን ምቝጻርን፣ 7 ኣብ ካሳ ምዕቃብ፣ 8 ቦንን ኣቕሑትን ምሃብን ምስንባትን)።"],"a4_2.q":["4.2 كم يبلغ الباقي الذي يأخذه الزبون (مجموع الشراء 89,75 €، ورقة 100 €)؟ عُدّ الباقي أمام الزبون كما ستقوله عند الصندوق.","4.2 Khách nhận lại bao nhiêu tiền thối (tổng tiền 89,75 €, tờ 100 €)? Hãy đếm trả như bạn sẽ nói ở quầy.","4.2 Скільки решти отримує клієнт (сума покупки 89,75 €, банкнота 100 €)? Відрахуй так, як сказав би на касі.","4.2 እቲ ዓሚል ክንደይ ተመላሲ ገንዘብ ይረክብ (ዋጋ 89,75 €፣ ወረቐት ገንዘብ 100 €)? ከምቲ ኣብ ካሳ እትብሎ ቊጽር።"],"a4_2.h0":["احسب 100,00 € ناقص 89,75 €.","Tính 100,00 € trừ 89,75 €.","Порахуй 100,00 € мінус 89,75 €.","100,00 € ኣውጽእ 89,75 € ኣስላሕ።"],"a4_2.h1":["عند العدّ تبدأ من مبلغ الشراء وتعدّ صعودًا حتى الورقة النقدية: أولًا السنتات ثم اليوروات.","Khi đếm trả, bạn bắt đầu từ số tiền mua hàng và đếm lên đến tờ tiền: trước là xu (cent), sau là euro.","При відраховуванні починаєш із суми покупки і рахуєш до банкноти: спочатку центи, потім євро.","ኣብ ምቝጻር ካብ ዋጋ ጀሚርካ ክሳብ ወረቐት ገንዘብ ትቖጽር: መጀመርታ ሳንቲም፣ ድሕሪኡ ዩሮ።"],"a4_2.s":["الباقي: 100,00 € − 89,75 € = 10,25 €. العدّ: „89,75 … زائد 25 سنتًا تصبح 90 يورو، زائد 10 يورو تصبح 100 يورو. تفضّل، 10,25 € باقيك.“","Tiền thối: 100,00 € − 89,75 € = 10,25 €. Đếm trả: „89,75 … cộng 25 cent là 90 euro, cộng 10 euro là 100 euro. Xin gửi bạn, thối lại 10,25 €.“","Решта: 100,00 € − 89,75 € = 10,25 €. Відраховування: «89,75 … плюс 25 центів буде 90 євро, плюс 10 євро буде 100 євро. Будь ласка, 10,25 € решти.»","ተመላሲ: 100,00 € − 89,75 € = 10,25 €። ምቝጻር: “89,75 … ሲደመር 25 ሳንቲም 90 ዩሮ፣ ሲደመር 10 ዩሮ 100 ዩሮ። በጃኻ 10,25 € ተመላሲ።”"],"a4_3.q":["4.3 (1) صح أم خطأ؟ علّل: „أحاسب أختي حتى لا تنتظر.“","4.3 (1) Đúng hay sai? Giải thích: „Tôi tự tính tiền cho em gái để em khỏi phải chờ.“","4.3 (1) Правильно чи неправильно? Обґрунтуй: «Я обслуговую свою сестру на касі, щоб їй не довелося чекати.»","4.3 (1) ልክዕ ወይስ ጌጋ? ምኽንያት ሃብ: “ሓፍተይ ከይትጽበ ኣነ ባዕለይ ኣብ ካሳ እኸፍላ።”"],"a4_3.h0":["فكّر في تعليمات الصندوق: من لا يجوز لك أن تحاسبه؟","Nghĩ đến quy định thu ngân: bạn không được tự tính tiền cho ai?","Згадай правила роботи на касі: Кого ти не маєш права обслуговувати?","ብዛዕባ ሕግታት ካሳ ሓሲብ: መንዩ ብዓይንኻ ክከፍል ዘይግብኣ?"],"a4_3.h1":["اقرأ المربع „تعليمات الصندوق“.","Đọc khung „Quy định thu ngân“.","Прочитай рамку «Правила роботи на касі».","ሳጹን “ሕግታት ካሳ” ኣንብብ።"],"a4_3.s":["خطأ. لا تُحاسَب العائلة والأصدقاء بنفسك.","Sai. Người thân và bạn bè không được tự tính tiền.","Неправильно. Членів родини і друзів на касі самому не обслуговують.","ጌጋ። ኣባላት ስድራን ወዲቦታትን ብርእስኻ ኣይትከፍሎም።"],"a4_4.q":["4.3 (2) صح أم خطأ؟ علّل: „ألقي نظرة داخل عربة التسوق وتحت السلة.“","4.3 (2) Đúng hay sai? Giải thích: „Tôi nhìn vào xe đẩy và dưới giỏ.“","4.3 (2) Правильно чи неправильно? Обґрунтуй: «Я заглядаю у візок і під кошик.»","4.3 (2) ልክዕ ወይስ ጌጋ? ምኽንያት ሃብ: “ኣብ ጋሪን ኣብ ትሕቲ ቅርጫትን እጥምት።”"],"a4_4.h0":["ماذا قد يبقى تحت السلة؟","Dưới giỏ có thể bị bỏ sót thứ gì?","Що могло б залишитися під кошиком?","ኣብ ትሕቲ ቅርጫት እንታይ ክተርፍ ይኽእል?"],"a4_4.h1":["اقرأ المربع „تعليمات الصندوق“: ماذا يُفحص؟","Đọc khung „Quy định thu ngân“: Kiểm tra những gì?","Прочитай рамку «Правила роботи на касі»: Що перевіряється?","ሳጹን “ሕግታት ካሳ” ኣንብብ: እንታይ ይምርመር?"],"a4_4.s":["صح. فحص عربة التسوق حتى لا يُنسى شيء أو يُخفى.","Đúng. Kiểm tra xe đẩy để không bỏ sót hoặc giấu hàng.","Правильно. Перевірка візка, щоб нічого не забули і не сховали.","ልክዕ። ጋሪ ምምርማር፣ ሓደ ነገር ከይረስዕ ወይ ከይተሓብአ።"],"a4_5.q":["4.3 (3) صح أم خطأ؟ علّل: „محفظتي الخاصة بجانب الصندوق حتى تبقى تحت نظري.“","4.3 (3) Đúng hay sai? Giải thích: „Ví riêng của tôi để cạnh quầy để tôi nhìn thấy nó.“","4.3 (3) Правильно чи неправильно? Обґрунтуй: «Мій приватний гаманець лежить біля каси, щоб я його бачила.»","4.3 (3) ልክዕ ወይስ ጌጋ? ምኽንያት ሃብ: “ናተይ ሁቕቲ ብጥቓ ካሳ ኣላ፣ ከምዝርእያ።”"],"a4_5.h0":["ماذا يحدث إذا وُضعت النقود الخاصة ونقود الصندوق بجانب بعضهما؟","Chuyện gì xảy ra nếu tiền riêng và tiền quầy để cạnh nhau?","Що буде, якщо приватні гроші та гроші каси лежатимуть поруч?","ናይ ርእሲ ገንዘብን ገንዘብ ካሳን ብጥቓ እንተሃለዉ እንታይ ይኸውን?"],"a4_5.h1":["كيف تتعامل الشركات مع الفروقات في الصندوق؟","Cửa hàng xử lý chênh lệch tiền ở quầy như thế nào?","Як підприємства діють при нестачі або надлишку в касі?","ኣብ ካሳ ፍልልይ እንተሃልዩ ትካላት ከመይ ይገብሩ?"],"a4_5.s":["خطأ. لا نقود خاصة في منطقة الصندوق – وإلا يحدث خلاف عند وجود فروقات.","Sai. Không để tiền riêng ở khu vực quầy – nếu không sẽ có tranh cãi khi có chênh lệch.","Неправильно. Жодних приватних грошей біля каси – інакше виникне суперечка при розбіжностях.","ጌጋ። ናይ ርእሲ ገንዘብ ኣብ ቦታ ካሳ ኣይሀሉ – ካልእ ኣብ ፍልልይ ክትናቶ ይኸውን።"],"a4_6.q":["4.3 (4) صح أم خطأ؟ علّل: „أعدّ الباقي أمام الزبون بصوت عالٍ.“","4.3 (4) Đúng hay sai? Giải thích: „Tôi đếm to tiền thối cho khách.“","4.3 (4) Правильно чи неправильно? Обґрунтуй: «Я відраховую решту вголос.»","4.3 (4) ልክዕ ወይስ ጌጋ? ምኽንያት ሃብ: “ተመላሲ ገንዘብ ብዓውታ እቖጽር።”"],"a4_6.h0":["من يجب أن يلاحظ أن الباقي صحيح؟","Ai cần thấy tiền thối đúng?","Хто має побачити, що решта правильна?","መን እዩ ተመላሲ ልክዕ ምዃኑ ክርኢ ዘለዎ?"],"a4_6.h1":["اقرأ الخطوة 6 في عملية التحصيل.","Đọc bước 6 trong quy trình thanh toán.","Прочитай крок 6 у розрахунку готівкою.","ስጉምቲ 6 ኣብ ክፍሊት ብጥረ ገንዘብ ኣንብብ።"],"a4_6.s":["صح. هكذا يرى الزبون أن كل شيء صحيح.","Đúng. Như vậy khách thấy mọi thứ đều đúng.","Правильно. Так клієнт бачить, що все гаразд.","ልክዕ። ከምኡ ዓሚል ኩሉ ልክዕ ምዃኑ ይርኢ።"],"a4_7.q":["4.3 (5) صح أم خطأ؟ علّل: „أضع ورقة الـ 50 € في الصندوق فورًا، ثم أبحث عن الباقي.“","4.3 (5) Đúng hay sai? Giải thích: „Tôi cho tờ 50 € vào máy ngay, rồi mới tìm tiền thối.“","4.3 (5) Правильно чи неправильно? Обґрунтуй: «Банкноту 50 € я одразу кладу в касу, а потім шукаю решту.»","4.3 (5) ልክዕ ወይስ ጌጋ? ምኽንያት ሃብ: “ወረቐት ገንዘብ 50 € ብቕልጡፍ ኣብ ካሳ ኣቐምጥ፣ ድሕሪኡ ተመላሲ እደሊ።”"],"a4_7.h0":["اقرأ مربع „تذكّر“.","Đọc khung „Ghi nhớ“.","Прочитай рамку «Запам'ятай».","ሳጹን “ኣስተውዕል” ኣንብብ።"],"a4_7.h1":["أين تكون الورقة ما دام الباقي لم يُسلَّم بعد؟","Tờ tiền nằm ở đâu khi tiền thối chưa được đưa?","Де лежить банкнота, поки решту ще не віддано?","ተመላሲ ገና ክሳብ ዘይተዋህበ ወረቐት ገንዘብ ኣበይ ይኸውን?"],"a4_7.s":["خطأ. لا توضع في الصندوق إلا بعد الباقي، حتى لا يحدث خلاف حول الورقة.","Sai. Chỉ cho vào máy sau khi đưa tiền thối, để không tranh cãi về tờ tiền.","Неправильно. У касу кладуть лише після решти, щоб не було суперечки через банкноту.","ጌጋ። ድሕሪ ተመላሲ ጥራይ ኣብ ካሳ ይቕመጥ፣ ብዛዕባ ወረቐት ገንዘብ ክትናቶ ከይህሉ።"],"a4_8.q":["4.3 (6) صح أم خطأ؟ علّل: „أرمي الإيصال الخاطئ فورًا.“","4.3 (6) Đúng hay sai? Giải thích: „Tôi vứt hóa đơn sai ngay lập tức.“","4.3 (6) Правильно чи неправильно? Обґрунтуй: «Хибний чек я одразу викидаю.»","4.3 (6) ልክዕ ወይስ ጌጋ? ምኽንያት ሃብ: “ጌጋ ቦን ብቕልጡፍ እድርብዮ።”"],"a4_8.h0":["ماذا يحدث مع الخطأ في الصندوق؟","Khi có lỗi ở quầy thì làm gì?","Що робиться з помилкою на касі?","ምስ ጌጋ ኣብ ካሳ እንታይ ይግበር?"],"a4_8.h1":["اقرأ المربع „تعليمات الصندوق“ حتى النهاية.","Đọc khung „Quy định thu ngân“ đến hết.","Прочитай рамку «Правила роботи на касі» до кінця.","ሳጹን “ሕግታት ካሳ” ክሳብ መወዳእታ ኣንብብ።"],"a4_8.s":["خطأ. تُلغى الإيصالات الخاطئة (storniert) وتُحفظ.","Sai. Hóa đơn sai được hủy (storniert) và giữ lại.","Неправильно. Хибні чеки сторнують і зберігають.","ጌጋ። ጌጋ ቦን ይስረዝ (storniert) ይሕሉ።"],"a5_1.q":["كم نقطة حصلت عليها أمينة الصندوق في الاستمارة (عدد „نعم“ من 8)؟ ما النقاط التي نسيتها؟ اكتب نتيجتك ونصيحة.","Thu ngân đạt bao nhiêu điểm trong phiếu (số lần „có“ trên 8)? Cô ấy đã quên những điểm nào? Viết kết quả và một lời khuyên.","Скільки балів набрала касир на аркуші (× так з 8)? Які пункти вона забула? Запиши свій результат і одну пораду.","እታ ከሳሪት ኣብ ወረቐት ክንደይ ነጥቢ ረኺባ (× እወ ካብ 8)? እንታይ ረሲዓ? ውጽኢትካን ሓደ ምኽሪን ጽሓፍ።"],"a5_1.h0":["عُدّ أولًا كل „نعم“ في الاستمارة. كم من 8؟","Trước tiên đếm tất cả các ô „có“ trong phiếu. Bao nhiêu trên 8?","Спочатку порахуй усі «так» на аркуші. Скільки з 8?","መጀመርታ ኩሉ “እወ” ኣብ ወረቐት ቁጸር። ካብ 8 ክንደይ?"],"a5_1.h1":["7–8 × نعم = 3 نقاط أداء، 5–6 × نعم = نقطتان، 3–4 × نعم = نقطة واحدة.","7–8 × có = 3 điểm thành tích, 5–6 × có = 2 điểm, 3–4 × có = 1 điểm.","7–8 × так = 3 бали, 5–6 × так = 2 бали, 3–4 × так = 1 бал.","7–8 × እወ = 3 ነጥቢ፣ 5–6 × እወ = 2 ነጥቢ፣ 3–4 × እወ = 1 ነጥቢ።"],"a5_1.s":["إجابة فردية. راجع بنفسك: (1) هل عددت „نعم“؟ (2) هل ذكرت النقاط الناقصة (مثلًا: لم يُعدّ الباقي أمام الزبون)؟ (3) هل كتبت نصيحة؟ التقييم: 7–8 × نعم = 3 نقاط أداء · 5–6 × نعم = نقطتان · 3–4 × نعم = نقطة واحدة.","Câu trả lời cá nhân. Tự kiểm tra: (1) Bạn đã đếm số lần „có“ chưa? (2) Bạn đã nêu các điểm còn thiếu chưa (ví dụ: không đếm trả tiền thối)? (3) Bạn đã viết một lời khuyên chưa? Chấm điểm: 7–8 × có = 3 điểm · 5–6 × có = 2 điểm · 3–4 × có = 1 điểm.","Індивідуальна відповідь. Перевір сам: (1) Ти порахував кількість «так»? (2) Ти назвав пропущені пункти (напр. решту не відраховано вголос)? (3) Ти записав пораду? Оцінювання: 7–8 × так = 3 бали · 5–6 × так = 2 бали · 3–4 × так = 1 бал.","ናይ ነፍሲ ወከፍ መልሲ። ባዕልኻ ርአ: (1) “እወ” ቈጺርካ? (2) ዝጎደሉ ነጥቢታት ጽሒፍካ (ንኣብነት ተመላሲ ብዓውታ ኣይተቘጽረን)? (3) ምኽሪ ጽሒፍካ? ነጥቢ: 7–8 × እወ = 3 · 5–6 × እወ = 2 · 3–4 × እወ = 1።"],"a6_1.q":["6.1 ما الأعمال الثلاثة التي تنجزها قبل أن تبدأ التحصيل؟ (3 نقاط)","6.1 Bạn làm 3 việc gì trước khi bắt đầu thanh toán tại quầy? (3 điểm)","6.1 Які 3 дії ви виконуєте, перш ніж почати працювати на касі? (3 бали)","6.1 ቅድሚ ካሳ ዝጅምሩ ኣየኖት 3 ዕዮታት ትገብሩ? (3 ነጥቢ)"],"a6_1.h0":["فكّر في بداية يوم العمل: ماذا تحتاج قبل أن يأتي أول زبون؟","Nghĩ đến đầu ngày làm việc: Bạn cần gì trước khi khách đầu tiên đến?","Подумай про початок робочого дня: Що потрібно, перш ніж прийде перший клієнт?","ብዛዕባ መጀመርታ ዕለት ስራሕ ሓሲብ: ቅድሚ ቀዳማይ ዓሚል እንታይ የድሊ?"],"a6_1.h1":["نقود، ورق، أجهزة، ترتيب.","Tiền, giấy, thiết bị, sự gọn gàng.","Гроші, папір, пристрої, порядок.","ገንዘብ፣ ወረቐት፣ መሳርሕቲ፣ ስርዓት።"],"a6_1.s":["نقطة لكل إجابة، مثلًا: تسجيل الدخول إلى الصندوق، فحص الفكة، عدّ نقود الصندوق، التحقق من الترتيب والنظافة، تجهيز لفافات إيصالات احتياطية.","Mỗi ý 1 điểm, ví dụ: đăng nhập vào máy, kiểm tra tiền lẻ, đếm tiền trong quầy, kiểm tra sự gọn gàng và sạch sẽ, chuẩn bị cuộn giấy hóa đơn dự phòng.","По 1 балу, напр. ввійти в касу, перевірити розмінну монету, перерахувати готівку в касі, перевірити порядок і чистоту, приготувати запасні рулони для чеків.","ነፍሲ ወከፍ 1 ነጥቢ፣ ንኣብነት ካሳ ምእታው፣ ንእሽቶ ገንዘብ ምርግጋጽ፣ ገንዘብ ካሳ ምቝጻር፣ ስርዓትን ጽሬትን ምርግጋጽ፣ ተወሳኺ ወረቐት ቦን ምድላው።"],"a6_2.q":["6.2 تضع زبونة أصنافها على الشريط. اذكر 4 سلوكيات أخرى مراعية للزبون عند الصندوق! المعطى: – الترحيب، – التوديع (4 نقاط)","6.2 Một khách đặt hàng lên băng chuyền. Hãy nêu thêm 4 cách cư xử hướng đến khách hàng tại quầy! Đã cho: – Chào hỏi, – Tạm biệt (4 điểm)","6.2 Клієнтка кладе свої товари на стрічку. Назвіть 4 інші способи поведінки на касі, орієнтовані на клієнта! Задано: – Привітання, – Прощання (4 бали)","6.2 ሓንቲ ዓሚል ኣቕሑታ ኣብ ቀበጥ ተንብር። 4 ካልኦት ንዓሚል ዘኽብሩ ኣካይዳታት ኣብ ካሳ ጥቀሱ! ዝተዋህበ: – ሰላምታ፣ – ምስንባት (4 ነጥቢ)"],"a6_2.h0":["اقرأ جدول „مراعاة الزبون عند الصندوق“ (العمود الأول).","Đọc bảng „Hướng đến khách hàng tại quầy“ (cột đầu tiên).","Прочитай таблицю «Орієнтація на клієнта на касі» (ліва колонка).","ሰንጠረዥ “ኣብ ካሳ ንዓሚል ዘኽብር ኣካይዳ” ኣንብብ (ጸጋማይ ዓምዲ)።"],"a6_2.h1":["الترحيب والتوديع معطيان بالفعل – تحتاج أربعة أخرى.","Chào hỏi và tạm biệt đã cho sẵn – bạn cần bốn ý khác.","Привітання і прощання вже задані – тобі потрібні чотири інші.","ሰላምታን ምስንባትን ተዋሂቡ – ኣርባዕተ ካልኦት የድልዩኻ።"],"a6_2.s":["نقطة لكل إجابة، مثلًا: التواصل البصري، تأكيد الشراء، التعامل بعناية مع البضاعة، عرض تغليف الهدايا، السؤال عن بطاقة الزبون أو تطبيق الزبائن.","Mỗi ý 1 điểm, ví dụ: giao tiếp bằng mắt, xác nhận việc mua hàng, cầm hàng cẩn thận, đề nghị gói quà, hỏi thẻ khách hàng hoặc ứng dụng khách hàng.","По 1 балу, напр. зоровий контакт, підтвердити покупку, дбайливо поводитися з товаром, запропонувати святкове пакування, запитати про картку клієнта або додаток.","ነፍሲ ወከፍ 1 ነጥቢ፣ ንኣብነት ምርኣኢ ዓይኒ፣ ዕድጊ ምግላጽ፣ ኣቕሑት ብጥንቃቕ ምሓዝ፣ ማዕሸጊ ሓዱሽ ምቕራብ፣ ብዛዕባ ካርድ ዓሚል ወይ ኣፕ ምሕታት።"],"a6_3.q":["6.3 لماذا يُعدّ السلوك المراعي للزبون عند الصندوق مهمًا؟ اذكر 3 أسباب! (3 نقاط)","6.3 Vì sao cách cư xử hướng đến khách hàng tại quầy lại quan trọng? Nêu 3 lý do! (3 điểm)","6.3 Чому поведінка на касі, орієнтована на клієнта, важлива? Назвіть 3 причини! (3 бали)","6.3 ንምንታይ እዩ ኣብ ካሳ ንዓሚል ዘኽብር ኣካይዳ ኣገዳሲ? 3 ምኽንያታት ጥቀሱ! (3 ነጥቢ)"],"a6_3.h0":["اقرأ العمود الثاني من جدول „مراعاة الزبون عند الصندوق“.","Đọc cột thứ hai của bảng „Hướng đến khách hàng tại quầy“.","Прочитай праву колонку таблиці «Орієнтація на клієнта на касі».","የማናይ ዓምዲ ናይ ሰንጠረዥ “ኣብ ካሳ ንዓሚል ዘኽብር ኣካይዳ” ኣንብብ።"],"a6_3.h1":["ماذا يعود على المتجر: الزبائن، السمعة، المنافسون؟","Điều đó mang lại gì cho cửa hàng: khách hàng, danh tiếng, đối thủ?","Що це дає магазину: клієнти, репутація, конкуренти?","እዚ ንድኳን እንታይ የምጽኣሉ: ዓማዊል፣ ስም፣ ተወዳደርቲ?"],"a6_3.s":["نقطة لكل إجابة، مثلًا: ولاء العملاء (Kundenbindung)، رضا الزبائن، صورة إيجابية، الانطباع الأول والأخير، التميّز عن المنافسين، التوصية للآخرين.","Mỗi ý 1 điểm, ví dụ: gắn bó khách hàng (Kundenbindung), khách hàng hài lòng, hình ảnh tích cực, ấn tượng đầu tiên và cuối cùng, nổi bật hơn đối thủ, được giới thiệu cho người khác.","По 1 балу, напр. прив'язаність клієнтів (Kundenbindung), задоволеність клієнтів, позитивний імідж, перше і останнє враження, вирізнятися серед конкурентів, рекомендації іншим.","ነፍሲ ወከፍ 1 ነጥቢ፣ ንኣብነት ምጥርናፍ ዓማዊል (Kundenbindung)፣ ዕግበት ዓማዊል፣ ጽቡቕ ስም፣ ቀዳማይን ዳሕረዋይን ርእይቶ፣ ካብ ተወዳደርቲ ፍሉይ ምዃን፣ ንካልኦት ምምኽሮ።"],"a7p_1.q":["7.1 اشرح لماذا لا توضع الورقة النقدية للزبون في الصندوق إلا بعد إعطائه الباقي.","7.1 Hãy giải thích vì sao tờ tiền của khách chỉ được cho vào máy sau khi đã đưa tiền thối.","7.1 Поясніть, чому банкноту клієнта кладуть у касу лише після видачі решти.","7.1 ንምንታይ እዩ ወረቐት ገንዘብ ናይ ዓሚል ድሕሪ ተመላሲ ገንዘብ ምሃብ ጥራይ ኣብ ካሳ ዝቕመጥ? ግለጽ።"],"a7p_1.h0":["أين تكون الورقة ما دام الباقي لم يُسلَّم بعد؟","Tờ tiền nằm ở đâu khi tiền thối chưa được đưa?","Де лежить банкнота, поки решту ще не віддано?","ተመላሲ ገና ክሳብ ዘይተዋህበ ወረቐት ገንዘብ ኣበይ ይኸውን?"],"a7p_1.h1":["ماذا يمكن أن يدّعي الزبون إذا لم يعد أحد يرى أي ورقة أعطاها؟","Khách có thể nói gì nếu không ai còn thấy họ đã đưa tờ tiền nào?","Що може стверджувати клієнт, якщо вже ніхто не бачить, яку банкноту він дав?","ዓሚል እንታይ ክብል ይኽእል እንተ ዝኸውን ሓደ እኳ እቲ ዝሃቦ ወረቐት ገንዘብ ክርእይ ዘይክእል?"],"a7p_1.s":["ما دامت الورقة ظاهرة، يستطيع الاثنان، أمينة الصندوق والزبون، التحقق من الورقة المُعطاة. إذا ادّعى الزبون أنه دفع بورقة 100 بدل 50، يمكن حسم ذلك فورًا.","Khi tờ tiền còn nằm ở chỗ nhìn thấy được, thu ngân và khách có thể kiểm tra đã đưa tờ nào. Nếu khách nói mình đưa tờ 100 chứ không phải tờ 50, có thể làm rõ ngay.","Поки банкнота лежить на видноті, касир і клієнт можуть перевірити, яку банкноту було дано. Якщо клієнт стверджує, що заплатив сотнею, а не п'ятдесяткою, це можна одразу з'ясувати.","ወረቐት ገንዘብ ብቕንዕና ክሳብ ዝኸውን ከሳሪትን ዓሚልን ኣየናይ ከም ዝተዋህበ ክርእዩ ይኽእሉ። ዓሚል ብ100 እምበር ብ50 ኣይኰነን ከፊለ እንተበለ ብቕልጡፍ ይፍታሕ።"],"a7p_2.q":["7.2 في كثير من الصناديق يُطلب من الموظفين عرض أصناف إضافية (Zusatzartikel) („هل تودّ قهوة للطريق؟“). صُغ عرضًا بالكلام المباشر وقيّم متى تزعج هذه العروض الزبائن.","7.2 Ở nhiều quầy, nhân viên phải đề nghị mua thêm mặt hàng (Zusatzartikel) („Bạn có muốn thêm một ly cà phê mang đi không?“). Hãy viết một lời đề nghị bằng lời nói trực tiếp và đánh giá khi nào những lời đề nghị này làm phiền khách.","7.2 На багатьох касах працівники мають пропонувати додаткові товари («Бажаєте ще каву з собою?»). Сформулюйте пропозицію прямою мовою і оцініть, коли такі пропозиції дратують клієнтів.","7.2 ኣብ ብዙሕ ካሳ ሰራሕተኛታት ተወሳኺ ኣቕሑት ክቕርቡ ኣለዎም (“ቡን ንመወሰዲ ትደሊ ዲኻ?”)። ሓደ ጽውዓ ብቀጥታዊ ዘረባ ጽሓፍ ከምኡ ድማ ዓማዊል መዓስ ከም ዝጸልእዎ ገምግም።"],"a7p_2.h0":["فكّر أي صنف إضافي يناسب هذا الشراء. اكتب العرض بين علامتي اقتباس.","Hãy nghĩ mặt hàng thêm nào phù hợp với lần mua này. Viết lời đề nghị trong dấu ngoặc kép.","Подумайте, який додатковий товар пасує до покупки. Запишіть пропозицію в лапках.","ኣየናይ ተወሳኺ ኣቕሓ ምስ ዕድጊ ይሰማማዕ ሓሲብ። ጽውዓ ብምልክት ጥቕሲ ጽሓፍ።"],"a7p_2.h1":["متى لا يرغب الزبائن في عرض: وقت الانتظار، التكرار، مدى ملاءمته للمشتريات؟","Khi nào khách không muốn nghe đề nghị: thời gian chờ, lặp lại, có hợp với món đã mua không?","Коли клієнти не хочуть пропозицій: час очікування, повторення, відповідність покупці?","ዓማዊል መዓስ ጽውዓ ኣይደልዩን: ግዜ ምጽባይ፣ ድጋም፣ ምስ ዕድጊ ምስምማዕ?"],"a7p_2.s":["مثلًا: „مع نقانق الشواء يناسب خردلنا الجديد – وهو اليوم بسعر خاص. هل تودّ تجربته؟“ تزعج: عند طابور طويل، عند عرضه على كل زبون بالطريقة نفسها، عند تكراره بإلحاح، عندما لا يناسب العرض المشتريات.","Ví dụ: „Với xúc xích nướng thì mù tạt mới của chúng tôi rất hợp – hôm nay đang khuyến mãi. Bạn có muốn thử không?“ Gây phiền: khi hàng dài, khi hỏi mọi khách giống hệt nhau, khi lặp lại dai dẳng, khi đề nghị không hợp với món đã mua.","напр. «До ковбасок для гриля пасує наша нова гірчиця – сьогодні вона зі знижкою. Бажаєте спробувати?» Дратують: при довгій черзі, коли пропонують усім однаково, нав'язливе повторення, коли пропозиція не пасує до покупки.","ንኣብነት “ምስ ሽኮርኮር ዝጠሓሱ ሰናፍጭ ሓዱሽና ኣሎ – ሎሚ ብትሕቲ ዋጋ እዩ። ክትፍትኖ ትደሊ ዲኻ?” ዝጸልእዎ: ነዊሕ ቀበጥ ምስ ዝህሉ፣ ንኩሉ ብማዕረ፣ ብድጋም ብዘይ ዕረፍቲ፣ ምስ ዕድጊ ዘይሰማማዕ።"],"v9_1.q":["9.1 لماذا توضع الورقة النقدية بشكل ظاهر في ماسك الأوراق النقدية؟ علّل واشرح ما الذي قد يحدث بدون هذه القاعدة.","9.1 Vì sao tờ tiền được kẹp ở chỗ nhìn thấy được trong kẹp giữ tiền? Hãy giải thích và nêu điều có thể xảy ra nếu không có quy tắc này.","9.1 Чому банкноту кладуть на видноті в затискач для банкнот? Обґрунтуй і опиши, що могло б статися без цього правила.","9.1 ንምንታይ እዩ ወረቐት ገንዘብ ብቕንዕና ኣብ መታሕዚ ወረቐት ገንዘብ ዝቕመጥ? ምኽንያት ሃብ ብዘይ እዚ ሕጊ እንታይ ክኸውን ከም ዝኽእል ግለጽ።"],"v9_1.h0":["من يستطيع رؤية الورقة ما دامت مثبتة في الماسك؟","Ai có thể nhìn thấy tờ tiền khi nó còn được kẹp?","Хто може бачити банкноту, поки вона в затискачі?","ወረቐት ገንዘብ ኣብ መታሕዚ ክሳብ ዘሎ መን ክርኢ ይኽእል?"],"v9_1.h1":["ماذا قد يدّعي الزبون لاحقًا إذا كانت الورقة قد وُضعت في الصندوق؟","Khách có thể nói gì sau đó nếu tờ tiền đã ở trong máy?","Що міг би потім стверджувати клієнт, якщо банкнота вже лежить у касі?","ወረቐት ገንዘብ ኣብ ካሳ እንተ ሃለወ ዓሚል ድሕሪኡ እንታይ ክብል ይኽእል?"],"v9_1.s":["تبقى الورقة ظاهرة حتى يُسلَّم الباقي. هكذا يستطيع الاثنان في أي وقت التحقق هل كانت 50 أم 100. بدون هذه القاعدة قد يحدث خلاف، لأن أحدًا لا يستطيع إثبات أي ورقة أعطاها الزبون.","Tờ tiền nằm ở chỗ nhìn thấy được cho đến khi đưa tiền thối. Như vậy thu ngân và khách có thể kiểm tra bất cứ lúc nào đó là tờ 50 hay tờ 100. Nếu không có quy tắc này có thể xảy ra tranh cãi, vì không ai chứng minh được khách đã đưa tờ nào.","Банкнота лежить на видноті, доки не віддано решту. Так касир і клієнт можуть у будь-який момент перевірити, була це банкнота 50 чи 100. Без цього правила могла б виникнути суперечка, бо ніхто не може довести, яку банкноту дав клієнт.","ወረቐት ገንዘብ ክሳብ ተመላሲ ዝተዋህበ ብቕንዕና ይኸውን። ከምኡ ከሳሪትን ዓሚልን ኩሉ ግዜ 50 ወይ 100 ምዃኑ ክርእዩ ይኽእሉ። ብዘይ እዚ ሕጊ ክትናቶ ክህሉ ይኽእል፣ ምኽንያቱ ዓሚል እንታይ ከም ዝሃበ ዝምስክር የለን።"],"v9_2.q":["9.2 لماذا يُعدّ الباقي بصوت عالٍ أمام الزبون بدل الاكتفاء بذكر المبلغ؟ علّل من وجهة نظر الزبون ومن وجهة نظر أمينة الصندوق.","9.2 Vì sao tiền thối được đếm to thay vì chỉ nói số tiền? Hãy giải thích theo góc nhìn của khách và của thu ngân.","9.2 Чому решту відраховують вголос, а не просто називають суму? Обґрунтуй з погляду клієнта і з погляду касира.","9.2 ንምንታይ እዩ ተመላሲ ገንዘብ ብዓውታ ዝቝጸር እምበር ዋጋ ጥራይ ዘይሕበር? ካብ ኣረኣእያ ዓሚልን ከሳሪትን ግለጽ።"],"v9_2.h0":["ماذا يرى الزبون ويسمع عند العدّ أمامه؟","Khách nhìn thấy và nghe thấy gì khi được đếm trả?","Що бачить і чує клієнт під час відраховування?","ዓሚል ኣብ ምቝጻር እንታይ ይርእን ይሰምዕን?"],"v9_2.h1":["كيف يساعد العدّ أمام الزبون أمينة الصندوق على تجنب الخطأ؟","Việc đếm trả giúp thu ngân tránh sai sót như thế nào?","Як відраховування допомагає касиру не помилитися?","ምቝጻር ንከሳሪት ጌጋ ከይትገብር ከመይ ይሕግዛ?"],"v9_2.s":["يرى الزبون ويسمع أن الباقي صحيح، ويستطيع العدّ معها، فتزداد ثقته. وتعدّ أمينة الصندوق خطوة خطوة من مبلغ الشراء حتى الورقة النقدية، فتخطئ أقل. هذا يمنع الخلاف وفروقات الصندوق.","Khách nhìn và nghe thấy tiền thối đúng, và có thể đếm theo. Khách tin tưởng hơn. Thu ngân đếm từng bước từ số tiền mua hàng lên đến tờ tiền nên ít sai hơn. Điều này tránh tranh cãi và chênh lệch quầy.","Клієнт бачить і чує, що решта правильна, і може рахувати разом. Він має довіру. Касир рахує крок за кроком від суми покупки до банкноти і робить менше помилок. Це уникає суперечок і розбіжностей у касі (Kassendifferenzen).","ዓሚል ተመላሲ ልክዕ ምዃኑ ይርእን ይሰምዕን፣ ምስኡ ክቝጽር ይኽእል። እምነት ኣለዎ። ከሳሪት ስጉምቲ ብስጉምቲ ካብ ዋጋ ክሳብ ወረቐት ገንዘብ ትቝጽር ውሑድ ጌጋ ትገብር። ከምኡ ክትናቶን ፍልልይ ካሳን (Kassendifferenz) ይርሓቕ።"],"v9_3.q":["9.3 لماذا لا يجوز وجود نقود خاصة في منطقة الصندوق، ولماذا لا يُحاسَب أفراد العائلة بنفسك؟ علّل القاعدتين.","9.3 Vì sao không để tiền riêng ở khu vực quầy và vì sao không tự tính tiền cho người thân? Hãy giải thích cả hai quy tắc.","9.3 Чому біля каси не має бути приватних грошей і чому членів родини не обслуговують на касі самому? Обґрунтуй обидва правила.","9.3 ንምንታይ እዩ ናይ ርእሲ ገንዘብ ኣብ ቦታ ካሳ ዘይሀሉ ከምኡ ድማ ኣባላት ስድራ ብርእስኻ ዘይከፈሉ? ክልቲኦም ሕግታት ግለጽ።"],"v9_3.h0":["ماذا يحدث إذا نقص المال في الصندوق أو زاد في نهاية اليوم؟","Chuyện gì xảy ra nếu cuối ngày tiền trong quầy bị thiếu hoặc thừa?","Що буде, якщо наприкінці дня в касі бракує грошей або їх забагато?","ኣብ መወዳእታ ዕለት ገንዘብ ኣብ ካሳ እንተ ጎዲሉ ወይ ኣዝዩ እንተ ወሲኹ እንታይ ይኸውን?"],"v9_3.h1":["من قد يتهم الشركة بخطأ إذا حاسبت قريبة؟","Ai có thể trách cửa hàng làm sai nếu thu ngân tính tiền cho họ hàng?","Хто міг би дорікнути підприємству, що воно зробило щось не так, якщо обслуговує родичку?","ሓንቲ ኣዋልድ ስድራ እንተ ከፈለት መን ንትካል ጌጋ ከም ዝገበረ ክነቕፍ ይኽእል?"],"v9_3.s":["يجب ألا تختلط النقود الخاصة بنقود الصندوق – وإلا يحدث خلاف عند الفروقات ولا يُعرف لمن المال. مع أفراد العائلة والأصدقاء يوجد خطر ألا يُحاسَب بشكل صحيح أو كامل، وهذا يضر بالثقة بالصندوق. القاعدتان تحميان أمينة الصندوق والشركة.","Tiền riêng và tiền quầy không được lẫn vào nhau – nếu không sẽ có tranh cãi khi chênh lệch và không biết tiền của ai. Với người thân và bạn bè có nguy cơ tính tiền không đúng hoặc không đủ; điều đó làm mất lòng tin vào quầy. Cả hai quy tắc bảo vệ thu ngân và cửa hàng.","Приватні гроші та гроші каси не можна змішувати – інакше виникає суперечка при розбіжностях і незрозуміло, чиї це гроші. З членами родини і друзями існує ризик, що розрахунок буде неправильним або неповним; це шкодить довірі до каси. Обидва правила захищають касира і підприємство.","ናይ ርእሲ ገንዘብን ገንዘብ ካሳን ክሕወሱ ኣይግባእን – ካልእ ኣብ ፍልልይ ክትናቶ ይኸውን ናይ መን ገንዘብ ምዃኑ ድማ ኣይፍለጥን። ምስ ኣባላት ስድራን ወዲቦታትን ብትኽክል ወይ ምሉእ ዘይምኽፋል ሓደጋ ኣሎ፣ እዚ ንእምነት ኣብ ካሳ የዳኽም። ክልቲኦም ሕግታት ንከሳሪትን ንትካልን የድሕኑ።"],"v9_4.q":["9.4 ماذا يحدث إذا لم تجهّز أمينة الصندوق الصندوق (لا فكة، لفافة الإيصالات فارغة)؟ علّل النتائج على الزبائن والشركة.","9.4 Chuyện gì xảy ra nếu thu ngân không chuẩn bị quầy (không có tiền lẻ, cuộn hóa đơn hết)? Hãy giải thích hậu quả cho khách và cho cửa hàng.","9.4 Що сталося б, якби касир не підготував касу (немає розмінної монети, рулон для чеків порожній)? Обґрунтуй наслідки для клієнтів і підприємства.","9.4 ከሳሪት ካሳ እንተ ዘይተዳለወት (ንእሽቶ ገንዘብ የለን፣ ወረቐት ቦን ተወዲኡ) እንታይ ይኸውን? ሳዕቤናት ንዓማዊልን ንትካልን ግለጽ።"],"v9_4.h0":["ماذا يحدث إذا نقصت الفكة أو فرغت لفافة الإيصالات في منتصف التحصيل؟","Chuyện gì xảy ra nếu giữa chừng hết tiền lẻ hoặc hết cuộn giấy hóa đơn?","Що буде, якщо посеред розрахунку не вистачить розмінної монети або закінчиться рулон для чеків?","ኣብ ማእከል ክፍሊት ንእሽቶ ገንዘብ እንተ ጎደለ ወይ ወረቐት ቦን እንተ ወዲኡ እንታይ ይኸውን?"],"v9_4.h1":["كيف يتصرف الزبائن الذين يضطرون إلى الانتظار؟","Khách phải chờ sẽ phản ứng thế nào?","Як реагують клієнти, яким доводиться чекати?","እቶም ክጽበዩ ዘለዎም ዓማዊል ከመይ ይምልሱ?"],"v9_4.s":["تتوقف العملية: ينتظر الزبون، ويتكوّن طابور، ويبدو المتجر غير منظم. بدون فكة لا يمكن إعطاء الباقي، وبدون لفافة إيصالات لا يوجد إيصال. لذلك تُفحص الفكة ولفافة الإيصالات والأجهزة قبل التحصيل. هذا يحمي رضا الزبائن وصورة المتجر.","Quá trình bị gián đoạn: khách phải chờ, hàng dài hình thành, và cửa hàng trông thiếu tổ chức. Không có tiền lẻ thì không thể thối tiền; không có giấy thì không có hóa đơn. Vì vậy tiền lẻ, cuộn hóa đơn và thiết bị được kiểm tra trước khi thanh toán. Điều này bảo vệ sự hài lòng của khách và hình ảnh cửa hàng.","Процес переривається: клієнт мусить чекати, утворюється черга, і магазин виглядає неорганізованим. Без розмінної монети не можна дати решту; без чека немає документа. Тому розмінну монету, рулон для чеків і пристрої перевіряють перед початком роботи. Це захищає задоволеність клієнтів і імідж.","ስራሕ ይቆሓል: ዓሚል ክጽበ ኣለዎ፣ ቀበጥ ይፍጠር፣ እቲ ድኳን ዘይተወደበ ይመስል። ብዘይ ንእሽቶ ገንዘብ ተመላሲ ክወሃብ ኣይክእልን፣ ብዘይ ቦን ድማ ሰነድ የለን። ስለዚ ንእሽቶ ገንዘብ፣ ወረቐት ቦንን መሳርሕትን ቅድሚ ካሳ ይምርመሩ። እዚ ንዕግበት ዓማዊልን ስምን የድሕን።"],"r0.t":["قبل التحصيل","Trước khi thanh toán","Перед початком роботи на касі","ቅድሚ ካሳ"],"r0.task":["ظلّل الأعمال التي تُنجَز قبل التحصيل.","Đánh dấu các việc làm trước khi thanh toán.","Познач дії перед початком роботи на касі.","ዕዮታት ቅድሚ ካሳ ምልክት ግበር።"],"r0.x":["قبل أن يأتي أول زبون، يُشغَّل الصندوق ويُسجَّل الدخول إليه. تُحضَر الفكة (Wechselgeld) وتُعدّ وتُفحص. تُفحص لفافة الإيصالات (Bonrolle) واللفافات الاحتياطية، ويُختبر الماسح وجهاز البطاقات والميزان. تُجهَّز الأكياس ومواد التغليف والنماذج، ويكون مكان الصندوق مرتبًا ونظيفًا. أما الغداء والهاتف فلا علاقة لهما بذلك.","Trước khi khách đầu tiên đến, mở máy và đăng nhập. Lấy tiền lẻ (Wechselgeld), đếm và kiểm tra. Kiểm tra cuộn giấy hóa đơn (Bonrolle) và cuộn dự phòng, thử máy quét, máy thẻ và cân. Chuẩn bị túi, vật liệu đóng gói và biểu mẫu, và giữ khu vực quầy gọn gàng, sạch sẽ. Bữa trưa và điện thoại không thuộc những việc này.","Перш ніж прийде перший клієнт, касу запускають і входять у систему. Беруть розмінну монету, перераховують і перевіряють її. Перевіряють рулон для чеків і запасні рулони та тестують сканер, термінал для карток і ваги. Пакети, пакувальний матеріал і бланки готують, а робоче місце на касі охайне і чисте. Обід і телефон сюди не належать.","ቅድሚ ቀዳማይ ዓሚል ካሳ ይእለን ይኣትውን። ንእሽቶ ገንዘብ የምጽኡ፣ ይቝጽሩ ይምርምሩ ድማ። ወረቐት ቦንን ተወሳኺ ወረቐትን ይምርምሩ፣ ስካነር፣ መሳርሒ ካርድን ሚዛንን ድማ ይፍትኑ። ከረጢታት፣ ማዕሸጊን ፎርማትን ይዳለዉ፣ ቦታ ካሳ ድማ ስሩዕን ንጹህን እዩ። ምሳሕን ተሌፎንን ኣብዚ ኣይኣትዉን።"],"r0.q":["ماذا يعني „einzählen“ (عدّ الفكة)؟","„Wechselgeld einzählen“ (đếm tiền lẻ) nghĩa là gì?","Що означає «Wechselgeld einzählen» (перерахувати розмінну монету)?","“Wechselgeld einzählen” (ንእሽቶ ገንዘብ ምቝጻር) እንታይ ማለት እዩ?"],"r0.o0":["تُعدّ الفكة قبل التحصيل وتُفحص.","Đếm và kiểm tra tiền lẻ trước khi thanh toán.","Розмінну монету перераховують перед початком роботи на касі і перевіряють.","ንእሽቶ ገንዘብ ቅድሚ ካሳ ይቝጽሩን ይምርምሩን።"],"r0.o1":["تُعطى الفكة للزبون.","Đưa tiền lẻ cho khách.","Клієнту віддають розмінну монету.","ንዓሚል ንእሽቶ ገንዘብ ይህቡ።"],"r0.o2":["تُصرف النقود في البنك.","Đổi tiền ở ngân hàng.","Гроші обмінюють у банку.","ገንዘብ ኣብ ባንክ ይቐያይሩ።"],"r1.t":["عملية التحصيل: الأصناف والمبلغ","Quy trình thanh toán: mặt hàng và số tiền","Розрахунок: товари і сума","ክፍሊት: ኣቕሑትን ዋጋን"],"r1.task":["ظلّل الخطوات الأولى في التحصيل.","Đánh dấu các bước đầu tiên khi thanh toán.","Познач перші кроки при розрахунку.","ቀዳሞት ስጉምትታት ኣብ ካሳ ምልክት ግበር።"],"r1.x":["أولًا تُسجَّل الأصناف (بالمسح الضوئي)، ثم يُحسب مجموع الشراء. بعد ذلك يُذكر المبلغ للزبون بصوت عالٍ وواضح. وعند الحاجة يُسأل عن بطاقة الزبون. أما الباقي فلا يُذكر في هذه الخطوة بعد.","Trước tiên các mặt hàng được ghi nhận (quét), rồi tính tổng tiền mua hàng. Sau đó nói số tiền với khách to và rõ. Khi cần thì hỏi thẻ khách hàng. Tiền thối chưa phải việc của bước này.","Спочатку реєструють (скануюють) товари, потім визначають суму покупки. Після цього голосно і чітко називають клієнту суму. За потреби запитують про картку клієнта. Решта на цьому кроці ще не розглядається.","ኣቐዲሞም ኣቕሑት ይምዝገቡ (ይስካኑ)፣ ድሕሪኡ ጠቕላላ ዋጋ ይውሰድ። ድሕሪኡ ንዓሚል ዋጋ ብቐዳማይ ደሃይን ብንጹርን ይሕበር። እንተድሊ ብዛዕባ ካርድ ዓሚል ይሕተት። ተመላሲ ገንዘብ ኣብዚ ስጉምቲ ገና ኣይኰነን።"],"r1.q":["ما الخطوة التي تأتي مباشرة بعد المسح؟","Bước nào đến ngay sau khi quét?","Який крок іде одразу після сканування?","ድሕሪ ስካን ኣየናይ ስጉምቲ ቀጥታ ይመጽእ?"],"r1.o0":["حساب مجموع الشراء.","Tính tổng tiền mua hàng.","Визначити суму покупки.","ጠቕላላ ዋጋ ምውሳድ።"],"r1.o1":["تسليم الإيصال.","Đưa hóa đơn.","Віддати чек.","ቦን ምሃብ።"],"r1.o2":["عدّ الباقي أمام الزبون.","Đếm trả tiền thối.","Відрахувати решту вголос.","ተመላሲ ገንዘብ ብዓውታ ምቝጻር።"],"r2.t":["عملية التحصيل: النقود والباقي","Quy trình thanh toán: tiền và tiền thối","Розрахунок: гроші і решта","ክፍሊት: ገንዘብን ተመላሲን"],"r2.task":["ظلّل ما يحدث للورقة النقدية والباقي.","Đánh dấu điều xảy ra với tờ tiền và tiền thối.","Познач, що відбувається з банкнотою і рештою.","ምስ ወረቐት ገንዘብን ተመላሲን እንታይ ከም ዝኸውን ምልክት ግበር።"],"r2.x":["تُستلم الورقة النقدية، وتُذكر قيمتها بصوت عالٍ، ويُتحقق من أنها حقيقية. تُثبَّت الورقة بشكل ظاهر في ماسك الأوراق النقدية (Geldscheinhalter). ثم يُذكر الباقي (Rückgeld) ويُعدّ أمام الزبون. بعد ذلك فقط توضع الورقة في الصندوق ويُغلق. في النهاية يُسلَّم الإيصال والبضاعة ويُودَّع الزبون. ووضع الورقة في الصندوق فورًا خطأ.","Nhận tờ tiền, nói to giá trị và kiểm tra xem có thật không. Tờ tiền được kẹp ở chỗ nhìn thấy được trong kẹp giữ tiền (Geldscheinhalter). Sau đó nói số tiền thối (Rückgeld) và đếm trả. Chỉ sau đó mới cho tờ tiền vào máy và đóng ngăn kéo. Cuối cùng đưa hóa đơn và hàng, rồi chào tạm biệt. Cho tờ tiền vào máy ngay lập tức là sai.","Приймають банкноту, називають номінал вголос і перевіряють справжність. Банкноту кладуть на видноті в затискач для банкнот. Потім називають решту і відраховують її вголос. Лише після цього банкноту кладуть у касу і закривають її. Наприкінці віддають чек і товар та прощаються. Класти банкноту в касу одразу – неправильно.","ወረቐት ገንዘብ ይቕበሉ፣ ዋጋኡ ብዓውታ ይጥውቑ ጭሩቕ ምዃኑ ድማ የረጋግጹ። ወረቐት ገንዘብ ብቕንዕና ኣብ መታሕዚ ይትሓዝ። ድሕሪኡ ተመላሲ ይሕብሩ ብዓውታ ድማ ይቝጽሩ። ድሕሪኡ ጥራይ ወረቐት ገንዘብ ኣብ ካሳ የቐምጥዎ ካሳ ድማ ይዕጽዉ። ኣብ መወዳእታ ቦንን ኣቕሑትን ይህቡ ይሰንብቱ ድማ። ወረቐት ገንዘብ ብቕልጡፍ ኣብ ካሳ ምዕቃብ ጌጋ እዩ።"],"r2.q":["متى توضع الورقة النقدية للزبون في الصندوق؟","Khi nào cho tờ tiền của khách vào máy?","Коли банкноту клієнта кладуть у касу?","መዓስ እዩ ወረቐት ገንዘብ ናይ ዓሚል ኣብ ካሳ ዝቕመጥ?"],"r2.o0":["فورًا بعد استلامها.","Ngay sau khi nhận.","Одразу після того, як її прийняли.","ድሕሪ ምቕባል ብቕልጡፍ።"],"r2.o1":["بعد إعطاء الباقي فقط.","Chỉ sau khi đã đưa tiền thối.","Лише після видачі решти.","ተመላሲ ገንዘብ ድሕሪ ምሃብ ጥራይ።"],"r2.o2":["أبدًا، تبقى في ماسك الأوراق النقدية.","Không bao giờ, nó ở lại trong kẹp giữ tiền.","Ніколи, вона залишається в затискачі.","ከቶ፣ ኣብ መታሕዚ ይተርፍ።"],"r3.t":["تعليمات الصندوق","Quy định thu ngân","Правила роботи на касі (Kassieranweisungen)","ሕግታት ካሳ (Kassieranweisungen)"],"r3.task":["ظلّل ما هو معتاد في تعليمات الصندوق وما هو ممنوع.","Đánh dấu điều thường có và điều không được phép trong quy định thu ngân.","Познач, що типово для інструкції касира, а що заборонено.","ኣብ ሕግታት ካሳ እንታይ ልሙድ እንታይ ዝተኸልከለ ምልክት ግበር።"],"r3.x":["لكل شركة تعليمات للصندوق (Kassieranweisung). المعتاد: التحية والتوديع بلطف، التواصل البصري، تسجيل كل صنف على حدة، فحص عربة التسوق والعبوات الخارجية، فحص الأوراق النقدية وعدّ الباقي أمام الزبون. الممنوع: النقود الخاصة في منطقة الصندوق ومحاسبة أفراد العائلة. تُلغى الأخطاء (storniert)، ويُحفظ الإيصال الخاطئ – ولا يُرمى.","Mỗi cửa hàng có một quy định thu ngân (Kassieranweisung). Thường gồm: chào hỏi và tạm biệt thân thiện, giao tiếp bằng mắt, quét từng mặt hàng một, kiểm tra xe đẩy và bao bì ngoài, kiểm tra tiền giấy và đếm trả tiền thối. Không được phép: tiền riêng ở khu vực quầy và tính tiền cho người thân. Lỗi được hủy (storniert), và hóa đơn sai được giữ lại – không vứt đi.","У кожному підприємстві є інструкція для касирів. Типові правила: привітно вітатися і прощатися, зоровий контакт, реєструвати кожен товар окремо, перевіряти візок і зовнішню упаковку, перевіряти банкноти і відраховувати решту вголос. Заборонено: приватні гроші біля каси та обслуговування членів родини. Помилки сторнують, а хибний чек зберігають – не викидають.","ነፍሲ ወከፍ ትካል ሕግታት ካሳ ኣለዎ። ልሙድ: ብሓጎስ ሰላምታን ምስንባትን፣ ምርኣኢ ዓይኒ፣ ነፍሲ ወከፍ ኣቕሓ ንበይኑ ምምዝጋብ፣ ጋሪን ማዕሸጊን ምምርማር፣ ወረቐት ገንዘብ ምርግጋጽን ተመላሲ ብዓውታ ምቝጻርን። ዝተኸልከለ: ናይ ርእሲ ገንዘብ ኣብ ቦታ ካሳ ከምኡ ድማ ኣባላት ስድራ ምክፋል። ጌጋታት ይስረዙ (stornieren)፣ ጌጋ ቦን ድማ ይሕለው – ኣይድርበይን።"],"r3.q":["ماذا يحدث للإيصال الخاطئ؟","Hóa đơn sai được xử lý thế nào?","Що робиться з хибним чеком?","ምስ ጌጋ ቦን እንታይ ይግበር?"],"r3.o0":["يُرمى فورًا.","Vứt ngay.","Його одразу викидають.","ብቕልጡፍ ይድርበ።"],"r3.o1":["يُلغى ويُحفظ.","Hủy và giữ lại.","Його сторнують і зберігають.","ይስረዝ ይሕለው ድማ።"],"r3.o2":["يُعطى للزبون.","Đưa cho khách mang đi.","Його віддають клієнту.","ንዓሚል ይወሃብ።"],"r4.t":["مراعاة الزبون عند الصندوق","Hướng đến khách hàng tại quầy","Орієнтація на клієнта на касі","ኣብ ካሳ ንዓሚል ዘኽብር ኣካይዳ"],"r4.task":["ظلّل كيف يتصرف الشخص ولماذا هذا مهم.","Đánh dấu cách cư xử và lý do vì sao điều đó quan trọng.","Познач, як поводитися і чому це важливо.","ከመይ ከም እትመላለስን ንምንታይ ኣገዳሲ ምዃኑን ምልክት ግበር።"],"r4.x":["السلوك المراعي للزبون يعني: الترحيب والتوديع، التواصل البصري والابتسامة، تأكيد الشراء بإيجابية („Gute Wahl!“)، التعامل بعناية مع البضاعة، السؤال عن بطاقة الزبون أو تطبيق الزبائن، تقديم خدمة (كيس، تغليف هدايا) والشكر. وهذا مهم لأن الصندوق هو الانطباع الأول والأخير في المتجر. الزبائن الراضون يعودون (ولاء العملاء Kundenbindung) ويوصون الآخرين بالمتجر. تكون للمتجر صورة إيجابية (Image) ويتميز عن المنافسين. أما التحصيل السريع بدون تحية فليس مراعيًا للزبون.","Hướng đến khách hàng nghĩa là: chào hỏi và tạm biệt, giao tiếp bằng mắt và mỉm cười, xác nhận việc mua hàng một cách tích cực („Gute Wahl!“), cầm hàng cẩn thận, hỏi thẻ khách hàng hoặc ứng dụng khách hàng, đề nghị dịch vụ (túi, gói quà) và cảm ơn. Điều này quan trọng vì quầy thu ngân là ấn tượng đầu tiên và cuối cùng trong cửa hàng. Khách hàng hài lòng sẽ quay lại (gắn bó khách hàng, Kundenbindung) và giới thiệu cửa hàng cho người khác. Cửa hàng có hình ảnh (Image) tốt và nổi bật hơn đối thủ. Tính tiền nhanh mà không chào hỏi thì không hướng đến khách hàng.","Орієнтація на клієнта означає: привітання і прощання, зоровий контакт і усмішка, позитивно підтвердити покупку («Гарний вибір!»), дбайливо поводитися з товаром, запитати про картку клієнта або додаток, запропонувати сервіс (пакет, святкове пакування) і подякувати. Це важливо, бо каса – це перше і останнє враження в магазині. Задоволені клієнти повертаються (Kundenbindung) і рекомендують магазин іншим. Магазин має позитивний імідж і вирізняється серед конкурентів. Швидкий розрахунок без привітання не орієнтований на клієнта.","ንዓሚል ምኽባር ማለት: ሰላምታን ምስንባትን፣ ምርኣኢ ዓይንን ጥምየትን፣ ዕድጊ ብጽቡቕ ምግላጽ (“ጽቡቕ ምርጫ!”)፣ ኣቕሑት ብጥንቃቕ ምሓዝ፣ ብዛዕባ ካርድ ዓሚል ወይ ኣፕ ምሕታት፣ ኣገልግሎት ምቕራብ (ከረጢት፣ ማዕሸጊ ሓዱሽ) ምስጋናን ምግባር። እዚ ኣገዳሲ እዩ ምኽንያቱ ካሳ ቀዳማይን ዳሕረዋይን ርእይቶ ኣብ ድኳን እዩ። ዕጉባት ዓማዊል ይምለሱ (Kundenbindung) ንድኳን ድማ የመኽሩ። እቲ ድኳን ጽቡቕ ስም ኣለዎ ካብ ተወዳደርቲ ድማ ፍሉይ እዩ። ቅልጡፍ ክፍሊት ብዘይ ሰላምታ ንዓሚል ዘኽብር ኣይኰነን።"],"r4.q":["لماذا الصندوق مهم للانطباع عن المتجر؟","Vì sao quầy thu ngân quan trọng đối với ấn tượng về cửa hàng?","Чому каса важлива для враження про магазин?","ንምንታይ እዩ ካሳ ንርእይቶ ናይ ድኳን ኣገዳሲ?"],"r4.o0":["لأنه الانطباع الأول والأخير.","Ở đó có ấn tượng đầu tiên và cuối cùng.","Там перше і останнє враження.","ኣብኡ ቀዳማይን ዳሕረዋይን ርእይቶ እዩ።"],"r4.o1":["لأن المدير يقف هناك.","Ở đó ông chủ đứng.","Там стоїть начальник.","ኣብኡ ሓላፊ ይቐውም።"],"r4.o2":["لأن الأسعار هناك هي الأقل.","Ở đó giá thấp nhất.","Там найнижчі ціни.","ኣብኡ ዋጋታት ዝሑል እዩ።"],"cat_vor":["البداية: ماذا تتذكر؟","Khởi động: Bạn còn nhớ gì?","Початок: Що ти ще пам'ятаєш?","ጅማሮ: እንታይ ትዝክር?"],"cat_txt":["فهم النص: التحصيل خطوة بخطوة","Hiểu văn bản: Thanh toán từng bước","Розуміння тексту: Робота на касі крок за кроком","ምስትውዓል ጽሑፍ: ኣብ ካሳ ስጉምቲ ብስጉምቲ"],"cat_trans":["التطبيق: الترتيب والعدّ أمام الزبون","Vận dụng: Thứ tự và đếm trả tiền","Перенесення: послідовність і відраховування решти","ምትሕልላፍ: ቅጸልን ምቝጻር ተመላሲ ገንዘብን"],"cat_wis":["المعرفة المهنية: اختبار الامتحان","Kiến thức nghề: Kiểm tra kiểu thi","Фахові знання: Екзаменаційна перевірка","ፍልጠት ሞያ: ፈተና ምርግጋጽ"],"cat_refl":["الصندوق في الفصل والتفكير الإضافي","Quầy thu ngân trong lớp & suy nghĩ thêm","Каса в класі і подальші роздуми","ካሳ ኣብ ክላስን ምሕሳብ ተወሳኺን"]};
+const GLOSS=[["die Kassieranweisung","تعليمات الصندوق (Kassieranweisung)","quy định thu ngân (Kassieranweisung)","інструкція для касирів (Kassieranweisung)","ሕግታት ካሳ (Kassieranweisung)"],["das Wechselgeld","الفكة (Wechselgeld)","tiền lẻ (Wechselgeld)","розмінна монета (Wechselgeld)","ንእሽቶ ገንዘብ (Wechselgeld)"],["einzählen","عدّ النقود (einzählen)","đếm tiền (einzählen)","перерахувати (einzählen)","ምቝጻር (einzählen)"],["die Bonrolle","لفافة ورق الإيصالات (Bonrolle)","cuộn giấy hóa đơn (Bonrolle)","рулон для чеків (Bonrolle)","ወረቐት ቦን (Bonrolle)"],["sich anmelden","تسجيل الدخول (sich anmelden)","đăng nhập (sich anmelden)","ввійти в систему (sich anmelden)","ምእታው (sich anmelden)"],["der Geldscheinhalter","ماسك الأوراق النقدية (Geldscheinhalter)","kẹp giữ tiền (Geldscheinhalter)","затискач для банкнот (Geldscheinhalter)","መታሕዚ ወረቐት ገንዘብ (Geldscheinhalter)"],["vorzählen","العدّ أمام الزبون (vorzählen)","đếm trả cho khách (vorzählen)","відрахувати вголос (vorzählen)","ብዓውታ ምቝጻር (vorzählen)"],["das Rückgeld","الباقي (Rückgeld)","tiền thối (Rückgeld)","решта (Rückgeld)","ተመላሲ ገንዘብ (Rückgeld)"],["der Blickkontakt","التواصل البصري (Blickkontakt)","giao tiếp bằng mắt (Blickkontakt)","зоровий контакт (Blickkontakt)","ምርኣኢ ዓይኒ (Blickkontakt)"],["kundenorientiert","مراعٍ للزبون (kundenorientiert)","hướng đến khách hàng (kundenorientiert)","орієнтований на клієнта (kundenorientiert)","ንዓሚል ዘኽብር (kundenorientiert)"],["die Kundenbindung","ولاء العملاء (Kundenbindung)","gắn bó khách hàng (Kundenbindung)","прив'язаність клієнтів (Kundenbindung)","ምጥርናፍ ዓማዊል (Kundenbindung)"],["der Zusatzartikel","صنف إضافي (Zusatzartikel)","mặt hàng bán thêm (Zusatzartikel)","додатковий товар (Zusatzartikel)","ተወሳኺ ኣቕሓ (Zusatzartikel)"]];
+const WTX={"Scanner":["الماسح الضوئي","máy quét","сканер","ስካነር"],"Strichcode":["الباركود","mã vạch","штрихкод","ባር ኮድ"],"Artikel":["السلعة","món hàng","товар","ኣቕሓ"],"Nummer":["الرقم","số","номер","ቁጽሪ"],"Der Scanner liest …":["يقرأ الماسح الضوئي …","Máy quét đọc …","Сканер зчитує …","እቲ ስካነር የንብብ …"],"Kassenvorgang":["عملية في الصندوق","giao dịch ở quầy","касова операція","ስራሕ ካሳ"],"Betrug":["احتيال","gian lận","шахрайство","ምሕራይ"],"Sicherheit":["أمان","an toàn","безпека","ድሕነት"],"Steuer":["الضريبة","thuế","податок","ግብሪ"],"Die TSE dient dazu, …":["تُستخدم الـ TSE من أجل …","TSE dùng để …","TSE потрібна для того, щоб …","TSE ንምንታይ ይጠቅም …"],"Kassenbon":["إيصال الصندوق","hóa đơn thu ngân","касовий чек","ቦን ካሳ"],"Angabe":["بيان","thông tin","дані","ሓበሬታ"],"Zahlung":["دفع","thanh toán","оплата","ክፍሊት"],"Auf dem Bon steht …":["على الإيصال مكتوب …","Trên hóa đơn có …","На чеку вказано …","ኣብ ቦን ተጻሒፉ ኣሎ …"],"Begrüßung":["ترحيب","chào hỏi","привітання","ሰላምታ"],"Rückgeld":["الباقي","tiền thối","решта","ተመላሲ ገንዘብ"],"Verabschiedung":["توديع","tạm biệt","прощання","ምስንባት"],"Geldschein":["ورقة نقدية","tờ tiền","банкнота","ወረቐት ገንዘብ"],"Gut gemacht hat die Kassiererin …":["أحسنت أمينة الصندوق في …","Thu ngân đã làm tốt …","Добре зробила касир …","ጽቡቕ ገይራ እታ ከሳሪት …"],"Vergessen hat sie …":["نسيت …","Cô ấy đã quên …","Забула вона …","ረሲዓ እያ …"],"Reihenfolge":["ترتيب","thứ tự","послідовність","ቅጸል"],"Kasse":["الصندوق","quầy thu ngân","каса","ካሳ"],"Zuerst …, dann …, zuletzt …":["أولًا …، ثم …، وأخيرًا …","Đầu tiên …, sau đó …, cuối cùng …","Спочатку …, потім …, наприкінці …","መጀመርታ …፣ ድሕሪኡ …፣ ኣብ መወዳእታ …"],"vorzählen":["العدّ أمام الزبون (vorzählen)","đếm trả cho khách (vorzählen)","відраховувати вголос","ብዓውታ ምቝጻር"],"Cent":["سنت","cent","цент","ሳንቲም"],"„Bitte schön, … zurück.“":["„تفضّل، … باقيك.“","„Xin gửi bạn, thối lại …“","«Будь ласка, … решти.»","“በጃኻ፣ … ተመላሲ።”"],"Familie":["عائلة","gia đình","родина","ስድራ"],"Kassieranweisung":["تعليمات الصندوق","quy định thu ngân","інструкція для касирів","ሕግታት ካሳ"],"Freunde":["أصدقاء","bạn bè","друзі","ወዲቦታት"],"Das ist …, weil …":["هذا …، لأن …","Đây là …, vì …","Це …, тому що …","እዚ … እዩ፣ ምኽንያቱ …"],"Einkaufswagen":["عربة التسوق","xe đẩy","візок для покупок","ጋሪ ዕድጊ"],"Korb":["سلة","giỏ","кошик","ቅርጫት"],"Kontrolle":["فحص","kiểm tra","перевірка","ምምርማር"],"Ware":["البضاعة","hàng hóa","товар","ኣቕሑት"],"privat":["خاص","riêng tư","приватно","ናይ ርእሲ"],"Kassenbereich":["منطقة الصندوق","khu vực quầy","зона каси","ቦታ ካሳ"],"Differenz":["فرق","chênh lệch","розбіжність","ፍልልይ"],"Streit":["خلاف","tranh cãi","суперечка","ክትናቶ"],"Kunde":["الزبون","khách hàng","клієнт","ዓሚል"],"Vertrauen":["ثقة","lòng tin","довіра","እምነት"],"Geldscheinhalter":["ماسك الأوراق النقدية","kẹp giữ tiền","затискач для банкнот","መታሕዚ ወረቐት ገንዘብ"],"Schein":["ورقة نقدية","tờ tiền","банкнота","ወረቐት ገንዘብ"],"Bon":["الإيصال","hóa đơn","чек","ቦን"],"Fehler":["خطأ","lỗi","помилка","ጌጋ"],"Kassenabrechnung":["تسوية الصندوق","quyết toán quầy","касовий звіт","ሒሳብ ካሳ"],"Bogen":["استمارة","phiếu","аркуш","ወረቐት"],"Kassiererin":["أمينة الصندوق","thu ngân","касир","ከሳሪት"],"Die Kassiererin hat … × „ja“ erreicht.":["حصلت أمينة الصندوق على … × „نعم“.","Thu ngân đạt … × „có“.","Касир набрала … × «так».","እታ ከሳሪት … × “እወ” ረኺባ።"],"Mein Tipp: …":["نصيحتي: …","Lời khuyên của tôi: …","Моя порада: …","ምኽረይ: …"],"Wechselgeld":["فكة","tiền lẻ","розмінна монета","ንእሽቶ ገንዘብ"],"Bonrolle":["لفافة الإيصالات","cuộn giấy hóa đơn","рулон для чеків","ወረቐት ቦን"],"Kassenplatz":["مكان الصندوق","chỗ quầy thu ngân","робоче місце на касі","ቦታ ካሳ"],"Vor dem Kassieren …":["قبل التحصيل …","Trước khi thanh toán …","Перед початком роботи на касі …","ቅድሚ ካሳ …"],"Service":["الخدمة (Service)","dịch vụ (Service)","сервіс","ኣገልግሎት"],"Kundenkarte":["بطاقة الزبون","thẻ khách hàng","картка клієнта","ካርድ ዓሚል"],"Kundenorientiert ist auch …":["من السلوك المراعي للزبون أيضًا …","Hướng đến khách hàng còn là …","Орієнтованим на клієнта є також …","ንዓሚል ዘኽብር እውን …"],"Kundenbindung":["ولاء العملاء","gắn bó khách hàng","прив'язаність клієнтів","ምጥርናፍ ዓማዊል"],"Image":["صورة المتجر","hình ảnh","імідж","ስም"],"Eindruck":["انطباع","ấn tượng","враження","ርእይቶ"],"Mitbewerber":["منافسون","đối thủ","конкурент","ተወዳዳሪ"],"Kundenorientiertes Verhalten ist wichtig, weil …":["السلوك المراعي للزبون مهم لأن …","Cách cư xử hướng đến khách hàng quan trọng vì …","Поведінка, орієнтована на клієнта, важлива, тому що …","ንዓሚል ዘኽብር ኣካይዳ ኣገዳሲ እዩ፣ ምኽንያቱ …"],"Der Schein bleibt sichtbar, weil …":["تبقى الورقة ظاهرة لأن …","Tờ tiền được để ở chỗ nhìn thấy vì …","Банкнота лежить на видноті, тому що …","ወረቐት ገንዘብ ብቕንዕና ይተርፍ፣ ምኽንያቱ …"],"Zusatzartikel":["صنف إضافي","mặt hàng bán thêm","додатковий товар","ተወሳኺ ኣቕሓ"],"Angebot":["العرض","cung","пропозиція","ምቕራብ"],"Schlange":["طابور","hàng dài","черга","ቀበጥ"],"aufdringlich":["مُلحّ","dai dẳng","нав'язливий","ዘጨንቕ"],"„Darf ich Ihnen … anbieten?“":["„هل لي أن أعرض عليك …؟“","„Tôi có thể đề nghị bạn … không?“","«Чи можу я запропонувати Вам …?»","“… ከቕርበልኩም ይፍቀድ?”"],"Solche Angebote stören, wenn …":["تزعج هذه العروض عندما …","Những lời đề nghị này gây phiền khi …","Такі пропозиції дратують, коли …","ከምዚኦም ጽውዓታት ይጸልኡ፣ እንተ …"],"sichtbar":["ظاهر","nhìn thấy được","на видноті","ብቕንዕና ዝርአ"],"beweisen":["يُثبت","chứng minh","довести","ምምስካር"],"Der Schein liegt sichtbar, damit …":["تُوضع الورقة بشكل ظاهر حتى …","Tờ tiền được để ở chỗ nhìn thấy để …","Банкнота лежить на видноті, щоб …","ወረቐት ገንዘብ ብቕንዕና ይቕመጥ፣ ከም …"],"Vorzählen":["العدّ أمام الزبون","đếm trả","відраховування вголос","ምቝጻር ብዓውታ"],"Kassendifferenz":["فرق الصندوق","chênh lệch quầy","розбіжність у касі","ፍልልይ ካሳ"],"Aus Sicht des Kunden …":["من وجهة نظر العميل …","Từ góc độ khách hàng …","З погляду клієнта …","ካብ ኣረኣእያ ዓሚል …"],"Aus Sicht der Kassiererin …":["من وجهة نظر أمينة الصندوق …","Theo góc nhìn của thu ngân …","З погляду касира …","ካብ ኣረኣእያ ከሳሪት …"],"Familienangehörige":["أفراد العائلة","người thân trong gia đình","члени родини","ኣባላት ስድራ"],"Die erste Regel schützt …":["القاعدة الأولى تحمي …","Quy tắc thứ nhất bảo vệ …","Перше правило захищає …","እቲ ቀዳማይ ሕጊ የድሕን …"],"Die zweite Regel verhindert …":["القاعدة الثانية تمنع …","Quy tắc thứ hai ngăn …","Друге правило запобігає …","እቲ ካልኣይ ሕጊ ይከላኸል …"],"Wartezeit":["وقت الانتظار","thời gian chờ","час очікування","ግዜ ምጽባይ"],"Dann würde …":["عندها سوف …","Khi đó sẽ …","Тоді …","ሽዑ …"],"Für den Betrieb bedeutet das …":["بالنسبة للشركة هذا يعني …","Đối với cửa hàng, điều này nghĩa là …","Для підприємства це означає …","ንትካል እዚ ማለት …"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={ar:0,vi:1,uk:2,ti:3}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 3 · Modul 2 · Kassieren Schritt für Schritt";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf3m2_v2";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),document.getElementById("a2btn")?["a2"]:[]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+if($("#a2btn"))$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF3_Modul2.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done&&$("#a2btn"))$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>

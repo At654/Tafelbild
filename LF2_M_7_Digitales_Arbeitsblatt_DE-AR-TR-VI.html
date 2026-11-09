@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 2 · Modul 7 · Direkte und indirekte Bedarfsermittlung</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="ar">🇸🇦 العربية</button>
+    <button class="pill" data-l="tr">🇹🇷 Türkçe</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 2 · Verkaufsgespräche kundenorientiert führen</p>
+  <h1 data-k="h1">Modul 7: Direkte und indirekte Bedarfsermittlung</h1>
+  <p class="sub" data-k="meta">1 Doppelstunde · 4 Punkte · Lehrbuch S. 115–117 · Arbeitsheft S. 66–73</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann direkte und indirekte Bedarfsermittlung unterscheiden und sagen, wann welche passt.</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann zu beiden Formen je einen Vorteil und einen Nachteil nennen.</label></li>
+      <li><label data-k="can3"><input type="checkbox"> Ich kann erklären, wann gar keine Bedarfsermittlung nötig ist.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a1_h">Aufgabe 1 · Ankommen: Was weißt du noch? <span class="pts" data-k="pts05">0,5 Punkte</span></h2>
+    <p data-k="a1_p">Beantworte die Fragen aus dem Kopf. Nicht nachschlagen – es geht darum, was aus den letzten Modulen hängengeblieben ist.</p>
+    <div data-items="a1"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> direkte Bedarfsermittlung · indirekte Bedarfsermittlung · warenbezogen · Fragekette · Testangebot · Kundenreaktion · Einsatzbereich · Anlass · Warenvorauswahl · Aushändigungsverkauf · Waren des täglichen Bedarfs · Ergänzungsfrage
+      <div id="gloss"></div></div>
+    <p class="noprint" style="color:var(--mute);font-size:16px" data-k="tipp_s"><b>Tipp für Schnelle:</b> Überlege, welche der beiden Formen in deinem Betrieb häufiger vorkommt – und warum.</p>
+    <div id="reading"></div>
+
+    <div class="merke" data-k="merke_be"><b>Merke:</b> Wird der Bedarf über eine Fragekette ermittelt, spricht man von direkter Bedarfsermittlung. Erfolgt die Bedarfsermittlung über den Kontakt mit der Ware, liegt eine indirekte (warenbezogene) Bedarfsermittlung vor.</div>
+
+    <h3 style="margin-top:24px" data-k="vgl_h">Direkt oder indirekt? Der Vergleich</h3>
+    <table>
+      <tr><th></th><th data-k="th_dir">Direkte Bedarfsermittlung</th><th data-k="th_ind">Indirekte Bedarfsermittlung</th></tr>
+      <tr><td data-k="rl_grund"><b>Grundgedanke</b></td><td data-k="t_grund_d">Der Verkäufer erkundigt sich nach Zweck, Anlass oder Einsatzbereich der gewünschten Ware. Aus den Antworten trifft er eine passende Warenvorauswahl.</td><td data-k="t_grund_i">Der Verkäufer stellt kaum Fragen. Er legt ein Testangebot vor und wartet die Reaktion des Kunden ab. Passt es nicht, nähert er sich mit weiteren Angeboten an.</td></tr>
+      <tr><td data-k="rl_vorg"><b>Vorgehen</b></td><td data-k="t_vorg_d">1. Offene Fragen zu Anlass, Zweck, Gelegenheit, Einsatzbereich, Erwartungen 2. Rückschlüsse aus den Antworten ziehen und geeignete Ware vorlegen</td><td data-k="t_vorg_i">1. Testangebot vorlegen 2. Kundenwunsch aus der Reaktion ermitteln 3. Aus den Reaktionen auf die Erwartungen schließen</td></tr>
+      <tr><td data-k="rl_bsp"><b>Beispiel</b></td><td data-k="t_bsp_d">V: „Für welchen Anlass suchen Sie das Kleid?“ K: „Für einen festlichen Abend.“ V: legt Cocktailkleider vor.</td><td data-k="t_bsp_i">K: „Ich suche eine Freizeithose.“ V: legt Jeans vor. K: „Kann man damit auch wandern?“ V: „Besser ist, Sie nehmen diese Trekkinghose – sie ist atmungsaktiv, wasserabweisend und hat viele Taschen.“</td></tr>
+      <tr><td data-k="rl_vor"><b>Vorteil</b></td><td data-k="t_vor_d">Durch die gezielten Fragen kann direkt die Ware vorgelegt werden, die der Kunde wünscht. Die Antworten ermöglichen eine gezielte Beratung.</td><td data-k="t_vor_i">Das Interesse wird sofort auf die Ware gelenkt. Ein unnötiges Ausfragen wird vermieden. An der Ware kristallisieren sich die Wünsche heraus.</td></tr>
+      <tr><td data-k="rl_nach"><b>Nachteil</b></td><td data-k="t_nach_d">Der Kunde kommt erst relativ spät mit der Ware in Kontakt und könnte sich ausgefragt fühlen.</td><td data-k="t_nach_i">Das Testangebot kann den Kunden auch verschrecken, wenn es gar nicht passt. Dann verliert der Verkäufer an Fachkompetenz.</td></tr>
+    </table>
+
+    <div class="merke" style="background:var(--pri2);border-color:var(--pri)"><b data-k="ohne_h">Wann keine Bedarfsermittlung nötig ist</b>
+      <div data-k="ohne_t" style="margin-top:6px">Beim Aushändigungsverkauf weiß der Kunde genau, was er kaufen möchte. Das ist vor allem bei Waren des täglichen Bedarfs so: Brot und Backwaren, Fleisch- und Wurstwaren, Getränke, Zeitungen, Süßigkeiten. Der Verkäufer beschränkt sich dann auf Ergänzungsfragen zu Art, Menge oder Größe, holt die Ware, prüft sie kurz auf Mängel, verpackt und kassiert.</div></div>
+
+    <div class="merke" style="background:var(--pri2);border-color:var(--pri)"><b data-k="sbk_h">Satzbaukasten – Bedarf ermitteln</b>
+      <div data-k="sbk_d" style="margin-top:6px"><b>Direkt:</b> „Für welchen Anlass suchen Sie …?“ · „Wofür möchten Sie … vor allem verwenden?“ · „Was erwarten Sie von …?“ · „Wann benötigen Sie die Ware?“</div>
+      <div data-k="sbk_i" style="margin-top:6px"><b>Indirekt:</b> „Ich zeige Ihnen einmal …“ · „Wie gefällt Ihnen dieses Modell?“ · „Was müsste denn anders sein?“</div>
+      <div data-k="sbk_e" style="margin-top:6px"><b>Ergänzungsfrage beim Aushändigungsverkauf:</b> „Welche Menge darf es sein?“ · „Lieber am Stück oder geschnitten?“</div></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 2 · Vorgemacht: welche Form passt?</h2>
+    <p data-k="a2_p">So gehst du bei jeder Kundensituation vor. Lies die Beispiele genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk1"><b>Die Kundin sagt: „Ich brauche ein Geschenk, weiß aber noch nicht genau, was.“</b><br>1. Weiß die Kundin, was sie will? Nein, nur ungefähr. 2. Was bringt mich weiter? Fragen nach Person, Anlass und Rahmen. 3. Ergebnis: direkte Bedarfsermittlung.</div>
+    <div class="worked" data-k="wk2"><b>Der Kunde steht vor den Kopfhörern und sagt: „So etwas in der Art suche ich.“</b><br>1. Weiß der Kunde, was er will? Er zeigt auf eine Ware, kann es aber nicht in Worte fassen. 2. Was bringt mich weiter? Ein Modell vorlegen und die Reaktion abwarten. 3. Ergebnis: indirekte Bedarfsermittlung.</div>
+    <div class="worked" data-k="wk3"><b>Die Kundin sagt: „Zweihundert Gramm gekochten Schinken, bitte.“</b><br>1. Weiß sie, was sie will? Ja, ganz genau. 2. Was fehlt noch? Höchstens die Ergänzungsfrage nach der Schnittdicke. 3. Ergebnis: Aushändigungsverkauf – keine Bedarfsermittlung nötig.</div>
+    <div class="merke" data-k="a2_res"><b>Ergebnis:</b> Immer dieselbe Frage zuerst: Weiß der Kunde schon genau, was er will? Danach entscheidet sich, ob ich frage, ob ich Ware zeige oder ob ich einfach aushändige.</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe die Beispiele gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a3_h">Aufgabe 3 · Geführte Übung <span class="pts" data-k="pts1">1 Punkt</span></h2>
+    <p data-k="a3_p">Nenne die passende Form der Bedarfsermittlung und begründe in einem Satz.</p>
+    <div data-items="a3"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a4_h">Aufgabe 4 · Freie Übung <span class="pts" data-k="pts15">1,5 Punkte</span></h2>
+    <div data-items="a4"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a5_h">Aufgabe 5 · Aus deinem Betrieb <span class="pts" data-k="pts1">1 Punkt</span></h2>
+    <div data-items="a5"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a6_h">Aufgabe 6 · Für Profis</h2>
+    <p data-k="a6_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="a6"></div>
+  </div>
+
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="a8_h">Aufgabe 8 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="a8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="a8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 7 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={vor:"Vorwissen: Fragearten",txt:"Textverständnis",trans:"Transfer: Form der Bedarfsermittlung wählen",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{id:"a1_1",g:"a1",cat:"vor",q:"1. Womit beginnen offene Fragen?",kw:[["fragewort","fragewoerter","w-frage","w frage","wer","wie","was","warum","wofuer","wonach"]],min:1,rows:3,
+ h:["Offene Fragen kann der Kunde nicht mit „ja“ oder „nein“ beantworten.","Sie heißen auch W-Fragen."],
+ sol:"Mit Fragewörtern wie Wer, Wie, Was, Warum, Wofür – deshalb auch W-Fragen."},
+{id:"a1_2",g:"a1",cat:"vor",q:"2. Formuliere eine offene Frage zu einem Paar Wanderschuhe.",kw:[["wofuer","wie","was","welche","wann","wo","wer","warum","wonach"],["wanderschuh","schuh","wandern","verwenden","brauchen","erwarten","suchen","tour"]],min:1,rows:3,
+ h:["Beginne mit einem Fragewort.","Frage nach dem Einsatz: Wo und wofür werden die Schuhe getragen?"],
+ sol:"Zum Beispiel: „Wofür möchten Sie die Wanderschuhe vor allem verwenden?“"},
+{id:"a1_3",g:"a1",cat:"vor",q:"3. Wozu dient eine Alternativfrage?",kw:[["entscheid"],["zwei","wahl","waehlen","auswahl","moeglichkeit","entweder","oder"]],min:1,rows:3,
+ h:["Der Kunde bekommt zwei Möglichkeiten genannt.","Was soll er am Ende tun?"],
+ sol:"Sie führt beim Kunden eine Entscheidung herbei: Er wählt zwischen zwei Möglichkeiten."},
+{id:"a1_4",g:"a1",cat:"vor",q:"4. Warum ist „Sonst brauchen Sie nichts?“ eine schlechte Frage?",kw:[["geschlossen","ja/nein","ja oder nein","nein","ende","negativ"]],min:1,rows:3,
+ h:["Was antwortet der Kunde auf diese Frage am wahrscheinlichsten?","Ist die Frage offen oder geschlossen? Klingt sie positiv oder negativ?"],
+ sol:"Sie ist geschlossen und negativ formuliert. Der Kunde sagt „nein“, und das Gespräch ist zu Ende."},
+{id:"a1_5",g:"a1",cat:"vor",q:"5. Welche Frageart passt an das Ende des Verkaufsgesprächs?",kw:[["geschlossen"],["alternativ"]],min:1,rows:3,
+ h:["Am Ende soll der Kunde sich entscheiden.","Es sind zwei Fragearten, die zu einer Entscheidung führen."],
+ sol:"Die geschlossene Frage und die Alternativfrage – beide führen zu einer Entscheidung."},
+
+{id:"a3_1",g:"a3",cat:"trans",q:"1. Ein Kunde steht ratlos vor dem Regal mit den Druckern.",kw:[["direkt"],["frage","fragen","einsatz","erwartung","eingrenz","weiss nicht","unsicher","ratlos","anlass","zweck"]],min:2,rows:3,
+ h:["Weiß der Kunde, was er will?","Was musst du tun, wenn er es nicht weiß – fragen oder Ware zeigen?"],
+ sol:"Direkte Bedarfsermittlung: Mit offenen Fragen nach Einsatzbereich und Erwartungen lässt sich die Auswahl schnell eingrenzen."},
+{id:"a3_2",g:"a3",cat:"trans",q:"2. Eine Kundin sagt: „So ein Kleid wie im Schaufenster, aber irgendwie anders.“",kw:[["indirekt","warenbezogen"],["testangebot","vorleg","zeigen","reaktion","ware","modell","anders"]],min:2,rows:3,
+ h:["Kann die Kundin ihren Wunsch in Worte fassen?","Woran erkennst du, was „anders“ heißt: an Fragen oder an ihrer Reaktion?"],
+ sol:"Indirekte Bedarfsermittlung: Ein Testangebot vorlegen und aus der Reaktion herausfinden, was „anders“ bedeutet."},
+{id:"a3_3",g:"a3",cat:"trans",q:"3. Ein Kunde verlangt eine bestimmte Tageszeitung.",kw:[["aushaendigung"],["weiss genau","genau","bestimmt","keine bedarfsermittlung","ergaenzungsfrage","kassier","kassieren","taeglich"]],min:2,rows:3,
+ h:["Weiß der Kunde schon genau, was er will?","Wie heißt die Verkaufsform, bei der du nur noch aushändigst?"],
+ sol:"Aushändigungsverkauf: Er weiß genau, was er will. Höchstens eine Ergänzungsfrage, sonst aushändigen und kassieren."},
+{id:"a3_4",g:"a3",cat:"trans",q:"4. Eine Kundin sucht Laufschuhe und erzählt viel über ihre Beschwerden beim Laufen.",kw:[["direkt"],["frage","fragen","zuhoer","weiterfrag","information","informier","beschwerde","genau","offen"]],min:2,rows:3,
+ h:["Die Kundin gibt von sich aus viele Informationen.","Was machst du mit diesen Informationen: zuhören und weiterfragen oder sofort Ware zeigen?"],
+ sol:"Direkte Bedarfsermittlung: Sie liefert von sich aus Informationen. Mit weiteren offenen Fragen lässt sich das Modell genau bestimmen."},
+
+{id:"a4_1",g:"a4",cat:"wis",q:"1. Erkläre den Unterschied zwischen direkter und indirekter Bedarfsermittlung.",kw:[["fragekette","frage","fragen"],["kontakt mit der ware","ware","testangebot","vorleg"],["reaktion","abwart"]],min:2,rows:5,
+ h:["Denk an das Wort „Fragekette“ und an das Wort „Testangebot“.","Direkt: Womit ermittelst du den Bedarf? Indirekt: Was wartest du ab?"],
+ sol:"Bei der direkten Bedarfsermittlung wird der Bedarf über eine Fragekette ermittelt. Bei der indirekten Bedarfsermittlung erfolgt sie über den Kontakt mit der Ware: Der Verkäufer legt ein Testangebot vor und wartet die Reaktion ab."},
+{id:"a4_2",g:"a4",cat:"wis",q:"2. Nenne je einen Vorteil und einen Nachteil der direkten Bedarfsermittlung.",kw:[["gezielt","genau","direkt die ware","beratung","passend"],["spaet","ausgefragt","ausfragen","kontakt mit der ware","spät"]],min:2,rows:4,
+ h:["Schau in die Tabelle „Der Vergleich“, Zeilen Vorteil und Nachteil.","Vorteil: Was ist an der Beratung gut? Nachteil: Wie fühlt sich der Kunde vielleicht?"],
+ sol:"Vorteil: Die gewünschte Ware kann gezielt vorgelegt werden, die Beratung ist genau. Nachteil: Der Kunde kommt erst spät mit der Ware in Kontakt und könnte sich ausgefragt fühlen."},
+{id:"a4_3",g:"a4",cat:"wis",q:"3. Nenne je einen Vorteil und einen Nachteil der indirekten Bedarfsermittlung.",kw:[["sofort","interesse","ausfragen vermieden","unnoetig","wuensche","ware gelenkt"],["verschreck","passt nicht","unpassend","fachkompetenz","unfachlich","kompetenz"]],min:2,rows:4,
+ h:["Schau in die Tabelle „Der Vergleich“, Zeilen Vorteil und Nachteil.","Vorteil: Wohin wird das Interesse gelenkt? Nachteil: Was passiert, wenn das Testangebot gar nicht passt?"],
+ sol:"Vorteil: Das Interesse wird sofort auf die Ware gelenkt, ein unnötiges Ausfragen entfällt. Nachteil: Ein unpassendes Testangebot kann den Kunden verschrecken und den Verkäufer unfachlich wirken lassen."},
+{id:"a4_4",g:"a4",cat:"wis",q:"4. Was ist ein Aushändigungsverkauf? Nenne zwei Beispiele.",kw:[["weiss genau","genau","bestimmt","keine bedarfsermittlung","nicht noetig","kein bedarf"],["brot","backware","zeitung","getraenk","suessigkeit","fleisch","wurst","taeglich"]],min:2,rows:4,
+ h:["Weiß der Kunde, was er will? Braucht man dann eine Bedarfsermittlung?","Denk an Waren des täglichen Bedarfs."],
+ sol:"Der Kunde weiß genau, was er kaufen möchte – eine Bedarfsermittlung ist nicht nötig. Beispiele: Brot und Backwaren, Zeitungen, Getränke, Süßigkeiten, Fleisch- und Wurstwaren."},
+{id:"a4_5",g:"a4",cat:"wis",q:"5. Formuliere für eine Kundin, die eine Jacke sucht, eine direkte und eine indirekte Eröffnung – in wörtlicher Rede.",kw:[["direkt"],["indirekt"],["wofuer","anlass","jahreszeit","verwenden","welche","wann","wie"],["zeige","zeigen","modell","gefaellt","vorleg"]],min:3,rows:6,
+ h:["Direkt: Du stellst eine offene Frage. Indirekt: Du zeigst eine Ware.","Schau in den Satzbaukasten. Setze beide Sätze in Anführungszeichen."],
+ sol:"Direkt: „Für welche Jahreszeit soll die Jacke denn vor allem sein?“ Indirekt: „Ich zeige Ihnen einmal dieses Modell – es ist wasserabweisend und leicht. Wie gefällt es Ihnen?“"},
+
+{id:"a5_1",g:"a5",cat:"refl",mode:"self",q:"Welche Form der Bedarfsermittlung ist in deinem Betrieb üblich? Begründe mit der Verkaufsform und dem Sortiment.",rows:5,
+ h:["Ist dein Betrieb Bedienung, Vorwahl oder Selbstbedienung?","Ist die Ware erklärungsbedürftig oder eine Ware des täglichen Bedarfs?"],
+ sol:"Individuelle Lösung. Prüfe selbst: Nimmt deine Begründung Bezug auf Verkaufsform und Sortiment? Bedienung und erklärungsbedürftige Ware sprechen für die direkte Form, Vorwahl und Ware zum Anschauen eher für die indirekte, Waren des täglichen Bedarfs für den Aushändigungsverkauf."},
+
+{id:"a6_1",g:"a6",cat:"refl",mode:"self",q:"6.1 Wann wird die indirekte Bedarfsermittlung gefährlich? Erklären Sie, was eine Verkäuferin falsch macht, wenn sie immer weitere Testangebote vorlegt.",rows:7,
+ h:["Was geschieht, wenn die Verkäuferin nach jeder Ablehnung einfach das nächste Modell zeigt?","Was verliert sie dadurch beim Kunden? Was müsste sie aus jeder Ablehnung machen?"],
+ sol:"Musterlösung (Vorschlag): Gefährlich wird sie, wenn die Verkäuferin nach jeder Ablehnung willkürlich das nächste Modell vorlegt, ohne die Reaktion auszuwerten. Der Kunde merkt, dass geraten wird; die Verkäuferin verliert an Fachkompetenz, und das Vertrauen wird schon zu Beginn erschüttert. Richtig ist: aus jeder Ablehnung eine Information ziehen und das nächste Angebot gezielt daran ausrichten."},
+{id:"a6_2",g:"a6",cat:"refl",mode:"self",q:"6.2 Die Frage nach dem Preis gehört nicht an den Anfang der Bedarfsermittlung. Begründen Sie – und sagen Sie, wie man den Rahmen trotzdem erfährt.",rows:7,
+ h:["Was passiert mit der Auswahl, wenn der Kunde sofort eine Summe nennen soll?","Wonach können Sie stattdessen fragen, und woran sehen Sie die Preisvorstellung trotzdem?"],
+ sol:"Musterlösung (Vorschlag): Eine frühe Preisfrage engt die Auswahl zu stark ein und kann peinlich wirken – manche Kunden nennen dann eine niedrigere Summe, als sie ausgeben würden, weil sie sich nicht festlegen wollen. Außerdem verdirbt man sich den Verkaufserfolg, wenn der Preis der Kundin gar nicht wichtig war. Besser: über Anlass, Anspruch und Erwartungen fragen und dann Ware in der mittleren Preislage vorlegen. An der Reaktion sieht man den Rahmen, ohne ihn erfragt zu haben."},
+{id:"a6_3",g:"a6",cat:"refl",mode:"self",q:"6.3 Entwickeln Sie ein kurzes Gespräch, in dem Sie beide Formen kombinieren. Begründen Sie den Wechsel.",rows:8,
+ h:["Beginnen Sie mit einer offenen Frage und schreiben Sie die Antwort des Kunden dazu (V: … K: …).","Wann wechseln Sie vom Fragen zum Vorlegen einer Ware – und warum?"],
+ sol:"Musterlösung (Vorschlag): V: „Wofür möchten Sie den Rucksack vor allem verwenden?“ (direkt) K: „Für die Schule, aber auch mal zum Wandern.“ V: „Dann zeige ich Ihnen einmal dieses Modell – 24 Liter, gepolsterter Rücken. Wie gefällt es Ihnen?“ (Wechsel zur indirekten Form) K: „Zu klein.“ V: „Dann nehmen wir das gleiche Modell eine Größe größer.“ Begründung des Wechsels: Die offenen Fragen liefern den Rahmen, aber die letzten Feinheiten – Größe, Farbe, Gefühl – erkennt der Kunde erst an der Ware. Deshalb wird zuerst gefragt und dann gezeigt."}
+];
+
+/* Lesetext: [[Richtig]] = gesuchter Begriff, {{Falsch}} = Ablenker */
+const READ=[
+{t:"Zwei Wege zum Kundenwunsch",task:"Markiere die beiden Formen und das Wort, das zur direkten Form gehört.",
+ x:"Es gibt zwei Wege, den Bedarf zu ermitteln. Wird der Bedarf über eine [[Fragekette]] ermittelt, spricht man von [[direkter Bedarfsermittlung]]. Erfolgt die Bedarfsermittlung über den Kontakt mit der Ware, liegt eine [[indirekte (warenbezogene) Bedarfsermittlung]] vor. Mit der {{Preisnennung}} hat das noch nichts zu tun.",
+ q:"Woran erkennst du die direkte Bedarfsermittlung?",o:["Der Verkäufer legt nur Ware vor und schweigt.","Der Verkäufer ermittelt den Bedarf mit einer Fragekette.","Der Kunde sucht sich alles selbst."],c:1},
+{t:"Direkte Bedarfsermittlung",task:"Markiere, wonach der Verkäufer fragt und was er daraus macht.",
+ x:"Der Verkäufer erkundigt sich nach [[Zweck]], [[Anlass]] oder [[Einsatzbereich]] der gewünschten Ware. Aus den Antworten trifft er eine passende [[Warenvorauswahl]]. Der Vorteil: Die Antworten ermöglichen eine [[gezielte Beratung]]. Der Nachteil: Der Kunde könnte sich [[ausgefragt]] fühlen und kommt erst spät mit der Ware in Kontakt. Er fragt dagegen nicht nach {{dem Alter der Ware}}.",
+ q:"Was ist ein Nachteil der direkten Bedarfsermittlung?",o:["Die Beratung ist zu ungenau.","Der Verkäufer verliert an Fachkompetenz.","Der Kunde kommt erst spät mit der Ware in Kontakt und fühlt sich vielleicht ausgefragt."],c:2},
+{t:"Indirekte Bedarfsermittlung",task:"Markiere, was der Verkäufer tut, und den Vorteil und den Nachteil.",
+ x:"Der Verkäufer stellt kaum Fragen. Er legt ein [[Testangebot]] vor und wartet die [[Reaktion des Kunden]] ab. Passt es nicht, nähert er sich mit [[weiteren Angeboten]] an. Der Vorteil: Das Interesse wird [[sofort auf die Ware]] gelenkt. Der Nachteil: Das Testangebot kann den Kunden [[verschrecken]], wenn es gar nicht passt. Dann verliert der Verkäufer an [[Fachkompetenz]]. Er fragt den Kunden aber nicht {{nach seinem Namen}}.",
+ q:"Was tut der Verkäufer, wenn das Testangebot nicht passt?",o:["Er nähert sich mit weiteren Angeboten an.","Er beendet das Gespräch.","Er nennt sofort den Preis."],c:0},
+{t:"Ein Beispiel: die Trekkinghose",task:"Markiere, was der Kunde sucht und was die Verkäuferin vorlegt.",
+ x:"Der Kunde sagt: „Ich suche eine [[Freizeithose]].“ Der Verkäufer legt [[Jeans]] vor. Der Kunde fragt: „Kann man damit auch [[wandern]]?“ Jetzt weiß der Verkäufer mehr und empfiehlt eine [[Trekkinghose]]: atmungsaktiv, wasserabweisend und mit vielen Taschen. Er hat die Reaktion des Kunden genutzt, nicht {{den Preis erfragt}}.",
+ q:"Was ist hier das Testangebot?",o:["Die Trekkinghose.","Die Jeans.","Die Frage nach dem Wandern."],c:1},
+{t:"Wann keine Bedarfsermittlung nötig ist",task:"Markiere die Verkaufsart, die Waren und die Aufgaben des Verkäufers.",
+ x:"Beim [[Aushändigungsverkauf]] weiß der Kunde genau, was er kaufen möchte. Das ist vor allem bei [[Waren des täglichen Bedarfs]] so: Brot und Backwaren, Zeitungen, Getränke, Süßigkeiten. Der Verkäufer beschränkt sich auf [[Ergänzungsfragen]] zu Art, Menge oder Größe, holt die Ware, [[prüft sie kurz auf Mängel]], verpackt und kassiert. Eine lange {{Fragekette}} braucht er nicht.",
+ q:"Warum braucht der Verkäufer beim Aushändigungsverkauf keine Bedarfsermittlung?",o:["Weil die Ware sehr teuer ist.","Weil der Kunde nichts sagt.","Weil der Kunde genau weiß, was er kaufen möchte."],c:2}
+];
+
+/* Vertiefung (level v) – Zusatz, aus dem Material abgeleitet */
+ITEMS.push(
+{id:"v8_1",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.1 Begründe: Warum ist beim Aushändigungsverkauf keine Fragekette nötig, und welche Fragen stellt der Verkäufer trotzdem?",rows:5,
+ h:["Weiß der Kunde schon, was er will?","Wonach fragt der Verkäufer dann nur noch – denk an Art, Menge oder Größe."],
+ sol:"Der Kunde weiß genau, was er kaufen möchte, deshalb muss der Verkäufer keinen Bedarf ermitteln. Er stellt nur Ergänzungsfragen zu Art, Menge oder Größe, zum Beispiel „Welche Menge darf es sein?“."},
+{id:"v8_2",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.2 Was würde passieren, wenn ein Verkäufer bei einem Kunden, der genau weiß, was er will (z. B. eine Zeitung), trotzdem eine lange Fragekette stellt? Begründe.",rows:5,
+ h:["Weiß der Kunde schon alles?","Wie fühlt sich der Kunde, wenn er unnötig ausgefragt wird?"],
+ sol:"Der Kunde weiß schon genau, was er will, und würde sich unnötig ausgefragt fühlen. Der Verkauf dauert länger, als nötig wäre. Richtig wäre: höchstens eine Ergänzungsfrage, dann die Ware holen und kassieren."},
+{id:"v8_3",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.3 Begründe, warum die Reaktion des Kunden beim Testangebot so wichtig ist. Was geschieht, wenn der Verkäufer sie nicht beachtet?",rows:6,
+ h:["Was sagt dir die Reaktion des Kunden über seine Erwartungen?","Welches Risiko steht in der Tabelle beim Nachteil der indirekten Form?"],
+ sol:"Aus der Reaktion schließt der Verkäufer auf die Erwartungen des Kunden und kann das nächste Angebot gezielt wählen. Beachtet er sie nicht, passt das Testangebot nicht, der Kunde wird verschreckt, und der Verkäufer verliert an Fachkompetenz."},
+{id:"v8_4",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.4 Entscheide und begründe: Ein Kunde sagt: „Ich brauche irgendwas für meinen Neffen.“ Welche Form passt besser, direkt oder indirekt? Welche Frage stellst du zuerst?",rows:6,
+ h:["Weiß der Kunde schon ungefähr, was er will?","Denk an das Geschenk-Beispiel in Aufgabe 2: Fragen nach Person, Anlass und Rahmen."],
+ sol:"Direkte Bedarfsermittlung passt besser: Der Kunde weiß nur ungefähr, was er will. Mit offenen Fragen nach Person, Anlass und Rahmen lässt sich die Auswahl eingrenzen, zum Beispiel: „Für welchen Anlass suchen Sie das Geschenk?“ Danach kann passende Ware vorgelegt werden."}
+);
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={
+a1_1:[["offene Frage","Kunde","Antwort","ja oder nein"],["Offene Fragen beginnen mit …"]],
+a1_2:[["Wanderschuhe","Fragewort","Einsatz","Kunde"],["Eine offene Frage lautet: „…“"]],
+a1_3:[["Alternativfrage","Kunde","Frage","Satz"],["Eine Alternativfrage dient dazu, dass …"]],
+a1_4:[["Frage","Antwort","Gespräch","Kunde"],["Die Frage ist schlecht, weil …"]],
+a1_5:[["Verkaufsgespräch","Ende","Frageart","Kunde"],["Am Ende passt …"]],
+a3_1:[["Kunde","Drucker","Regal","Wunsch"],["Das ist … Bedarfsermittlung, weil …"]],
+a3_2:[["Kundin","Kleid","Schaufenster","Wunsch"],["Das ist … Bedarfsermittlung, weil …"]],
+a3_3:[["Tageszeitung","Kunde","Ware","Verkäufer"],["Das ist …, weil …"]],
+a3_4:[["Kundin","Laufschuhe","Beschwerden","Verkäufer"],["Das ist … Bedarfsermittlung, weil …"]],
+a4_1:[["direkt","indirekt","Bedarf","Verkäufer"],["Bei der direkten Bedarfsermittlung …","Bei der indirekten Bedarfsermittlung …"]],
+a4_2:[["Vorteil","Nachteil","Tabelle","Kunde"],["Ein Vorteil ist, dass …","Ein Nachteil ist, dass …"]],
+a4_3:[["Vorteil","Nachteil","Testangebot","Verkäufer"],["Ein Vorteil ist, dass …","Ein Nachteil ist, dass …"]],
+a4_4:[["Kunde","Bedarfsermittlung","Beispiel","Ware"],["Ein Aushändigungsverkauf ist, wenn …","Zwei Beispiele sind …"]],
+a4_5:[["Jacke","Kundin","Eröffnung","wörtliche Rede"],["Direkt: „…“","Indirekt: „…“"]],
+a5_1:[["Betrieb","Verkaufsform","Sortiment","Bedarfsermittlung"],["In meinem Betrieb ist … üblich, weil …"]],
+a6_1:[["Testangebot","Reaktion","Verkäuferin","Kunde"],["Sie macht falsch, dass …"]],
+a6_2:[["Preisfrage","Auswahl","Rahmen","Kunde"],["Die Preisfrage ist zu früh, weil …","Den Rahmen erfährt man, indem …"]],
+a6_3:[["offene Frage","Testangebot","Wechsel","Kunde"],["V: „…“ K: „…“","Ich wechsle, weil …"]],
+v8_1:[["Aushändigungsverkauf","Kunde","Verkäufer","Frage"],["Keine Fragekette ist nötig, weil …"]],
+v8_2:[["Zeitung","Fragekette","Kunde","Verkauf"],["Wenn der Verkäufer so fragt, dann …"]],
+v8_3:[["Reaktion","Testangebot","Verkäufer","Kunde"],["Die Reaktion ist wichtig, weil …"]],
+v8_4:[["Geschenk","Neffe","Anlass","Person"],["Ich entscheide mich für …, weil …"]]
+};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+
+const GLOSS_DE=["direkte Bedarfsermittlung","indirekte Bedarfsermittlung","warenbezogen","Fragekette","Testangebot","Kundenreaktion","Einsatzbereich","Anlass","Warenvorauswahl","Aushändigungsverkauf","Waren des täglichen Bedarfs","Ergänzungsfrage"];
+
+const TX={"sub":["مجال التعلّم 2 · إجراء حوارات البيع بما يلائم العميل","Öğrenme alanı 2 · Satış görüşmelerini müşteri odaklı yürütmek","Lĩnh vực học 2 · Tiến hành cuộc trò chuyện bán hàng hướng đến khách hàng"],"name":["الاسم","Ad Soyad","Họ tên"],"date":["التاريخ","Tarih","Ngày"],"can_h":["هذا ما سأستطيع فعله بعد ذلك","Sonrasında bunu yapabileceğim","Sau bài này tôi có thể"],"can_note":["ضع علامة في النهاية على ما تستطيع فعله الآن.","Sonunda şu an yapabildiklerini işaretle.","Cuối bài, hãy đánh dấu những gì bạn đã làm được."],"pts1":["نقطة واحدة","1 puan","1 điểm"],"pts2":["نقطتان","2 puan","2 điểm"],"read_h":["للقراءة والمراجعة · قراءة نشِطة","Okuma bölümü · aktif okuma","Đọc lại · đọc chủ động"],"read_p":["اقرأ كل مقطع واضغط على المصطلحات المطلوبة (تصبح صفراء). انتبه: هناك مصطلحات خاطئة أيضًا! بعد ذلك تجيب عن سؤال قصير – وعندها فقط يُفتح المقطع التالي.","Her bölümü oku ve istenen sözcüklere dokun (sarı olurlar). Dikkat: Yanlış sözcükler de var! Sonra kısa bir soruyu cevapla – ancak ondan sonra sonraki bölüm açılır.","Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở."],"ws_h":["مخزن الكلمات (الترجمة)","Sözcük deposu (çeviri)","Kho từ vựng (bản dịch)"],"a2btn":["قرأتُ الأمثلة","Örnekleri okudum","Tôi đã đọc các ví dụ"],"a7_h":["المهمة 7 · قدِّر، اختبر، سجِّل","Görev 7 · Tahmin et, test et, kaydet","Bài 7 · Ước lượng, kiểm tra, ghi lại"],"a7_p":["كم نقطة من 20 ستحصل عليها في ورقة العمل هذه؟ سجِّل تقديرك قبل التقييم.","Bu çalışma kâğıdında 20 puanın kaçını alacaksın? Tahminini değerlendirmeden önce yaz.","Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm."],"th1":["تقديري","Tahminim","Dự đoán của tôi"],"th2":["نتيجتي","Sonucum","Kết quả của tôi"],"th3":["الفرق","Fark","Chênh lệch"],"th4":["نقاط لحساب النقاط","Puan hesabı için puan","Điểm cho tài khoản điểm"],"submit_h":["انتهيت؟ إذن قيِّم!","Bitti mi? O zaman değerlendir!","Xong chưa? Hãy chấm điểm!"],"submit_p":["يمكنك التقييم حتى لو لم تنجز كل شيء – المهام غير المنجزة تُحتسب بصفر.","Her şeyi bitirmesen de değerlendirebilirsin – boş kalan görevler 0 puan sayılır.","Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm."],"submit_b":["إرسال وتقييم","Gönder ve değerlendir","Gửi và chấm điểm"],"res_h":["تقييمك","Değerlendirmen","Kết quả của bạn"],"pdf_b":["تصدير كملف PDF (للمعلمة)","PDF olarak dışa aktar (öğretmen için)","Xuất PDF (cho giáo viên)"],"tip_t":["تلميح","İpucu","Gợi ý"],"tip_next":["تلميح آخر","Bir ipucu daha","Thêm gợi ý"],"close":["إغلاق","Kapat","Đóng"],"chk":["تحقّق","Kontrol et","Kiểm tra"],"shw":["إظهار الحل","Çözümü göster","Hiện lời giải"],"markb":["تحقّق من التظليل","İşaretlemeyi kontrol et","Kiểm tra phần đánh dấu"],"self_q":["ما مدى جودة إجابتك؟","Cevabın ne kadar iyiydi?","Câu trả lời của bạn tốt đến đâu?"],"self1":["نجحت","Başardım","Đạt"],"self2":["جزئيًا","Kısmen","Một phần"],"self3":["ليس بعد","Henüz değil","Chưa"],"fb_ok":["ممتاز! أحسنت.","Doğru! Aferin.","Đúng rồi! Làm tốt lắm."],"fb_part":["تقريبًا – ينقص جزء. قارن بالحل وأكمل.","Neredeyse – bir kısmı eksik. Çözümle karşılaştır ve tamamla.","Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung."],"fb_bad":["ليس بعد. استعن بتلميح أو أعد قراءة النص.","Henüz değil. Bir ipucu al ya da metni tekrar oku.","Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản."],"sol_lbl":["الحل:","Çözüm:","Lời giải:"],"mk_ok":["تظليل صحيح! والآن السؤال:","Doğru işaretledin! Şimdi soru:","Đánh dấu đúng! Giờ đến câu hỏi:"],"mk_bad":["ليس تمامًا بعد. اقرأ المهمة مرة أخرى.","Henüz tam değil. Görevi tekrar oku.","Chưa hoàn toàn đúng. Hãy đọc lại đề bài."],"zq_ok":["بالضبط! تم فتح المقطع التالي.","Aynen öyle! Sonraki bölüm açıldı.","Chính xác! Đoạn tiếp theo đã mở."],"zq_bad":["ليس تمامًا. أعد قراءة المقطع وحاول مجددًا.","Tam değil. Bölümü tekrar oku ve yeniden dene.","Chưa đúng. Hãy đọc lại đoạn và thử lại."],"res_pts":["من 20 نقطة","20 puan üzerinden","trên 20 điểm"],"res_an":["تحليل الأخطاء حسب مجالات الكفاءة","Yeterlilik alanlarına göre hata analizi","Phân tích lỗi theo lĩnh vực năng lực"],"rep":["ما يجب أن تراجعه","Tekrar etmen gerekenler","Bạn nên ôn lại"],"lab1":["ممتاز!","Harika!","Tuyệt vời!"],"lab2":["جيد – تحتاج مزيدًا من التمرين","İyi – biraz daha alıştırma","Khá – cần luyện thêm"],"lab3":["تحتاج هنا إلى مزيد من التمرين","Burada hâlâ alıştırmaya ihtiyacın var","Phần này bạn cần luyện thêm"],"set_h":["الإعدادات","Ayarlar","Cài đặt"],"set_mode":["الترجمة","Çeviri","Bản dịch"],"mode_tap":["بالنقر","Dokunarak","Chạm để xem"],"mode_under":["تحت النص","Metnin altında","Hiện bên dưới"],"mode_off":["إيقاف","Kapalı","Tắt"],"set_fs":["حجم الخط","Yazı boyutu","Cỡ chữ"],"set_level":["المستوى","Seviye","Mức độ"],"lvl_b":["أساسي","Temel","Cơ bản"],"lvl_v":["تعمّق","Derinleştirme","Nâng cao"],"set_snd":["الصوت","Ses","Âm thanh"],"set_reset":["البدء من جديد","Yeniden başla","Làm lại từ đầu"],"dlg_reset":["حذف كل شيء والبدء من جديد؟ ستضيع إجاباتك في ورقة العمل هذه.","Her şey silinsin ve yeniden başlansın mı? Bu çalışma kâğıdındaki girdilerin kaybolur.","Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất."],"dlg_next":["الشخص التالي: سيتم حذف الإجابات والاسم.","Sonraki kişi: Girdiler ve ad silinir.","Người tiếp theo: nội dung và tên sẽ bị xóa."],"dlg_cancel":["إلغاء","İptal","Hủy"],"dlg_ok":["نعم","Evet","Đồng ý"],"wg_h":["كلمات وبدايات جمل للمساعدة","Sözcükler ve cümle başlangıcı yardımları","Từ ngữ và gợi ý đầu câu"],"a8_h":["المهمة 8 · التعمّق","Görev 8 · Derinleştirme","Bài 8 · Nâng cao"],"pts_bonus":["نقاط إضافية","Bonus","Điểm thưởng"],"a8_p":["تظهر فقط في مستوى «التعمّق». علّل بجمل كاملة. هذه المهام تمنح نقاطًا إضافية ولا تخفض نقاطك الـ 20 أبدًا.","Sadece „Derinleştirme“ seviyesinde. Tam cümlelerle gerekçelendir. Bu görevler bonus puan verir ve 20 puanını asla düşürmez.","Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn."],"res_card_h":["النتيجة للمعلمة","Öğretmen için sonuç","Kết quả cho giáo viên"],"btn_img":["حفظ النتيجة كصورة","Sonucu resim olarak kaydet","Lưu kết quả dưới dạng ảnh"],"btn_code":["نسخ الرمز","Kodu kopyala","Sao chép mã"],"btn_next":["الشخص التالي","Sonraki kişi","Người tiếp theo"],"res_open":["ملاحظة: المهام غير المنجزة تُحتسب بصفر.","Not: Yapılmayan görevler 0 puan sayılır.","Lưu ý: bài chưa làm tính 0 điểm."],"res_bonus":["نقاط إضافية","Bonus","Điểm thưởng"],"cat_bonus":["نقاط إضافية (التعمّق)","Bonus (Derinleştirme)","Điểm thưởng (Nâng cao)"],"fb_peek":["صحيح – لكنك نظرت إلى الحل قبل ذلك، لذلك تحصل على نصف النقاط.","Doğru – ama önce çözüme baktın, bu yüzden yarım puan.","Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm."],"t25":["بداية جيدة!","İyi başlangıç!","Khởi đầu tốt!"],"t50":["اكتمل النصف!","Yarısı tamam!","Xong một nửa rồi!"],"t75":["اقتربت من الهدف!","Neredeyse bitti!","Sắp đến đích rồi!"],"t100":["أنجزت كل شيء! الآن قيِّم.","Hepsi tamam! Şimdi değerlendir.","Đã làm xong hết! Giờ hãy chấm điểm."],"t_write":["اكتب شيئًا أولًا","Önce bir şeyler yaz","Hãy viết gì đó trước"],"t_saved":["تم التسجيل","Kaydedildi","Đã ghi"],"t_read":["تمت القراءة","Okundu","Đã đọc"],"t_resume":["تابع من حيث توقفت","Kaldığın yerden devam et","Tiếp tục từ chỗ bạn dừng"],"t_copy":["تم نسخ الرمز","Kod kopyalandı","Đã sao chép mã"],"t_img":["تم حفظ الصورة","Resim kaydedildi","Đã lưu ảnh"],"h1":["الوحدة 7: تحديد الاحتياجات المباشر وغير المباشر","Modül 7: Doğrudan ve dolaylı ihtiyaç belirleme","Bài 7: Xác định nhu cầu trực tiếp và gián tiếp"],"meta":["حصة مزدوجة واحدة · 4 نقاط · الكتاب المدرسي ص 115–117 · كراس التمارين ص 66–73","1 çift ders · 4 puan · Ders kitabı s. 115–117 · Çalışma defteri s. 66–73","1 tiết đôi · 4 điểm · Sách giáo khoa tr. 115–117 · Sách bài tập tr. 66–73"],"can1":["أستطيع التمييز بين تحديد الاحتياجات المباشر وغير المباشر وأعرف متى يناسب كلٌّ منهما.","Doğrudan ve dolaylı ihtiyaç belirlemeyi ayırt edebilir ve hangisinin ne zaman uygun olduğunu söyleyebilirim.","Tôi biết phân biệt xác định nhu cầu trực tiếp và gián tiếp và biết khi nào dùng cách nào."],"can2":["أستطيع أن أذكر لكل شكل ميزة واحدة وعيبًا واحدًا.","Her iki biçim için birer avantaj ve birer dezavantaj sayabilirim.","Tôi có thể nêu cho mỗi hình thức một ưu điểm và một nhược điểm."],"can3":["أستطيع أن أشرح متى لا يلزم تحديد الاحتياجات إطلاقًا.","Hiç ihtiyaç belirlemenin ne zaman gerekmediğini açıklayabilirim.","Tôi có thể giải thích khi nào hoàn toàn không cần xác định nhu cầu."],"a1_h":["المهمة 1 · الانطلاق: ماذا تتذكّر؟","Görev 1 · Isınma: Neler hatırlıyorsun?","Bài tập 1 · Khởi động: Bạn còn nhớ gì?"],"pts05":["نصف نقطة","0,5 puan","0,5 điểm"],"a1_p":["أجب عن الأسئلة من الذاكرة دون البحث في الكتاب – المهم ما بقي في ذهنك من الوحدات السابقة.","Soruları kafandan cevapla. Kitaba bakma – önceki modüllerden aklında ne kaldığı önemli.","Hãy trả lời các câu hỏi theo trí nhớ. Đừng tra sách – quan trọng là xem bạn còn nhớ gì từ các bài trước."],"tipp_s":["نصيحة للسريعين: فكّر أيّ الشكلين أكثر استخدامًا في مكان تدريبك – ولماذا.","Hızlılar için ipucu: İki biçimden hangisi senin işletmende daha sık görülüyor – ve neden?","Gợi ý cho bạn nào làm nhanh: Hãy nghĩ xem ở nơi bạn thực tập, hình thức nào hay gặp hơn – và vì sao."],"merke_be":["تذكّر: إذا حُدِّدت الحاجة عبر سلسلة أسئلة (Fragekette) فهذا تحديد احتياجات مباشر (direkte Bedarfsermittlung). وإذا حُدِّدت عبر الاحتكاك بالبضاعة فهذا تحديد احتياجات غير مباشر (indirekte / warenbezogene Bedarfsermittlung).","Unutma: İhtiyaç bir soru zinciriyle (Fragekette) belirleniyorsa buna doğrudan ihtiyaç belirleme (direkte Bedarfsermittlung) denir. İhtiyaç belirleme mal ile temas yoluyla yapılıyorsa dolaylı (ürüne yönelik) ihtiyaç belirleme (indirekte / warenbezogene Bedarfsermittlung) söz konusudur.","Ghi nhớ: Nếu nhu cầu được xác định bằng một chuỗi câu hỏi (Fragekette) thì gọi là xác định nhu cầu trực tiếp (direkte Bedarfsermittlung). Nếu việc xác định nhu cầu diễn ra qua tiếp xúc với hàng hóa thì đó là xác định nhu cầu gián tiếp (indirekte / warenbezogene Bedarfsermittlung)."],"vgl_h":["مباشر أم غير مباشر؟ المقارنة","Doğrudan mı dolaylı mı? Karşılaştırma","Trực tiếp hay gián tiếp? So sánh"],"th_dir":["تحديد الاحتياجات المباشر","Doğrudan ihtiyaç belirleme","Xác định nhu cầu trực tiếp"],"th_ind":["تحديد الاحتياجات غير المباشر","Dolaylı ihtiyaç belirleme","Xác định nhu cầu gián tiếp"],"rl_grund":["الفكرة الأساسية","Temel fikir","Ý tưởng chính"],"t_grund_d":["يسأل البائع عن الغرض أو المناسبة أو مجال استخدام البضاعة المطلوبة. ومن الإجابات يختار مجموعة بضائع مناسبة (Warenvorauswahl).","Satıcı, istenen malın amacını, vesilesini veya kullanım alanını sorar. Cevaplardan uygun bir ön ürün seçimi (Warenvorauswahl) yapar.","Nhân viên hỏi về mục đích, dịp hoặc phạm vi sử dụng của hàng khách muốn. Từ các câu trả lời, nhân viên chọn sơ bộ hàng hóa phù hợp (Warenvorauswahl)."],"t_grund_i":["يطرح البائع أسئلة قليلة جدًا. يعرض بضاعة للتجربة (Testangebot) وينتظر ردّ فعل العميل. وإن لم تناسبه يقترب من طلبه بعروض أخرى.","Satıcı çok az soru sorar. Bir deneme teklifi (Testangebot) sunar ve müşterinin tepkisini bekler. Uymazsa başka tekliflerle müşterinin isteğine yaklaşır.","Nhân viên hỏi rất ít. Nhân viên đưa ra một món chào hàng thử (Testangebot) và chờ phản ứng của khách. Nếu không hợp, nhân viên tiến gần hơn bằng những món khác."],"rl_vorg":["الخطوات","Yöntem","Cách làm"],"t_vorg_d":["1. أسئلة مفتوحة عن المناسبة والغرض والفرصة ومجال الاستخدام والتوقعات 2. استنتاج ما يلزم من الإجابات وعرض البضاعة المناسبة","1. Vesile, amaç, fırsat, kullanım alanı ve beklentiler hakkında açık sorular 2. Cevaplardan sonuç çıkarmak ve uygun malı göstermek","1. Câu hỏi mở về dịp, mục đích, hoàn cảnh, phạm vi sử dụng, kỳ vọng 2. Suy ra từ các câu trả lời và đưa ra hàng phù hợp"],"t_vorg_i":["1. عرض بضاعة للتجربة 2. معرفة رغبة العميل من ردّ فعله 3. استنتاج توقعاته من ردود فعله","1. Deneme teklifi sunmak 2. Müşterinin isteğini tepkisinden anlamak 3. Tepkilerden beklentileri çıkarmak","1. Đưa ra món chào hàng thử 2. Biết mong muốn của khách từ phản ứng của họ 3. Suy ra kỳ vọng từ các phản ứng"],"rl_bsp":["مثال","Örnek","Ví dụ"],"t_bsp_d":["ب: «لأيّ مناسبة تبحثين عن الفستان؟» ز: «لسهرة رسمية.» ب: يعرض فساتين الكوكتيل.","S: „Elbiseyi hangi vesileyle arıyorsunuz?“ M: „Şık bir akşam için.“ S: kokteyl elbiseleri gösterir.","NV: „Chị tìm chiếc váy này cho dịp nào ạ?“ KH: „Cho một buổi tối trang trọng.“ NV: đưa ra các váy cocktail."],"t_bsp_i":["ز: «أبحث عن بنطلون للأوقات الحرة.» ب: يعرض جينز. ز: «هل يمكن ارتداؤه في المشي الجبلي أيضًا؟» ب: «الأفضل أن تأخذ بنطلون الترِكّينغ هذا – يسمح بمرور الهواء، ويصدّ الماء، وفيه جيوب كثيرة.»","M: „Rahat bir pantolon arıyorum.“ S: kot pantolon gösterir. M: „Bununla yürüyüşe de çıkılır mı?“ S: „Şu trekking pantolonunu almanız daha iyi – nefes alır, suyu iter ve çok cebi var.“","KH: „Tôi tìm một chiếc quần mặc thường ngày.“ NV: đưa ra quần jeans. KH: „Mặc đi leo núi được không?“ NV: „Tốt hơn là anh lấy chiếc quần trekking này – thoáng khí, chống nước và có nhiều túi.“"],"rl_vor":["الميزة","Avantaj","Ưu điểm"],"t_vor_d":["بفضل الأسئلة الموجَّهة يمكن عرض البضاعة التي يريدها العميل مباشرة. والإجابات تتيح نصيحة دقيقة.","Hedefli sorular sayesinde müşterinin istediği mal doğrudan gösterilebilir. Cevaplar hedefli bir danışmanlığa olanak verir.","Nhờ các câu hỏi có chủ đích, có thể đưa ngay món hàng khách muốn. Các câu trả lời giúp tư vấn đúng trọng tâm."],"t_vor_i":["يتجه اهتمام العميل فورًا إلى البضاعة. ويُتجنَّب الاستجواب غير الضروري. وتتضح الرغبات من خلال البضاعة نفسها.","İlgi hemen mala yönelir. Gereksiz sorguya çekme önlenir. İstekler malın üzerinde belirginleşir.","Sự quan tâm hướng ngay vào hàng hóa. Tránh được việc hỏi dồn không cần thiết. Mong muốn của khách lộ rõ ngay trên món hàng."],"rl_nach":["العيب","Dezavantaj","Nhược điểm"],"t_nach_d":["لا يحتكّ العميل بالبضاعة إلا متأخرًا نسبيًا، وقد يشعر أنه يُستجوَب.","Müşteri mal ile oldukça geç temas eder ve sorguya çekildiğini hissedebilir.","Khách tiếp xúc với hàng khá muộn và có thể cảm thấy bị hỏi dồn."],"t_nach_i":["قد يُنفِّر العرض التجريبي العميل إذا لم يناسبه إطلاقًا. عندئذ يفقد البائع جزءًا من كفاءته المهنية (Fachkompetenz).","Deneme teklifi hiç uymazsa müşteriyi ürkütebilir. O zaman satıcı mesleki yetkinliğini (Fachkompetenz) kaybeder.","Món chào hàng thử có thể làm khách e ngại nếu hoàn toàn không hợp. Khi đó nhân viên mất đi năng lực chuyên môn (Fachkompetenz)."],"ohne_h":["متى لا يلزم تحديد الاحتياجات","İhtiyaç belirlemenin gerekmediği durum","Khi nào không cần xác định nhu cầu"],"ohne_t":["في البيع بالتسليم المباشر (Aushändigungsverkauf) يعرف العميل تمامًا ما يريد شراءه. وهذا يحدث خصوصًا مع سلع الاستهلاك اليومي (Waren des täglichen Bedarfs): الخبز والمعجنات، اللحوم والنقانق، المشروبات، الصحف، الحلوى. يكتفي البائع عندئذ بأسئلة تكميلية (Ergänzungsfragen) عن النوع أو الكمية أو المقاس، ثم يحضر البضاعة ويفحصها سريعًا بحثًا عن عيوب، ويغلّفها ويحاسب.","Elden teslim satışta (Aushändigungsverkauf) müşteri tam olarak ne almak istediğini bilir. Bu özellikle günlük ihtiyaç mallarında (Waren des täglichen Bedarfs) böyledir: ekmek ve unlu mamuller, et ve şarküteri ürünleri, içecekler, gazeteler, tatlılar. Satıcı bu durumda tür, miktar veya beden hakkında tamamlayıcı sorularla (Ergänzungsfragen) yetinir, malı getirir, kusur olup olmadığına kısaca bakar, paketler ve ödemeyi alır.","Trong bán hàng trao tay (Aushändigungsverkauf), khách biết chính xác mình muốn mua gì. Điều này chủ yếu xảy ra với hàng tiêu dùng hằng ngày (Waren des täglichen Bedarfs): bánh mì và bánh nướng, thịt và xúc xích, đồ uống, báo, đồ ngọt. Nhân viên chỉ hỏi bổ sung (Ergänzungsfragen) về loại, số lượng hoặc cỡ, rồi lấy hàng, kiểm tra nhanh xem có lỗi không, gói hàng và thanh toán."],"sbk_h":["صندوق الجمل – تحديد الاحتياجات","Cümle kalıpları – ihtiyaç belirleme","Hộp mẫu câu – xác định nhu cầu"],"sbk_d":["مباشر: «لأيّ مناسبة تبحث عن …؟» · «في ماذا تريد استخدام … بشكل رئيسي؟» · «ماذا تتوقع من …؟» · «متى تحتاج البضاعة؟»","Doğrudan: „… için hangi vesileyle arıyorsunuz?“ · „… en çok ne için kullanmak istiyorsunuz?“ · „… konusunda ne bekliyorsunuz?“ · „Malı ne zaman istiyorsunuz?“","Trực tiếp: „Anh/chị tìm … cho dịp nào ạ?“ · „Anh/chị chủ yếu muốn dùng … để làm gì?“ · „Anh/chị mong đợi gì ở …?“ · „Khi nào anh/chị cần hàng?“"],"sbk_i":["غير مباشر: «دعني أعرض عليك …» · «كيف يعجبك هذا الطراز؟» · «ما الذي يجب أن يكون مختلفًا؟»","Dolaylı: „Size bir tanesini göstereyim …“ · „Bu model hoşunuza gidiyor mu?“ · „Neyi farklı olmalı?“","Gián tiếp: „Để tôi cho anh/chị xem thử …“ · „Anh/chị thấy mẫu này thế nào?“ · „Cần khác ở chỗ nào ạ?“"],"sbk_e":["سؤال تكميلي في البيع بالتسليم المباشر: «ما الكمية التي تريدها؟» · «قطعة كاملة أم مقطّعة؟»","Elden teslim satışta tamamlayıcı soru: „Ne kadar olsun?“ · „Bütün mü olsun, dilimli mi?“","Câu hỏi bổ sung khi bán hàng trao tay: „Anh/chị lấy bao nhiêu ạ?“ · „Lấy nguyên miếng hay cắt lát ạ?“"],"a2_h":["المهمة 2 · مثال محلول: أيّ شكل يناسب؟","Görev 2 · Örnekle: hangi biçim uygun?","Bài tập 2 · Làm mẫu: hình thức nào phù hợp?"],"a2_p":["هكذا تتصرف في كل موقف مع عميل. اقرأ الأمثلة جيدًا فستحتاج إليها بعد قليل.","Her müşteri durumunda böyle ilerlersin. Örnekleri dikkatle oku, birazdan lazım olacak.","Bạn làm như vậy với mọi tình huống khách hàng. Hãy đọc kỹ các ví dụ, lát nữa bạn sẽ cần."],"wk1":["تقول العميلة: «أحتاج هدية، لكن لا أعرف بالضبط ماذا.» — 1. هل تعرف العميلة ما تريد؟ لا، تعرف تقريبًا فقط. 2. ما الذي يساعدني؟ أسئلة عن الشخص والمناسبة والميزانية. 3. النتيجة: تحديد احتياجات مباشر.","Müşteri der ki: „Bir hediyeye ihtiyacım var ama tam olarak ne olduğunu bilmiyorum.“ — 1. Müşteri ne istediğini biliyor mu? Hayır, sadece yaklaşık. 2. Beni ne ilerletir? Kişi, vesile ve bütçe hakkında sorular. 3. Sonuç: doğrudan ihtiyaç belirleme.","Khách nữ nói: „Tôi cần một món quà nhưng chưa biết chính xác là gì.“ — 1. Khách có biết mình muốn gì không? Không, chỉ biết đại khái. 2. Điều gì giúp mình tiến thêm? Hỏi về người nhận, dịp và ngân sách. 3. Kết quả: xác định nhu cầu trực tiếp."],"wk2":["يقف العميل أمام سماعات الرأس ويقول: «أبحث عن شيء من هذا النوع.» — 1. هل يعرف العميل ما يريد؟ يشير إلى بضاعة لكنه لا يستطيع وصفها بالكلمات. 2. ما الذي يساعدني؟ أعرض طرازًا وأنتظر ردّ الفعل. 3. النتيجة: تحديد احتياجات غير مباشر.","Müşteri kulaklıkların önünde durur ve der ki: „Buna benzer bir şey arıyorum.“ — 1. Müşteri ne istediğini biliyor mu? Bir mala işaret ediyor ama bunu kelimelerle anlatamıyor. 2. Beni ne ilerletir? Bir model göstermek ve tepkisini beklemek. 3. Sonuç: dolaylı ihtiyaç belirleme.","Khách đứng trước các tai nghe và nói: „Tôi tìm thứ gì đó kiểu như vậy.“ — 1. Khách có biết mình muốn gì không? Khách chỉ vào một món hàng nhưng không diễn tả được bằng lời. 2. Điều gì giúp mình tiến thêm? Đưa một mẫu ra và chờ phản ứng. 3. Kết quả: xác định nhu cầu gián tiếp."],"wk3":["تقول العميلة: «مئتا غرام من لحم الخنزير المطبوخ (Schinken)، من فضلك.» — 1. هل تعرف ما تريد؟ نعم، بالضبط. 2. ما الذي ينقص؟ على الأكثر السؤال التكميلي عن سمك الشرائح. 3. النتيجة: بيع بالتسليم المباشر – لا حاجة لتحديد الاحتياجات.","Müşteri der ki: „İki yüz gram haşlanmış jambon (Schinken), lütfen.“ — 1. Ne istediğini biliyor mu? Evet, tam olarak. 2. Ne eksik? En fazla dilim kalınlığıyla ilgili tamamlayıcı soru. 3. Sonuç: elden teslim satış – ihtiyaç belirleme gerekmez.","Khách nữ nói: „Cho tôi hai trăm gam giăm bông luộc (Schinken).“ — 1. Khách có biết mình muốn gì không? Có, chính xác. 2. Còn thiếu gì? Cùng lắm là câu hỏi bổ sung về độ dày lát cắt. 3. Kết quả: bán hàng trao tay – không cần xác định nhu cầu."],"a2_res":["النتيجة: السؤال نفسه دائمًا أولًا: هل يعرف العميل تمامًا ما يريد؟ بعد ذلك يتقرر: هل أسأل، أم أعرض البضاعة، أم أسلّمها فقط.","Sonuç: Önce hep aynı soru: Müşteri tam olarak ne istediğini biliyor mu? Ardından karar verilir: soracak mıyım, mal mı göstereceğim, yoksa sadece mı vereceğim.","Kết quả: Luôn đặt câu hỏi này trước: Khách đã biết chính xác mình muốn gì chưa? Sau đó mới quyết định: mình hỏi, mình đưa hàng ra xem, hay chỉ cần trao hàng."],"a3_h":["المهمة 3 · تمرين موجَّه","Görev 3 · Rehberli alıştırma","Bài tập 3 · Bài tập có hướng dẫn"],"a3_p":["اذكر الشكل المناسب لتحديد الاحتياجات وعلّل ذلك في جملة واحدة.","Uygun ihtiyaç belirleme biçimini söyle ve bir cümleyle gerekçelendir.","Nêu hình thức xác định nhu cầu phù hợp và giải thích bằng một câu."],"a4_h":["المهمة 4 · تمرين حر","Görev 4 · Serbest alıştırma","Bài tập 4 · Bài tập tự do"],"pts15":["نقطة ونصف","1,5 puan","1,5 điểm"],"a5_h":["المهمة 5 · من مكان تدريبك","Görev 5 · Kendi işletmenden","Bài tập 5 · Từ nơi thực tập của bạn"],"a6_h":["المهمة 6 · للمحترفين","Görev 6 · Uzmanlar için","Bài tập 6 · Dành cho người giỏi"],"a6_p":["للتفكير أكثر – جمل كاملة مع التعليل.","Daha ileri düşünmek için – tam cümlelerle, gerekçeli.","Để suy nghĩ thêm – viết câu đầy đủ, có lập luận."],"a1_1.q":["1. بماذا تبدأ الأسئلة المفتوحة؟","1. Açık sorular ne ile başlar?","1. Câu hỏi mở bắt đầu bằng gì?"],"a1_1.h0":["لا يستطيع العميل الإجابة عن الأسئلة المفتوحة بـ «نعم» أو «لا».","Müşteri açık sorulara „evet“ veya „hayır“ ile cevap veremez.","Khách không thể trả lời câu hỏi mở bằng „có“ hoặc „không“."],"a1_1.h1":["وتُسمّى أيضًا أسئلة W (W-Fragen).","Bunlara W soruları (W-Fragen) da denir.","Chúng còn được gọi là câu hỏi W (W-Fragen)."],"a1_1.s":["تبدأ بأدوات استفهام مثل Wer (مَن)، Wie (كيف)، Was (ماذا)، Warum (لماذا)، Wofür (لأيّ غرض) – لذلك تُسمّى أيضًا أسئلة W (W-Fragen).","Wer (kim), Wie (nasıl), Was (ne), Warum (neden), Wofür (ne için) gibi soru sözcükleriyle – bu yüzden W soruları da denir.","Bằng các từ để hỏi như Wer (ai), Wie (như thế nào), Was (gì), Warum (tại sao), Wofür (để làm gì) – vì vậy còn gọi là câu hỏi W (W-Fragen)."],"a1_2.q":["2. صُغ سؤالًا مفتوحًا عن زوج من أحذية المشي الجبلي.","2. Bir çift yürüyüş botu için açık bir soru kur.","2. Hãy đặt một câu hỏi mở về một đôi giày leo núi."],"a1_2.h0":["ابدأ بأداة استفهام.","Bir soru sözcüğüyle başla.","Hãy bắt đầu bằng một từ để hỏi."],"a1_2.h1":["اسأل عن الاستخدام: أين ولأيّ غرض ستُلبس الأحذية؟","Kullanımı sor: Botlar nerede ve ne için giyilecek?","Hỏi về mục đích sử dụng: đôi giày sẽ được đi ở đâu và để làm gì?"],"a1_2.s":["مثلًا: «Wofür möchten Sie die Wanderschuhe vor allem verwenden?» (لأيّ غرض تريد استخدام أحذية المشي هذه بشكل رئيسي؟)","Örneğin: „Wofür möchten Sie die Wanderschuhe vor allem verwenden?“ (Yürüyüş botlarını en çok ne için kullanmak istiyorsunuz?)","Ví dụ: „Wofür möchten Sie die Wanderschuhe vor allem verwenden?“ (Anh/chị chủ yếu muốn dùng đôi giày leo núi này để làm gì?)"],"a1_3.q":["3. لماذا نستخدم سؤال الاختيار (Alternativfrage)؟","3. Seçenek sorusu (Alternativfrage) ne işe yarar?","3. Câu hỏi lựa chọn (Alternativfrage) dùng để làm gì?"],"a1_3.h0":["يسمع العميل خيارين.","Müşteriye iki seçenek söylenir.","Khách được nghe hai khả năng."],"a1_3.h1":["ماذا عليه أن يفعل في النهاية؟","Sonunda ne yapması gerekir?","Cuối cùng khách phải làm gì?"],"a1_3.s":["يدفع العميل إلى اتخاذ قرار: فهو يختار بين إمكانيتين.","Müşteriyi karara götürür: İki seçenek arasından birini seçer.","Nó dẫn khách đến một quyết định: khách chọn giữa hai khả năng."],"a1_4.q":["4. لماذا يُعدّ «Sonst brauchen Sie nichts؟» (ألا تحتاج إلى شيء آخر؟) سؤالًا سيئًا؟","4. „Sonst brauchen Sie nichts?“ (Başka bir şey istemezsiniz, değil mi?) neden kötü bir sorudur?","4. Vì sao „Sonst brauchen Sie nichts?“ (Anh/chị không cần gì nữa phải không?) là một câu hỏi tồi?"],"a1_4.h0":["ما الإجابة الأرجح من العميل على هذا السؤال؟","Müşteri bu soruya büyük ihtimalle ne cevap verir?","Khách có khả năng trả lời gì nhất cho câu hỏi này?"],"a1_4.h1":["هل السؤال مفتوح أم مغلق؟ وهل صياغته إيجابية أم سلبية؟","Soru açık mı kapalı mı? Olumlu mu olumsuz mu kurulmuş?","Câu hỏi này mở hay đóng? Cách diễn đạt tích cực hay tiêu cực?"],"a1_4.s":["لأنه سؤال مغلق وصياغته سلبية. يقول العميل «لا» وينتهي الحوار.","Kapalı ve olumsuz kurulmuş bir sorudur. Müşteri „hayır“ der ve görüşme biter.","Vì đây là câu hỏi đóng và diễn đạt tiêu cực. Khách nói „không“ và cuộc trò chuyện kết thúc."],"a1_5.q":["5. أيّ نوع من الأسئلة يناسب نهاية حوار البيع؟","5. Satış görüşmesinin sonuna hangi soru türü uyar?","5. Loại câu hỏi nào phù hợp ở cuối cuộc trò chuyện bán hàng?"],"a1_5.h0":["في النهاية يجب أن يقرّر العميل.","Sonunda müşteri karar vermelidir.","Ở cuối, khách cần đưa ra quyết định."],"a1_5.h1":["هناك نوعان من الأسئلة يقودان إلى قرار.","Karara götüren iki soru türü vardır.","Có hai loại câu hỏi dẫn đến quyết định."],"a1_5.s":["السؤال المغلق وسؤال الاختيار (Alternativfrage) – كلاهما يقود إلى قرار.","Kapalı soru ve seçenek sorusu (Alternativfrage) – ikisi de karara götürür.","Câu hỏi đóng và câu hỏi lựa chọn (Alternativfrage) – cả hai đều dẫn đến quyết định."],"a3_1.q":["1. يقف عميل حائرًا أمام رفّ الطابعات.","1. Bir müşteri yazıcı rafının önünde ne yapacağını bilemeden duruyor.","1. Một khách nam đứng lúng túng trước kệ máy in."],"a3_1.h0":["هل يعرف العميل ما يريد؟","Müşteri ne istediğini biliyor mu?","Khách có biết mình muốn gì không?"],"a3_1.h1":["ماذا عليك أن تفعل إذا كان لا يعرف – تسأل أم تعرض بضاعة؟","Bilmiyorsa ne yapmalısın – sormak mı, mal göstermek mi?","Nếu khách không biết thì bạn phải làm gì – hỏi hay đưa hàng ra?"],"a3_1.s":["تحديد احتياجات مباشر: بأسئلة مفتوحة عن مجال الاستخدام والتوقعات يمكن تضييق الخيارات بسرعة.","Doğrudan ihtiyaç belirleme: Kullanım alanı ve beklentiler hakkında açık sorularla seçim hızla daraltılabilir.","Xác định nhu cầu trực tiếp: Với các câu hỏi mở về phạm vi sử dụng và kỳ vọng, có thể thu hẹp lựa chọn nhanh chóng."],"a3_2.q":["2. تقول عميلة: «فستان مثل الذي في واجهة المحل، لكن مختلف بطريقة ما.»","2. Bir müşteri der ki: „Vitrindeki gibi bir elbise, ama bir şekilde farklı.“","2. Một khách nữ nói: „Một chiếc váy như trong tủ kính, nhưng khác một chút.“"],"a3_2.h0":["هل تستطيع العميلة التعبير عن رغبتها بالكلمات؟","Müşteri isteğini kelimelerle anlatabiliyor mu?","Khách có diễn đạt được mong muốn bằng lời không?"],"a3_2.h1":["كيف تعرف معنى «مختلف»: بالأسئلة أم من ردّ فعلها؟","„Farklı“nın ne demek olduğunu nasıl anlarsın: sorularla mı, tepkisinden mi?","Làm sao bạn biết „khác“ nghĩa là gì: bằng câu hỏi hay qua phản ứng của khách?"],"a3_2.s":["تحديد احتياجات غير مباشر: نعرض عليها بضاعة للتجربة (Testangebot) ونعرف من ردّ فعلها ماذا تعني كلمة «مختلف».","Dolaylı ihtiyaç belirleme: Bir deneme teklifi (Testangebot) sunulur ve „farklı“nın ne demek olduğu tepkisinden anlaşılır.","Xác định nhu cầu gián tiếp: Đưa ra một món chào hàng thử (Testangebot) và nhờ phản ứng của khách để biết „khác“ nghĩa là gì."],"a3_3.q":["3. يطلب عميل جريدة يومية معيّنة.","3. Bir müşteri belli bir günlük gazete istiyor.","3. Một khách nam yêu cầu một tờ báo ngày cụ thể."],"a3_3.h0":["هل يعرف العميل تمامًا ما يريد؟","Müşteri tam olarak ne istediğini biliyor mu?","Khách có biết chính xác mình muốn gì không?"],"a3_3.h1":["ما اسم نوع البيع الذي لا تفعل فيه سوى تسليم البضاعة؟","Sadece malı vermen gereken satış biçiminin adı nedir?","Hình thức bán hàng mà bạn chỉ cần trao hàng tên là gì?"],"a3_3.s":["بيع بالتسليم المباشر (Aushändigungsverkauf): هو يعرف تمامًا ما يريد. على الأكثر سؤال تكميلي، ثم تسلّمه وتحاسب.","Elden teslim satış (Aushändigungsverkauf): Ne istediğini tam olarak biliyor. En fazla bir tamamlayıcı soru, sonra malı ver ve ödemeyi al.","Bán hàng trao tay (Aushändigungsverkauf): Khách biết chính xác mình muốn gì. Cùng lắm một câu hỏi bổ sung, rồi trao hàng và thanh toán."],"a3_4.q":["4. تبحث عميلة عن أحذية جري وتحكي كثيرًا عن آلامها عند الجري.","4. Bir müşteri koşu ayakkabısı arıyor ve koşarken yaşadığı rahatsızlıkları uzun uzun anlatıyor.","4. Một khách nữ tìm giày chạy bộ và kể nhiều về những chỗ đau khi chạy."],"a3_4.h0":["تعطيك العميلة معلومات كثيرة من تلقاء نفسها.","Müşteri kendiliğinden çok bilgi veriyor.","Khách tự cung cấp rất nhiều thông tin."],"a3_4.h1":["ماذا تفعل بهذه المعلومات: تصغي وتتابع الأسئلة أم تعرض بضاعة فورًا؟","Bu bilgilerle ne yaparsın: dinleyip soru sormaya devam mı, hemen mal göstermek mi?","Bạn làm gì với những thông tin này: lắng nghe và hỏi tiếp, hay đưa hàng ra ngay?"],"a3_4.s":["تحديد احتياجات مباشر: هي تعطي المعلومات بنفسها. وبمزيد من الأسئلة المفتوحة يمكن تحديد الطراز بدقة.","Doğrudan ihtiyaç belirleme: Bilgileri kendisi veriyor. Daha fazla açık soruyla model tam olarak belirlenebilir.","Xác định nhu cầu trực tiếp: Khách tự cung cấp thông tin. Với thêm các câu hỏi mở, có thể xác định chính xác mẫu giày."],"a4_1.q":["1. اشرح الفرق بين تحديد الاحتياجات المباشر وغير المباشر.","1. Doğrudan ve dolaylı ihtiyaç belirleme arasındaki farkı açıkla.","1. Hãy giải thích sự khác nhau giữa xác định nhu cầu trực tiếp và gián tiếp."],"a4_1.h0":["فكّر في كلمة «Fragekette» (سلسلة أسئلة) وفي كلمة «Testangebot» (عرض تجريبي).","„Fragekette“ (soru zinciri) ve „Testangebot“ (deneme teklifi) sözcüklerini düşün.","Hãy nghĩ đến từ „Fragekette“ (chuỗi câu hỏi) và từ „Testangebot“ (chào hàng thử)."],"a4_1.h1":["المباشر: بماذا تحدّد الحاجة؟ غير المباشر: ماذا تنتظر؟","Doğrudan: İhtiyacı neyle belirlersin? Dolaylı: Neyi beklersin?","Trực tiếp: Bạn xác định nhu cầu bằng gì? Gián tiếp: Bạn chờ điều gì?"],"a4_1.s":["في تحديد الاحتياجات المباشر تُحدَّد الحاجة عبر سلسلة أسئلة (Fragekette). أما في غير المباشر فيتم ذلك عبر الاحتكاك بالبضاعة: يعرض البائع بضاعة للتجربة (Testangebot) وينتظر ردّ الفعل.","Doğrudan ihtiyaç belirlemede ihtiyaç bir soru zinciriyle (Fragekette) belirlenir. Dolaylı ihtiyaç belirlemede mal ile temas yoluyla yapılır: Satıcı bir deneme teklifi (Testangebot) sunar ve tepkiyi bekler.","Với xác định nhu cầu trực tiếp, nhu cầu được xác định bằng một chuỗi câu hỏi (Fragekette). Với xác định nhu cầu gián tiếp, việc đó diễn ra qua tiếp xúc với hàng hóa: nhân viên đưa ra một món chào hàng thử (Testangebot) và chờ phản ứng."],"a4_2.q":["2. اذكر ميزة واحدة وعيبًا واحدًا لتحديد الاحتياجات المباشر.","2. Doğrudan ihtiyaç belirlemenin bir avantajını ve bir dezavantajını say.","2. Hãy nêu một ưu điểm và một nhược điểm của xác định nhu cầu trực tiếp."],"a4_2.h0":["انظر إلى جدول «المقارنة»، سطرَي الميزة والعيب.","„Karşılaştırma“ tablosuna bak, avantaj ve dezavantaj satırlarına.","Hãy xem bảng „So sánh“, các dòng ưu điểm và nhược điểm."],"a4_2.h1":["الميزة: ما الجيد في النصيحة؟ العيب: كيف قد يشعر العميل؟","Avantaj: Danışmanlıkta iyi olan ne? Dezavantaj: Müşteri nasıl hissedebilir?","Ưu điểm: Việc tư vấn tốt ở chỗ nào? Nhược điểm: Khách có thể cảm thấy thế nào?"],"a4_2.s":["الميزة: يمكن عرض البضاعة المطلوبة بدقة، والنصيحة دقيقة. العيب: لا يحتكّ العميل بالبضاعة إلا متأخرًا، وقد يشعر أنه يُستجوَب.","Avantaj: İstenen mal hedefli gösterilebilir, danışmanlık isabetlidir. Dezavantaj: Müşteri mal ile geç temas eder ve sorguya çekildiğini hissedebilir.","Ưu điểm: Có thể đưa đúng món hàng khách muốn, tư vấn chính xác. Nhược điểm: Khách tiếp xúc với hàng khá muộn và có thể cảm thấy bị hỏi dồn."],"a4_3.q":["3. اذكر ميزة واحدة وعيبًا واحدًا لتحديد الاحتياجات غير المباشر.","3. Dolaylı ihtiyaç belirlemenin bir avantajını ve bir dezavantajını say.","3. Hãy nêu một ưu điểm và một nhược điểm của xác định nhu cầu gián tiếp."],"a4_3.h0":["انظر إلى جدول «المقارنة»، سطرَي الميزة والعيب.","„Karşılaştırma“ tablosuna bak, avantaj ve dezavantaj satırlarına.","Hãy xem bảng „So sánh“, các dòng ưu điểm và nhược điểm."],"a4_3.h1":["الميزة: إلى أين يتجه الاهتمام؟ العيب: ماذا يحدث إذا لم يناسب العرض التجريبي إطلاقًا؟","Avantaj: İlgi nereye yönelir? Dezavantaj: Deneme teklifi hiç uymazsa ne olur?","Ưu điểm: Sự quan tâm hướng vào đâu? Nhược điểm: Điều gì xảy ra nếu món chào hàng thử hoàn toàn không hợp?"],"a4_3.s":["الميزة: يتجه الاهتمام فورًا إلى البضاعة، ولا داعي لاستجواب غير ضروري. العيب: العرض التجريبي غير المناسب قد يُنفّر العميل ويجعل البائع يبدو غير كفء.","Avantaj: İlgi hemen mala yönelir, gereksiz sorgulama olmaz. Dezavantaj: Uymayan bir deneme teklifi müşteriyi ürkütebilir ve satıcıyı yetersiz gösterebilir.","Ưu điểm: Sự quan tâm hướng ngay vào hàng hóa, không phải hỏi dồn không cần thiết. Nhược điểm: Một món chào hàng thử không hợp có thể làm khách e ngại và khiến nhân viên trông thiếu chuyên môn."],"a4_4.q":["4. ما هو البيع بالتسليم المباشر (Aushändigungsverkauf)؟ اذكر مثالين.","4. Elden teslim satış (Aushändigungsverkauf) nedir? İki örnek say.","4. Bán hàng trao tay (Aushändigungsverkauf) là gì? Hãy nêu hai ví dụ."],"a4_4.h0":["هل يعرف العميل ما يريد؟ هل نحتاج عندئذ إلى تحديد الاحتياجات؟","Müşteri ne istediğini biliyor mu? O zaman ihtiyaç belirleme gerekir mi?","Khách có biết mình muốn gì không? Khi đó có cần xác định nhu cầu không?"],"a4_4.h1":["فكّر في سلع الاستهلاك اليومي (Waren des täglichen Bedarfs).","Günlük ihtiyaç mallarını (Waren des täglichen Bedarfs) düşün.","Hãy nghĩ đến hàng tiêu dùng hằng ngày (Waren des täglichen Bedarfs)."],"a4_4.s":["العميل يعرف تمامًا ما يريد شراءه – ولا حاجة لتحديد الاحتياجات. أمثلة: الخبز والمعجنات، الصحف، المشروبات، الحلوى، اللحوم والنقانق.","Müşteri ne almak istediğini tam olarak bilir – ihtiyaç belirleme gerekmez. Örnekler: ekmek ve unlu mamuller, gazeteler, içecekler, tatlılar, et ve şarküteri ürünleri.","Khách biết chính xác mình muốn mua gì – không cần xác định nhu cầu. Ví dụ: bánh mì và bánh nướng, báo, đồ uống, đồ ngọt, thịt và xúc xích."],"a4_5.q":["5. صُغ لعميلة تبحث عن جاكيت افتتاحية مباشرة وأخرى غير مباشرة – بالكلام المباشر.","5. Ceket arayan bir müşteri için doğrudan ve dolaylı birer açılış cümlesi kur – doğrudan konuşma olarak.","5. Với một khách nữ đang tìm áo khoác, hãy viết một câu mở đầu trực tiếp và một câu mở đầu gián tiếp – bằng lời nói trực tiếp."],"a4_5.h0":["المباشر: تطرح سؤالًا مفتوحًا. غير المباشر: تعرض بضاعة.","Doğrudan: Açık bir soru sorarsın. Dolaylı: Bir mal gösterirsin.","Trực tiếp: bạn đặt một câu hỏi mở. Gián tiếp: bạn đưa một món hàng ra."],"a4_5.h1":["انظر إلى صندوق الجمل. ضع الجملتين بين علامتي اقتباس.","Cümle kalıplarına bak. İki cümleyi de tırnak içine yaz.","Hãy xem hộp mẫu câu. Đặt cả hai câu trong dấu ngoặc kép."],"a4_5.s":["مباشر: «Für welche Jahreszeit soll die Jacke denn vor allem sein?» (لأيّ فصل تريدين الجاكيت بشكل رئيسي؟) غير مباشر: «Ich zeige Ihnen einmal dieses Modell – es ist wasserabweisend und leicht. Wie gefällt es Ihnen?» (دعيني أعرض عليك هذا الطراز – يصدّ الماء وخفيف. كيف يعجبك؟)","Doğrudan: „Für welche Jahreszeit soll die Jacke denn vor allem sein?“ (Ceket en çok hangi mevsim için olsun?) Dolaylı: „Ich zeige Ihnen einmal dieses Modell – es ist wasserabweisend und leicht. Wie gefällt es Ihnen?“ (Size şu modeli göstereyim – suyu iter ve hafif. Nasıl buldunuz?)","Trực tiếp: „Für welche Jahreszeit soll die Jacke denn vor allem sein?“ (Chị chủ yếu muốn áo khoác này cho mùa nào ạ?) Gián tiếp: „Ich zeige Ihnen einmal dieses Modell – es ist wasserabweisend und leicht. Wie gefällt es Ihnen?“ (Để tôi cho chị xem mẫu này – chống nước và nhẹ. Chị thấy thế nào?)"],"a5_1.q":["أيّ شكل من تحديد الاحتياجات هو المعتاد في مكان تدريبك؟ علّل بطريقة البيع ونوع البضاعة.","Senin işletmende hangi ihtiyaç belirleme biçimi yaygın? Satış biçimi ve ürün yelpazesiyle gerekçelendir.","Ở nơi thực tập của bạn, hình thức xác định nhu cầu nào thường dùng? Hãy giải thích dựa vào hình thức bán hàng và loại hàng."],"a5_1.h0":["هل مكان تدريبك بيع بالخدمة (Bedienung) أم اختيار مسبق (Vorwahl) أم خدمة ذاتية (Selbstbedienung)؟","İşletmen Bedienung (hizmetli satış) mı, Vorwahl (ön seçimli satış) mı, Selbstbedienung (self servis) mi?","Nơi thực tập của bạn là bán có phục vụ (Bedienung), chọn trước (Vorwahl) hay tự phục vụ (Selbstbedienung)?"],"a5_1.h1":["هل البضاعة تحتاج إلى شرح أم هي من سلع الاستهلاك اليومي؟","Mal açıklama gerektiriyor mu, yoksa günlük ihtiyaç malı mı?","Hàng cần được giải thích hay là hàng tiêu dùng hằng ngày?"],"a5_1.s":["إجابة فردية. تحقّق بنفسك: هل يشير تعليلك إلى طريقة البيع ونوع البضاعة؟ البيع بالخدمة والبضاعة التي تحتاج إلى شرح تناسبان الشكل المباشر، والاختيار المسبق والبضاعة المعروضة للمشاهدة تناسبان غالبًا الشكل غير المباشر، وسلع الاستهلاك اليومي تناسب البيع بالتسليم المباشر.","Kişisel çözüm. Kendin kontrol et: Gerekçen satış biçimine ve ürün yelpazesine değiniyor mu? Hizmetli satış ve açıklama gerektiren mal doğrudan biçime, ön seçimli satış ve gösterilen mal daha çok dolaylı biçime, günlük ihtiyaç malları ise elden teslim satışa uyar.","Đáp án cá nhân. Hãy tự kiểm tra: Lập luận của bạn có nói đến hình thức bán hàng và loại hàng không? Bán có phục vụ và hàng cần giải thích hợp với hình thức trực tiếp; chọn trước và hàng để khách xem thì thường hợp với hình thức gián tiếp; hàng tiêu dùng hằng ngày hợp với bán hàng trao tay."],"a6_1.q":["6.1 متى يصبح تحديد الاحتياجات غير المباشر خطرًا؟ اشرح ما الذي تفعله البائعة خطأً إذا استمرت في عرض بضائع تجريبية جديدة.","6.1 Dolaylı ihtiyaç belirleme ne zaman tehlikeli olur? Bir satıcı sürekli yeni deneme teklifleri sunarsa neyi yanlış yapar, açıklayınız.","6.1 Khi nào xác định nhu cầu gián tiếp trở nên nguy hiểm? Hãy giải thích nhân viên bán hàng làm sai điều gì khi cứ liên tục đưa ra thêm các món chào hàng thử."],"a6_1.h0":["ماذا يحدث إذا عرضت البائعة الطراز التالي بعد كل رفض دون تفكير؟","Satıcı her reddedilişten sonra gelişigüzel sıradaki modeli gösterirse ne olur?","Điều gì xảy ra nếu sau mỗi lần bị từ chối, nhân viên chỉ tùy tiện đưa mẫu tiếp theo?"],"a6_1.h1":["ماذا تخسر بذلك عند العميل؟ وماذا كان عليها أن تفعل بعد كل رفض؟","Bununla müşteri nezdinde neyi kaybeder? Her reddedilişten ne çıkarması gerekirdi?","Nhân viên mất gì trước khách? Sau mỗi lần bị từ chối, nhân viên lẽ ra phải làm gì?"],"a6_1.s":["إجابة نموذجية (اقتراح): يصبح خطرًا إذا عرضت البائعة بعد كل رفض الطراز التالي عشوائيًا دون أن تحلّل ردّ الفعل. يلاحظ العميل أنها تخمّن، فتفقد البائعة كفاءتها المهنية (Fachkompetenz) وتهتزّ الثقة منذ البداية. الصحيح: أن تستخلص معلومة من كل رفض وتوجّه العرض التالي بناءً عليها.","Örnek çözüm (öneri): Satıcı her reddedilişten sonra tepkiyi değerlendirmeden gelişigüzel sıradaki modeli gösterirse tehlikeli olur. Müşteri tahmin yürütüldüğünü fark eder; satıcı mesleki yetkinliğini (Fachkompetenz) kaybeder ve güven en başta sarsılır. Doğrusu: Her reddedilişten bir bilgi çıkarmak ve sonraki teklifi buna göre ayarlamak.","Đáp án mẫu (gợi ý): Nó trở nên nguy hiểm khi nhân viên sau mỗi lần bị từ chối lại tùy tiện đưa mẫu tiếp theo mà không phân tích phản ứng. Khách nhận ra là nhân viên đang đoán mò; nhân viên mất năng lực chuyên môn (Fachkompetenz) và lòng tin bị lung lay ngay từ đầu. Cách đúng: rút ra một thông tin từ mỗi lần bị từ chối và hướng món chào hàng tiếp theo theo thông tin đó."],"a6_2.q":["6.2 سؤال السعر لا مكان له في بداية تحديد الاحتياجات. علّلوا ذلك – واذكروا كيف يمكن مع ذلك معرفة الإطار.","6.2 Fiyat sorusu ihtiyaç belirlemenin başına ait değildir. Gerekçelendiriniz – ve çerçeveyi yine de nasıl öğrenebileceğinizi söyleyiniz.","6.2 Câu hỏi về giá không nên đặt ở đầu việc xác định nhu cầu. Hãy giải thích – và nói cách vẫn biết được khung ngân sách."],"a6_2.h0":["ماذا يحدث للخيارات إذا طُلب من العميل أن يذكر مبلغًا فورًا؟","Müşteriden hemen bir tutar söylemesi istenirse seçime ne olur?","Điều gì xảy ra với phạm vi lựa chọn nếu khách phải nêu ngay một số tiền?"],"a6_2.h1":["عمّ يمكنكم أن تسألوا بدلًا من ذلك؟ وكيف ترون تصوّر السعر مع ذلك؟","Bunun yerine neyi sorabilirsiniz ve fiyat beklentisini yine de nereden görürsünüz?","Thay vào đó bạn có thể hỏi gì, và vẫn nhìn ra mức giá khách mong muốn bằng cách nào?"],"a6_2.s":["إجابة نموذجية (اقتراح): سؤال السعر المبكر يضيّق الخيارات كثيرًا وقد يُحرج؛ فبعض العملاء يذكرون مبلغًا أقل مما سينفقونه لأنهم لا يريدون الالتزام. كما قد يفسد نجاح البيع إذا لم يكن السعر مهمًا للعميلة أصلًا. الأفضل: السؤال عن المناسبة والمستوى المطلوب والتوقعات، ثم عرض بضاعة من فئة السعر المتوسطة. ومن ردّ الفعل نرى الإطار دون أن نسأل عنه.","Örnek çözüm (öneri): Erken fiyat sorusu seçimi çok daraltır ve utandırıcı olabilir – bazı müşteriler kendilerini bağlamak istemedikleri için harcayacaklarından daha düşük bir tutar söyler. Ayrıca fiyat müşteri için hiç önemli değilse satış başarısı da bozulur. Daha iyisi: vesile, beklenti ve talepler hakkında sormak, sonra orta fiyat aralığından mal göstermek. Tepkiden çerçeve, sorulmadan görülür.","Đáp án mẫu (gợi ý): Hỏi giá quá sớm làm thu hẹp lựa chọn quá mức và có thể gây ngượng – một số khách nêu số tiền thấp hơn mức họ sẵn sàng chi vì không muốn bị ràng buộc. Ngoài ra, nếu giá vốn không quan trọng với khách thì còn làm hỏng cơ hội bán. Tốt hơn: hỏi về dịp, yêu cầu và kỳ vọng, rồi đưa ra hàng ở tầm giá trung bình. Từ phản ứng của khách, ta thấy khung ngân sách mà không cần hỏi."],"a6_3.q":["6.3 ضعوا حوارًا قصيرًا تجمعون فيه الشكلين. علّلوا التحوّل من شكل إلى آخر.","6.3 Her iki biçimi birleştiren kısa bir görüşme geliştiriniz. Geçişi gerekçelendiriniz.","6.3 Hãy xây dựng một đoạn hội thoại ngắn kết hợp cả hai hình thức. Hãy giải thích việc chuyển từ hình thức này sang hình thức kia."],"a6_3.h0":["ابدؤوا بسؤال مفتوح واكتبوا إجابة العميل (ب: … ز: …).","Açık bir soruyla başlayınız ve müşterinin cevabını da yazınız (S: … M: …).","Hãy bắt đầu bằng một câu hỏi mở và viết cả câu trả lời của khách (NV: … KH: …)."],"a6_3.h1":["متى تنتقلون من السؤال إلى عرض بضاعة – ولماذا؟","Sormaktan mal göstermeye ne zaman geçersiniz – ve neden?","Khi nào bạn chuyển từ hỏi sang đưa hàng ra – và vì sao?"],"a6_3.s":["إجابة نموذجية (اقتراح): ب: «Wofür möchten Sie den Rucksack vor allem verwenden?» (لأيّ غرض تريد الحقيبة بشكل رئيسي؟) (مباشر) ز: «للمدرسة، ولكن أحيانًا للمشي الجبلي أيضًا.» ب: «إذن أعرض عليك هذا الطراز – 24 لترًا وظهر مبطّن. كيف يعجبك؟» (التحوّل إلى الشكل غير المباشر) ز: «صغير جدًا.» ب: «إذن نأخذ الطراز نفسه بمقاس أكبر.» تعليل التحوّل: الأسئلة المفتوحة تعطي الإطار، لكن التفاصيل الأخيرة – المقاس واللون والإحساس – لا يعرفها العميل إلا من البضاعة نفسها. لذلك نسأل أولًا ثم نعرض.","Örnek çözüm (öneri): S: „Wofür möchten Sie den Rucksack vor allem verwenden?“ (Sırt çantasını en çok ne için kullanmak istiyorsunuz?) (doğrudan) M: „Okul için, ama ara sıra yürüyüş için de.“ S: „O zaman size şu modeli göstereyim – 24 litre, sırtı yastıklı. Nasıl buldunuz?“ (dolaylı biçime geçiş) M: „Fazla küçük.“ S: „O zaman aynı modelin bir beden büyüğünü alalım.“ Geçişin gerekçesi: Açık sorular çerçeveyi verir, ama son ayrıntıları – beden, renk, his – müşteri ancak malın üzerinde fark eder. Bu yüzden önce sorulur, sonra gösterilir.","Đáp án mẫu (gợi ý): NV: „Wofür möchten Sie den Rucksack vor allem verwenden?“ (Anh chủ yếu muốn dùng ba lô để làm gì?) (trực tiếp) KH: „Để đi học, nhưng thỉnh thoảng cũng đi leo núi.“ NV: „Vậy tôi cho anh xem mẫu này – 24 lít, lưng có đệm. Anh thấy thế nào?“ (chuyển sang hình thức gián tiếp) KH: „Nhỏ quá.“ NV: „Vậy mình lấy đúng mẫu này nhưng cỡ lớn hơn.“ Lý do chuyển: Các câu hỏi mở cho ta khung chung, nhưng những chi tiết cuối cùng – cỡ, màu, cảm giác – khách chỉ nhận ra khi nhìn món hàng. Vì vậy hỏi trước, rồi mới đưa hàng ra."],"v8_1.q":["8.1 علّل: لماذا لا يلزم في البيع بالتسليم المباشر سلسلة أسئلة، وما الأسئلة التي يطرحها البائع مع ذلك؟","8.1 Gerekçelendir: Elden teslim satışta neden soru zinciri gerekmez ve satıcı yine de hangi soruları sorar?","8.1 Hãy giải thích: Vì sao khi bán hàng trao tay không cần chuỗi câu hỏi, và nhân viên vẫn hỏi những câu nào?"],"v8_1.h0":["هل يعرف العميل ما يريد؟","Müşteri ne istediğini biliyor mu?","Khách có biết mình muốn gì không?"],"v8_1.h1":["عمّ يسأل البائع حينئذ فقط – فكّر في النوع أو الكمية أو المقاس.","Satıcı bu durumda sadece neyi sorar – tür, miktar veya bedeni düşün.","Khi đó nhân viên chỉ còn hỏi gì – hãy nghĩ đến loại, số lượng hoặc cỡ."],"v8_1.s":["العميل يعرف تمامًا ما يريد شراءه، لذلك لا يحتاج البائع إلى تحديد الحاجة. يطرح فقط أسئلة تكميلية (Ergänzungsfragen) عن النوع أو الكمية أو المقاس، مثل «Welche Menge darf es sein?» (ما الكمية التي تريدها؟).","Müşteri ne almak istediğini tam olarak bilir, bu yüzden satıcının ihtiyacı belirlemesi gerekmez. Sadece tür, miktar veya beden hakkında tamamlayıcı sorular (Ergänzungsfragen) sorar, örneğin „Welche Menge darf es sein?“ (Ne kadar olsun?).","Khách biết chính xác mình muốn mua gì nên nhân viên không cần xác định nhu cầu. Nhân viên chỉ hỏi bổ sung (Ergänzungsfragen) về loại, số lượng hoặc cỡ, ví dụ „Welche Menge darf es sein?“ (Anh/chị lấy bao nhiêu ạ?)."],"v8_2.q":["8.2 ماذا سيحدث لو طرح بائع سلسلة أسئلة طويلة على عميل يعرف تمامًا ما يريد (مثلًا جريدة)؟ علّل.","8.2 Bir satıcı, ne istediğini tam olarak bilen bir müşteriye (örneğin gazete) yine de uzun bir soru zinciri sorarsa ne olur? Gerekçelendir.","8.2 Điều gì sẽ xảy ra nếu nhân viên vẫn hỏi một chuỗi câu hỏi dài với khách biết chính xác mình muốn gì (ví dụ một tờ báo)? Hãy giải thích."],"v8_2.h0":["هل يعرف العميل كل شيء مسبقًا؟","Müşteri zaten her şeyi biliyor mu?","Khách có đã biết hết mọi thứ chưa?"],"v8_2.h1":["كيف يشعر العميل إذا استُجوب بلا داعٍ؟","Müşteri gereksiz yere sorguya çekilirse nasıl hisseder?","Khách cảm thấy thế nào khi bị hỏi dồn không cần thiết?"],"v8_2.s":["العميل يعرف تمامًا ما يريد، وسيشعر أنه يُستجوَب بلا داعٍ. ويستغرق البيع وقتًا أطول من اللازم. الصحيح: على الأكثر سؤال تكميلي واحد، ثم إحضار البضاعة والمحاسبة.","Müşteri ne istediğini zaten tam olarak bilir ve gereksiz yere sorguya çekildiğini hisseder. Satış gerekenden uzun sürer. Doğrusu: en fazla bir tamamlayıcı soru, sonra malı getirmek ve ödemeyi almak.","Khách đã biết chính xác mình muốn gì và sẽ cảm thấy bị hỏi dồn một cách vô ích. Việc bán hàng kéo dài hơn mức cần thiết. Cách đúng: cùng lắm một câu hỏi bổ sung, rồi lấy hàng và thanh toán."],"v8_3.q":["8.3 علّل: لماذا ردّ فعل العميل على العرض التجريبي مهم جدًا؟ وماذا يحدث إذا لم ينتبه البائع إليه؟","8.3 Gerekçelendir: Deneme teklifinde müşterinin tepkisi neden bu kadar önemli? Satıcı tepkiyi dikkate almazsa ne olur?","8.3 Hãy giải thích: Vì sao phản ứng của khách với món chào hàng thử lại quan trọng đến vậy? Điều gì xảy ra nếu nhân viên không để ý đến phản ứng đó?"],"v8_3.h0":["ماذا يقول لك ردّ فعل العميل عن توقعاته؟","Müşterinin tepkisi sana beklentileri hakkında ne söyler?","Phản ứng của khách cho bạn biết gì về kỳ vọng của họ?"],"v8_3.h1":["ما الخطر المذكور في الجدول عند عيب الشكل غير المباشر؟","Tabloda dolaylı biçimin dezavantajı olarak hangi risk yazıyor?","Rủi ro nào được ghi trong bảng ở phần nhược điểm của hình thức gián tiếp?"],"v8_3.s":["من ردّ الفعل يستنتج البائع توقعات العميل ويمكنه اختيار العرض التالي بدقة. وإن لم ينتبه إليه فلن يناسب العرض التجريبي، فيَنفِر العميل ويفقد البائع جزءًا من كفاءته المهنية (Fachkompetenz).","Satıcı tepkiden müşterinin beklentilerini çıkarır ve sıradaki teklifi hedefli seçebilir. Tepkiyi dikkate almazsa deneme teklifi uymaz, müşteri ürker ve satıcı mesleki yetkinliğini (Fachkompetenz) kaybeder.","Từ phản ứng, nhân viên suy ra kỳ vọng của khách và chọn món chào hàng tiếp theo đúng trọng tâm. Nếu không để ý, món chào hàng thử sẽ không hợp, khách e ngại và nhân viên mất năng lực chuyên môn (Fachkompetenz)."],"v8_4.q":["8.4 قرّر وعلّل: يقول عميل: «أحتاج شيئًا ما لابن أخي.» أيّ شكل يناسب أكثر، المباشر أم غير المباشر؟ وما السؤال الذي تطرحه أولًا؟","8.4 Karar ver ve gerekçelendir: Bir müşteri der ki: „Yeğenim için bir şey lazım.“ Hangi biçim daha uygun, doğrudan mı dolaylı mı? İlk hangi soruyu sorarsın?","8.4 Hãy quyết định và giải thích: Một khách nói: „Tôi cần món gì đó cho cháu trai.“ Hình thức nào phù hợp hơn, trực tiếp hay gián tiếp? Bạn hỏi câu nào trước?"],"v8_4.h0":["هل يعرف العميل تقريبًا ما يريد؟","Müşteri yaklaşık olarak ne istediğini biliyor mu?","Khách có biết đại khái mình muốn gì không?"],"v8_4.h1":["فكّر في مثال الهدية في المهمة 2: أسئلة عن الشخص والمناسبة والميزانية.","Görev 2'deki hediye örneğini düşün: Kişi, vesile ve bütçe hakkında sorular.","Hãy nhớ ví dụ món quà ở Bài tập 2: hỏi về người nhận, dịp và ngân sách."],"v8_4.s":["تحديد الاحتياجات المباشر أنسب: فالعميل يعرف تقريبًا فقط ما يريد. وبأسئلة مفتوحة عن الشخص والمناسبة والميزانية يمكن تضييق الخيارات، مثلًا: «Für welchen Anlass suchen Sie das Geschenk?» (لأيّ مناسبة تبحث عن الهدية؟) بعد ذلك يمكن عرض البضاعة المناسبة.","Doğrudan ihtiyaç belirleme daha uygun: Müşteri ne istediğini sadece yaklaşık biliyor. Kişi, vesile ve bütçe hakkında açık sorularla seçim daraltılabilir, örneğin: „Für welchen Anlass suchen Sie das Geschenk?“ (Hediyeyi hangi vesileyle arıyorsunuz?) Ardından uygun mal gösterilebilir.","Xác định nhu cầu trực tiếp phù hợp hơn: Khách chỉ biết đại khái mình muốn gì. Với các câu hỏi mở về người nhận, dịp và ngân sách, có thể thu hẹp lựa chọn, ví dụ: „Für welchen Anlass suchen Sie das Geschenk?“ (Anh tìm món quà này cho dịp nào ạ?) Sau đó có thể đưa ra hàng phù hợp."],"r0.t":["طريقان إلى رغبة العميل","Müşterinin isteğine giden iki yol","Hai con đường đến mong muốn của khách"],"r0.task":["ظلّل الشكلين، والكلمة التي تخصّ الشكل المباشر.","İki biçimi ve doğrudan biçime ait sözcüğü işaretle.","Đánh dấu hai hình thức và từ thuộc về hình thức trực tiếp."],"r0.x":["هناك طريقان لتحديد الحاجة. إذا حُدِّدت الحاجة عبر سلسلة أسئلة (Fragekette) فهذا تحديد احتياجات مباشر (direkte Bedarfsermittlung). وإذا حُدِّدت عبر الاحتكاك بالبضاعة فهذا تحديد احتياجات غير مباشر (indirekte / warenbezogene Bedarfsermittlung). وليس لهذا علاقة بذكر السعر (Preisnennung) بعد.","İhtiyacı belirlemenin iki yolu vardır. İhtiyaç bir soru zinciriyle (Fragekette) belirleniyorsa buna doğrudan ihtiyaç belirleme (direkte Bedarfsermittlung) denir. İhtiyaç belirleme mal ile temas yoluyla yapılıyorsa dolaylı (ürüne yönelik) ihtiyaç belirleme (indirekte / warenbezogene Bedarfsermittlung) söz konusudur. Fiyatı söylemekle (Preisnennung) bunun henüz bir ilgisi yoktur.","Có hai cách để xác định nhu cầu. Nếu nhu cầu được xác định bằng một chuỗi câu hỏi (Fragekette) thì gọi là xác định nhu cầu trực tiếp (direkte Bedarfsermittlung). Nếu việc xác định nhu cầu diễn ra qua tiếp xúc với hàng hóa thì đó là xác định nhu cầu gián tiếp (indirekte / warenbezogene Bedarfsermittlung). Việc này chưa liên quan gì đến báo giá (Preisnennung)."],"r0.q":["بماذا تعرف تحديد الاحتياجات المباشر؟","Doğrudan ihtiyaç belirlemeyi nereden anlarsın?","Bạn nhận ra xác định nhu cầu trực tiếp ở điểm nào?"],"r0.o0":["البائع يعرض البضاعة فقط ويصمت.","Satıcı sadece mal gösterir ve susar.","Nhân viên chỉ đưa hàng ra và im lặng."],"r0.o1":["البائع يحدّد الحاجة بسلسلة أسئلة.","Satıcı ihtiyacı bir soru zinciriyle belirler.","Nhân viên xác định nhu cầu bằng một chuỗi câu hỏi."],"r0.o2":["العميل يبحث عن كل شيء بنفسه.","Müşteri her şeyi kendisi arar.","Khách tự tìm mọi thứ."],"r1.t":["تحديد الاحتياجات المباشر","Doğrudan ihtiyaç belirleme","Xác định nhu cầu trực tiếp"],"r1.task":["ظلّل عمّ يسأل البائع وماذا يفعل بالإجابات.","Satıcının neyi sorduğunu ve cevaplarla ne yaptığını işaretle.","Đánh dấu điều nhân viên hỏi và nhân viên làm gì với các câu trả lời."],"r1.x":["يسأل البائع عن الغرض (Zweck) أو المناسبة (Anlass) أو مجال الاستخدام (Einsatzbereich) للبضاعة المطلوبة. ومن الإجابات يختار مجموعة بضائع مناسبة (Warenvorauswahl). الميزة: تتيح الإجابات نصيحة دقيقة. العيب: قد يشعر العميل أنه يُستجوَب (ausgefragt) ولا يحتكّ بالبضاعة إلا متأخرًا. لكنه لا يسأل عن عمر البضاعة.","Satıcı, istenen malın amacını (Zweck), vesilesini (Anlass) veya kullanım alanını (Einsatzbereich) sorar. Cevaplardan uygun bir ön ürün seçimi (Warenvorauswahl) yapar. Avantaj: Cevaplar hedefli bir danışmanlığa olanak verir. Dezavantaj: Müşteri sorguya çekildiğini (ausgefragt) hissedebilir ve mal ile geç temas eder. Ama malın yaşını sormaz.","Nhân viên hỏi về mục đích (Zweck), dịp (Anlass) hoặc phạm vi sử dụng (Einsatzbereich) của hàng khách muốn. Từ các câu trả lời, nhân viên chọn sơ bộ hàng hóa phù hợp (Warenvorauswahl). Ưu điểm: Các câu trả lời giúp tư vấn đúng trọng tâm. Nhược điểm: Khách có thể cảm thấy bị hỏi dồn (ausgefragt) và tiếp xúc với hàng khá muộn. Nhưng nhân viên không hỏi về tuổi của món hàng."],"r1.q":["ما عيب تحديد الاحتياجات المباشر؟","Doğrudan ihtiyaç belirlemenin dezavantajı nedir?","Nhược điểm của xác định nhu cầu trực tiếp là gì?"],"r1.o0":["النصيحة غير دقيقة.","Danışmanlık çok isabetsizdir.","Tư vấn quá thiếu chính xác."],"r1.o1":["يفقد البائع جزءًا من كفاءته المهنية.","Satıcı mesleki yetkinliğini kaybeder.","Nhân viên mất năng lực chuyên môn."],"r1.o2":["لا يحتكّ العميل بالبضاعة إلا متأخرًا وقد يشعر أنه يُستجوَب.","Müşteri mal ile geç temas eder ve sorguya çekildiğini hissedebilir.","Khách tiếp xúc với hàng muộn và có thể cảm thấy bị hỏi dồn."],"r2.t":["تحديد الاحتياجات غير المباشر","Dolaylı ihtiyaç belirleme","Xác định nhu cầu gián tiếp"],"r2.task":["ظلّل ما يفعله البائع، والميزة والعيب.","Satıcının ne yaptığını, avantajı ve dezavantajı işaretle.","Đánh dấu việc nhân viên làm, ưu điểm và nhược điểm."],"r2.x":["يطرح البائع أسئلة قليلة جدًا. يعرض بضاعة للتجربة (Testangebot) وينتظر ردّ فعل العميل. وإن لم تناسبه يقترب من طلبه بعروض أخرى. الميزة: يتجه الاهتمام فورًا إلى البضاعة. العيب: قد يُنفّر العرض التجريبي العميل إذا لم يناسبه إطلاقًا. عندئذ يفقد البائع كفاءته المهنية (Fachkompetenz). لكنه لا يسأل العميل عن اسمه.","Satıcı çok az soru sorar. Bir deneme teklifi (Testangebot) sunar ve müşterinin tepkisini bekler. Uymazsa başka tekliflerle müşterinin isteğine yaklaşır. Avantaj: İlgi hemen mala yönelir. Dezavantaj: Deneme teklifi hiç uymazsa müşteriyi ürkütebilir. O zaman satıcı mesleki yetkinliğini (Fachkompetenz) kaybeder. Ama müşteriye adını sormaz.","Nhân viên hỏi rất ít. Nhân viên đưa ra một món chào hàng thử (Testangebot) và chờ phản ứng của khách. Nếu không hợp, nhân viên tiến gần hơn bằng những món khác. Ưu điểm: Sự quan tâm hướng ngay vào hàng hóa. Nhược điểm: Món chào hàng thử có thể làm khách e ngại nếu hoàn toàn không hợp. Khi đó nhân viên mất năng lực chuyên môn (Fachkompetenz). Nhưng nhân viên không hỏi tên khách."],"r2.q":["ماذا يفعل البائع إذا لم يناسب العرض التجريبي؟","Deneme teklifi uymazsa satıcı ne yapar?","Nhân viên làm gì khi món chào hàng thử không hợp?"],"r2.o0":["يقترب من طلب العميل بعروض أخرى.","Başka tekliflerle müşterinin isteğine yaklaşır.","Tiến gần hơn bằng những món khác."],"r2.o1":["ينهي الحوار.","Görüşmeyi bitirir.","Kết thúc cuộc trò chuyện."],"r2.o2":["يذكر السعر فورًا.","Hemen fiyatı söyler.","Báo giá ngay."],"r3.t":["مثال: بنطلون الترِكّينغ","Bir örnek: trekking pantolonu","Một ví dụ: quần trekking"],"r3.task":["ظلّل ما يبحث عنه العميل وما يعرضه البائع.","Müşterinin ne aradığını ve satıcının ne gösterdiğini işaretle.","Đánh dấu điều khách tìm và món nhân viên đưa ra."],"r3.x":["يقول العميل: «أبحث عن بنطلون للأوقات الحرة.» يعرض البائع جينز. يسأل العميل: «هل يمكن ارتداؤه في المشي الجبلي أيضًا؟» الآن يعرف البائع أكثر ويوصي ببنطلون ترِكّينغ: يسمح بمرور الهواء ويصدّ الماء وفيه جيوب كثيرة. لقد استفاد من ردّ فعل العميل ولم يسأل عن السعر.","Müşteri der ki: „Rahat bir pantolon arıyorum.“ Satıcı kot pantolon gösterir. Müşteri sorar: „Bununla yürüyüşe de çıkılır mı?“ Şimdi satıcı daha çok şey bilir ve bir trekking pantolonu önerir: nefes alır, suyu iter ve çok cebi var. Müşterinin tepkisinden yararlandı, fiyatı sormadı.","Khách nói: „Tôi tìm một chiếc quần mặc thường ngày.“ Nhân viên đưa ra quần jeans. Khách hỏi: „Mặc đi leo núi được không?“ Bây giờ nhân viên biết nhiều hơn và gợi ý một chiếc quần trekking: thoáng khí, chống nước và có nhiều túi. Nhân viên đã tận dụng phản ứng của khách, chứ không hỏi giá."],"r3.q":["ما العرض التجريبي هنا؟","Burada deneme teklifi hangisi?","Đâu là món chào hàng thử ở đây?"],"r3.o0":["بنطلون الترِكّينغ.","Trekking pantolonu.","Quần trekking."],"r3.o1":["الجينز.","Kot pantolon.","Quần jeans."],"r3.o2":["السؤال عن المشي الجبلي.","Yürüyüşle ilgili soru.","Câu hỏi về leo núi."],"r4.t":["متى لا يلزم تحديد الاحتياجات","İhtiyaç belirlemenin gerekmediği durum","Khi nào không cần xác định nhu cầu"],"r4.task":["ظلّل نوع البيع، والبضائع، ومهام البائع.","Satış türünü, malları ve satıcının görevlerini işaretle.","Đánh dấu hình thức bán hàng, loại hàng và việc nhân viên làm."],"r4.x":["في البيع بالتسليم المباشر (Aushändigungsverkauf) يعرف العميل تمامًا ما يريد شراءه. وهذا يحدث خصوصًا مع سلع الاستهلاك اليومي (Waren des täglichen Bedarfs): الخبز والمعجنات، الصحف، المشروبات، الحلوى. يكتفي البائع بأسئلة تكميلية (Ergänzungsfragen) عن النوع أو الكمية أو المقاس، ثم يحضر البضاعة، ويفحصها سريعًا بحثًا عن عيوب، ويغلّفها ويحاسب. ولا يحتاج إلى سلسلة أسئلة طويلة.","Elden teslim satışta (Aushändigungsverkauf) müşteri tam olarak ne almak istediğini bilir. Bu özellikle günlük ihtiyaç mallarında (Waren des täglichen Bedarfs) böyledir: ekmek ve unlu mamuller, gazeteler, içecekler, tatlılar. Satıcı tür, miktar veya beden hakkında tamamlayıcı sorularla (Ergänzungsfragen) yetinir, malı getirir, kusur olup olmadığına kısaca bakar, paketler ve ödemeyi alır. Uzun bir soru zincirine ihtiyacı yoktur.","Trong bán hàng trao tay (Aushändigungsverkauf), khách biết chính xác mình muốn mua gì. Điều này chủ yếu xảy ra với hàng tiêu dùng hằng ngày (Waren des täglichen Bedarfs): bánh mì và bánh nướng, báo, đồ uống, đồ ngọt. Nhân viên chỉ hỏi bổ sung (Ergänzungsfragen) về loại, số lượng hoặc cỡ, lấy hàng, kiểm tra nhanh xem có lỗi không, gói hàng và thanh toán. Nhân viên không cần một chuỗi câu hỏi dài."],"r4.q":["لماذا لا يحتاج البائع إلى تحديد الاحتياجات في البيع بالتسليم المباشر؟","Satıcının elden teslim satışta neden ihtiyaç belirlemeye ihtiyacı yok?","Vì sao nhân viên không cần xác định nhu cầu khi bán hàng trao tay?"],"r4.o0":["لأن البضاعة غالية جدًا.","Çünkü mal çok pahalıdır.","Vì món hàng rất đắt."],"r4.o1":["لأن العميل لا يتكلم.","Çünkü müşteri hiçbir şey söylemez.","Vì khách không nói gì."],"r4.o2":["لأن العميل يعرف تمامًا ما يريد شراءه.","Çünkü müşteri tam olarak ne almak istediğini bilir.","Vì khách biết chính xác mình muốn mua gì."],"cat_vor":["المعرفة السابقة: أنواع الأسئلة","Ön bilgi: soru türleri","Kiến thức nền: các loại câu hỏi"],"cat_txt":["فهم النص","Metin anlama","Hiểu văn bản"],"cat_trans":["التطبيق: اختيار شكل تحديد الاحتياجات","Aktarım: ihtiyaç belirleme biçimini seçmek","Vận dụng: chọn hình thức xác định nhu cầu"],"cat_wis":["المعرفة المهنية","Mesleki bilgi","Kiến thức chuyên môn"],"cat_refl":["مكان التدريب والتفكير الأعمق","İşletme ve ileri düşünme","Nơi thực tập và suy nghĩ thêm"]};
+const GLOSS=[["direkte Bedarfsermittlung","تحديد الاحتياجات المباشر","doğrudan ihtiyaç belirleme","xác định nhu cầu trực tiếp"],["indirekte Bedarfsermittlung","تحديد الاحتياجات غير المباشر","dolaylı ihtiyaç belirleme","xác định nhu cầu gián tiếp"],["warenbezogen","متعلّق بالبضاعة","ürüne yönelik","liên quan đến hàng hóa"],["Fragekette","سلسلة أسئلة","soru zinciri","chuỗi câu hỏi"],["Testangebot","عرض تجريبي","deneme teklifi","chào hàng thử"],["Kundenreaktion","ردّ فعل العميل","müşteri tepkisi","phản ứng của khách"],["Einsatzbereich","مجال الاستخدام","kullanım alanı","phạm vi sử dụng"],["Anlass","المناسبة","vesile","dịp"],["Warenvorauswahl","اختيار أولي للبضاعة","ön ürün seçimi","chọn sơ bộ hàng hóa"],["Aushändigungsverkauf","بيع بالتسليم المباشر","elden teslim satış","bán hàng trao tay"],["Waren des täglichen Bedarfs","سلع الاستهلاك اليومي","günlük ihtiyaç malları","hàng tiêu dùng hằng ngày"],["Ergänzungsfrage","سؤال تكميلي","tamamlayıcı soru","câu hỏi bổ sung"]];
+const WTX={"offene Frage":["سؤال مفتوح","açık soru","câu hỏi mở"],"Kunde":["العميل","müşteri","khách hàng"],"Antwort":["إجابة","cevap","câu trả lời"],"ja oder nein":["نعم أو لا","evet veya hayır","có hoặc không"],"Offene Fragen beginnen mit …":["الأسئلة المفتوحة تبدأ بـ …","Açık sorular … ile başlar","Câu hỏi mở bắt đầu bằng …"],"Wanderschuhe":["أحذية المشي الجبلي","yürüyüş botları","giày leo núi"],"Fragewort":["أداة استفهام","soru sözcüğü","từ để hỏi"],"Einsatz":["الاستخدام","kullanım","mục đích sử dụng"],"Eine offene Frage lautet: „…“":["سؤال مفتوح هو: «…»","Açık bir soru şudur: „…“","Một câu hỏi mở là: „…“"],"Alternativfrage":["سؤال اختيار","seçenek sorusu","câu hỏi lựa chọn"],"Frage":["سؤال","soru","câu hỏi"],"Satz":["جملة","cümle","câu"],"Eine Alternativfrage dient dazu, dass …":["يُستخدم سؤال الاختيار حتى …","Seçenek sorusu şunun için kullanılır: …","Câu hỏi lựa chọn dùng để …"],"Gespräch":["حوار","görüşme","cuộc trò chuyện"],"Die Frage ist schlecht, weil …":["السؤال سيئ لأن …","Soru kötü, çünkü …","Câu hỏi này tồi vì …"],"Verkaufsgespräch":["حوار البيع","satış görüşmesi","cuộc trò chuyện bán hàng"],"Ende":["النهاية","son","kết thúc"],"Frageart":["نوع السؤال","soru türü","loại câu hỏi"],"Am Ende passt …":["في النهاية يناسب …","Sonda … uyar","Ở cuối phù hợp …"],"Drucker":["طابعات","yazıcı","máy in"],"Regal":["رفّ","raf","kệ hàng"],"Wunsch":["رغبة","istek","mong muốn"],"Das ist … Bedarfsermittlung, weil …":["هذا تحديد احتياجات … لأن …","Bu … ihtiyaç belirleme, çünkü …","Đây là xác định nhu cầu … vì …"],"Kundin":["العميلة","müşteri (kadın)","khách nữ"],"Kleid":["فستان","elbise","váy"],"Schaufenster":["واجهة المحل","vitrin","tủ kính"],"Tageszeitung":["جريدة يومية","günlük gazete","báo ngày"],"Ware":["البضاعة","mal","hàng hóa"],"Verkäufer":["البائع","satıcı","nhân viên bán hàng"],"Das ist …, weil …":["هذا … لأن …","Bu …, çünkü …","Đây là …, vì …"],"Laufschuhe":["أحذية جري","koşu ayakkabısı","giày chạy bộ"],"Beschwerden":["آلام / شكاوى صحية","rahatsızlıklar","chỗ đau"],"direkt":["مباشر","doğrudan","trực tiếp"],"indirekt":["غير مباشر","dolaylı","gián tiếp"],"Bedarf":["الحاجة","ihtiyaç","nhu cầu"],"Bei der direkten Bedarfsermittlung …":["في تحديد الاحتياجات المباشر …","Doğrudan ihtiyaç belirlemede …","Với xác định nhu cầu trực tiếp …"],"Bei der indirekten Bedarfsermittlung …":["في تحديد الاحتياجات غير المباشر …","Dolaylı ihtiyaç belirlemede …","Với xác định nhu cầu gián tiếp …"],"Vorteil":["ميزة","avantaj","ưu điểm"],"Nachteil":["عيب","dezavantaj","nhược điểm"],"Tabelle":["جدول","tablo","bảng"],"Ein Vorteil ist, dass …":["من المزايا أن …","Bir avantajı şudur: …","Một ưu điểm là …"],"Ein Nachteil ist, dass …":["من العيوب أن …","Bir dezavantajı şudur: …","Một nhược điểm là …"],"Testangebot":["عرض تجريبي","deneme teklifi","chào hàng thử"],"Bedarfsermittlung":["تحديد الاحتياجات","ihtiyaç belirleme","xác định nhu cầu"],"Beispiel":["مثال","örnek","ví dụ"],"Ein Aushändigungsverkauf ist, wenn …":["البيع بالتسليم المباشر هو عندما …","Elden teslim satış, … durumudur","Bán hàng trao tay là khi …"],"Zwei Beispiele sind …":["مثالان هما …","İki örnek: …","Hai ví dụ là …"],"Jacke":["جاكيت","ceket","áo khoác"],"Eröffnung":["افتتاحية","açılış cümlesi","câu mở đầu"],"wörtliche Rede":["كلام مباشر","doğrudan konuşma","lời nói trực tiếp"],"Direkt: „…“":["مباشر: «…»","Doğrudan: „…“","Trực tiếp: „…“"],"Indirekt: „…“":["غير مباشر: «…»","Dolaylı: „…“","Gián tiếp: „…“"],"Betrieb":["مكان التدريب","işletme","nơi thực tập"],"Verkaufsform":["طريقة البيع","satış biçimi","hình thức bán hàng"],"Sortiment":["تشكيلة البضائع","ürün yelpazesi","danh mục hàng"],"In meinem Betrieb ist … üblich, weil …":["في مكان تدريبي المعتاد هو … لأن …","Benim işletmemde … yaygın, çünkü …","Ở nơi thực tập của tôi thường dùng … vì …"],"Reaktion":["ردّ فعل","tepki","phản ứng"],"Verkäuferin":["البائعة","satıcı (kadın)","nhân viên bán hàng nữ"],"Sie macht falsch, dass …":["خطؤها أنها …","Yanlışı şu: …","Nhân viên làm sai ở chỗ …"],"Preisfrage":["سؤال السعر","fiyat sorusu","câu hỏi về giá"],"Auswahl":["الاختيار","seçim","lựa chọn"],"Rahmen":["الإطار","çerçeve","khung ngân sách"],"Die Preisfrage ist zu früh, weil …":["سؤال السعر مبكر جدًا لأن …","Fiyat sorusu çok erken, çünkü …","Hỏi giá quá sớm vì …"],"Den Rahmen erfährt man, indem …":["نعرف الإطار عندما …","Çerçeve şöyle öğrenilir: …","Biết khung ngân sách bằng cách …"],"Wechsel":["التحوّل","geçiş","chuyển đổi"],"V: „…“ K: „…“":["ب: «…» ز: «…»","S: „…“ M: „…“","NV: „…“ KH: „…“"],"Ich wechsle, weil …":["أنتقل لأن …","Geçiş yapıyorum, çünkü …","Tôi chuyển vì …"],"Aushändigungsverkauf":["بيع بالتسليم المباشر","elden teslim satış","bán hàng trao tay"],"Keine Fragekette ist nötig, weil …":["لا حاجة لسلسلة أسئلة لأن …","Soru zinciri gerekmez, çünkü …","Không cần chuỗi câu hỏi vì …"],"Zeitung":["جريدة","gazete","báo"],"Fragekette":["سلسلة أسئلة","soru zinciri","chuỗi câu hỏi"],"Verkauf":["البيع","satış","việc bán hàng"],"Wenn der Verkäufer so fragt, dann …":["إذا سأل البائع هكذا فإن …","Satıcı böyle sorarsa …","Nếu nhân viên hỏi như vậy thì …"],"Die Reaktion ist wichtig, weil …":["ردّ الفعل مهم لأن …","Tepki önemli, çünkü …","Phản ứng quan trọng vì …"],"Geschenk":["هدية","hediye","món quà"],"Neffe":["ابن الأخ / ابن الأخت","yeğen","cháu trai"],"Anlass":["المناسبة","vesile","dịp"],"Person":["الشخص","kişi","người nhận"],"Ich entscheide mich für …, weil …":["أختار … لأن …","… seçiyorum, çünkü …","Tôi chọn … vì …"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={ar:0,tr:1,vi:2}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 2 · Modul 7 · Direkte und indirekte Bedarfsermittlung";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf2m7_v2";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),document.getElementById("a2btn")?["a2"]:[]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+if($("#a2btn"))$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF2_Modul4.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done&&$("#a2btn"))$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>

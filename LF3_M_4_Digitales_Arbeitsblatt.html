@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 3 · Modul 4 · Karte, Handy, Gutschein</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="ar">🇸🇦 العربية</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+    <button class="pill" data-l="uk">🇺🇦 Українська</button>
+    <button class="pill" data-l="ti">🇪🇷 ትግርኛ</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 3 · Kunden im Servicebereich Kasse betreuen</p>
+  <h1 data-k="h1">Modul 4: Karte, Handy, Gutschein</h1>
+  <p class="sub" data-k="meta">2 Doppelstunden · 8 Punkte · Lehrbuch S. 177–181 · Arbeitsheft S. 142–151</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann den Ablauf einer Kartenzahlung in sachlogischen Schritten beschreiben.</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann kontaktloses Bezahlen und Mobile Payment erklären.</label></li>
+      <li><label data-k="can3"><input type="checkbox"> Ich kann Vor- und Nachteile von Zahlungsarten für den Betrieb und für Kunden nennen.</label></li>
+      <li><label data-k="can4"><input type="checkbox"> Ich kann Gutscheine, Coupons und Kundenkarten erklären und Kundendaten richtig behandeln.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a1_h">Aufgabe 1 · Ankommen: Was weißt du noch aus Modul 3?</h2>
+    <p data-k="a1_p">Aus dem Kopf beantworten.</p>
+    <div data-items="a1"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 2 · Umfrage: Wie bezahlt unsere Klasse?</h2>
+    <p data-k="a2_p">Wie hast du bei deinen letzten drei Einkäufen bezahlt? Die Lehrkraft sammelt die Ergebnisse an der Tafel.</p>
+    <div class="merke" data-k="a2_opt">bar · girocard mit PIN · Karte kontaktlos · Smartphone · Kreditkarte · Gutschein</div>
+    <div data-items="a2"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> die girocard · die Debitkarte · die Kreditkarte · die PIN · das Kartenterminal · kontaktlos · die NFC-Funktion · das Mobile Payment · der Zahlungsbeleg · die Gebühr · der Gutschein · der Coupon · die Kundenkarte · der Datenschutz
+      <div id="gloss"></div></div>
+    <div id="reading"></div>
+
+    <h3 style="margin-top:24px" data-k="kk_h">Karten im Vergleich</h3>
+    <table>
+      <tr><th></th><th data-k="th_giro">girocard (Debitkarte)</th><th data-k="th_kredit">Kreditkarte</th></tr>
+      <tr><td data-k="kk_r1">So funktioniert es</td><td data-k="kk_g1">Das Geld wird direkt vom Girokonto abgebucht. Der Kunde bestätigt mit der PIN. In Prüfungen heißt das oft noch „Electronic Cash“ oder „EC-Cash“.</td><td data-k="kk_k1">Visa, Mastercard u. a.: Die Umsätze werden gesammelt und später abgerechnet. Der Händler zahlt eine Gebühr an das Kreditkartenunternehmen.</td></tr>
+      <tr><td data-k="kk_r2">Erkennen an der Kasse</td><td data-k="kk_g2">girocard-Zeichen an der Kasse</td><td data-k="kk_k2">Symbole der Kreditkartenunternehmen an der Kasse zeigen: Diese Karten werden angenommen.</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="sch_h">Kartenzahlung in Schritten</h3>
+    <div class="merke" data-k="sch_t">1 Gesamtbetrag nennen · 2 Kunde steckt die Karte ein oder hält sie an das Lesegerät · 3 ggf. PIN eingeben · 4 Freigabe durch die Bank oder Kartenzentrale · 5 Zahlungsbeleg und Kassenbon übergeben</div>
+
+    <h3 style="margin-top:24px" data-k="kl_h">Kontaktlos und mit dem Smartphone</h3>
+    <div class="merke" data-k="kl_t">Das Kontaktlos-Zeichen bedeutet: Hier kann kontaktlos bezahlt werden. Karte oder Smartphone werden nur an das Lesegerät gehalten; die Daten werden per Funk (NFC) übertragen.<br>Ohne PIN meist bis 50 €. Eine PIN kann verlangt werden, wenn der Betrag höher ist, nach mehreren kontaktlosen Zahlungen hintereinander oder per Zufall (Sicherheit).<br>Mobile Payment: Der Kunde zahlt mit Smartphone oder Smartwatch (z. B. Apple Pay, Google Pay, Banking-App). Er bestätigt mit Fingerabdruck, Gesichtserkennung oder Code auf seinem Gerät.</div>
+
+    <table>
+      <tr><th></th><th data-k="th_vor">Vorteile</th><th data-k="th_nach">Nachteile</th></tr>
+      <tr><td data-k="vn_b">für den Betrieb</td>
+        <td data-k="vn_bv">schnelle Abwicklung, kürzere Schlangen · weniger Bargeld in der Kasse (weniger Diebstahl, kein Falschgeld) · Spontankäufe, Umsatzsteigerung · Service, Kundenbindung</td>
+        <td data-k="vn_bn">Gebühren je Zahlung · Anschaffung der Technik · Geld kommt später auf das Konto · kein Zahlen bei Technikausfall</td></tr>
+      <tr><td data-k="vn_k">für den Kunden</td>
+        <td data-k="vn_kv">schnell und bequem · hygienisch, nichts anfassen · kein Bargeld nötig, kein Falschgeld · Spontankäufe möglich</td>
+        <td data-k="vn_kn">Überblick über die Ausgaben geht leichter verloren · Daten werden gespeichert · Akku leer oder Technik gestört</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="gu_h">Gutschein, Coupon, Kundenkarte</h3>
+    <div class="merke" data-k="gu_t">Gutschein: Der Kunde kauft bis zum Wert des Gutscheins ein. Gibt ein Geschäft beim Umtausch einen Gutschein statt Geld, bindet es den Kunden. Gutscheine ohne Datum gelten drei Jahre.<br>Coupon: Rabatt auf einen Artikel oder Einkauf (z. B. 15 %).<br>Kundenkarte: Punkte und Rabatte sammeln, manchmal mit Bezahlfunktion. Der Betrieb erfährt dafür viel über das Kaufverhalten.</div>
+    <table>
+      <tr><th data-k="th_nutz">Wozu nutzt der Betrieb die Kundendaten?</th><th data-k="th_dsgvo">So geht der Betrieb richtig mit den Daten um (DSGVO)</th></tr>
+      <tr><td data-k="nu1">Kaufverhalten erkennen</td><td data-k="ds1">nur mit Einwilligung des Kunden speichern</td></tr>
+      <tr><td data-k="nu2">Zielgruppen bestimmen</td><td data-k="ds2">vertraulich behandeln</td></tr>
+      <tr><td data-k="nu3">Sortiment anpassen</td><td data-k="ds3">nicht an Dritte weitergeben</td></tr>
+      <tr><td data-k="nu4">Einzugsgebiet bestimmen</td><td data-k="ds4">nur so viele Daten wie nötig</td></tr>
+      <tr><td data-k="nu5">persönliche Werbung (Direct Mailing)</td><td data-k="ds5">auf Wunsch Auskunft geben und löschen</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="ss_h">Self-Scanning</h3>
+    <div class="merke" data-k="ss_t">Kunden scannen selbst an einer Selbstbedienungskasse oder mit dem Handy. Vorteile für den Betrieb: weniger Personal an der Kasse, weniger Platz, keine Fehler beim Wechselgeld. Nachteile: Anschaffung und Schulung, Technik fällt aus, manche Kunden lehnen es ab, höhere Diebstahlgefahr und Inventurdifferenzen.</div>
+
+    <div class="merke" data-k="merke_step"><b>Merke:</b> Bei „Beschreiben Sie den Zahlungsvorgang in 3 sachlogischen Schritten“ gibt es je Schritt 1 Punkt: Betrag nennen – Karte oder Smartphone an das Lesegerät – Beleg übergeben. Bei 5 Schritten kommen PIN und Freigabe dazu.</div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a3_h">Aufgabe 3 · Vorgemacht: Zahlen mit dem Smartphone</h2>
+    <p data-k="a3_p">So gehst du bei einer Prüfungsaufgabe vor. Lies die Schritte genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk0"><b>Die Aufgabe: Ein Kunde zahlt mit dem Handy. Beschreiben Sie in 3 Schritten in der richtigen Reihenfolge, wie die Zahlung an Ihrer Kasse abläuft! (3 Punkte)</b></div>
+    <div class="worked" data-k="wk1"><b>1. Operator lesen:</b> Beschreiben in 3 Schritten – Reihenfolge ist wichtig.</div>
+    <div class="worked" data-k="wk2"><b>2. Wer macht was?</b> Ich an der Kasse – der Kunde mit dem Handy – ich wieder.</div>
+    <div class="worked" data-k="wk3"><b>3. Aufschreiben:</b> 1. In der Kasse Kartenzahlung wählen und den Betrag nennen. 2. Der Kunde hält das Smartphone an das Kartenlesegerät und bestätigt auf dem Handy. 3. Ich übergebe den Beleg (gedruckt oder digital).</div>
+    <div class="worked" data-k="wk4"><b>4. Prüfen:</b> Drei Schritte, in der richtigen Reihenfolge, jeder ein ganzer Satz? Dann gibt es 3 Punkte.</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe die Beispiele gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a4_h">Aufgabe 4 · Geführte Übung</h2>
+    <p data-k="a4_p">4.1 Welche Zahlungsart ist gemeint?</p>
+    <div data-items="a4"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a5_h">Aufgabe 5 · Freie Übung: Steckbrief einer Zahlungsart <span class="pts" data-k="pts3lp">3 Leistungspunkte</span></h2>
+    <p data-k="a5_p">Wähle eine Zahlungsart, die es in deinem Ausbildungsbetrieb gibt. Schreibe einen Steckbrief, wie ihn die Prüfung verlangt: Zahlungsart · Ablauf in 3 Schritten · 2 Vorteile für den Betrieb · 2 Nachteile für den Betrieb · 2 Vorteile für den Kunden.</p>
+    <div data-items="a5"></div>
+    <div class="merke" data-k="a5_bew"><b>Bewertung:</b> Ablauf richtig (1 LP) · Vor- und Nachteile Betrieb richtig (1 LP) · Vorteile Kunde richtig (1 LP).</div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a6_h">Aufgabe 6 · Prüfungs-Check <span class="pts" data-k="pts14">14 Punkte · etwa 14 Minuten</span></h2>
+    <div class="merke" data-k="a6_sit"><b>Situation:</b> Sie arbeiten an der Kasse des Kaufhauses Hansa GmbH. An der Kasse hängen die Symbole zweier Kreditkartenunternehmen.</div>
+    <div data-items="a6"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7p_h">Aufgabe 7 · Für Profis</h2>
+    <p data-k="a7p_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="a7p"></div>
+  </div>
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="a8_h">Aufgabe 9 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="a8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="a8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 8 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={vor:"Ankommen: Was weißt du noch aus Modul 3?",txt:"Textverständnis: Umfrage und Lesetext",trans:"Transfer: Zahlungsarten erkennen und rechnen",wis:"Fachwissen: Prüfungs-Check",refl:"Betrieb & Weiterdenken"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{id:"a1_1",g:"a1",cat:"vor",q:"1.1 Nenne zwei Gründe, warum Kunden bar bezahlen.",kw:[["gewohnheit","gewohnt"],["ueberblick","ausgaben","kontrolle"],["keine daten","daten","anonym"],["misstrauen","technik","vertrauen"]],min:2,rows:3,
+ h:["Denk an Kunden, die lieber Bargeld in der Hand haben.","Was ist bei Bargeld anders als bei Karte: Überblick, Daten, Technik?"],
+ sol:"z. B. Gewohnheit, Überblick über die Ausgaben, keine Daten, Misstrauen gegenüber Technik."},
+{id:"a1_2",g:"a1",cat:"vor",q:"1.2 Wie prüfst du einen Geldschein?",kw:[["fuehlen","fuehl","tasten"],["sehen","ansehen","gegen das licht","hologramm"],["kippen","kipp","drehen"]],min:2,rows:3,
+ h:["Du benutzt deine Sinne: Hand und Augen.","Drei Wörter mit F, S und K helfen dir."],
+ sol:"Fühlen – Sehen – Kippen, mehrere Merkmale."},
+{id:"a1_3",g:"a1",cat:"vor",q:"1.3 Was tust du bei Verdacht auf Falschgeld?",kw:[["nicht zurueck","behalten","einbehalten","nicht zurueckgeben"],["vorgesetzte","chef","leitung","kollege","informier"],["warten","bitten"]],min:2,rows:3,
+ h:["Du entscheidest nicht allein.","Was machst du mit dem Schein – und wen holst du dazu?"],
+ sol:"Schein nicht zurückgeben, Vorgesetzte informieren, Kunden bitten zu warten."},
+
+{id:"a2_1",g:"a2",cat:"txt",mode:"self",q:"2.1 Was fällt euch auf? Warum ist das so?",rows:4,
+ h:["Schau auf die Ergebnisse an der Tafel: Welche Zahlungsart kommt oft vor, welche selten?","Warum wählen Menschen diese Zahlungsart: schnell, bequem, sicher?"],
+ sol:"Individuelle Antwort, z. B. die meisten zahlen kontaktlos mit Karte oder Smartphone, weil es schnell und bequem ist; bar bei kleinen Beträgen."},
+
+{id:"a4_1_1",g:"a4",cat:"trans",q:"4.1 Nr. 1: Das Geld wird sofort vom Girokonto des Kunden abgebucht; der Kunde gibt meist seine PIN ein. Welche Zahlungsart ist gemeint?",kw:[["girocard","giro","ec","debit","electronic cash"]],min:1,rows:2,
+ h:["Das Geld geht direkt vom Konto.","Die Karte hat ein Zeichen, das mit „giro“ beginnt."],
+ sol:"girocard (Debitkarte)."},
+{id:"a4_1_2",g:"a4",cat:"trans",q:"4.1 Nr. 2: Die Umsätze werden gesammelt und einmal im Monat abgerechnet. Welche Zahlungsart ist gemeint?",kw:[["kreditkarte","kredit","visa","mastercard"]],min:1,rows:2,
+ h:["Das Geld wird nicht sofort abgebucht.","Visa und Mastercard sind Beispiele."],
+ sol:"Kreditkarte."},
+{id:"a4_1_3",g:"a4",cat:"trans",q:"4.1 Nr. 3: Der Kunde hält die Karte nur an das Lesegerät; bis 50 € meist ohne PIN. Welche Zahlungsart ist gemeint?",kw:[["kontaktlos","nfc","funk"]],min:1,rows:2,
+ h:["Die Karte wird nicht eingesteckt.","Die Daten gehen per Funk über."],
+ sol:"kontaktlos (NFC)."},
+{id:"a4_1_4",g:"a4",cat:"trans",q:"4.1 Nr. 4: Der Kunde bestätigt die Zahlung mit Fingerabdruck oder Gesichtserkennung auf seinem Handy. Welche Zahlungsart ist gemeint?",kw:[["smartphone","handy","mobile","apple pay","google pay","smartwatch"]],min:1,rows:2,
+ h:["Hier gibt es keine Plastikkarte.","Der Kunde zahlt mit einem Gerät, das er in der Tasche hat."],
+ sol:"Smartphone (Mobile Payment)."},
+{id:"a4_1_5",g:"a4",cat:"trans",q:"4.1 Nr. 5: Der Kunde hat ihn geschenkt bekommen und kann damit bis zum Wert einkaufen. Welche Zahlungsart ist gemeint?",kw:[["gutschein"]],min:1,rows:2,
+ h:["Man bekommt ihn oft zum Geburtstag.","Er hat einen festen Wert, z. B. 20 €."],
+ sol:"Gutschein."},
+{id:"a4_1_6",g:"a4",cat:"trans",q:"4.1 Nr. 6: Der Kunde sammelt Punkte und bekommt Rabatte; manchmal kann er damit auch bezahlen. Welche Zahlungsart ist gemeint?",kw:[["kundenkarte","kunden karte","bonuskarte","bonus"]],min:1,rows:2,
+ h:["Man sammelt Punkte bei einem bestimmten Geschäft.","Die Karte heißt nach dem Kunden."],
+ sol:"Kundenkarte."},
+{id:"a4_2",g:"a4",cat:"trans",q:"4.2 Eine Kundin zahlt, indem sie ihre Karte nur an das Lesegerät hält, ohne sie einzustecken. Wie wird dieser Vorgang bezeichnet? Schreibe die Nummer auf.<br>1 Lastschriftverfahren<br>2 Kontaktloses Bezahlen (NFC)<br>3 Barzahlung<br>4 Ratenkauf<br>5 Price-Look-up-Verfahren",kw:[["re:\\b2\\b","kontaktlos","nfc"]],min:1,rows:2,
+ h:["Die Karte wird nicht eingesteckt. Wie werden die Daten übertragen?","Das Zeichen für diese Zahlung steht an der Kasse."],
+ sol:"Antwort 2: Kontaktloses Bezahlen (NFC) – die Daten werden per Funk übertragen."},
+{id:"a4_3",g:"a4",cat:"trans",q:"4.3 Welchen Nachteil hat die Annahme von Kreditkarten für den Betrieb? Schreibe die Nummer auf.<br>1 Es entstehen zusätzliche Kosten (Gebühren).<br>2 Zahlungen unter 50 € sind verboten.<br>3 Das Geld kommt erst nach einem halben Jahr.<br>4 Der Umsatz pro Kunde sinkt.<br>5 Kunden müssen immer unterschreiben.",kw:[["re:\\b1\\b","gebuehr","kosten"]],min:1,rows:2,
+ h:["Wer bekommt bei einer Kreditkartenzahlung einen Teil des Geldes?","Lies die Tabelle „Karten im Vergleich“."],
+ sol:"Antwort 1: Der Händler zahlt eine Gebühr an das Kreditkartenunternehmen."},
+{id:"a4_4",g:"a4",cat:"trans",q:"4.4 Eine Kundin hat 1.250 Bonuspunkte auf ihrer Kundenkarte (1 Punkt = 0,01 €). Sie kauft für 38,90 € ein und möchte die Punkte verrechnen. Wie viel Euro muss sie noch zahlen? (Schreibe das Ergebnis mit Rechenweg.)",kw:[["26,40","26.40","26,4"]],min:1,rows:3,
+ h:["Zuerst: Wie viel Euro sind die Punkte wert? Punkte mal 0,01 €.","Dann den Wert der Punkte vom Einkauf abziehen."],
+ sol:"1.250 × 0,01 € = 12,50 €; 38,90 € − 12,50 € = 26,40 €. Sie muss noch 26,40 € zahlen."},
+
+{id:"a5_1",g:"a5",cat:"refl",mode:"self",q:"Schreibe deinen Steckbrief: Zahlungsart · Ablauf in 3 Schritten · 2 Vorteile für den Betrieb · 2 Nachteile für den Betrieb · 2 Vorteile für den Kunden.",rows:9,
+ h:["Wähle eine Zahlungsart aus deinem Betrieb, z. B. girocard, kontaktlos oder Smartphone.","Der Ablauf: Betrag nennen – Karte oder Smartphone an das Lesegerät – Beleg übergeben (bei 5 Schritten kommen PIN und Freigabe dazu)."],
+ sol:"Individuelle Antwort. Prüfe selbst: (1) Ablauf in 3 Schritten in der richtigen Reihenfolge? (2) 2 Vorteile und 2 Nachteile für den Betrieb (z. B. schnelle Abwicklung, weniger Bargeld; Gebühren, Technikausfall)? (3) 2 Vorteile für den Kunden (z. B. schnell und bequem, kein Bargeld nötig)?"},
+
+{id:"a6_1",g:"a6",cat:"wis",q:"6.1 Was bedeuten die Symbole der Kreditkartenunternehmen an der Kasse für den Kunden? Erklären Sie! (2 Punkte)",kw:[["akzeptier","angenommen","annehm","nimmt","zahlen","bezahlen","moeglich"],["kreditkarte","karten","symbol"]],min:1,rows:3,
+ h:["Denken Sie an einen Kunden, der vor der Kasse steht und die Symbole sieht.","Was erfährt er über die Zahlungsmöglichkeiten im Geschäft?"],
+ sol:"Die Kaufhaus Hansa GmbH akzeptiert die Zahlung mit diesen beiden Kreditkarten."},
+{id:"a6_2",g:"a6",cat:"wis",q:"6.2 Nennen Sie 2 Vorteile und 2 Nachteile der Kartenzahlung für das Kaufhaus Hansa GmbH! (4 Punkte)",kw:[["spontan","umsatz"],["service","kundenservice","kundenbindung"],["sicher","falschgeld","weniger bargeld","diebstahl"],["schnell","schlange"],["gebuehr"],["technik","anschaffung","ausfall"],["spaeter","zahlungseingang","konto"]],min:4,rows:5,
+ h:["Trennen Sie: erst zwei Vorteile, dann zwei Nachteile.","Vorteile: Tempo, Sicherheit, Umsatz. Nachteile: Kosten, Technik, Zeitpunkt der Zahlung."],
+ sol:"Vorteile, je 1 P.: Spontankäufe, Umsatzsteigerung, Kundenservice, Zahlungssicherheit, kein Falschgeld. Nachteile, je 1 P.: Technik, Gebühren an das Kreditkartenunternehmen, späterer Zahlungseingang."},
+{id:"a6_3",g:"a6",cat:"wis",q:"6.3 Eine Kundin möchte mit einer Karte mit Kontaktlos-Symbol zahlen. Beschreiben Sie in 3 Schritten in der richtigen Reihenfolge, wie die Zahlung mit NFC abläuft! (3 Punkte)",kw:[["halten","lesegeraet","terminal","hinhalten","an das"],["funk","daten","betrag","austausch","uebertr"],["bon","beleg","kassenbon","uebergeben","pin"]],min:3,rows:5,
+ h:["Drei Schritte: Was passiert zuerst, dann, zuletzt? Die Reihenfolge ist wichtig.","Erst die Karte, dann die Daten, am Ende der Beleg."],
+ sol:"Karte an das Lesegerät halten – Kartendaten und Betrag werden per Funk ausgetauscht – Kassenbon wird übergeben (ggf. PIN)."},
+{id:"a6_4",g:"a6",cat:"wis",q:"6.4 Welchen Vorteil hat das Bezahlen mit NFC gegenüber dem Bezahlen ohne NFC? (1 Punkt)",kw:[["schnell","zeit","kuerzer","flott","bequem","abwicklung"]],min:1,rows:2,
+ h:["Denken Sie an die Schlange an der Kasse.","Was ist bei NFC kürzer?"],
+ sol:"schnellere Zahlungsabwicklung."},
+{id:"a6_5",g:"a6",cat:"wis",q:"6.5 In welchem Fall kann bei einer Kontaktlos-Zahlung zusätzlich die PIN verlangt werden? Nennen Sie einen Fall! (2 Punkte)",kw:[["betrag","hoeher","50","grenze","ueber"],["mehrere","hintereinander","derselben karte","mehrmals"],["zufall","zufaellig","stichprobe","sicherheit"]],min:1,rows:3,
+ h:["Es gibt drei Fälle: Betrag, Anzahl der Zahlungen, Zufall.","Nennen Sie einen davon mit einem ganzen Satz."],
+ sol:"Betrag über der festgelegten Höhe, mehrere Zahlungen mit derselben Karte, Zufallsabfrage."},
+{id:"a6_6",g:"a6",cat:"wis",q:"6.6 Wie müssen Sie nach der Datenschutz-Grundverordnung (DSGVO) mit Kundendaten umgehen? Erläutern Sie! (2 Punkte)",kw:[["vertraulich","geheim","schuetzen","sicher"],["dritte","weitergeben","weiter","zustimmung","einwilligung"]],min:2,rows:4,
+ h:["Zwei Dinge: Wie behandeln Sie die Daten, und was dürfen Sie damit nicht tun?","Wer darf die Daten nicht ohne Zustimmung bekommen?"],
+ sol:"Kundendaten vertraulich behandeln und nicht (ohne Zustimmung) an Dritte weitergeben."},
+
+{id:"a7p_1",g:"a7p",cat:"refl",mode:"self",q:"7.1 Ein kleines Café will nur noch Kartenzahlung annehmen. Beurteilen Sie diese Entscheidung aus Sicht des Cafés und aus Sicht der Kunden.",rows:7,
+ h:["Betrachten Sie zwei Seiten getrennt: Café und Kunden.","Was spart das Café – und wer kann dann vielleicht nicht mehr bezahlen?"],
+ sol:"Café: kein Wechselgeld, kein Falschgeld, weniger Zählen und Bankwege; aber Gebühren und Technikrisiko. Kunden: bequem für die meisten; ältere Menschen, Kinder und Menschen ohne Karte werden ausgeschlossen, keine anonyme Zahlung. Urteil mit Begründung."},
+{id:"a7p_2",g:"a7p",cat:"refl",mode:"self",q:"7.2 Eine Kundenkarte bringt 1 % Rabatt auf jeden Einkauf. Erläutern Sie, warum sich das für das Geschäft trotzdem lohnen kann.",rows:6,
+ h:["Was bekommt das Geschäft zusätzlich zum Umsatz?","Denken Sie an Kundenbindung und an die Daten."],
+ sol:"Kunden kommen öfter wieder (Kundenbindung). Das Geschäft erfährt, wer was wann kauft, und kann Sortiment und Werbung gezielt anpassen. Der Rabatt ist die „Bezahlung“ für die Daten."}
+];
+
+/* Lesetext: [[Richtig]] = gesuchter Begriff, {{Falsch}} = Ablenker */
+const READ=[
+{t:"Karten: girocard und Kreditkarte",task:"Markiere, wie die girocard bezahlt wird, wie sie in Prüfungen heißt und wer bei der Kreditkarte eine Gebühr bekommt.",
+ x:"Bei der [[girocard]] (Debitkarte) wird das Geld [[direkt vom Girokonto]] abgebucht. Der Kunde bestätigt mit der [[PIN]]. In Prüfungen heißt das oft [[Electronic Cash]] oder EC-Cash. Bei der [[Kreditkarte]] (Visa, Mastercard u. a.) werden die Umsätze gesammelt und [[später abgerechnet]]. Der Händler zahlt eine [[Gebühr]] an das Kreditkartenunternehmen. Die {{Kundenkarte}} gehört nicht zu den Bankkarten.",
+ q:"Woran erkennt der Kunde, welche Karten angenommen werden?",o:["An den Symbolen an der Kasse.","An der Farbe des Kassenbons.","An der Uhrzeit."],c:0},
+{t:"Kartenzahlung in Schritten",task:"Markiere die Schritte der Kartenzahlung in der richtigen Reihenfolge.",
+ x:"So läuft eine Kartenzahlung ab: Zuerst nennst du den [[Gesamtbetrag]]. Dann steckt der Kunde die Karte ein oder hält sie an das [[Lesegerät]]. Wenn nötig, gibt er die [[PIN]] ein. Danach gibt die [[Bank]] oder Kartenzentrale die Zahlung frei. Zum Schluss übergibst du den [[Zahlungsbeleg]] und den Kassenbon. Eine {{Inventur}} gehört nicht zum Ablauf.",
+ q:"Welche 3 Schritte gibt es bei der Kurzfassung (je 1 Punkt)?",o:["Betrag nennen – Karte oder Smartphone an das Lesegerät – Beleg übergeben.","PIN ändern – Karte sperren – Geld zählen.","Ware einpacken – Kunden verabschieden – Kasse schließen."],c:0},
+{t:"Kontaktlos und Mobile Payment",task:"Markiere, wie die Daten übertragen werden, bis wann es meist ohne PIN geht und womit man bei Mobile Payment bestätigt.",
+ x:"Beim [[kontaktlosen]] Bezahlen wird die Karte oder das Smartphone nur an das Lesegerät [[gehalten]]. Die Daten werden per [[Funk (NFC)]] übertragen. Ohne PIN geht es meist bis [[50 €]]. Eine PIN kann verlangt werden, wenn der Betrag [[höher]] ist, nach [[mehreren]] kontaktlosen Zahlungen hintereinander oder per [[Zufall]] (Sicherheit). Beim [[Mobile Payment]] zahlt der Kunde mit Smartphone oder Smartwatch und bestätigt mit [[Fingerabdruck]], Gesichtserkennung oder Code. Eine {{Unterschrift}} ist dafür nicht nötig.",
+ q:"Welchen Vorteil hat kontaktloses Bezahlen?",o:["Die Zahlung geht schneller.","Der Betrieb zahlt keine Technik.","Es gibt nie eine PIN."],c:0},
+{t:"Vor- und Nachteile für den Betrieb",task:"Markiere zwei Vorteile und zwei Nachteile der Kartenzahlung für den Betrieb.",
+ x:"Vorteile für den Betrieb: [[schnelle Abwicklung]], kürzere Schlangen, weniger Bargeld in der Kasse (weniger [[Diebstahl]], kein [[Falschgeld]]), Spontankäufe und [[Umsatzsteigerung]]. Nachteile: [[Gebühren]] je Zahlung, [[Anschaffung der Technik]], das Geld kommt später auf das Konto und bei [[Technikausfall]] kann niemand zahlen. Für den Kunden ist es schnell und bequem; der Nachteil: Der [[Überblick]] über die Ausgaben geht leichter verloren, und seine [[Daten]] werden gespeichert. Ein {{Mengenrabatt}} gehört nicht dazu.",
+ q:"Warum ist weniger Bargeld in der Kasse ein Vorteil?",o:["Weniger Diebstahl und kein Falschgeld.","Der Betrieb braucht keine Kasse mehr.","Die Gebühren sind dann null."],c:0},
+{t:"Gutschein, Coupon und Kundenkarte",task:"Markiere, wie lange Gutscheine ohne Datum gelten, was ein Coupon ist und was der Betrieb bei der Kundenkarte erfährt.",
+ x:"Mit einem [[Gutschein]] kauft der Kunde bis zum Wert des Gutscheins ein. Gibt ein Geschäft beim Umtausch einen Gutschein statt Geld, [[bindet]] es den Kunden. Gutscheine ohne Datum gelten [[drei Jahre]]. Ein [[Coupon]] ist ein Rabatt auf einen Artikel oder Einkauf (z. B. [[15 %]]). Mit der [[Kundenkarte]] sammelt der Kunde Punkte und Rabatte. Der Betrieb erfährt dafür viel über das [[Kaufverhalten]]. Bei Kundendaten gilt die [[DSGVO]]: nur mit [[Einwilligung]] speichern, [[vertraulich]] behandeln und nicht an [[Dritte]] weitergeben. Eine {{Garantie}} ist etwas anderes.",
+ q:"Wozu nutzt der Betrieb die Kundendaten?",o:["Um das Sortiment und die Werbung anzupassen.","Um Preise vor dem Kunden zu verstecken.","Um die Daten an andere Firmen zu verschenken."],c:0},
+{t:"Self-Scanning",task:"Markiere, wo Kunden selbst scannen, einen Vorteil und einen Nachteil für den Betrieb.",
+ x:"Beim [[Self-Scanning]] scannen Kunden selbst an einer [[Selbstbedienungskasse]] oder mit dem [[Handy]]. Vorteil für den Betrieb: [[weniger Personal]] an der Kasse, weniger Platz, keine Fehler beim [[Wechselgeld]]. Nachteile: Anschaffung und [[Schulung]], Technik fällt aus, manche Kunden lehnen es ab, höhere [[Diebstahlgefahr]] und [[Inventurdifferenzen]]. Eine {{Warenlieferung}} spielt hier keine Rolle.",
+ q:"Welchen Nachteil hat Self-Scanning für den Betrieb?",o:["Höhere Diebstahlgefahr und Inventurdifferenzen.","Mehr Personal an der Kasse.","Mehr Fehler beim Wechselgeld."],c:0}
+];
+
+/* Vertiefung (level v) – Zusatz, aus dem Material abgeleitet */
+ITEMS.push(
+{id:"v9_1",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.1 Viele Betriebe nehmen Kreditkarten an, obwohl sie Gebühren zahlen. Begründe, warum sich das trotzdem lohnen kann.",rows:5,
+ h:["Was kostet die Kreditkarte – und was bringt sie dem Betrieb?","Denk an Kunden, die nicht genug Bargeld dabeihaben."],
+ sol:"Die Gebühren sind ein Nachteil. Aber Kunden können spontan kaufen, auch ohne Bargeld; das steigert den Umsatz. Außerdem ist das Zahlen sicher und schnell, und es gibt weniger Bargeld in der Kasse (weniger Diebstahl, kein Falschgeld). Wenn der Gewinn aus dem Mehrumsatz höher ist als die Gebühren, lohnt es sich."},
+{id:"v9_2",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.2 Warum kann bei kontaktlosen Zahlungen nach mehreren Zahlungen hintereinander die PIN verlangt werden? Begründe.",rows:5,
+ h:["Was könnte passieren, wenn jemand die Karte verliert und ohne PIN immer weiter zahlt?","Der Text nennt den Grund in Klammern: Sicherheit."],
+ sol:"Ohne PIN kann jeder mit der Karte bezahlen. Damit eine fremde Person nicht viele kleine Beträge hintereinander ausgeben kann, verlangt das System nach mehreren Zahlungen die PIN – aus Sicherheitsgründen. So wird der Kunde geschützt."},
+{id:"v9_3",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.3 Was würde passieren, wenn ein Betrieb Kundendaten von der Kundenkarte ohne Einwilligung an Dritte weitergibt? Begründe mit der DSGVO.",rows:5,
+ h:["Was verlangt die DSGVO: speichern nur mit …, nicht an … weitergeben?","Wie würde sich der Kunde fühlen?"],
+ sol:"Der Betrieb würde gegen die DSGVO verstoßen: Daten dürfen nur mit Einwilligung gespeichert, müssen vertraulich behandelt und dürfen nicht an Dritte weitergegeben werden. Kunden würden dem Betrieb nicht mehr vertrauen und die Kundenkarte vielleicht nicht mehr nutzen."},
+{id:"v9_4",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.4 Warum bindet ein Geschäft den Kunden, wenn es beim Umtausch einen Gutschein statt Geld gibt? Begründe.",rows:5,
+ h:["Wo kann der Kunde den Gutschein einlösen?","Was passiert mit dem Geld des Kunden: Bleibt es im Geschäft?"],
+ sol:"Der Gutschein kann nur im Geschäft eingelöst werden. Der Kunde muss also wiederkommen und dort einkaufen. Das Geld bleibt im Geschäft, und der Kunde wird gebunden (Kundenbindung). Gutscheine ohne Datum gelten drei Jahre."}
+);
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={
+a1_1:[["Bargeld","Kunde","bezahlen","Grund"],["Kunden bezahlen bar, weil …"]],
+a1_2:[["Geldschein","prüfen","Merkmal","Sinne"],["Ich prüfe den Schein, indem …"]],
+a1_3:[["Verdacht","Schein","Kunde","Vorgesetzte"],["Bei Verdacht …"]],
+a2_1:[["Umfrage","Zahlungsart","häufig","selten"],["Mir fällt auf, dass …","Das ist so, weil …"]],
+a4_1_1:[["Girokonto","PIN","abbuchen"],["Gemeint ist …"]],
+a4_1_2:[["Umsatz","Monat","abrechnen"],["Gemeint ist …"]],
+a4_1_3:[["Karte","Lesegerät","PIN"],["Gemeint ist …"]],
+a4_1_4:[["Fingerabdruck","Gesicht","bestätigen"],["Gemeint ist …"]],
+a4_1_5:[["schenken","Wert","einkaufen"],["Gemeint ist …"]],
+a4_1_6:[["Punkte","Rabatt","sammeln"],["Gemeint ist …"]],
+a4_2:[["Karte","Lesegerät","einstecken","Funk"],["Richtig ist die Aussage …"]],
+a4_3:[["Betrieb","Nachteil","Kreditkarte","Bank"],["Der Nachteil ist …"]],
+a4_4:[["Punkte","Wert","Einkauf","abziehen"],["Die Punkte sind … € wert.","Sie muss noch … € zahlen."]],
+a5_1:[["Zahlungsart","Ablauf","Vorteil","Nachteil"],["Meine Zahlungsart ist …","Der Ablauf: Erstens …"]],
+a6_1:[["Kunde","Kaufhaus","Zahlungsmöglichkeit"],["Die Symbole bedeuten, dass …"]],
+a6_2:[["Vorteil","Nachteil","Kaufhaus","Zahlung"],["Ein Vorteil ist …","Ein Nachteil ist …"]],
+a6_3:[["Karte","Reihenfolge","Schritt","Kundin"],["Erstens …","Zweitens …","Drittens …"]],
+a6_4:[["NFC","Zahlung","Kunde","Kasse"],["Der Vorteil ist, dass …"]],
+a6_5:[["PIN","kontaktlos","Fall","Karte"],["Die PIN kann verlangt werden, wenn …"]],
+a6_6:[["Kundendaten","DSGVO","Datenschutz","Kunde"],["Kundendaten muss ich …"]],
+a7p_1:[["Café","Kartenzahlung","Wechselgeld","ausgeschlossen"],["Aus Sicht des Cafés …","Aus Sicht der Kunden …","Mein Urteil: …, weil …"]],
+a7p_2:[["Kundenkarte","Rabatt","Kundenbindung","Daten"],["Das lohnt sich, weil …"]],
+v9_1:[["Gebühr","Umsatz","Spontankauf","Kunde"],["Der Betrieb nimmt Kreditkarten an, weil …"]],
+v9_2:[["PIN","Sicherheit","Karte","verloren"],["Ohne PIN könnte …","Deshalb …"]],
+v9_3:[["DSGVO","Einwilligung","vertraulich","Vertrauen"],["Dann würde der Betrieb …"]],
+v9_4:[["Gutschein","einlösen","Geschäft","Kundenbindung"],["Der Gutschein bindet den Kunden, weil …"]]
+};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+
+const GLOSS_DE=["die girocard","die Kreditkarte","die PIN","kontaktlos","die NFC-Funktion","das Mobile Payment","der Zahlungsbeleg","die Gebühr","der Gutschein","der Coupon","die Kundenkarte","der Datenschutz"];
+
+const TX={"sub":["مجال التعلّم 3 · خدمة العملاء في منطقة الصندوق","Lĩnh vực học 3 · Phục vụ khách hàng tại khu vực quầy thu ngân","Навчальна галузь 3 · Обслуговування клієнтів у касовій зоні","ዓውዲ ትምህርቲ 3 · ኣብ ቦታ ካሳ ኣገልግሎት ዓማዊል"],"name":["الاسم","Họ tên","Ім'я","ሽም"],"date":["التاريخ","Ngày","Дата","ዕለት"],"can_h":["هذا ما سأستطيع فعله بعد ذلك","Sau bài này tôi có thể","Після цього я вмію","ድሕሪ እዚ እዚ ክገብር እኽእል እየ"],"can_note":["ضع علامة في النهاية على ما تستطيع فعله الآن.","Cuối bài, hãy đánh dấu những gì bạn đã làm được.","Наприкінці познач, що ти вже вмієш.","ኣብ መወዳእታ ሕጂ ክትገብሮ ዘኽእለካ ምልክት ግበር።"],"pts1":["نقطة واحدة","1 điểm","1 бал","1 ነጥቢ"],"pts2":["نقطتان","2 điểm","2 бали","2 ነጥቢ"],"read_h":["للقراءة والمراجعة · قراءة نشِطة","Đọc lại · đọc chủ động","Для читання · активне читання","ንምንባብ · ንጡፍ ንባብ"],"read_p":["اقرأ كل مقطع واضغط على المصطلحات المطلوبة (تصبح صفراء). انتبه: هناك مصطلحات خاطئة أيضًا! بعد ذلك تجيب عن سؤال قصير – وعندها فقط يُفتح المقطع التالي.","Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở.","Прочитай кожен абзац і торкнись потрібних слів (вони стануть жовтими). Увага: є й неправильні слова! Потім дай відповідь на коротке запитання – лише тоді відкриється наступний абзац.","ነፍሲ ወከፍ ክፍሊ ኣንብብ፣ እቶም ዝድለዩ ቃላት ተንከፎም (ብጫ ይኸውኑ)። ጥንቃቐ፡ ጌጋ ቃላት እውን ኣለዉ! ድሕሪኡ ሓጺር ሕቶ ምለስ – ሽዑ ጥራይ እቲ ዝቕጽል ክፍሊ ይኽፈት።"],"ws_h":["مخزن الكلمات (الترجمة)","Kho từ vựng (bản dịch)","Словник (переклад)","መዝገበ-ቃላት (ትርጉም)"],"a2btn":["قرأتُ الأمثلة","Tôi đã đọc các ví dụ","Я прочитав(ла) приклади","ኣብነታት ኣንቢበ ኣለኹ"],"a7_h":["المهمة 8 · قدِّر، اختبر، سجِّل","Bài 8 · Ước lượng, kiểm tra, ghi lại","Завдання 8 · Оціни, перевір, запиши","ዕዮ 8 · ገምግም፣ ፈትን፣ ጽሓፍ"],"a7_p":["كم نقطة من 20 ستحصل عليها في ورقة العمل هذه؟ سجِّل تقديرك قبل التقييم.","Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm.","Скільки з 20 балів ти отримаєш за цей аркуш? Запиши свою оцінку до перевірки.","ኣብዚ ወረቐት ስራሕ ካብ 20 ነጥቢ ክንደይ ክትረክብ ትሓስብ? ቅድሚ ግምጋሜ ግምትካ ጽሓፍ።"],"th1":["تقديري","Dự đoán của tôi","Моя оцінка","ግምተይ"],"th2":["نتيجتي","Kết quả của tôi","Мій результат","ውጽኢተይ"],"th3":["الفرق","Chênh lệch","Різниця","ፍሉይነት"],"th4":["نقاط لحساب النقاط","Điểm cho tài khoản điểm","Бали для рахунку балів","ነጥብታት ንናይ ነጥቢ ሕሳብ"],"submit_h":["انتهيت؟ إذن قيِّم!","Xong chưa? Hãy chấm điểm!","Готово? Тоді перевіряй!","ወዲእካ? እንተኾነ ገምግም!"],"submit_p":["يمكنك التقييم حتى لو لم تنجز كل شيء – المهام غير المنجزة تُحتسب بصفر.","Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm.","Можна оцінити, навіть якщо не все зроблено – незроблені завдання дають 0 балів.","ኩሉ ዘይተሰርሐ እኳ እንተኾነ ክትገምግም ትኽእል – ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"submit_b":["إرسال وتقييم","Gửi và chấm điểm","📊 Надіслати й оцінити","📊 ሰዲድካ ገምግም"],"res_h":["تقييمك","Kết quả của bạn","Твій результат","ውጽኢትካ"],"pdf_b":["تصدير كملف PDF (للمعلمة)","Xuất PDF (cho giáo viên)","🖨️ Експорт у PDF (для вчителя)","🖨️ ከም PDF ኣውጽእ (ንመምህር)"],"tip_t":["تلميح","Gợi ý","Підказка","ሓጋዚ ሓሳብ"],"tip_next":["تلميح آخر","Thêm gợi ý","Ще одна підказка","ካልእ ሓጋዚ ሓሳብ"],"close":["إغلاق","Đóng","Закрити","ዕጸው"],"chk":["تحقّق","Kiểm tra","✔ Перевірити","✔ ፈትሽ"],"shw":["إظهار الحل","Hiện lời giải","Показати розв'язок","መልሲ ርአይ"],"markb":["تحقّق من التظليل","Kiểm tra phần đánh dấu","Перевірити позначки","ምልክታት ፈትሽ"],"self_q":["ما مدى جودة إجابتك؟","Câu trả lời của bạn tốt đến đâu?","Наскільки добре ти відповів(ла)?","ምላስካ ክንደይ ጽቡቕ ነበረ?"],"self1":["نجحت","Đạt","✔ Вдалося","✔ ኣሸኒፈ"],"self2":["جزئيًا","Một phần","◐ Частково","◐ ብሓደ ኣቕጣጫ"],"self3":["ليس بعد","Chưa","✖ Ще ні","✖ ኣይተኻእለን"],"fb_ok":["ممتاز! أحسنت.","Đúng rồi! Làm tốt lắm.","✅ Правильно! Молодець.","✅ ቅኑዕ! ጽቡቕ ሰሪሕካ።"],"fb_part":["تقريبًا – ينقص جزء. قارن بالحل وأكمل.","Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung.","🟡 Майже – ще чогось бракує. Порівняй із розв'язком і доповни.","🟡 ቐረባ – ሓደ ክፍሊ ጎዲሉ። ምስ መልሲ ኣነጻጽርካ ወስኸሉ።"],"fb_bad":["ليس بعد. استعن بتلميح أو أعد قراءة النص.","Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản.","❌ Ще не те. Візьми підказку 💡 або перечитай текст.","❌ ገና ኣይቅኑዕን። ሓጋዚ ሓሳብ 💡 ውሰድ ወይ ጽሑፍ ዳግማይ ኣንብብ።"],"sol_lbl":["الحل:","Lời giải:","Розв'язок:","መልሲ፡"],"mk_ok":["تظليل صحيح! والآن السؤال:","Đánh dấu đúng! Giờ đến câu hỏi:","✅ Позначено правильно! Тепер запитання:","✅ ብቐንዱ ተሓሪዩ! ሕጂ እቲ ሕቶ፡"],"mk_bad":["ليس تمامًا بعد. اقرأ المهمة مرة أخرى.","Chưa hoàn toàn đúng. Hãy đọc lại đề bài.","Ще не зовсім. Прочитай завдання ще раз.","ገና ጥዑይ ኣይኮነን። ዕዮ ዳግማይ ኣንብብ።"],"zq_ok":["بالضبط! تم فتح المقطع التالي.","Chính xác! Đoạn tiếp theo đã mở.","✅ Точно! Наступний абзац відкрито.","✅ ልክዕ! እቲ ዝቕጽል ክፍሊ ተኸፊቱ።"],"zq_bad":["ليس تمامًا. أعد قراءة المقطع وحاول مجددًا.","Chưa đúng. Hãy đọc lại đoạn và thử lại.","Не зовсім. Перечитай абзац і спробуй ще раз.","ኣይኮነን ጥዑይ። ክፍሊ ዳግማይ ኣንብብ ከምኡውን እንደገና ፈትን።"],"res_pts":["من 20 نقطة","trên 20 điểm","з 20 балів","ካብ 20 ነጥቢ"],"res_an":["تحليل الأخطاء حسب مجالات الكفاءة","Phân tích lỗi theo lĩnh vực năng lực","Аналіз помилок за сферами компетенцій","ትንተና ጌጋታት ብዘርእስታት ክእለት"],"rep":["ما يجب أن تراجعه","Bạn nên ôn lại","Це треба повторити","እዚ ክትደግሞ ኣለካ"],"lab1":["ممتاز!","Tuyệt vời!","Чудово!","ብጣዕሚ ጽቡቕ!"],"lab2":["جيد – تحتاج مزيدًا من التمرين","Khá – cần luyện thêm","Добре – ще трохи практики","ጽቡቕ – ገለ ተወሳኺ ልምምድ"],"lab3":["تحتاج هنا إلى مزيد من التمرين","Phần này bạn cần luyện thêm","Тут тобі ще потрібна практика","ኣብዚ ገና ልምምድ የድልየካ"],"set_h":["الإعدادات","Cài đặt","Налаштування","ቅጥዕታት"],"set_mode":["الترجمة","Bản dịch","Переклад","ትርጉም"],"mode_tap":["بالنقر","Chạm để xem","Торкнутися","ብምንካፍ"],"mode_under":["تحت النص","Hiện bên dưới","Під текстом","ኣብ ትሕቲ ጽሑፍ"],"mode_off":["إيقاف","Tắt","Вимк.","ዕጹው"],"set_fs":["حجم الخط","Cỡ chữ","Розмір шрифту","ዓቐን ፊደል"],"set_level":["المستوى","Mức độ","Рівень","ደረጃ"],"lvl_b":["أساسي","Cơ bản","Базовий","መሰረታዊ"],"lvl_v":["تعمّق","Nâng cao","Поглиблений","ዓሚቝ"],"set_snd":["الصوت","Âm thanh","Звук","ድምጺ"],"set_reset":["البدء من جديد","Làm lại từ đầu","Почати спочатку","ካብ ሓድሽ ጀምር"],"dlg_reset":["حذف كل شيء والبدء من جديد؟ ستضيع إجاباتك في ورقة العمل هذه.","Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất.","Усе видалити й почати спочатку? Твої записи в цьому аркуші буде втрачено.","ኩሉ ይሰረዝ እሞ ካብ ሓድሽ ይጀመር? ኣብዚ ወረቐት ዘኣተኻዮ ይጥፍእ።"],"dlg_next":["الشخص التالي: سيتم حذف الإجابات والاسم.","Người tiếp theo: nội dung và tên sẽ bị xóa.","Наступна особа: записи та ім'я буде видалено.","ቀጻሊ ሰብ፡ ዘኣተኻዮን ስምን ይጥፍእ።"],"dlg_cancel":["إلغاء","Hủy","Скасувати","ሰርዝ"],"dlg_ok":["نعم","Đồng ý","Так","እወ"],"wg_h":["كلمات وبدايات جمل للمساعدة","Từ ngữ và gợi ý đầu câu","Слова та початки речень","ቃላትን መጀመርታ ሓሳባትን"],"a8_h":["المهمة 9 · التعمّق","Bài 9 · Nâng cao","Завдання 9 · Поглиблення","ዕዮ 9 · ምዕማቕ"],"pts_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"a8_p":["تظهر فقط في مستوى «التعمّق». علّل بجمل كاملة. هذه المهام تمنح نقاطًا إضافية ولا تخفض نقاطك الـ 20 أبدًا.","Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn.","Лише на рівні «Поглиблений». Обґрунтуй повними реченнями. Ці завдання дають бонусні бали й ніколи не зменшують твої 20 балів.","ኣብ ደረጃ «ዓሚቝ» ጥራይ። ብምሉእ ሓሳብ ኣብርህ። እዞም ዕዮታት ቦነስ ነጥቢ ይህቡ እሞ ኣብ 20 ነጥብታትካ ፈጺሞም ኣይጐድሉን።"],"res_card_h":["النتيجة للمعلمة","Kết quả cho giáo viên","Результат для вчителя","ውጽኢት ንመምህር"],"btn_img":["حفظ النتيجة كصورة","Lưu kết quả dưới dạng ảnh","🖼️ Зберегти результат як зображення","🖼️ ውጽኢት ከም ስእሊ ዓቅብ"],"btn_code":["نسخ الرمز","Sao chép mã","📋 Копіювати код","📋 ኮድ ቅዳሕ"],"btn_next":["الشخص التالي","Người tiếp theo","👤 Наступна особа","👤 ቀጻሊ ሰብ"],"res_open":["ملاحظة: المهام غير المنجزة تُحتسب بصفر.","Lưu ý: bài chưa làm tính 0 điểm.","Примітка: незроблені завдання дають 0 балів.","ሓበሬታ፡ ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"res_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"cat_bonus":["نقاط إضافية (التعمّق)","Điểm thưởng (Nâng cao)","Бонус (поглиблення)","ቦነስ (ምዕማቕ)"],"fb_peek":["صحيح – لكنك نظرت إلى الحل قبل ذلك، لذلك تحصل على نصف النقاط.","Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm.","✅ Правильно – але ти раніше дивився(лась) розв'язок, тому половина балів.","✅ ቅኑዕ – ግን ቅድም መልሲ ርእይካዮ፣ ስለዚ ፍርቂ ነጥቢ።"],"t25":["بداية جيدة!","Khởi đầu tốt!","Гарний початок!","ጽቡቕ ጅምር!"],"t50":["اكتمل النصف!","Xong một nửa rồi!","Півдороги!","ፍርቂ!"],"t75":["اقتربت من الهدف!","Sắp đến đích rồi!","Майже готово!","ቐረባ!"],"t100":["أنجزت كل شيء! الآن قيِّم.","Đã làm xong hết! Giờ hãy chấm điểm.","Усе зроблено! Тепер оціни.","ኩሉ ተሰሪሑ! ሕጂ ገምግም።"],"t_write":["اكتب شيئًا أولًا","Hãy viết gì đó trước","Спочатку щось напиши","ቅድም ገለ ጽሓፍ"],"t_saved":["تم التسجيل","Đã ghi","Збережено","ተዓቒቡ"],"t_read":["تمت القراءة","Đã đọc","Прочитано","ተነቢቡ"],"t_resume":["تابع من حيث توقفت","Tiếp tục từ chỗ bạn dừng","Продовжуй, де зупинився(лась)","ኣብ ዝደው ዝበልካዮ ቀጽል"],"t_copy":["تم نسخ الرمز","Đã sao chép mã","Код скопійовано","ኮድ ተቐዲሑ"],"t_img":["تم حفظ الصورة","Đã lưu ảnh","Зображення збережено","ስእሊ ተዓቒቡ"],"h1":["الوحدة 4: البطاقة والهاتف وقسيمة الشراء","Mô-đun 4: Thẻ, điện thoại, phiếu quà tặng","Модуль 4: Картка, телефон, подарунковий сертифікат","ምዕራፍ 4: ካርዲ፣ ተሌፎን፣ ወረቐት ህያብ"],"meta":["حصتان مزدوجتان · 8 نقاط · الكتاب المدرسي ص 177–181 · كراس التمارين ص 142–151","2 tiết đôi · 8 điểm · Sách giáo khoa tr. 177–181 · Vở bài tập tr. 142–151","2 здвоєні уроки · 8 балів · Підручник с. 177–181 · Робочий зошит с. 142–151","2 ድርብ ትምህርቲ · 8 ነጥቢ · መጽሓፍ ገጽ 177–181 · መስርሕ መጽሓፍ ገጽ 142–151"],"can1":["أستطيع وصف مراحل الدفع بالبطاقة بخطوات منطقية متسلسلة.","Tôi có thể mô tả các bước thanh toán bằng thẻ theo đúng trình tự hợp lý.","Я можу описати послідовність кроків оплати карткою.","ኣብ ክፍሊት ብካርዲ ዘለዉ ደረጃታት ብስርዓት ክገልጾም እኽእል እየ።"],"can2":["أستطيع شرح الدفع بدون تلامس (kontaktlos) والدفع عبر الهاتف (Mobile Payment).","Tôi có thể giải thích thanh toán không tiếp xúc và thanh toán qua điện thoại (Mobile Payment).","Я можу пояснити безконтактну оплату та мобільну оплату (Mobile Payment).","ብዘይ ርክብ ምኽፋልን ብተሌፎን ምኽፋልን (Mobile Payment) ከብርህ እኽእል እየ።"],"can3":["أستطيع ذكر مزايا وعيوب طرق الدفع للشركة وللعملاء.","Tôi có thể nêu ưu điểm và nhược điểm của các hình thức thanh toán đối với cửa hàng và khách hàng.","Я можу назвати переваги й недоліки способів оплати для підприємства та для клієнтів.","ጥቕምታትን ጉድለታትን ዓይነታት ክፍሊት ንድኳንን ንዓማዊልን ክጽሕፍ እኽእል እየ።"],"can4":["أستطيع شرح القسائم (Gutschein) والكوبونات (Coupon) وبطاقات العملاء (Kundenkarte) والتعامل مع بيانات العملاء بشكل صحيح.","Tôi có thể giải thích phiếu quà tặng, coupon và thẻ khách hàng, và xử lý dữ liệu khách hàng đúng cách.","Я можу пояснити, що таке подарункові сертифікати, купони та картки клієнта, і правильно поводитися з даними клієнтів.","ወረቐት ህያብ፣ ኩፖንን ካርዲ ዓሚልን ከብርህ፣ ሓበሬታ ዓማዊል ድማ ብትክክል ክሕዝ እኽእል እየ።"],"a1_h":["المهمة 1 · الانطلاق: ماذا تتذكر من الوحدة 3؟","Bài 1 · Khởi động: Bạn còn nhớ gì từ Mô-đun 3?","Завдання 1 · Розминка: Що ти ще пам’ятаєш з модуля 3?","መጉልሒ 1 · መእተዊ: ካብ ምዕራፍ 3 እንታይ ትዝክር?"],"a1_p":["أجب من الذاكرة.","Trả lời theo trí nhớ.","Відповідай по пам’яті.","ብዘክሮኻ መልሲ።"],"a2_h":["المهمة 2 · استطلاع: كيف يدفع صفّنا؟","Bài 2 · Khảo sát: Lớp mình thanh toán thế nào?","Завдання 2 · Опитування: Як платить наш клас?","መጉልሒ 2 · መጽናዕቲ: ክፍልና ከመይ ይኸፍል?"],"a2_p":["كيف دفعت في آخر ثلاث مشتريات لك؟ يجمع المعلّم النتائج على السبورة.","Ba lần mua sắm gần nhất bạn đã thanh toán bằng cách nào? Giáo viên ghi kết quả lên bảng.","Як ти платив(-ла) за останні три покупки? Учитель збирає результати на дошці.","ኣብ ሰለስቲ ዝሓለፉ ዕዳጋታትካ ብኸመይ ከፊልካ? እቲ መምህር ውጽኢታት ኣብ ጣውላ ይእክብ።"],"a2_opt":["نقدًا · girocard مع الرقم السري (PIN) · بطاقة بدون تلامس · الهاتف الذكي · بطاقة ائتمان (Kreditkarte) · قسيمة شراء (Gutschein)","tiền mặt · girocard với mã PIN · thẻ không tiếp xúc · điện thoại · thẻ tín dụng · phiếu quà tặng","готівка · girocard з PIN-кодом · безконтактна картка · смартфон · кредитна картка · подарунковий сертифікат","ጥረ ገንዘብ · girocard ምስ PIN · ብዘይ ርክብ ካርዲ · ስማርትፎን · ክረዲት ካርዲ · ወረቐት ህያብ"],"kk_h":["مقارنة بين البطاقات","So sánh các loại thẻ","Порівняння карток","ምምድዳብ ካርዲታት"],"th_giro":["girocard (بطاقة الخصم المباشر، Debitkarte)","girocard (thẻ ghi nợ)","girocard (дебетова картка)","girocard (ዴቢት ካርዲ)"],"th_kredit":["بطاقة ائتمان (Kreditkarte)","Thẻ tín dụng (Kreditkarte)","Кредитна картка (Kreditkarte)","ክረዲት ካርዲ (Kreditkarte)"],"kk_r1":["كيف تعمل","Hoạt động thế nào","Як це працює","ከመይ ይሰርሕ"],"kk_g1":["يُخصم المال مباشرة من الحساب الجاري. يؤكد العميل بالرقم السري (PIN). في الامتحانات تُسمّى غالبًا \"Electronic Cash\" أو \"EC-Cash\".","Tiền được trừ thẳng từ tài khoản vãng lai. Khách xác nhận bằng mã PIN. Trong đề thi thường còn gọi là „Electronic Cash“ hoặc „EC-Cash“.","Гроші списуються безпосередньо з поточного рахунку. Клієнт підтверджує PIN-кодом. На іспитах це часто ще називають „Electronic Cash“ або „EC-Cash“.","ገንዘብ ብቐጥታ ካብ ሕሳብ ባንካ ይወሃሃድ። እቲ ዓሚል ብPIN የረጋግጽ። ኣብ ፈተናታት ብዙሕ ግዜ „Electronic Cash“ ወይ „EC-Cash“ ይበሃል።"],"kk_k1":["Visa وMastercard وغيرهما: تُجمع المبالغ وتُحاسب لاحقًا. يدفع التاجر رسومًا (Gebühr) لشركة بطاقات الائتمان.","Visa, Mastercard v.v.: Các khoản chi được gom lại và thanh toán sau. Cửa hàng trả một khoản phí cho công ty thẻ tín dụng.","Visa, Mastercard тощо: витрати збираються й оплачуються пізніше. Торговець платить комісію компанії кредитних карток.","Visa, Mastercard ወዘተ: እቲ ወጻኢታት ይእከብን ደሓር ይኽፈልን። እቲ ሸያጢ ንውልቀ-ትካል ክረዲት ካርዲ ክፍሊት ይኸፍል።"],"kk_r2":["كيف نعرفها عند الصندوق","Nhận biết ở quầy thu ngân","Як впізнати на касі","ኣብ ካሳ ከመይ ይፍለጥ"],"kk_g2":["علامة girocard عند الصندوق","Biểu tượng girocard ở quầy thu ngân","Знак girocard на касі","ምልክት girocard ኣብ ካሳ"],"kk_k2":["رموز شركات بطاقات الائتمان عند الصندوق تدل على أن هذه البطاقات مقبولة.","Biểu tượng của các công ty thẻ tín dụng ở quầy thu ngân cho biết: các thẻ này được chấp nhận.","Символи компаній кредитних карток на касі показують: ці картки приймають.","ምልክታት ትካላት ክረዲት ካርዲ ኣብ ካሳ ከምዚ የርእዩ: እዞም ካርዲታት ይቕበሉ እዮም።"],"sch_h":["الدفع بالبطاقة خطوة بخطوة","Thanh toán bằng thẻ theo từng bước","Оплата карткою за кроками","ክፍሊት ብካርዲ ብደረጃ"],"sch_t":["1 ذكر المبلغ الإجمالي · 2 يُدخل العميل البطاقة أو يقرّبها من الجهاز · 3 عند الحاجة يُدخل الرقم السري (PIN) · 4 موافقة البنك أو مركز البطاقات · 5 تسليم إيصال الدفع (Zahlungsbeleg) وإيصال الصندوق (Kassenbon)","1 Báo tổng số tiền · 2 Khách cắm thẻ hoặc đưa thẻ sát máy đọc · 3 nếu cần nhập mã PIN · 4 Ngân hàng hoặc trung tâm thẻ chấp thuận · 5 Đưa biên lai thanh toán và hóa đơn","1 Назвати загальну суму · 2 Клієнт вставляє картку або підносить її до зчитувача · 3 за потреби ввести PIN-код · 4 Дозвіл від банку або центру карток · 5 Видати платіжну квитанцію та касовий чек","1 ጠቕላላ ክፍሊት ምዝራብ · 2 እቲ ዓሚል ካርዲ የእቱ ወይ ናብ መንበቢ መሳርሒ የቐርብ · 3 እንተድሌዩ PIN የእቱ · 4 ባንካ ወይ ማእከል ካርዲ ይፈቅድ · 5 ደረሰኝ ክፍሊትን ደረሰኝ ካሳን ምሃብ"],"kl_h":["بدون تلامس وبالهاتف الذكي","Không tiếp xúc và bằng điện thoại","Безконтактно та зі смартфоном","ብዘይ ርክብን ብስማርትፎንን"],"kl_t":["تعني علامة الدفع بدون تلامس أنه يمكن الدفع هنا بدون تلامس. تُقرَّب البطاقة أو الهاتف من الجهاز فقط، وتُنقل البيانات لاسلكيًا (NFC). بدون الرقم السري غالبًا حتى 50 يورو. قد يُطلب الرقم السري إذا كان المبلغ أعلى، أو بعد عدة مدفوعات متتالية بدون تلامس، أو بالصدفة (للأمان). الدفع عبر الهاتف (Mobile Payment): يدفع العميل بالهاتف الذكي أو الساعة الذكية (مثل Apple Pay وGoogle Pay وتطبيق البنك). ويؤكد ببصمة الإصبع أو بالتعرف على الوجه أو برمز على جهازه.","Biểu tượng không tiếp xúc có nghĩa là: ở đây có thể thanh toán không tiếp xúc. Chỉ cần đưa thẻ hoặc điện thoại sát máy đọc; dữ liệu được truyền bằng sóng vô tuyến (NFC). Thường không cần PIN đến 50 €. Có thể bị yêu cầu nhập PIN nếu số tiền cao hơn, sau nhiều lần thanh toán không tiếp xúc liên tiếp hoặc ngẫu nhiên (để an toàn). Mobile Payment: Khách trả bằng điện thoại thông minh hoặc đồng hồ thông minh (ví dụ Apple Pay, Google Pay, ứng dụng ngân hàng). Khách xác nhận bằng vân tay, nhận diện khuôn mặt hoặc mã trên thiết bị của mình.","Знак безконтактної оплати означає: тут можна платити безконтактно. Картку або смартфон лише підносять до зчитувача; дані передаються по радіозв’язку (NFC). Зазвичай без PIN-коду до 50 €. PIN-код можуть вимагати, якщо сума більша, після кількох безконтактних оплат поспіль або випадково (з міркувань безпеки). Mobile Payment: клієнт платить смартфоном або смарт-годинником (наприклад, Apple Pay, Google Pay, банківський застосунок). Він підтверджує відбитком пальця, розпізнаванням обличчя або кодом на своєму пристрої.","ምልክት ብዘይ ርክብ ክፍሊት ማለት: ኣብዚ ብዘይ ርክብ ክትኸፍል ትኽእል። ካርዲ ወይ ስማርትፎን ናብ መንበቢ መሳርሒ ጥራይ ይቐርብ፤ ሓበሬታ ብሬድዮ ሞገድ (NFC) ይሰዳ። ብዙሕ ግዜ ክሳብ 50 € ብዘይ PIN። PIN ክሕተት ይኽእል: መጠን ገንዘብ ምስ ዝልዕል፣ ድሕሪ ብዙሕ ብዘይ ርክብ ክፍሊት ብተኸታታሊ ወይ ብሕጂ-ዘይሕጂ (ንድሕነት)። Mobile Payment: እቲ ዓሚል ብስማርትፎን ወይ ብስማርት-ሰዓት (ንኣብነት Apple Pay, Google Pay, ባንክ-App) ይኸፍል። ኣብ መሳርሒኡ ብኣሰር ኣጻብዕ፣ ብምልላይ ገጽ ወይ ብኮድ የረጋግጽ።"],"th_vor":["المزايا","các ưu điểm","Переваги","ጥቕምታት"],"th_nach":["العيوب","Nhược điểm","Недоліки","ጉድለታት"],"vn_b":["للشركة","đối với cửa hàng","для підприємства","ንድኳን"],"vn_bv":["إنجاز سريع للدفع، طوابير أقصر · نقد أقل في الصندوق (سرقة أقل، لا أموال مزيفة) · مشتريات عفوية، زيادة المبيعات · خدمة أفضل، ربط العملاء بالمتجر","thanh toán nhanh, hàng đợi ngắn hơn · ít tiền mặt trong két (ít bị trộm, không có tiền giả) · mua sắm bốc đồng, doanh thu tăng · dịch vụ tốt, giữ chân khách hàng","швидке обслуговування, коротші черги · менше готівки в касі (менше крадіжок, немає фальшивих грошей) · спонтанні покупки, зростання обороту · сервіс, прив’язування клієнтів","ቅልጡፍ ኣገባብ፣ ሓጸርቲ ሰልፊ · ውሑድ ጥረ ገንዘብ ኣብ ካሳ (ውሑድ ስርቂ፣ ሓሶት ገንዘብ የለን) · ብድንገት ዕዳጋ፣ ዝልዕል ሽያጥ · ኣገልግሎት፣ ምትሕዝ ዓማዊል"],"vn_bn":["رسوم على كل عملية دفع · شراء الأجهزة والتقنية · يصل المال إلى الحساب لاحقًا · لا يمكن الدفع عند تعطل التقنية","phí cho mỗi lần thanh toán · phải mua thiết bị · tiền vào tài khoản chậm hơn · khi thiết bị hỏng thì không thanh toán được","комісія за кожну оплату · купівля техніки · гроші надходять на рахунок пізніше · при збої техніки оплата неможлива","ክፍሊት ንሕልፊ ክፍሊት · ምዕዳግ ቴክኒክ · ገንዘብ ደሓር ናብ ሕሳብ ይመጽእ · ቴክኒክ እንተተበላሽዩ ክፍሊት ኣይከኣልን"],"vn_k":["للعميل","đối với khách hàng","для клієнта","ንዓሚል"],"vn_kv":["سريع ومريح · صحي، لا حاجة للمس شيء · لا حاجة للنقد، لا أموال مزيفة · مشتريات عفوية ممكنة","nhanh và tiện · vệ sinh, không phải chạm vào gì · không cần tiền mặt, không có tiền giả · có thể mua sắm bốc đồng","швидко й зручно · гігієнічно, нічого не треба торкатися · готівка не потрібна, немає фальшивих грошей · можливі спонтанні покупки","ቅልጡፍን ምቹእን · ንጽህናዊ፣ ዋላ ሓንቲ ኣይትትንክፍን · ጥረ ገንዘብ ኣየድልን፣ ሓሶት ገንዘብ የለን · ብድንገት ምዕዳግ ይከኣል"],"vn_kn":["يصعب أكثر تتبّع المصروفات · تُخزَّن البيانات · البطارية فارغة أو عطل تقني","dễ mất kiểm soát chi tiêu hơn · dữ liệu bị lưu lại · hết pin hoặc thiết bị trục trặc","легше втратити контроль над витратами · дані зберігаються · розряджена батарея або збій техніки","ኣብ ወጻኢታት ምቁጽጻር ይኸብድ · ሓበሬታ ይቕመጥ · ባትሪ ምውዳእ ወይ ቴክኒክ ምብልሻው"],"gu_h":["قسيمة الشراء والكوبون وبطاقة العميل","Phiếu quà tặng, coupon, thẻ khách hàng","Подарунковий сертифікат, купон, картка клієнта","ወረቐት ህያብ፣ ኩፖን፣ ካርዲ ዓሚል"],"gu_t":["قسيمة الشراء (Gutschein): يشتري العميل حتى قيمة القسيمة. إذا أعطى المتجر قسيمة بدل المال عند الاستبدال، فإنه يربط العميل به. القسائم بدون تاريخ تسري ثلاث سنوات. الكوبون (Coupon): خصم على سلعة أو على المشتريات (مثلًا 15 %). بطاقة العميل (Kundenkarte): جمع نقاط وخصومات، وأحيانًا مع وظيفة الدفع. وتعرف الشركة بذلك الكثير عن سلوك الشراء.","Phiếu quà tặng (Gutschein): Khách mua hàng đến hết giá trị của phiếu. Khi đổi hàng mà cửa hàng đưa phiếu thay vì tiền, cửa hàng giữ chân được khách. Phiếu không ghi ngày có hiệu lực ba năm. Coupon: giảm giá cho một món hàng hoặc cho cả lần mua (ví dụ 15 %). Thẻ khách hàng (Kundenkarte): tích điểm và nhận giảm giá, đôi khi có cả chức năng thanh toán. Đổi lại, cửa hàng biết rất nhiều về thói quen mua sắm.","Подарунковий сертифікат (Gutschein): клієнт купує товари на суму сертифіката. Якщо магазин при обміні дає сертифікат замість грошей, він прив’язує клієнта. Сертифікати без дати діють три роки. Купон (Coupon): знижка на товар або на покупку (наприклад, 15 %). Картка клієнта (Kundenkarte): збирати бали й знижки, іноді з функцією оплати. За це підприємство дізнається багато про поведінку покупців.","ወረቐት ህያብ (Gutschein): እቲ ዓሚል ክሳብ ዋጋ እቲ ወረቐት ይዕድግ። ድኳን ኣብ ምልዋጥ ኣብ ክንዲ ገንዘብ ወረቐት ህያብ እንተሂቡ፣ ንዓሚል የተሓሕዞ። ዕለት ዘይብሉ ወረቐት ህያብ ሰለስተ ዓመት የገልግል። ኩፖን (Coupon): ቅናሽ ኣብ ሓደ ሸቐጥ ወይ ኣብ ምሉእ ዕዳጋ (ንኣብነት 15 %)። ካርዲ ዓሚል (Kundenkarte): ነጥቢታትን ቅናሽን ምእካብ፣ ሓንሳብ ሓንሳብ ምስ ተግባር ክፍሊት። ብምኽንያቱ እቲ ድኳን ብዙሕ ብዛዕባ ኣገባብ ዕዳጋ ይፈልጥ።"],"th_nutz":["لماذا تستخدم الشركة بيانات العملاء؟","Cửa hàng dùng dữ liệu khách hàng để làm gì?","Для чого підприємство використовує дані клієнтів?","እቲ ድኳን ንሓበሬታ ዓማዊል ንእንታይ ይጥቀመሉ?"],"th_dsgvo":["كيف تتعامل الشركة مع البيانات بشكل صحيح (DSGVO)","Cửa hàng xử lý dữ liệu đúng cách (DSGVO)","Як підприємство правильно поводиться з даними (DSGVO)","እቲ ድኳን ንሓበሬታ ብትክክል ከመይ ይሕዞ (DSGVO)"],"nu1":["التعرّف على سلوك الشراء","nhận biết thói quen mua sắm","розпізнавати поведінку покупців","ኣገባብ ዕዳጋ ምፍላጥ"],"ds1":["الحفظ فقط بموافقة العميل","chỉ lưu khi khách đồng ý","зберігати тільки зі згоди клієнта","ብፍቓድ ዓሚል ጥራይ ምቕማጥ"],"nu2":["تحديد الفئات المستهدفة","xác định nhóm khách hàng mục tiêu","визначати цільові групи","ዝዕለሉ ጉጅለታት ምውሳን"],"ds2":["التعامل معها بسرية","giữ bí mật","поводитися конфіденційно","ብምስጢር ምሕዛ"],"nu3":["تعديل تشكيلة البضائع","điều chỉnh danh mục hàng hóa","пристосовувати асортимент","ዓይነት ሸቐጥ ምውቃዕ"],"ds3":["عدم تسليمها لأطراف ثالثة","không chuyển cho bên thứ ba","не передавати третім особам","ንሳልሳይ ወገን ኣይትሃብ"],"nu4":["تحديد منطقة الزبائن","xác định khu vực khách hàng","визначати зону охоплення","ከባቢ ዓማዊል ምፍላጥ"],"ds4":["جمع البيانات بقدر الحاجة فقط","chỉ lấy dữ liệu cần thiết","лише стільки даних, скільки потрібно","እትደልዮ ሓበሬታ ጥራይ"],"nu5":["إعلانات شخصية (Direct Mailing)","quảng cáo cá nhân hóa (Direct Mailing)","персональна реклама (Direct Mailing)","ውልቃዊ መወዓውዒ (Direct Mailing)"],"ds5":["إعطاء المعلومات وحذف البيانات عند الطلب","khi khách yêu cầu thì cung cấp thông tin và xóa","на вимогу надавати інформацію й видаляти","እንተተሓተተ ሓበሬታ ምሃብን ምድምሳስን"],"ss_h":["المسح الذاتي (Self-Scanning)","Self-Scanning (tự quét hàng)","Self-Scanning (самостійне сканування)","Self-Scanning (ባዕሉ ምስካን)"],"ss_t":["يمسح العملاء بأنفسهم عند صندوق الخدمة الذاتية أو بالهاتف. المزايا للشركة: موظفون أقل عند الصندوق، مساحة أقل، لا أخطاء في الباقي. العيوب: الشراء والتدريب، تعطل التقنية، بعض العملاء يرفضونه، خطر سرقة أعلى وفروقات في الجرد (Inventur).","Khách tự quét hàng ở quầy tự phục vụ hoặc bằng điện thoại. Ưu điểm cho cửa hàng: ít nhân viên thu ngân hơn, tốn ít chỗ hơn, không sai sót khi trả tiền thừa. Nhược điểm: phải mua thiết bị và đào tạo, thiết bị bị hỏng, một số khách không thích, nguy cơ trộm cắp cao hơn và chênh lệch kiểm kê.","Клієнти самі скануюють товар на касі самообслуговування або зі смартфона. Переваги для підприємства: менше персоналу на касі, менше місця, немає помилок із решітою. Недоліки: купівля техніки й навчання, збої техніки, частина клієнтів відмовляється, вищий ризик крадіжок і інвентаризаційні розбіжності.","ዓማዊል ኣብ ባዕሎም ዝገልግሉ ካሳ ወይ ብተሌፎን ባዕሎም የስክኑ። ጥቕምታት ንድኳን: ውሑድ ሰራሕተኛ ኣብ ካሳ፣ ውሑድ ቦታ፣ ኣብ ተመላሲ ገንዘብ ጌጋ የለን። ጉድለታት: ምዕዳግ ቴክኒክን ስልጠናን፣ ቴክኒክ ይብለሽ፣ ገሊኦም ዓማዊል ይኽልክሉ፣ ልዑል ሓደጋ ስርቂን ኣብ ቆጸራ ዝፍለ ፍሉይነትን።"],"merke_step":["تذكّر: في سؤال \"صِف عملية الدفع في 3 خطوات منطقية\" تحصل على نقطة لكل خطوة: ذكر المبلغ – تقريب البطاقة أو الهاتف من الجهاز – تسليم الإيصال. في 5 خطوات يُضاف الرقم السري والموافقة.","Ghi nhớ: Với đề bài „Hãy mô tả quá trình thanh toán trong 3 bước hợp lý“, mỗi bước được 1 điểm: báo số tiền – đưa thẻ hoặc điện thoại sát máy đọc – đưa biên lai. Nếu là 5 bước thì thêm PIN và chấp thuận.","Запам’ятай: у завданні „Опишіть процес оплати в 3 логічних кроках“ за кожен крок дається 1 бал: назвати суму – піднести картку або смартфон до зчитувача – видати квитанцію. Для 5 кроків додаються PIN-код і дозвіл.","ዘክር: ኣብ „መስርሕ ክፍሊት ኣብ 3 ስርዓታዊ ደረጃታት ግለጽ“ ንነፍስ ወከፍ ደረጃ 1 ነጥቢ ኣሎ: መጠን ምዝራብ – ካርዲ ወይ ስማርትፎን ናብ መንበቢ መሳርሒ – ደረሰኝ ምሃብ። ኣብ 5 ደረጃታት PIN ከምኡውን ፍቓድ ይወሃሃዱ።"],"a3_h":["المهمة 3 · نموذج محلول: الدفع بالهاتف الذكي","Bài 3 · Làm mẫu: Thanh toán bằng điện thoại","Завдання 3 · Покажемо на прикладі: Оплата зі смартфона","መጉልሒ 3 · ብኣብነት: ብስማርትፎን ምኽፋል"],"a3_p":["هكذا تتعامل مع مهمة امتحان. اقرأ الخطوات جيدًا، فستحتاجها بعد قليل.","Bạn làm một bài thi như thế này. Hãy đọc kỹ các bước, lát nữa bạn sẽ cần.","Так діють у завданні іспиту. Уважно прочитай кроки, вони зараз знадобляться.","ኣብ መጉልሒ ፈተና ከምዚ ትሰርሕ። ደረጃታት ብጽቡቕ ኣንብብ፣ ሕጂ ከድልዩኻ እዮም።"],"wk0":["السؤال: عميل يدفع بالهاتف. صِف في 3 خطوات وبالترتيب الصحيح كيف تتم عملية الدفع عند صندوقك! (3 نقاط)","Đề bài: Một khách trả tiền bằng điện thoại. Hãy mô tả trong 3 bước, theo đúng thứ tự, thanh toán diễn ra thế nào ở quầy của bạn! (3 điểm)","Завдання: клієнт платить телефоном. Опишіть у 3 кроках у правильній послідовності, як відбувається оплата на вашій касі! (3 бали)","እቲ መጉልሒ: ሓደ ዓሚል ብተሌፎን ይኸፍል። ኣብ ካሳኹም ክፍሊት ከመይ ከም ዝካየድ ኣብ 3 ደረጃታት ብትክክል ስርዓት ግለጹ! (3 ነጥቢ)"],"wk1":["1. قراءة فعل السؤال: وصف في 3 خطوات – الترتيب مهم.","1. Đọc động từ yêu cầu: Mô tả trong 3 bước – thứ tự rất quan trọng.","1. Прочитати дієслово-завдання: Описати в 3 кроках – послідовність важлива.","1. ግሲ ምንባብ: ኣብ 3 ደረጃታት ግለጽ – ስርዓት ኣገዳሲ እዩ።"],"wk2":["2. من يفعل ماذا؟ أنا عند الصندوق – العميل بهاتفه – ثم أنا مرة أخرى.","2. Ai làm gì? Tôi ở quầy – khách với điện thoại – lại là tôi.","2. Хто що робить? Я на касі – клієнт із телефоном – знову я.","2. መን እንታይ ይገብር? ኣነ ኣብ ካሳ – እቲ ዓሚል ብተሌፎን – ደጊመ ኣነ።"],"wk3":["3. الكتابة: 1. أختار الدفع بالبطاقة في الصندوق وأذكر المبلغ. 2. يقرّب العميل الهاتف من جهاز قراءة البطاقات ويؤكد على الهاتف. 3. أسلّم الإيصال (مطبوعًا أو رقميًا).","3. Viết ra: 1. Chọn thanh toán thẻ trên máy tính tiền và báo số tiền. 2. Khách đưa điện thoại sát máy đọc thẻ và xác nhận trên điện thoại. 3. Tôi đưa biên lai (in ra hoặc điện tử).","3. Записати: 1. На касі вибрати оплату карткою й назвати суму. 2. Клієнт підносить смартфон до зчитувача карток і підтверджує на телефоні. 3. Я видаю квитанцію (друковану або цифрову).","3. ምጽሓፍ: 1. ኣብ ካሳ ክፍሊት ብካርዲ ምምራጽን መጠን ምዝራብን። 2. እቲ ዓሚል ስማርትፎኑ ናብ መንበቢ መሳርሒ ካርዲ የቐርብ ኣብ ተሌፎኑ ድማ የረጋግጽ። 3. ኣነ ደረሰኝ (ዝሕተም ወይ ዲጂታል) እህብ።"],"wk4":["4. المراجعة: ثلاث خطوات، بالترتيب الصحيح، وكل خطوة جملة كاملة؟ إذًا تحصل على 3 نقاط.","4. Kiểm tra: Ba bước, đúng thứ tự, mỗi bước là một câu đầy đủ? Vậy là được 3 điểm.","4. Перевірити: Три кроки, у правильній послідовності, кожен — повне речення? Тоді буде 3 бали.","4. ምፍታሽ: ሰለስተ ደረጃታት፣ ብትክክል ስርዓት፣ ነፍስ ወከፍ ምሉእ ሓረግ? እንተኾነ 3 ነጥቢ ኣሎ።"],"a4_h":["المهمة 4 · تمرين موجَّه","Bài 4 · Luyện tập có hướng dẫn","Завдання 4 · Вправа з підказками","መጉልሒ 4 · ብመምርሒ ልምምድ"],"a4_p":["4.1 ما طريقة الدفع المقصودة؟","4.1 Đó là hình thức thanh toán nào?","4.1 Який спосіб оплати мається на увазі?","4.1 ኣየናይ ዓይነት ክፍሊት እዩ ዝተባህለ?"],"a5_h":["المهمة 5 · تمرين حر: بطاقة تعريف لطريقة دفع","Bài 5 · Luyện tập tự do: Hồ sơ tóm tắt một hình thức thanh toán 3 điểm luyện tập","Завдання 5 · Вільна вправа: Візитка способу оплати 3 бали за вправу","መጉልሒ 5 · ነጻ ልምምድ: መግለጺ ሓደ ዓይነት ክፍሊት 3 ነጥቢ ልምምድ"],"pts3lp":["3 نقاط إنجاز","3 điểm thành tích","3 бали за досягнення","3 ነጥቢ ዓወት"],"a5_p":["اختر طريقة دفع موجودة في شركة تدريبك. اكتب بطاقة تعريف كما يطلبها الامتحان: طريقة الدفع · الخطوات الثلاث · ميزتان للشركة · عيبان للشركة · ميزتان للعميل.","Chọn một hình thức thanh toán có ở nơi bạn học nghề. Viết hồ sơ tóm tắt như đề thi yêu cầu: Hình thức thanh toán · Quy trình 3 bước · 2 ưu điểm cho cửa hàng · 2 nhược điểm cho cửa hàng · 2 ưu điểm cho khách hàng.","Вибери спосіб оплати, який є на твоєму підприємстві навчання. Напиши візитку, як цього вимагає іспит: Спосіб оплати · Процес у 3 кроки · 2 переваги для підприємства · 2 недоліки для підприємства · 2 переваги для клієнта.","ኣብ ናይ ትምህርቲ ድኳንካ ዘሎ ሓደ ዓይነት ክፍሊት ምረጽ። ከምቲ ፈተና ዝሓተቶ መግለጺ ጽሓፍ: ዓይነት ክፍሊት · መስርሕ ኣብ 3 ደረጃታት · 2 ጥቕምታት ንድኳን · 2 ጉድለታት ንድኳን · 2 ጥቕምታት ንዓሚል።"],"a5_bew":["التقييم: الخطوات صحيحة (نقطة إنجاز واحدة) · المزايا والعيوب للشركة صحيحة (نقطة واحدة) · مزايا العميل صحيحة (نقطة واحدة).","Chấm điểm: Quy trình đúng (1 điểm) · Ưu và nhược điểm cho cửa hàng đúng (1 điểm) · Ưu điểm cho khách đúng (1 điểm).","Оцінювання: процес правильний (1 бал) · переваги й недоліки для підприємства правильні (1 бал) · переваги для клієнта правильні (1 бал).","ምምዛን: መስርሕ ትክክል (1 ነጥቢ) · ጥቕምታትን ጉድለታትን ንድኳን ትክክል (1 ነጥቢ) · ጥቕምታት ንዓሚል ትክክል (1 ነጥቢ)።"],"a6_h":["المهمة 6 · اختبار الامتحان","Bài 6 · Kiểm tra kiểu thi 14 điểm · khoảng 14 phút","Завдання 6 · Перевірка до іспиту 14 балів · приблизно 14 хвилин","መጉልሒ 6 · ፈተና-ምርመራ 14 ነጥቢ · ኣስታት 14 ደቓይቕ"],"pts14":["14 نقطة · حوالي 14 دقيقة","14 điểm · khoảng 14 phút","14 балів · приблизно 14 хвилин","14 ነጥቢ · ኣስታት 14 ደቓይቕ"],"a6_sit":["الوضع: تعمل عند صندوق متجر Hansa GmbH. تعلّق عند الصندوق رموز شركتين لبطاقات الائتمان.","Tình huống: Bạn làm việc ở quầy thu ngân của cửa hàng bách hóa Hansa GmbH. Ở quầy có dán biểu tượng của hai công ty thẻ tín dụng.","Ситуація: Ви працюєте на касі універмагу Hansa GmbH. На касі висять символи двох компаній кредитних карток.","ኩነታት: ኣብ ካሳ እቲ ዓቢ ድኳን Hansa GmbH ትሰርሕ። ኣብ ካሳ ምልክታት ክልተ ትካላት ክረዲት ካርዲ ተሰቒሉ ኣሎ።"],"a7p_h":["المهمة 7 · للمحترفين","Bài 7 · Dành cho người giỏi","Завдання 7 · Для профі","ዕዮ 7 · ንክኢላታት"],"a7p_p":["للتفكير أكثر – بجمل كاملة ومع التعليل.","Để suy nghĩ sâu hơn – viết câu đầy đủ, có giải thích lý do.","Для роздумів – повними реченнями, з обґрунтуванням.","ንተወሳኺ ሓሳብ – ምሉእ ሓረጋት፣ ምስ ምኽንያት።"],"a1_1.q":["1.1 اذكر سببين يجعلان العملاء يدفعون نقدًا.","1.1 Nêu hai lý do khiến khách hàng trả tiền mặt.","1.1 Назви дві причини, чому клієнти платять готівкою.","1.1 ዓማዊል ስለምንታይ ጥረ ገንዘብ ከም ዝኸፍሉ ክልተ ምኽንያታት ጥቀስ።"],"a1_1.h0":["فكّر في عملاء يفضلون حمل النقود في أيديهم.","Nghĩ đến những khách thích cầm tiền mặt trong tay.","Подумай про клієнтів, які люблять тримати готівку в руках.","ጥረ ገንዘብ ኣብ ኢዶም ክሕዙ ዝፈትዉ ዓማዊል ሕሰብ።"],"a1_1.h1":["ما الفرق بين النقد والبطاقة: المراقبة، البيانات، التقنية؟","Tiền mặt khác thẻ ở điểm nào: kiểm soát chi tiêu, dữ liệu, thiết bị?","Чим готівка відрізняється від картки: контроль, дані, техніка?","ጥረ ገንዘብ ካብ ካርዲ እንታይ ይፍለ: ምቁጽጻር፣ ሓበሬታ፣ ቴክኒክ?"],"a1_1.s":["مثلًا العادة، معرفة المصروفات، عدم تسجيل بيانات، عدم الثقة بالتقنية.","Ví dụ: thói quen, dễ kiểm soát chi tiêu, không để lại dữ liệu, không tin thiết bị công nghệ.","Наприклад: звичка, контроль над витратами, жодних даних, недовіра до техніки.","ንኣብነት: ልማድ፣ ኣብ ወጻኢታት ምቁጽጻር፣ ሓበሬታ የለን፣ ኣብ ቴክኒክ ዘይምእማን።"],"a1_2.q":["1.2 كيف تتحقق من ورقة نقدية؟","1.2 Bạn kiểm tra một tờ tiền giấy thế nào?","1.2 Як ти перевіряєш банкноту?","1.2 ወረቐት ገንዘብ ከመይ ትፍትሽ?"],"a1_2.h0":["تستخدم حواسك: اليد والعينين.","Bạn dùng các giác quan: tay và mắt.","Ти користуєшся органами чуття: рукою й очима.","ህዋሳትካ ትጥቀም: ኢድን ዓይንን።"],"a1_2.h1":["ثلاث كلمات تساعدك: اللمس (F) والنظر (S) والإمالة (K).","Ba từ bắt đầu bằng F, S và K sẽ giúp bạn.","Три слова на F, S і K допоможуть тобі.","ሰለስተ ቃላት ብF፣ S ከምኡውን K የሕግዙኻ።"],"a1_2.s":["اللمس – النظر – الإمالة، عدة علامات أمان.","Sờ (Fühlen) – Nhìn (Sehen) – Nghiêng (Kippen), kiểm tra nhiều dấu hiệu.","Намацати (Fühlen) – Побачити (Sehen) – Нахилити (Kippen), кілька ознак.","ምትንካፍ (Fühlen) – ምርኣይ (Sehen) – ምጥዋይ (Kippen)፣ ብዙሓት ምልክታት።"],"a1_3.q":["1.3 ماذا تفعل عند الشك في وجود نقد مزيف؟","1.3 Bạn làm gì khi nghi ngờ có tiền giả?","1.3 Що ти робиш, якщо підозрюєш фальшиві гроші?","1.3 ሓሶት ገንዘብ እንተጠርጢርካ እንታይ ትገብር?"],"a1_3.h0":["لا تقرر وحدك.","Bạn không tự quyết định một mình.","Ти не вирішуєш сам(-а).","ባዕልኻ ጥራይ ኣይትውስንን።"],"a1_3.h1":["ماذا تفعل بالورقة النقدية – ومن تستدعي؟","Bạn làm gì với tờ tiền đó – và gọi ai đến?","Що ти робиш із купюрою – і кого кличеш?","ምስ እቲ ወረቐት እንታይ ትገብር – መንከ ትጽውዕ?"],"a1_3.s":["عدم إرجاع الورقة، إبلاغ المسؤول، وطلب الانتظار من العميل.","Không trả lại tờ tiền, báo cho cấp trên, nhờ khách chờ một chút.","Купюру не повертати, повідомити керівника, попросити клієнта зачекати.","እቲ ወረቐት ኣይትመልስ፣ ንሓላፊ ኣፍልጥ፣ ንዓሚል ክጽበ ሕተት።"],"a2_1.q":["2.1 ماذا تلاحظون؟ لماذا الأمر كذلك؟","2.1 Các bạn nhận thấy điều gì? Tại sao lại như vậy?","2.1 Що вам впадає в око? Чому так?","2.1 እንታይ ይረአየኩም? ስለምንታይ ከምኡ እዩ?"],"a2_1.h0":["انظر إلى النتائج على السبورة: أي طريقة دفع تتكرر كثيرًا وأيها نادرًا؟","Nhìn kết quả trên bảng: hình thức nào xuất hiện nhiều, hình thức nào ít?","Подивися на результати на дошці: який спосіб оплати трапляється часто, який рідко?","ኣብ ጣውላ ዘለዉ ውጽኢታት ርአ: ኣየናይ ዓይነት ክፍሊት ብዙሕ ግዜ ይርከብ፣ ኣየናይ ውሑድ?"],"a2_1.h1":["لماذا يختار الناس هذه الطريقة: سريعة، مريحة، آمنة؟","Tại sao mọi người chọn hình thức này: nhanh, tiện, an toàn?","Чому люди обирають цей спосіб оплати: швидко, зручно, безпечно?","ሰባት ስለምንታይ እዚ ዓይነት ክፍሊት ይመርጹ: ቅልጡፍ፣ ምቹእ፣ ውሑስ?"],"a2_1.s":["إجابة شخصية، مثلًا معظمهم يدفع بدون تلامس بالبطاقة أو بالهاتف لأنه سريع ومريح؛ ونقدًا عند المبالغ الصغيرة.","Câu trả lời tùy mỗi người, ví dụ: đa số trả không tiếp xúc bằng thẻ hoặc điện thoại vì nhanh và tiện; trả tiền mặt khi số tiền nhỏ.","Індивідуальна відповідь, наприклад: більшість платить безконтактно карткою або смартфоном, бо це швидко й зручно; готівкою — невеликі суми.","ውልቃዊ መልሲ፣ ንኣብነት: መብዛሕትኦም ብዘይ ርክብ ብካርዲ ወይ ስማርትፎን ይኸፍሉ ቅልጡፍን ምቹእን ስለዝኾነ፤ ጥረ ገንዘብ ንንኣሽቱ መጠናት።"],"a4_1_1.q":["4.1 رقم 1: يُخصم المال فورًا من حساب العميل الجاري؛ ويُدخل العميل غالبًا رقمه السري (PIN). ما طريقة الدفع المقصودة؟","4.1 Số 1: Tiền bị trừ ngay từ tài khoản vãng lai của khách; khách thường nhập mã PIN. Đó là hình thức thanh toán nào?","4.1 № 1: Гроші одразу списуються з поточного рахунку клієнта; клієнт зазвичай вводить PIN-код. Який спосіб оплати мається на увазі?","4.1 ቁ. 1: ገንዘብ ብቕጽበት ካብ ሕሳብ ባንካ ዓሚል ይወሃሃድ፤ እቲ ዓሚል ብዙሕ ግዜ PIN የእቱ። ኣየናይ ዓይነት ክፍሊት እዩ ዝተባህለ?"],"a4_1_1.h0":["يذهب المال مباشرة من الحساب.","Tiền đi thẳng từ tài khoản.","Гроші йдуть прямо з рахунку.","ገንዘብ ብቐጥታ ካብ ሕሳብ ይኸይድ።"],"a4_1_1.h1":["على البطاقة علامة تبدأ بكلمة \"giro\".","Trên thẻ có biểu tượng bắt đầu bằng „giro“.","На картці є знак, який починається з „giro“.","እቲ ካርዲ ብ„giro“ ዝጅምር ምልክት ኣለዎ።"],"a4_1_1.s":["girocard (بطاقة الخصم المباشر، Debitkarte).","girocard (thẻ ghi nợ).","girocard (дебетова картка).","girocard (ዴቢት ካርዲ)።"],"a4_1_2.q":["4.1 رقم 2: تُجمع المبالغ وتُحاسب مرة في الشهر. ما طريقة الدفع المقصودة؟","4.1 Số 2: Các khoản chi được gom lại và thanh toán mỗi tháng một lần. Đó là hình thức thanh toán nào?","4.1 № 2: Витрати збираються й розраховуються раз на місяць. Який спосіб оплати мається на увазі?","4.1 ቁ. 2: እቲ ወጻኢታት ይእከብን ሓደ ጊዜ ኣብ ወርሒ ይኽፈልን። ኣየናይ ዓይነት ክፍሊት እዩ ዝተባህለ?"],"a4_1_2.h0":["لا يُخصم المال فورًا.","Tiền không bị trừ ngay.","Гроші не списуються одразу.","ገንዘብ ብቕጽበት ኣይወሃሃድን።"],"a4_1_2.h1":["Visa وMastercard أمثلة عليها.","Visa và Mastercard là ví dụ.","Visa і Mastercard — приклади.","Visa ከምኡውን Mastercard ኣብነታት እዮም።"],"a4_1_2.s":["بطاقة ائتمان (Kreditkarte).","Thẻ tín dụng (Kreditkarte).","Кредитна картка (Kreditkarte).","ክረዲት ካርዲ (Kreditkarte)።"],"a4_1_3.q":["4.1 رقم 3: يقرّب العميل البطاقة من الجهاز فقط؛ وحتى 50 يورو غالبًا بدون رقم سري. ما طريقة الدفع المقصودة؟","4.1 Số 3: Khách chỉ đưa thẻ sát máy đọc; đến 50 € thường không cần PIN. Đó là hình thức thanh toán nào?","4.1 № 3: Клієнт лише підносить картку до зчитувача; до 50 € зазвичай без PIN-коду. Який спосіб оплати мається на увазі?","4.1 ቁ. 3: እቲ ዓሚል ካርዲ ናብ መንበቢ መሳርሒ ጥራይ የቐርብ፤ ክሳብ 50 € ብዙሕ ግዜ ብዘይ PIN። ኣየናይ ዓይነት ክፍሊት እዩ ዝተባህለ?"],"a4_1_3.h0":["لا تُدخل البطاقة في الجهاز.","Thẻ không được cắm vào.","Картку не вставляють.","እቲ ካርዲ ኣይእተውን።"],"a4_1_3.h1":["تنتقل البيانات لاسلكيًا.","Dữ liệu truyền đi bằng sóng vô tuyến.","Дані передаються по радіозв’язку.","ሓበሬታ ብሬድዮ ሞገድ ይሰዳ።"],"a4_1_3.s":["بدون تلامس (kontaktlos، NFC).","không tiếp xúc (NFC).","безконтактна оплата (NFC).","ብዘይ ርክብ (NFC)።"],"a4_1_4.q":["4.1 رقم 4: يؤكد العميل الدفع ببصمة الإصبع أو بالتعرف على الوجه على هاتفه. ما طريقة الدفع المقصودة؟","4.1 Số 4: Khách xác nhận thanh toán bằng vân tay hoặc nhận diện khuôn mặt trên điện thoại. Đó là hình thức thanh toán nào?","4.1 № 4: Клієнт підтверджує оплату відбитком пальця або розпізнаванням обличчя на своєму телефоні. Який спосіб оплати мається на увазі?","4.1 ቁ. 4: እቲ ዓሚል ክፍሊት ብኣሰር ኣጻብዕ ወይ ብምልላይ ገጽ ኣብ ተሌፎኑ የረጋግጽ። ኣየናይ ዓይነት ክፍሊት እዩ ዝተባህለ?"],"a4_1_4.h0":["لا توجد هنا بطاقة بلاستيكية.","Ở đây không có thẻ nhựa.","Тут немає пластикової картки.","ኣብዚ ፕላስቲክ ካርዲ የለን።"],"a4_1_4.h1":["يدفع العميل بجهاز يحمله في جيبه.","Khách trả bằng thiết bị mang trong túi.","Клієнт платить пристроєм, який у нього в кишені.","እቲ ዓሚል ኣብ ጁባኡ ዘሎ መሳርሒ ይኸፍል።"],"a4_1_4.s":["الهاتف الذكي (Mobile Payment).","Điện thoại thông minh (Mobile Payment).","Смартфон (Mobile Payment).","ስማርትፎን (Mobile Payment)።"],"a4_1_5.q":["4.1 رقم 5: حصل عليه العميل كهدية ويمكنه أن يشتري به حتى قيمته. ما طريقة الدفع المقصودة؟","4.1 Số 5: Khách được tặng nó và có thể mua hàng đến hết giá trị. Đó là hình thức thanh toán nào?","4.1 № 5: Клієнту його подарували, і він може купити товари до його вартості. Який спосіб оплати мається на увазі?","4.1 ቁ. 5: እቲ ዓሚል ተወሃቢ ኮይኑ ክሳብ ዋጋኡ ክዕድግ ይኽእል። ኣየናይ ዓይነት ክፍሊት እዩ ዝተባህለ?"],"a4_1_5.h0":["يحصل المرء عليه غالبًا في عيد الميلاد.","Người ta hay được tặng vào ngày sinh nhật.","Його часто дарують на день народження.","ብዙሕ ግዜ ኣብ በዓል ልደት ይወሃብ።"],"a4_1_5.h1":["له قيمة ثابتة، مثلًا 20 يورو.","Nó có giá trị cố định, ví dụ 20 €.","Він має фіксовану вартість, наприклад 20 €.","ቀጻሊ ዋጋ ኣለዎ፣ ንኣብነት 20 €።"],"a4_1_5.s":["قسيمة شراء (Gutschein).","Phiếu quà tặng (Gutschein).","Подарунковий сертифікат (Gutschein).","ወረቐት ህያብ (Gutschein)።"],"a4_1_6.q":["4.1 رقم 6: يجمع العميل نقاطًا ويحصل على خصومات؛ وأحيانًا يمكنه الدفع بها أيضًا. ما طريقة الدفع المقصودة؟","4.1 Số 6: Khách tích điểm và được giảm giá; đôi khi còn có thể dùng để thanh toán. Đó là hình thức thanh toán nào?","4.1 № 6: Клієнт збирає бали й отримує знижки; іноді може ними й розплатитися. Який спосіб оплати мається на увазі?","4.1 ቁ. 6: እቲ ዓሚል ነጥቢታት የኽብርን ቅናሽ ይረክብን፤ ሓንሳብ ሓንሳብ ብእኡ ከኽፍል ይኽእል። ኣየናይ ዓይነት ክፍሊት እዩ ዝተባህለ?"],"a4_1_6.h0":["يجمع المرء النقاط في متجر معين.","Người ta tích điểm ở một cửa hàng nhất định.","Бали збирають в одному певному магазині.","ነጥቢታት ኣብ ሓደ ዝተወሰነ ድኳን ይእከብ።"],"a4_1_6.h1":["اسم البطاقة يرتبط بالعميل.","Thẻ này được đặt theo tên khách hàng.","Картка названа за клієнтом.","እቲ ካርዲ ብስም ዓሚል ይጽዋዕ።"],"a4_1_6.s":["بطاقة العميل (Kundenkarte).","Thẻ khách hàng (Kundenkarte).","Картка клієнта (Kundenkarte).","ካርዲ ዓሚል (Kundenkarte)።"],"a4_2.q":["4.2 تدفع عميلة بتقريب بطاقتها من الجهاز فقط دون إدخالها. ماذا يُسمّى هذا الإجراء؟ اكتب الرقم. 1 الخصم المباشر (Lastschriftverfahren) 2 الدفع بدون تلامس (NFC) 3 الدفع نقدًا 4 الشراء بالتقسيط 5 طريقة Price-Look-up","4.2 Một khách nữ thanh toán bằng cách chỉ đưa thẻ sát máy đọc mà không cắm vào. Quá trình này gọi là gì? Viết số. 1 Thanh toán ghi nợ tự động (Lastschriftverfahren) 2 Thanh toán không tiếp xúc (NFC) 3 Trả tiền mặt 4 Mua trả góp 5 Price-Look-up-Verfahren","4.2 Клієнтка платить, лише піднісши картку до зчитувача, не вставляючи її. Як називається цей процес? Запиши номер. 1 Прямий дебет (Lastschriftverfahren) 2 Безконтактна оплата (NFC) 3 Оплата готівкою 4 Купівля в розстрочку 5 Price-Look-up-Verfahren","4.2 ሓንቲ ዓሚላ ካርዳ ከይኣተወት ናብ መንበቢ መሳርሒ ጥራይ ብምቕራብ ትኸፍል። እዚ መስርሕ እንታይ ይበሃል? ቁጽሪ ጽሓፍ። 1 ቀጥታዊ ምውሃሃድ (Lastschriftverfahren) 2 ብዘይ ርክብ ምኽፋል (NFC) 3 ጥረ ገንዘብ 4 ብእዳ ምዕዳግ 5 Price-Look-up-Verfahren"],"a4_2.h0":["البطاقة لا تُدخل في الجهاز. كيف تُنقل البيانات؟","Thẻ không được cắm vào. Dữ liệu được truyền thế nào?","Картку не вставляють. Як передаються дані?","እቲ ካርዲ ኣይእተውን። ሓበሬታ ከመይ ይሰዳ?"],"a4_2.h1":["علامة هذا الدفع موجودة عند الصندوق.","Biểu tượng của hình thức thanh toán này có ở quầy.","Знак цього способу оплати є на касі.","ምልክት እዚ ዓይነት ክፍሊት ኣብ ካሳ ኣሎ።"],"a4_2.s":["الإجابة 2: الدفع بدون تلامس (NFC) – تُنقل البيانات لاسلكيًا.","Đáp án 2: Thanh toán không tiếp xúc (NFC) – dữ liệu được truyền bằng sóng vô tuyến.","Відповідь 2: Безконтактна оплата (NFC) – дані передаються по радіозв’язку.","መልሲ 2: ብዘይ ርክብ ምኽፋል (NFC) – ሓበሬታ ብሬድዮ ሞገድ ይሰዳ።"],"a4_3.q":["4.3 ما العيب الذي تسببه إتاحة بطاقات الائتمان للشركة؟ اكتب الرقم. 1 تنشأ تكاليف إضافية (رسوم). 2 الدفع بأقل من 50 يورو ممنوع. 3 يصل المال بعد نصف سنة فقط. 4 تنخفض مبيعات كل عميل. 5 يجب على العملاء التوقيع دائمًا.","4.3 Việc chấp nhận thẻ tín dụng có nhược điểm gì cho cửa hàng? Viết số. 1 Phát sinh thêm chi phí (phí). 2 Cấm thanh toán dưới 50 €. 3 Tiền chỉ về sau nửa năm. 4 Doanh thu trên mỗi khách giảm. 5 Khách luôn phải ký tên.","4.3 Який недолік має прийом кредитних карток для підприємства? Запиши номер. 1 Виникають додаткові витрати (комісії). 2 Оплата до 50 € заборонена. 3 Гроші надходять лише через пів року. 4 Оборот на одного клієнта зменшується. 5 Клієнти завжди мусять підписувати.","4.3 ክረዲት ካርዲ ምቕባል ንድኳን እንታይ ጉድለት ኣለዎ? ቁጽሪ ጽሓፍ። 1 ተወሳኺ ወጻኢታት (ክፍሊት) ይመጽእ። 2 ክፍሊት ትሕቲ 50 € ክልኩል እዩ። 3 ገንዘብ ድሕሪ ሽዱሽተ ወርሒ ጥራይ ይመጽእ። 4 ሽያጥ ንነፍስ ወከፍ ዓሚል ይንቀሎ። 5 ዓማዊል ኩሉ ግዜ ክፍርሙ ኣለዎም።"],"a4_3.h0":["من يحصل على جزء من المال عند الدفع ببطاقة ائتمان؟","Ai nhận một phần tiền khi thanh toán bằng thẻ tín dụng?","Хто отримує частину грошей при оплаті кредитною карткою?","ኣብ ክፍሊት ብክረዲት ካርዲ መን ኽፋል ገንዘብ ይወስድ?"],"a4_3.h1":["اقرأ جدول \"مقارنة بين البطاقات\".","Đọc bảng „So sánh các loại thẻ“.","Прочитай таблицю „Порівняння карток“.","ሰንጠረዥ „ምምድዳብ ካርዲታት“ ኣንብብ።"],"a4_3.s":["الإجابة 1: يدفع التاجر رسومًا (Gebühr) لشركة بطاقات الائتمان.","Đáp án 1: Cửa hàng trả một khoản phí cho công ty thẻ tín dụng.","Відповідь 1: Торговець платить комісію компанії кредитних карток.","መልሲ 1: እቲ ሸያጢ ንትካል ክረዲት ካርዲ ክፍሊት ይኸፍል።"],"a4_4.q":["4.4 لدى عميلة 1.250 نقطة مكافآت على بطاقة العميل (1 نقطة = 0,01 يورو). تشتري بمبلغ 38,90 يورو وتريد احتساب النقاط. كم يورو يجب أن تدفع بعد ذلك؟ (اكتب النتيجة مع طريقة الحل.)","4.4 Một khách nữ có 1.250 điểm thưởng trên thẻ khách hàng (1 điểm = 0,01 €). Chị mua hàng 38,90 € và muốn dùng điểm để trừ. Chị còn phải trả bao nhiêu euro? (Viết kết quả kèm cách tính.)","4.4 Клієнтка має 1.250 бонусних балів на картці клієнта (1 бал = 0,01 €). Вона купує товарів на 38,90 € і хоче зарахувати бали. Скільки євро їй ще треба заплатити? (Запиши результат із ходом розрахунку.)","4.4 ሓንቲ ዓሚላ ኣብ ካርዲ ዓሚላ 1.250 ቦነስ ነጥቢታት ኣለዋ (1 ነጥቢ = 0,01 €)። ንዕዳጋ 38,90 € ትዕድግን ነጥቢታት ክትሕሰብን ትደሊ። ክንደይ ዩሮ ገና ክትከፍል ኣለዋ? (ውጽኢት ምስ መንገዲ ሕሳብ ጽሓፍ።)"],"a4_4.h0":["أولًا: كم يورو تساوي النقاط؟ النقاط × 0,01 يورو.","Trước tiên: Số điểm có giá trị bao nhiêu euro? Điểm nhân 0,01 €.","Спочатку: скільки євро коштують бали? Бали помножити на 0,01 €.","ቅድም: እቲ ነጥቢታት ክንደይ ዩሮ ዋጋ ኣለዎም? ነጥቢታት ብ0,01 € ምዕባይ።"],"a4_4.h1":["ثم اطرح قيمة النقاط من مبلغ الشراء.","Sau đó lấy giá trị điểm trừ vào tiền mua hàng.","Потім відняти вартість балів від суми покупки.","ደሓር ዋጋ ነጥቢታት ካብ ዕዳጋ ምጉዳል።"],"a4_4.s":["1.250 × 0,01 يورو = 12,50 يورو؛ 38,90 يورو − 12,50 يورو = 26,40 يورو. عليها أن تدفع 26,40 يورو.","1.250 × 0,01 € = 12,50 €; 38,90 € − 12,50 € = 26,40 €. Chị còn phải trả 26,40 €.","1.250 × 0,01 € = 12,50 €; 38,90 € − 12,50 € = 26,40 €. Їй ще треба заплатити 26,40 €.","1.250 × 0,01 € = 12,50 €; 38,90 € − 12,50 € = 26,40 €። ገና 26,40 € ክትከፍል ኣለዋ።"],"a5_1.q":["اكتب بطاقة التعريف الخاصة بك: طريقة الدفع · الخطوات الثلاث · ميزتان للشركة · عيبان للشركة · ميزتان للعميل.","Viết hồ sơ tóm tắt của bạn: Hình thức thanh toán · Quy trình 3 bước · 2 ưu điểm cho cửa hàng · 2 nhược điểm cho cửa hàng · 2 ưu điểm cho khách hàng.","Напиши свою візитку: Спосіб оплати · Процес у 3 кроки · 2 переваги для підприємства · 2 недоліки для підприємства · 2 переваги для клієнта.","መግለጺኻ ጽሓፍ: ዓይነት ክፍሊት · መስርሕ ኣብ 3 ደረጃታት · 2 ጥቕምታት ንድኳን · 2 ጉድለታት ንድኳን · 2 ጥቕምታት ንዓሚል።"],"a5_1.h0":["اختر طريقة دفع من شركتك، مثل girocard أو الدفع بدون تلامس أو الهاتف الذكي.","Chọn một hình thức thanh toán ở nơi bạn học nghề, ví dụ girocard, không tiếp xúc hoặc điện thoại.","Обери спосіб оплати зі свого підприємства, наприклад girocard, безконтактно або смартфон.","ካብ ድኳንካ ሓደ ዓይነት ክፍሊት ምረጽ፣ ንኣብነት girocard፣ ብዘይ ርክብ ወይ ስማርትፎን።"],"a5_1.h1":["الخطوات: ذكر المبلغ – تقريب البطاقة أو الهاتف من الجهاز – تسليم الإيصال (في 5 خطوات يُضاف الرقم السري والموافقة).","Quy trình: báo số tiền – đưa thẻ hoặc điện thoại sát máy đọc – đưa biên lai (nếu 5 bước thì thêm PIN và chấp thuận).","Процес: назвати суму – піднести картку або смартфон до зчитувача – видати квитанцію (для 5 кроків додаються PIN-код і дозвіл).","እቲ መስርሕ: መጠን ምዝራብ – ካርዲ ወይ ስማርትፎን ናብ መንበቢ መሳርሒ – ደረሰኝ ምሃብ (ኣብ 5 ደረጃታት PIN ከምኡውን ፍቓድ ይወሃሃዱ)።"],"a5_1.s":["إجابة شخصية. راجع بنفسك: (1) هل كتبت الخطوات الثلاث بالترتيب الصحيح؟ (2) هل ذكرت ميزتين وعيبين للشركة (مثل سرعة الإنجاز ونقد أقل؛ الرسوم وتعطل التقنية)؟ (3) هل ذكرت ميزتين للعميل (مثل سريع ومريح، لا حاجة للنقد)؟","Câu trả lời tùy mỗi người. Tự kiểm tra: (1) Quy trình 3 bước đúng thứ tự? (2) 2 ưu điểm và 2 nhược điểm cho cửa hàng (ví dụ thanh toán nhanh, ít tiền mặt; phí, hỏng thiết bị)? (3) 2 ưu điểm cho khách (ví dụ nhanh và tiện, không cần tiền mặt)?","Індивідуальна відповідь. Перевір сам(-а): (1) Процес у 3 кроки в правильній послідовності? (2) 2 переваги й 2 недоліки для підприємства (наприклад, швидке обслуговування, менше готівки; комісії, збій техніки)? (3) 2 переваги для клієнта (наприклад, швидко й зручно, готівка не потрібна)?","ውልቃዊ መልሲ። ባዕልኻ ፈትሽ: (1) መስርሕ ኣብ 3 ደረጃታት ብትክክል ስርዓት? (2) 2 ጥቕምታትን 2 ጉድለታትን ንድኳን (ንኣብነት ቅልጡፍ ኣገባብ፣ ውሑድ ጥረ ገንዘብ፤ ክፍሊት፣ ቴክኒክ ምብልሻው)? (3) 2 ጥቕምታት ንዓሚል (ንኣብነት ቅልጡፍን ምቹእን፣ ጥረ ገንዘብ ኣየድልን)?"],"a6_1.q":["6.1 ماذا تعني رموز شركات بطاقات الائتمان عند الصندوق بالنسبة للعميل؟ اشرحوا! (نقطتان)","6.1 Các biểu tượng của công ty thẻ tín dụng ở quầy có ý nghĩa gì đối với khách hàng? Hãy giải thích! (2 điểm)","6.1 Що означають для клієнта символи компаній кредитних карток на касі? Поясніть! (2 бали)","6.1 ምልክታት ትካላት ክረዲት ካርዲ ኣብ ካሳ ንዓሚል እንታይ ማለት እዮም? ግለጽ! (2 ነጥቢ)"],"a6_1.h0":["فكّروا في عميل يقف أمام الصندوق ويرى الرموز.","Hãy nghĩ đến một khách đang đứng trước quầy và nhìn thấy các biểu tượng.","Уявіть клієнта, який стоїть перед касою й бачить символи.","ኣብ ቅድሚ ካሳ ደኺኑ ምልክታት ዝርኢ ዓሚል ሕሰብ።"],"a6_1.h1":["ماذا يعرف عن إمكانيات الدفع في المتجر؟","Khách biết được gì về các cách thanh toán trong cửa hàng?","Що він дізнається про способи оплати в магазині?","ብዛዕባ ኣገባባት ክፍሊት ኣብ ድኳን እንታይ ይፈልጥ?"],"a6_1.s":["يقبل متجر Kaufhaus Hansa GmbH الدفع بهاتين البطاقتين الائتمانيتين.","Cửa hàng bách hóa Hansa GmbH chấp nhận thanh toán bằng hai loại thẻ tín dụng này.","Універмаг Hansa GmbH приймає оплату цими двома кредитними картками.","እቲ ዓቢ ድኳን Hansa GmbH ክፍሊት ብዞም ክልተ ክረዲት ካርዲታት ይቕበል።"],"a6_2.q":["6.2 اذكروا ميزتين وعيبين للدفع بالبطاقة بالنسبة لمتجر Kaufhaus Hansa GmbH! (4 نقاط)","6.2 Hãy nêu 2 ưu điểm và 2 nhược điểm của việc thanh toán bằng thẻ đối với cửa hàng bách hóa Hansa GmbH! (4 điểm)","6.2 Назвіть 2 переваги й 2 недоліки оплати карткою для універмагу Hansa GmbH! (4 бали)","6.2 ንዓቢ ድኳን Hansa GmbH 2 ጥቕምታትን 2 ጉድለታትን ክፍሊት ብካርዲ ጥቀስ! (4 ነጥቢ)"],"a6_2.h0":["افصلوا: أولًا ميزتان، ثم عيبان.","Tách riêng: trước hết hai ưu điểm, sau đó hai nhược điểm.","Розділіть: спочатку дві переваги, потім два недоліки.","ፈላሊ: ቅድም ክልተ ጥቕምታት፣ ደሓር ክልተ ጉድለታት።"],"a6_2.h1":["المزايا: السرعة، الأمان، المبيعات. العيوب: التكاليف، التقنية، وقت وصول المال.","Ưu điểm: tốc độ, an toàn, doanh thu. Nhược điểm: chi phí, thiết bị, thời điểm nhận tiền.","Переваги: швидкість, безпека, оборот. Недоліки: витрати, техніка, момент надходження грошей.","ጥቕምታት: ቅልጣፈ፣ ድሕነት፣ ሽያጥ። ጉድለታት: ወጻኢታት፣ ቴክኒክ፣ ግዜ ምምጻእ ገንዘብ።"],"a6_2.s":["المزايا، نقطة لكل واحدة: مشتريات عفوية، زيادة المبيعات، خدمة العملاء، أمان الدفع، لا أموال مزيفة. العيوب، نقطة لكل واحد: التقنية، رسوم لشركة بطاقات الائتمان، تأخر وصول المال.","Ưu điểm, mỗi ý 1 điểm: mua sắm bốc đồng, tăng doanh thu, dịch vụ khách hàng, thanh toán an toàn, không có tiền giả. Nhược điểm, mỗi ý 1 điểm: thiết bị, phí trả cho công ty thẻ tín dụng, tiền về chậm hơn.","Переваги, по 1 балу: спонтанні покупки, зростання обороту, сервіс для клієнтів, безпека оплати, немає фальшивих грошей. Недоліки, по 1 балу: техніка, комісії компанії кредитних карток, пізніше надходження грошей.","ጥቕምታት፣ ነፍስ ወከፍ 1 ነጥቢ: ብድንገት ዕዳጋ፣ ዝልዕል ሽያጥ፣ ኣገልግሎት ዓማዊል፣ ድሕነት ክፍሊት፣ ሓሶት ገንዘብ የለን። ጉድለታት፣ ነፍስ ወከፍ 1 ነጥቢ: ቴክኒክ፣ ክፍሊት ንትካል ክረዲት ካርዲ፣ ደሓር ምምጻእ ገንዘብ።"],"a6_3.q":["6.3 تريد عميلة الدفع ببطاقة عليها رمز الدفع بدون تلامس. صفوا في 3 خطوات وبالترتيب الصحيح كيف يتم الدفع بتقنية NFC! (3 نقاط)","6.3 Một khách nữ muốn thanh toán bằng thẻ có biểu tượng không tiếp xúc. Hãy mô tả trong 3 bước, theo đúng thứ tự, thanh toán bằng NFC diễn ra thế nào! (3 điểm)","6.3 Клієнтка хоче заплатити карткою зі знаком безконтактної оплати. Опишіть у 3 кроках у правильній послідовності, як відбувається оплата через NFC! (3 бали)","6.3 ሓንቲ ዓሚላ ብካርዲ ምስ ምልክት ብዘይ ርክብ ክትከፍል ትደሊ። ክፍሊት ብNFC ከመይ ከም ዝካየድ ኣብ 3 ደረጃታት ብትክክል ስርዓት ግለጹ! (3 ነጥቢ)"],"a6_3.h0":["ثلاث خطوات: ماذا يحدث أولًا، ثم، وأخيرًا؟ الترتيب مهم.","Ba bước: lúc đầu xảy ra gì, sau đó, cuối cùng? Thứ tự rất quan trọng.","Три кроки: що відбувається спочатку, потім, наприкінці? Послідовність важлива.","ሰለስተ ደረጃታት: ቅድም እንታይ ይኸውን፣ ደሓር፣ ኣብ መወዳእታ? ስርዓት ኣገዳሲ እዩ።"],"a6_3.h1":["أولًا البطاقة، ثم البيانات، وفي النهاية الإيصال.","Đầu tiên là thẻ, sau đó là dữ liệu, cuối cùng là biên lai.","Спочатку картка, потім дані, наприкінці квитанція.","ቅድም ካርዲ፣ ደሓር ሓበሬታ፣ ኣብ መወዳእታ ደረሰኝ።"],"a6_3.s":["تقريب البطاقة من الجهاز – تبادل بيانات البطاقة والمبلغ لاسلكيًا – تسليم إيصال الصندوق (عند الحاجة الرقم السري).","Đưa thẻ sát máy đọc – dữ liệu thẻ và số tiền được trao đổi bằng sóng vô tuyến – đưa hóa đơn (nếu cần thì có PIN).","Піднести картку до зчитувача – дані картки й сума обмінюються по радіозв’язку – видати касовий чек (за потреби PIN-код).","ካርዲ ናብ መንበቢ መሳርሒ ምቕራብ – ሓበሬታ ካርዲን መጠንን ብሬድዮ ሞገድ ይልወጥ – ደረሰኝ ካሳ ምሃብ (እንተድሌዩ PIN)።"],"a6_4.q":["6.4 ما ميزة الدفع بتقنية NFC مقارنةً بالدفع بدونها؟ (نقطة واحدة)","6.4 Thanh toán bằng NFC có ưu điểm gì so với thanh toán không dùng NFC? (1 điểm)","6.4 Яку перевагу має оплата через NFC порівняно з оплатою без NFC? (1 бал)","6.4 ክፍሊት ብNFC ካብ ክፍሊት ብዘይ NFC እንታይ ጥቕሚ ኣለዎ? (1 ነጥቢ)"],"a6_4.h0":["فكّروا في الطابور أمام الصندوق.","Hãy nghĩ đến hàng đợi ở quầy.","Подумайте про чергу біля каси.","ንሰልፊ ኣብ ካሳ ሕሰብ።"],"a6_4.h1":["ما الذي يصبح أقصر مع NFC؟","Điều gì ngắn hơn khi dùng NFC?","Що коротше при NFC?","ብNFC እንታይ ይሓጽር?"],"a6_4.s":["إنجاز عملية الدفع بشكل أسرع.","thanh toán nhanh hơn.","швидше проведення оплати.","ቅልጡፍ ኣገባብ ክፍሊት።"],"a6_5.q":["6.5 في أي حالة يمكن أن يُطلب الرقم السري (PIN) إضافةً إلى الدفع بدون تلامس؟ اذكروا حالة واحدة! (نقطتان)","6.5 Trường hợp nào khi thanh toán không tiếp xúc có thể bị yêu cầu thêm mã PIN? Hãy nêu một trường hợp! (2 điểm)","6.5 У якому випадку при безконтактній оплаті додатково можуть вимагати PIN-код? Назвіть один випадок! (2 бали)","6.5 ኣብ ብዘይ ርክብ ክፍሊት ኣብ ኣየናይ ኩነታት ተወሳኺ PIN ክሕተት ይኽእል? ሓደ ኩነታት ጥቀሱ! (2 ነጥቢ)"],"a6_5.h0":["هناك ثلاث حالات: المبلغ، عدد المدفوعات، الصدفة.","Có ba trường hợp: số tiền, số lần thanh toán, ngẫu nhiên.","Є три випадки: сума, кількість оплат, випадковість.","ሰለስተ ኩነታት ኣለዉ: መጠን፣ ብዝሒ ክፍሊት፣ ብሕጂ-ዘይሕጂ።"],"a6_5.h1":["اذكروا واحدة منها بجملة كاملة.","Hãy nêu một trường hợp bằng một câu đầy đủ.","Назвіть один із них повним реченням.","ሓደ ካብኣቶም ብምሉእ ሓረግ ጥቀሱ።"],"a6_5.s":["مبلغ أعلى من الحد المحدد، عدة مدفوعات بنفس البطاقة، طلب عشوائي.","Số tiền vượt mức quy định, nhiều lần thanh toán bằng cùng một thẻ, kiểm tra ngẫu nhiên.","Сума вища за встановлену, кілька оплат тією самою карткою, випадкова перевірка.","ካብ ዝተወሰነ መጠን ዝበዝሐ፣ ብዙሕ ክፍሊት ብሓደ ካርዲ፣ ብሕጂ-ዘይሕጂ ምሕታት።"],"a6_6.q":["6.6 كيف يجب أن تتعاملوا مع بيانات العملاء وفق اللائحة العامة لحماية البيانات (DSGVO)؟ اشرحوا! (نقطتان)","6.6 Theo Quy định chung về bảo vệ dữ liệu (DSGVO), bạn phải xử lý dữ liệu khách hàng như thế nào? Hãy trình bày! (2 điểm)","6.6 Як ви повинні поводитися з даними клієнтів згідно із Загальним регламентом із захисту даних (DSGVO)? Поясніть! (2 бали)","6.6 ብመሰረት ሓፈሻዊ ሕጊ ሓለዋ ሓበሬታ (DSGVO) ንሓበሬታ ዓማዊል ከመይ ክትሕዙ ኣለኩም? ግለጹ! (2 ነጥቢ)"],"a6_6.h0":["شيئان: كيف تعاملون البيانات، وماذا لا يجوز لكم فعله بها؟","Hai điều: bạn đối xử với dữ liệu thế nào, và không được làm gì với chúng?","Дві речі: як ви поводитеся з даними і чого з ними не можна робити?","ክልተ ነገራት: ንሓበሬታ ከመይ ትሕዝዎ፣ እንታይከ ክትገብሩ ኣይግባእን?"],"a6_6.h1":["من لا يجوز أن يحصل على البيانات دون موافقة؟","Ai không được nhận dữ liệu nếu chưa được đồng ý?","Хто не має права отримувати дані без згоди?","መን ብዘይ ፍቓድ ሓበሬታ ክረክብ የብሉን?"],"a6_6.s":["معاملة بيانات العملاء بسرية وعدم تسليمها (دون موافقة) لأطراف ثالثة.","Giữ bí mật dữ liệu khách hàng và không chuyển cho bên thứ ba (khi chưa được đồng ý).","Поводитися з даними клієнтів конфіденційно й не передавати їх третім особам (без згоди).","ሓበሬታ ዓማዊል ብምስጢር ምሕዛን (ብዘይ ፍቓድ) ንሳልሳይ ወገን ዘይምሃብን።"],"a7p_1.q":["7.1 يريد مقهى صغير قبول الدفع بالبطاقة فقط. قيّموا هذا القرار من وجهة نظر المقهى ومن وجهة نظر العملاء.","7.1 Một quán cà phê nhỏ muốn chỉ nhận thanh toán bằng thẻ. Hãy đánh giá quyết định này từ góc nhìn của quán và của khách hàng.","7.1 Невелике кафе хоче приймати лише оплату карткою. Оцініть це рішення з погляду кафе й з погляду клієнтів.","7.1 ሓንቲ ንእሽቶ ካፌ ክፍሊት ብካርዲ ጥራይ ክትቅበል ትደሊ። ነዚ ውሳኔ ካብ ኣመለኻኽታ ካፌን ካብ ኣመለኻኽታ ዓማዊልን ገምግሙ።"],"a7p_1.h0":["انظروا إلى الجانبين بشكل منفصل: المقهى والعملاء.","Xem xét riêng hai phía: quán và khách.","Розгляньте дві сторони окремо: кафе і клієнти.","ክልተ ወገናት ፈላሊኹም ርኣዩ: ካፌን ዓማዊልን።"],"a7p_1.h1":["ماذا يوفّر المقهى – ومن قد لا يستطيع الدفع بعد ذلك؟","Quán tiết kiệm được gì – và ai có thể không trả tiền được nữa?","Що заощаджує кафе – і хто, можливо, більше не зможе заплатити?","እቲ ካፌ እንታይ የትርፍ – መን ድማ ምናልባት ክኸፍል ኣይክእልን?"],"a7p_1.s":["المقهى: لا باقي نقود، لا نقد مزيف، عدّ أقل ومشاوير أقل إلى البنك؛ لكن الرسوم ومخاطر التقنية. العملاء: مريح لمعظمهم؛ لكن كبار السن والأطفال ومن لا يملك بطاقة يُستبعدون، ولا دفع مجهول الهوية. حكم مع تعليل.","Quán: không phải trả tiền thừa, không có tiền giả, đỡ phải đếm tiền và đi ngân hàng; nhưng tốn phí và có rủi ro về thiết bị. Khách: tiện với đa số; người lớn tuổi, trẻ em và người không có thẻ bị loại trừ, không thể thanh toán ẩn danh. Kết luận kèm lý do.","Кафе: немає решти, немає фальшивих грошей, менше підрахунків і походів до банку; але комісії й ризик збою техніки. Клієнти: зручно для більшості; літні люди, діти та люди без картки виключаються, анонімна оплата неможлива. Оцінка з обґрунтуванням.","ካፌ: ተመላሲ ገንዘብ የለን፣ ሓሶት ገንዘብ የለን፣ ውሑድ ቆጸራን ናብ ባንካ ምኻድን፤ ግን ክፍሊትን ሓደጋ ቴክኒክን። ዓማዊል: ንመብዛሕትኦም ምቹእ፤ ዓበይቲ ሰባት፣ ቆልዑን ካርዲ ዘይብሎም ሰባትን ይወጹ፣ ስም-ዘይብሉ ክፍሊት የለን። ፍርዲ ምስ ምኽንያት።"],"a7p_2.q":["7.2 تمنح بطاقة العميل خصمًا بنسبة 1 % على كل عملية شراء. اشرحوا لماذا قد يستفيد المتجر من ذلك رغم هذا.","7.2 Thẻ khách hàng giảm 1 % cho mỗi lần mua. Hãy giải thích vì sao cửa hàng vẫn có thể có lợi.","7.2 Картка клієнта дає 1 % знижки на кожну покупку. Поясніть, чому це все одно може бути вигідним для магазину.","7.2 ካርዲ ዓሚል ኣብ ነፍስ ወከፍ ዕዳጋ 1 % ቅናሽ ትህብ። ስለምንታይ እዚ ኣብ ድኳን ዋላ ከምኡ ጠቓሚ ክኸውን ከም ዝኽእል ግለጹ።"],"a7p_2.h0":["ماذا يحصل عليه المتجر إضافةً إلى المبيعات؟","Ngoài doanh thu, cửa hàng còn nhận được gì?","Що отримує магазин, крім обороту?","እቲ ድኳን ኣብ ላዕሊ ሽያጥ እንታይ ተወሳኺ ይረክብ?"],"a7p_2.h1":["فكّروا في ربط العملاء وفي البيانات.","Hãy nghĩ đến việc giữ chân khách hàng và dữ liệu.","Подумайте про прив’язування клієнтів і про дані.","ንምትሕዝ ዓማዊልን ንሓበሬታን ሕሰቡ።"],"a7p_2.s":["يعود العملاء أكثر (ربط العملاء). يعرف المتجر من يشتري ماذا ومتى، ويمكنه تعديل التشكيلة والإعلانات بدقة. الخصم هو \"المقابل\" للبيانات.","Khách quay lại thường xuyên hơn (giữ chân khách hàng). Cửa hàng biết ai mua gì, khi nào, và có thể điều chỉnh hàng hóa và quảng cáo đúng mục tiêu. Khoản giảm giá là „khoản trả“ cho dữ liệu.","Клієнти частіше повертаються (прив’язування клієнтів). Магазин дізнається, хто що й коли купує, і може цілеспрямовано коригувати асортимент і рекламу. Знижка — це „плата“ за дані.","ዓማዊል ብዙሕ ግዜ ይምለሱ (ምትሕዝ ዓማዊል)። እቲ ድኳን መን እንታይ መዓስ ከም ዝዕድግ ይፈልጥ፣ ዓይነት ሸቐጥን መወዓውዒን ብዝተመደበ ኣገባብ ከውቅዕ ይኽእል። እቲ ቅናሽ „ክፍሊት“ ንሓበሬታ እዩ።"],"v9_1.q":["9.1 تقبل شركات كثيرة بطاقات الائتمان رغم أنها تدفع رسومًا. علّل لماذا قد يستحق ذلك رغم هذا.","9.1 Nhiều cửa hàng chấp nhận thẻ tín dụng dù phải trả phí. Hãy giải thích vì sao điều đó vẫn có thể có lợi.","9.1 Багато підприємств приймають кредитні картки, хоча платять комісію. Обґрунтуй, чому це все одно може бути вигідним.","9.1 ብዙሓት ድኳናት ክፍሊት እኳ እንተኸፈሉ ክረዲት ካርዲ ይቕበሉ። ስለምንታይ ዋላ ከምኡ ጠቓሚ ክኸውን ከም ዝኽእል ኣብርህ።"],"v9_1.h0":["ما تكلفة بطاقة الائتمان – وماذا تفيد الشركة؟","Thẻ tín dụng tốn gì – và mang lại gì cho cửa hàng?","Скільки коштує кредитна картка – і що вона дає підприємству?","ክረዲት ካርዲ እንታይ ይሽየጥ – ንድኳንከ እንታይ የምጽእ?"],"v9_1.h1":["فكّر في عملاء ليس معهم نقد كافٍ.","Nghĩ đến những khách không mang đủ tiền mặt.","Подумай про клієнтів, у яких немає достатньо готівки.","ንዓማዊል ዘይሰኣኑ ጥረ ገንዘብ ዝሓዙ ሕሰብ።"],"v9_1.s":["الرسوم عيب. لكن يستطيع العملاء الشراء عفويًا حتى بدون نقد، وهذا يزيد المبيعات. كما أن الدفع آمن وسريع، ويوجد نقد أقل في الصندوق (سرقة أقل، لا أموال مزيفة). وإذا كان ربح المبيعات الإضافية أعلى من الرسوم، فهذا يستحق.","Phí là một nhược điểm. Nhưng khách có thể mua ngay cả khi không có tiền mặt; điều đó làm tăng doanh thu. Ngoài ra thanh toán an toàn và nhanh, và có ít tiền mặt trong két hơn (ít bị trộm, không có tiền giả). Nếu lợi nhuận từ doanh thu tăng thêm cao hơn phí thì có lợi.","Комісії — це недолік. Але клієнти можуть купувати спонтанно, навіть без готівки; це збільшує оборот. Крім того, оплата безпечна й швидка, а в касі менше готівки (менше крадіжок, немає фальшивих грошей). Якщо прибуток від додаткового обороту більший за комісії, це вигідно.","እቲ ክፍሊት ጉድለት እዩ። ግን ዓማዊል ዋላ ብዘይ ጥረ ገንዘብ ብድንገት ክዕድጉ ይኽእሉ፤ እዚ ሽያጥ የልዕል። ብተወሳኺ እቲ ክፍሊት ውሑስን ቅልጡፍን እዩ፣ ውሑድ ጥረ ገንዘብ ኣብ ካሳ ኣሎ (ውሑድ ስርቂ፣ ሓሶት ገንዘብ የለን)። ትርጉም ካብ ተወሳኺ ሽያጥ ካብቲ ክፍሊት እንተበዝሐ ይጠቅም።"],"v9_2.q":["9.2 لماذا قد يُطلب الرقم السري بعد عدة مدفوعات متتالية بدون تلامس؟ علّل.","9.2 Tại sao sau nhiều lần thanh toán không tiếp xúc liên tiếp, có thể bị yêu cầu nhập PIN? Hãy giải thích.","9.2 Чому при безконтактних оплатах після кількох оплат поспіль можуть вимагати PIN-код? Обґрунтуй.","9.2 ስለምንታይ ኣብ ብዘይ ርክብ ክፍሊት ድሕሪ ብዙሕ ክፍሊት ብተኸታታሊ PIN ክሕተት ይኽእል? ኣብርህ።"],"v9_2.h0":["ماذا قد يحدث إذا ضاعت البطاقة وظل شخص يدفع بها بلا رقم سري؟","Điều gì có thể xảy ra nếu ai đó làm mất thẻ và cứ thế thanh toán mà không cần PIN?","Що могло б статися, якби хтось загубив картку, а інший і далі платив би без PIN-коду?","ሓደ ሰብ ካርዲ እንተ ሰኣነ ብዘይ PIN እንተ ቀጸለ እንታይ ክኸውን ይኽእል?"],"v9_2.h1":["النص يذكر السبب بين قوسين: الأمان.","Bài đọc nêu lý do trong ngoặc: an toàn.","Текст називає причину в дужках: безпека.","እቲ ጽሑፍ ምኽንያቱ ኣብ ቅንፊ ይጠቅስ: ድሕነት።"],"v9_2.s":["بدون الرقم السري يستطيع أي شخص الدفع بالبطاقة. ولكي لا يستطيع شخص غريب إنفاق مبالغ صغيرة كثيرة متتالية، يطلب النظام الرقم السري بعد عدة مدفوعات – لأسباب أمنية. وهكذا يُحمى العميل.","Không có PIN thì ai cũng có thể thanh toán bằng thẻ. Để người lạ không thể tiêu nhiều khoản nhỏ liên tiếp, hệ thống yêu cầu nhập PIN sau nhiều lần thanh toán – vì lý do an toàn. Nhờ vậy khách hàng được bảo vệ.","Без PIN-коду кожен може платити карткою. Щоб стороння особа не могла витратити багато невеликих сум поспіль, система після кількох оплат вимагає PIN-код – з міркувань безпеки. Так клієнт захищений.","ብዘይ PIN ዝኾነ ሰብ ብካርዲ ክኸፍል ይኽእል። ሓደ ጓና ሰብ ብዙሓት ንኣሽቱ መጠናት ብተኸታታሊ ከይወጽእ፣ እቲ ስርዓት ድሕሪ ብዙሕ ክፍሊት PIN ይሓትት – ምኽንያት ድሕነት። ከምዚ እቲ ዓሚል ይሕለው።"],"v9_3.q":["9.3 ماذا يحدث إذا سلّمت شركة بيانات بطاقة العميل إلى أطراف ثالثة دون موافقة؟ علّل بالاستناد إلى DSGVO.","9.3 Điều gì sẽ xảy ra nếu một cửa hàng chuyển dữ liệu từ thẻ khách hàng cho bên thứ ba mà chưa được đồng ý? Hãy giải thích dựa trên DSGVO.","9.3 Що сталося б, якби підприємство передало дані з картки клієнта третім особам без згоди? Обґрунтуй за DSGVO.","9.3 ሓደ ድኳን ሓበሬታ ካርዲ ዓሚል ብዘይ ፍቓድ ንሳልሳይ ወገን እንተሃበ እንታይ ክኸውን? ብDSGVO ኣብርህ።"],"v9_3.h0":["ماذا تطلب DSGVO: الحفظ فقط بـ …، وعدم تسليمها إلى … ؟","DSGVO yêu cầu gì: chỉ lưu khi có …, không chuyển cho …?","Чого вимагає DSGVO: зберігати лише за …, не передавати …?","DSGVO እንታይ ይሓትት: ምቕማጥ ሓጋዚ …፣ ኣይትሃብ ንዝኾነ …?"],"v9_3.h1":["كيف سيشعر العميل؟","Khách hàng sẽ cảm thấy thế nào?","Що відчував би клієнт?","እቲ ዓሚል ከመይ ክስምዖ ኢዩ?"],"v9_3.s":["ستخالف الشركة DSGVO: يجوز حفظ البيانات فقط بموافقة، ويجب التعامل معها بسرية، ولا يجوز تسليمها لأطراف ثالثة. وسيفقد العملاء ثقتهم بالشركة وربما لن يستخدموا بطاقة العميل بعد ذلك.","Cửa hàng sẽ vi phạm DSGVO: dữ liệu chỉ được lưu khi có sự đồng ý, phải được giữ bí mật và không được chuyển cho bên thứ ba. Khách hàng sẽ không còn tin cửa hàng và có thể không dùng thẻ khách hàng nữa.","Підприємство порушило б DSGVO: дані можна зберігати лише зі згоди, їх треба тримати конфіденційно й не передавати третім особам. Клієнти перестали б довіряти підприємству й, можливо, більше не користувалися б карткою клієнта.","እቲ ድኳን ንDSGVO ይጥሕስ: ሓበሬታ ብፍቓድ ጥራይ ይቕመጥ፣ ብምስጢር ይተሓዝ፣ ንሳልሳይ ወገን ድማ ኣይወሃብን። ዓማዊል ንድኳን ኣይኣምኑን፣ ንካርዲ ዓሚል ድማ ከይጥቀሙሉ ይኽእሉ።"],"v9_4.q":["9.4 لماذا يربط المتجر العميل به عندما يعطيه عند الاستبدال قسيمة بدل المال؟ علّل.","9.4 Tại sao cửa hàng giữ chân được khách khi đổi hàng mà đưa phiếu quà tặng thay vì tiền? Hãy giải thích.","9.4 Чому магазин прив’язує клієнта, якщо при обміні дає сертифікат замість грошей? Обґрунтуй.","9.4 ድኳን ኣብ ምልዋጥ ኣብ ክንዲ ገንዘብ ወረቐት ህያብ እንተሂቡ ስለምንታይ ንዓሚል የተሓሕዞ? ኣብርህ።"],"v9_4.h0":["أين يستطيع العميل استخدام القسيمة؟","Khách có thể dùng phiếu ở đâu?","Де клієнт може використати сертифікат?","እቲ ዓሚል ንወረቐት ህያብ ኣበይ ይጥቀመሉ?"],"v9_4.h1":["ماذا يحدث لمال العميل: هل يبقى في المتجر؟","Tiền của khách đi đâu: có ở lại cửa hàng không?","Що відбувається з грошима клієнта: залишаються вони в магазині?","ምስ ገንዘብ ዓሚል እንታይ ይኸውን: ኣብ ድኳን ይተርፍ ድዩ?"],"v9_4.s":["لا يمكن استخدام القسيمة إلا في المتجر. لذلك يجب أن يعود العميل ويشتري هناك. يبقى المال في المتجر، ويرتبط العميل به (ربط العملاء). القسائم بدون تاريخ تسري ثلاث سنوات.","Phiếu chỉ dùng được trong cửa hàng. Vì vậy khách phải quay lại và mua hàng ở đó. Tiền ở lại cửa hàng và khách được giữ chân (Kundenbindung). Phiếu không ghi ngày có hiệu lực ba năm.","Сертифікат можна використати лише в магазині. Отже, клієнт мусить повернутися й купити там. Гроші залишаються в магазині, а клієнт прив’язаний (Kundenbindung). Сертифікати без дати діють три роки.","እቲ ወረቐት ህያብ ኣብ ድኳን ጥራይ ይጥቀመሉ። እዚ ማለት እቲ ዓሚል ተመሊሱ ኣብኡ ክዕድግ ኣለዎ። ገንዘብ ኣብ ድኳን ይተርፍ፣ እቲ ዓሚል ድማ ይተሓሕዝ (Kundenbindung)። ዕለት ዘይብሉ ወረቐት ህያብ ሰለስተ ዓመት የገልግል።"],"r0.t":["البطاقات: girocard وبطاقة الائتمان","Thẻ: girocard và thẻ tín dụng","Картки: girocard і кредитна картка","ካርዲታት: girocard ከምኡውን ክረዲት ካርዲ"],"r0.task":["ظلّل كيف يُدفع بـ girocard، وماذا تُسمّى في الامتحانات، ومن يحصل على رسوم في بطاقة الائتمان.","Đánh dấu: girocard thanh toán thế nào, trong đề thi gọi là gì, và ai nhận phí khi dùng thẻ tín dụng.","Познач, як платять girocard, як вона називається на іспитах і хто отримує комісію за кредитну картку.","girocard ከመይ ከም ዝኽፈል፣ ኣብ ፈተናታት እንታይ ከም ዝበሃል፣ ኣብ ክረዲት ካርዲ ድማ መን ክፍሊት ከም ዝረክብ ምልክት ግበር።"],"r0.x":["في girocard (بطاقة الخصم المباشر، Debitkarte) يُخصم المال مباشرة من الحساب الجاري. ويؤكد العميل بالرقم السري (PIN). في الامتحانات تُسمّى غالبًا Electronic Cash أو EC-Cash. في بطاقة الائتمان (Visa وMastercard وغيرهما) تُجمع المبالغ وتُحاسب لاحقًا. يدفع التاجر رسومًا (Gebühr) لشركة بطاقات الائتمان. أما بطاقة العميل (Kundenkarte) فليست من بطاقات البنك.","Với girocard (thẻ ghi nợ), tiền được trừ thẳng từ tài khoản vãng lai. Khách xác nhận bằng mã PIN. Trong đề thi thường gọi là Electronic Cash hoặc EC-Cash. Với thẻ tín dụng (Visa, Mastercard v.v.), các khoản chi được gom lại và thanh toán sau. Cửa hàng trả một khoản phí cho công ty thẻ tín dụng. Thẻ khách hàng không phải là thẻ ngân hàng.","У girocard (дебетова картка) гроші списуються безпосередньо з поточного рахунку. Клієнт підтверджує PIN-кодом. На іспитах це часто називають Electronic Cash або EC-Cash. У кредитної картки (Visa, Mastercard тощо) витрати збираються й оплачуються пізніше. Торговець платить комісію компанії кредитних карток. Картка клієнта не належить до банківських карток.","ኣብ girocard (ዴቢት ካርዲ) ገንዘብ ብቐጥታ ካብ ሕሳብ ባንካ ይወሃሃድ። እቲ ዓሚል ብPIN የረጋግጽ። ኣብ ፈተናታት ብዙሕ ግዜ Electronic Cash ወይ EC-Cash ይበሃል። ኣብ ክረዲት ካርዲ (Visa, Mastercard ወዘተ) እቲ ወጻኢታት ይእከብን ደሓር ይኽፈልን። እቲ ሸያጢ ንትካል ክረዲት ካርዲ ክፍሊት ይኸፍል። ካርዲ ዓሚል ካብ ካርዲታት ባንካ ኣይኮነን።"],"r0.q":["كيف يعرف العميل أي البطاقات مقبولة؟","Khách nhận biết bằng cách nào những thẻ nào được chấp nhận?","Як клієнт розпізнає, які картки приймають?","እቲ ዓሚል ኣየኖት ካርዲታት ከም ዝቅበሉ ብምንታይ ይፈልጥ?"],"r0.o0":["من الرموز عند الصندوق.","Nhờ các biểu tượng ở quầy.","За символами на касі.","ብምልክታት ኣብ ካሳ።"],"r0.o1":["من لون إيصال الصندوق.","Nhờ màu của hóa đơn.","За кольором касового чека.","ብሕብሪ ደረሰኝ ካሳ።"],"r0.o2":["من الساعة.","Nhờ giờ trong ngày.","За часом доби.","ብሰዓት።"],"r1.t":["الدفع بالبطاقة خطوة بخطوة","Thanh toán bằng thẻ theo từng bước","Оплата карткою за кроками","ክፍሊት ብካርዲ ብደረጃ"],"r1.task":["ظلّل خطوات الدفع بالبطاقة بالترتيب الصحيح.","Đánh dấu các bước thanh toán bằng thẻ theo đúng thứ tự.","Познач кроки оплати карткою в правильній послідовності.","ደረጃታት ክፍሊት ብካርዲ ብትክክል ስርዓት ምልክት ግበር።"],"r1.x":["هكذا يتم الدفع بالبطاقة: أولًا تذكر المبلغ الإجمالي. ثم يُدخل العميل البطاقة أو يقرّبها من جهاز القراءة. عند الحاجة يُدخل الرقم السري (PIN). بعد ذلك يوافق البنك أو مركز البطاقات على الدفع. وأخيرًا تسلّم إيصال الدفع (Zahlungsbeleg) وإيصال الصندوق. أما الجرد (Inventur) فليس من الخطوات.","Thanh toán bằng thẻ diễn ra như sau: Trước hết bạn báo tổng số tiền. Sau đó khách cắm thẻ hoặc đưa thẻ sát máy đọc. Nếu cần, khách nhập mã PIN. Tiếp theo ngân hàng hoặc trung tâm thẻ chấp thuận thanh toán. Cuối cùng bạn đưa biên lai thanh toán và hóa đơn. Kiểm kê (Inventur) không thuộc quy trình này.","Оплата карткою відбувається так: спочатку ти називаєш загальну суму. Потім клієнт вставляє картку або підносить її до зчитувача. Якщо потрібно, він вводить PIN-код. Після цього банк або центр карток дає дозвіл на оплату. Наприкінці ти видаєш платіжну квитанцію та касовий чек. Інвентаризація (Inventur) не входить у цей процес.","ክፍሊት ብካርዲ ከምዚ ይካየድ: ቅድም ጠቕላላ መጠን ትዛረብ። ደሓር እቲ ዓሚል ካርዲ የእቱ ወይ ናብ መንበቢ መሳርሒ የቐርብ። እንተድሌዩ PIN የእቱ። ድሕሪኡ ባንካ ወይ ማእከል ካርዲ ንክፍሊት ይፈቅድ። ኣብ መወዳእታ ደረሰኝ ክፍሊትን ደረሰኝ ካሳን ትህብ። ቆጸራ ንብረት (Inventur) ኣብዚ መስርሕ ኣይኣትውን።"],"r1.q":["ما الخطوات الثلاث في الصيغة المختصرة (نقطة لكل خطوة)؟","Bản rút gọn có 3 bước nào (mỗi bước 1 điểm)?","Які 3 кроки є в скороченому варіанті (по 1 балу)?","ኣብ ሓጺር ቅርጺ እንታይ 3 ደረጃታት ኣለዉ (ነፍስ ወከፍ 1 ነጥቢ)?"],"r1.o0":["ذكر المبلغ – تقريب البطاقة أو الهاتف من الجهاز – تسليم الإيصال.","Báo số tiền – đưa thẻ hoặc điện thoại sát máy đọc – đưa biên lai.","Назвати суму – піднести картку або смартфон до зчитувача – видати квитанцію.","መጠን ምዝራብ – ካርዲ ወይ ስማርትፎን ናብ መንበቢ መሳርሒ – ደረሰኝ ምሃብ።"],"r1.o1":["تغيير الرقم السري – إيقاف البطاقة – عدّ النقود.","Đổi PIN – khóa thẻ – đếm tiền.","Змінити PIN-код – заблокувати картку – порахувати гроші.","PIN ምቕያር – ካርዲ ምዕጻው – ገንዘብ ምቁጻር።"],"r1.o2":["تغليف البضاعة – وداع العميل – إغلاق الصندوق.","Gói hàng – chào tạm biệt khách – đóng quầy.","Запакувати товар – попрощатися з клієнтом – закрити касу.","ሸቐጥ ምጥምጣም – ንዓሚል ምስንባት – ካሳ ምዕጻው።"],"r2.t":["بدون تلامس والدفع عبر الهاتف","Không tiếp xúc và Mobile Payment","Безконтактна оплата і Mobile Payment","ብዘይ ርክብ ከምኡውን Mobile Payment"],"r2.task":["ظلّل كيف تُنقل البيانات، وحتى أي مبلغ يكون الدفع غالبًا بدون رقم سري، وبماذا يؤكد العميل في الدفع عبر الهاتف.","Đánh dấu: dữ liệu được truyền thế nào, thường đến bao nhiêu thì không cần PIN, và khi dùng Mobile Payment thì xác nhận bằng gì.","Познач, як передаються дані, до якої суми зазвичай не потрібен PIN-код і чим підтверджують при Mobile Payment.","ሓበሬታ ከመይ ከም ዝሰዳ፣ ክሳብ ክንደይ ብዙሕ ግዜ ብዘይ PIN ከም ዝከኣል፣ ኣብ Mobile Payment ድማ ብምንታይ ከም ዝረጋገጽ ምልክት ግበር።"],"r2.x":["في الدفع بدون تلامس (kontaktlos) تُقرَّب البطاقة أو الهاتف الذكي من جهاز القراءة فقط. وتُنقل البيانات لاسلكيًا (NFC). بدون الرقم السري غالبًا حتى 50 يورو. قد يُطلب الرقم السري إذا كان المبلغ أعلى، أو بعد عدة مدفوعات متتالية بدون تلامس، أو بالصدفة (للأمان). في الدفع عبر الهاتف (Mobile Payment) يدفع العميل بالهاتف الذكي أو الساعة الذكية ويؤكد ببصمة الإصبع أو بالتعرف على الوجه أو برمز. التوقيع ليس مطلوبًا لذلك.","Khi thanh toán không tiếp xúc, chỉ cần đưa thẻ hoặc điện thoại sát máy đọc. Dữ liệu được truyền bằng sóng vô tuyến (NFC). Thường không cần PIN đến 50 €. Có thể bị yêu cầu nhập PIN nếu số tiền cao hơn, sau nhiều lần thanh toán không tiếp xúc liên tiếp hoặc ngẫu nhiên (để an toàn). Với Mobile Payment, khách trả bằng điện thoại hoặc đồng hồ thông minh và xác nhận bằng vân tay, nhận diện khuôn mặt hoặc mã. Không cần chữ ký.","При безконтактній оплаті картку або смартфон лише підносять до зчитувача. Дані передаються по радіозв’язку (NFC). Зазвичай без PIN-коду до 50 €. PIN-код можуть вимагати, якщо сума більша, після кількох безконтактних оплат поспіль або випадково (з міркувань безпеки). При Mobile Payment клієнт платить смартфоном або смарт-годинником і підтверджує відбитком пальця, розпізнаванням обличчя або кодом. Підпис для цього не потрібен.","ኣብ ብዘይ ርክብ ክፍሊት እቲ ካርዲ ወይ ስማርትፎን ናብ መንበቢ መሳርሒ ጥራይ ይቐርብ። ሓበሬታ ብሬድዮ ሞገድ (NFC) ይሰዳ። ብዙሕ ግዜ ክሳብ 50 € ብዘይ PIN። PIN ክሕተት ይኽእል: መጠን ምስ ዝልዕል፣ ድሕሪ ብዙሕ ብዘይ ርክብ ክፍሊት ብተኸታታሊ ወይ ብሕጂ-ዘይሕጂ (ንድሕነት)። ኣብ Mobile Payment እቲ ዓሚል ብስማርትፎን ወይ ብስማርት-ሰዓት ይኸፍል ብኣሰር ኣጻብዕ፣ ብምልላይ ገጽ ወይ ብኮድ ድማ የረጋግጽ። ፊርማ ኣየድልን።"],"r2.q":["ما ميزة الدفع بدون تلامس؟","Thanh toán không tiếp xúc có ưu điểm gì?","Яку перевагу має безконтактна оплата?","ብዘይ ርክብ ምኽፋል እንታይ ጥቕሚ ኣለዎ?"],"r2.o0":["الدفع أسرع.","Thanh toán nhanh hơn.","Оплата проходить швидше.","ክፍሊት ቅልጡፍ እዩ።"],"r2.o1":["لا تدفع الشركة ثمن التقنية.","Cửa hàng không phải trả tiền cho thiết bị.","Підприємство не платить за техніку.","እቲ ድኳን ንቴክኒክ ኣይኸፍልን።"],"r2.o2":["لا يوجد رقم سري أبدًا.","Không bao giờ có PIN.","PIN-коду ніколи не буває.","PIN ፈጺሙ የለን።"],"r3.t":["المزايا والعيوب بالنسبة للشركة","Ưu và nhược điểm đối với cửa hàng","Переваги й недоліки для підприємства","ጥቕምታትን ጉድለታትን ንድኳን"],"r3.task":["ظلّل ميزتين وعيبين للدفع بالبطاقة بالنسبة للشركة.","Đánh dấu hai ưu điểm và hai nhược điểm của thanh toán bằng thẻ đối với cửa hàng.","Познач дві переваги й два недоліки оплати карткою для підприємства.","ክልተ ጥቕምታትን ክልተ ጉድለታትን ክፍሊት ብካርዲ ንድኳን ምልክት ግበር።"],"r3.x":["مزايا الشركة: إنجاز سريع للدفع، طوابير أقصر، نقد أقل في الصندوق (سرقة أقل، لا أموال مزيفة)، مشتريات عفوية وزيادة المبيعات. العيوب: رسوم على كل عملية دفع، وشراء الأجهزة والتقنية، ويصل المال إلى الحساب لاحقًا، وعند تعطل التقنية لا يستطيع أحد الدفع. بالنسبة للعميل هو سريع ومريح؛ والعيب: يصعب تتبّع المصروفات أكثر، وتُخزَّن بياناته. أما الخصم على الكمية (Mengenrabatt) فليس منها.","Ưu điểm đối với cửa hàng: thanh toán nhanh, hàng đợi ngắn hơn, ít tiền mặt trong két (ít bị trộm, không có tiền giả), mua sắm bốc đồng và tăng doanh thu. Nhược điểm: phí cho mỗi lần thanh toán, phải mua thiết bị, tiền vào tài khoản chậm hơn và khi thiết bị hỏng thì không ai thanh toán được. Với khách hàng thì nhanh và tiện; nhược điểm: dễ mất kiểm soát chi tiêu hơn và dữ liệu bị lưu lại. Giảm giá theo số lượng (Mengenrabatt) không thuộc các điểm này.","Переваги для підприємства: швидке обслуговування, коротші черги, менше готівки в касі (менше крадіжок, немає фальшивих грошей), спонтанні покупки та зростання обороту. Недоліки: комісія за кожну оплату, купівля техніки, гроші надходять на рахунок пізніше, а при збої техніки ніхто не може заплатити. Для клієнта це швидко й зручно; недолік: легше втратити контроль над витратами, а його дані зберігаються. Знижка за кількість (Mengenrabatt) сюди не належить.","ጥቕምታት ንድኳን: ቅልጡፍ ኣገባብ፣ ሓጸርቲ ሰልፊ፣ ውሑድ ጥረ ገንዘብ ኣብ ካሳ (ውሑድ ስርቂ፣ ሓሶት ገንዘብ የለን)፣ ብድንገት ዕዳጋን ዝልዕል ሽያጥን። ጉድለታት: ክፍሊት ንሕልፊ ክፍሊት፣ ምዕዳግ ቴክኒክ፣ ገንዘብ ደሓር ናብ ሕሳብ ይመጽእ፣ ቴክኒክ እንተተበላሽዩ ዋላ ሓደ ክኸፍል ኣይክእልን። ንዓሚል ቅልጡፍን ምቹእን እዩ፤ ጉድለት: ኣብ ወጻኢታት ምቁጽጻር ይኸብድ፣ ሓበሬታኡ ድማ ይቕመጥ። ቅናሽ ብብዝሒ (Mengenrabatt) ኣብዚ ኣይኣትውን።"],"r3.q":["لماذا يُعدّ نقد أقل في الصندوق ميزة؟","Tại sao ít tiền mặt trong két là một ưu điểm?","Чому менше готівки в касі — це перевага?","ስለምንታይ ውሑድ ጥረ ገንዘብ ኣብ ካሳ ጥቕሚ እዩ?"],"r3.o0":["سرقة أقل ولا أموال مزيفة.","Ít bị trộm và không có tiền giả.","Менше крадіжок і немає фальшивих грошей.","ውሑድ ስርቂን ሓሶት ገንዘብ የለን።"],"r3.o1":["لا تحتاج الشركة صندوقًا بعد ذلك.","Cửa hàng không cần quầy thu ngân nữa.","Підприємству більше не потрібна каса.","እቲ ድኳን ካሳ ኣየድልዮን።"],"r3.o2":["تصبح الرسوم صفرًا.","Khi đó phí bằng không.","Тоді комісії дорівнюють нулю.","እቲ ክፍሊት ሽዑ ዜሮ እዩ።"],"r4.t":["قسيمة الشراء والكوبون وبطاقة العميل","Phiếu quà tặng, coupon và thẻ khách hàng","Подарунковий сертифікат, купон і картка клієнта","ወረቐት ህያብ፣ ኩፖንን ካርዲ ዓሚልን"],"r4.task":["ظلّل كم تسري القسائم بدون تاريخ، وما هو الكوبون، وماذا تعرف الشركة من بطاقة العميل.","Đánh dấu: phiếu không ghi ngày có hiệu lực bao lâu, coupon là gì, và cửa hàng biết gì qua thẻ khách hàng.","Познач, як довго діють сертифікати без дати, що таке купон і що підприємство дізнається через картку клієнта.","ዕለት ዘይብሉ ወረቐት ህያብ ክሳብ መዓስ ከም ዘገልግል፣ ኩፖን እንታይ ከም ዝኾነ፣ ኣብ ካርዲ ዓሚል ድማ እቲ ድኳን እንታይ ከም ዝፈልጥ ምልክት ግበር።"],"r4.x":["بقسيمة الشراء (Gutschein) يشتري العميل حتى قيمتها. وإذا أعطى المتجر قسيمة بدل المال عند الاستبدال فإنه يربط العميل به. القسائم بدون تاريخ تسري ثلاث سنوات. الكوبون (Coupon) هو خصم على سلعة أو على المشتريات (مثلًا 15 %). وببطاقة العميل (Kundenkarte) يجمع العميل نقاطًا وخصومات. وتعرف الشركة بذلك الكثير عن سلوك الشراء. في بيانات العملاء تسري DSGVO: الحفظ فقط بموافقة، والمعاملة بسرية، وعدم التسليم لأطراف ثالثة. أما الضمان (Garantie) فشيء آخر.","Với phiếu quà tặng, khách mua hàng đến hết giá trị của phiếu. Khi đổi hàng mà cửa hàng đưa phiếu thay vì tiền, cửa hàng giữ chân được khách. Phiếu không ghi ngày có hiệu lực ba năm. Coupon là giảm giá cho một món hàng hoặc cho cả lần mua (ví dụ 15 %). Với thẻ khách hàng, khách tích điểm và nhận giảm giá. Đổi lại, cửa hàng biết rất nhiều về thói quen mua sắm. Với dữ liệu khách hàng thì áp dụng DSGVO: chỉ lưu khi được đồng ý, giữ bí mật và không chuyển cho bên thứ ba. Bảo hành (Garantie) là việc khác.","За подарунковим сертифікатом клієнт купує товари на суму сертифіката. Якщо магазин при обміні дає сертифікат замість грошей, він прив’язує клієнта. Сертифікати без дати діють три роки. Купон — це знижка на товар або на покупку (наприклад, 15 %). За карткою клієнта клієнт збирає бали й знижки. За це підприємство дізнається багато про поведінку покупців. Для даних клієнтів діє DSGVO: зберігати тільки зі згоди, поводитися конфіденційно й не передавати третім особам. Гарантія (Garantie) — це інше.","ብወረቐት ህያብ እቲ ዓሚል ክሳብ ዋጋ እቲ ወረቐት ይዕድግ። ድኳን ኣብ ምልዋጥ ኣብ ክንዲ ገንዘብ ወረቐት ህያብ እንተሂቡ፣ ንዓሚል የተሓሕዞ። ዕለት ዘይብሉ ወረቐት ህያብ ሰለስተ ዓመት የገልግል። ኩፖን ቅናሽ ኣብ ሓደ ሸቐጥ ወይ ኣብ ምሉእ ዕዳጋ እዩ (ንኣብነት 15 %)። ብካርዲ ዓሚል እቲ ዓሚል ነጥቢታትን ቅናሽን የኽብር። ብምኽንያቱ እቲ ድኳን ብዙሕ ብዛዕባ ኣገባብ ዕዳጋ ይፈልጥ። ንሓበሬታ ዓማዊል DSGVO ይሰርሕ: ብፍቓድ ጥራይ ምቕማጥ፣ ብምስጢር ምሕዛን፣ ንሳልሳይ ወገን ዘይምሃብ። ዋስትና (Garantie) ካልእ እዩ።"],"r4.q":["لماذا تستخدم الشركة بيانات العملاء؟","Cửa hàng dùng dữ liệu khách hàng để làm gì?","Для чого підприємство використовує дані клієнтів?","እቲ ድኳን ንሓበሬታ ዓማዊል ንእንታይ ይጥቀመሉ?"],"r4.o0":["لتعديل التشكيلة والإعلانات.","Để điều chỉnh hàng hóa và quảng cáo.","Щоб пристосовувати асортимент і рекламу.","ዓይነት ሸቐጥን መወዓውዒን ንምውቃዕ።"],"r4.o1":["لإخفاء الأسعار عن العميل.","Để giấu giá với khách hàng.","Щоб приховувати ціни від клієнта.","ዋጋታት ካብ ዓሚል ንምሕባእ።"],"r4.o2":["لتقديم البيانات هدية لشركات أخرى.","Để tặng dữ liệu cho các công ty khác.","Щоб дарувати дані іншим фірмам.","ሓበሬታ ንካልኦት ኩባንያታት ንምህያብ።"],"r5.t":["المسح الذاتي (Self-Scanning)","Self-Scanning (tự quét hàng)","Self-Scanning (самостійне сканування)","Self-Scanning (ባዕሉ ምስካን)"],"r5.task":["ظلّل أين يمسح العملاء بأنفسهم، وميزة وعيبًا للشركة.","Đánh dấu: khách tự quét ở đâu, một ưu điểm và một nhược điểm cho cửa hàng.","Познач, де клієнти сканують самі, одну перевагу й один недолік для підприємства.","ዓማዊል ኣበይ ባዕሎም ከም ዘስክኑ፣ ሓደ ጥቕምን ሓደ ጉድለትን ንድኳን ምልክት ግበር።"],"r5.x":["في المسح الذاتي (Self-Scanning) يمسح العملاء بأنفسهم عند صندوق الخدمة الذاتية أو بالهاتف. ميزة للشركة: موظفون أقل عند الصندوق، ومساحة أقل، ولا أخطاء في الباقي. العيوب: الشراء والتدريب، وتعطل التقنية، ورفض بعض العملاء له، وخطر سرقة أعلى وفروقات في الجرد. أما تسليم البضائع (Warenlieferung) فلا دور له هنا.","Với Self-Scanning, khách tự quét hàng ở quầy tự phục vụ hoặc bằng điện thoại. Ưu điểm cho cửa hàng: ít nhân viên thu ngân hơn, tốn ít chỗ hơn, không sai sót khi trả tiền thừa. Nhược điểm: phải mua thiết bị và đào tạo, thiết bị bị hỏng, một số khách không thích, nguy cơ trộm cắp cao hơn và chênh lệch kiểm kê. Việc giao hàng không liên quan ở đây.","При Self-Scanning клієнти самі скануюють товар на касі самообслуговування або зі смартфона. Перевага для підприємства: менше персоналу на касі, менше місця, немає помилок із решітою. Недоліки: купівля техніки й навчання, збої техніки, частина клієнтів відмовляється, вищий ризик крадіжок і інвентаризаційні розбіжності. Доставка товарів тут не має значення.","ኣብ Self-Scanning ዓማዊል ኣብ ባዕሎም ዝገልግሉ ካሳ ወይ ብተሌፎን ባዕሎም የስክኑ። ጥቕሚ ንድኳን: ውሑድ ሰራሕተኛ ኣብ ካሳ፣ ውሑድ ቦታ፣ ኣብ ተመላሲ ገንዘብ ጌጋ የለን። ጉድለታት: ምዕዳግ ቴክኒክን ስልጠናን፣ ቴክኒክ ይብለሽ፣ ገሊኦም ዓማዊል ይኽልክሉ፣ ልዑል ሓደጋ ስርቂን ኣብ ቆጸራ ዝፍለ ፍሉይነትን። ምምጻእ ሸቐጥ ኣብዚ ኣገዳሲ ኣይኮነን።"],"r5.q":["ما عيب المسح الذاتي بالنسبة للشركة؟","Self-Scanning có nhược điểm gì cho cửa hàng?","Який недолік має Self-Scanning для підприємства?","Self-Scanning ንድኳን እንታይ ጉድለት ኣለዎ?"],"r5.o0":["خطر سرقة أعلى وفروقات في الجرد.","Nguy cơ trộm cắp cao hơn và chênh lệch kiểm kê.","Вищий ризик крадіжок і інвентаризаційні розбіжності.","ልዑል ሓደጋ ስርቂን ኣብ ቆጸራ ዝፍለ ፍሉይነትን።"],"r5.o1":["موظفون أكثر عند الصندوق.","Cần nhiều nhân viên hơn ở quầy.","Більше персоналу на касі.","ልዑል ሰራሕተኛ ኣብ ካሳ።"],"r5.o2":["أخطاء أكثر في الباقي.","Nhiều sai sót hơn khi trả tiền thừa.","Більше помилок із решітою.","ልዑል ጌጋ ኣብ ተመላሲ ገንዘብ።"],"cat_vor":["البداية: ماذا تتذكر من الوحدة 3؟","Khởi động: Bạn còn nhớ gì từ Mô-đun 3?","Розминка: Що ти ще пам’ятаєш з модуля 3?","መእተዊ: ካብ ምዕራፍ 3 እንታይ ትዝክር?"],"cat_txt":["فهم النص: الاستطلاع ونص القراءة","Hiểu văn bản: khảo sát và bài đọc","Розуміння тексту: опитування і текст для читання","ኣንባቢ ምርዳእ: መጽናዕቲን ጽሑፍ ንምንባብን"],"cat_trans":["التطبيق: التعرّف على طرق الدفع والحساب","Vận dụng: nhận biết hình thức thanh toán và tính toán","Перенесення: розпізнавати способи оплати й рахувати","ምትግባር: ዓይነታት ክፍሊት ምፍላጥን ምሕሳብን"],"cat_wis":["المعرفة المهنية: اختبار الامتحان","Kiến thức nghề: Kiểm tra kiểu thi","Фахові знання: перевірка до іспиту","ሞያዊ ፍልጠት: ፈተና-ምርመራ"],"cat_refl":["الشركة والتفكير الأعمق","Công ty và suy nghĩ sâu hơn","Підприємство і роздуми","ድኳንን ተወሳኺ ሓሳብን"]};
+const GLOSS=[["die girocard","girocard (بطاقة الخصم المباشر)","girocard (thẻ ghi nợ)","girocard (дебетова картка)","girocard (ዴቢት ካርዲ)"],["die Kreditkarte","بطاقة الائتمان (Kreditkarte)","thẻ tín dụng (Kreditkarte)","кредитна картка (Kreditkarte)","ክረዲት ካርዲ (Kreditkarte)"],["die PIN","الرقم السري (PIN)","mã PIN","PIN-код","PIN"],["kontaktlos","بدون تلامس (kontaktlos)","không tiếp xúc (kontaktlos)","безконтактно (kontaktlos)","ብዘይ ርክብ (kontaktlos)"],["die NFC-Funktion","وظيفة NFC","chức năng NFC","функція NFC","ተግባር NFC"],["das Mobile Payment","الدفع عبر الهاتف (Mobile Payment)","thanh toán qua điện thoại (Mobile Payment)","мобільна оплата (Mobile Payment)","ክፍሊት ብተሌፎን (Mobile Payment)"],["der Zahlungsbeleg","إيصال الدفع (Zahlungsbeleg)","biên lai thanh toán (Zahlungsbeleg)","платіжна квитанція (Zahlungsbeleg)","ደረሰኝ ክፍሊት (Zahlungsbeleg)"],["die Gebühr","الرسوم (Gebühr)","phí (Gebühr)","комісія (Gebühr)","ክፍሊት ኣገልግሎት (Gebühr)"],["der Gutschein","قسيمة الشراء (Gutschein)","phiếu quà tặng (Gutschein)","подарунковий сертифікат (Gutschein)","ወረቐት ህያብ (Gutschein)"],["der Coupon","الكوبون (Coupon)","coupon (phiếu giảm giá)","купон (Coupon)","ኩፖን (Coupon)"],["die Kundenkarte","بطاقة العميل (Kundenkarte)","thẻ khách hàng (Kundenkarte)","картка клієнта (Kundenkarte)","ካርዲ ዓሚል (Kundenkarte)"],["der Datenschutz","حماية البيانات (Datenschutz)","bảo vệ dữ liệu (Datenschutz)","захист даних (Datenschutz)","ሓለዋ ሓበሬታ (Datenschutz)"]];
+const WTX={"Bargeld":["نقد","tiền mặt","готівка","ጥረ ገንዘብ"],"Kunde":["الزبون","khách hàng","клієнт","ዓሚል"],"bezahlen":["يدفع","thanh toán","платити","ምኽፋል"],"Grund":["سبب","lý do","причина","ምኽንያት"],"Kunden bezahlen bar, weil …":["يدفع العملاء نقدًا لأن …","Khách trả tiền mặt vì …","Клієнти платять готівкою, тому що …","ዓማዊል ጥረ ገንዘብ ይኸፍሉ፣ ምኽንያቱ …"],"Geldschein":["ورقة نقدية","tờ tiền","банкнота","ወረቐት ገንዘብ"],"prüfen":["يتحقق","kiểm tra","перевіряти","ምፍታሽ"],"Merkmal":["سمة","dấu hiệu","ознака","ምልክት"],"Sinne":["الحواس","các giác quan","органи чуття","ህዋሳት"],"Ich prüfe den Schein, indem …":["أتحقق من الورقة بأن …","Tôi kiểm tra tờ tiền bằng cách …","Я перевіряю банкноту так: …","ነቲ ወረቐት ከምዚ እፈትሸ: …"],"Verdacht":["اشتباه","nghi ngờ","підозра","ጥርጣረ"],"Schein":["ورقة نقدية","tờ tiền","купюра","ወረቐት"],"Vorgesetzte":["مسؤولة","cấp trên","керівник","ሓላፊ"],"Bei Verdacht …":["عند الشك …","Khi nghi ngờ …","У разі підозри …","ጥርጣረ እንተሎ …"],"Umfrage":["استطلاع","khảo sát","опитування","መጽናዕቲ"],"Zahlungsart":["طريقة الدفع","hình thức thanh toán","спосіб оплати","ዓይነት ክፍሊት"],"häufig":["غالبًا","thường","часто","ብዙሕ ግዜ"],"selten":["نادرًا","hiếm","рідко","ውሑድ ግዜ"],"Mir fällt auf, dass …":["ألاحظ أن …","Tôi nhận thấy rằng …","Мені впадає в око, що …","ይረአየኒ …"],"Das ist so, weil …":["هذا لأن …","Điều này như vậy vì …","Це так, тому що …","እዚ ከምኡ እዩ፣ ምኽንያቱ …"],"Girokonto":["الحساب الجاري","tài khoản vãng lai","поточний рахунок","ሕሳብ ባንካ"],"PIN":["الرقم السري","mã PIN","PIN-код","PIN"],"abbuchen":["يخصم","trừ tiền","списувати","ካብ ሕሳብ ምውሃሃድ"],"Gemeint ist …":["المقصود هو …","Ý nói đến …","Мається на увазі …","ዝተባህለ …"],"Umsatz":["المبيعات","doanh thu","оборот","ሽያጥ"],"Monat":["شهر","tháng","місяць","ወርሒ"],"abrechnen":["يحاسب","quyết toán","розраховувати","ምሕሳብ"],"Karte":["بطاقة","thẻ","картка","ካርዲ"],"Lesegerät":["جهاز القراءة","máy đọc thẻ","зчитувач","መንበቢ መሳርሒ"],"Fingerabdruck":["بصمة الإصبع","vân tay","відбиток пальця","ኣሰር ኣጻብዕ"],"Gesicht":["الوجه","khuôn mặt","обличчя","ገጽ"],"bestätigen":["يؤكد","xác nhận","підтверджувати","ምርግጋጽ"],"schenken":["يهدي","tặng","дарувати","ምህያብ"],"Wert":["قيمة","giá trị","вартість","ዋጋ"],"einkaufen":["يتسوق","mua sắm","купувати","ምዕዳግ"],"Punkte":["نقاط","điểm","бали","ነጥቢታት"],"Rabatt":["خصم","giảm giá","знижка","ቅናሽ"],"sammeln":["يجمع","tích lũy","збирати","ምእካብ"],"einstecken":["يُدخل","cắm vào","вставляти","ምእታው"],"Funk":["لاسلكي","sóng vô tuyến","радіозв’язок","ሬድዮ ሞገድ"],"Richtig ist die Aussage …":["العبارة الصحيحة هي …","Câu đúng là …","Правильне твердження — …","ትክክል እቲ ሓረግ …"],"Betrieb":["الشركة","doanh nghiệp","Підприємство","ድኳን፣ ትካል"],"Nachteil":["عيب","nhược điểm","недолік","ጉድለት"],"Kreditkarte":["بطاقة ائتمان (Kreditkarte)","thẻ tín dụng","кредитна картка","ክረዲት ካርዲ"],"Bank":["بنك","ngân hàng","банк","ባንካ"],"Der Nachteil ist …":["العيب هو …","Nhược điểm là …","Недолік у тому, що …","እቲ ጉድለት …"],"Einkauf":["المشتريات","lần mua hàng","покупка","ዕዳጋ"],"abziehen":["يطرح","trừ đi","віднімати","ምጉዳል"],"Die Punkte sind … € wert.":["قيمة النقاط … يورو.","Số điểm có giá trị … €.","Бали коштують … €.","እቲ ነጥቢታት … € ዋጋ ኣለዎም።"],"Sie muss noch … € zahlen.":["عليها أن تدفع … يورو.","Chị còn phải trả … €.","Їй ще треба заплатити … €.","ገና … € ክትከፍል ኣለዋ።"],"Ablauf":["السير","quy trình","процес","መስርሕ"],"Vorteil":["ميزة","ưu điểm","перевага","ጥቕሚ"],"Meine Zahlungsart ist …":["طريقة الدفع الخاصة بي هي …","Hình thức thanh toán của tôi là …","Мій спосіб оплати — …","ዓይነት ክፍሊተይ …"],"Der Ablauf: Erstens …":["الخطوات: أولًا …","Quy trình: Thứ nhất …","Процес: По-перше, …","እቲ መስርሕ: ቅድም …"],"Kaufhaus":["المتجر الكبير","trung tâm thương mại","універмаг","ዓቢ ድኳን"],"Zahlungsmöglichkeit":["إمكانية دفع","cách thanh toán","можливість оплати","ኣገባብ ክፍሊት"],"Die Symbole bedeuten, dass …":["تعني الرموز أن …","Các biểu tượng có nghĩa là …","Символи означають, що …","እቲ ምልክታት ማለት …"],"Zahlung":["دفع","thanh toán","оплата","ክፍሊት"],"Ein Vorteil ist …":["من المزايا …","Một ưu điểm là …","Одна перевага — …","ሓደ ጥቕሚ …"],"Ein Nachteil ist …":["من العيوب …","Một nhược điểm là …","Один недолік — …","ሓደ ጉድለት …"],"Reihenfolge":["ترتيب","thứ tự","послідовність","ስርዓት"],"Schritt":["خطوة","bước","крок","ደረጃ"],"Kundin":["الزبونة","khách nữ","клієнтка","ዓሚላ"],"Erstens …":["أولًا …","Thứ nhất …","По-перше, …","ቀዳማይ …"],"Zweitens …":["ثانيًا …","Thứ hai …","По-друге, …","ካልኣይ …"],"Drittens …":["ثالثًا …","Thứ ba …","По-третє, …","ሳልሳይ …"],"NFC":["NFC (اتصال المدى القريب)","NFC","NFC","NFC"],"Kasse":["الصندوق","quầy thu ngân","каса","ካሳ"],"Der Vorteil ist, dass …":["الفائدة هي أن …","Lợi ích là …","Перевага в тому, що …","እቲ ረብሓ … እዩ።"],"kontaktlos":["بدون تلامس (kontaktlos)","không tiếp xúc","безконтактно","ብዘይ ርክብ"],"Fall":["حالة","trường hợp","випадок","ኩነታት"],"Die PIN kann verlangt werden, wenn …":["قد يُطلب الرقم السري عندما …","Có thể bị yêu cầu nhập PIN khi …","PIN-код можуть вимагати, коли …","PIN ክሕተት ይኽእል ምስ …"],"Kundendaten":["بيانات العملاء","dữ liệu khách hàng","дані клієнтів","ሓበሬታ ዓማዊል"],"DSGVO":["اللائحة العامة لحماية البيانات (DSGVO)","DSGVO","DSGVO","DSGVO"],"Datenschutz":["حماية البيانات","bảo vệ dữ liệu","захист даних","ሓለዋ ሓበሬታ"],"Kundendaten muss ich …":["يجب أن أتعامل مع بيانات العملاء …","Dữ liệu khách hàng tôi phải …","З даними клієнтів я повинен(-на) …","ሓበሬታ ዓማዊል ክሕዞ ኣለኒ …"],"Café":["مقهى","quán cà phê","кафе","ካፌ"],"Kartenzahlung":["الدفع بالبطاقة","thanh toán bằng thẻ","оплата карткою","ክፍሊት ብካርዲ"],"Wechselgeld":["فكة","tiền lẻ","решта","ተመላሲ ገንዘብ"],"ausgeschlossen":["مستبعد","bị loại trừ","виключені","ዝተገለሉ"],"Aus Sicht des Cafés …":["من وجهة نظر المقهى …","Từ góc nhìn của quán …","З погляду кафе …","ካብ ኣመለኻኽታ ካፌ …"],"Aus Sicht der Kunden …":["من وجهة نظر العملاء …","Từ góc nhìn của khách …","З погляду клієнтів …","ካብ ኣመለኻኽታ ዓማዊል …"],"Mein Urteil: …, weil …":["حكمي: …، لأن …","Đánh giá của tôi: …, vì …","Моя оцінка: …, тому що …","ፍርዳይ: …፣ ምኽንያቱ …"],"Kundenkarte":["بطاقة الزبون","thẻ khách hàng","картка клієнта","ካርዲ ዓሚል"],"Kundenbindung":["ولاء العملاء","gắn bó khách hàng","прив’язування клієнтів","ምትሕዝ ዓማዊል"],"Daten":["بيانات","dữ liệu","дані","ሓበሬታ"],"Das lohnt sich, weil …":["هذا يستحق لأن …","Điều này có lợi vì …","Це вигідно, тому що …","እዚ ይጠቅም፣ ምኽንያቱ …"],"Gebühr":["رسوم","phí","комісія","ክፍሊት ኣገልግሎት"],"Spontankauf":["شراء عفوي","Mua bốc đồng","спонтанна покупка","ብድንገት ዕዳጋ"],"Der Betrieb nimmt Kreditkarten an, weil …":["تقبل الشركة بطاقات الائتمان لأن …","Cửa hàng chấp nhận thẻ tín dụng vì …","Підприємство приймає кредитні картки, тому що …","እቲ ድኳን ክረዲት ካርዲ ይቕበል፣ ምኽንያቱ …"],"Sicherheit":["أمان","an toàn","безпека","ድሕነት"],"verloren":["ضائعة","bị mất","загублений","ዝተሰኣነ"],"Ohne PIN könnte …":["بدون الرقم السري يمكن أن …","Nếu không có PIN thì có thể …","Без PIN-коду могло б …","ብዘይ PIN ክኸውን ይኽእል …"],"Deshalb …":["لذلك …","Vì vậy …","Тому …","ስለዚ …"],"Einwilligung":["موافقة","sự đồng ý","згода","ፍቓድ"],"vertraulich":["بسرية","bí mật","конфіденційно","ብምስጢር"],"Vertrauen":["ثقة","lòng tin","довіра","እምነት"],"Dann würde der Betrieb …":["عندها ستقوم الشركة بـ …","Khi đó cửa hàng sẽ …","Тоді підприємство …","ሽዑ እቲ ድኳን …"],"Gutschein":["قسيمة شراء","phiếu quà tặng","подарунковий сертифікат","ወረቐት ህያብ"],"einlösen":["يُستبدل بها","đổi, dùng phiếu","використати (сертифікат)","ምጥቃም (ወረቐት ህያብ)"],"Geschäft":["متجر","cửa hàng","магазин","ድኳን"],"Der Gutschein bindet den Kunden, weil …":["تربط القسيمة العميل لأن …","Phiếu quà tặng giữ chân khách vì …","Сертифікат прив’язує клієнта, тому що …","እቲ ወረቐት ህያብ ንዓሚል የተሓሕዞ፣ ምኽንያቱ …"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={ar:0,vi:1,uk:2,ti:3}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 3 · Modul 4 · Karte, Handy, Gutschein";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf3m4_v2";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),document.getElementById("a2btn")?["a2"]:[]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+if($("#a2btn"))$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF3_Modul4.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done&&$("#a2btn"))$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>

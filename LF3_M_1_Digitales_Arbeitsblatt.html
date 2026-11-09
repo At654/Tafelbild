@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 3 · Modul 1 · Die Kasse und der Kassenbon</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="ar">🇸🇦 العربية</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+    <button class="pill" data-l="uk">🇺🇦 Українська</button>
+    <button class="pill" data-l="ti">🇪🇷 ትግርኛ</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 3 · Kunden im Servicebereich Kasse betreuen</p>
+  <h1 data-k="h1">Modul 1: Die Kasse und der Kassenbon</h1>
+  <p class="sub" data-k="meta">2 Doppelstunden · 6 Punkte · Lehrbuch S. 165–173 · Arbeitsheft S. 134–141</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann Geräte an der Kasse nennen und die Vorteile einer Scannerkasse erklären.</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann erklären, was die TSE ist und warum es die Belegausgabepflicht gibt.</label></li>
+      <li><label data-k="can3"><input type="checkbox"> Ich kann die Angaben auf einem Kassenbon benennen.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a1_h">Aufgabe 1 · Ankommen: Kasse erleben</h2>
+    <p data-k="a1_p">Aus deinem Ausbildungsbetrieb beantworten. Es gibt kein Richtig oder Falsch.</p>
+    <div data-items="a1"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 2 · Bon-Detektive: Was steht auf dem Kassenbon?</h2>
+    <p data-k="a2_p">Sieh dir den Kassenbon genau an. Was bedeuten die markierten Stellen (1 bis 6)?</p>
+    <pre style="font-family:monospace;background:#fff;color:#222;border:1px dashed #888;border-radius:8px;padding:12px;max-width:420px;overflow:auto;font-size:15px;line-height:1.5">     Supermarkt Kiek In
+     Hafenstraße 12 · 27568 Bremerhaven
+     St.-Nr. 60/123/45678
+     ① Milch 1 l ................ 1,19 €
+     ② SUMME .................... 1,19 €
+     ③ girocard ................. 1,19 €
+     ④ MwSt 7 %: Netto 1,11 · Steuer 0,08
+     ⑤ Bon 4711 · Kasse 2 · 14.03.25 10:42
+     ⑥ TSE-Transaktion: 118204
+</pre>
+    <div data-items="a2"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> das Kassensystem · der Scanner · der Bondrucker · das Kartenterminal · das Kundendisplay · die GTIN · das Warenwirtschaftssystem (WWS) · der Artikelstamm · die TSE · die Belegausgabepflicht · der Kassenbon · die Umsatzsteuer · stornieren
+      <div id="gloss"></div></div>
+    <div id="reading"></div>
+
+    <h3 style="margin-top:24px" data-k="vt_h">Vorteile der Scannerkasse</h3>
+    <table>
+      <tr><th data-k="th_betrieb">Vorteile für den Betrieb</th><th data-k="th_kunde">Vorteile für die Kunden</th></tr>
+      <tr><td data-k="vb1">schnelles und fehlerfreies Kassieren</td><td data-k="vk1">kürzere Wartezeit</td></tr>
+      <tr><td data-k="vb2">jeder Verkauf wird artikelgenau erfasst</td><td data-k="vk2">ausführlicher Kassenbon mit Artikelbezeichnung</td></tr>
+      <tr><td data-k="vb3">der Lagerbestand wird automatisch fortgeschrieben</td><td data-k="vk3">weniger Tippfehler</td></tr>
+      <tr><td data-k="vb4">genaue Verkaufsdaten für Nachbestellung und Werbung</td><td></td></tr>
+      <tr><td data-k="vb5">Preisänderungen zentral</td><td></td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="ges_h">Das sagt das Gesetz</h3>
+    <table>
+      <tr><th data-k="th_regel">Regel</th><th data-k="th_bed">Das bedeutet</th></tr>
+      <tr><td data-k="ge1">TSE (technische Sicherheitseinrichtung) – Pflicht seit 2020</td><td data-k="ge1b">Jeder Kassenvorgang wird gespeichert und signiert. Niemand kann Umsätze nachträglich löschen oder ändern. So wird Steuerbetrug verhindert.</td></tr>
+      <tr><td data-k="ge2">Belegausgabepflicht – seit 2020</td><td data-k="ge2b">Jeder Kunde bekommt einen Beleg, auf Papier oder elektronisch (E-Bon). Der Kunde muss ihn nicht mitnehmen.</td></tr>
+      <tr><td data-k="ge3">Meldepflicht – seit 2025</td><td data-k="ge3b">Der Betrieb muss seine elektronischen Kassen dem Finanzamt melden.</td></tr>
+    </table>
+
+    <div class="merke" data-k="merke_bon"><b>Merke:</b> Der Kassenbon ist ein Beleg: Der Kunde kann damit zeigen, dass er bezahlt hat – wichtig beim Umtausch und bei einer Reklamation. Ein Tippfehler wird storniert; der falsche Bon wird aufbewahrt, weil er für die Kassenabrechnung gebraucht wird.</div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a3_h">Aufgabe 3 · Vorgemacht: Geräte an der Kasse nennen</h2>
+    <p data-k="a3_p">So gehst du bei einer Prüfungsaufgabe vor. Lies die Schritte genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk0"><b>Die Aufgabe: Welche 3 Geräte gehören zur Hardware einer Kasse? Nennen Sie sie! (3 Punkte)</b></div>
+    <div class="worked" data-k="wk1"><b>1. Operator lesen:</b> „Nennen“ = Stichworte reichen, keine Erklärung. 3 Geräte = 3 Punkte.</div>
+    <div class="worked" data-k="wk2"><b>2. Im Kopf an die Kasse stellen:</b> Was sehe ich? Was fasse ich an? Was sieht der Kunde?</div>
+    <div class="worked" data-k="wk3"><b>3. Aufschreiben:</b> Scanner · Bondrucker · Kartenlesegerät</div>
+    <div class="worked" data-k="wk4"><b>4. Prüfen:</b> Genau drei? Alles Geräte (nicht Tätigkeiten wie „scannen“)? Dann gibt es volle Punkte.</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe die Beispiele gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a4_h">Aufgabe 4 · Geführte Übung: Scannerkasse</h2>
+    <div data-items="a4"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a5_h">Aufgabe 5 · Freie Übung: Mein Kassenbon <span class="pts" data-k="pts2">2 Punkte</span></h2>
+    <p data-k="a5_p">Nimm einen Kassenbon aus deinem Ausbildungsbetrieb (Kundendaten schwärzen!) oder schau dir noch einmal den Bon aus Aufgabe 2 an. Markiere und benenne mindestens sechs Angaben – darunter die Umsatzsteuer und die TSE-Angaben. Schreibe sie hier auf.</p>
+    <div data-items="a5"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a6_h">Aufgabe 6 · Prüfungs-Check <span class="pts" data-k="pts10">10 Punkte · etwa 10 Minuten</span></h2>
+    <div class="merke" data-k="a6_sit"><b>Situation:</b> Sie arbeiten im Kassenbereich des Kaufhauses Hansa GmbH.</div>
+    <p data-k="a6_p1">6.1 Welche 5 gekennzeichneten Angaben können Sie dem abgebildeten Kassenbon entnehmen? Benennen Sie sie! (5 Punkte)</p>
+    <pre style="font-family:monospace;background:#fff;color:#222;border:1px dashed #888;border-radius:8px;padding:12px;max-width:440px;overflow:auto;font-size:15px;line-height:1.5">     Kaufhaus Hansa GmbH
+     Marktplatz 3 · 28195 Bremen
+     ① 4012345678901
+       Jeans Slim ........ 2 x 39,90 €
+       ③ USt-IdNr. DE123456789
+     ② 39,90 €   ④ 79,80 €
+     ⑤ enthaltene MwSt 19 %: 12,74 €
+</pre>
+    <div data-items="a6"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7p_h">Aufgabe 7 · Für Profis</h2>
+    <p data-k="a7p_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="a7p"></div>
+  </div>
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="a8_h">Aufgabe 9 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="a8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="a8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 8 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={vor:"Ankommen: Kasse erleben",txt:"Textverständnis: Bon-Detektive",trans:"Transfer: Scannerkasse und Kassenbon",wis:"Fachwissen: Prüfungs-Check",refl:"Betrieb & Weiterdenken"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{id:"a1_1",g:"a1",cat:"vor",mode:"self",q:"1.1 Hast du schon kassiert? Wenn ja: Was war am Anfang schwierig?",rows:3,
+ h:["Denk an deinen ersten Tag an der Kasse.","Was ging nicht so schnell, wie du wolltest: Scannen, Wechselgeld, Kartenzahlung …?"],
+ sol:"Individuelle Antwort, z. B. schnell scannen, Wechselgeld abzählen, Kartenzahlung, Kunden warten lassen."},
+{id:"a1_2",g:"a1",cat:"vor",mode:"self",q:"1.2 Welche Geräte gehören bei euch zur Kasse?",rows:3,
+ h:["Schau dir die Kasse in deinem Betrieb in Gedanken an.","Was fasst du an, was sieht der Kunde?"],
+ sol:"Individuelle Antwort, z. B. Scanner, Bildschirm, Kundendisplay, Bondrucker, Kartenterminal, Waage, Geldschublade."},
+{id:"a1_3",g:"a1",cat:"vor",mode:"self",q:"1.3 Wie bezahlen eure Kunden am häufigsten?",rows:3,
+ h:["Denk an die letzten Kunden an deiner Kasse.","Bar, mit Karte oder mit dem Smartphone?"],
+ sol:"Individuelle Antwort, z. B. girocard, kontaktlos mit Karte oder Smartphone, bar."},
+
+{id:"a2_1",g:"a2",cat:"txt",q:"Markierung 1: Was steht hier?",kw:[["artikel","bezeichnung","ware","milch","produkt"],["menge","1 l","anzahl","stueck"]],min:1,rows:2,
+ h:["Schau auf die Zeile mit der Milch.","Was wird gekauft – und wie viel?"],
+ sol:"Artikelbezeichnung und Menge (1 l Milch)."},
+{id:"a2_2",g:"a2",cat:"txt",q:"Markierung 2: Was steht hier?",kw:[["summe","gesamt","endbetrag","gesamtbetrag","total"]],min:1,rows:2,
+ h:["Hier steht ein Betrag für den ganzen Einkauf, nicht nur für einen Artikel.","Wie heißt die Zeile über dem Bezahlen?"],
+ sol:"Summe = Gesamtbetrag des Einkaufs."},
+{id:"a2_3",g:"a2",cat:"txt",q:"Markierung 3: Was steht hier?",kw:[["zahlungsart","girocard","karte","kartenzahlung","bezahlt","bezahlung"]],min:1,rows:2,
+ h:["Wie hat der Kunde bezahlt?","Bar oder mit Karte?"],
+ sol:"Zahlungsart: girocard (Kartenzahlung)."},
+{id:"a2_4",g:"a2",cat:"txt",q:"Markierung 4: Was steht hier?",kw:[["umsatzsteuer","mehrwertsteuer","mwst","ust","steuer"],["7","steuersatz","netto","steuerbetrag"]],min:1,rows:3,
+ h:["Hier steht eine Steuer.","Steuersatz, Nettobetrag, Steuerbetrag …"],
+ sol:"Umsatzsteuer: Steuersatz 7 %, Nettobetrag und Steuerbetrag."},
+{id:"a2_5",g:"a2",cat:"txt",q:"Markierung 5: Was steht hier?",kw:[["bon","bonnummer"],["kasse","kassennummer"],["datum","uhrzeit"]],min:2,rows:3,
+ h:["Hier steht, welcher Bon es ist und wann er gedruckt wurde.","Nummer, Kasse, Zeit …"],
+ sol:"Bonnummer, Kassennummer, Datum und Uhrzeit."},
+{id:"a2_6",g:"a2",cat:"txt",q:"Markierung 6: Was steht hier?",kw:[["tse"],["transaktion","sicherheit","manipulation","signatur","sicher"]],min:1,rows:3,
+ h:["Die drei Buchstaben stehen schon auf der Zeile.","Wofür ist diese Angabe da: Schutz vor …?"],
+ sol:"TSE-Angaben: Transaktionsnummer der Sicherheitseinrichtung (Nachweis gegen Manipulation)."},
+
+{id:"a4_1",g:"a4",cat:"trans",q:"4.1 Welche 2 Vorteile hat eine Scannerkasse für ein Warenhaus? Schreibe die Nummern der beiden richtigen Aussagen auf.<br>1 Scanning macht die Wareneingangskontrolle überflüssig.<br>2 Scanning schließt Kassendifferenzen aus.<br>3 Scanning ermöglicht eine genaue Fortschreibung des Lagerbestands.<br>4 Scanning macht die Inventur überflüssig.<br>5 Scanning ermöglicht eine schnelle und genaue Erfassung der Verkaufsdaten.",kw:[["re:\\b3\\b","lagerbestand","fortschreibung"],["re:\\b5\\b","verkaufsdaten","schnelle"]],min:2,rows:2,
+ h:["Lies das Kästchen „Vorteile der Scannerkasse“: Was wird automatisch gemacht?","Kassendifferenzen gibt es trotzdem (Wechselgeld!), und eine Inventur ist gesetzlich vorgeschrieben."],
+ sol:"Richtig sind 3 und 5. Kassendifferenzen gibt es trotzdem (Wechselgeld!), und eine Inventur ist gesetzlich vorgeschrieben."},
+{id:"a4_2",g:"a4",cat:"trans",q:"4.2 Welche Angabe findest du nicht auf einem Kassenbon? Schreibe die Nummer auf.<br>1 Datum des Einkaufs<br>2 Bruttoverkaufspreis der Artikel<br>3 Einkaufspreis, den das Geschäft bezahlt hat<br>4 Artikelbezeichnung<br>5 Menge",kw:[["re:\\b3\\b","einkaufspreis"]],min:1,rows:2,
+ h:["Was zahlt der Kunde – und was hat der Betrieb selbst für die Ware bezahlt?","Schau in den Text „Der Kassenbon“: Was steht dort ausdrücklich nicht auf dem Bon?"],
+ sol:"Antwort 3: Der Einkaufspreis, den das Geschäft bezahlt hat, steht nicht auf dem Kassenbon."},
+{id:"a4_3",g:"a4",cat:"trans",q:"4.3 Ein Kunde fragt: „Was bedeutet dieser Strichcode mit den 13 Zahlen?“ Antworte in wörtlicher Rede.",kw:[["gtin","artikelnummer","nummer"],["preis","kasse","system","scann"],["re:[„\"“]","das ist","damit"]],min:2,rows:4,
+ h:["Wie heißt die 13-stellige Zahl unter dem Strichcode?","Was holt die Kasse damit beim Scannen? Antworte mit Anführungszeichen."],
+ sol:"„Das ist die GTIN, eine weltweit einmalige Artikelnummer. Beim Scannen holt die Kasse damit den Preis aus unserem System.“"},
+
+{id:"a5_1",g:"a5",cat:"refl",mode:"self",q:"Markiere und benenne mindestens sechs Angaben auf einem Kassenbon – darunter die Umsatzsteuer und die TSE-Angaben.",rows:7,
+ h:["Schau auf den Bon: oben, in der Mitte, unten.","Denk an die Liste im Text „Der Kassenbon“."],
+ sol:"Individuelle Antwort. Prüfe selbst: (1) Hast du mindestens sechs Angaben benannt? (2) Sind die Umsatzsteuer und die TSE-Angaben dabei? (3) Mögliche Angaben: Name und Anschrift des Geschäfts, Datum und Uhrzeit, Artikel mit Menge und Einzelpreis, Gesamtpreis je Artikel, Summe, Zahlungsart und Rückgeld, Steuernummer oder Umsatzsteuer-Identifikationsnummer, Bon- und Kassennummer."},
+
+{id:"a6_1",g:"a6",cat:"wis",q:"6.1 Benenne die 5 gekennzeichneten Angaben (1 bis 5) auf dem Kassenbon.",kw:[["gtin","artikelnummer","strichcode","ean"],["einzelpreis","stueckpreis","preis je","preis pro","einzelner"],["identifikation","ust-id","ust id","ustid","steuernummer","id-nr","id nr"],["gesamtpreis","gesamt","summe","zeilensumme"],["steuerbetrag","anteil","enthaltene","mwst-betrag","ust-betrag","steuer 19"]],min:5,rows:6,
+ h:["Geh die Markierungen der Reihe nach durch: 1 steht beim Strichcode, 3 bei einer Nummer des Geschäfts.","Unterscheide: Einzelpreis (für 1 Stück) – Gesamtpreis (für alle Stücke) – Steuerbetrag."],
+ sol:"1 Artikelnummer (GTIN) – 2 Einzelpreis je Artikel – 3 Umsatzsteuer-Identifikationsnummer – 4 Gesamtpreis je Artikel – 5 Umsatzsteueranteil (Umsatzsteuerbetrag)."},
+{id:"a6_2",g:"a6",cat:"wis",q:"6.2 Welche 3 Geräte gehören zur Hardware einer Kasse? Nennen Sie sie! (3 Punkte)",kw:[["scanner","lesepistole"],["bondrucker","drucker"],["karte","terminal","kartenlese"],["display","kundendisplay"],["waage"],["schublade","kassenlade","geldlade"],["touchscreen","tastatur","bildschirm","monitor"]],min:3,rows:3,
+ h:["Nennen = Stichworte reichen. Was siehst du an der Kasse?","Was liest den Strichcode, was druckt den Bon, womit zahlt der Kunde per Karte?"],
+ sol:"Je 1 Punkt, z. B. Scanner, Lesepistole, Bondrucker, Kartenlesegerät, Kundendisplay, Waage."},
+{id:"a6_3",g:"a6",cat:"wis",q:"6.3 Fast alle Artikel tragen eine GTIN (Strichcode mit Zahlen). Nennen Sie 2 Vorteile der GTIN für das Kaufhaus Hansa GmbH! (2 Punkte)",kw:[["schnell","fehlerfrei","kassier","fehler"],["bestand","lager","nachbestell"],["zentral","preisaender","preis aender","preis wird","artikelstamm"],["verkaufsdaten","artikelgenau","erfasst"]],min:2,rows:4,
+ h:["Lies im Text „Scannen und GTIN“ die Vorteile für den Betrieb.","Denk an Tempo, Fehler, Lager und Preise."],
+ sol:"Je 1 Punkt, z. B. schnelleres und fehlerfreies Kassieren, bessere Bestandserfassung, zentrale Preisänderung."},
+
+{id:"a7p_1",g:"a7p",cat:"refl",mode:"self",q:"7.1 Seit 2020 muss jede elektronische Kasse eine TSE haben. Erläutern Sie, welches Problem der Staat damit lösen will.",rows:5,
+ h:["Denken Sie an früher: Was konnte man in der Kasse nachträglich tun?","Wer prüft später die Kasse – und was sieht er dank der TSE?"],
+ sol:"Früher konnten Umsätze in der Kasse gelöscht oder verändert werden, ohne dass es jemand merkt (Steuerhinterziehung). Die TSE speichert und signiert jeden Vorgang; bei einer Prüfung sieht das Finanzamt jede Änderung."},
+{id:"a7p_2",g:"a7p",cat:"refl",mode:"self",q:"7.2 Viele Kunden lassen den Kassenbon liegen. Beurteilen Sie die Belegausgabepflicht aus Sicht der Umwelt und aus Sicht des Kunden. Welche Lösung schlagen Sie vor?",rows:7,
+ h:["Betrachten Sie zwei Seiten getrennt: Umwelt und Kunde.","Gibt es eine Möglichkeit, die Pflicht ohne Papier zu erfüllen?"],
+ sol:"Umwelt: viel Papiermüll, Thermopapier gehört nicht ins Altpapier. Kunde: Der Bon ist Beleg für Umtausch und Reklamation und dient zur Kontrolle. Lösung: elektronischer Bon (E-Bon per App oder QR-Code) oder Bon nur auf Wunsch drucken, wenn das System einen E-Bon anbietet."}
+];
+
+/* Lesetext: [[Richtig]] = gesuchter Begriff, {{Falsch}} = Ablenker */
+const READ=[
+{t:"Kassensysteme",task:"Markiere, womit die Geschäfte arbeiten, womit die Kasse oft verbunden ist und drei Geräte.",
+ x:"Heute arbeiten fast alle Geschäfte mit [[elektronischen Kassensystemen]]. Sie sind oft mit dem [[Warenwirtschaftssystem (WWS)]] verbunden (POS-System, POS = Point of Sale = Ort des Verkaufs). Zur Kasse gehören Hardware wie [[Scanner]], [[Bondrucker]] und [[Kartenterminal]]. Ein {{Einkaufswagen}} oder ein {{Regalsystem}} gehört nicht zur Kassen-Hardware.",
+ q:"Wofür steht POS?",o:["Point of Sale = Ort des Verkaufs","Preis ohne Steuer","Produkt im Sortiment"],c:0},
+{t:"Scannen und GTIN",task:"Markiere, was der Scanner liest, woher die Kasse den Preis holt und wo Preise geändert werden.",
+ x:"Der Scanner liest die [[GTIN]] (13-stellige Artikelnummer unter dem Strichcode). Die Kasse holt den Preis aus dem [[Artikelstamm]] im WWS. Ändert sich ein Preis, wird er [[zentral im System]] geändert – nicht {{auf jedem Artikel}}. Die {{Lieferantenrechnung}} wird dafür nicht gebraucht.",
+ q:"Warum ist eine zentrale Preisänderung ein Vorteil?",o:["Man muss nicht jeden Artikel einzeln umkleben – der Preis ändert sich im System.","Der Kunde zahlt dann immer weniger.","Die Kasse braucht dann keinen Bondrucker."],c:0},
+{t:"Das sagt das Gesetz",task:"Markiere die drei gesetzlichen Pflichten.",
+ x:"Die [[TSE]] (technische Sicherheitseinrichtung) ist seit [[2020]] Pflicht: Jeder Kassenvorgang wird gespeichert und signiert, niemand kann Umsätze nachträglich löschen oder ändern. So wird [[Steuerbetrug]] verhindert. Die [[Belegausgabepflicht]] gilt ebenfalls seit 2020: Jeder Kunde bekommt einen Beleg, auf Papier oder elektronisch (E-Bon). Die [[Meldepflicht]] gilt seit 2025: Der Betrieb muss seine elektronischen Kassen dem [[Finanzamt]] melden. Die {{Kundenkarte}} ist keine gesetzliche Pflicht.",
+ q:"Muss der Kunde den Beleg mitnehmen?",o:["Ja, sonst darf er nicht gehen.","Nein, er muss ihn nicht mitnehmen – der Betrieb muss ihn aber anbieten.","Ja, er muss ihn drei Jahre aufbewahren."],c:1},
+{t:"Der Kassenbon",task:"Markiere, was nicht auf dem Bon steht, und was bei einem Tippfehler passiert.",
+ x:"Auf dem Kassenbon stehen zum Beispiel Name und Anschrift des Geschäfts, [[Datum und Uhrzeit]], Artikel mit Menge und Einzelpreis, die Summe, [[Zahlungsart]] und Rückgeld, die [[Umsatzsteuer]] und die [[TSE-Angaben]]. Nicht auf dem Bon steht der [[Einkaufspreis]] – das ist der Preis, den der Betrieb selbst für die Ware bezahlt hat. Ein Tippfehler wird [[storniert]]; der falsche Bon wird nicht {{vernichtet}}, sondern [[aufbewahrt]], weil er für die [[Kassenabrechnung]] gebraucht wird.",
+ q:"Wofür braucht der Kunde den Kassenbon als Beleg?",o:["Für Umtausch und Reklamation.","Für die Anmeldung der Kasse beim Finanzamt.","Für die Inventur."],c:0}
+];
+
+/* Vertiefung (level v) – Zusatz, aus dem Material abgeleitet */
+ITEMS.push(
+{id:"v9_1",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.1 Warum muss der Betrieb jedem Kunden einen Beleg anbieten, obwohl der Kunde ihn nicht mitnehmen muss? Begründe mit dem, was du über die TSE weißt.",rows:5,
+ h:["Wer hat den Vorteil, wenn jeder Verkauf einen Beleg bekommt?","Denk an den Zweck der TSE: Steuerbetrug verhindern."],
+ sol:"Die Pflicht trifft den Betrieb: Er muss den Beleg ausgeben, auch auf Papier oder als E-Bon. So ist jeder Verkauf nachweisbar, und ein Umsatz kann nicht „vergessen“ werden. Zusammen mit der TSE (jeder Vorgang wird gespeichert und signiert) hilft das gegen Steuerbetrug. Der Kunde entscheidet selbst, ob er den Beleg braucht."},
+{id:"v9_2",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.2 Warum wird ein falscher Bon nach der Stornierung nicht weggeworfen? Begründe.",rows:5,
+ h:["Was wird am Ende des Tages mit der Kasse abgerechnet?","Wer könnte später fragen: Was ist mit diesem Vorgang passiert?"],
+ sol:"Der falsche Bon wird aufbewahrt, weil er für die Kassenabrechnung gebraucht wird. Jeder Kassenvorgang wird gespeichert; ein Tippfehler wird storniert, nicht gelöscht. So bleibt nachvollziehbar, was an der Kasse passiert ist."},
+{id:"v9_3",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.3 Was würde passieren, wenn ein Betrieb Preise nicht zentral im Artikelstamm, sondern auf jedem Artikel ändern müsste? Begründe.",rows:5,
+ h:["Wie viele Artikel hat ein Geschäft?","Was könnte an der Kasse passieren, wenn ein Artikel einen anderen Preis trägt als das System?"],
+ sol:"Man müsste jeden Artikel einzeln ändern – das dauert lange, und es entstehen leicht Fehler. Die Kasse würde nicht mehr schnell und fehlerfrei kassieren. Deshalb wird der Preis zentral im System geändert, und die Kasse holt ihn beim Scannen aus dem Artikelstamm."},
+{id:"v9_4",g:"a8",cat:"bonus",level:"v",mode:"self",q:"9.4 Erkläre, warum der Einkaufspreis nicht auf dem Kassenbon steht. Was soll der Kunde mit dem Bon zeigen können?",rows:5,
+ h:["Wozu braucht der Kunde den Bon: Was will er damit nachweisen?","Wessen Preis ist der Einkaufspreis – und wer muss ihn kennen?"],
+ sol:"Der Bon ist ein Beleg für den Kunden: Er zeigt damit, dass er bezahlt hat – wichtig beim Umtausch und bei einer Reklamation. Dafür zählen Artikel, Menge und der Preis, den der Kunde zahlt. Der Einkaufspreis ist der Preis, den der Betrieb selbst für die Ware bezahlt hat; er betrifft nur den Betrieb und gehört deshalb nicht auf den Bon."}
+);
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={
+a1_1:[["Kasse","kassieren","Anfang","schwierig"],["Am Anfang war schwierig, dass …"]],
+a1_2:[["Kasse","Gerät","Betrieb","Kunde"],["Bei uns gehören … zur Kasse."]],
+a1_3:[["Kunde","bezahlen","Zahlungsart","häufig"],["Am häufigsten bezahlen die Kunden …"]],
+a2_1:[["Bon","Ware","Zeile"],["Hier steht …"]],
+a2_2:[["Betrag","Einkauf","Bon"],["Hier steht …"]],
+a2_3:[["Kunde","bezahlen","Zeile"],["Hier steht …"]],
+a2_4:[["Prozent","Betrag","Zeile"],["Hier steht …"]],
+a2_5:[["Nummer","Zeit","Zeile"],["Hier stehen …"]],
+a2_6:[["Nachweis","Zeile","Schutz"],["Hier steht …"]],
+a4_1:[["Scannerkasse","Lagerbestand","Verkaufsdaten","Vorteil"],["Richtig sind die Aussagen …"]],
+a4_2:[["Kassenbon","Betrieb","bezahlt","Angabe"],["Nicht auf dem Bon steht …"]],
+a4_3:[["Strichcode","Zahl","Scanner","Kunde"],["„Das ist …“","Beim Scannen …"]],
+a5_1:[["Kassenbon","Umsatzsteuer","TSE","Angabe"],["Auf dem Bon steht …","Ich markiere …"]],
+a6_1:[["Artikel","Preis","Steuer","Nummer"],["Nummer 1 ist …"]],
+a6_2:[["Hardware","Kasse","Gerät","Kunde"],["Zur Hardware gehören …"]],
+a6_3:[["Strichcode","Ablauf","Lager","Preis"],["Ein Vorteil ist …"]],
+a7p_1:[["Umsätze","löschen","Finanzamt","Steuerhinterziehung"],["Der Staat will verhindern, dass …"]],
+a7p_2:[["Papier","Umwelt","Beleg","elektronisch"],["Aus Sicht der Umwelt …","Aus Sicht des Kunden …","Ich schlage vor, dass …"]],
+v9_1:[["Pflicht","Betrieb","Beleg","Nachweis"],["Der Betrieb muss …, weil …"]],
+v9_2:[["Storno","Tippfehler","Vorgang","Kasse"],["Der Bon wird aufbewahrt, weil …"]],
+v9_3:[["Artikel","einzeln","Fehler","Zeit"],["Dann würde …"]],
+v9_4:[["Beleg","Betrieb","Kunde","Preis"],["Der Einkaufspreis steht nicht auf dem Bon, weil …"]]
+};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+
+const GLOSS_DE=["das Kassensystem","der Scanner","der Bondrucker","das Kartenterminal","das Kundendisplay","die GTIN","das Warenwirtschaftssystem (WWS)","der Artikelstamm","die TSE","die Belegausgabepflicht","der Kassenbon","die Umsatzsteuer","stornieren"];
+
+const TX={"sub":["مجال التعلّم 3 · خدمة العملاء في منطقة الصندوق","Lĩnh vực học 3 · Phục vụ khách hàng tại khu vực quầy thu ngân","Навчальна галузь 3 · Обслуговування клієнтів у касовій зоні","ዓውዲ ትምህርቲ 3 · ኣብ ቦታ ካሳ ኣገልግሎት ዓማዊል"],"name":["الاسم","Họ tên","Ім'я","ሽም"],"date":["التاريخ","Ngày","Дата","ዕለት"],"can_h":["هذا ما سأستطيع فعله بعد ذلك","Sau bài này tôi có thể","Після цього я вмію","ድሕሪ እዚ እዚ ክገብር እኽእል እየ"],"can_note":["ضع علامة في النهاية على ما تستطيع فعله الآن.","Cuối bài, hãy đánh dấu những gì bạn đã làm được.","Наприкінці познач, що ти вже вмієш.","ኣብ መወዳእታ ሕጂ ክትገብሮ ዘኽእለካ ምልክት ግበር።"],"pts1":["نقطة واحدة","1 điểm","1 бал","1 ነጥቢ"],"pts2":["نقطتان","2 điểm","2 бали","2 ነጥቢ"],"read_h":["للقراءة والمراجعة · قراءة نشِطة","Đọc lại · đọc chủ động","Для читання · активне читання","ንምንባብ · ንጡፍ ንባብ"],"read_p":["اقرأ كل مقطع واضغط على المصطلحات المطلوبة (تصبح صفراء). انتبه: هناك مصطلحات خاطئة أيضًا! بعد ذلك تجيب عن سؤال قصير – وعندها فقط يُفتح المقطع التالي.","Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở.","Прочитай кожен абзац і торкнись потрібних слів (вони стануть жовтими). Увага: є й неправильні слова! Потім дай відповідь на коротке запитання – лише тоді відкриється наступний абзац.","ነፍሲ ወከፍ ክፍሊ ኣንብብ፣ እቶም ዝድለዩ ቃላት ተንከፎም (ብጫ ይኸውኑ)። ጥንቃቐ፡ ጌጋ ቃላት እውን ኣለዉ! ድሕሪኡ ሓጺር ሕቶ ምለስ – ሽዑ ጥራይ እቲ ዝቕጽል ክፍሊ ይኽፈት።"],"ws_h":["مخزن الكلمات (الترجمة)","Kho từ vựng (bản dịch)","Словник (переклад)","መዝገበ-ቃላት (ትርጉም)"],"a2btn":["قرأتُ الأمثلة","Tôi đã đọc các ví dụ","Я прочитав(ла) приклади","ኣብነታት ኣንቢበ ኣለኹ"],"a7_h":["المهمة 8 · قدِّر، اختبر، سجِّل","Bài 8 · Ước lượng, kiểm tra, ghi lại","Завдання 8 · Оціни, перевір, запиши","ዕዮ 8 · ገምግም፣ ፈትን፣ ጽሓፍ"],"a7_p":["كم نقطة من 20 ستحصل عليها في ورقة العمل هذه؟ سجِّل تقديرك قبل التقييم.","Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm.","Скільки з 20 балів ти отримаєш за цей аркуш? Запиши свою оцінку до перевірки.","ኣብዚ ወረቐት ስራሕ ካብ 20 ነጥቢ ክንደይ ክትረክብ ትሓስብ? ቅድሚ ግምጋሜ ግምትካ ጽሓፍ።"],"th1":["تقديري","Dự đoán của tôi","Моя оцінка","ግምተይ"],"th2":["نتيجتي","Kết quả của tôi","Мій результат","ውጽኢተይ"],"th3":["الفرق","Chênh lệch","Різниця","ፍሉይነት"],"th4":["نقاط لحساب النقاط","Điểm cho tài khoản điểm","Бали для рахунку балів","ነጥብታት ንናይ ነጥቢ ሕሳብ"],"submit_h":["انتهيت؟ إذن قيِّم!","Xong chưa? Hãy chấm điểm!","Готово? Тоді перевіряй!","ወዲእካ? እንተኾነ ገምግም!"],"submit_p":["يمكنك التقييم حتى لو لم تنجز كل شيء – المهام غير المنجزة تُحتسب بصفر.","Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm.","Можна оцінити, навіть якщо не все зроблено – незроблені завдання дають 0 балів.","ኩሉ ዘይተሰርሐ እኳ እንተኾነ ክትገምግም ትኽእል – ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"submit_b":["إرسال وتقييم","Gửi và chấm điểm","📊 Надіслати й оцінити","📊 ሰዲድካ ገምግም"],"res_h":["تقييمك","Kết quả của bạn","Твій результат","ውጽኢትካ"],"pdf_b":["تصدير كملف PDF (للمعلمة)","Xuất PDF (cho giáo viên)","🖨️ Експорт у PDF (для вчителя)","🖨️ ከም PDF ኣውጽእ (ንመምህር)"],"tip_t":["تلميح","Gợi ý","Підказка","ሓጋዚ ሓሳብ"],"tip_next":["تلميح آخر","Thêm gợi ý","Ще одна підказка","ካልእ ሓጋዚ ሓሳብ"],"close":["إغلاق","Đóng","Закрити","ዕጸው"],"chk":["تحقّق","Kiểm tra","✔ Перевірити","✔ ፈትሽ"],"shw":["إظهار الحل","Hiện lời giải","Показати розв'язок","መልሲ ርአይ"],"markb":["تحقّق من التظليل","Kiểm tra phần đánh dấu","Перевірити позначки","ምልክታት ፈትሽ"],"self_q":["ما مدى جودة إجابتك؟","Câu trả lời của bạn tốt đến đâu?","Наскільки добре ти відповів(ла)?","ምላስካ ክንደይ ጽቡቕ ነበረ?"],"self1":["نجحت","Đạt","✔ Вдалося","✔ ኣሸኒፈ"],"self2":["جزئيًا","Một phần","◐ Частково","◐ ብሓደ ኣቕጣጫ"],"self3":["ليس بعد","Chưa","✖ Ще ні","✖ ኣይተኻእለን"],"fb_ok":["ممتاز! أحسنت.","Đúng rồi! Làm tốt lắm.","✅ Правильно! Молодець.","✅ ቅኑዕ! ጽቡቕ ሰሪሕካ።"],"fb_part":["تقريبًا – ينقص جزء. قارن بالحل وأكمل.","Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung.","🟡 Майже – ще чогось бракує. Порівняй із розв'язком і доповни.","🟡 ቐረባ – ሓደ ክፍሊ ጎዲሉ። ምስ መልሲ ኣነጻጽርካ ወስኸሉ።"],"fb_bad":["ليس بعد. استعن بتلميح أو أعد قراءة النص.","Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản.","❌ Ще не те. Візьми підказку 💡 або перечитай текст.","❌ ገና ኣይቅኑዕን። ሓጋዚ ሓሳብ 💡 ውሰድ ወይ ጽሑፍ ዳግማይ ኣንብብ።"],"sol_lbl":["الحل:","Lời giải:","Розв'язок:","መልሲ፡"],"mk_ok":["تظليل صحيح! والآن السؤال:","Đánh dấu đúng! Giờ đến câu hỏi:","✅ Позначено правильно! Тепер запитання:","✅ ብቐንዱ ተሓሪዩ! ሕጂ እቲ ሕቶ፡"],"mk_bad":["ليس تمامًا بعد. اقرأ المهمة مرة أخرى.","Chưa hoàn toàn đúng. Hãy đọc lại đề bài.","Ще не зовсім. Прочитай завдання ще раз.","ገና ጥዑይ ኣይኮነን። ዕዮ ዳግማይ ኣንብብ።"],"zq_ok":["بالضبط! تم فتح المقطع التالي.","Chính xác! Đoạn tiếp theo đã mở.","✅ Точно! Наступний абзац відкрито.","✅ ልክዕ! እቲ ዝቕጽል ክፍሊ ተኸፊቱ።"],"zq_bad":["ليس تمامًا. أعد قراءة المقطع وحاول مجددًا.","Chưa đúng. Hãy đọc lại đoạn và thử lại.","Не зовсім. Перечитай абзац і спробуй ще раз.","ኣይኮነን ጥዑይ። ክፍሊ ዳግማይ ኣንብብ ከምኡውን እንደገና ፈትን።"],"res_pts":["من 20 نقطة","trên 20 điểm","з 20 балів","ካብ 20 ነጥቢ"],"res_an":["تحليل الأخطاء حسب مجالات الكفاءة","Phân tích lỗi theo lĩnh vực năng lực","Аналіз помилок за сферами компетенцій","ትንተና ጌጋታት ብዘርእስታት ክእለት"],"rep":["ما يجب أن تراجعه","Bạn nên ôn lại","Це треба повторити","እዚ ክትደግሞ ኣለካ"],"lab1":["ممتاز!","Tuyệt vời!","Чудово!","ብጣዕሚ ጽቡቕ!"],"lab2":["جيد – تحتاج مزيدًا من التمرين","Khá – cần luyện thêm","Добре – ще трохи практики","ጽቡቕ – ገለ ተወሳኺ ልምምድ"],"lab3":["تحتاج هنا إلى مزيد من التمرين","Phần này bạn cần luyện thêm","Тут тобі ще потрібна практика","ኣብዚ ገና ልምምድ የድልየካ"],"set_h":["الإعدادات","Cài đặt","Налаштування","ቅጥዕታት"],"set_mode":["الترجمة","Bản dịch","Переклад","ትርጉም"],"mode_tap":["بالنقر","Chạm để xem","Торкнутися","ብምንካፍ"],"mode_under":["تحت النص","Hiện bên dưới","Під текстом","ኣብ ትሕቲ ጽሑፍ"],"mode_off":["إيقاف","Tắt","Вимк.","ዕጹው"],"set_fs":["حجم الخط","Cỡ chữ","Розмір шрифту","ዓቐን ፊደል"],"set_level":["المستوى","Mức độ","Рівень","ደረጃ"],"lvl_b":["أساسي","Cơ bản","Базовий","መሰረታዊ"],"lvl_v":["تعمّق","Nâng cao","Поглиблений","ዓሚቝ"],"set_snd":["الصوت","Âm thanh","Звук","ድምጺ"],"set_reset":["البدء من جديد","Làm lại từ đầu","Почати спочатку","ካብ ሓድሽ ጀምር"],"dlg_reset":["حذف كل شيء والبدء من جديد؟ ستضيع إجاباتك في ورقة العمل هذه.","Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất.","Усе видалити й почати спочатку? Твої записи в цьому аркуші буде втрачено.","ኩሉ ይሰረዝ እሞ ካብ ሓድሽ ይጀመር? ኣብዚ ወረቐት ዘኣተኻዮ ይጥፍእ።"],"dlg_next":["الشخص التالي: سيتم حذف الإجابات والاسم.","Người tiếp theo: nội dung và tên sẽ bị xóa.","Наступна особа: записи та ім'я буде видалено.","ቀጻሊ ሰብ፡ ዘኣተኻዮን ስምን ይጥፍእ።"],"dlg_cancel":["إلغاء","Hủy","Скасувати","ሰርዝ"],"dlg_ok":["نعم","Đồng ý","Так","እወ"],"wg_h":["كلمات وبدايات جمل للمساعدة","Từ ngữ và gợi ý đầu câu","Слова та початки речень","ቃላትን መጀመርታ ሓሳባትን"],"a8_h":["المهمة 9 · التعمّق","Bài 9 · Nâng cao","Завдання 9 · Поглиблення","ዕዮ 9 · ምዕማቕ"],"pts_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"a8_p":["تظهر فقط في مستوى «التعمّق». علّل بجمل كاملة. هذه المهام تمنح نقاطًا إضافية ولا تخفض نقاطك الـ 20 أبدًا.","Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn.","Лише на рівні «Поглиблений». Обґрунтуй повними реченнями. Ці завдання дають бонусні бали й ніколи не зменшують твої 20 балів.","ኣብ ደረጃ «ዓሚቝ» ጥራይ። ብምሉእ ሓሳብ ኣብርህ። እዞም ዕዮታት ቦነስ ነጥቢ ይህቡ እሞ ኣብ 20 ነጥብታትካ ፈጺሞም ኣይጐድሉን።"],"res_card_h":["النتيجة للمعلمة","Kết quả cho giáo viên","Результат для вчителя","ውጽኢት ንመምህር"],"btn_img":["حفظ النتيجة كصورة","Lưu kết quả dưới dạng ảnh","🖼️ Зберегти результат як зображення","🖼️ ውጽኢት ከም ስእሊ ዓቅብ"],"btn_code":["نسخ الرمز","Sao chép mã","📋 Копіювати код","📋 ኮድ ቅዳሕ"],"btn_next":["الشخص التالي","Người tiếp theo","👤 Наступна особа","👤 ቀጻሊ ሰብ"],"res_open":["ملاحظة: المهام غير المنجزة تُحتسب بصفر.","Lưu ý: bài chưa làm tính 0 điểm.","Примітка: незроблені завдання дають 0 балів.","ሓበሬታ፡ ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"res_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"cat_bonus":["نقاط إضافية (التعمّق)","Điểm thưởng (Nâng cao)","Бонус (поглиблення)","ቦነስ (ምዕማቕ)"],"fb_peek":["صحيح – لكنك نظرت إلى الحل قبل ذلك، لذلك تحصل على نصف النقاط.","Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm.","✅ Правильно – але ти раніше дивився(лась) розв'язок, тому половина балів.","✅ ቅኑዕ – ግን ቅድም መልሲ ርእይካዮ፣ ስለዚ ፍርቂ ነጥቢ።"],"t25":["بداية جيدة!","Khởi đầu tốt!","Гарний початок!","ጽቡቕ ጅምር!"],"t50":["اكتمل النصف!","Xong một nửa rồi!","Півдороги!","ፍርቂ!"],"t75":["اقتربت من الهدف!","Sắp đến đích rồi!","Майже готово!","ቐረባ!"],"t100":["أنجزت كل شيء! الآن قيِّم.","Đã làm xong hết! Giờ hãy chấm điểm.","Усе зроблено! Тепер оціни.","ኩሉ ተሰሪሑ! ሕጂ ገምግም።"],"t_write":["اكتب شيئًا أولًا","Hãy viết gì đó trước","Спочатку щось напиши","ቅድም ገለ ጽሓፍ"],"t_saved":["تم التسجيل","Đã ghi","Збережено","ተዓቒቡ"],"t_read":["تمت القراءة","Đã đọc","Прочитано","ተነቢቡ"],"t_resume":["تابع من حيث توقفت","Tiếp tục từ chỗ bạn dừng","Продовжуй, де зупинився(лась)","ኣብ ዝደው ዝበልካዮ ቀጽል"],"t_copy":["تم نسخ الرمز","Đã sao chép mã","Код скопійовано","ኮድ ተቐዲሑ"],"t_img":["تم حفظ الصورة","Đã lưu ảnh","Зображення збережено","ስእሊ ተዓቒቡ"],"h1":["الوحدة 1: الصندوق وإيصال الدفع (Kassenbon)","Bài 1: Quầy thu ngân và hóa đơn thu ngân (Kassenbon)","Модуль 1: Каса і касовий чек","ሞጁል 1: እቲ ካሳን ናይ ካሳ ደረሰኝን (Kassenbon)"],"meta":["حصتان مزدوجتان · 6 نقاط · الكتاب المدرسي ص 165–173 · كراس التمارين ص 134–141","2 tiết đôi · 6 điểm · Sách giáo khoa tr. 165–173 · Sách bài tập tr. 134–141","2 подвійні уроки · 6 балів · Підручник с. 165–173 · Робочий зошит с. 134–141","2 ድርብ ትምህርቲ · 6 ነጥቢ · መጽሓፍ ገጽ 165–173 · ናይ ዕዮ ኽታብ ገጽ 134–141"],"can1":["أستطيع ذكر الأجهزة الموجودة عند الصندوق وشرح مزايا الصندوق بالماسح الضوئي.","Tôi có thể kể tên các thiết bị ở quầy thu ngân và giải thích ưu điểm của quầy thu ngân dùng máy quét (Scannerkasse).","Я можу назвати пристрої на касі та пояснити переваги сканерної каси.","ኣብ ካሳ ዘለዉ መሳርሕታት ክሰምን ኣብ ስካነር ካሳ ዘለዉ ረብሓታት ክገልጽ እኽእል።"],"can2":["أستطيع أن أشرح ما هي وحدة TSE ولماذا يوجد واجب إصدار الإيصال (Belegausgabepflicht).","Tôi có thể giải thích TSE là gì và tại sao có nghĩa vụ phát hành chứng từ (Belegausgabepflicht).","Я можу пояснити, що таке TSE (технічний засіб безпеки) і чому існує обов'язок видавати чек (Belegausgabepflicht).","TSE (ቴክኒካዊ ድሕንነት መሳርሒ) እንታይ ምዃኑን ስለምንታይ ደረሰኝ ምሃብ ግዴታ (Belegausgabepflicht) ምዃኑን ክገልጽ እኽእል።"],"can3":["أستطيع تسمية البيانات المكتوبة على إيصال الصندوق (Kassenbon).","Tôi có thể gọi tên các thông tin trên hóa đơn thu ngân (Kassenbon).","Я можу назвати дані на касовому чеку.","ኣብ ናይ ካሳ ደረሰኝ ዘለዉ ሓበሬታታት ክሰምን እኽእል።"],"a1_h":["المهمة 1 · الانطلاق: تجربة الصندوق","Bài 1 · Khởi động: Làm quen với quầy thu ngân","Завдання 1 · Початок: знайомство з касою","ዕዮ 1 · መጀመርታ: ካሳ ምፍላጥ"],"a1_p":["أجب من واقع شركة التدريب الخاصة بك. لا توجد إجابة صحيحة أو خاطئة.","Hãy trả lời theo công ty thực tập của bạn. Không có đúng hay sai.","Відповідай зі свого навчального підприємства. Тут немає правильного чи неправильного.","ካብ ናይ ልምምድ ትካልካ ዘለዎ መሰረት መልሲ። ቅኑዕ ወይ ጌጋ የለን።"],"a2_h":["المهمة 2 · محققو الإيصال: ماذا يوجد على إيصال الصندوق؟","Bài 2 · Thám tử hóa đơn: Trên hóa đơn thu ngân có gì?","Завдання 2 · Детективи чеків: що написано на касовому чеку?","ዕዮ 2 · ናይ ደረሰኝ መርመርቲ: ኣብ ናይ ካሳ ደረሰኝ እንታይ ተጻሒፉ ኣሎ?"],"a2_p":["انظر إلى إيصال الصندوق جيدًا. ماذا تعني الأماكن المحددة (من 1 إلى 6)؟","Hãy xem kỹ hóa đơn thu ngân. Các chỗ được đánh dấu (từ 1 đến 6) có nghĩa là gì?","Уважно подивись на касовий чек. Що означають позначені місця (від 1 до 6)?","ነቲ ናይ ካሳ ደረሰኝ ብጽቡቕ ርኣዮ። እተመልከቱ ቦታታት (ካብ 1 ክሳብ 6) እንታይ ማለት እዮም?"],"vt_h":["مزايا الصندوق بالماسح الضوئي","Ưu điểm của quầy thu ngân dùng máy quét","Переваги сканерної каси","ረብሓታት ስካነር ካሳ"],"th_betrieb":["المزايا للشركة","Ưu điểm cho doanh nghiệp","Переваги для підприємства","ረብሓታት ንትካል"],"th_kunde":["المزايا للعملاء","Ưu điểm cho khách hàng","Переваги для клієнтів","ረብሓታት ንዓመላት"],"vb1":["محاسبة سريعة وبلا أخطاء","tính tiền nhanh và không sai sót","швидкий розрахунок без помилок","ቅልጡፍን ብዘይ ጌጋን ሕሳብ ምኽፋል"],"vk1":["وقت انتظار أقصر","thời gian chờ ngắn hơn","коротше очікування","ሓጺር ናይ ምጽባይ ግዜ"],"vb2":["كل عملية بيع تُسجَّل لكل صنف على حدة","mỗi lần bán được ghi lại chính xác theo từng mặt hàng","кожен продаж записується по кожному товару","ነፍሲ ወከፍ ሽያጥ ብኣቕሓ ይመዝገብ"],"vk2":["إيصال مفصّل مع اسم الصنف","hóa đơn chi tiết có tên mặt hàng","докладний касовий чек з назвою товару","ዝተፈስረ ደረሰኝ ምስ ስም ኣቕሓ"],"vb3":["مخزون البضائع يُحدَّث تلقائيًا","hàng tồn kho tự động được cập nhật","залишок на складі оновлюється автоматично","እቲ ኣብ መኽዘን ዘሎ ኣቕሑት ብርእሱ ይሕደስ"],"vk3":["أخطاء كتابة أقل","ít lỗi gõ hơn","менше помилок при введенні","ትሑት ናይ ምጽሓፍ ጌጋታት"],"vb4":["بيانات بيع دقيقة لإعادة الطلب والإعلان","dữ liệu bán hàng chính xác để đặt hàng lại và quảng cáo","точні дані про продажі для нового замовлення і реклами","ንሓድሽ ትእዛዝን ንሰፊሕ ምልክታን ትክክለኛ ናይ ሽያጥ ሓበሬታ"],"vb5":["تغيير الأسعار مركزيًا","thay đổi giá tập trung","зміна цін централізовано","ለውጢ ዋጋ ብማእከላይ መገዲ"],"ges_h":["ماذا يقول القانون","Pháp luật quy định gì","Що каже закон","እዚ እዩ ሕጊ ዝብሎ"],"th_regel":["القاعدة","Quy định","Правило","ሕጊ"],"th_bed":["ماذا يعني ذلك","Nghĩa là gì","Це означає","ትርጉም"],"ge1":["TSE (وحدة الأمان التقنية) – إلزامية منذ 2020","TSE (thiết bị an ninh kỹ thuật) – bắt buộc từ năm 2020","TSE (технічний засіб безпеки) – обов'язково з 2020 року","TSE (ቴክኒካዊ ድሕንነት መሳርሒ) – ካብ 2020 ግዴታ"],"ge1b":["كل عملية في الصندوق تُحفظ وتُوقَّع إلكترونيًا. لا يستطيع أحد حذف المبيعات أو تغييرها لاحقًا. وهكذا يُمنع التهرب الضريبي.","Mỗi giao dịch ở quầy được lưu và ký số. Không ai có thể xóa hay sửa doanh thu sau đó. Nhờ vậy ngăn được gian lận thuế.","Кожна операція на касі зберігається і підписується. Ніхто не може пізніше видалити чи змінити виручку. Так запобігають ухиленню від податків.","ነፍሲ ወከፍ ናይ ካሳ ተግባር ይዕቀብን ይፍረምን። ደሓር ዋላ ሓደ ሰብ ሽያጥ ክሰርዝ ወይ ክቅይር ኣይክእልን። ከምዚ ኢሉ ናይ ግብሪ ማዕቢያ ይኽልከል።"],"ge2":["واجب إصدار الإيصال – منذ 2020","Nghĩa vụ phát hành chứng từ (Belegausgabepflicht) – từ năm 2020","Обов'язок видавати чек (Belegausgabepflicht) – з 2020 року","ደረሰኝ ናይ ምሃብ ግዴታ (Belegausgabepflicht) – ካብ 2020"],"ge2b":["كل عميل يحصل على إيصال، ورقيًا أو إلكترونيًا (E-Bon). ولا يجب على العميل أن يأخذه معه.","Mỗi khách hàng nhận một chứng từ, bằng giấy hoặc điện tử (E-Bon). Khách hàng không bắt buộc phải mang theo.","Кожен клієнт отримує чек, на папері або в електронному вигляді (E-Bon). Клієнт не мусить його брати.","ነፍሲ ወከፍ ዓሚል ደረሰኝ ይወስድ፣ ብወረቐት ወይ ብኤለክትሮኒክ (E-Bon)። እቲ ዓሚል ክወስዶ ግዴታ የብሉን።"],"ge3":["واجب الإبلاغ – منذ 2025","Nghĩa vụ khai báo – từ năm 2025","Обов'язок повідомляти (Meldepflicht) – з 2025 року","ናይ ምሕባር ግዴታ (Meldepflicht) – ካብ 2025"],"ge3b":["على الشركة أن تبلغ مصلحة الضرائب عن أجهزة الصندوق الإلكترونية لديها.","Doanh nghiệp phải khai báo các máy thu ngân điện tử của mình với cơ quan thuế.","Підприємство мусить повідомити податкову (Finanzamt) про свої електронні каси.","እቲ ትካል ኤለክትሮኒካዊ ካሳታቱ ንቤት ጽሕፈት ግብሪ (Finanzamt) ከሕብር ኣለዎ።"],"merke_bon":["تذكّر: إيصال الصندوق (Kassenbon) هو مستند إثبات: يستطيع العميل أن يُثبت به أنه دفع – وهذا مهم عند الاستبدال وعند الشكوى. الخطأ في الكتابة يُلغى (stornieren)؛ والإيصال الخاطئ يُحفظ لأنه مطلوب لتسوية الصندوق.","Ghi nhớ: Hóa đơn thu ngân (Kassenbon) là một chứng từ: khách hàng dùng nó để chứng minh đã thanh toán – quan trọng khi đổi hàng và khi khiếu nại. Lỗi gõ được hủy (stornieren); hóa đơn sai được giữ lại vì cần cho việc đối chiếu quỹ.","Запам'ятай: касовий чек – це документ (Beleg): клієнт може ним показати, що заплатив – це важливо при обміні та рекламації. Помилку введення сторнують (stornieren); неправильний чек зберігають, бо він потрібен для касового звіту.","ዘክር: እቲ ናይ ካሳ ደረሰኝ ሰነድ (Beleg) እዩ: እቲ ዓሚል ብእኡ ከም ዝኸፈለ ከርኢ ይኽእል – ኣብ ምልውዋጥን ኣብ ተቓውሞን ኣገዳሲ እዩ። ናይ ምጽሓፍ ጌጋ ይስረዝ (stornieren); እቲ ጌጋ ደረሰኝ ይተሓዝ፣ ንናይ ካሳ ሕሳብ ይእከል እዩ።"],"a3_h":["المهمة 3 · مثال محلول: ذكر الأجهزة عند الصندوق","Bài 3 · Làm mẫu: Kể tên các thiết bị ở quầy thu ngân","Завдання 3 · Показано: назвати пристрої на касі","ዕዮ 3 · ተራእዩ: ኣብ ካሳ ዘለዉ መሳርሕታት ምስማይ"],"a3_p":["هكذا تتعامل مع مهمة امتحان. اقرأ الخطوات جيدًا، فستحتاجها بعد قليل.","Bạn làm một bài thi như thế này. Hãy đọc kỹ các bước, lát nữa bạn sẽ cần.","Так діють у екзаменаційному завданні. Уважно прочитай кроки, вони зараз знадобляться.","ኣብ ናይ ፈተና ዕዮ ከምዚ ኢልካ ትሰርሕ። ስጉምታት ብጽቡቕ ኣንብብ፣ ሕጂ ክትጥቀመሎም ኢኻ።"],"wk0":["المهمة: ما هي الأجهزة الثلاثة التي تُعدّ من المعدات (Hardware) في الصندوق؟ اذكرها! (3 نقاط)","Đề bài: Kể tên 3 thiết bị thuộc phần cứng (Hardware) của một quầy thu ngân! (3 điểm)","Завдання: Які 3 пристрої належать до обладнання каси? Назвіть їх! (3 бали)","እቲ ዕዮ: ኣየናይ 3 መሳርሕታት ናብ ሃርድዌር ካሳ ይውድኡ? ሰምይዎም! (3 ነጥቢ)"],"wk1":["1. قراءة فعل المهمة (Operator): „اذكر“ (nennen) = تكفي كلمات مفتاحية بدون شرح. 3 أجهزة = 3 نقاط.","1. Đọc động từ yêu cầu (Operator): „Kể tên“ (nennen) = chỉ cần từ khóa, không cần giải thích. 3 thiết bị = 3 điểm.","1. Прочитай оператор: «Назвати» (Nennen) = достатньо ключових слів, без пояснень. 3 пристрої = 3 бали.","1. እቲ ኦፐረተር ኣንብብ: «ሰምይ» (Nennen) = ቃላት ጥራይ ይኣክል፣ መብርሂ የድልን። 3 መሳርሕታት = 3 ነጥቢ።"],"wk2":["2. تخيّل نفسك عند الصندوق: ماذا أرى؟ ماذا ألمس؟ ماذا يراه العميل؟","2. Hãy tưởng tượng bạn đứng ở quầy: Tôi thấy gì? Tôi chạm vào gì? Khách hàng thấy gì?","2. Подумки стань біля каси: що я бачу? Чого торкаюся? Що бачить клієнт?","2. ኣብ ሓሳብካ ኣብ ካሳ ደው በል: እንታይ ይርኢ? እንታይ ይትንክፍ? እቲ ዓሚል እንታይ ይርኢ?"],"wk3":["3. الكتابة: الماسح الضوئي (Scanner) · طابعة الإيصالات (Bondrucker) · جهاز قراءة البطاقات (Kartenlesegerät)","3. Viết ra: Máy quét (Scanner) · Máy in hóa đơn (Bondrucker) · Máy đọc thẻ (Kartenlesegerät)","3. Запиши: сканер (Scanner) · принтер чеків (Bondrucker) · пристрій для читання карток (Kartenlesegerät)","3. ጽሓፍ: ስካነር (Scanner) · ናይ ደረሰኝ ሕታመት (Bondrucker) · ናይ ካርድ ኣንባቢ (Kartenlesegerät)"],"wk4":["4. المراجعة: ثلاثة بالضبط؟ كلها أجهزة (وليست أفعالًا مثل „المسح“)؟ عندها تحصل على النقاط كاملة.","4. Kiểm tra: Đúng ba thiết bị chưa? Tất cả đều là thiết bị (không phải hành động như „quét“)? Vậy bạn được điểm tối đa.","4. Перевір: рівно три? Усе пристрої (а не дії на кшталт «сканувати»)? Тоді буде повна кількість балів.","4. ተወከስ: ቅኑዕ ሰለስተ? ኩሎም መሳርሕታት (ተግባራት ከም «ስካን ምግባር» ኣይኮኑን)? ሽዑ ምሉእ ነጥቢ ኣሎ።"],"a4_h":["المهمة 4 · تمرين موجَّه: الصندوق بالماسح الضوئي","Bài 4 · Bài tập có hướng dẫn: Quầy thu ngân dùng máy quét","Завдання 4 · Вправа з підказками: сканерна каса","ዕዮ 4 · ብመምርሒ ልምምድ: ስካነር ካሳ"],"a5_h":["المهمة 5 · تمرين حر: إيصالي","Bài 5 · Bài tập tự do: Hóa đơn của tôi","Завдання 5 · Вільна вправа: мій касовий чек 2 бали","ዕዮ 5 · ናጻ ልምምድ: ናይ ባዕለይ ናይ ካሳ ደረሰኝ 2 ነጥቢ"],"a5_p":["خذ إيصال صندوق من شركة تدريبك (امسح بيانات العملاء!) أو انظر مرة أخرى إلى إيصال المهمة 2. حدّد وسمِّ ست بيانات على الأقل – منها ضريبة المبيعات (Umsatzsteuer) وبيانات TSE. اكتبها هنا.","Hãy lấy một hóa đơn thu ngân từ công ty thực tập của bạn (che thông tin khách hàng!) hoặc xem lại hóa đơn ở Bài 2. Đánh dấu và gọi tên ít nhất sáu thông tin – trong đó có thuế doanh thu (Umsatzsteuer) và thông tin TSE. Viết vào đây.","Візьми касовий чек зі свого навчального підприємства (закрий дані клієнта!) або ще раз подивись на чек із завдання 2. Познач і назви щонайменше шість даних – серед них ПДВ та дані TSE. Запиши їх тут.","ካብ ናይ ልምምድ ትካልካ ሓደ ናይ ካሳ ደረሰኝ ውሰድ (ሓበሬታ ዓሚል ሓብእ!) ወይ ነቲ ኣብ ዕዮ 2 ዘሎ ደረሰኝ ዳግማይ ርኣዮ። ብውሑዱ ሽዱሽተ ሓበሬታታት ምልክት ግበረን ሰምየን – ካብኡ ግብሪ ተወሳኺ ዋጋን TSE ሓበሬታን። ኣብዚ ጽሓፎም።"],"a6_h":["المهمة 6 · اختبار الامتحان","Bài 6 · Kiểm tra kiểu thi","Завдання 6 · Екзаменаційна перевірка 10 балів · близько 10 хвилин","ዕዮ 6 · ናይ ፈተና ምርግጋጽ 10 ነጥቢ · ኣስታት 10 ደቒቕ"],"pts10":["10 نقاط · حوالي 10 دقائق","10 điểm · khoảng 10 phút","10 балів · близько 10 хвилин","10 ነጥቢ · ኣስታት 10 ደቒቕ"],"a6_sit":["الوضع: تعمل في قسم الصناديق في متجر Hansa GmbH.","Tình huống: Bạn làm việc ở khu vực quầy thu ngân của cửa hàng Hansa GmbH.","Ситуація: Ви працюєте в касовій зоні універмагу Hansa GmbH.","ኩነታት: ኣብ ናይ ካሳ ክፍሊ ናይ ዕዳጋ ቤት Hansa GmbH ትሰርሑ ኣለኹም።"],"a6_p1":["6.1 ما البيانات الخمسة المُعلَّمة التي يمكنك استخراجها من إيصال الصندوق المعروض؟ سمِّها! (5 نقاط)","6.1 Bạn đọc được 5 thông tin nào được đánh dấu trên hóa đơn thu ngân trong hình? Hãy gọi tên! (5 điểm)","6.1 Які 5 позначених даних можна побачити на зображеному касовому чеку? Назвіть їх! (5 балів)","6.1 ካብቲ ዝተርኣየ ናይ ካሳ ደረሰኝ ኣየናይ 5 ዝተመልከቱ ሓበሬታታት ክትረኽቡ ትኽእሉ? ሰምይዎም! (5 ነጥቢ)"],"a7p_h":["المهمة 7 · للمحترفين","Bài 7 · Dành cho người giỏi","Завдання 7 · Для профі","ዕዮ 7 · ንክኢላታት"],"a7p_p":["للتفكير أكثر – بجمل كاملة ومع التعليل.","Để suy nghĩ sâu hơn – viết câu đầy đủ, có giải thích lý do.","Для роздумів – повними реченнями, з поясненням.","ንምሕሳብ – ምሉእ ሓረጋት፣ ምስ ምኽንያት።"],"a1_1.q":["1.1 هل سبق أن عملت على الصندوق؟ إن كان نعم: ما الصعب في البداية؟","1.1 Bạn đã từng tính tiền chưa? Nếu rồi: lúc đầu điều gì khó?","1.1 Ти вже працював(ла) на касі? Якщо так: що було складним на початку?","1.1 ቅድም ኣብ ካሳ ሰሪሕካ ዶ? እንተ ሰሪሕካ: ኣብ መጀመርታ እንታይ ከቢዱካ?"],"a1_1.h0":["تذكّر أول يوم لك عند الصندوق.","Hãy nhớ lại ngày đầu tiên của bạn ở quầy.","Згадай свій перший день на касі.","ንቐዳማይ መዓልቲኻ ኣብ ካሳ ሕሰብ።"],"a1_1.h1":["ما الذي لم يكن بالسرعة التي أردتها: المسح، الباقي، الدفع بالبطاقة …؟","Điều gì không nhanh như bạn muốn: quét mã, trả tiền thừa, thanh toán bằng thẻ …?","Що йшло не так швидко, як ти хотів(ла): сканування, решта, оплата карткою …?","ከምቲ ትደልዮ ቅልጡፍ ዘይነበረ እንታይ እዩ: ስካን ምግባር፣ ተረፍ ገንዘብ፣ ብካርድ ምኽፋል …?"],"a1_1.s":["إجابة شخصية، مثلًا: المسح بسرعة، عدّ الباقي، الدفع بالبطاقة، جعل العملاء ينتظرون.","Câu trả lời cá nhân, ví dụ: quét nhanh, đếm tiền thừa, thanh toán bằng thẻ, để khách phải chờ.","Індивідуальна відповідь, напр. швидко сканувати, відраховувати решту, оплата карткою, змушувати клієнтів чекати.","ናይ ነፍሲ ወከፍ መልሲ፣ ንኣብነት ቅልጥፍና ስካን፣ ተረፍ ገንዘብ ምቑጻር፣ ብካርድ ምኽፋል፣ ዓመላት ከም ዝጽበዩ ምግባር።"],"a1_2.q":["1.2 ما الأجهزة التي تتبع الصندوق عندكم؟","1.2 Ở chỗ bạn, quầy thu ngân có những thiết bị nào?","1.2 Які пристрої є в вас на касі?","1.2 ኣብ ካሳኹም እንታይ መሳርሕታት ኣለዉ?"],"a1_2.h0":["تخيّل الصندوق في شركتك.","Hãy hình dung quầy thu ngân ở công ty bạn.","Подумки уяви касу у своєму підприємстві.","ነቲ ኣብ ትካልካ ዘሎ ካሳ ኣብ ሓሳብካ ርኣዮ።"],"a1_2.h1":["ماذا تلمس أنت، وماذا يرى العميل؟","Bạn chạm vào gì, khách hàng nhìn thấy gì?","Чого торкаєшся ти, що бачить клієнт?","ንስኻ እንታይ ትትንክፍ፣ እቲ ዓሚል እንታይ ይርኢ?"],"a1_2.s":["إجابة شخصية، مثلًا: ماسح ضوئي (Scanner)، شاشة، شاشة العميل (Kundendisplay)، طابعة إيصالات (Bondrucker)، جهاز البطاقات (Kartenterminal)، ميزان، درج النقود.","Câu trả lời cá nhân, ví dụ: máy quét (Scanner), màn hình, màn hình khách hàng (Kundendisplay), máy in hóa đơn (Bondrucker), máy thanh toán thẻ (Kartenterminal), cân, ngăn kéo đựng tiền.","Індивідуальна відповідь, напр. сканер, екран, дисплей для клієнта, принтер чеків, термінал для карток, ваги, касова шухляда.","ናይ ነፍሲ ወከፍ መልሲ፣ ንኣብነት ስካነር፣ ስክሪን፣ ናይ ዓሚል ስክሪን፣ ናይ ደረሰኝ ሕታመት፣ ናይ ካርድ መኽፈሊ፣ ሚዛን፣ ናይ ገንዘብ መሳቢ።"],"a1_3.q":["1.3 كيف يدفع عملاؤكم في الغالب؟","1.3 Khách hàng của bạn thường thanh toán bằng cách nào nhất?","1.3 Як найчастіше платять ваші клієнти?","1.3 ዓመላትኩም ብዝያዳ ብኸመይ ይኸፍሉ?"],"a1_3.h0":["تذكّر آخر العملاء عند الصندوق.","Hãy nhớ lại những khách hàng gần đây ở quầy của bạn.","Згадай останніх клієнтів на твоїй касі.","ኣብ ካሳኻ ዝነበሩ ናይ መወዳእታ ዓመላት ሕሰብ።"],"a1_3.h1":["نقدًا أم بالبطاقة أم بالهاتف؟","Tiền mặt, thẻ hay điện thoại?","Готівкою, карткою чи смартфоном?","ብጥረ ገንዘብ፣ ብካርድ ወይ ብስማርትፎን?"],"a1_3.s":["إجابة شخصية، مثلًا: girocard، بالبطاقة أو الهاتف دون تلامس، نقدًا.","Câu trả lời cá nhân, ví dụ: girocard, thanh toán không chạm bằng thẻ hoặc điện thoại, tiền mặt.","Індивідуальна відповідь, напр. girocard, безконтактно карткою або смартфоном, готівкою.","ናይ ነፍሲ ወከፍ መልሲ፣ ንኣብነት girocard፣ ብካርድ ወይ ብስማርትፎን ብዘይ ምትንካፍ፣ ጥረ ገንዘብ።"],"a2_1.q":["العلامة 1: ماذا يوجد هنا؟","Điểm đánh dấu 1: Ở đây ghi gì?","Позначка 1: що тут написано?","ምልክት 1: ኣብዚ እንታይ ተጻሒፉ ኣሎ?"],"a2_1.h0":["انظر إلى سطر الحليب.","Hãy nhìn dòng có sữa.","Подивись на рядок з молоком.","ነቲ ናይ ሓሊብ መስርዕ ርኣዮ።"],"a2_1.h1":["ماذا يُشترى – وكم؟","Mua gì – và bao nhiêu?","Що купують – і скільки?","እንታይ ይግዛእ – ክንደይ?"],"a2_1.s":["اسم الصنف والكمية (1 لتر حليب).","Tên mặt hàng và số lượng (1 lít sữa).","Назва товару і кількість (1 л молока).","ስም ኣቕሓን ብዝሒን (1 ሊትሮ ሓሊብ)።"],"a2_2.q":["العلامة 2: ماذا يوجد هنا؟","Điểm đánh dấu 2: Ở đây ghi gì?","Позначка 2: що тут написано?","ምልክት 2: ኣብዚ እንታይ ተጻሒፉ ኣሎ?"],"a2_2.h0":["هنا مبلغ للمشتريات كلها، وليس لصنف واحد فقط.","Ở đây là số tiền cho cả lần mua, không chỉ một mặt hàng.","Тут сума за всю покупку, а не лише за один товар.","ኣብዚ ንዅሉ ግዢ ዝኸውን መጠን ኣሎ፣ ንሓደ ኣቕሓ ጥራይ ኣይኮነን።"],"a2_2.h1":["ما اسم السطر الذي يأتي قبل الدفع؟","Dòng ngay trước khi thanh toán tên là gì?","Як називається рядок перед оплатою?","ቅድሚ ክፍሊት ዘሎ መስርዕ እንታይ ይበሃል?"],"a2_2.s":["المجموع (Summe) = المبلغ الإجمالي للمشتريات.","Tổng cộng (Summe) = tổng số tiền của lần mua.","Підсумок (Summe) = загальна сума покупки.","ድምር (Summe) = ጠቕላላ መጠን ናይቲ ግዢ።"],"a2_3.q":["العلامة 3: ماذا يوجد هنا؟","Điểm đánh dấu 3: Ở đây ghi gì?","Позначка 3: що тут написано?","ምልክት 3: ኣብዚ እንታይ ተጻሒፉ ኣሎ?"],"a2_3.h0":["كيف دفع العميل؟","Khách hàng đã thanh toán bằng cách nào?","Як заплатив клієнт?","እቲ ዓሚል ብኸመይ ከፈለ?"],"a2_3.h1":["نقدًا أم بالبطاقة؟","Tiền mặt hay thẻ?","Готівкою чи карткою?","ብጥረ ገንዘብ ወይ ብካርድ?"],"a2_3.s":["طريقة الدفع: girocard (الدفع بالبطاقة).","Hình thức thanh toán: girocard (thanh toán bằng thẻ).","Спосіб оплати: girocard (оплата карткою).","ኣገባብ ክፍሊት: girocard (ብካርድ ክፍሊት)።"],"a2_4.q":["العلامة 4: ماذا يوجد هنا؟","Điểm đánh dấu 4: Ở đây ghi gì?","Позначка 4: що тут написано?","ምልክት 4: ኣብዚ እንታይ ተጻሒፉ ኣሎ?"],"a2_4.h0":["هنا ضريبة.","Ở đây là một loại thuế.","Тут указано податок.","ኣብዚ ግብሪ ተጻሒፉ ኣሎ።"],"a2_4.h1":["نسبة الضريبة، المبلغ الصافي، مبلغ الضريبة …","Thuế suất, số tiền chưa thuế, số tiền thuế …","Ставка податку, сума без податку, сума податку …","ዓቐን ግብሪ፣ ብዘይ ግብሪ መጠን፣ መጠን ግብሪ …"],"a2_4.s":["ضريبة المبيعات (Umsatzsteuer): نسبة الضريبة 7 %، والمبلغ الصافي ومبلغ الضريبة.","Thuế doanh thu (Umsatzsteuer): thuế suất 7 %, số tiền chưa thuế và số tiền thuế.","ПДВ (Umsatzsteuer): ставка 7 %, сума без податку і сума податку.","ግብሪ ተወሳኺ ዋጋ (Umsatzsteuer): ዓቐን ግብሪ 7 %፣ ብዘይ ግብሪ መጠንን መጠን ግብሪን።"],"a2_5.q":["العلامة 5: ماذا يوجد هنا؟","Điểm đánh dấu 5: Ở đây ghi gì?","Позначка 5: що тут написано?","ምልክት 5: ኣብዚ እንታይ ተጻሒፉ ኣሎ?"],"a2_5.h0":["هنا مكتوب أي إيصال هذا ومتى طُبع.","Ở đây ghi đây là hóa đơn nào và được in lúc nào.","Тут указано, який це чек і коли його надруковано.","ኣብዚ እቲ ደረሰኝ ኣየናይ ምዃኑን መዓስ ከም ዝተሓትመን ተጻሒፉ ኣሎ።"],"a2_5.h1":["الرقم، الصندوق، الوقت …","Số, quầy, thời gian …","Номер, каса, час …","ቁጽሪ፣ ካሳ፣ ሰዓት …"],"a2_5.s":["رقم الإيصال، رقم الصندوق، التاريخ والوقت.","Số hóa đơn, số quầy, ngày và giờ.","Номер чека, номер каси, дата і час.","ቁጽሪ ደረሰኝ፣ ቁጽሪ ካሳ፣ ዕለትን ሰዓትን።"],"a2_6.q":["العلامة 6: ماذا يوجد هنا؟","Điểm đánh dấu 6: Ở đây ghi gì?","Позначка 6: що тут написано?","ምልክት 6: ኣብዚ እንታይ ተጻሒፉ ኣሎ?"],"a2_6.h0":["الأحرف الثلاثة مكتوبة في السطر بالفعل.","Ba chữ cái đã có sẵn trên dòng đó.","Три літери вже стоять у рядку.","እተን ሰለስተ ፊደላት ኣብቲ መስርዕ ተጻሒፈን ኣለዋ።"],"a2_6.h1":["لماذا توجد هذه البيانات: للحماية من …؟","Thông tin này để làm gì: bảo vệ khỏi …?","Для чого ці дані: захист від …?","እዚ ሓበሬታ ንምንታይ እዩ: ካብ … ምክልኻል?"],"a2_6.s":["بيانات TSE: رقم عملية وحدة الأمان (دليل ضد التلاعب).","Thông tin TSE: số giao dịch của thiết bị an ninh (bằng chứng chống gian lận).","Дані TSE: номер транзакції засобу безпеки (доказ проти маніпуляцій).","TSE ሓበሬታ: ቁጽሪ ተግባር ናይቲ መሳርሒ ድሕንነት (መረጋገጺ ኣንጻር ሕቡእ ለውጢ)።"],"a4_1.q":["4.1 ما الميزتان اللتان يحققهما الصندوق بالماسح الضوئي للمتجر الكبير؟ اكتب أرقام العبارتين الصحيحتين. 1 المسح الضوئي يجعل مراقبة استلام البضائع غير ضرورية. 2 المسح الضوئي يمنع فروقات الصندوق تمامًا. 3 المسح الضوئي يتيح تحديثًا دقيقًا لمخزون البضائع. 4 المسح الضوئي يجعل الجرد غير ضروري. 5 المسح الضوئي يتيح تسجيل بيانات البيع بسرعة ودقة.","4.1 Quầy thu ngân dùng máy quét có 2 ưu điểm nào cho cửa hàng lớn? Viết số của hai câu đúng. 1 Quét mã làm cho việc kiểm tra hàng nhập kho trở nên không cần thiết. 2 Quét mã loại bỏ hoàn toàn chênh lệch quỹ. 3 Quét mã giúp cập nhật chính xác hàng tồn kho. 4 Quét mã làm cho việc kiểm kê trở nên không cần thiết. 5 Quét mã giúp ghi nhận dữ liệu bán hàng nhanh và chính xác.","4.1 Які 2 переваги має сканерна каса для універмагу? Запиши номери двох правильних тверджень. 1 Сканування робить зайвим контроль надходження товару. 2 Сканування виключає касові розбіжності. 3 Сканування дає змогу точно вести залишок на складі. 4 Сканування робить зайвою інвентаризацію. 5 Сканування дає змогу швидко і точно фіксувати дані про продажі.","4.1 ንሓደ ዕዳጋ ቤት ስካነር ካሳ ኣየናይ 2 ረብሓታት ኣለዎ? ቁጽሪ እተን ክልተ ቅኑዓት ሓሳባት ጽሓፍ። 1 ስካን ምግባር ምቁጽጻር ኣቕሑት እተኸዱ ዘየድልይ ይገብር። 2 ስካን ምግባር ናይ ካሳ ፍልልያት የጥፍእ። 3 ስካን ምግባር ትክክለኛ ምሕዳስ ኣቕሑት መኽዘን የኽእል። 4 ስካን ምግባር ቆጸራ ኣቕሑት (Inventur) ዘየድልይ ይገብር። 5 ስካን ምግባር ቅልጡፍን ትክክለኛን ምዝገባ ሓበሬታ ሽያጥ የኽእል።"],"a4_1.h0":["اقرأ جدول „مزايا الصندوق بالماسح الضوئي“: ما الذي يحدث تلقائيًا؟","Đọc bảng „Ưu điểm của quầy thu ngân dùng máy quét“: điều gì xảy ra tự động?","Прочитай рамку «Переваги сканерної каси»: що робиться автоматично?","ነቲ ሳጹን «ረብሓታት ስካነር ካሳ» ኣንብብ: እንታይ ብርእሱ ይግበር?"],"a4_1.h1":["فروقات الصندوق تحدث رغم ذلك (الباقي!)، والجرد (Inventur) إلزامي بالقانون.","Chênh lệch quỹ vẫn xảy ra (tiền thừa!), và kiểm kê (Inventur) là bắt buộc theo luật.","Касові розбіжності все одно бувають (решта!), а інвентаризація (Inventur) обов'язкова за законом.","ናይ ካሳ ፍልልያት ዋላ ሕጂ ኣለዉ (ተረፍ ገንዘብ!)፣ ቆጸራ ኣቕሑት (Inventur) ድማ ብሕጊ ግዴታ እዩ።"],"a4_1.s":["الصحيحان هما 3 و5. فروقات الصندوق تحدث رغم ذلك (الباقي!)، والجرد إلزامي بالقانون.","Đáp án đúng là 3 và 5. Chênh lệch quỹ vẫn xảy ra (tiền thừa!), và kiểm kê là bắt buộc theo luật.","Правильні 3 і 5. Касові розбіжності все одно бувають (решта!), а інвентаризація обов'язкова за законом.","ቅኑዓት 3ን 5ን እዮም። ናይ ካሳ ፍልልያት ዋላ ሕጂ ኣለዉ (ተረፍ ገንዘብ!)፣ ቆጸራ ኣቕሑት ድማ ብሕጊ ግዴታ እዩ።"],"a4_2.q":["4.2 أي بيان لا تجده على إيصال الصندوق؟ اكتب الرقم. 1 تاريخ الشراء 2 سعر بيع الأصناف الإجمالي (Brutto) 3 سعر الشراء الذي دفعه المتجر 4 اسم الصنف 5 الكمية","4.2 Thông tin nào bạn không thấy trên hóa đơn thu ngân? Viết số. 1 Ngày mua 2 Giá bán đã gồm thuế của hàng (Brutto) 3 Giá nhập mà cửa hàng đã trả 4 Tên mặt hàng 5 Số lượng","4.2 Яких даних ти не знайдеш на касовому чеку? Запиши номер. 1 Дата покупки 2 Роздрібна ціна товарів з податком 3 Закупівельна ціна, яку заплатив магазин 4 Назва товару 5 Кількість","4.2 ኣየናይ ሓበሬታ ኣብ ናይ ካሳ ደረሰኝ ኣይትረኽቦን? ቁጽሪ ጽሓፍ። 1 ዕለት ግዢ 2 ናይ ኣቕሑት ዋጋ ሽያጥ ምስ ግብሪ 3 እቲ ንግዲ ዝኸፈሎ ዋጋ ግዢ 4 ስም ኣቕሓ 5 ብዝሒ"],"a4_2.h0":["ماذا يدفع العميل – وماذا دفعت الشركة نفسها مقابل البضاعة؟","Khách hàng trả gì – còn doanh nghiệp tự trả gì cho hàng hóa?","Що платить клієнт – і що саме підприємство заплатило за товар?","እቲ ዓሚል እንታይ ይኸፍል – እቲ ትካል ባዕሉ ንኣቕሓ እንታይ ከፈለ?"],"a4_2.h1":["انظر في نص „إيصال الصندوق“: ما الذي لا يوجد عليه صراحةً؟","Xem đoạn „Hóa đơn thu ngân“: điều gì được nói rõ là không có trên hóa đơn?","Подивись у текст «Касовий чек»: що там прямо сказано, чого на чеку немає?","ኣብቲ ጽሑፍ «ናይ ካሳ ደረሰኝ» ርኣይ: ብግልጺ ኣብ ደረሰኝ ዘየለ እንታይ ተባሂሉ ኣሎ?"],"a4_2.s":["الإجابة 3: سعر الشراء الذي دفعه المتجر لا يظهر على إيصال الصندوق.","Đáp án 3: Giá nhập mà cửa hàng đã trả không có trên hóa đơn thu ngân.","Відповідь 3: закупівельної ціни, яку заплатив магазин, на касовому чеку немає.","መልሲ 3: እቲ ንግዲ ዝኸፈሎ ዋጋ ግዢ ኣብ ናይ ካሳ ደረሰኝ የለን።"],"a4_3.q":["4.3 يسأل عميل: „ماذا يعني هذا الباركود (Strichcode) ذو الأرقام الـ 13؟“ أجب بالكلام المباشر.","4.3 Một khách hàng hỏi: „Mã vạch (Strichcode) với 13 chữ số này có nghĩa là gì?“ Hãy trả lời bằng lời nói trực tiếp.","4.3 Клієнт питає: «Що означає цей штрихкод із 13 цифрами?» Дай відповідь прямою мовою.","4.3 ሓደ ዓሚል ይሓትት: «እዚ ባር ኮድ ምስ 13 ቁጽሪታት እንታይ ማለት እዩ?» ብቀጥታዊ ዘረባ መልሲ።"],"a4_3.h0":["ما اسم الرقم المكوَّن من 13 خانة تحت الباركود؟","Dãy 13 chữ số dưới mã vạch tên là gì?","Як називається 13-значне число під штрихкодом?","እቲ ትሕቲ ባር ኮድ ዘሎ ባዕሉ 13 ቁጽሪ እንታይ ይበሃል?"],"a4_3.h1":["ماذا يجلب الصندوق بواسطته عند المسح؟ أجب بعلامات الاقتباس.","Quầy thu ngân dùng nó để lấy gì khi quét? Hãy trả lời có dấu ngoặc kép.","Що каса отримує за його допомогою під час сканування? Відповідай у лапках.","እቲ ካሳ ኣብ ስካን ምግባር ብእኡ እንታይ ይወስድ? ብምልክት ጥቕሲ መልሲ።"],"a4_3.s":["„هذا هو رقم GTIN، رقم صنف فريد في العالم. عند المسح يجلب الصندوق به السعر من نظامنا.“","„Đây là GTIN, một mã số mặt hàng duy nhất trên toàn thế giới. Khi quét, quầy thu ngân dùng nó để lấy giá từ hệ thống của chúng tôi.“","«Це GTIN, унікальний у всьому світі номер товару. Під час сканування каса за ним бере ціну з нашої системи.»","«እዚ GTIN እዩ፣ ኣብ ዓለም ሓደ ጥራይ ዝኾነ ቁጽሪ ኣቕሓ። ኣብ ስካን ምግባር እቲ ካሳ ብእኡ ዋጋ ካብ ሲስተምና ይወስድ።»"],"a5_1.q":["حدّد وسمِّ ست بيانات على الأقل على إيصال صندوق – منها ضريبة المبيعات (Umsatzsteuer) وبيانات TSE.","Đánh dấu và gọi tên ít nhất sáu thông tin trên một hóa đơn thu ngân – trong đó có thuế doanh thu (Umsatzsteuer) và thông tin TSE.","Познач і назви щонайменше шість даних на касовому чеку – серед них ПДВ та дані TSE.","ኣብ ናይ ካሳ ደረሰኝ ብውሑዱ ሽዱሽተ ሓበሬታታት ምልክት ግበረን ሰምየን – ካብኡ ግብሪ ተወሳኺ ዋጋን TSE ሓበሬታን።"],"a5_1.h0":["انظر إلى الإيصال: في الأعلى، في الوسط، في الأسفل.","Hãy nhìn hóa đơn: phía trên, ở giữa, phía dưới.","Подивись на чек: угорі, посередині, внизу.","ነቲ ደረሰኝ ርኣዮ: ላዕሊ፣ ማእከል፣ ታሕቲ።"],"a5_1.h1":["تذكّر القائمة في نص „إيصال الصندوق“.","Hãy nhớ danh sách trong đoạn „Hóa đơn thu ngân“.","Згадай перелік у тексті «Касовий чек».","ነታ ኣብቲ ጽሑፍ «ናይ ካሳ ደረሰኝ» ዘላ ዝርዝር ሕሰባ።"],"a5_1.s":["إجابة شخصية. افحص بنفسك: (1) هل سمّيت ست بيانات على الأقل؟ (2) هل ضريبة المبيعات وبيانات TSE بينها؟ (3) بيانات ممكنة: اسم المتجر وعنوانه، التاريخ والوقت، الأصناف مع الكمية وسعر الوحدة، السعر الإجمالي لكل صنف، المجموع، طريقة الدفع والباقي، الرقم الضريبي أو رقم التعريف الضريبي لضريبة المبيعات، رقم الإيصال ورقم الصندوق.","Câu trả lời cá nhân. Hãy tự kiểm tra: (1) Bạn đã gọi tên ít nhất sáu thông tin chưa? (2) Có thuế doanh thu và thông tin TSE không? (3) Các thông tin có thể có: tên và địa chỉ cửa hàng, ngày và giờ, mặt hàng với số lượng và đơn giá, thành tiền từng mặt hàng, tổng cộng, hình thức thanh toán và tiền thừa, mã số thuế hoặc mã số định danh thuế doanh thu, số hóa đơn và số quầy.","Індивідуальна відповідь. Перевір сам(а): (1) Чи назвав(ла) ти щонайменше шість даних? (2) Чи є ПДВ і дані TSE? (3) Можливі дані: назва і адреса магазину, дата і час, товари з кількістю та ціною за одиницю, загальна ціна за товар, підсумок, спосіб оплати і решта, податковий номер або ідентифікаційний номер платника ПДВ, номер чека і каси.","ናይ ነፍሲ ወከፍ መልሲ። ባዕልኻ ተወከስ: (1) ብውሑዱ ሽዱሽተ ሓበሬታታት ሰሚኻ ዶ? (2) ግብሪ ተወሳኺ ዋጋን TSE ሓበሬታን ኣለዉ ዶ? (3) ዝከኣሉ ሓበሬታታት: ስምን ኣድራሻን ድኳን፣ ዕለትን ሰዓትን፣ ኣቕሑት ምስ ብዝሒን ዋጋ ሓደ ኣቕሓን፣ ጠቕላላ ዋጋ ነፍሲ ወከፍ ኣቕሓ፣ ድምር፣ ኣገባብ ክፍሊትን ተረፍ ገንዘብን፣ ቁጽሪ ግብሪ ወይ ቁጽሪ መለለዪ ግብሪ ተወሳኺ ዋጋ፣ ቁጽሪ ደረሰኝን ካሳን።"],"a6_1.q":["6.1 سمِّ البيانات الخمسة المُعلَّمة (من 1 إلى 5) على إيصال الصندوق.","6.1 Hãy gọi tên 5 thông tin được đánh dấu (từ 1 đến 5) trên hóa đơn thu ngân.","6.1 Назви 5 позначених даних (від 1 до 5) на касовому чеку.","6.1 ነተን 5 ዝተመልከታ ሓበሬታታት (1 ክሳብ 5) ኣብ ናይ ካሳ ደረሰኝ ሰምየን።"],"a6_1.h0":["امرّ على العلامات بالترتيب: العلامة 1 عند الباركود، والعلامة 3 عند رقم خاص بالمتجر.","Hãy đi qua từng điểm đánh dấu theo thứ tự: số 1 ở gần mã vạch, số 3 ở một mã số của cửa hàng.","Йди по позначках по черзі: 1 стоїть біля штрихкоду, 3 біля номера магазину.","ነተን ምልክታት ብተርታ ኪድ: 1 ኣብ ባር ኮድ እያ፣ 3 ኣብ ሓደ ቁጽሪ ናይቲ ድኳን።"],"a6_1.h1":["ميّز بين: سعر الوحدة (لقطعة واحدة) – السعر الإجمالي (لكل القطع) – مبلغ الضريبة.","Hãy phân biệt: đơn giá (cho 1 cái) – thành tiền (cho tất cả các cái) – số tiền thuế.","Розрізняй: ціна за одиницю (за 1 штуку) – загальна ціна (за всі штуки) – сума податку.","ፈልይ: ዋጋ ሓደ (ን1 ቁራጽ) – ጠቕላላ ዋጋ (ንኹሎም ቁራጽ) – መጠን ግብሪ።"],"a6_1.s":["1 رقم الصنف (GTIN) – 2 سعر الوحدة لكل صنف – 3 رقم التعريف الضريبي لضريبة المبيعات (Umsatzsteuer-Identifikationsnummer) – 4 السعر الإجمالي لكل صنف – 5 حصة ضريبة المبيعات (مبلغ الضريبة).","1 Mã số mặt hàng (GTIN) – 2 đơn giá của mặt hàng – 3 mã số định danh thuế doanh thu (Umsatzsteuer-Identifikationsnummer) – 4 thành tiền của mặt hàng – 5 phần thuế doanh thu (Umsatzsteuerbetrag).","1 Номер товару (GTIN) – 2 Ціна за одиницю – 3 Ідентифікаційний номер платника ПДВ – 4 Загальна ціна за товар – 5 Частка ПДВ (сума ПДВ).","1 ቁጽሪ ኣቕሓ (GTIN) – 2 ዋጋ ሓደ ኣቕሓ – 3 ቁጽሪ መለለዪ ግብሪ ተወሳኺ ዋጋ – 4 ጠቕላላ ዋጋ ናይቲ ኣቕሓ – 5 ኽፍሊ ግብሪ ተወሳኺ ዋጋ (መጠን ግብሪ)።"],"a6_2.q":["6.2 ما الأجهزة الثلاثة التي تُعدّ من معدات (Hardware) الصندوق؟ اذكرها! (3 نقاط)","6.2 Kể tên 3 thiết bị thuộc phần cứng (Hardware) của một quầy thu ngân! (3 điểm)","6.2 Які 3 пристрої належать до обладнання каси? Назвіть їх! (3 бали)","6.2 ኣየናይ 3 መሳርሕታት ናብ ሃርድዌር ካሳ ይውድኡ? ሰምይዎም! (3 ነጥቢ)"],"a6_2.h0":["„اذكر“ = تكفي كلمات مفتاحية. ماذا ترى عند الصندوق؟","„Kể tên“ = chỉ cần từ khóa. Bạn thấy gì ở quầy thu ngân?","Назвати = достатньо ключових слів. Що ти бачиш на касі?","ሰምይ = ቃላት ጥራይ ይኣክል። ኣብ ካሳ እንታይ ትርኢ?"],"a6_2.h1":["ما الذي يقرأ الباركود؟ ما الذي يطبع الإيصال؟ بماذا يدفع العميل بالبطاقة؟","Cái gì đọc mã vạch, cái gì in hóa đơn, khách trả bằng thẻ qua thiết bị nào?","Що читає штрихкод, що друкує чек, чим клієнт платить карткою?","እንታይ ባር ኮድ የንብብ፣ እንታይ ደረሰኝ የሕትም፣ እቲ ዓሚል ብእንታይ ብካርድ ይኸፍል?"],"a6_2.s":["نقطة واحدة لكل جهاز، مثلًا: ماسح ضوئي (Scanner)، قلم قراءة (Lesepistole)، طابعة إيصالات (Bondrucker)، جهاز قراءة البطاقات (Kartenlesegerät)، شاشة العميل (Kundendisplay)، ميزان.","Mỗi thiết bị 1 điểm, ví dụ: máy quét (Scanner), súng quét (Lesepistole), máy in hóa đơn (Bondrucker), máy đọc thẻ (Kartenlesegerät), màn hình khách hàng (Kundendisplay), cân.","По 1 балу, напр. сканер, зчитувач штрихкодів, принтер чеків, пристрій для читання карток, дисплей для клієнта, ваги.","ነፍሲ ወከፍ 1 ነጥቢ፣ ንኣብነት ስካነር፣ ናይ ባር ኮድ ኣንባቢ፣ ናይ ደረሰኝ ሕታመት፣ ናይ ካርድ ኣንባቢ፣ ናይ ዓሚል ስክሪን፣ ሚዛን።"],"a6_3.q":["6.3 تحمل معظم الأصناف رقم GTIN (باركود مع أرقام). اذكر ميزتين لرقم GTIN لمتجر Hansa GmbH! (نقطتان)","6.3 Hầu hết mặt hàng đều có GTIN (mã vạch kèm số). Hãy nêu 2 ưu điểm của GTIN đối với cửa hàng Hansa GmbH! (2 điểm)","6.3 Майже всі товари мають GTIN (штрихкод із цифрами). Назвіть 2 переваги GTIN для універмагу Hansa GmbH! (2 бали)","6.3 ኣዝዮም ብዙሓት ኣቕሑት GTIN (ባር ኮድ ምስ ቁጽሪታት) ኣለዎም። ንዕዳጋ ቤት Hansa GmbH 2 ረብሓታት ናይ GTIN ሰምዩ! (2 ነጥቢ)"],"a6_3.h0":["اقرأ في نص „المسح الضوئي ورقم GTIN“ مزايا الشركة.","Đọc phần „Quét mã và GTIN“, mục ưu điểm cho doanh nghiệp.","Прочитай у тексті «Сканування і GTIN» переваги для підприємства.","ኣብቲ ጽሑፍ «ስካንን GTINን» ረብሓታት ንትካል ኣንብብ።"],"a6_3.h1":["فكّر في السرعة والأخطاء والمخزون والأسعار.","Hãy nghĩ đến tốc độ, lỗi, kho hàng và giá cả.","Подумай про швидкість, помилки, склад і ціни.","ብዛዕባ ቅልጡፍነት፣ ጌጋታት፣ መኽዘንን ዋጋታትን ሕሰብ።"],"a6_3.s":["نقطة واحدة لكل ميزة، مثلًا: محاسبة أسرع وبلا أخطاء، تسجيل أفضل للمخزون، تغيير مركزي للأسعار.","Mỗi ưu điểm 1 điểm, ví dụ: tính tiền nhanh hơn và không sai sót, theo dõi hàng tồn kho tốt hơn, thay đổi giá tập trung.","По 1 балу, напр. швидший розрахунок без помилок, краще облікування залишків, централізована зміна цін.","ነፍሲ ወከፍ 1 ነጥቢ፣ ንኣብነት ቅልጡፍን ብዘይ ጌጋን ሕሳብ ምኽፋል፣ ዝሓሸ ምምዝጋብ ኣቕሑት መኽዘን፣ ማእከላይ ለውጢ ዋጋ።"],"a7p_1.q":["7.1 منذ 2020 يجب أن يكون في كل صندوق إلكتروني وحدة TSE. اشرح أي مشكلة تريد الدولة حلها بذلك.","7.1 Từ năm 2020 mỗi máy thu ngân điện tử phải có TSE. Hãy giải thích Nhà nước muốn giải quyết vấn đề gì bằng cách đó.","7.1 З 2020 року кожна електронна каса мусить мати TSE. Поясніть, яку проблему держава хоче цим вирішити.","7.1 ካብ 2020 ኣትዩ ነፍሲ ወከፍ ኤለክትሮኒካዊ ካሳ TSE ክህልዎ ኣለዎ። እቲ መንግስቲ እንታይ ጸገም ክፈትሕ ይደሊ ኣብርሁ።"],"a7p_1.h0":["فكّر في الماضي: ماذا كان يمكن فعله لاحقًا في الصندوق؟","Hãy nghĩ về trước đây: người ta có thể làm gì sau đó trong máy thu ngân?","Згадайте, як було раніше: що можна було зробити в касі пізніше?","ብዛዕባ ቀደም ሕሰቡ: ኣብ ካሳ ደሓር እንታይ ምግባር ይከኣል ነይሩ?"],"a7p_1.h1":["من يفحص الصندوق لاحقًا – وماذا يرى بفضل TSE؟","Ai kiểm tra máy thu ngân sau này – và nhờ TSE họ thấy gì?","Хто потім перевіряє касу – і що він бачить завдяки TSE?","ደሓር ነቲ ካሳ መን ይቆጻጸሮ – ብሰንኪ TSE እንታይ ይርኢ?"],"a7p_1.s":["في الماضي كان يمكن حذف المبيعات في الصندوق أو تغييرها دون أن يلاحظ أحد (تهرب ضريبي). وحدة TSE تحفظ وتوقّع كل عملية؛ وعند الفحص ترى مصلحة الضرائب كل تغيير.","Trước đây doanh thu trong máy thu ngân có thể bị xóa hoặc sửa mà không ai biết (trốn thuế). TSE lưu và ký số mọi giao dịch; khi kiểm tra, cơ quan thuế thấy mọi thay đổi.","Раніше виручку в касі можна було видалити чи змінити так, що ніхто не помічав (ухилення від податків). TSE зберігає і підписує кожну операцію; під час перевірки податкова бачить кожну зміну.","ቀደም ሽያጥ ኣብ ካሳ ዋላ ሓደ ከይፈለጠ ክስረዝ ወይ ክቅየር ይከኣል ነበረ (ግብሪ ምህላው)። TSE ነፍሲ ወከፍ ተግባር የቐምጥን ይፍርምን፤ ኣብ ምምርማር ቤት ጽሕፈት ግብሪ ነፍሲ ወከፍ ለውጢ ይርኢ።"],"a7p_2.q":["7.2 كثير من العملاء يتركون إيصال الصندوق. قيّم واجب إصدار الإيصال (Belegausgabepflicht) من وجهة نظر البيئة ومن وجهة نظر العميل. ما الحل الذي تقترحه؟","7.2 Nhiều khách hàng để quên hóa đơn thu ngân. Hãy đánh giá nghĩa vụ phát hành chứng từ (Belegausgabepflicht) từ góc độ môi trường và từ góc độ khách hàng. Bạn đề xuất giải pháp nào?","7.2 Багато клієнтів залишають касовий чек. Оцініть обов'язок видавати чек з погляду довкілля та з погляду клієнта. Яке рішення ви пропонуєте?","7.2 ብዙሓት ዓመላት እቲ ናይ ካሳ ደረሰኝ ይግድፉ። ነቲ ደረሰኝ ናይ ምሃብ ግዴታ ካብ ኩነታት ከባቢ ከምኡውን ካብ ኩነታት ዓሚል ገምግሙ። ኣየናይ ፍታሕ ትሕብሩ?"],"a7p_2.h0":["انظر إلى الجانبين كلًا على حدة: البيئة والعميل.","Hãy xem hai phía riêng: môi trường và khách hàng.","Розгляньте окремо два боки: довкілля і клієнт.","ክልተ ወገናት ፈላዪ ርኣዩ: ከባቢን ዓሚልን።"],"a7p_2.h1":["هل توجد طريقة لتنفيذ الواجب دون ورق؟","Có cách nào thực hiện nghĩa vụ này mà không dùng giấy không?","Чи є спосіб виконати обов'язок без паперу?","ነቲ ግዴታ ብዘይ ወረቐት ዝፍጸመሉ መንገዲ ኣሎ ዶ?"],"a7p_2.s":["البيئة: نفايات ورق كثيرة، والورق الحراري (Thermopapier) لا يوضع في ورق إعادة التدوير. العميل: الإيصال مستند للاستبدال وللشكوى ويفيد في المراجعة. الحل: إيصال إلكتروني (E-Bon عبر تطبيق أو رمز QR) أو طباعة الإيصال عند الطلب فقط، إذا كان النظام يوفر E-Bon.","Môi trường: nhiều rác giấy, giấy nhiệt (Thermopapier) không bỏ vào giấy tái chế. Khách hàng: hóa đơn là chứng từ để đổi hàng và khiếu nại, và để kiểm tra. Giải pháp: hóa đơn điện tử (E-Bon qua ứng dụng hoặc mã QR) hoặc chỉ in hóa đơn khi khách yêu cầu, nếu hệ thống có E-Bon.","Довкілля: багато паперового сміття, термопапір не можна здавати як макулатуру. Клієнт: чек – це доказ для обміну і рекламації, а також для контролю. Рішення: електронний чек (E-Bon через застосунок або QR-код) або друкувати чек лише на прохання, якщо система пропонує E-Bon.","ከባቢ: ብዙሕ ጉሓፍ ወረቐት፣ ቀጠፍ ወረቐት (Thermopapier) ምስ ካልእ ወረቐት ኣይእተዎን። ዓሚል: እቲ ደረሰኝ ንምልውዋጥን ንተቓውሞን መረጋገጺ እዩ፣ ንቁጽጽርውን ይጠቅም። ፍታሕ: ኤለክትሮኒካዊ ደረሰኝ (E-Bon ብመተግበሪ ወይ QR-ኮድ) ወይ ሲስተም E-Bon እንተሃልዩ ደረሰኝ ብልምንቲ ጥራይ ምሕታም።"],"v9_1.q":["9.1 لماذا يجب على الشركة أن تعرض إيصالًا على كل عميل رغم أن العميل غير ملزم بأخذه؟ علّل بما تعرفه عن TSE.","9.1 Tại sao doanh nghiệp phải đưa chứng từ cho mỗi khách hàng, dù khách không bắt buộc phải mang theo? Hãy giải thích dựa vào những gì bạn biết về TSE.","9.1 Чому підприємство мусить запропонувати кожному клієнту чек, хоча клієнт не мусить його брати? Поясни тим, що знаєш про TSE.","9.1 እቲ ዓሚል ክወስዶ ግዴታ እንተዘይብሉ እቲ ትካል ስለምንታይ ንነፍሲ ወከፍ ዓሚል ደረሰኝ ክህብ ኣለዎ? ብዛዕባ TSE ብዘፈልጦ ኣብርህ።"],"v9_1.h0":["من المستفيد عندما يحصل كل بيع على إيصال؟","Ai có lợi khi mỗi lần bán đều có chứng từ?","Кому вигідно, що кожен продаж має чек?","ነፍሲ ወከፍ ሽያጥ ደረሰኝ እንተሃልዎ መን ይረብሕ?"],"v9_1.h1":["تذكّر هدف TSE: منع التهرب الضريبي.","Hãy nhớ mục đích của TSE: ngăn trốn thuế.","Згадай мету TSE: запобігати податковому шахрайству.","ዕላማ TSE ሕሰብ: ናይ ግብሪ ማዕቢያ ምክልኻል።"],"v9_1.s":["الواجب على الشركة: عليها إصدار الإيصال، ورقيًا أو كإيصال إلكتروني. وبذلك يمكن إثبات كل عملية بيع، ولا يمكن „نسيان“ أي مبيعات. ومع TSE (كل عملية تُحفظ وتُوقَّع) يساعد ذلك ضد التهرب الضريبي. والعميل يقرر بنفسه إن كان يحتاج الإيصال.","Nghĩa vụ thuộc về doanh nghiệp: họ phải phát hành chứng từ, bằng giấy hoặc E-Bon. Nhờ vậy mỗi lần bán đều có bằng chứng và doanh thu không thể bị „quên“. Cùng với TSE (mỗi giao dịch được lưu và ký số), điều này giúp chống trốn thuế. Khách hàng tự quyết định có cần chứng từ hay không.","Обов'язок лежить на підприємстві: воно мусить видати чек, на папері або як E-Bon. Так кожен продаж можна підтвердити, і виручку не можна «забути». Разом із TSE (кожна операція зберігається і підписується) це допомагає проти податкового шахрайства. Клієнт сам вирішує, чи потрібен йому чек.","እቲ ግዴታ ንትካል እዩ: ደረሰኝ ክህብ ኣለዎ፣ ብወረቐት ወይ ከም E-Bon። ከምዚ ኢሉ ነፍሲ ወከፍ ሽያጥ ይረጋገጽ፣ ሽያጥውን «ክርሳዕ» ኣይክእልን። ምስ TSE (ነፍሲ ወከፍ ተግባር ይዕቀብን ይፍረምን) እዚ ንግብሪ ማዕቢያ ይኽልክል። እቲ ዓሚል ደረሰኝ የድልዮ ወይ ኣየድልዮን ባዕሉ ይውስን።"],"v9_2.q":["9.2 لماذا لا يُرمى الإيصال الخاطئ بعد الإلغاء (Storno)؟ علّل.","9.2 Tại sao hóa đơn sai không bị vứt đi sau khi hủy (Storno)? Hãy giải thích.","9.2 Чому неправильний чек після сторнування не викидають? Поясни.","9.2 ስለምንታይ እቲ ጌጋ ደረሰኝ ድሕሪ ምስራዝ ኣይድርበን? ኣብርህ።"],"v9_2.h0":["ماذا يُحاسَب في نهاية اليوم من الصندوق؟","Cuối ngày người ta đối chiếu gì ở máy thu ngân?","Що наприкінці дня звіряють із касою?","ኣብ መወዳእታ መዓልቲ ምስ ካሳ እንታይ ይሕሰብ?"],"v9_2.h1":["من قد يسأل لاحقًا: ماذا حدث في هذه العملية؟","Ai có thể hỏi sau này: giao dịch này đã xảy ra chuyện gì?","Хто може пізніше спитати: що сталося з цією операцією?","ደሓር መን ክሓትት ይኽእል: በዚ ተግባር እንታይ ኮነ?"],"v9_2.s":["يُحفظ الإيصال الخاطئ لأنه مطلوب لتسوية الصندوق (Kassenabrechnung). كل عملية في الصندوق تُحفظ؛ والخطأ في الكتابة يُلغى ولا يُحذف. وهكذا يبقى واضحًا ما حدث عند الصندوق.","Hóa đơn sai được giữ lại vì cần cho việc đối chiếu quỹ (Kassenabrechnung). Mỗi giao dịch ở quầy đều được lưu; lỗi gõ được hủy chứ không bị xóa. Nhờ vậy vẫn biết được chuyện gì đã xảy ra ở quầy.","Неправильний чек зберігають, бо він потрібен для касового звіту. Кожна операція на касі зберігається; помилку введення сторнують, а не видаляють. Так залишається зрозумілим, що відбувалося на касі.","እቲ ጌጋ ደረሰኝ ይተሓዝ፣ ንናይ ካሳ ሕሳብ ይእከል እዩ። ነፍሲ ወከፍ ናይ ካሳ ተግባር ይዕቀብ፤ ናይ ምጽሓፍ ጌጋ ይስረዝ እምበር ኣይጠፍእን። ከምዚ ኢሉ ኣብ ካሳ እንታይ ከም ዝኾነ ርዱእ ይኸውን።"],"v9_3.q":["9.3 ماذا سيحدث لو اضطرت شركة إلى تغيير الأسعار على كل صنف بدل تغييرها مركزيًا في قاعدة بيانات الأصناف (Artikelstamm)؟ علّل.","9.3 Điều gì sẽ xảy ra nếu một doanh nghiệp phải đổi giá trên từng mặt hàng thay vì đổi tập trung trong dữ liệu mặt hàng (Artikelstamm)? Hãy giải thích.","9.3 Що було б, якби підприємство мусило змінювати ціни не централізовано в картотеці товарів (Artikelstamm), а на кожному товарі? Поясни.","9.3 ሓደ ትካል ዋጋታት ብማእከላይ ኣብ መዝገብ ኣቕሑት (Artikelstamm) ዘይኮነ ኣብ ነፍሲ ወከፍ ኣቕሓ ክቕይር እንተነበሮ እንታይ ምኾነ? ኣብርህ።"],"v9_3.h0":["كم صنفًا يوجد في المتجر؟","Một cửa hàng có bao nhiêu mặt hàng?","Скільки товарів у магазині?","ሓደ ድኳን ክንደይ ኣቕሑት ኣለዎ?"],"v9_3.h1":["ماذا قد يحدث عند الصندوق إذا كان على صنف سعر مختلف عن النظام؟","Điều gì có thể xảy ra ở quầy nếu giá trên mặt hàng khác với giá trong hệ thống?","Що може статися на касі, якщо на товарі інша ціна, ніж у системі?","ኣብ ካሳ እንታይ ክኸውን ይኽእል ሓደ ኣቕሓ ካብ ሲስተም ዝተፈለየ ዋጋ እንተሃልዩ?"],"v9_3.s":["سيتعين تغيير كل صنف على حدة – وهذا يستغرق وقتًا طويلًا وتحدث الأخطاء بسهولة. ولن يعود الصندوق يحاسب بسرعة وبلا أخطاء. لذلك يُغيَّر السعر مركزيًا في النظام، ويجلبه الصندوق عند المسح من قاعدة بيانات الأصناف (Artikelstamm).","Phải đổi từng mặt hàng một – mất nhiều thời gian và dễ sai sót. Quầy thu ngân sẽ không còn tính tiền nhanh và chính xác. Vì vậy giá được đổi tập trung trong hệ thống, và khi quét, quầy lấy giá từ dữ liệu mặt hàng (Artikelstamm).","Довелося б міняти кожен товар окремо – це довго, і легко з'являються помилки. Каса вже не розраховувала б швидко і без помилок. Тому ціну змінюють централізовано в системі, а каса під час сканування бере її з картотеки товарів.","ነፍሲ ወከፍ ኣቕሓ ፈላዪ ምቅያር ነበረ – ንነዊሕ ግዜ ይወስድ፣ ጌጋታትውን ብቀሊሉ ይፍጠሩ። እቲ ካሳ ቅልጡፍን ብዘይ ጌጋን ሕሳብ ኣይኸፍልን። ስለዚ ዋጋ ብማእከላይ ኣብ ሲስተም ይቅየር፣ እቲ ካሳ ድማ ኣብ ስካን ምግባር ካብ መዝገብ ኣቕሑት ይወስዶ።"],"v9_4.q":["9.4 اشرح لماذا لا يظهر سعر الشراء (Einkaufspreis) على إيصال الصندوق. ماذا يجب أن يستطيع العميل أن يُثبت بالإيصال؟","9.4 Hãy giải thích tại sao giá nhập (Einkaufspreis) không có trên hóa đơn thu ngân. Khách hàng cần chứng minh được điều gì bằng hóa đơn?","9.4 Поясни, чому закупівельної ціни немає на касовому чеку. Що клієнт має змогти показати за допомогою чека?","9.4 ስለምንታይ እቲ ዋጋ ግዢ ኣብ ናይ ካሳ ደረሰኝ ከም ዘየለ ኣብርህ። እቲ ዓሚል ብደረሰኝ እንታይ ከርኢ ክኽእል ኣለዎ?"],"v9_4.h0":["لماذا يحتاج العميل الإيصال: ماذا يريد أن يُثبت به؟","Khách hàng cần hóa đơn để làm gì: họ muốn chứng minh điều gì?","Навіщо клієнтові чек: що він хоче ним довести?","እቲ ዓሚል ንደረሰኝ ንምንታይ የድልዮ: እንታይ ከረጋግጽ ይደሊ?"],"v9_4.h1":["سعر مَن هو سعر الشراء – ومن يجب أن يعرفه؟","Giá nhập là giá của ai – và ai cần biết nó?","Чия це ціна – закупівельна – і кому її потрібно знати?","ዋጋ ግዢ ናይ መን ዋጋ እዩ – መን ክፈልጦ ኣለዎ?"],"v9_4.s":["الإيصال مستند للعميل: يُثبت به أنه دفع – وهذا مهم عند الاستبدال وعند الشكوى. لذلك تهم الأصناف والكمية والسعر الذي يدفعه العميل. أما سعر الشراء فهو ما دفعته الشركة نفسها مقابل البضاعة؛ ويخص الشركة وحدها، ولذلك لا يظهر على الإيصال.","Hóa đơn là chứng từ cho khách hàng: họ dùng nó để chứng minh đã thanh toán – quan trọng khi đổi hàng và khiếu nại. Vì vậy mặt hàng, số lượng và giá khách trả là điều quan trọng. Giá nhập là giá doanh nghiệp tự trả cho hàng hóa; nó chỉ liên quan đến doanh nghiệp nên không có trên hóa đơn.","Чек – це документ для клієнта: ним він показує, що заплатив – це важливо при обміні та рекламації. Для цього важливі товар, кількість і ціна, яку платить клієнт. Закупівельна ціна – це ціна, яку підприємство саме заплатило за товар; вона стосується лише підприємства, тому її немає на чеку.","እቲ ደረሰኝ ንዓሚል ሰነድ እዩ: ብእኡ ከም ዝኸፈለ የርኢ – ኣብ ምልውዋጥን ተቓውሞን ኣገዳሲ እዩ። ንእኡ ኣቕሓ፣ ብዝሒን እቲ ዓሚል ዝኸፍሎ ዋጋን የገድሱ። ዋጋ ግዢ እቲ ትካል ባዕሉ ንኣቕሓ ዝኸፈሎ ዋጋ እዩ፤ ንትካል ጥራይ ይምልከት፣ ስለዚ ኣብ ደረሰኝ የለን።"],"r0.t":["أنظمة الصناديق","Hệ thống thu ngân","Касові системи","ሲስተማት ካሳ"],"r0.task":["حدّد بماذا تعمل المتاجر، وبماذا يرتبط الصندوق غالبًا، وثلاثة أجهزة.","Đánh dấu doanh nghiệp dùng gì, quầy thu ngân thường được nối với gì, và ba thiết bị.","Познач, з чим працюють магазини, з чим часто пов'язана каса і три пристрої.","ድኳናት ምስ እንታይ ከም ዝሰርሑ፣ እቲ ካሳ ብዙሕ ግዜ ምስ እንታይ ከም ዝተጸምበረ ሰለስተ መሳርሕታትን ምልክት ግበር።"],"r0.x":["تعمل اليوم معظم المتاجر بأنظمة صناديق إلكترونية. وهي غالبًا مرتبطة بنظام إدارة البضائع (WWS) (نظام POS، وPOS = Point of Sale = مكان البيع). ويتبع الصندوق معدات (Hardware) مثل الماسح الضوئي وطابعة الإيصالات وجهاز قراءة البطاقات. أما عربة التسوق أو نظام الرفوف فلا يُعدّان من معدات الصندوق.","Ngày nay hầu hết cửa hàng dùng hệ thống thu ngân điện tử. Chúng thường được nối với hệ thống quản lý hàng hóa (WWS) (hệ thống POS, POS = Point of Sale = điểm bán hàng). Quầy thu ngân có phần cứng (Hardware) như máy quét, máy in hóa đơn và máy thanh toán thẻ. Xe đẩy hàng hay hệ thống kệ không thuộc phần cứng của quầy thu ngân.","Сьогодні майже всі магазини працюють з електронними касовими системами. Вони часто пов'язані з системою товарного обліку (WWS) (POS-система, POS = Point of Sale = місце продажу). До каси належить обладнання: сканер, принтер чеків і термінал для карток. Візок для покупок чи стелаж не належать до обладнання каси.","ሎሚ ኩሎም ዳርጋ ድኳናት ምስ ኤለክትሮኒካዊ ሲስተማት ካሳ ይሰርሑ። ብዙሕ ግዜ ምስ ሲስተም ምሕደራ ኣቕሑት (WWS) ይተሓሓዙ (POS-ሲስተም፣ POS = Point of Sale = ቦታ ሽያጥ)። ናብ ካሳ ሃርድዌር ከም ስካነር፣ ናይ ደረሰኝ ሕታመትን ናይ ካርድ መኽፈሊን ይውድኡ። ጋሪ ዕዳጋ ወይ ሬጋል ናብ ሃርድዌር ካሳ ኣይውድኡን።"],"r0.q":["ماذا يعني POS؟","POS có nghĩa là gì?","Що означає POS?","POS እንታይ ማለት እዩ?"],"r0.o0":["Point of Sale = مكان البيع","Point of Sale = điểm bán hàng","Point of Sale = місце продажу","Point of Sale = ቦታ ሽያጥ"],"r0.o1":["سعر بدون ضريبة","Giá chưa thuế","Ціна без податку","ዋጋ ብዘይ ግብሪ"],"r0.o2":["منتج في التشكيلة","Sản phẩm trong danh mục hàng","Товар в асортименті","ምርቲ ኣብ ዓይነት ኣቕሑት"],"r1.t":["المسح الضوئي ورقم GTIN","Quét mã và GTIN","Сканування і GTIN","ስካንን GTINን"],"r1.task":["حدّد ما يقرؤه الماسح، ومن أين يجلب الصندوق السعر، وأين تُغيَّر الأسعار.","Đánh dấu máy quét đọc gì, quầy lấy giá từ đâu và giá được đổi ở đâu.","Познач, що читає сканер, звідки каса бере ціну і де змінюють ціни.","እቲ ስካነር እንታይ ከም ዘንብብ፣ እቲ ካሳ ዋጋ ካበይ ከም ዝወስድን ዋጋታት ኣበይ ከም ዝቕየሩን ምልክት ግበር።"],"r1.x":["يقرأ الماسح الضوئي رقم GTIN (رقم الصنف المكوَّن من 13 خانة تحت الباركود). ويجلب الصندوق السعر من قاعدة بيانات الأصناف (Artikelstamm) في WWS. وعندما يتغير السعر يُغيَّر مركزيًا في النظام – وليس على كل صنف. ولا حاجة لفاتورة المورّد لذلك.","Máy quét đọc GTIN (mã số mặt hàng 13 chữ số dưới mã vạch). Quầy lấy giá từ dữ liệu mặt hàng (Artikelstamm) trong WWS. Khi giá thay đổi, giá được đổi tập trung trong hệ thống – không phải trên từng mặt hàng. Không cần hóa đơn của nhà cung cấp cho việc này.","Сканер читає GTIN (13-значний номер товару під штрихкодом). Каса бере ціну з картотеки товарів (Artikelstamm) у WWS. Коли ціна змінюється, її змінюють централізовано в системі – не на кожному товарі. Рахунок постачальника для цього не потрібен.","እቲ ስካነር GTIN የንብብ (13 ቁጽሪ ናይ ኣቕሓ ትሕቲ ባር ኮድ)። እቲ ካሳ ዋጋ ካብ መዝገብ ኣቕሑት (Artikelstamm) ኣብ WWS ይወስድ። ዋጋ ምስ ዝቕየር ብማእከላይ ኣብ ሲስተም ይቅየር – ኣብ ነፍሲ ወከፍ ኣቕሓ ኣይኮነን። ደረሰኝ ናይቲ ኣቕራቢ ንእዚ ኣየድልን።"],"r1.q":["لماذا يُعدّ تغيير الأسعار مركزيًا ميزة؟","Tại sao thay đổi giá tập trung là một ưu điểm?","Чому централізована зміна цін – це перевага?","ስለምንታይ ማእከላይ ለውጢ ዋጋ ረብሓ እዩ?"],"r1.o0":["لا حاجة إلى تغيير كل صنف على حدة – السعر يتغير في النظام.","Không cần đổi từng mặt hàng – giá thay đổi trong hệ thống.","Не треба переклеювати кожен товар окремо – ціна змінюється в системі.","ነፍሲ ወከፍ ኣቕሓ ፈላዪ ምልጣፍ ኣየድልን – እቲ ዋጋ ኣብ ሲስተም ይቅየር።"],"r1.o1":["يدفع العميل عندها دائمًا أقل.","Khi đó khách hàng luôn trả ít hơn.","Клієнт тоді завжди платить менше.","እቲ ዓሚል ሽዑ ኩሉ ግዜ ትሑት ይኸፍል።"],"r1.o2":["لا يحتاج الصندوق عندها إلى طابعة إيصالات.","Khi đó quầy thu ngân không cần máy in hóa đơn.","Тоді касі не потрібен принтер чеків.","እቲ ካሳ ሽዑ ናይ ደረሰኝ ሕታመት ኣየድልዮን።"],"r2.t":["ماذا يقول القانون","Pháp luật quy định gì","Що каже закон","እዚ እዩ ሕጊ ዝብሎ"],"r2.task":["حدّد الواجبات القانونية الثلاثة.","Đánh dấu ba nghĩa vụ theo luật.","Познач три обов'язки за законом.","ሰለስተ ናይ ሕጊ ግዴታታት ምልክት ግበር።"],"r2.x":["وحدة TSE (وحدة الأمان التقنية) إلزامية منذ 2020: كل عملية في الصندوق تُحفظ وتُوقَّع، ولا يستطيع أحد حذف المبيعات أو تغييرها لاحقًا. وهكذا يُمنع التهرب الضريبي. ويسري واجب إصدار الإيصال (Belegausgabepflicht) أيضًا منذ 2020: كل عميل يحصل على إيصال، ورقيًا أو إلكترونيًا (E-Bon). ويسري واجب الإبلاغ منذ 2025: على الشركة أن تبلغ مصلحة الضرائب عن أجهزة الصندوق الإلكترونية. أما بطاقة العميل فليست واجبًا قانونيًا.","TSE (thiết bị an ninh kỹ thuật) bắt buộc từ năm 2020: mỗi giao dịch ở quầy được lưu và ký số, không ai có thể xóa hay sửa doanh thu sau đó. Nhờ vậy ngăn được trốn thuế. Nghĩa vụ phát hành chứng từ (Belegausgabepflicht) cũng có hiệu lực từ năm 2020: mỗi khách hàng nhận một chứng từ, bằng giấy hoặc điện tử (E-Bon). Nghĩa vụ khai báo có hiệu lực từ năm 2025: doanh nghiệp phải khai báo các máy thu ngân điện tử với cơ quan thuế. Thẻ khách hàng không phải là nghĩa vụ theo luật.","TSE (технічний засіб безпеки) обов'язкова з 2020 року: кожна операція на касі зберігається і підписується, ніхто не може пізніше видалити чи змінити виручку. Так запобігають ухиленню від податків. Обов'язок видавати чек (Belegausgabepflicht) теж діє з 2020 року: кожен клієнт отримує чек, на папері або в електронному вигляді (E-Bon). Обов'язок повідомляти діє з 2025 року: підприємство мусить повідомити податкову (Finanzamt) про свої електронні каси. Картка клієнта не є обов'язком за законом.","TSE (ቴክኒካዊ ድሕንነት መሳርሒ) ካብ 2020 ግዴታ እዩ: ነፍሲ ወከፍ ናይ ካሳ ተግባር ይዕቀብን ይፍረምን፣ ዋላ ሓደ ሰብ ደሓር ሽያጥ ክሰርዝ ወይ ክቅይር ኣይክእልን። ከምዚ ኢሉ ናይ ግብሪ ማዕቢያ ይኽልከል። ደረሰኝ ናይ ምሃብ ግዴታ (Belegausgabepflicht) እውን ካብ 2020 እዩ: ነፍሲ ወከፍ ዓሚል ደረሰኝ ይወስድ፣ ብወረቐት ወይ ብኤለክትሮኒክ (E-Bon)። ናይ ምሕባር ግዴታ ካብ 2025 እዩ: እቲ ትካል ኤለክትሮኒካዊ ካሳታቱ ንቤት ጽሕፈት ግብሪ (Finanzamt) ከሕብር ኣለዎ። ካርድ ዓሚል ናይ ሕጊ ግዴታ ኣይኮነን።"],"r2.q":["هل يجب على العميل أن يأخذ الإيصال معه؟","Khách hàng có bắt buộc phải mang hóa đơn đi không?","Чи мусить клієнт брати чек?","እቲ ዓሚል ነቲ ደረሰኝ ክወስዶ ግዴታ ኣሎዎ ዶ?"],"r2.o0":["نعم، وإلا فلا يجوز له المغادرة.","Có, nếu không thì không được rời đi.","Так, інакше він не може піти.","እወ፣ ካልኣይ ክኸይድ ኣይፍቀድን።"],"r2.o1":["لا، لا يجب عليه أخذه – لكن على الشركة أن تعرضه عليه.","Không, khách không bắt buộc – nhưng doanh nghiệp phải đưa ra.","Ні, він не мусить його брати – але підприємство мусить його запропонувати.","ኖ፣ ክወስዶ ግዴታ የብሉን – እቲ ትካል ግን ክህቦ ኣለዎ።"],"r2.o2":["نعم، ويجب أن يحتفظ به ثلاث سنوات.","Có, và phải giữ ba năm.","Так, він мусить зберігати його три роки.","እወ፣ ሰለስተ ዓመት ክሕዞ ኣለዎ።"],"r3.t":["إيصال الصندوق","Hóa đơn thu ngân","Касовий чек","እቲ ናይ ካሳ ደረሰኝ"],"r3.task":["حدّد ما لا يوجد على الإيصال، وماذا يحدث عند خطأ في الكتابة.","Đánh dấu điều gì không có trên hóa đơn và điều gì xảy ra khi gõ sai.","Познач, чого немає на чеку і що відбувається при помилці введення.","ኣብ ደረሰኝ ዘየለ እንታይ ምዃኑን ኣብ ናይ ምጽሓፍ ጌጋ እንታይ ከም ዝኸውንን ምልክት ግበር።"],"r3.x":["يوجد على إيصال الصندوق مثلًا: اسم المتجر وعنوانه، التاريخ والوقت، الأصناف مع الكمية وسعر الوحدة، المجموع، طريقة الدفع والباقي، ضريبة المبيعات (Umsatzsteuer) وبيانات TSE. ولا يوجد على الإيصال سعر الشراء (Einkaufspreis) – وهو السعر الذي دفعته الشركة نفسها مقابل البضاعة. والخطأ في الكتابة يُلغى (storniert)؛ والإيصال الخاطئ لا يُتلَف بل يُحفظ لأنه مطلوب لتسوية الصندوق.","Trên hóa đơn thu ngân có ví dụ: tên và địa chỉ cửa hàng, ngày và giờ, mặt hàng với số lượng và đơn giá, tổng cộng, hình thức thanh toán và tiền thừa, thuế doanh thu (Umsatzsteuer) và thông tin TSE. Không có trên hóa đơn là giá nhập (Einkaufspreis) – giá doanh nghiệp tự trả cho hàng hóa. Lỗi gõ được hủy (storniert); hóa đơn sai không bị hủy bỏ mà được giữ lại vì cần cho việc đối chiếu quỹ.","На касовому чеку є, наприклад, назва і адреса магазину, дата і час, товари з кількістю та ціною за одиницю, підсумок, спосіб оплати і решта, ПДВ та дані TSE. Закупівельної ціни на чеку немає – це ціна, яку підприємство саме заплатило за товар. Помилку введення сторнують; неправильний чек не знищують, а зберігають, бо він потрібен для касового звіту.","ኣብ ናይ ካሳ ደረሰኝ ንኣብነት ስምን ኣድራሻን ድኳን፣ ዕለትን ሰዓትን፣ ኣቕሑት ምስ ብዝሒን ዋጋ ሓደን፣ ድምር፣ ኣገባብ ክፍሊትን ተረፍ ገንዘብን፣ ግብሪ ተወሳኺ ዋጋን TSE ሓበሬታን ኣለዉ። ዋጋ ግዢ ኣብ ደረሰኝ የለን – እዚ እቲ ትካል ባዕሉ ንኣቕሓ ዝኸፈሎ ዋጋ እዩ። ናይ ምጽሓፍ ጌጋ ይስረዝ፤ እቲ ጌጋ ደረሰኝ ኣይጠፍእን፣ ይተሓዝ፣ ንናይ ካሳ ሕሳብ ይእከል እዩ።"],"r3.q":["لماذا يحتاج العميل إيصال الصندوق كمستند إثبات؟","Khách hàng cần hóa đơn thu ngân làm chứng từ để làm gì?","Навіщо клієнтові касовий чек як документ?","እቲ ዓሚል ንናይ ካሳ ደረሰኝ ከም ሰነድ ንምንታይ የድልዮ?"],"r3.o0":["للاستبدال وللشكوى.","Để đổi hàng và khiếu nại.","Для обміну і рекламації.","ንምልውዋጥን ንተቓውሞን።"],"r3.o1":["لتسجيل الصندوق لدى مصلحة الضرائب.","Để đăng ký máy thu ngân với cơ quan thuế.","Для реєстрації каси в податковій.","ንምምዝጋብ ካሳ ኣብ ቤት ጽሕፈት ግብሪ።"],"r3.o2":["للجرد.","Để kiểm kê (Inventur).","Для інвентаризації.","ንቆጸራ ኣቕሑት (Inventur)።"],"cat_vor":["الانطلاق: تجربة الصندوق","Khởi động: Làm quen với quầy thu ngân","Початок: знайомство з касою","መጀመርታ: ካሳ ምፍላጥ"],"cat_txt":["فهم النص: محققو الإيصال","Hiểu văn bản: Thám tử hóa đơn","Розуміння тексту: детективи чеків","ምርዳእ ጽሑፍ: ናይ ደረሰኝ መርመርቲ"],"cat_trans":["التطبيق: الصندوق بالماسح الضوئي وإيصال الصندوق","Vận dụng: Quầy quét mã và hóa đơn thu ngân","Перенесення: сканерна каса і касовий чек","ምስግጋር: ስካነር ካሳን ናይ ካሳ ደረሰኝን"],"cat_wis":["المعرفة المهنية: اختبار الامتحان","Kiến thức nghề: Kiểm tra kiểu thi","Фахові знання: екзаменаційна перевірка","ሞያዊ ፍልጠት: ናይ ፈተና ምርግጋጽ"],"cat_refl":["الشركة والتفكير الأعمق","Công ty và suy nghĩ sâu hơn","Підприємство і роздуми","ትካልን ምሕሳብን"]};
+const GLOSS=[["das Kassensystem","نظام الصندوق (Kassensystem)","hệ thống thu ngân (Kassensystem)","касова система (Kassensystem)","ሲስተም ካሳ (Kassensystem)"],["der Scanner","الماسح الضوئي (Scanner)","máy quét (Scanner)","сканер (Scanner)","ስካነር (Scanner)"],["der Bondrucker","طابعة الإيصالات (Bondrucker)","máy in hóa đơn (Bondrucker)","принтер чеків (Bondrucker)","ናይ ደረሰኝ ሕታመት (Bondrucker)"],["das Kartenterminal","جهاز البطاقات (Kartenterminal)","máy thanh toán thẻ (Kartenterminal)","термінал для карток (Kartenterminal)","ናይ ካርድ መኽፈሊ (Kartenterminal)"],["das Kundendisplay","شاشة العميل (Kundendisplay)","màn hình khách hàng (Kundendisplay)","дисплей для клієнта (Kundendisplay)","ናይ ዓሚል ስክሪን (Kundendisplay)"],["die GTIN","رقم الصنف العالمي (GTIN)","mã số mặt hàng toàn cầu (GTIN)","GTIN (номер товару під штрихкодом)","GTIN (ቁጽሪ ኣቕሓ ትሕቲ ባር ኮድ)"],["das Warenwirtschaftssystem (WWS)","نظام إدارة البضائع (WWS)","hệ thống quản lý hàng hóa (WWS)","система товарного обліку (Warenwirtschaftssystem, WWS)","ሲስተም ምሕደራ ኣቕሑት (Warenwirtschaftssystem, WWS)"],["der Artikelstamm","قاعدة بيانات الأصناف (Artikelstamm)","dữ liệu gốc mặt hàng (Artikelstamm)","картотека товарів (Artikelstamm)","መዝገብ ኣቕሑት (Artikelstamm)"],["die TSE","وحدة الأمان التقنية (TSE)","thiết bị an ninh kỹ thuật (TSE)","технічний засіб безпеки (TSE)","ቴክኒካዊ ድሕንነት መሳርሒ (TSE)"],["die Belegausgabepflicht","واجب إصدار الإيصال (Belegausgabepflicht)","nghĩa vụ phát hành chứng từ (Belegausgabepflicht)","обов'язок видавати чек (Belegausgabepflicht)","ደረሰኝ ናይ ምሃብ ግዴታ (Belegausgabepflicht)"],["der Kassenbon","إيصال الصندوق (Kassenbon)","hóa đơn thu ngân (Kassenbon)","касовий чек (Kassenbon)","ናይ ካሳ ደረሰኝ (Kassenbon)"],["die Umsatzsteuer","ضريبة المبيعات (Umsatzsteuer)","thuế doanh thu (Umsatzsteuer)","ПДВ (Umsatzsteuer)","ግብሪ ተወሳኺ ዋጋ (Umsatzsteuer)"],["stornieren","يُلغي العملية (stornieren)","hủy giao dịch (stornieren)","сторнувати, скасовувати (stornieren)","ምስራዝ (stornieren)"]];
+const WTX={"Kasse":["الصندوق","quầy thu ngân","каса","ካሳ"],"kassieren":["يحاسب العميل","tính tiền","розраховувати клієнта","ሕሳብ ምኽፋል ምቕባል"],"Anfang":["البداية","lúc đầu","початок","መጀመርታ"],"schwierig":["صعب","khó","складний","ኸቢድ"],"Am Anfang war schwierig, dass …":["في البداية كان صعبًا أن …","Lúc đầu khó là …","На початку було складно, що …","ኣብ መጀመርታ ኸቢድ ነይሩ፣ እቲ … ."],"Gerät":["جهاز","thiết bị","пристрій","መሳርሒ"],"Betrieb":["الشركة","doanh nghiệp","підприємство","ትካል"],"Kunde":["الزبون","khách hàng","клієнт","ዓሚል"],"Bei uns gehören … zur Kasse.":["عندنا يتبع الصندوق: …","Ở chỗ chúng tôi, quầy thu ngân có: …","У нас до каси належать … .","ኣብ ዓዲና ናብ ካሳ … ይውድኡ።"],"bezahlen":["يدفع","thanh toán","платити","ምኽፋል"],"Zahlungsart":["طريقة الدفع","hình thức thanh toán","спосіб оплати","ኣገባብ ክፍሊት"],"häufig":["غالبًا","thường","часто","ብዙሕ ግዜ"],"Am häufigsten bezahlen die Kunden …":["في الغالب يدفع العملاء …","Khách hàng thường thanh toán bằng …","Найчастіше клієнти платять … .","ዓመላት ብዝያዳ … ይኸፍሉ።"],"Bon":["الإيصال","hóa đơn","чек","ደረሰኝ"],"Ware":["البضاعة","hàng hóa","товар","ኣቕሑት"],"Zeile":["السطر","dòng","рядок","መስርዕ"],"Hier steht …":["هنا مكتوب …","Ở đây ghi …","Тут написано … .","ኣብዚ … ተጻሒፉ ኣሎ።"],"Betrag":["المبلغ","số tiền","сума","መጠን ገንዘብ"],"Einkauf":["المشتريات","lần mua hàng","покупка","ግዢ"],"Prozent":["بالمئة","phần trăm","відсоток","ፐርሰንት"],"Nummer":["الرقم","số","номер","ቁጽሪ"],"Zeit":["الوقت","thời gian","час","ሰዓት"],"Hier stehen …":["هنا مكتوب …","Ở đây ghi …","Тут написані … .","ኣብዚ … ተጻሒፎም ኣለዉ።"],"Nachweis":["دليل إثبات","bằng chứng","доказ","መረጋገጺ"],"Schutz":["حماية","bảo vệ","захист","ምክልኻል"],"Scannerkasse":["الصندوق بالماسح الضوئي","quầy thu ngân dùng máy quét","сканерна каса","ስካነር ካሳ"],"Lagerbestand":["مخزون البضائع","hàng tồn kho","залишок на складі","ኣቕሑት ኣብ መኽዘን"],"Verkaufsdaten":["بيانات البيع","dữ liệu bán hàng","дані про продажі","ሓበሬታ ሽያጥ"],"Vorteil":["ميزة","ưu điểm","перевага","ረብሓ"],"Richtig sind die Aussagen …":["العبارتان الصحيحتان هما …","Các câu đúng là …","Правильні твердження … .","ቅኑዓት ሓሳባት … እዮም።"],"Kassenbon":["إيصال الصندوق","hóa đơn thu ngân","касовий чек","ናይ ካሳ ደረሰኝ"],"bezahlt":["دفع","đã trả","заплачено","ተኸፊሉ"],"Angabe":["بيان","thông tin","дані, відомості","ሓበሬታ"],"Nicht auf dem Bon steht …":["لا يوجد على الإيصال …","Không có trên hóa đơn: …","На чеку немає … .","ኣብ ደረሰኝ … የለን።"],"Strichcode":["الباركود","mã vạch","штрихкод","ባር ኮድ"],"Zahl":["العدد","con số","число","ቁጽሪ"],"Scanner":["الماسح الضوئي","máy quét","сканер","ስካነር"],"„Das ist …“":["„هذا هو …“","„Đây là …“","«Це … »","«እዚ … እዩ»"],"Beim Scannen …":["عند المسح …","Khi quét …","Під час сканування … .","ኣብ ስካን ምግባር … ።"],"Umsatzsteuer":["ضريبة المبيعات","thuế doanh thu","ПДВ","ግብሪ ተወሳኺ ዋጋ"],"TSE":["وحدة TSE","TSE (thiết bị an ninh kỹ thuật)","TSE (технічний засіб безпеки)","TSE (ቴክኒካዊ ድሕንነት መሳርሒ)"],"Auf dem Bon steht …":["على الإيصال مكتوب …","Trên hóa đơn có …","На чеку написано … .","ኣብ ደረሰኝ … ተጻሒፉ ኣሎ።"],"Ich markiere …":["أحدّد …","Tôi đánh dấu …","Я позначаю … .","… ምልክት ይገብር።"],"Artikel":["السلعة","món hàng","товар","ኣቕሓ"],"Preis":["السعر","giá","ціна","ዋጋ"],"Steuer":["الضريبة","thuế","податок","ግብሪ"],"Nummer 1 ist …":["رقم 1 هو …","Số 1 là …","Номер 1 – це … .","ቁጽሪ 1 … እዩ።"],"Hardware":["المعدات (Hardware)","phần cứng (Hardware)","обладнання","ሃርድዌር"],"Zur Hardware gehören …":["من المعدات …","Phần cứng gồm …","До обладнання належать … .","ናብ ሃርድዌር … ይውድኡ።"],"Ablauf":["السير","quy trình","перебіг, порядок","ኣካይዳ"],"Lager":["المستودع","kho","склад","መኽዘን"],"Ein Vorteil ist …":["من المزايا …","Một ưu điểm là …","Одна перевага – … .","ሓደ ረብሓ … እዩ።"],"Umsätze":["المبيعات","doanh thu","виручка","ሽያጣት"],"löschen":["يحذف","xóa","видаляти","ምስራዝ"],"Finanzamt":["مصلحة الضرائب","cơ quan thuế","податкова (Finanzamt)","ቤት ጽሕፈት ግብሪ (Finanzamt)"],"Steuerhinterziehung":["التهرب الضريبي","trốn thuế","ухилення від податків","ግብሪ ምዕቃብ"],"Der Staat will verhindern, dass …":["تريد الدولة أن تمنع أن …","Nhà nước muốn ngăn việc …","Держава хоче запобігти тому, щоб … .","እቲ መንግስቲ … ከይከውን ይኽልከል ይደሊ።"],"Papier":["الورق","giấy","папір","ወረቐት"],"Umwelt":["البيئة","môi trường","довкілля","ከባቢ"],"Beleg":["مستند الإثبات","chứng từ","документ, чек","ሰነድ"],"elektronisch":["إلكتروني","điện tử","електронний","ኤለክትሮኒካዊ"],"Aus Sicht der Umwelt …":["من وجهة نظر البيئة …","Từ góc độ môi trường …","З погляду довкілля … .","ካብ ኩነታት ከባቢ … ።"],"Aus Sicht des Kunden …":["من وجهة نظر العميل …","Từ góc độ khách hàng …","З погляду клієнта … .","ካብ ኩነታት ዓሚል … ።"],"Ich schlage vor, dass …":["أقترح أن …","Tôi đề xuất rằng …","Я пропоную, щоб … .","ይሓብር እየ፣ … ።"],"Pflicht":["واجب","nghĩa vụ","обов'язок","ግዴታ"],"Der Betrieb muss …, weil …":["على الشركة أن …، لأن …","Doanh nghiệp phải …, vì …","Підприємство мусить …, бо … .","እቲ ትካል … ከገብር ኣለዎ፣ ምኽንያቱ … ።"],"Storno":["الإلغاء (Storno)","hủy giao dịch (Storno)","сторно, скасування","ምስራዝ ተግባር"],"Tippfehler":["خطأ في الكتابة","lỗi gõ","помилка введення","ናይ ምጽሓፍ ጌጋ"],"Vorgang":["العملية","giao dịch","операція","ተግባር"],"Der Bon wird aufbewahrt, weil …":["يُحفظ الإيصال لأن …","Hóa đơn được giữ lại vì …","Чек зберігають, бо … .","እቲ ደረሰኝ ይተሓዝ፣ ምኽንያቱ … ።"],"einzeln":["على حدة","từng cái một","окремо","ፈላዪ"],"Fehler":["خطأ","lỗi","помилка","ጌጋ"],"Dann würde …":["عندها سوف …","Khi đó sẽ …","Тоді … .","ሽዑ … ምኾነ።"],"Der Einkaufspreis steht nicht auf dem Bon, weil …":["سعر الشراء لا يظهر على الإيصال لأن …","Giá nhập không có trên hóa đơn vì …","Закупівельної ціни немає на чеку, бо … .","ዋጋ ግዢ ኣብ ደረሰኝ የለን፣ ምኽንያቱ … ።"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={ar:0,vi:1,uk:2,ti:3}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 3 · Modul 1 · Die Kasse und der Kassenbon";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf3m1_v2";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),document.getElementById("a2btn")?["a2"]:[]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+if($("#a2btn"))$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF3_Modul1.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done&&$("#a2btn"))$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>

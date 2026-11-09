@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 3 · Modul 11 · Rechen-Start</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="ar">🇸🇦 العربية</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+    <button class="pill" data-l="uk">🇺🇦 Українська</button>
+    <button class="pill" data-l="ti">🇪🇷 ትግርኛ</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 3 · Kunden im Servicebereich Kasse betreuen</p>
+  <h1 data-k="h1">Modul 11: Rechen-Start</h1>
+  <p class="sub" data-k="meta">Doppelstunde 20 · 4 Punkte</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann Geldbeträge sicher mit dem Taschenrechner berechnen und kaufmännisch runden.</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann Einheiten umrechnen (€ und ct, kg und g, l und ml, h und min).</label></li>
+      <li><label data-k="can3"><input type="checkbox"> Ich kann bei einer Rechenaufgabe nach dem Rechenfahrplan vorgehen.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a1_h">Aufgabe 1 · Ankommen: Was weißt du noch?</h2>
+    <p data-k="a1_p">Aus dem Kopf beantworten – ohne Taschenrechner.</p>
+    <div data-items="a1"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 2 · Kassen-Blitz: Kopf gegen Taschenrechner</h2>
+    <p data-k="a2_p">Rechne zuerst im Kopf und schreib dein Ergebnis auf. Dann prüfst du mit dem Taschenrechner. Wo warst du schneller?</p>
+    <div data-items="a2"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> der Taschenrechner · die Kommataste · das Zwischenergebnis · kaufmännisch runden · aufrunden · abrunden · die Nachkommastelle · die Einheit · das Kilogramm (kg) · das Gramm (g) · der Liter (l) · der Milliliter (ml) · insgesamt · die Differenz · je / pro
+      <div id="gloss"></div></div>
+    <div id="reading"></div>
+
+    <h3 style="margin-top:24px" data-k="t1_h">1. Den Taschenrechner sicher bedienen</h3>
+    <table>
+      <tr><th data-k="th_wiss">Das musst du wissen</th><th data-k="th_bsp">Beispiel</th></tr>
+      <tr><td data-k="t1_a1">Das Komma tippst du mit der Punkt-Taste.</td><td data-k="t1_a2">12,95 € → 12.95</td></tr>
+      <tr><td data-k="t1_b1">Der Taschenrechner rechnet Punkt vor Strich. Wenn du zuerst addieren willst: Klammern oder zwischendurch = drücken.</td><td data-k="t1_b2">(4,70 + 7,60) × 0,1 → ( 4.7 + 7.6 ) × 0.1 =</td></tr>
+      <tr><td data-k="t1_c1">Nicht Zwischenergebnisse abschreiben und runden – in einem Zug weiterrechnen. Erst das Endergebnis runden.</td><td data-k="t1_c2">9,49 : 7,5 × 10 → nicht 1,27 × 10</td></tr>
+      <tr><td data-k="t1_d1">AC löscht alles, C nur die letzte Eingabe.</td><td data-k="t1_d2">vertippt? → C</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="t2_h">2. Kaufmännisch runden</h3>
+    <p data-k="t2_p">Schau auf die erste Ziffer, die wegfällt: 0, 1, 2, 3, 4 → abrunden · 5, 6, 7, 8, 9 → aufrunden. Geld hat 2 Nachkommastellen, Menschen und Stück sind ganze Zahlen.</p>
+    <table>
+      <tr><th data-k="th_zahl">Zahl</th><th data-k="th_ger">gerundet</th><th data-k="th_warum">warum?</th></tr>
+      <tr><td data-k="t2_a1">12,345 €</td><td data-k="t2_a2">12,35 €</td><td data-k="t2_a3">die 5 → auf</td></tr>
+      <tr><td data-k="t2_b1">7,994 €</td><td data-k="t2_b2">7,99 €</td><td data-k="t2_b3">die 4 → ab</td></tr>
+      <tr><td data-k="t2_c1">19,996 €</td><td data-k="t2_c2">20,00 €</td><td data-k="t2_c3">aufrunden, alles rutscht weiter</td></tr>
+      <tr><td data-k="t2_d1">16,678 (1 Stelle)</td><td data-k="t2_d2">16,7</td><td data-k="t2_d3">die 7 → auf</td></tr>
+      <tr><td data-k="t2_e1">147,4 Kunden</td><td data-k="t2_e2">147 Kunden</td><td data-k="t2_e3">ganze Menschen</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="t3_h">3. Einheiten umrechnen</h3>
+    <table>
+      <tr><th data-k="th_einh">Einheit</th><th data-k="th_umr">umrechnen</th><th data-k="th_trick">Trick</th></tr>
+      <tr><td data-k="t3_a1">1 € = 100 ct</td><td data-k="t3_a2">2,05 € = 205 ct</td><td data-k="t3_a3">× 100</td></tr>
+      <tr><td data-k="t3_b1">1 kg = 1.000 g</td><td data-k="t3_b2">750 g = 0,75 kg · 125 g = 0,125 kg</td><td data-k="t3_b3">g → kg: Komma 3 Stellen nach links</td></tr>
+      <tr><td data-k="t3_c1">1 l = 1.000 ml</td><td data-k="t3_c2">750 ml = 0,75 l</td><td data-k="t3_c3">ml → l: Komma 3 Stellen nach links</td></tr>
+      <tr><td data-k="t3_d1">1 h = 60 min</td><td data-k="t3_d2">30 min = 0,5 h · 15 min = 0,25 h</td><td data-k="t3_d3">Uhrzeiten: Stunden zählen, halbe Stunde = 0,5</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="t4_h">4. Signalwörter in der Aufgabe</h3>
+    <table>
+      <tr><th data-k="th_sig">Signalwort</th><th data-k="th_zeich">Rechenzeichen</th></tr>
+      <tr><td data-k="t4_a1">insgesamt · zusammen · Summe</td><td data-k="t4_a2">+</td></tr>
+      <tr><td data-k="t4_b1">Rückgeld · Differenz · wie viel mehr / weniger · nach Abzug</td><td data-k="t4_b2">−</td></tr>
+      <tr><td data-k="t4_c1">je · pro · zu je · Stückpreis × Menge</td><td data-k="t4_c2">× (von 1 auf viele) oder : (von vielen auf 1)</td></tr>
+    </table>
+
+    <h3 style="margin-top:24px" data-k="fp_h">Der Rechenfahrplan – bei jeder Aufgabe</h3>
+    <table>
+      <tr><td data-k="fp1">1 Lesen: Was ist gesucht? Unterstreiche die Frage.</td></tr>
+      <tr><td data-k="fp2">2 Notieren: Was ist gegeben? Zahlen mit Einheit aufschreiben.</td></tr>
+      <tr><td data-k="fp3">3 Rezept wählen: Welche Rezeptkarte passt?</td></tr>
+      <tr><td data-k="fp4">4 Rechnen: Taschenrechner – in einem Zug, Zwischenergebnisse nicht runden.</td></tr>
+      <tr><td data-k="fp5">5 Prüfen: Runden wie verlangt, Einheit, passt das Ergebnis? Ergebnis ins Kästchen oder Antwortsatz.</td></tr>
+    </table>
+
+    <div class="merke" data-k="merke_fehler"><b>Merke:</b> Die drei häufigsten Fehler: Komma verrutscht (125 g sind 0,125 kg, nicht 1,25 kg) · Einheit vergessen (die Prüfung will „in Euro“) · zu früh gerundet. Mach am Ende immer den Plausibilitäts-Check: Kann das stimmen?</div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a3_h">Aufgabe 3 · Vorgemacht: Bonuspunkte an der Kasse</h2>
+    <p data-k="a3_p">So gehst du bei einer Rechenaufgabe vor. Lies die Schritte genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk0"><b>Die Aufgabe:</b> Ein Kunde hat auf seiner Kundenkarte 1.275 Punkte (1 Punkt entspricht 0,01 €). Er möchte die Punkte bei seinem Einkauf von 38,90 € verrechnen. Ermitteln Sie den Restbetrag in Euro, den der Kunde noch zu zahlen hat!</div>
+    <div class="worked" data-k="wk1"><b>1 Lesen:</b> Gesucht: Restbetrag in Euro.</div>
+    <div class="worked" data-k="wk2"><b>2 Notieren:</b> Einkauf 38,90 € · 1.275 Punkte · 1 Punkt = 0,01 €</div>
+    <div class="worked" data-k="wk3"><b>3 Rezept:</b> erst Punkte in Euro umrechnen, dann abziehen</div>
+    <div class="worked" data-k="wk4"><b>4 Rechnen:</b> 1.275 × 0,01 = 12,75 € · 38,90 − 12,75 = 26,15 €</div>
+    <div class="worked" data-k="wk5"><b>5 Prüfen:</b> Kleiner als 38,90 €? Ja. Zwei Nachkommastellen, Einheit Euro → 26,15 €</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe die Beispiele gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a4_h">Aufgabe 4 · Geführte Übung</h2>
+    <h3 data-k="a41_h">4.1 Runde kaufmännisch.</h3>
+    <div data-items="a41"></div>
+    <h3 style="margin-top:18px" data-k="a42_h">4.2 Rechne die Einheiten um.</h3>
+    <div data-items="a42"></div>
+    <h3 style="margin-top:18px" data-k="a43_h">4.3 Ein Kunde kauft 3 Dosen Tomaten zu je 2,49 € und 2 Packungen Nudeln zu je 1,19 €. Er zahlt mit 20 €. Wie viel Rückgeld bekommt er? Ergänze die fehlenden Schritte.</h3>
+    <div class="merke" data-k="a43_sit"><b>1 Lesen:</b> Gesucht: Rückgeld in Euro<br><b>2 Notieren:</b> 3 × 2,49 € · 2 × 1,19 € · gegeben 20,00 €</div>
+    <div data-items="a43"></div>
+    <h3 style="margin-top:18px" data-k="a44_h">4.4 Jetzt allein: Eine Kundin kauft an der Frischetheke 400 g Käse zu 16,90 € je kg und 250 g Schinken zu 22,80 € je kg. Sie zahlt mit 20 €. Berechne das Rückgeld.</h3>
+    <div data-items="a44"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a5_h">Aufgabe 5 · Freie Übung: Kassenzettel-Rallye <span class="pts" data-k="pts2">2 Punkte</span></h2>
+    <p data-k="a5_p">Schreib einen Einkauf mit 5 Artikeln aus einem Prospekt auf – mindestens einen Artikel nach Gewicht (z. B. 300 g Käse). Dein Nachbar rechnet die Summe und das Rückgeld von 50 €. Dann tauscht ihr.</p>
+    <div data-items="a5"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a6_h">Aufgabe 6 · Prüfungs-Check <span class="pts" data-k="pts_a6">4 Aufgaben · etwa 10 Minuten</span></h2>
+    <div data-items="a6"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7p_h">Aufgabe 7 · Für Profis</h2>
+    <p data-k="a7p_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="a7p"></div>
+  </div>
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="a8_h">Aufgabe 9 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="a8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="a8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 8 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={"vor": "Ankommen: Was weißt du noch?", "rech": "Kassen-Blitz und Rechnen", "rund": "Runden und Einheiten", "wis": "Prüfungs-Check", "refl": "Eigene Übung und Weiterdenken"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{"id": "a1_1", "g": "a1", "cat": "vor", "q": "1.1 Ratenkauf mit Eigentumsvorbehalt: Wem gehört der Fernseher, bis die letzte Rate bezahlt ist?", "kw": [["verkaeufer", "geschaeft", "haendler", "lieferant", "verkaufer"]], "min": 1, "rows": 2, "h": ["Eigentumsvorbehalt: Wer behält das Eigentum?", "Der Käufer darf den Fernseher nur benutzen. Wem gehört er trotzdem noch?"], "sol": "dem Verkäufer (Geschäft); der Käufer ist nur Besitzer"},
+{"id": "a1_2", "g": "a1", "cat": "vor", "q": "1.2 Einkauf 13,45 €, die Kundin gibt 20 €. Wie viel Rückgeld bekommt sie?", "kw": [["re:(^|[^0-9,.])6[,.]55(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["Rückgeld = Differenz: Was gibt sie, was kostet der Einkauf?", "20,00 − 13,45 – rechne von 13,45 € aufwärts bis 20 €."], "sol": "6,55 €"},
+{"id": "a1_3", "g": "a1", "cat": "vor", "q": "1.3 Wie viel Gramm sind 1 kg?", "kw": [["re:1[. ]?000"]], "min": 1, "rows": 2, "h": ["Kilo heißt „tausend“.", "Das Komma wandert 3 Stellen."], "sol": "1.000 g"},
+{"id": "a2_1", "g": "a2", "cat": "rech", "q": "2.1 3 × 1,99 €", "kw": [["re:(^|[^0-9,.])5[,.]97(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["Tipp für den Kopf: 3 × 2 € und dann den Rest abziehen.", "3 × 2,00 = 6,00 – und 3 × 0,01 weniger."], "sol": "5,97 €"},
+{"id": "a2_2", "g": "a2", "cat": "rech", "q": "2.2 Die Kundin zahlt diese 3 Artikel mit 10 €. Rückgeld?", "kw": [["re:(^|[^0-9,.])4[,.]03(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["Rückgeld = Differenz. Welchen Betrag hast du eben ausgerechnet?", "10,00 minus das Ergebnis von 2.1."], "sol": "4,03 €"},
+{"id": "a2_3", "g": "a2", "cat": "rech", "q": "2.3 0,5 kg Äpfel zu 3,80 € je kg", "kw": [["re:(^|[^0-9,.])1[,.]90?(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["0,5 kg ist die Hälfte von 1 kg.", "Die Hälfte von 3,80 €."], "sol": "1,90 €"},
+{"id": "a2_4", "g": "a2", "cat": "rech", "q": "2.4 250 g Käse zu 12,00 € je kg", "kw": [["re:(^|[^0-9,.])3([,.]00?)?(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["250 g ist ein Viertel von 1 kg.", "Ein Viertel von 12,00 € – oder 0,25 × 12,00."], "sol": "3,00 €"},
+{"id": "a41_1", "g": "a41", "cat": "rund", "q": "4,385 € auf 2 Stellen", "kw": [["re:(^|[^0-9,.])4[,.]39(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["Welche Ziffer fällt weg?", "Die erste wegfallende Ziffer entscheidet: 0–4 ab, 5–9 auf."], "sol": "4,39 €"},
+{"id": "a41_2", "g": "a41", "cat": "rund", "q": "12,994 € auf 2 Stellen", "kw": [["re:(^|[^0-9,.])12[,.]99(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["Welche Ziffer fällt weg? Ist sie 0–4 oder 5–9?", "Die erste wegfallende Ziffer entscheidet: 0–4 ab, 5–9 auf."], "sol": "12,99 €"},
+{"id": "a41_3", "g": "a41", "cat": "rund", "q": "0,125 € auf 2 Stellen", "kw": [["re:(^|[^0-9,.])0[,.]13(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["Die erste wegfallende Ziffer ist eine 5.", "Die erste wegfallende Ziffer entscheidet: 0–4 ab, 5–9 auf."], "sol": "0,13 €"},
+{"id": "a41_4", "g": "a41", "cat": "rund", "q": "99,995 € auf 2 Stellen", "kw": [["re:(^|[^0-9,.])100([,.]00?)?(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["Wie bei 19,996 € in der Tabelle: Alles rutscht weiter.", "Die erste wegfallende Ziffer entscheidet: 0–4 ab, 5–9 auf."], "sol": "100,00 €"},
+{"id": "a41_5", "g": "a41", "cat": "rund", "q": "2,566 Artikel auf 1 Stelle", "kw": [["re:(^|[^0-9,.])2[,.]6(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["Nur eine Nachkommastelle bleibt. Schau auf die zweite Stelle.", "Die erste wegfallende Ziffer entscheidet: 0–4 ab, 5–9 auf."], "sol": "2,6 Artikel"},
+{"id": "a41_6", "g": "a41", "cat": "rund", "q": "185,99 Kunden auf ganze Kunden", "kw": [["re:(^|[^0-9,.])186(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["Menschen sind ganze Zahlen. Schau auf die erste Stelle nach dem Komma.", "Die erste wegfallende Ziffer entscheidet: 0–4 ab, 5–9 auf."], "sol": "186 Kunden"},
+{"id": "a42_1", "g": "a42", "cat": "rund", "q": "350 g = … kg", "kw": [["re:(^|[^0-9,.])0[,.]35(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["g → kg: Komma 3 Stellen nach links.", "Schau in die Tabelle „Einheiten umrechnen“."], "sol": "0,35 kg"},
+{"id": "a42_2", "g": "a42", "cat": "rund", "q": "1,25 kg = … g", "kw": [["re:(^|[^0-9,.])1[. ]?250(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["kg → g: Komma 3 Stellen nach rechts.", "Schau in die Tabelle „Einheiten umrechnen“."], "sol": "1.250 g"},
+{"id": "a42_3", "g": "a42", "cat": "rund", "q": "330 ml = … l", "kw": [["re:(^|[^0-9,.])0[,.]33(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["ml → l: Komma 3 Stellen nach links.", "Schau in die Tabelle „Einheiten umrechnen“."], "sol": "0,33 l"},
+{"id": "a42_4", "g": "a42", "cat": "rund", "q": "2,40 € = … ct", "kw": [["re:(^|[^0-9,.])240(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["€ → ct: × 100.", "Schau in die Tabelle „Einheiten umrechnen“."], "sol": "240 ct"},
+{"id": "a42_5", "g": "a42", "cat": "rund", "q": "45 min = … h", "kw": [["re:(^|[^0-9,.])0[,.]75(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["30 min = 0,5 h und 15 min = 0,25 h. Wie viel sind 45 min?", "Schau in die Tabelle „Einheiten umrechnen“."], "sol": "0,75 h"},
+{"id": "a42_6", "g": "a42", "cat": "rund", "q": "4,5 h = … h … min", "kw": [["re:(^|[^0-9,.])4(?![0-9,.]*[0-9])"], ["re:(^|[^0-9])30(?![0-9])"]], "min": 2, "rows": 2, "h": ["Die Stunden bleiben stehen, nur 0,5 h musst du umrechnen.", "0,5 h = die halbe Stunde. Wie viele Minuten?"], "sol": "4 h 30 min"},
+{"id": "a43_3", "g": "a43", "cat": "rech", "q": "3 Rechnen: Rechne beide Posten aus.", "kw": [["re:(^|[^0-9,.])7[,.]47(?![0-9,.]*[0-9])"], ["re:(^|[^0-9,.])2[,.]38(?![0-9,.]*[0-9])"]], "min": 2, "rows": 3, "h": ["Menge × Einzelpreis, zweimal.", "3 × 2,49 und 2 × 1,19."], "sol": "3 × 2,49 = 7,47 € · 2 × 1,19 = 2,38 €"},
+{"id": "a43_4", "g": "a43", "cat": "rech", "q": "4 Summe: Was kosten die Waren zusammen?", "kw": [["re:(^|[^0-9,.])9[,.]85(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["„zusammen“ ist ein Signalwort. Welches Rechenzeichen?", "Addiere die beiden Posten aus Schritt 3."], "sol": "7,47 + 2,38 = 9,85 €"},
+{"id": "a43_5", "g": "a43", "cat": "rech", "q": "5 Rückgeld: Wie viel bekommt der Kunde zurück?", "kw": [["re:(^|[^0-9,.])10[,.]15(?![0-9,.]*[0-9])"]], "min": 1, "rows": 2, "h": ["Rückgeld ist eine Differenz: gegeben minus Summe.", "20,00 minus das Ergebnis aus Schritt 4."], "sol": "20,00 − 9,85 = 10,15 €"},
+{"id": "a44_1", "g": "a44", "cat": "rech", "q": "Berechne das Rückgeld.", "kw": [["re:(^|[^0-9,.])7[,.]54(?![0-9,.]*[0-9])"]], "min": 1, "rows": 5, "h": ["Rechne zuerst die Gramm in kg um und dann je Sorte Menge × Preis je kg.", "Käse: 0,4 × 16,90. Schinken: 0,25 × 22,80. Dann addieren und von 20 € abziehen."], "sol": "0,4 × 16,90 = 6,76 € · 0,25 × 22,80 = 5,70 €. Summe 6,76 + 5,70 = 12,46 €. Rückgeld 20,00 − 12,46 = 7,54 €"},
+{"id": "a5_1", "g": "a5", "cat": "refl", "q": "Schreib einen Einkauf mit 5 Artikeln aus einem Prospekt auf (Artikel, Menge, Preis, Betrag), mindestens ein Artikel nach Gewicht. Dein Nachbar rechnet die Summe und das Rückgeld von 50 €.", "mode": "self", "rows": 8, "h": ["Schreibe in jede Zeile: Artikel, Menge, Preis und den Betrag.", "Bei Gewicht: erst Gramm in kg umrechnen, dann × Preis je kg."], "sol": "Eigene Lösung. Prüfe selbst: (1) Steht in jeder Zeile Menge × Preis = Betrag? (2) Hast du bei dem Artikel nach Gewicht g in kg umgerechnet? (3) Summe = alle Beträge addiert; Rückgeld = 50,00 − Summe. (4) Passt das Ergebnis (Plausibilitäts-Check)?"},
+{"id": "a6_1", "g": "a6", "cat": "wis", "q": "6.1 Ein Kunde kauft in der Obst- und Gemüseabteilung: 1.500 g der Ware A, 1 kg zu 4,00 €; 800 g der Ware B, 1 kg zu 7,50 €; 250 g der Ware C, 1 kg zu 18,00 €. Er zahlt mit einem 50,00-€-Schein. Wie viel Euro Wechselgeld erhält er? (5 Punkte)", "kw": [["re:(^|[^0-9,.])33[,.]50?(?![0-9,.]*[0-9])"]], "min": 1, "rows": 5, "h": ["Rechne jede Ware einzeln: Gramm in kg, dann × Preis je kg.", "Drei Beträge addieren, dann von 50,00 € abziehen."], "sol": "1,5 × 4,00 = 6,00 € (1 P.) · 0,8 × 7,50 = 6,00 € (1 P.) · 0,25 × 18,00 = 4,50 € (1 P.). Summe 16,50 € (1 P.). 50,00 − 16,50 = 33,50 € (1 P.)"},
+{"id": "a6_2", "g": "a6", "cat": "wis", "q": "6.2 Bei einer Sonderaktion wurden die restlichen 22 Paar Winterstiefel zu je 59,90 € verkauft. Berechnen Sie den Bruttoumsatz dieser Sonderaktion in Euro!", "kw": [["re:(^|[^0-9,.])1[. ]?317[,.]80?(?![0-9,.]*[0-9])"]], "min": 1, "rows": 3, "h": ["Umsatz = Menge × Preis. Was ist die Menge, was der Stückpreis?", "22 × 59,90 – tippe das Komma mit der Punkt-Taste."], "sol": "22 × 59,90 = 1.317,80 €"},
+{"id": "a6_3", "g": "a6", "cat": "wis", "q": "6.3 Stammkunden bekommen einen Gutschein je nach Kaufsumme: ab 40 € → 4 € · ab 70 € → 8 € · ab 100 € → 12 € · ab 150 € → 18 € · ab 220 € → 28 € · ab 300 € → 40 €. Ein Kunde kauft Ware im Wert von 163,50 € und löst den Gutschein ein. Wie viel Euro muss er bezahlen?", "kw": [["re:(^|[^0-9,.])145[,.]50?(?![0-9,.]*[0-9])"]], "min": 1, "rows": 3, "h": ["Zuerst: Welche Stufe erreicht der Kunde? Er muss mindestens den Wert der Stufe haben.", "Dann: Kaufsumme minus Gutschein."], "sol": "163,50 € liegt über 150 €, aber unter 220 € → Gutschein 18 € · 163,50 − 18,00 = 145,50 €"},
+{"id": "a6_4", "g": "a6", "cat": "wis", "q": "6.4 Der Anfangsbestand einer Ware lag bei 150 Stück. Im Monat kamen 90 und 60 Stück hinzu. Verkauft wurden 215 Stück. Die Zählung ergab 41 Stück im Lager und 38 Stück im Verkaufsraum. Ermitteln Sie die Differenz in Stück!", "kw": [["re:(^|[^0-9,.])6(?![0-9,.]*[0-9])"]], "min": 1, "rows": 4, "h": ["Rechne zwei Mengen aus: den Soll-Bestand (nach den Büchern) und den Ist-Bestand (gezählt).", "Soll: Anfangsbestand plus Zugänge minus Verkäufe. Ist: Lager plus Verkaufsraum. Dann die Differenz."], "sol": "Soll: 150 + 90 + 60 − 215 = 85 Stück · Ist: 41 + 38 = 79 Stück. Differenz: 6 Stück (Fehlmenge)"},
+{"id": "a7p_1", "g": "a7p", "cat": "refl", "q": "7.1 Tom rechnet den Grundpreis für 750 g Kaffee zu 9,49 €: 9,49 : 7,5 = 1,27 € je 100 g. Zur Probe rechnet er 1,27 × 7,5 = 9,53 €. Erklären Sie, warum die Probe nicht genau 9,49 € ergibt.", "mode": "self", "rows": 5, "h": ["Schau auf die Zahl hinter dem Komma: Ist 1,27 das genaue Ergebnis?", "Denk an die Regel „nicht Zwischenergebnisse runden“."], "sol": "Das Ergebnis 1,2653 … wurde auf 1,27 gerundet. Die Probe mit dem gerundeten Wert weicht deshalb um einige Cent ab. Mit dem ungerundeten Wert ergibt die Probe genau 9,49 €."},
+{"id": "a7p_2", "g": "a7p", "cat": "refl", "q": "7.2 An der Kasse hilft der Überschlag. Überschlagen Sie 48 × 9,95 € und begründen Sie, wozu ein Überschlag beim Kassieren nützlich ist.", "mode": "self", "rows": 5, "h": ["Runde beide Zahlen so, dass du im Kopf rechnen kannst.", "Welche Fehler fallen mit einem Überschlag sofort auf?"], "sol": "48 × 9,95 ≈ 50 × 10 = 500 € (genau: 477,60 €). Mit dem Überschlag merkt man sofort grobe Fehler, z. B. ein verrutschtes Komma oder eine falsche Menge."}
+];
+
+/* Lesetext: [[Richtig]] = gesuchter Begriff, {{Falsch}} = Ablenker */
+const READ=[{"t": "Den Taschenrechner bedienen", "task": "Markiere die Taste für das Komma, die Taste, die nur die letzte Eingabe löscht, und was du erst am Ende rundest.", "x": "Auf dem Taschenrechner tippst du das Komma mit der [[Punkt-Taste]]. Er rechnet [[Punkt vor Strich]]. Willst du zuerst addieren, setzt du [[Klammern]] oder drückst zwischendurch [[=]]. Rechne [[in einem Zug]] weiter und runde erst das [[Endergebnis]]. [[AC]] löscht alles, [[C]] nur die letzte Eingabe. Ein {{Zwischenergebnis}} schreibst du nicht ab.", "q": "Du hast dich vertippt. Welche Taste drückst du?", "o": ["AC", "C", "="], "c": 1}, {"t": "Kaufmännisch runden", "task": "Markiere die Regel für das Runden und wie viele Nachkommastellen Geld hat.", "x": "Beim Runden schaust du auf die [[erste Ziffer, die wegfällt]]. Bei 0, 1, 2, 3, 4 wird [[abgerundet]], bei 5, 6, 7, 8, 9 wird [[aufgerundet]]. Geld hat [[2 Nachkommastellen]]. Menschen und Stück sind [[ganze Zahlen]]. Bei 19,996 € wird aufgerundet und alles rutscht weiter: Das Ergebnis ist [[20,00 €]]. Die {{Einheit}} ändert sich dabei nicht.", "q": "Wie wird 7,994 € auf zwei Stellen gerundet?", "o": ["7,99 €", "8,00 €", "7,90 €"], "c": 0}, {"t": "Einheiten umrechnen", "task": "Markiere die vier Umrechnungen.", "x": "Es gibt vier wichtige Umrechnungen: 1 € sind [[100 ct]]. 1 kg sind [[1.000 g]]. 1 l sind [[1.000 ml]]. 1 h sind [[60 min]]. Von g in kg und von ml in l wandert das Komma [[3 Stellen nach links]]. Eine halbe Stunde sind [[0,5 h]], eine Viertelstunde sind [[0,25 h]]. Aber: Eine Stunde hat nicht {{100 min}}.", "q": "Wie viel kg sind 750 g?", "o": ["0,75 kg", "7,5 kg", "0,075 kg"], "c": 0}, {"t": "Signalwörter", "task": "Markiere die Signalwörter für Plus und für Minus.", "x": "In der Aufgabe zeigen Signalwörter das Rechenzeichen. Bei [[insgesamt]], [[zusammen]] und [[Summe]] rechnest du [[Plus]]. Bei [[Rückgeld]], [[Differenz]], „wie viel mehr / weniger“ und „nach Abzug“ rechnest du [[Minus]]. Bei [[je]], [[pro]] und [[zu je]] rechnest du [[mal]] (von 1 auf viele) oder [[geteilt]] (von vielen auf 1). Das Wort {{Stückzahl}} sagt noch nichts über das Rechenzeichen.", "q": "Welches Rechenzeichen passt zum Wort „Rückgeld“?", "o": ["Plus", "Minus", "Mal"], "c": 1}, {"t": "Der Rechenfahrplan", "task": "Markiere die fünf Schritte und die drei häufigsten Fehler.", "x": "Bei jeder Aufgabe gehst du in fünf Schritten vor: [[Lesen]], [[Notieren]], [[Rezept wählen]], [[Rechnen]], [[Prüfen]]. Die drei häufigsten Fehler sind: [[Komma verrutscht]], [[Einheit vergessen]] und [[zu früh gerundet]]. Am Ende machst du den [[Plausibilitäts-Check]]: Kann das stimmen? Das {{Wechselgeld}} muss immer kleiner sein als der Geldschein.", "q": "Wann rundest du?", "o": ["Nach jedem Rechenschritt", "Erst beim Endergebnis", "Nie"], "c": 1}];
+
+/* Vertiefung (level v) – Zusatz, aus dem Material abgeleitet */
+ITEMS.push(
+{"id": "v11_1", "g": "a8", "cat": "bonus", "q": "9.1 Warum darf man Zwischenergebnisse nicht runden? Begründe am Beispiel 9,49 : 7,5.", "mode": "self", "rows": 5, "h": ["Was passiert mit dem kleinen Fehler, wenn du danach noch × 10 oder × 7,5 rechnest?", "Vergleiche 1,27 × 7,5 mit dem genauen Wert."], "sol": "Wer 1,2653 … schon auf 1,27 rundet, rechnet mit einem etwas falschen Wert weiter. Der kleine Fehler wird beim Weiterrechnen größer (z. B. × 10 oder × 7,5) und das Endergebnis weicht um einige Cent ab. Deshalb in einem Zug weiterrechnen und erst das Endergebnis runden.", "level": "v"},
+{"id": "v11_2", "g": "a8", "cat": "bonus", "q": "9.2 Warum wird 19,996 € auf 20,00 € gerundet und nicht auf 19,00 €? Begründe mit der Rundungsregel.", "mode": "self", "rows": 5, "h": ["Welche Ziffer fällt weg – und was sagt die Regel für diese Ziffer?", "Was passiert mit den 9 davor, wenn man eins dazuzählt?"], "sol": "Die erste wegfallende Ziffer ist eine 6, also wird aufgerundet. Zu 19,99 wird 0,01 addiert: Die 9 ganz rechts wird zu 10, der Übertrag „rutscht weiter“ bis zu den Euro. So entsteht 20,00 €. 19,00 € wäre falsch, denn die Zahl liegt ganz nah bei 20.", "level": "v"},
+{"id": "v11_3", "g": "a8", "cat": "bonus", "q": "9.3 Was würde passieren, wenn du bei 125 g Käse zu 12,00 € je kg mit 1,25 kg statt 0,125 kg rechnest? Begründe, wie der Plausibilitäts-Check den Fehler zeigt.", "mode": "self", "rows": 5, "h": ["Rechne beide Fälle: 1,25 × 12,00 und 0,125 × 12,00.", "125 g sind viel weniger als 1 kg. Kann der Preis dann höher sein als für 1 kg?"], "sol": "Mit 1,25 kg ergibt sich 15,00 € statt richtig 1,50 €, also zehnmal zu viel. Der Check zeigt es: 125 g sind weniger als 1 kg, also muss der Preis kleiner als 12,00 € sein. 15,00 € kann nicht stimmen – das Komma ist verrutscht.", "level": "v"},
+{"id": "v11_4", "g": "a8", "cat": "bonus", "q": "9.4 Warum sind 45 min nicht 0,45 h, sondern 0,75 h? Begründe.", "mode": "self", "rows": 5, "h": ["Wie viele Minuten hat 1 Stunde?", "30 min = 0,5 h und 15 min = 0,25 h. Wie viele Viertelstunden sind 45 min?"], "sol": "Eine Stunde hat 60 Minuten, nicht 100. Deshalb ist die Rechnung nicht „Minuten hinter das Komma“. 45 min sind 45 : 60 = 0,75 h (drei Viertelstunden). 0,45 h wären nur 27 min.", "level": "v"}
+);
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={"a1_1": [["Eigentum", "Besitz", "Verkäufer", "Rate"], ["Der Fernseher gehört …"]], "a1_2": [["Rückgeld", "Differenz", "Einkauf", "Euro"], ["Das Rückgeld ist …"]], "a1_3": [["Kilogramm", "Gramm", "Komma"], ["1 kg sind …"]], "a2_1": [["mal", "Stückpreis", "Euro"], ["Das Ergebnis ist …"]], "a2_2": [["Rückgeld", "Differenz", "minus"], ["Das Rückgeld ist …"]], "a2_3": [["Kilogramm", "Hälfte", "je kg"], ["Das Ergebnis ist …"]], "a2_4": [["Gramm", "Viertel", "je kg"], ["Das Ergebnis ist …"]], "a43_3": [["mal", "Stückpreis", "Menge"], ["3 × … = …"]], "a43_4": [["zusammen", "Summe", "plus"], ["… + … = …"]], "a43_5": [["Rückgeld", "Differenz", "minus"], ["20,00 − … = …"]], "a44_1": [["Gramm", "Kilogramm", "je kg", "Summe", "Rückgeld"], ["Käse: …", "Schinken: …", "Rückgeld: …"]], "a5_1": [["Artikel", "Menge", "Preis", "Betrag", "Summe"], ["Summe: …", "Rückgeld: …"]], "a6_1": [["Kilogramm", "Gramm", "Summe", "Wechselgeld"], ["Ware A: …", "Wechselgeld: …"]], "a6_2": [["Umsatz", "Menge", "Stückpreis", "Paar"], ["Der Umsatz ist …"]], "a6_3": [["Gutschein", "Stufe", "Kaufsumme", "Abzug"], ["Der Kunde muss … bezahlen."]], "a6_4": [["Soll", "Ist", "Bestand", "Differenz"], ["Soll: …", "Ist: …", "Die Differenz ist …"]], "a7p_1": [["gerundet", "Zwischenergebnis", "Probe", "Cent"], ["Die Probe weicht ab, weil …"]], "a7p_2": [["Überschlag", "runden", "Fehler", "Komma"], ["Der Überschlag ist …", "Er nützt, weil …"]], "v11_1": [["runden", "Zwischenergebnis", "Fehler", "Endergebnis"], ["Der Fehler wird größer, weil …"]], "v11_2": [["Ziffer", "aufrunden", "Übertrag", "Euro"], ["Die erste wegfallende Ziffer ist …"]], "v11_3": [["Kilogramm", "Komma", "Plausibilität", "Preis"], ["Der Preis wäre …, weil …", "Das kann nicht stimmen, weil …"]], "v11_4": [["Minuten", "Stunde", "Viertelstunde", "60"], ["Eine Stunde hat …", "45 min sind …"]], "a41_1": [["Ziffer", "aufrunden", "abrunden"], ["Die erste wegfallende Ziffer ist …"]], "a41_2": [["Ziffer", "aufrunden", "abrunden"], ["Die erste wegfallende Ziffer ist …"]], "a41_3": [["Ziffer", "aufrunden", "abrunden"], ["Die erste wegfallende Ziffer ist …"]], "a41_4": [["Ziffer", "aufrunden", "abrunden"], ["Die erste wegfallende Ziffer ist …"]], "a41_5": [["Ziffer", "aufrunden", "abrunden"], ["Die erste wegfallende Ziffer ist …"]], "a41_6": [["Ziffer", "aufrunden", "abrunden"], ["Die erste wegfallende Ziffer ist …"]], "a42_1": [["Komma", "Stellen", "Einheit"], ["Das Komma wandert …"]], "a42_2": [["Komma", "Stellen", "Einheit"], ["Das Komma wandert …"]], "a42_3": [["Komma", "Stellen", "Einheit"], ["Das Komma wandert …"]], "a42_4": [["Komma", "Stellen", "Einheit"], ["Das Komma wandert …"]], "a42_5": [["Komma", "Stellen", "Einheit"], ["Das Komma wandert …"]], "a42_6": [["Komma", "Stellen", "Einheit"], ["Das Komma wandert …"]]};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+
+const GLOSS_DE=["der Taschenrechner", "die Kommataste", "das Zwischenergebnis", "kaufmännisch runden", "aufrunden", "abrunden", "die Nachkommastelle", "die Einheit", "das Kilogramm (kg)", "das Gramm (g)", "die Differenz", "je / pro"];
+
+const TX={"sub":["مجال التعلّم 3 · خدمة العملاء في منطقة الصندوق","Lĩnh vực học 3 · Phục vụ khách hàng tại khu vực quầy thu ngân","Навчальна галузь 3 · Обслуговування клієнтів у касовій зоні","ዓውዲ ትምህርቲ 3 · ኣብ ቦታ ካሳ ኣገልግሎት ዓማዊል"],"name":["الاسم","Họ tên","Ім'я","ሽም"],"date":["التاريخ","Ngày","Дата","ዕለት"],"can_h":["هذا ما سأستطيع فعله بعد ذلك","Sau bài này tôi có thể","Після цього я вмію","ድሕሪ እዚ እዚ ክገብር እኽእል እየ"],"can_note":["ضع علامة في النهاية على ما تستطيع فعله الآن.","Cuối bài, hãy đánh dấu những gì bạn đã làm được.","Наприкінці познач, що ти вже вмієш.","ኣብ መወዳእታ ሕጂ ክትገብሮ ዘኽእለካ ምልክት ግበር።"],"pts1":["نقطة واحدة","1 điểm","1 бал","1 ነጥቢ"],"pts2":["نقطتان","2 điểm","2 бали","2 ነጥቢ"],"read_h":["للقراءة والمراجعة · قراءة نشِطة","Đọc lại · đọc chủ động","Для читання · активне читання","ንምንባብ · ንጡፍ ንባብ"],"read_p":["اقرأ كل مقطع واضغط على المصطلحات المطلوبة (تصبح صفراء). انتبه: هناك مصطلحات خاطئة أيضًا! بعد ذلك تجيب عن سؤال قصير – وعندها فقط يُفتح المقطع التالي.","Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở.","Прочитай кожен абзац і торкнись потрібних слів (вони стануть жовтими). Увага: є й неправильні слова! Потім дай відповідь на коротке запитання – лише тоді відкриється наступний абзац.","ነፍሲ ወከፍ ክፍሊ ኣንብብ፣ እቶም ዝድለዩ ቃላት ተንከፎም (ብጫ ይኸውኑ)። ጥንቃቐ፡ ጌጋ ቃላት እውን ኣለዉ! ድሕሪኡ ሓጺር ሕቶ ምለስ – ሽዑ ጥራይ እቲ ዝቕጽል ክፍሊ ይኽፈት።"],"ws_h":["مخزن الكلمات (الترجمة)","Kho từ vựng (bản dịch)","Словник (переклад)","መዝገበ-ቃላት (ትርጉም)"],"a2btn":["قرأتُ الأمثلة","Tôi đã đọc các ví dụ","Я прочитав(ла) приклади","ኣብነታት ኣንቢበ ኣለኹ"],"a7_h":["المهمة 8 · قدِّر، اختبر، سجِّل","Bài 8 · Ước lượng, kiểm tra, ghi lại","Завдання 8 · Оціни, перевір, запиши","ዕዮ 8 · ገምግም፣ ፈትን፣ ጽሓፍ"],"a7_p":["كم نقطة من 20 ستحصل عليها في ورقة العمل هذه؟ سجِّل تقديرك قبل التقييم.","Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm.","Скільки з 20 балів ти отримаєш за цей аркуш? Запиши свою оцінку до перевірки.","ኣብዚ ወረቐት ስራሕ ካብ 20 ነጥቢ ክንደይ ክትረክብ ትሓስብ? ቅድሚ ግምጋሜ ግምትካ ጽሓፍ።"],"th1":["تقديري","Dự đoán của tôi","Моя оцінка","ግምተይ"],"th2":["نتيجتي","Kết quả của tôi","Мій результат","ውጽኢተይ"],"th3":["الفرق","Chênh lệch","Різниця","ፍሉይነት"],"th4":["نقاط لحساب النقاط","Điểm cho tài khoản điểm","Бали для рахунку балів","ነጥብታት ንናይ ነጥቢ ሕሳብ"],"submit_h":["انتهيت؟ إذن قيِّم!","Xong chưa? Hãy chấm điểm!","Готово? Тоді перевіряй!","ወዲእካ? እንተኾነ ገምግም!"],"submit_p":["يمكنك التقييم حتى لو لم تنجز كل شيء – المهام غير المنجزة تُحتسب بصفر.","Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm.","Можна оцінити, навіть якщо не все зроблено – незроблені завдання дають 0 балів.","ኩሉ ዘይተሰርሐ እኳ እንተኾነ ክትገምግም ትኽእል – ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"submit_b":["إرسال وتقييم","Gửi và chấm điểm","📊 Надіслати й оцінити","📊 ሰዲድካ ገምግም"],"res_h":["تقييمك","Kết quả của bạn","Твій результат","ውጽኢትካ"],"pdf_b":["تصدير كملف PDF (للمعلمة)","Xuất PDF (cho giáo viên)","🖨️ Експорт у PDF (для вчителя)","🖨️ ከም PDF ኣውጽእ (ንመምህር)"],"tip_t":["تلميح","Gợi ý","Підказка","ሓጋዚ ሓሳብ"],"tip_next":["تلميح آخر","Thêm gợi ý","Ще одна підказка","ካልእ ሓጋዚ ሓሳብ"],"close":["إغلاق","Đóng","Закрити","ዕጸው"],"chk":["تحقّق","Kiểm tra","✔ Перевірити","✔ ፈትሽ"],"shw":["إظهار الحل","Hiện lời giải","Показати розв'язок","መልሲ ርአይ"],"markb":["تحقّق من التظليل","Kiểm tra phần đánh dấu","Перевірити позначки","ምልክታት ፈትሽ"],"self_q":["ما مدى جودة إجابتك؟","Câu trả lời của bạn tốt đến đâu?","Наскільки добре ти відповів(ла)?","ምላስካ ክንደይ ጽቡቕ ነበረ?"],"self1":["نجحت","Đạt","✔ Вдалося","✔ ኣሸኒፈ"],"self2":["جزئيًا","Một phần","◐ Частково","◐ ብሓደ ኣቕጣጫ"],"self3":["ليس بعد","Chưa","✖ Ще ні","✖ ኣይተኻእለን"],"fb_ok":["ممتاز! أحسنت.","Đúng rồi! Làm tốt lắm.","✅ Правильно! Молодець.","✅ ቅኑዕ! ጽቡቕ ሰሪሕካ።"],"fb_part":["تقريبًا – ينقص جزء. قارن بالحل وأكمل.","Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung.","🟡 Майже – ще чогось бракує. Порівняй із розв'язком і доповни.","🟡 ቐረባ – ሓደ ክፍሊ ጎዲሉ። ምስ መልሲ ኣነጻጽርካ ወስኸሉ።"],"fb_bad":["ليس بعد. استعن بتلميح أو أعد قراءة النص.","Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản.","❌ Ще не те. Візьми підказку 💡 або перечитай текст.","❌ ገና ኣይቅኑዕን። ሓጋዚ ሓሳብ 💡 ውሰድ ወይ ጽሑፍ ዳግማይ ኣንብብ።"],"sol_lbl":["الحل:","Lời giải:","Розв'язок:","መልሲ፡"],"mk_ok":["تظليل صحيح! والآن السؤال:","Đánh dấu đúng! Giờ đến câu hỏi:","✅ Позначено правильно! Тепер запитання:","✅ ብቐንዱ ተሓሪዩ! ሕጂ እቲ ሕቶ፡"],"mk_bad":["ليس تمامًا بعد. اقرأ المهمة مرة أخرى.","Chưa hoàn toàn đúng. Hãy đọc lại đề bài.","Ще не зовсім. Прочитай завдання ще раз.","ገና ጥዑይ ኣይኮነን። ዕዮ ዳግማይ ኣንብብ።"],"zq_ok":["بالضبط! تم فتح المقطع التالي.","Chính xác! Đoạn tiếp theo đã mở.","✅ Точно! Наступний абзац відкрито.","✅ ልክዕ! እቲ ዝቕጽል ክፍሊ ተኸፊቱ።"],"zq_bad":["ليس تمامًا. أعد قراءة المقطع وحاول مجددًا.","Chưa đúng. Hãy đọc lại đoạn và thử lại.","Не зовсім. Перечитай абзац і спробуй ще раз.","ኣይኮነን ጥዑይ። ክፍሊ ዳግማይ ኣንብብ ከምኡውን እንደገና ፈትን።"],"res_pts":["من 20 نقطة","trên 20 điểm","з 20 балів","ካብ 20 ነጥቢ"],"res_an":["تحليل الأخطاء حسب مجالات الكفاءة","Phân tích lỗi theo lĩnh vực năng lực","Аналіз помилок за сферами компетенцій","ትንተና ጌጋታት ብዘርእስታት ክእለት"],"rep":["ما يجب أن تراجعه","Bạn nên ôn lại","Це треба повторити","እዚ ክትደግሞ ኣለካ"],"lab1":["ممتاز!","Tuyệt vời!","Чудово!","ብጣዕሚ ጽቡቕ!"],"lab2":["جيد – تحتاج مزيدًا من التمرين","Khá – cần luyện thêm","Добре – ще трохи практики","ጽቡቕ – ገለ ተወሳኺ ልምምድ"],"lab3":["تحتاج هنا إلى مزيد من التمرين","Phần này bạn cần luyện thêm","Тут тобі ще потрібна практика","ኣብዚ ገና ልምምድ የድልየካ"],"set_h":["الإعدادات","Cài đặt","Налаштування","ቅጥዕታት"],"set_mode":["الترجمة","Bản dịch","Переклад","ትርጉም"],"mode_tap":["بالنقر","Chạm để xem","Торкнутися","ብምንካፍ"],"mode_under":["تحت النص","Hiện bên dưới","Під текстом","ኣብ ትሕቲ ጽሑፍ"],"mode_off":["إيقاف","Tắt","Вимк.","ዕጹው"],"set_fs":["حجم الخط","Cỡ chữ","Розмір шрифту","ዓቐን ፊደል"],"set_level":["المستوى","Mức độ","Рівень","ደረጃ"],"lvl_b":["أساسي","Cơ bản","Базовий","መሰረታዊ"],"lvl_v":["تعمّق","Nâng cao","Поглиблений","ዓሚቝ"],"set_snd":["الصوت","Âm thanh","Звук","ድምጺ"],"set_reset":["البدء من جديد","Làm lại từ đầu","Почати спочатку","ካብ ሓድሽ ጀምር"],"dlg_reset":["حذف كل شيء والبدء من جديد؟ ستضيع إجاباتك في ورقة العمل هذه.","Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất.","Усе видалити й почати спочатку? Твої записи в цьому аркуші буде втрачено.","ኩሉ ይሰረዝ እሞ ካብ ሓድሽ ይጀመር? ኣብዚ ወረቐት ዘኣተኻዮ ይጥፍእ።"],"dlg_next":["الشخص التالي: سيتم حذف الإجابات والاسم.","Người tiếp theo: nội dung và tên sẽ bị xóa.","Наступна особа: записи та ім'я буде видалено.","ቀጻሊ ሰብ፡ ዘኣተኻዮን ስምን ይጥፍእ።"],"dlg_cancel":["إلغاء","Hủy","Скасувати","ሰርዝ"],"dlg_ok":["نعم","Đồng ý","Так","እወ"],"wg_h":["كلمات وبدايات جمل للمساعدة","Từ ngữ và gợi ý đầu câu","Слова та початки речень","ቃላትን መጀመርታ ሓሳባትን"],"a8_h":["المهمة 9 · التعمّق","Bài 9 · Nâng cao","Завдання 9 · Поглиблення","ዕዮ 9 · ምዕማቕ"],"pts_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"a8_p":["تظهر فقط في مستوى «التعمّق». علّل بجمل كاملة. هذه المهام تمنح نقاطًا إضافية ولا تخفض نقاطك الـ 20 أبدًا.","Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn.","Лише на рівні «Поглиблений». Обґрунтуй повними реченнями. Ці завдання дають бонусні бали й ніколи не зменшують твої 20 балів.","ኣብ ደረጃ «ዓሚቝ» ጥራይ። ብምሉእ ሓሳብ ኣብርህ። እዞም ዕዮታት ቦነስ ነጥቢ ይህቡ እሞ ኣብ 20 ነጥብታትካ ፈጺሞም ኣይጐድሉን።"],"res_card_h":["النتيجة للمعلمة","Kết quả cho giáo viên","Результат для вчителя","ውጽኢት ንመምህር"],"btn_img":["حفظ النتيجة كصورة","Lưu kết quả dưới dạng ảnh","🖼️ Зберегти результат як зображення","🖼️ ውጽኢት ከም ስእሊ ዓቅብ"],"btn_code":["نسخ الرمز","Sao chép mã","📋 Копіювати код","📋 ኮድ ቅዳሕ"],"btn_next":["الشخص التالي","Người tiếp theo","👤 Наступна особа","👤 ቀጻሊ ሰብ"],"res_open":["ملاحظة: المهام غير المنجزة تُحتسب بصفر.","Lưu ý: bài chưa làm tính 0 điểm.","Примітка: незроблені завдання дають 0 балів.","ሓበሬታ፡ ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"res_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"cat_bonus":["نقاط إضافية (التعمّق)","Điểm thưởng (Nâng cao)","Бонус (поглиблення)","ቦነስ (ምዕማቕ)"],"fb_peek":["صحيح – لكنك نظرت إلى الحل قبل ذلك، لذلك تحصل على نصف النقاط.","Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm.","✅ Правильно – але ти раніше дивився(лась) розв'язок, тому половина балів.","✅ ቅኑዕ – ግን ቅድም መልሲ ርእይካዮ፣ ስለዚ ፍርቂ ነጥቢ።"],"t25":["بداية جيدة!","Khởi đầu tốt!","Гарний початок!","ጽቡቕ ጅምር!"],"t50":["اكتمل النصف!","Xong một nửa rồi!","Півдороги!","ፍርቂ!"],"t75":["اقتربت من الهدف!","Sắp đến đích rồi!","Майже готово!","ቐረባ!"],"t100":["أنجزت كل شيء! الآن قيِّم.","Đã làm xong hết! Giờ hãy chấm điểm.","Усе зроблено! Тепер оціни.","ኩሉ ተሰሪሑ! ሕጂ ገምግም።"],"t_write":["اكتب شيئًا أولًا","Hãy viết gì đó trước","Спочатку щось напиши","ቅድም ገለ ጽሓፍ"],"t_saved":["تم التسجيل","Đã ghi","Збережено","ተዓቒቡ"],"t_read":["تمت القراءة","Đã đọc","Прочитано","ተነቢቡ"],"t_resume":["تابع من حيث توقفت","Tiếp tục từ chỗ bạn dừng","Продовжуй, де зупинився(лась)","ኣብ ዝደው ዝበልካዮ ቀጽል"],"t_copy":["تم نسخ الرمز","Đã sao chép mã","Код скопійовано","ኮድ ተቐዲሑ"],"t_img":["تم حفظ الصورة","Đã lưu ảnh","Зображення збережено","ስእሊ ተዓቒቡ"],"h1":["الوحدة 11: بداية الحساب (Rechen-Start)","Mô-đun 11: Khởi động tính toán (Rechen-Start)","Модуль 11: Старт у рахунку (Rechen-Start)","ሞዱል 11: ጅምር ሒሳብ (Rechen-Start)"],"meta":["حصة مزدوجة 20 · 4 نقاط","Tiết đôi 20 · 4 điểm","Здвоєний урок 20 · 4 бали","ድርብ ትምህርቲ 20 · 4 ነጥቢ"],"can1":["أستطيع حساب المبالغ المالية بأمان بالآلة الحاسبة (Taschenrechner) وتقريبها تجاريًا (kaufmännisch runden).","Tôi biết dùng máy tính (Taschenrechner) để tính số tiền chính xác và làm tròn theo kiểu thương mại (kaufmännisch runden).","Я вмію точно рахувати суми грошей на калькуляторі (Taschenrechner) і округляти по-комерційному (kaufmännisch runden).","ብካልኩሌተር (Taschenrechner) ገንዘብ ብትኽክል ከጽሕፍን ብንግዲ ኣገባብ (kaufmännisch runden) ክክብብን እኽእል እየ።"],"can2":["أستطيع تحويل الوحدات (€ و ct، kg و g، l و ml، h و min).","Tôi biết đổi đơn vị (€ và ct, kg và g, l và ml, h và min).","Я вмію переводити одиниці (€ і ct, kg і g, l і ml, h і min).","መዐቀኒታት (€ ን ct ን፣ kg ን g ን፣ l ን ml ን፣ h ን min ን) ክቕይር እኽእል እየ።"],"can3":["أستطيع حل مسألة حسابية بحسب خطة الحساب (Rechenfahrplan).","Tôi biết giải một bài toán theo kế hoạch tính (Rechenfahrplan).","Я вмію розв'язувати задачу за планом розв'язання (Rechenfahrplan).","ሕቶ ሒሳብ ብመስርሕ ሒሳብ (Rechenfahrplan) ክፍትሕ እኽእል እየ።"],"a1_h":["المهمة 1 · البداية: ماذا تتذكّر؟","Bài 1 · Khởi động: Bạn còn nhớ gì?","Завдання 1 · Початок: що ти ще пам'ятаєш?","ዕዮ 1 · ጅምር: እንታይ ትዝክር?"],"a1_p":["أجب من الذاكرة – بدون آلة حاسبة.","Trả lời bằng trí nhớ – không dùng máy tính.","Відповідай з голови – без калькулятора.","ብርእስኻ መልስ – ብዘይ ካልኩሌተር።"],"a2_h":["المهمة 2 · وميض الصندوق: الذهن ضد الآلة الحاسبة","Bài 2 · Tia chớp ở quầy thu ngân: Nhẩm so với máy tính","Завдання 2 · Касовий бліц: голова проти калькулятора","ዕዮ 2 · ቅልጡፍ ካሳ: ርእሲ ኣንጻር ካልኩሌተር"],"a2_p":["احسب أولًا في ذهنك واكتب نتيجتك. ثم تحقّق بالآلة الحاسبة. متى كنت أسرع؟","Hãy nhẩm trước và viết kết quả của bạn. Sau đó kiểm tra bằng máy tính. Bạn nhanh hơn ở đâu?","Спочатку порахуй в голові й запиши результат. Потім перевір на калькуляторі. Де ти був(ла) швидшим(ою)?","ቀዳማይ ብርእስኻ ኣስተውዕል፣ ውጽኢትካ ጽሓፍ። ድሕሪኡ ብካልኩሌተር ርዓይ። ኣበይ ቀልጢፍካ?"],"t1_h":["1. استعمال الآلة الحاسبة بأمان","1. Dùng máy tính cho chắc chắn","1. Впевнено користуватися калькулятором","1. ካልኩሌተር ብውሑስ ምጥቃም"],"th_wiss":["ما يجب أن تعرفه","Bạn cần biết","Це треба знати","ክትፈልጦ ዘለካ"],"th_bsp":["مثال","Ví dụ","Приклад","ኣብነት"],"t1_a1":["تكتب الفاصلة بمفتاح النقطة.","Dấu phẩy bạn gõ bằng phím dấu chấm.","Кому ти вводиш клавішею з крапкою.","ኮማ ብቁልፊ ነጥቢ ትጽሕፍ።"],"t1_a2":["12,95 € → 12.95","12,95 € → 12.95","12,95 € → 12.95","12,95 € → 12.95"],"t1_b1":["الآلة الحاسبة تحسب الضرب والقسمة قبل الجمع والطرح (Punkt vor Strich). إذا أردت الجمع أولًا: استعمل الأقواس أو اضغط = في المنتصف.","Máy tính tính nhân chia trước cộng trừ (Punkt vor Strich). Nếu muốn cộng trước: dùng ngoặc hoặc bấm = ở giữa.","Калькулятор множить і ділить раніше, ніж додає й віднімає. Якщо хочеш спочатку додати: дужки або натисни = посередині.","ካልኩሌተር ምድማርን ምክፋልን ቅድሚ ምውሳኽን ምቕናስን ይገብር። ቅድሚ ኩሉ ክትውስኽ እንተደሊኻ: ቅንፍ ተጠቐም ወይ ኣብ ማእከል = ጠውቕ።"],"t1_b2":["(4,70 + 7,60) × 0,1 → ( 4.7 + 7.6 ) × 0.1 =","(4,70 + 7,60) × 0,1 → ( 4.7 + 7.6 ) × 0.1 =","(4,70 + 7,60) × 0,1 → ( 4.7 + 7.6 ) × 0.1 =","(4,70 + 7,60) × 0,1 → ( 4.7 + 7.6 ) × 0.1 ="],"t1_c1":["لا تكتب النتائج الوسيطة (Zwischenergebnisse) ولا تقرّبها – تابع الحساب دفعة واحدة. قرّب النتيجة النهائية فقط.","Đừng chép và làm tròn kết quả trung gian (Zwischenergebnis) – tính liền một mạch. Chỉ làm tròn kết quả cuối.","Не переписуй проміжні результати й не округлюй їх – рахуй далі за один раз. Округляй лише кінцевий результат.","ማእከላይ ውጽኢታት ኣይትጽሓፍ ኣይትክበብ – ብሓደ ጊዜ ቀጽል። ናይ መወዳእታ ውጽኢት ጥራይ ክበብ።"],"t1_c2":["9,49 : 7,5 × 10 → ليس 1,27 × 10","9,49 : 7,5 × 10 → không phải 1,27 × 10","9,49 : 7,5 × 10 → не 1,27 × 10","9,49 : 7,5 × 10 → ኣይኮነን 1,27 × 10"],"t1_d1":["AC يمسح كل شيء، و C يمسح آخر إدخال فقط.","AC xóa tất cả, C chỉ xóa lần nhập cuối.","AC стирає все, C – лише останнє введення.","AC ኩሉ ይደምስስ፣ C ናይ መወዳእታ ኣእተዋ ጥራይ።"],"t1_d2":["أخطأت في الضغط؟ → C","gõ nhầm? → C","помилився(лась)? → C","ተጌግየ? → C"],"t2_h":["2. التقريب التجاري (kaufmännisch runden)","2. Làm tròn kiểu thương mại (kaufmännisch runden)","2. Комерційне округлення","2. ንግዳዊ ምክባብ (kaufmännisch runden)"],"t2_p":["انظر إلى أول رقم يسقط: 0، 1، 2، 3، 4 → تقريب للأسفل · 5، 6، 7، 8، 9 → تقريب للأعلى. للمال خانتان بعد الفاصلة، أمّا الأشخاص والقطع فأعداد صحيحة.","Nhìn chữ số đầu tiên bị bỏ đi: 0, 1, 2, 3, 4 → làm tròn xuống · 5, 6, 7, 8, 9 → làm tròn lên. Tiền có 2 chữ số sau dấu phẩy, người và món hàng là số nguyên.","Подивись на першу цифру, що відпадає: 0, 1, 2, 3, 4 → округлити вниз · 5, 6, 7, 8, 9 → округлити вгору. Гроші мають 2 знаки після коми, люди й штуки – цілі числа.","ነታ ዝወድቕ ቀዳማይ ቁጽሪ ርአያ: 0, 1, 2, 3, 4 → ናብ ታሕቲ · 5, 6, 7, 8, 9 → ናብ ላዕሊ። ገንዘብ 2 ደገ ኮማ ቁጽሪ ኣለዎ፣ ሰባትን ክፍልታትን ምሉእ ቁጽሪ እዮም።"],"th_zahl":["العدد","con số","Число","ቁጽሪ"],"th_ger":["بعد التقريب","sau khi làm tròn","округлено","ዝተኸበበ"],"th_warum":["لماذا؟","vì sao?","чому?","ስለምንታይ?"],"t2_a1":["12,345 €","12,345 €","12,345 €","12,345 €"],"t2_a2":["12,35 €","12,35 €","12,35 €","12,35 €"],"t2_a3":["الرقم 5 → للأعلى","chữ số 5 → lên","п'ятірка → вгору","5 → ናብ ላዕሊ"],"t2_b1":["7,994 €","7,994 €","7,994 €","7,994 €"],"t2_b2":["7,99 €","7,99 €","7,99 €","7,99 €"],"t2_b3":["الرقم 4 → للأسفل","chữ số 4 → xuống","четвірка → вниз","4 → ናብ ታሕቲ"],"t2_c1":["19,996 €","19,996 €","19,996 €","19,996 €"],"t2_c2":["20,00 €","20,00 €","20,00 €","20,00 €"],"t2_c3":["تقريب للأعلى، والتغيير ينتقل إلى الخانات السابقة","làm tròn lên, phần nhớ chuyển sang các hàng trước","округлюємо вгору, усе зсувається далі","ናብ ላዕሊ ይክበብ፣ ኩሉ ይቕጽል"],"t2_d1":["16,678 (خانة واحدة)","16,678 (1 chữ số)","16,678 (1 знак)","16,678 (1 ደገ ኮማ)"],"t2_d2":["16,7","16,7","16,7","16,7"],"t2_d3":["الرقم 7 → للأعلى","chữ số 7 → lên","сімка → вгору","7 → ናብ ላዕሊ"],"t2_e1":["147,4 عميل","147,4 khách","147,4 клієнта","147,4 ዓማዊል"],"t2_e2":["147 عميلًا","147 khách","147 клієнтів","147 ዓማዊል"],"t2_e3":["أشخاص كاملون","người là số nguyên","цілі люди","ምሉእ ሰባት"],"t3_h":["3. تحويل الوحدات","3. Đổi đơn vị","3. Переводити одиниці","3. መዐቀኒታት ምቕያር"],"th_einh":["الوحدة","Đơn vị","Одиниця","መዐቀኒ"],"th_umr":["التحويل","đổi","переводимо","ምቕያር"],"th_trick":["الحيلة","Mẹo","Прийом","ሜላ"],"t3_a1":["1 € = 100 ct","1 € = 100 ct","1 € = 100 ct","1 € = 100 ct"],"t3_a2":["2,05 € = 205 ct","2,05 € = 205 ct","2,05 € = 205 ct","2,05 € = 205 ct"],"t3_a3":["× 100","× 100","× 100","× 100"],"t3_b1":["1 kg = 1.000 g","1 kg = 1.000 g","1 kg = 1.000 g","1 kg = 1.000 g"],"t3_b2":["750 g = 0,75 kg · 125 g = 0,125 kg","750 g = 0,75 kg · 125 g = 0,125 kg","750 g = 0,75 kg · 125 g = 0,125 kg","750 g = 0,75 kg · 125 g = 0,125 kg"],"t3_b3":["g → kg: انقل الفاصلة 3 خانات إلى اليسار","g → kg: dịch dấu phẩy 3 chữ số sang trái","g → kg: кома на 3 знаки вліво","g → kg: ኮማ 3 ቦታ ናብ ጸጋም"],"t3_c1":["1 l = 1.000 ml","1 l = 1.000 ml","1 l = 1.000 ml","1 l = 1.000 ml"],"t3_c2":["750 ml = 0,75 l","750 ml = 0,75 l","750 ml = 0,75 l","750 ml = 0,75 l"],"t3_c3":["ml → l: انقل الفاصلة 3 خانات إلى اليسار","ml → l: dịch dấu phẩy 3 chữ số sang trái","ml → l: кома на 3 знаки вліво","ml → l: ኮማ 3 ቦታ ናብ ጸጋም"],"t3_d1":["1 h = 60 min","1 h = 60 min","1 h = 60 min","1 h = 60 min"],"t3_d2":["30 min = 0,5 h · 15 min = 0,25 h","30 min = 0,5 h · 15 min = 0,25 h","30 min = 0,5 h · 15 min = 0,25 h","30 min = 0,5 h · 15 min = 0,25 h"],"t3_d3":["الوقت: عُدّ الساعات، ونصف الساعة = 0,5","Giờ giấc: đếm số giờ, nửa giờ = 0,5","Час: рахуй години, півгодини = 0,5","ሰዓታት: ሰዓታት ቁጸር፣ ፍርቂ ሰዓት = 0,5"],"t4_h":["4. كلمات الإشارة في المسألة","4. Từ khóa trong đề bài","4. Сигнальні слова в задачі","4. ምልክት ቃላት ኣብ ሕቶ"],"th_sig":["الكلمة الدالة","Từ khóa","Сигнальне слово","ምልክት ቃል"],"th_zeich":["علامة الحساب","Dấu tính","Знак дії","ምልክት ሒሳብ"],"t4_a1":["الإجمالي (insgesamt) · معًا (zusammen) · المجموع (Summe)","tổng cộng (insgesamt) · cùng nhau (zusammen) · tổng (Summe)","разом · усього · сума","ጠቕላላ · ብሓባር · ድምር"],"t4_a2":["+","+","+","+"],"t4_b1":["الباقي (Rückgeld) · الفرق (Differenz) · كم أكثر / أقل · بعد الخصم","tiền thối (Rückgeld) · chênh lệch (Differenz) · nhiều hơn / ít hơn bao nhiêu · sau khi trừ","решта · різниця · на скільки більше / менше · після вирахування","ተመላሲ ገንዘብ · ፍልልይ · ኽንደይ ዝያዳ / ውሑድ · ድሕሪ ምቕናስ"],"t4_b2":["−","−","−","−"],"t4_c1":["لكل (je) · في كل (pro) · بسعر … لكل واحد (zu je) · سعر الوحدة × الكمية","mỗi (je) · cho mỗi (pro) · giá mỗi cái (zu je) · đơn giá × số lượng","по · за кожен · по … за штуку · ціна за штуку × кількість","ነፍሲ ወከፍ · ብ · ነፍሲ ወከፍ ዋጋ × መጠን"],"t4_c2":["× (من 1 إلى عدة) أو : (من عدة إلى 1)","× (từ 1 sang nhiều) hoặc : (từ nhiều sang 1)","× (з 1 на багато) або : (з багатьох на 1)","× (ካብ 1 ናብ ብዙሕ) ወይ : (ካብ ብዙሕ ናብ 1)"],"fp_h":["خطة الحساب (Rechenfahrplan) – في كل مسألة","Kế hoạch tính (Rechenfahrplan) – cho mọi bài","План розв'язання (Rechenfahrplan) – у кожній задачі","መስርሕ ሒሳብ (Rechenfahrplan) – ኣብ ነፍሲ ወከፍ ሕቶ"],"fp1":["1 اقرأ: ما المطلوب؟ ضع خطًا تحت السؤال.","1 Đọc: Cần tìm gì? Gạch chân câu hỏi.","1 Прочитати: що шукаємо? Підкресли запитання.","1 ኣንብብ: እንታይ ይድለ? ነታ ሕቶ ኣስምር።"],"fp2":["2 دوّن: ما المعطيات؟ اكتب الأعداد مع وحداتها.","2 Ghi lại: Đã cho gì? Viết các số kèm đơn vị.","2 Записати: що дано? Запиши числа з одиницями.","2 ጽሓፍ: እንታይ ተዋሂቡ? ቁጽርታት ምስ መዐቀኒኦም ጽሓፍ።"],"fp3":["3 اختر الطريقة: أي بطاقة وصفة تناسب المسألة؟","3 Chọn cách làm: Thẻ công thức nào phù hợp?","3 Обрати рецепт: яка картка-рецепт підходить?","3 ኣገባብ ምረጽ: ኣየናይ ካርድ ኣገባብ ይሰማማዕ?"],"fp4":["4 احسب: بالآلة الحاسبة – دفعة واحدة، ولا تقرّب النتائج الوسيطة.","4 Tính: Bằng máy tính – liền một mạch, không làm tròn kết quả trung gian.","4 Порахувати: калькулятор – за один раз, проміжні результати не округлювати.","4 ሒሳብ: ካልኩሌተር – ብሓደ ጊዜ፣ ማእከላይ ውጽኢታት ኣይትክበብ።"],"fp5":["5 تحقّق: قرّب كما هو مطلوب، وانتبه للوحدة، وهل النتيجة معقولة؟ اكتب النتيجة في المربع أو في جملة الجواب.","5 Kiểm tra: Làm tròn đúng yêu cầu, đơn vị, kết quả có hợp lý không? Ghi kết quả vào ô hoặc viết câu trả lời.","5 Перевірити: округлити, як вимагається, одиниця, чи правдоподібний результат? Результат – у віконце або відповідь реченням.","5 ርዓይ: ከም ዝተሓተትካ ክበብ፣ መዐቀኒ፣ ውጽኢት ይሰማማዕ ድዩ? ውጽኢት ኣብ ሳጹን ወይ ብምሉእ ሓረግ።"],"merke_fehler":["تذكّر: الأخطاء الثلاثة الأكثر شيوعًا: انزلاق الفاصلة (125 g تساوي 0,125 kg وليس 1,25 kg) · نسيان الوحدة (الامتحان يطلب «بـ Euro») · التقريب مبكرًا جدًا. في النهاية افحص دائمًا معقولية النتيجة (Plausibilitäts-Check): هل يمكن أن تكون صحيحة؟","Ghi nhớ: Ba lỗi hay gặp nhất: lệch dấu phẩy (125 g là 0,125 kg, không phải 1,25 kg) · quên đơn vị (đề thi yêu cầu „bằng Euro“) · làm tròn quá sớm. Cuối cùng luôn kiểm tra tính hợp lý (Plausibilitäts-Check): kết quả này có thể đúng không?","Запам'ятай: три найчастіші помилки: кома зсунулась (125 g – це 0,125 kg, а не 1,25 kg) · забута одиниця (на іспиті вимагають «в євро») · округлено надто рано. У кінці завжди роби перевірку на правдоподібність (Plausibilitäts-Check): чи це може бути правильно?","ሓሳብ ጌርካ ሕዛ: እቶም ሰለስተ ዝበዝሑ ጌጋታት: ኮማ ተሰጋጊሩ (125 g 0,125 kg እዩ፣ 1,25 kg ኣይኮነን) · መዐቀኒ ተረሲዑ (ፈተና «ብዩሮ» ይደሊ) · ቅልጥፍ ኢልካ ተኸቢቡ። ኣብ መወዳእታ ወትሩ ምርግጋጽ ርግጸኛነት (Plausibilitäts-Check) ግበር: ክኸውን ይኽእል ድዩ?"],"a3_h":["المهمة 3 · مثال محلول: نقاط المكافأة عند الصندوق","Bài 3 · Làm mẫu: Điểm thưởng ở quầy thu ngân","Завдання 3 · Показано: бонусні бали на касі","ዕዮ 3 · ተራእዩ: ቦነስ ነጥቢ ኣብ ካሳ"],"a3_p":["هكذا تتصرّف في مسألة حسابية. اقرأ الخطوات جيدًا، فستحتاجها بعد قليل.","Đây là cách bạn làm một bài toán. Đọc kỹ các bước, vì lát nữa bạn sẽ cần chúng.","Так ти діятимеш у розрахунковій задачі. Уважно прочитай кроки, вони тобі скоро знадобляться.","ሕቶ ሒሳብ ከመይ ትሰርሕ። ብጥንቃቐ ኣብ ዘለዉ ደረጃታት ኣንብብ፣ ቀልጢፍካ የድልዩኻ።"],"wk0":["المسألة: لدى عميل 1.275 نقطة على بطاقة الزبون (النقطة الواحدة تساوي 0,01 €). يريد احتساب النقاط عند مشترياته البالغة 38,90 €. احسب المبلغ المتبقي بالـ Euro الذي ما زال على العميل دفعه!","Bài toán: Một khách có 1.275 điểm trên thẻ khách hàng (1 điểm tương đương 0,01 €). Khách muốn trừ điểm vào số tiền mua hàng 38,90 €. Hãy tính số tiền còn lại bằng Euro mà khách phải trả!","Завдання: у клієнта на картці лояльності 1.275 балів (1 бал = 0,01 €). Він хоче зарахувати бали під час покупки на 38,90 €. Визначте залишок у євро, який клієнт ще має заплатити!","እቲ ሕቶ: ሓደ ዓሚል ኣብ ካርዱ 1.275 ነጥቢ ኣለዎ (1 ነጥቢ = 0,01 €)። ኣብ ዕዳጋ 38,90 € ምስ ዝገዝኣ ነጥቡ ክጥቀም ይደሊ። እቲ ዓሚል ገና ክኸፍል ዘለዎ ተረፍ ብዩሮ ኣስላሕ!"],"wk1":["1 اقرأ: المطلوب: المبلغ المتبقي بالـ Euro.","1 Đọc: Cần tìm: số tiền còn lại bằng Euro.","1 Прочитати: шукаємо: залишок у євро.","1 ኣንብብ: ዝድለ: ተረፍ ብዩሮ።"],"wk2":["2 دوّن: المشتريات 38,90 € · 1.275 نقطة · النقطة الواحدة = 0,01 €","2 Ghi lại: Mua hàng 38,90 € · 1.275 điểm · 1 điểm = 0,01 €","2 Записати: покупка 38,90 € · 1.275 балів · 1 бал = 0,01 €","2 ጽሓፍ: ዕዳጋ 38,90 € · 1.275 ነጥቢ · 1 ነጥቢ = 0,01 €"],"wk3":["3 الطريقة: أولًا حوّل النقاط إلى Euro، ثم اطرحها","3 Cách làm: đổi điểm sang Euro trước, rồi trừ đi","3 Рецепт: спочатку перевести бали в євро, потім відняти","3 ኣገባብ: ቅድም ነጥቢ ናብ ዩሮ ቀይር፣ ድሕሪኡ ቀንስ"],"wk4":["4 احسب: 1.275 × 0,01 = 12,75 € · 38,90 − 12,75 = 26,15 €","4 Tính: 1.275 × 0,01 = 12,75 € · 38,90 − 12,75 = 26,15 €","4 Порахувати: 1.275 × 0,01 = 12,75 € · 38,90 − 12,75 = 26,15 €","4 ሒሳብ: 1.275 × 0,01 = 12,75 € · 38,90 − 12,75 = 26,15 €"],"wk5":["5 تحقّق: هل هو أقل من 38,90 €؟ نعم. خانتان بعد الفاصلة، والوحدة Euro → 26,15 €","5 Kiểm tra: Nhỏ hơn 38,90 € không? Có. Hai chữ số sau dấu phẩy, đơn vị Euro → 26,15 €","5 Перевірити: менше за 38,90 €? Так. Два знаки після коми, одиниця євро → 26,15 €","5 ርዓይ: ካብ 38,90 € ንእሽቶ ድዩ? እወ። ክልተ ደገ ኮማ፣ መዐቀኒ ዩሮ → 26,15 €"],"a4_h":["المهمة 4 · تمرين موجَّه","Bài 4 · Luyện tập có hướng dẫn","Завдання 4 · Вправа з підказками","ዕዮ 4 · ብመሪሕነት ልምምድ"],"a41_h":["4.1 قرّب تقريبًا تجاريًا.","4.1 Làm tròn theo kiểu thương mại.","4.1 Округли по-комерційному.","4.1 ብንግዲ ኣገባብ ክበብ።"],"a42_h":["4.2 حوّل الوحدات.","4.2 Đổi các đơn vị.","4.2 Переведи одиниці.","4.2 መዐቀኒታት ቀይር።"],"a43_h":["4.3 يشتري عميل 3 علب طماطم بسعر 2,49 € للعلبة و2 عبوة معكرونة بسعر 1,19 € للعبوة. يدفع 20 €. كم يأخذ من الباقي (Rückgeld)؟ أكمل الخطوات الناقصة.","4.3 Một khách mua 3 hộp cà chua giá 2,49 € mỗi hộp và 2 gói mì giá 1,19 € mỗi gói. Khách trả bằng 20 €. Khách nhận lại bao nhiêu tiền thối (Rückgeld)? Hãy điền các bước còn thiếu.","4.3 Клієнт купує 3 банки томатів по 2,49 € і 2 пачки макаронів по 1,19 €. Він платить 20 €. Яку решту він отримає? Доповни пропущені кроки.","4.3 ሓደ ዓሚል 3 ቆርቆሮ ቲማቲም ነፍሲ ወከፍ 2,49 € ን 2 ፓኬት ፓስታ ነፍሲ ወከፍ 1,19 € ን ይገዝእ። ብ20 € ይኸፍል። ክንደይ ተመላሲ ገንዘብ ይረክብ? ዝጎደሉ ደረጃታት ምላእ።"],"a43_sit":["1 اقرأ: المطلوب: الباقي بالـ Euro 2 دوّن: 3 × 2,49 € · 2 × 1,19 € · المعطى 20,00 €","1 Đọc: Cần tìm: tiền thối bằng Euro 2 Ghi lại: 3 × 2,49 € · 2 × 1,19 € · đã cho 20,00 €","1 Прочитати: шукаємо: решта в євро 2 Записати: 3 × 2,49 € · 2 × 1,19 € · дано 20,00 €","1 ኣንብብ: ዝድለ: ተመላሲ ገንዘብ ብዩሮ 2 ጽሓፍ: 3 × 2,49 € · 2 × 1,19 € · ዝተዋህበ 20,00 €"],"a44_h":["4.4 الآن وحدك: تشتري عميلة عند ركن الأطعمة الطازجة 400 g جبن بسعر 16,90 € للكيلوغرام و250 g لحم مقدد بسعر 22,80 € للكيلوغرام. تدفع 20 €. احسب الباقي.","4.4 Bây giờ tự làm: Một khách nữ mua ở quầy hàng tươi 400 g phô mai giá 16,90 € mỗi kg và 250 g giăm bông giá 22,80 € mỗi kg. Khách trả bằng 20 €. Hãy tính tiền thối.","4.4 Тепер сам(а): клієнтка купує на відділі свіжих продуктів 400 g сиру по 16,90 € за kg і 250 g шинки по 22,80 € за kg. Вона платить 20 €. Порахуй решту.","4.4 ሕጂ ባዕልኻ: ሓንቲ ዓሚላ ኣብ ናይ ዝተኸኣለ ክፍሊ 400 g ቺዝ ነፍሲ ወከፍ kg 16,90 € ን 250 g ሃም ነፍሲ ወከፍ kg 22,80 € ን ትገዝእ። ብ20 € ትኸፍል። ተመላሲ ገንዘብ ኣስላሕ።"],"a5_h":["المهمة 5 · تمرين حر: سباق إيصالات الشراء","Bài 5 · Luyện tập tự do: Cuộc đua hóa đơn","Завдання 5 · Вільна вправа: ралі чеків 2 бали","ዕዮ 5 · ናጻ ልምምድ: ራሊ ወረቐት ክፍሊት 2 ነጥቢ"],"a5_p":["اكتب مشتريات من 5 أصناف من نشرة عروض – على الأقل صنف واحد بالوزن (مثلًا 300 g جبن). يحسب زميلك المجموع والباقي من 50 €. ثم تتبادلان.","Hãy ghi một lần mua 5 mặt hàng từ tờ quảng cáo – ít nhất một mặt hàng tính theo cân nặng (ví dụ 300 g phô mai). Bạn ngồi cạnh tính tổng và tiền thối từ 50 €. Sau đó hai bạn đổi bài.","Запиши покупку з 5 товарів із рекламного буклета – принаймні один товар на вагу (напр. 300 g сиру). Твій сусід рахує суму й решту з 50 €. Потім помінюєтесь.","ካብ ሓደ ወረቐት ምስጋና 5 ኣቕሓ ዘለዎ ዕዳጋ ጽሓፍ – ብውሑዱ ሓደ ኣቕሓ ብክብደት (ንኣብነት 300 g ቺዝ)። መሳርሕትካ ድምርን ካብ 50 € ተመላሲ ገንዘብን የሰላስል። ድሕሪኡ ትቕያየሩ።"],"a6_h":["المهمة 6 · فحص الامتحان","Bài 6 · Kiểm tra kiểu thi","Завдання 6 · Перевірка до іспиту 4 завдання · близько 10 хвилин","ዕዮ 6 · ምርግጋጽ ፈተና 4 ሕቶታት · ከባቢ 10 ደቒቕ"],"pts_a6":["4 مسائل · حوالي 10 دقائق","4 bài · khoảng 10 phút","4 завдання · близько 10 хвилин","4 ሕቶታት · ከባቢ 10 ደቒቕ"],"a7p_h":["المهمة 7 · للمحترفين","Bài 7 · Dành cho người giỏi","Завдання 7 · Для профі","ዕዮ 7 · ንክኢላታት"],"a7p_p":["للتفكير أكثر – بجمل كاملة ومع التعليل.","Để suy nghĩ sâu hơn – viết câu đầy đủ, có giải thích lý do.","Для роздумів – повними реченнями, з поясненням.","ንዝያዳ ምሕሳብ – ብምሉእ ሓረግ፣ ምስ ምኽንያት።"],"a1_1.q":["1.1 البيع بالتقسيط مع حفظ الملكية (Eigentumsvorbehalt): لمن ينتمي التلفاز إلى أن يُدفع القسط الأخير؟","1.1 Mua trả góp có bảo lưu quyền sở hữu (Eigentumsvorbehalt): Cái ti vi thuộc về ai cho đến khi trả xong đợt cuối?","1.1 Купівля в розстрочку із застереженням права власності (Eigentumsvorbehalt): кому належить телевізор, доки не сплачено останній платіж?","1.1 ዕዳጋ ብመኽፈሊ ምስ ሓለዋ ርስቲ (Eigentumsvorbehalt): ክሳብ ናይ መወዳእታ ክፍሊት ዝኽፈል ቴሌቪዥን ናይ መን እዩ?"],"a1_1.h0":["حفظ الملكية: من يحتفظ بالملكية؟","Bảo lưu quyền sở hữu: Ai giữ quyền sở hữu?","Eigentumsvorbehalt: хто зберігає право власності?","Eigentumsvorbehalt: መን እዩ ርስቲ ዝሕዝ?"],"a1_1.h1":["المشتري يستعمل التلفاز فقط. لمن ما زال ملكًا مع ذلك؟","Người mua chỉ được sử dụng ti vi. Vậy nó vẫn thuộc về ai?","Покупець може лише користуватися телевізором. Кому він усе одно ще належить?","እቲ ሸማቲ ቴሌቪዥን ክጥቀመሉ ጥራይ እዩ። ከምኡ እኳ ኾነ ናይ መን እዩ?"],"a1_1.s":["للبائع (المحل)؛ المشتري هو الحائز فقط","thuộc người bán (cửa hàng); người mua chỉ là người đang giữ","продавцеві (магазину); покупець лише володар (Besitzer)","ናይ ሸያጢ (ድኳን)፤ እቲ ሸማቲ ሓዚ (Besitzer) ጥራይ እዩ"],"a1_2.q":["1.2 مشتريات بـ 13,45 €، والعميلة تعطي 20 €. كم تأخذ من الباقي (Rückgeld)؟","1.2 Mua hàng hết 13,45 €, khách đưa 20 €. Khách nhận lại bao nhiêu tiền thối (Rückgeld)?","1.2 Покупка на 13,45 €, клієнтка дає 20 €. Яку решту вона отримає?","1.2 ዕዳጋ 13,45 €፣ እታ ዓሚላ 20 € ትህብ። ክንደይ ተመላሲ ገንዘብ ትረክብ?"],"a1_2.h0":["الباقي = فرق (Differenz): ماذا تعطي وكم تكلّف المشتريات؟","Tiền thối = chênh lệch (Differenz): khách đưa bao nhiêu, hàng giá bao nhiêu?","Решта = різниця: скільки вона дає, скільки коштує покупка?","ተመላሲ ገንዘብ = ፍልልይ: እንታይ ትህብ፣ እንታይ ይዋሃብ?"],"a1_2.h1":["20,00 − 13,45 – عُدّ من 13,45 € صعودًا إلى 20 €.","20,00 − 13,45 – đếm từ 13,45 € lên đến 20 €.","20,00 − 13,45 – рахуй від 13,45 € вгору до 20 €.","20,00 − 13,45 – ካብ 13,45 € ክሳብ 20 € ናብ ላዕሊ ቁጸር።"],"a1_2.s":["6,55 €","6,55 €","6,55 €","6,55 €"],"a1_3.q":["1.3 كم غرامًا في 1 kg؟","1.3 1 kg bằng bao nhiêu gam?","1.3 Скільки грамів у 1 kg?","1.3 1 kg ክንደይ ግራም እዩ?"],"a1_3.h0":["«كيلو» تعني «ألف».","„Kilo“ nghĩa là „một nghìn“.","Кіло означає «тисяча».","ኪሎ ማለት «ሽሕ» እዩ።"],"a1_3.h1":["الفاصلة تنتقل 3 خانات.","Dấu phẩy dịch 3 chữ số.","Кома зсувається на 3 знаки.","ኮማ 3 ቦታ ይንቀሳቀስ።"],"a1_3.s":["1.000 g","1.000 g","1.000 g","1.000 g"],"a2_1.q":["2.1 3 × 1,99 €","2.1 3 × 1,99 €","2.1 3 × 1,99 €","2.1 3 × 1,99 €"],"a2_1.h0":["حيلة للذهن: 3 × 2 € ثم اطرح الباقي.","Mẹo nhẩm: 3 × 2 € rồi trừ phần dư.","Підказка для голови: 3 × 2 € і потім відніми залишок.","ሓገዝ ንርእሲ: 3 × 2 € ድሕሪኡ እቲ ተረፍ ቀንስ።"],"a2_1.h1":["3 × 2,00 = 6,00 – ناقص 3 × 0,01.","3 × 2,00 = 6,00 – trừ đi 3 × 0,01.","3 × 2,00 = 6,00 – і на 3 × 0,01 менше.","3 × 2,00 = 6,00 – እሞ 3 × 0,01 ውሑድ።"],"a2_1.s":["5,97 €","5,97 €","5,97 €","5,97 €"],"a2_2.q":["2.2 تدفع العميلة ثمن هذه الأصناف الثلاثة بـ 10 €. كم الباقي؟","2.2 Khách trả 3 món này bằng 10 €. Tiền thối là bao nhiêu?","2.2 Клієнтка платить за ці 3 товари 10 €. Яка решта?","2.2 እታ ዓሚላ እዞም 3 ኣቕሓታት ብ10 € ትኸፍል። ተመላሲ ገንዘብ?"],"a2_2.h0":["الباقي = فرق. أيّ مبلغ حسبته للتو؟","Tiền thối = chênh lệch. Bạn vừa tính được số tiền nào?","Решта = різниця. Яку суму ти щойно порахував(ла)?","ተመላሲ ገንዘብ = ፍልልይ። ሕጂ ኣየናይ ድምር ኣስሊሕካ?"],"a2_2.h1":["10,00 ناقص نتيجة 2.1.","10,00 trừ kết quả của 2.1.","10,00 мінус результат із 2.1.","10,00 ሚነስ እቲ ውጽኢት ናይ 2.1።"],"a2_2.s":["4,03 €","4,03 €","4,03 €","4,03 €"],"a2_3.q":["2.3 0,5 kg تفاح بسعر 3,80 € للكيلوغرام","2.3 0,5 kg táo giá 3,80 € mỗi kg","2.3 0,5 kg яблук по 3,80 € за kg","2.3 0,5 kg ፖም ነፍሲ ወከፍ kg 3,80 €"],"a2_3.h0":["0,5 kg هو نصف 1 kg.","0,5 kg là một nửa của 1 kg.","0,5 kg – це половина від 1 kg.","0,5 kg ፍርቂ ናይ 1 kg እዩ።"],"a2_3.h1":["نصف 3,80 €.","Một nửa của 3,80 €.","Половина від 3,80 €.","ፍርቂ ናይ 3,80 €።"],"a2_3.s":["1,90 €","1,90 €","1,90 €","1,90 €"],"a2_4.q":["2.4 250 g جبن بسعر 12,00 € للكيلوغرام","2.4 250 g phô mai giá 12,00 € mỗi kg","2.4 250 g сиру по 12,00 € за kg","2.4 250 g ቺዝ ነፍሲ ወከፍ kg 12,00 €"],"a2_4.h0":["250 g هو ربع 1 kg.","250 g là một phần tư của 1 kg.","250 g – це чверть від 1 kg.","250 g ርብዒ ናይ 1 kg እዩ።"],"a2_4.h1":["ربع 12,00 € – أو 0,25 × 12,00.","Một phần tư của 12,00 € – hoặc 0,25 × 12,00.","Чверть від 12,00 € – або 0,25 × 12,00.","ርብዒ ናይ 12,00 € – ወይ 0,25 × 12,00።"],"a2_4.s":["3,00 €","3,00 €","3,00 €","3,00 €"],"a41_1.q":["4,385 € إلى خانتين","4,385 € làm tròn đến 2 chữ số","4,385 € до 2 знаків","4,385 € ክሳብ 2 ደገ ኮማ"],"a41_1.h0":["أي رقم يسقط؟","Chữ số nào bị bỏ đi?","Яка цифра відпадає?","ኣየናይ ቁጽሪ ይወድቕ?"],"a41_1.h1":["الرقم الأول الذي يسقط هو الذي يقرّر: 0–4 للأسفل، 5–9 للأعلى.","Chữ số đầu tiên bị bỏ đi quyết định: 0–4 xuống, 5–9 lên.","Перша цифра, що відпадає, вирішує: 0–4 вниз, 5–9 вгору.","እቲ ዝወድቕ ቀዳማይ ቁጽሪ ይውስን: 0–4 ታሕቲ፣ 5–9 ላዕሊ።"],"a41_1.s":["4,39 €","4,39 €","4,39 €","4,39 €"],"a41_2.q":["12,994 € إلى خانتين","12,994 € làm tròn đến 2 chữ số","12,994 € до 2 знаків","12,994 € ክሳብ 2 ደገ ኮማ"],"a41_2.h0":["أي رقم يسقط؟ هل هو 0–4 أم 5–9؟","Chữ số nào bị bỏ đi? Nó thuộc 0–4 hay 5–9?","Яка цифра відпадає? Вона 0–4 чи 5–9?","ኣየናይ ቁጽሪ ይወድቕ? 0–4 ድዩ 5–9?"],"a41_2.h1":["الرقم الأول الذي يسقط هو الذي يقرّر: 0–4 للأسفل، 5–9 للأعلى.","Chữ số đầu tiên bị bỏ đi quyết định: 0–4 xuống, 5–9 lên.","Перша цифра, що відпадає, вирішує: 0–4 вниз, 5–9 вгору.","እቲ ዝወድቕ ቀዳማይ ቁጽሪ ይውስን: 0–4 ታሕቲ፣ 5–9 ላዕሊ።"],"a41_2.s":["12,99 €","12,99 €","12,99 €","12,99 €"],"a41_3.q":["0,125 € إلى خانتين","0,125 € làm tròn đến 2 chữ số","0,125 € до 2 знаків","0,125 € ክሳብ 2 ደገ ኮማ"],"a41_3.h0":["أول رقم يسقط هو 5.","Chữ số đầu tiên bị bỏ đi là số 5.","Перша цифра, що відпадає, – п'ятірка.","እቲ ዝወድቕ ቀዳማይ ቁጽሪ 5 እዩ።"],"a41_3.h1":["الرقم الأول الذي يسقط هو الذي يقرّر: 0–4 للأسفل، 5–9 للأعلى.","Chữ số đầu tiên bị bỏ đi quyết định: 0–4 xuống, 5–9 lên.","Перша цифра, що відпадає, вирішує: 0–4 вниз, 5–9 вгору.","እቲ ዝወድቕ ቀዳማይ ቁጽሪ ይውስን: 0–4 ታሕቲ፣ 5–9 ላዕሊ።"],"a41_3.s":["0,13 €","0,13 €","0,13 €","0,13 €"],"a41_4.q":["99,995 € إلى خانتين","99,995 € làm tròn đến 2 chữ số","99,995 € до 2 знаків","99,995 € ክሳብ 2 ደገ ኮማ"],"a41_4.h0":["مثل 19,996 € في الجدول: التغيير ينتقل إلى الخانات السابقة.","Giống 19,996 € trong bảng: phần nhớ chuyển sang các hàng trước.","Як із 19,996 € у таблиці: усе зсувається далі.","ከም 19,996 € ኣብ ሰንጠረዥ: ኩሉ ይቕጽል።"],"a41_4.h1":["الرقم الأول الذي يسقط هو الذي يقرّر: 0–4 للأسفل، 5–9 للأعلى.","Chữ số đầu tiên bị bỏ đi quyết định: 0–4 xuống, 5–9 lên.","Перша цифра, що відпадає, вирішує: 0–4 вниз, 5–9 вгору.","እቲ ዝወድቕ ቀዳማይ ቁጽሪ ይውስን: 0–4 ታሕቲ፣ 5–9 ላዕሊ።"],"a41_4.s":["100,00 €","100,00 €","100,00 €","100,00 €"],"a41_5.q":["2,566 قطعة إلى خانة واحدة","2,566 món hàng làm tròn đến 1 chữ số","2,566 товару до 1 знака","2,566 ኣቕሓ ክሳብ 1 ደገ ኮማ"],"a41_5.h0":["تبقى خانة واحدة بعد الفاصلة. انظر إلى الخانة الثانية.","Chỉ còn 1 chữ số sau dấu phẩy. Nhìn chữ số thứ hai.","Залишається один знак після коми. Подивись на другий знак.","ሓንቲ ደገ ኮማ ጥራይ ትተርፍ። ነታ ካልኣይ ርአያ።"],"a41_5.h1":["الرقم الأول الذي يسقط هو الذي يقرّر: 0–4 للأسفل، 5–9 للأعلى.","Chữ số đầu tiên bị bỏ đi quyết định: 0–4 xuống, 5–9 lên.","Перша цифра, що відпадає, вирішує: 0–4 вниз, 5–9 вгору.","እቲ ዝወድቕ ቀዳማይ ቁጽሪ ይውስን: 0–4 ታሕቲ፣ 5–9 ላዕሊ።"],"a41_5.s":["2,6 قطعة","2,6 món hàng","2,6 товару","2,6 ኣቕሓ"],"a41_6.q":["185,99 عميلًا إلى أعداد صحيحة","185,99 khách làm tròn thành số khách nguyên","185,99 клієнта до цілих клієнтів","185,99 ዓማዊል ናብ ምሉእ ዓማዊል"],"a41_6.h0":["الأشخاص أعداد صحيحة. انظر إلى أول خانة بعد الفاصلة.","Người là số nguyên. Nhìn chữ số đầu tiên sau dấu phẩy.","Люди – цілі числа. Подивись на першу цифру після коми.","ሰባት ምሉእ ቁጽሪ እዮም። ነታ ድሕሪ ኮማ ቀዳመይቲ ቁጽሪ ርአያ።"],"a41_6.h1":["الرقم الأول الذي يسقط هو الذي يقرّر: 0–4 للأسفل، 5–9 للأعلى.","Chữ số đầu tiên bị bỏ đi quyết định: 0–4 xuống, 5–9 lên.","Перша цифра, що відпадає, вирішує: 0–4 вниз, 5–9 вгору.","እቲ ዝወድቕ ቀዳማይ ቁጽሪ ይውስን: 0–4 ታሕቲ፣ 5–9 ላዕሊ።"],"a41_6.s":["186 عميلًا","186 khách","186 клієнтів","186 ዓማዊል"],"a42_1.q":["350 g = … kg","350 g = … kg","350 g = … kg","350 g = … kg"],"a42_1.h0":["g → kg: انقل الفاصلة 3 خانات إلى اليسار.","g → kg: dịch dấu phẩy 3 chữ số sang trái.","g → kg: кома на 3 знаки вліво.","g → kg: ኮማ 3 ቦታ ናብ ጸጋም"],"a42_1.h1":["انظر إلى جدول «تحويل الوحدات».","Xem bảng „Đổi đơn vị“.","Подивись у таблицю «Переводити одиниці».","ኣብ ሰንጠረዥ «መዐቀኒታት ምቕያር» ርአ።"],"a42_1.s":["0,35 kg","0,35 kg","0,35 kg","0,35 kg"],"a42_2.q":["1,25 kg = … g","1,25 kg = … g","1,25 kg = … g","1,25 kg = … g"],"a42_2.h0":["kg → g: انقل الفاصلة 3 خانات إلى اليمين.","kg → g: dịch dấu phẩy 3 chữ số sang phải.","kg → g: кома на 3 знаки вправо.","kg → g: ኮማ 3 ቦታ ናብ የማን።"],"a42_2.h1":["انظر إلى جدول «تحويل الوحدات».","Xem bảng „Đổi đơn vị“.","Подивись у таблицю «Переводити одиниці».","ኣብ ሰንጠረዥ «መዐቀኒታት ምቕያር» ርአ።"],"a42_2.s":["1.250 g","1.250 g","1.250 g","1.250 g"],"a42_3.q":["330 ml = … l","330 ml = … l","330 ml = … l","330 ml = … l"],"a42_3.h0":["ml → l: انقل الفاصلة 3 خانات إلى اليسار.","ml → l: dịch dấu phẩy 3 chữ số sang trái.","ml → l: кома на 3 знаки вліво.","ml → l: ኮማ 3 ቦታ ናብ ጸጋም"],"a42_3.h1":["انظر إلى جدول «تحويل الوحدات».","Xem bảng „Đổi đơn vị“.","Подивись у таблицю «Переводити одиниці».","ኣብ ሰንጠረዥ «መዐቀኒታት ምቕያር» ርአ።"],"a42_3.s":["0,33 l","0,33 l","0,33 l","0,33 l"],"a42_4.q":["2,40 € = … ct","2,40 € = … ct","2,40 € = … ct","2,40 € = … ct"],"a42_4.h0":["€ → ct: × 100.","€ → ct: × 100.","€ → ct: × 100.","€ → ct: × 100።"],"a42_4.h1":["انظر إلى جدول «تحويل الوحدات».","Xem bảng „Đổi đơn vị“.","Подивись у таблицю «Переводити одиниці».","ኣብ ሰንጠረዥ «መዐቀኒታት ምቕያር» ርአ።"],"a42_4.s":["240 ct","240 ct","240 ct","240 ct"],"a42_5.q":["45 min = … h","45 min = … h","45 min = … h","45 min = … h"],"a42_5.h0":["30 min = 0,5 h و 15 min = 0,25 h. كم تساوي 45 min؟","30 min = 0,5 h và 15 min = 0,25 h. 45 min là bao nhiêu?","30 min = 0,5 h і 15 min = 0,25 h. Скільки це 45 min?","30 min = 0,5 h ን 15 min = 0,25 h ን። 45 min ክንደይ እዩ?"],"a42_5.h1":["انظر إلى جدول «تحويل الوحدات».","Xem bảng „Đổi đơn vị“.","Подивись у таблицю «Переводити одиниці».","ኣብ ሰንጠረዥ «መዐቀኒታት ምቕያር» ርአ።"],"a42_5.s":["0,75 h","0,75 h","0,75 h","0,75 h"],"a42_6.q":["4,5 h = … h … min","4,5 h = … h … min","4,5 h = … h … min","4,5 h = … h … min"],"a42_6.h0":["الساعات تبقى كما هي، وعليك فقط تحويل 0,5 h.","Số giờ giữ nguyên, chỉ cần đổi 0,5 h.","Години залишаються, переводити треба лише 0,5 h.","እቲ ሰዓታት ከም ዘለዎ ይተርፍ፣ 0,5 h ጥራይ ቀይር።"],"a42_6.h1":["0,5 h = نصف ساعة. كم دقيقة؟","0,5 h = nửa giờ. Là bao nhiêu phút?","0,5 h = півгодини. Скільки це хвилин?","0,5 h = ፍርቂ ሰዓት። ክንደይ ደቒቕ?"],"a42_6.s":["4 h 30 min","4 h 30 min","4 h 30 min","4 h 30 min"],"a43_3.q":["3 احسب: احسب البندين.","3 Tính: Hãy tính cả hai khoản.","3 Порахувати: порахуй обидві позиції.","3 ሒሳብ: ክልቲኡ ዓይነት ኣስሊሕ።"],"a43_3.h0":["الكمية × سعر الواحد، مرتين.","Số lượng × đơn giá, làm hai lần.","Кількість × ціна за штуку, двічі.","መጠን × ዋጋ ናይ ሓደ፣ ክልተ ጊዜ።"],"a43_3.h1":["3 × 2,49 و 2 × 1,19.","3 × 2,49 và 2 × 1,19.","3 × 2,49 і 2 × 1,19.","3 × 2,49 ን 2 × 1,19 ን።"],"a43_3.s":["3 × 2,49 = 7,47 € · 2 × 1,19 = 2,38 €","3 × 2,49 = 7,47 € · 2 × 1,19 = 2,38 €","3 × 2,49 = 7,47 € · 2 × 1,19 = 2,38 €","3 × 2,49 = 7,47 € · 2 × 1,19 = 2,38 €"],"a43_4.q":["4 المجموع (Summe): كم تكلّف البضائع معًا؟","4 Tổng (Summe): Các món hàng cộng lại giá bao nhiêu?","4 Сума: скільки коштують товари разом?","4 ድምር: ኣቕሓታት ብሓባር ክንደይ ይኸፍሉ?"],"a43_4.h0":["«معًا» (zusammen) كلمة إشارة. ما علامة الحساب؟","„cùng nhau“ (zusammen) là từ khóa. Dấu tính nào?","«разом» – сигнальне слово. Який знак дії?","«ብሓባር» ምልክት ቃል እዩ። ኣየናይ ምልክት ሒሳብ?"],"a43_4.h1":["اجمع البندين من الخطوة 3.","Cộng hai khoản ở bước 3.","Додай обидві позиції з кроку 3.","ክልቲኡ ካብ ደረጃ 3 ድምር።"],"a43_4.s":["7,47 + 2,38 = 9,85 €","7,47 + 2,38 = 9,85 €","7,47 + 2,38 = 9,85 €","7,47 + 2,38 = 9,85 €"],"a43_5.q":["5 الباقي (Rückgeld): كم يستردّ العميل؟","5 Tiền thối (Rückgeld): Khách nhận lại bao nhiêu?","5 Решта: скільки клієнт отримує назад?","5 ተመላሲ ገንዘብ: እቲ ዓሚል ክንደይ ይምለሰሉ?"],"a43_5.h0":["الباقي هو فرق: المدفوع ناقص المجموع.","Tiền thối là một chênh lệch: số tiền đưa trừ tổng.","Решта – це різниця: дано мінус сума.","ተመላሲ ገንዘብ ፍልልይ እዩ: ዝተዋህበ ሚነስ ድምር።"],"a43_5.h1":["20,00 ناقص نتيجة الخطوة 4.","20,00 trừ kết quả của bước 4.","20,00 мінус результат із кроку 4.","20,00 ሚነስ እቲ ውጽኢት ካብ ደረጃ 4።"],"a43_5.s":["20,00 − 9,85 = 10,15 €","20,00 − 9,85 = 10,15 €","20,00 − 9,85 = 10,15 €","20,00 − 9,85 = 10,15 €"],"a44_1.q":["احسب الباقي.","Hãy tính tiền thối.","Порахуй решту.","ተመላሲ ገንዘብ ኣስሊሕ።"],"a44_1.h0":["حوّل الغرامات إلى kg أولًا، ثم لكل صنف: الكمية × السعر للكيلوغرام.","Đổi gam sang kg trước, rồi với mỗi loại: số lượng × giá mỗi kg.","Спочатку переведи грами в kg, потім для кожного сорту кількість × ціна за kg.","ቅድም ግራም ናብ kg ቀይር፣ ድሕሪኡ ነፍሲ ወከፍ ዓይነት መጠን × ዋጋ ናይ kg።"],"a44_1.h1":["الجبن: 0,4 × 16,90. اللحم المقدد: 0,25 × 22,80. ثم اجمع واطرح من 20 €.","Phô mai: 0,4 × 16,90. Giăm bông: 0,25 × 22,80. Rồi cộng lại và trừ khỏi 20 €.","Сир: 0,4 × 16,90. Шинка: 0,25 × 22,80. Потім додай і відніми від 20 €.","ቺዝ: 0,4 × 16,90። ሃም: 0,25 × 22,80። ድሕሪኡ ድምር ካብ 20 € ቀንስ።"],"a44_1.s":["0,4 × 16,90 = 6,76 € · 0,25 × 22,80 = 5,70 €. المجموع 6,76 + 5,70 = 12,46 €. الباقي 20,00 − 12,46 = 7,54 €","0,4 × 16,90 = 6,76 € · 0,25 × 22,80 = 5,70 €. Tổng 6,76 + 5,70 = 12,46 €. Tiền thối 20,00 − 12,46 = 7,54 €","0,4 × 16,90 = 6,76 € · 0,25 × 22,80 = 5,70 €. Сума 6,76 + 5,70 = 12,46 €. Решта 20,00 − 12,46 = 7,54 €","0,4 × 16,90 = 6,76 € · 0,25 × 22,80 = 5,70 €። ድምር 6,76 + 5,70 = 12,46 €። ተመላሲ ገንዘብ 20,00 − 12,46 = 7,54 €"],"a5_1.q":["اكتب مشتريات من 5 أصناف من نشرة عروض (الصنف، الكمية، السعر، المبلغ)، على الأقل صنف واحد بالوزن. يحسب زميلك المجموع والباقي من 50 €.","Hãy ghi một lần mua 5 mặt hàng từ tờ quảng cáo (mặt hàng, số lượng, giá, số tiền), ít nhất một mặt hàng tính theo cân nặng. Bạn ngồi cạnh tính tổng và tiền thối từ 50 €.","Запиши покупку з 5 товарів із рекламного буклета (товар, кількість, ціна, сума), принаймні один товар на вагу. Твій сусід рахує суму й решту з 50 €.","ካብ ወረቐት ምስጋና 5 ኣቕሓ ዘለዎ ዕዳጋ ጽሓፍ (ኣቕሓ፣ መጠን፣ ዋጋ፣ ድምር)፣ ብውሑዱ ሓደ ኣቕሓ ብክብደት። መሳርሕትካ ድምርን ካብ 50 € ተመላሲ ገንዘብን የሰላስል።"],"a5_1.h0":["اكتب في كل سطر: الصنف والكمية والسعر والمبلغ.","Ghi vào mỗi dòng: mặt hàng, số lượng, giá và số tiền.","У кожний рядок запиши: товар, кількість, ціну й суму.","ኣብ ነፍሲ ወከፍ መስመር ጽሓፍ: ኣቕሓ፣ መጠን፣ ዋጋን ድምርን።"],"a5_1.h1":["عند الوزن: حوّل الغرامات إلى kg أولًا، ثم × السعر للكيلوغرام.","Với hàng tính theo cân: đổi gam sang kg trước, rồi × giá mỗi kg.","Для товару на вагу: спочатку переведи грами в kg, потім × ціна за kg.","ንክብደት: ቅድም ግራም ናብ kg ቀይር፣ ድሕሪኡ × ዋጋ ናይ kg።"],"a5_1.s":["حل شخصي. تحقّق بنفسك: (1) هل في كل سطر الكمية × السعر = المبلغ؟ (2) هل حوّلت g إلى kg في الصنف الموزون؟ (3) المجموع = جمع كل المبالغ؛ الباقي = 50,00 − المجموع. (4) هل النتيجة معقولة (Plausibilitäts-Check)؟","Bài làm riêng. Tự kiểm tra: (1) Mỗi dòng có số lượng × giá = số tiền không? (2) Với món tính theo cân, bạn đã đổi g sang kg chưa? (3) Tổng = cộng tất cả số tiền; tiền thối = 50,00 − tổng. (4) Kết quả có hợp lý không (Plausibilitäts-Check)?","Власне розв'язання. Перевір сам(а): (1) Чи в кожному рядку є кількість × ціна = сума? (2) Чи ти перевів(ла) g у kg для товару на вагу? (3) Сума = усі суми додані; решта = 50,00 − сума. (4) Чи результат правдоподібний (Plausibilitäts-Check)?","ናይ ባዕልኻ መልሲ። ባዕልኻ ርዓይ: (1) ኣብ ነፍሲ ወከፍ መስመር መጠን × ዋጋ = ድምር ኣሎ ድዩ? (2) ንናይ ክብደት ኣቕሓ g ናብ kg ቀይርካ ድዩ? (3) ድምር = ኩሎም ድምር ተወሲኾም፤ ተመላሲ ገንዘብ = 50,00 − ድምር። (4) እቲ ውጽኢት ይሰማማዕ ድዩ (Plausibilitäts-Check)?"],"a6_1.q":["6.1 يشتري عميل من قسم الفواكه والخضروات: 1.500 g من الصنف A، 1 kg بـ 4,00 €؛ 800 g من الصنف B، 1 kg بـ 7,50 €؛ 250 g من الصنف C، 1 kg بـ 18,00 €. يدفع ورقة نقدية بقيمة 50,00 €. كم Euro يأخذ من الباقي؟ (5 نقاط)","6.1 Một khách mua ở khu rau quả: 1.500 g hàng A, 1 kg giá 4,00 €; 800 g hàng B, 1 kg giá 7,50 €; 250 g hàng C, 1 kg giá 18,00 €. Khách trả bằng tờ 50,00 €. Khách nhận lại bao nhiêu Euro tiền thối? (5 điểm)","6.1 Клієнт купує на відділі овочів і фруктів: 1.500 g товару A, 1 kg по 4,00 €; 800 g товару B, 1 kg по 7,50 €; 250 g товару C, 1 kg по 18,00 €. Він платить купюрою 50,00 €. Скільки євро решти він отримає? (5 балів)","6.1 ሓደ ዓሚል ኣብ ክፍሊ ፍሩታን ኣሕምልትን ይገዝእ: 1.500 g ኣቕሓ A፣ 1 kg ብ4,00 €፤ 800 g ኣቕሓ B፣ 1 kg ብ7,50 €፤ 250 g ኣቕሓ C፣ 1 kg ብ18,00 €። ብ50,00 € ወረቐት ገንዘብ ይኸፍል። ክንደይ ዩሮ ተመላሲ ገንዘብ ይረክብ? (5 ነጥቢ)"],"a6_1.h0":["احسب كل صنف على حدة: الغرامات إلى kg، ثم × السعر للكيلوغرام.","Tính từng loại hàng: đổi gam sang kg, rồi × giá mỗi kg.","Порахуй кожен товар окремо: грами в kg, потім × ціна за kg.","ነፍሲ ወከፍ ኣቕሓ ንበይኑ ኣስሊሕ: ግራም ናብ kg፣ ድሕሪኡ × ዋጋ ናይ kg።"],"a6_1.h1":["اجمع المبالغ الثلاثة، ثم اطرحها من 50,00 €.","Cộng ba số tiền, rồi trừ khỏi 50,00 €.","Додай три суми, потім відніми від 50,00 €.","ሰለስተ ድምር ወስኽ፣ ድሕሪኡ ካብ 50,00 € ቀንስ።"],"a6_1.s":["1,5 × 4,00 = 6,00 € (نقطة) · 0,8 × 7,50 = 6,00 € (نقطة) · 0,25 × 18,00 = 4,50 € (نقطة). المجموع 16,50 € (نقطة). 50,00 − 16,50 = 33,50 € (نقطة)","1,5 × 4,00 = 6,00 € (1 điểm) · 0,8 × 7,50 = 6,00 € (1 điểm) · 0,25 × 18,00 = 4,50 € (1 điểm). Tổng 16,50 € (1 điểm). 50,00 − 16,50 = 33,50 € (1 điểm)","1,5 × 4,00 = 6,00 € (1 б.) · 0,8 × 7,50 = 6,00 € (1 б.) · 0,25 × 18,00 = 4,50 € (1 б.). Сума 16,50 € (1 б.). 50,00 − 16,50 = 33,50 € (1 б.)","1,5 × 4,00 = 6,00 € (1 ነ.) · 0,8 × 7,50 = 6,00 € (1 ነ.) · 0,25 × 18,00 = 4,50 € (1 ነ.)። ድምር 16,50 € (1 ነ.)። 50,00 − 16,50 = 33,50 € (1 ነ.)"],"a6_2.q":["6.2 في عرض خاص بِيعت آخر 22 زوج أحذية شتوية بسعر 59,90 € للزوج. احسب إجمالي المبيعات (Bruttoumsatz) لهذا العرض بالـ Euro!","6.2 Trong một đợt khuyến mãi, 22 đôi ủng mùa đông còn lại được bán với giá 59,90 € mỗi đôi. Hãy tính doanh thu gộp (Bruttoumsatz) của đợt khuyến mãi này bằng Euro!","6.2 Під час спеціальної акції залишок з 22 пар зимових чобіт продали по 59,90 € за пару. Обчисліть валовий оборот (Bruttoumsatz) цієї акції в євро!","6.2 ኣብ ፍሉይ ዕዳጋ እቶም ዝተረፉ 22 ጽምዲ ናይ ክረምቲ ጫማ ነፍሲ ወከፍ 59,90 € ተሸይጦም። ጠቕላላ መሸጣ (Bruttoumsatz) ናይዚ ፍሉይ ዕዳጋ ብዩሮ ኣስሊሕ!"],"a6_2.h0":["المبيعات = الكمية × السعر. ما الكمية وما سعر الوحدة؟","Doanh thu = số lượng × giá. Đâu là số lượng, đâu là đơn giá?","Оборот = кількість × ціна. Що тут кількість, що ціна за штуку?","መሸጣ = መጠን × ዋጋ። መጠን እንታይ እዩ፣ ዋጋ ናይ ሓደ እንታይ እዩ?"],"a6_2.h1":["22 × 59,90 – اكتب الفاصلة بمفتاح النقطة.","22 × 59,90 – gõ dấu phẩy bằng phím dấu chấm.","22 × 59,90 – кому вводь клавішею з крапкою.","22 × 59,90 – ኮማ ብቁልፊ ነጥቢ ጽሓፍ።"],"a6_2.s":["22 × 59,90 = 1.317,80 €","22 × 59,90 = 1.317,80 €","22 × 59,90 = 1.317,80 €","22 × 59,90 = 1.317,80 €"],"a6_3.q":["6.3 يحصل العملاء الدائمون على قسيمة حسب مبلغ الشراء: من 40 € → 4 € · من 70 € → 8 € · من 100 € → 12 € · من 150 € → 18 € · من 220 € → 28 € · من 300 € → 40 €. يشتري عميل بضاعة بقيمة 163,50 € ويستعمل القسيمة. كم Euro عليه أن يدفع؟","6.3 Khách quen nhận phiếu quà tặng tùy theo số tiền mua: từ 40 € → 4 € · từ 70 € → 8 € · từ 100 € → 12 € · từ 150 € → 18 € · từ 220 € → 28 € · từ 300 € → 40 €. Một khách mua hàng trị giá 163,50 € và dùng phiếu. Khách phải trả bao nhiêu Euro?","6.3 Постійні клієнти отримують ваучер залежно від суми покупки: від 40 € → 4 € · від 70 € → 8 € · від 100 € → 12 € · від 150 € → 18 € · від 220 € → 28 € · від 300 € → 40 €. Клієнт купує товар на 163,50 € і використовує ваучер. Скільки євро він має заплатити?","6.3 ዘወትሩ ዓማዊል ከከም ዕዳጋኦም ቫውቸር ይረኽቡ: ካብ 40 € → 4 € · ካብ 70 € → 8 € · ካብ 100 € → 12 € · ካብ 150 € → 18 € · ካብ 220 € → 28 € · ካብ 300 € → 40 €። ሓደ ዓሚል ብ163,50 € ኣቕሓ ይገዝእ ቫውቸር ድማ ይጥቀም። ክንደይ ዩሮ ክኸፍል ኣለዎ?"],"a6_3.h0":["أولًا: أي درجة يبلغها العميل؟ يجب أن يصل على الأقل إلى قيمة الدرجة.","Trước tiên: khách đạt mức nào? Số tiền mua phải ít nhất bằng giá trị của mức đó.","Спочатку: який рівень досягає клієнт? Сума покупки має бути не менша за рівень.","ቅድም: ኣየናይ ደረጃ ይበጽሕ? ብውሑዱ ዋጋ ናይቲ ደረጃ ክህልዎ ኣለዎ።"],"a6_3.h1":["ثم: مبلغ الشراء ناقص القسيمة.","Sau đó: số tiền mua trừ phiếu quà tặng.","Потім: сума покупки мінус ваучер.","ድሕሪኡ: ድምር ዕዳጋ ሚነስ ቫውቸር።"],"a6_3.s":["163,50 € أكثر من 150 € لكن أقل من 220 € ← القسيمة 18 € · 163,50 − 18,00 = 145,50 €","163,50 € lớn hơn 150 € nhưng nhỏ hơn 220 € → phiếu 18 € · 163,50 − 18,00 = 145,50 €","163,50 € більше за 150 €, але менше за 220 € → ваучер 18 € · 163,50 − 18,00 = 145,50 €","163,50 € ካብ 150 € ይበዝሕ፣ ግን ካብ 220 € ይውሕድ → ቫውቸር 18 € · 163,50 − 18,00 = 145,50 €"],"a6_4.q":["6.4 كان المخزون الأولي لبضاعة 150 قطعة. خلال الشهر وصلت 90 ثم 60 قطعة. بِيعت 215 قطعة. أظهر الجرد 41 قطعة في المخزن و38 قطعة في قاعة البيع. احسب الفرق (Differenz) بالقطع!","6.4 Tồn kho đầu kỳ của một mặt hàng là 150 cái. Trong tháng nhập thêm 90 và 60 cái. Đã bán 215 cái. Kiểm kê được 41 cái trong kho và 38 cái ở khu bán hàng. Hãy tính chênh lệch (Differenz) bằng số cái!","6.4 Початковий запас товару становив 150 штук. За місяць надійшло 90 і 60 штук. Продано 215 штук. Підрахунок показав 41 штуку на складі і 38 штук у торговому залі. Визначте різницю в штуках!","6.4 ናይ ጅምር ክዕቀብ ሓደ ኣቕሓ 150 ቁሩብ ነበረ። ኣብ ወርሒ 90 ን 60 ን ቁሩብ ወሲኹ። 215 ቁሩብ ተሸይጡ። ቆጸራ 41 ቁሩብ ኣብ መዘክር ን 38 ቁሩብ ኣብ ክፍሊ መሸጣ ኣርኣየ። ፍልልይ ብቁሩብ ኣስሊሕ!"],"a6_4.h0":["احسب كميتين: المخزون النظري Soll (حسب الدفاتر) والمخزون الفعلي Ist (المعدود).","Tính hai số lượng: tồn kho theo sổ sách Soll và tồn kho thực tế Ist (đã đếm).","Порахуй дві кількості: бажаний запас (за обліком, Soll) і фактичний запас (підрахований, Ist).","ክልተ መጠን ኣስሊሕ: ድልዩ ክዕቀብ (ብመዝገብ፣ Soll) ን ሓቀኛ ክዕቀብ (ዝተቐጸረ፣ Ist) ን።"],"a6_4.h1":["Soll: المخزون الأولي زائد الواردات ناقص المبيعات. Ist: المخزن زائد قاعة البيع. ثم الفرق.","Soll: tồn đầu kỳ cộng nhập trừ bán. Ist: kho cộng khu bán hàng. Rồi tính chênh lệch.","Soll: початковий запас плюс надходження мінус продажі. Ist: склад плюс торговий зал. Потім різниця.","Soll: ናይ ጅምር ክዕቀብ ሲዒቡ ዝመጸ ሚነስ ዝተሸጠ። Ist: መዘክር ፕላስ ክፍሊ መሸጣ። ድሕሪኡ ፍልልይ።"],"a6_4.s":["Soll: 150 + 90 + 60 − 215 = 85 قطعة · Ist: 41 + 38 = 79 قطعة. الفرق: 6 قطع (نقص)","Soll: 150 + 90 + 60 − 215 = 85 cái · Ist: 41 + 38 = 79 cái. Chênh lệch: 6 cái (thiếu hụt)","Soll: 150 + 90 + 60 − 215 = 85 шт. · Ist: 41 + 38 = 79 шт. Різниця: 6 шт. (нестача)","Soll: 150 + 90 + 60 − 215 = 85 ቁሩብ · Ist: 41 + 38 = 79 ቁሩብ። ፍልልይ: 6 ቁሩብ (ጎዶሎ)"],"a7p_1.q":["7.1 يحسب Tom سعر الوحدة لـ 750 g قهوة بـ 9,49 €: 9,49 : 7,5 = 1,27 € لكل 100 g. وللتحقق يحسب 1,27 × 7,5 = 9,53 €. اشرح لماذا لا يعطي التحقق 9,49 € بالضبط.","7.1 Tom tính đơn giá cho 750 g cà phê giá 9,49 €: 9,49 : 7,5 = 1,27 € mỗi 100 g. Để thử lại, bạn ấy tính 1,27 × 7,5 = 9,53 €. Hãy giải thích vì sao phép thử không ra đúng 9,49 €.","7.1 Том рахує ціну за одиницю для 750 g кави по 9,49 €: 9,49 : 7,5 = 1,27 € за 100 g. Для перевірки він рахує 1,27 × 7,5 = 9,53 €. Поясніть, чому перевірка не дає точно 9,49 €.","7.1 ቶም ዋጋ ናይ ሓደ መዐቀኒ ንናይ 750 g ቡን ብ9,49 € የሰላስል: 9,49 : 7,5 = 1,27 € ነፍሲ ወከፍ 100 g። ንምርግጋጽ 1,27 × 7,5 = 9,53 € የሰላስል። እቲ ምርግጋጽ ስለምንታይ ልክዕ 9,49 € ከም ዘይኮነ ግለጽ።"],"a7p_1.h0":["انظر إلى الأرقام بعد الفاصلة: هل 1,27 هو الناتج الدقيق؟","Nhìn các chữ số sau dấu phẩy: 1,27 có phải kết quả chính xác không?","Подивись на число після коми: чи 1,27 – точний результат?","ነታ ድሕሪ ኮማ ዘላ ቁጽሪ ርአያ: 1,27 ልክዕ ውጽኢት ድዩ?"],"a7p_1.h1":["تذكّر القاعدة «لا تقرّب النتائج الوسيطة».","Nhớ quy tắc „không làm tròn kết quả trung gian“.","Згадай правило «не округлювати проміжні результати».","ነቲ ሕጊ «ማእከላይ ውጽኢታት ኣይትክበብ» ሕሰብ።"],"a7p_1.s":["الناتج 1,2653 … جرى تقريبه إلى 1,27. لذلك يختلف التحقق بالقيمة المقرّبة ببضعة سنتات. وبالقيمة غير المقرّبة يعطي التحقق 9,49 € بالضبط.","Kết quả 1,2653 … đã được làm tròn thành 1,27. Vì vậy phép thử với giá trị đã làm tròn lệch vài xu. Với giá trị chưa làm tròn, phép thử ra đúng 9,49 €.","Результат 1,2653 … округлили до 1,27. Тому перевірка із округленим значенням відхиляється на кілька центів. З неокругленим значенням перевірка дає точно 9,49 €.","እቲ ውጽኢት 1,2653 … ናብ 1,27 ተኸቢቡ። ስለዚ እቲ ምርግጋጽ ምስ ዝተኸበበ ዋጋ ብገለ ሳንቲም ይፈላለ። ምስ ዘይተኸበበ ዋጋ እቲ ምርግጋጽ ልክዕ 9,49 € ይህብ።"],"a7p_2.q":["7.2 التقدير يساعد عند الصندوق. قدّر 48 × 9,95 € واشرح فائدة التقدير عند المحاسبة.","7.2 Ở quầy thu ngân, ước tính nhanh rất hữu ích. Hãy ước tính 48 × 9,95 € và giải thích ước tính có ích gì khi thanh toán.","7.2 На касі допомагає прикидка (Überschlag). Зробіть прикидку для 48 × 9,95 € і поясніть, чим прикидка корисна під час розрахунку з клієнтом.","7.2 ኣብ ካሳ ምግማት (Überschlag) የሕግዝ። 48 × 9,95 € ገምግም፣ ምግማት ኣብ ክፍሊት ስለምንታይ ጠቓሚ ከም ዝኾነ ግለጽ።"],"a7p_2.h0":["قرّب العددين بحيث تستطيع الحساب في ذهنك.","Làm tròn hai số để nhẩm được.","Округли обидва числа так, щоб можна було рахувати в голові.","ክልቲኡ ቁጽሪ ብርእስኻ ክትሰልሕ ዝከኣል ጌርካ ክበብ።"],"a7p_2.h1":["أي أخطاء يكشفها التقدير فورًا؟","Ước tính giúp phát hiện ngay những lỗi nào?","Які помилки одразу помітні завдяки прикидці?","ኣየናይ ጌጋታት ብምግማት ቀልጢፎም ይረኣዩ?"],"a7p_2.s":["48 × 9,95 ≈ 50 × 10 = 500 € (بالضبط: 477,60 €). بالتقدير تكتشف فورًا الأخطاء الكبيرة، مثل فاصلة منزلقة أو كمية خاطئة.","48 × 9,95 ≈ 50 × 10 = 500 € (chính xác: 477,60 €). Nhờ ước tính, ta phát hiện ngay lỗi lớn, ví dụ lệch dấu phẩy hoặc sai số lượng.","48 × 9,95 ≈ 50 × 10 = 500 € (точно: 477,60 €). За прикидкою одразу видно грубі помилки, напр. зсунуту кому або неправильну кількість.","48 × 9,95 ≈ 50 × 10 = 500 € (ልክዕ: 477,60 €)። ብምግማት ዓበይቲ ጌጋታት ቀልጢፍካ ትርእይ፣ ንኣብነት ዝተሰጋገረ ኮማ ወይ ጌጋ መጠን።"],"v11_1.q":["9.1 لماذا لا يجوز تقريب النتائج الوسيطة؟ علّل بمثال 9,49 : 7,5.","9.1 Vì sao không được làm tròn kết quả trung gian? Giải thích bằng ví dụ 9,49 : 7,5.","9.1 Чому не можна округлювати проміжні результати? Поясни на прикладі 9,49 : 7,5.","9.1 ማእከላይ ውጽኢታት ስለምንታይ ኣይክበቡን? ብኣብነት 9,49 : 7,5 ግለጽ።"],"v11_1.h0":["ماذا يحدث للخطأ الصغير إذا ضربت بعد ذلك في 10 أو 7,5؟","Lỗi nhỏ sẽ ra sao nếu sau đó bạn còn nhân với 10 hoặc 7,5?","Що станеться з маленькою помилкою, якщо потім ще рахувати × 10 або × 7,5?","እታ ንእሽቶ ጌጋ ድሕሪኡ × 10 ወይ × 7,5 እንተ ሰሊሕካ እንታይ ትኸውን?"],"v11_1.h1":["قارن 1,27 × 7,5 بالقيمة الدقيقة.","So sánh 1,27 × 7,5 với giá trị chính xác.","Порівняй 1,27 × 7,5 з точним значенням.","1,27 × 7,5 ምስ ልክዕ ዋጋ ኣወዳድር።"],"v11_1.s":["من يقرّب 1,2653 … إلى 1,27 مبكرًا يتابع الحساب بقيمة خاطئة قليلًا. يكبر الخطأ الصغير عند متابعة الحساب (مثلًا × 10 أو × 7,5) فتختلف النتيجة النهائية ببضعة سنتات. لذلك تابع الحساب دفعة واحدة وقرّب النتيجة النهائية فقط.","Ai làm tròn 1,2653 … thành 1,27 quá sớm sẽ tiếp tục tính với một giá trị hơi sai. Lỗi nhỏ lớn dần khi tính tiếp (ví dụ × 10 hoặc × 7,5) và kết quả cuối lệch vài xu. Vì vậy hãy tính liền một mạch và chỉ làm tròn kết quả cuối.","Хто округлює 1,2653 … вже до 1,27, той рахує далі з трохи неправильним значенням. Маленька помилка під час подальшого рахунку зростає (напр. × 10 або × 7,5), і кінцевий результат відхиляється на кілька центів. Тому рахуй далі за один раз і округлюй лише кінцевий результат.","1,2653 … ቀልጢፉ ናብ 1,27 ዝክብብ ሰብ ምስ ቁሩብ ጌጋ ዋጋ ይቕጽል። እታ ንእሽቶ ጌጋ ኣብ ቀጻሊ ሒሳብ (ንኣብነት × 10 ወይ × 7,5) ትዓቢ እሞ እቲ መወዳእታ ውጽኢት ብገለ ሳንቲም ይፈላለ። ስለዚ ብሓደ ጊዜ ቀጽል እሞ መወዳእታ ውጽኢት ጥራይ ክበብ።"],"v11_2.q":["9.2 لماذا يُقرَّب 19,996 € إلى 20,00 € وليس إلى 19,00 €؟ علّل بقاعدة التقريب.","9.2 Vì sao 19,996 € được làm tròn thành 20,00 € chứ không phải 19,00 €? Giải thích bằng quy tắc làm tròn.","9.2 Чому 19,996 € округлюють до 20,00 €, а не до 19,00 €? Поясни за правилом округлення.","9.2 19,996 € ስለምንታይ ናብ 20,00 € ይክበብ እምበር ናብ 19,00 € ኣይኮነን? ብሕጊ ምክባብ ግለጽ።"],"v11_2.h0":["أي رقم يسقط – وماذا تقول القاعدة لهذا الرقم؟","Chữ số nào bị bỏ đi – và quy tắc nói gì về chữ số đó?","Яка цифра відпадає – і що каже правило для цієї цифри?","ኣየናይ ቁጽሪ ይወድቕ – እቲ ሕጊ ንዚ ቁጽሪ እንታይ ይብል?"],"v11_2.h1":["ماذا يحدث للتسعات قبله عندما نضيف واحدًا؟","Các chữ số 9 phía trước sẽ ra sao khi cộng thêm một?","Що стається з дев'ятками перед нею, якщо додати одиницю?","ሓደ እንተ ወሲኽካ እቶም 9 ቅድሚኡ እንታይ ይኾኑ?"],"v11_2.s":["أول رقم يسقط هو 6، لذلك نقرّب للأعلى. نضيف 0,01 إلى 19,99: التسعة في أقصى اليمين تصبح 10، والتغيير ينتقل إلى الخانات السابقة حتى الـ Euro. فينتج 20,00 €. أما 19,00 € فخطأ لأن العدد قريب جدًا من 20.","Chữ số đầu tiên bị bỏ đi là 6, nên làm tròn lên. Cộng 0,01 vào 19,99: chữ số 9 ngoài cùng bên phải thành 10, phần nhớ chuyển sang các hàng trước đến tận hàng Euro. Kết quả là 20,00 €. 19,00 € là sai vì số này rất gần 20.","Перша цифра, що відпадає, – шістка, тому округлюємо вгору. До 19,99 додаємо 0,01: остання дев'ятка стає 10, перенесення «зсувається далі» аж до євро. Так виходить 20,00 €. 19,00 € було б неправильно, бо число зовсім близьке до 20.","እቲ ዝወድቕ ቀዳማይ ቁጽሪ 6 እዩ፣ ስለዚ ናብ ላዕሊ ይክበብ። ናብ 19,99 እቲ 0,01 ይወሰኽ: እቲ ዝዕጾ 9 ናብ 10 ይኸውን፣ እቲ ዝተሰጋገረ ክሳብ ዩሮ «ይቕጽል»። ከምኡ 20,00 € ይወጽእ። 19,00 € ጌጋ እዩ፣ ምኽንያቱ እቲ ቁጽሪ ኣብ 20 ቀሪቡ እዩ።"],"v11_3.q":["9.3 ماذا يحدث إذا حسبت 125 g جبن بسعر 12,00 € للكيلوغرام على أساس 1,25 kg بدل 0,125 kg؟ علّل كيف يكشف فحص المعقولية (Plausibilitäts-Check) الخطأ.","9.3 Chuyện gì xảy ra nếu bạn tính 125 g phô mai giá 12,00 € mỗi kg với 1,25 kg thay vì 0,125 kg? Giải thích vì sao kiểm tra tính hợp lý (Plausibilitäts-Check) phát hiện ra lỗi.","9.3 Що станеться, якщо для 125 g сиру по 12,00 € за kg порахувати з 1,25 kg замість 0,125 kg? Поясни, як перевірка на правдоподібність показує помилку.","9.3 ንናይ 125 g ቺዝ ነፍሲ ወከፍ kg 12,00 € ብ0,125 kg ዘይኮነስ ብ1,25 kg እንተ ሰሊሕካ እንታይ ይኸውን? ምርግጋጽ ርግጸኛነት (Plausibilitäts-Check) ነቲ ጌጋ ከመይ ከም ዘርእዮ ግለጽ።"],"v11_3.h0":["احسب الحالتين: 1,25 × 12,00 و 0,125 × 12,00.","Tính cả hai trường hợp: 1,25 × 12,00 và 0,125 × 12,00.","Порахуй обидва випадки: 1,25 × 12,00 і 0,125 × 12,00.","ክልቲኡ ኣስሊሕ: 1,25 × 12,00 ን 0,125 × 12,00 ን።"],"v11_3.h1":["125 g أقل بكثير من 1 kg. هل يمكن أن يكون السعر أعلى من سعر 1 kg؟","125 g ít hơn nhiều so với 1 kg. Giá có thể cao hơn giá của 1 kg không?","125 g – набагато менше за 1 kg. Чи може ціна бути вищою, ніж за 1 kg?","125 g ካብ 1 kg ብዙሕ ውሑድ እዩ። ዋጋ ካብ ናይ 1 kg ክበዝሕ ይኽእል ድዩ?"],"v11_3.s":["مع 1,25 kg يخرج 15,00 € بدل 1,50 € الصحيح، أي عشرة أضعاف. الفحص يكشفه: 125 g أقل من 1 kg، فيجب أن يكون السعر أقل من 12,00 €. 15,00 € لا يمكن أن يكون صحيحًا – الفاصلة انزلقت.","Với 1,25 kg ra 15,00 € thay vì 1,50 € đúng, tức là gấp mười lần. Kiểm tra cho thấy: 125 g ít hơn 1 kg nên giá phải nhỏ hơn 12,00 €. 15,00 € không thể đúng – dấu phẩy đã bị lệch.","З 1,25 kg виходить 15,00 € замість правильних 1,50 €, тобто в десять разів забагато. Перевірка це показує: 125 g менше за 1 kg, отже ціна має бути меншою за 12,00 €. 15,00 € не може бути правильно – кома зсунулась.","ምስ 1,25 kg 15,00 € ይወጽእ፣ እንተ ሓቁ 1,50 €፣ ማለት ዓሰርተ ጊዜ ብዙሕ። እቲ ምርግጋጽ የርእዮ: 125 g ካብ 1 kg ውሑድ እዩ፣ ስለዚ ዋጋ ካብ 12,00 € ውሑድ ክኸውን ኣለዎ። 15,00 € ክኸውን ኣይክእልን – እቲ ኮማ ተሰጋጊሩ።"],"v11_4.q":["9.4 لماذا 45 min ليست 0,45 h بل 0,75 h؟ علّل.","9.4 Vì sao 45 min không phải 0,45 h mà là 0,75 h? Giải thích.","9.4 Чому 45 min – це не 0,45 h, а 0,75 h? Поясни.","9.4 45 min ስለምንታይ 0,45 h ኣይኮነን፣ 0,75 h እዩ? ግለጽ።"],"v11_4.h0":["كم دقيقة في الساعة الواحدة؟","1 giờ có bao nhiêu phút?","Скільки хвилин у 1 годині?","1 ሰዓት ክንደይ ደቒቕ ኣለዎ?"],"v11_4.h1":["30 min = 0,5 h و 15 min = 0,25 h. كم ربع ساعة في 45 min؟","30 min = 0,5 h và 15 min = 0,25 h. 45 min là mấy phần tư giờ?","30 min = 0,5 h і 15 min = 0,25 h. Скільки чвертей години в 45 min?","30 min = 0,5 h ን 15 min = 0,25 h ን። 45 min ክንደይ ርብዒ ሰዓት እዩ?"],"v11_4.s":["الساعة فيها 60 دقيقة وليس 100. لذلك لا نكتب الدقائق بعد الفاصلة مباشرة. 45 min تساوي 45 : 60 = 0,75 h (ثلاثة أرباع الساعة). أما 0,45 h فتساوي 27 min فقط.","Một giờ có 60 phút, không phải 100. Vì vậy ta không viết số phút ngay sau dấu phẩy. 45 min là 45 : 60 = 0,75 h (ba phần tư giờ). 0,45 h chỉ là 27 min.","В одній годині 60 хвилин, а не 100. Тому не можна просто писати «хвилини після коми». 45 min – це 45 : 60 = 0,75 h (три чверті години). 0,45 h були б лише 27 min.","ሓንቲ ሰዓት 60 ደቒቕ ኣለዋ፣ 100 ኣይኮነን። ስለዚ ደቒቕ ድሕሪ ኮማ ምጽሓፍ ኣይከኣልን። 45 min = 45 : 60 = 0,75 h (ሰለስተ ርብዒ ሰዓት)። 0,45 h 27 min ጥራይ እዩ።"],"r0.t":["استعمال الآلة الحاسبة","Dùng máy tính","Користуватися калькулятором","ካልኩሌተር ምጥቃም"],"r0.task":["ظلّل مفتاح الفاصلة، والمفتاح الذي يمسح آخر إدخال فقط، وما تقرّبه في النهاية فقط.","Tô phím cho dấu phẩy, phím chỉ xóa lần nhập cuối, và thứ bạn chỉ làm tròn ở cuối.","Познач клавішу для коми, клавішу, що стирає лише останнє введення, і що ти округлюєш лише наприкінці.","እቲ ናይ ኮማ ቁልፊ፣ እቲ ናይ መወዳእታ ኣእተዋ ጥራይ ዝደምስስ ቁልፊ፣ ኣብ መወዳእታ ጥራይ እትክብቦ እንታይ ምዃኑ ምልክት ግበር።"],"r0.x":["على الآلة الحاسبة تكتب الفاصلة بمفتاح النقطة. وهي تحسب الضرب قبل الجمع (Punkt vor Strich). إذا أردت الجمع أولًا، تضع أقواسًا أو تضغط = في المنتصف. تابع الحساب دفعة واحدة وقرّب النتيجة النهائية فقط. AC يمسح كل شيء، و C يمسح آخر إدخال فقط. لا تكتب النتيجة الوسيطة (Zwischenergebnis).","Trên máy tính, bạn gõ dấu phẩy bằng phím dấu chấm. Máy tính nhân chia trước cộng trừ (Punkt vor Strich). Nếu muốn cộng trước, bạn dùng ngoặc hoặc bấm = ở giữa. Hãy tính liền một mạch và chỉ làm tròn kết quả cuối. AC xóa tất cả, C chỉ xóa lần nhập cuối. Kết quả trung gian (Zwischenergebnis) thì không chép lại.","На калькуляторі кому вводять клавішею з крапкою. Він множить раніше, ніж додає. Якщо хочеш спочатку додати, став дужки або натисни = посередині. Рахуй далі за один раз і округляй лише кінцевий результат. AC стирає все, C – лише останнє введення. Проміжний результат не переписуй.","ኣብ ካልኩሌተር ኮማ ብቁልፊ ነጥቢ ትጽሕፍ። ቅድሚ ምውሳኽ ምድማር ይገብር። ቅድም ክትውስኽ እንተደሊኻ ቅንፍ ተጠቐም ወይ ኣብ ማእከል = ጠውቕ። ብሓደ ጊዜ ቀጽል እሞ መወዳእታ ውጽኢት ጥራይ ክበብ። AC ኩሉ ይደምስስ፣ C ናይ መወዳእታ ኣእተዋ ጥራይ። ማእከላይ ውጽኢት ኣይትጽሓፍ።"],"r0.q":["أخطأت في الضغط. أي مفتاح تضغط؟","Bạn gõ nhầm. Bạn bấm phím nào?","Ти помилився(лась) у введенні. Яку клавішу натискаєш?","ተጌግየ። ኣየናይ ቁልፊ ትጠውቕ?"],"r0.o0":["AC","AC","AC","AC"],"r0.o1":["C","C","C","C"],"r0.o2":["=","=","=","="],"r1.t":["التقريب التجاري","Làm tròn kiểu thương mại","Комерційне округлення","ንግዳዊ ምክባብ"],"r1.task":["ظلّل قاعدة التقريب وعدد الخانات بعد الفاصلة للمال.","Tô quy tắc làm tròn và số chữ số sau dấu phẩy của tiền.","Познач правило округлення і скільки знаків після коми мають гроші.","እቲ ሕጊ ምክባብ ን ገንዘብ ክንደይ ደገ ኮማ ከም ዘለዎ ን ምልክት ግበር።"],"r1.x":["عند التقريب تنظر إلى أول رقم يسقط. مع 0 و1 و2 و3 و4 نقرّب للأسفل، ومع 5 و6 و7 و8 و9 نقرّب للأعلى. للمال خانتان بعد الفاصلة. الأشخاص والقطع أعداد صحيحة. مع 19,996 € نقرّب للأعلى والتغيير ينتقل إلى الخانات السابقة: النتيجة 20,00 €. الوحدة (Einheit) لا تتغير بذلك.","Khi làm tròn, bạn nhìn chữ số đầu tiên bị bỏ đi. Với 0, 1, 2, 3, 4 thì làm tròn xuống, với 5, 6, 7, 8, 9 thì làm tròn lên. Tiền có 2 chữ số sau dấu phẩy. Người và món hàng là số nguyên. Với 19,996 € thì làm tròn lên và phần nhớ chuyển sang các hàng trước: kết quả là 20,00 €. Đơn vị (Einheit) không thay đổi.","Під час округлення дивись на першу цифру, що відпадає. Якщо це 0, 1, 2, 3, 4 – округлюємо вниз, якщо 5, 6, 7, 8, 9 – вгору. Гроші мають 2 знаки після коми. Люди й штуки – цілі числа. У 19,996 € округлюємо вгору, і все зсувається далі: результат 20,00 €. Одиниця при цьому не змінюється.","ኣብ ምክባብ ነታ ዝወድቕ ቀዳማይ ቁጽሪ ትርእያ። ኣብ 0, 1, 2, 3, 4 ናብ ታሕቲ ይክበብ፣ ኣብ 5, 6, 7, 8, 9 ናብ ላዕሊ ይክበብ። ገንዘብ 2 ደገ ኮማ ኣለዎ። ሰባትን ክፍልታትን ምሉእ ቁጽሪ እዮም። 19,996 € ናብ ላዕሊ ይክበብ ኩሉ ድማ ይቕጽል: እቲ ውጽኢት 20,00 € እዩ። እቲ መዐቀኒ ኣይቀየርን።"],"r1.q":["كيف يُقرَّب 7,994 € إلى خانتين؟","7,994 € làm tròn đến 2 chữ số là bao nhiêu?","Як округлити 7,994 € до двох знаків?","7,994 € ክሳብ ክልተ ደገ ኮማ ከመይ ይክበብ?"],"r1.o0":["7,99 €","7,99 €","7,99 €","7,99 €"],"r1.o1":["8,00 €","8,00 €","8,00 €","8,00 €"],"r1.o2":["7,90 €","7,90 €","7,90 €","7,90 €"],"r2.t":["تحويل الوحدات","Đổi đơn vị","Переводити одиниці","መዐቀኒታት ምቕያር"],"r2.task":["ظلّل التحويلات الأربعة.","Tô bốn phép đổi.","Познач чотири переведення.","እቶም ኣርባዕተ ምቕያራት ምልክት ግበር።"],"r2.x":["هناك أربعة تحويلات مهمة: 1 € يساوي 100 ct. 1 kg يساوي 1.000 g. 1 l يساوي 1.000 ml. 1 h يساوي 60 min. من g إلى kg ومن ml إلى l تنتقل الفاصلة 3 خانات إلى اليسار. نصف الساعة يساوي 0,5 h وربع الساعة يساوي 0,25 h. لكن: الساعة ليست 100 min.","Có bốn phép đổi quan trọng: 1 € là 100 ct. 1 kg là 1.000 g. 1 l là 1.000 ml. 1 h là 60 min. Từ g sang kg và từ ml sang l, dấu phẩy dịch 3 chữ số sang trái. Nửa giờ là 0,5 h, một phần tư giờ là 0,25 h. Nhưng: một giờ không có 100 min.","Є чотири важливі переведення: 1 € – це 100 ct. 1 kg – це 1.000 g. 1 l – це 1.000 ml. 1 h – це 60 min. З g у kg і з ml у l кома зсувається на 3 знаки вліво. Півгодини – це 0,5 h, чверть години – 0,25 h. Але: в годині не 100 min.","ኣርባዕተ ኣገደስቲ ምቕያራት ኣለዉ: 1 € 100 ct እዩ። 1 kg 1.000 g እዩ። 1 l 1.000 ml እዩ። 1 h 60 min እዩ። ካብ g ናብ kg ን ካብ ml ናብ l ን ኮማ 3 ቦታ ናብ ጸጋም ይንቀሳቀስ። ፍርቂ ሰዓት 0,5 h እዩ፣ ርብዒ ሰዓት 0,25 h እዩ። ግን: ሓንቲ ሰዓት 100 min ኣይኮነትን።"],"r2.q":["كم kg تساوي 750 g؟","750 g là bao nhiêu kg?","Скільки kg – це 750 g?","750 g ክንደይ kg እዩ?"],"r2.o0":["0,75 kg","0,75 kg","0,75 kg","0,75 kg"],"r2.o1":["7,5 kg","7,5 kg","7,5 kg","7,5 kg"],"r2.o2":["0,075 kg","0,075 kg","0,075 kg","0,075 kg"],"r3.t":["كلمات الإشارة","Từ khóa","Сигнальні слова","ምልክት ቃላት"],"r3.task":["ظلّل كلمات الإشارة للجمع وللطرح.","Tô các từ khóa của phép cộng và phép trừ.","Познач сигнальні слова для плюса і для мінуса.","ንፕላስን ንሚነስን ዝኾኑ ምልክት ቃላት ምልክት ግበር።"],"r3.x":["في المسألة تدلّ كلمات الإشارة على علامة الحساب. مع «insgesamt» (الإجمالي) و«zusammen» (معًا) و«Summe» (المجموع) تجمع. مع «Rückgeld» (الباقي) و«Differenz» (الفرق) و«wie viel mehr / weniger» (كم أكثر / أقل) و«nach Abzug» (بعد الخصم) تطرح. مع «je» و«pro» و«zu je» (لكل) تضرب (من 1 إلى عدة) أو تقسم (من عدة إلى 1). كلمة «Stückzahl» (عدد القطع) لا تقول شيئًا عن علامة الحساب.","Trong đề bài, từ khóa cho biết dấu tính. Với „insgesamt“ (tổng cộng), „zusammen“ (cùng nhau) và „Summe“ (tổng) bạn tính cộng. Với „Rückgeld“ (tiền thối), „Differenz“ (chênh lệch), „wie viel mehr / weniger“ (nhiều hơn / ít hơn bao nhiêu) và „nach Abzug“ (sau khi trừ) bạn tính trừ. Với „je“, „pro“ và „zu je“ (mỗi) bạn tính nhân (từ 1 sang nhiều) hoặc chia (từ nhiều sang 1). Từ „Stückzahl“ (số lượng cái) chưa cho biết dấu tính.","У задачі сигнальні слова показують знак дії. Для слів «усього», «разом» і «сума» рахуєш плюс. Для слів «решта», «різниця», «на скільки більше / менше» і «після вирахування» рахуєш мінус. Для слів «по», «за кожен» і «по … за штуку» рахуєш множення (з 1 на багато) або ділення (з багатьох на 1). Слово «кількість штук» ще нічого не каже про знак дії.","ኣብ ሕቶ ምልክት ቃላት ምልክት ሒሳብ የርእዩ። ኣብ «ጠቕላላ»፣ «ብሓባር»፣ «ድምር» ፕላስ ትገብር። ኣብ «ተመላሲ ገንዘብ»፣ «ፍልልይ»፣ «ኽንደይ ዝያዳ / ውሑድ»፣ «ድሕሪ ምቕናስ» ሚነስ ትገብር። ኣብ «ነፍሲ ወከፍ» ን «ብ» ን ምድማር (ካብ 1 ናብ ብዙሕ) ወይ ምክፋል (ካብ ብዙሕ ናብ 1) ትገብር። እቲ ቃል «ብዝሒ ኣቕሓ» ንምልክት ሒሳብ ገና ኣይገልጽን።"],"r3.q":["أي علامة حساب تناسب كلمة «Rückgeld» (الباقي)؟","Dấu tính nào hợp với từ „Rückgeld“ (tiền thối)?","Який знак дії підходить до слова «решта» (Rückgeld)?","ኣየናይ ምልክት ሒሳብ ምስ ቃል «ተመላሲ ገንዘብ» (Rückgeld) ይሰማማዕ?"],"r3.o0":["جمع","Cộng","Плюс","ፕላስ"],"r3.o1":["طرح","Trừ","Мінус","ሚነስ"],"r3.o2":["ضرب","Nhân","Множення","ምድማር"],"r4.t":["خطة الحساب (Rechenfahrplan)","Kế hoạch tính (Rechenfahrplan)","План розв'язання","መስርሕ ሒሳብ"],"r4.task":["ظلّل الخطوات الخمس والأخطاء الثلاثة الأكثر شيوعًا.","Tô năm bước và ba lỗi hay gặp nhất.","Познач п'ять кроків і три найчастіші помилки.","እቶም ሓሙሽተ ደረጃታትን ሰለስተ ዝበዝሑ ጌጋታትን ምልክት ግበር።"],"r4.x":["في كل مسألة تسير بخمس خطوات: اقرأ (Lesen)، دوّن (Notieren)، اختر الطريقة (Rezept wählen)، احسب (Rechnen)، تحقّق (Prüfen). الأخطاء الثلاثة الأكثر شيوعًا: انزلاق الفاصلة، ونسيان الوحدة، والتقريب مبكرًا جدًا. في النهاية تفحص معقولية النتيجة (Plausibilitäts-Check): هل يمكن أن تكون صحيحة؟ الباقي (Wechselgeld) يجب أن يكون دائمًا أقل من الورقة النقدية.","Với mỗi bài, bạn làm theo năm bước: đọc (Lesen), ghi lại (Notieren), chọn cách làm (Rezept wählen), tính (Rechnen), kiểm tra (Prüfen). Ba lỗi hay gặp nhất là: lệch dấu phẩy, quên đơn vị và làm tròn quá sớm. Cuối cùng bạn kiểm tra tính hợp lý (Plausibilitäts-Check): kết quả này có thể đúng không? Tiền thối (Wechselgeld) luôn phải nhỏ hơn tờ tiền khách đưa.","У кожній задачі ти дієш у п'ять кроків: прочитати, записати, обрати рецепт, порахувати, перевірити. Три найчастіші помилки: кома зсунулась, забута одиниця й надто раннє округлення. У кінці роби перевірку на правдоподібність: чи це може бути правильно? Решта завжди має бути меншою за банкноту.","ኣብ ነፍሲ ወከፍ ሕቶ ብሓሙሽተ ደረጃታት ትሰርሕ: ምንባብ፣ ምጽሓፍ፣ ኣገባብ ምምራጽ፣ ሒሳብ፣ ምርግጋጽ። ሰለስተ ዝበዝሑ ጌጋታት: ኮማ ተሰጋጊሩ፣ መዐቀኒ ተረሲዑ፣ ቅልጥፍ ኢልካ ተኸቢቡ። ኣብ መወዳእታ ምርግጋጽ ርግጸኛነት ግበር: ክኸውን ይኽእል ድዩ? ተመላሲ ገንዘብ ወትሩ ካብ ወረቐት ገንዘብ ንእሽቶ ክኸውን ኣለዎ።"],"r4.q":["متى تقرّب؟","Khi nào bạn làm tròn?","Коли ти округлюєш?","መዓስ ትክብብ?"],"r4.o0":["بعد كل خطوة حساب","Sau mỗi bước tính","Після кожного кроку обчислення","ድሕሪ ነፍሲ ወከፍ ደረጃ ሒሳብ"],"r4.o1":["فقط عند النتيجة النهائية","Chỉ ở kết quả cuối","Лише в кінцевому результаті","ኣብ መወዳእታ ውጽኢት ጥራይ"],"r4.o2":["أبدًا","Không bao giờ","Ніколи","ኣይትክበብን"],"cat_vor":["البداية: ماذا تتذكر؟","Khởi động: Bạn còn nhớ gì?","Початок: що ти ще пам'ятаєш?","ጅምር: እንታይ ትዝክር?"],"cat_rech":["وميض الصندوق والحساب","Tia chớp ở quầy và tính toán","Касовий бліц і рахунок","ቅልጡፍ ካሳን ሒሳብን"],"cat_rund":["التقريب والوحدات","Làm tròn và đơn vị","Округлення та одиниці","ምክባብን መዐቀኒታትን"],"cat_wis":["فحص الامتحان","Kiểm tra kiểu thi","Перевірка до іспиту","ምርግጋጽ ፈተና"],"cat_refl":["تمرين شخصي وتفكير أعمق","Tự luyện và suy nghĩ sâu hơn","Власна вправа та роздуми","ናይ ባዕል ልምምድን ብዝያዳ ምሕሳብን"]};
+const GLOSS=[["der Taschenrechner","الآلة الحاسبة (Taschenrechner)","máy tính (Taschenrechner)","калькулятор","ካልኩሌተር"],["die Kommataste","مفتاح الفاصلة (Kommataste)","phím dấu phẩy (Kommataste)","клавіша коми","ቁልፊ ኮማ"],["das Zwischenergebnis","النتيجة الوسيطة (Zwischenergebnis)","kết quả trung gian (Zwischenergebnis)","проміжний результат","ማእከላይ ውጽኢት"],["kaufmännisch runden","التقريب التجاري (kaufmännisch runden)","làm tròn kiểu thương mại (kaufmännisch runden)","округлювати по-комерційному","ብንግዲ ኣገባብ ምክባብ"],["aufrunden","التقريب للأعلى (aufrunden)","làm tròn lên (aufrunden)","округлити вгору","ናብ ላዕሊ ምክባብ"],["abrunden","التقريب للأسفل (abrunden)","làm tròn xuống (abrunden)","округлити вниз","ናብ ታሕቲ ምክባብ"],["die Nachkommastelle","الخانة بعد الفاصلة (Nachkommastelle)","chữ số sau dấu phẩy (Nachkommastelle)","знак після коми","ደገ ኮማ ቁጽሪ"],["die Einheit","الوحدة (Einheit)","đơn vị (Einheit)","одиниця виміру","መዐቀኒ"],["das Kilogramm (kg)","الكيلوغرام (Kilogramm, kg)","ki-lô-gam (Kilogramm, kg)","кілограм (kg)","ኪሎግራም (kg)"],["das Gramm (g)","الغرام (Gramm, g)","gam (Gramm, g)","грам (g)","ግራም (g)"],["die Differenz","الفرق (Differenz)","chênh lệch (Differenz)","різниця","ፍልልይ"],["je / pro","لكل (je / pro)","mỗi / cho mỗi (je / pro)","по / за кожен","ነፍሲ ወከፍ"]];
+const WTX={"Eigentum":["الملكية","quyền sở hữu","власність","ርስቲ"],"Besitz":["الحيازة","sự nắm giữ","володіння","ሓዛ"],"Verkäufer":["البائع","người bán","продавець","ሸያጢ"],"Rate":["قسط","khoản trả","платіж","ክፍሊት"],"Der Fernseher gehört …":["التلفاز ملك لـ …","Cái ti vi thuộc về …","Телевізор належить …","እቲ ቴሌቪዥን ናይ … እዩ"],"Rückgeld":["الباقي","tiền thối","решта","ተመላሲ ገንዘብ"],"Differenz":["فرق","chênh lệch","різниця","ፍልልይ"],"Einkauf":["المشتريات","lần mua hàng","покупка","ዕዳጋ"],"Euro":["يورو (Euro)","Euro (đồng euro)","євро","ዩሮ"],"Das Rückgeld ist …":["الباقي هو …","Tiền thối là …","Решта – це …","እቲ ተመላሲ ገንዘብ … እዩ"],"Kilogramm":["الكيلوغرام","ki-lô-gam","кілограм","ኪሎግራም"],"Gramm":["الغرام","gam","грам","ግራም"],"Komma":["الفاصلة","dấu phẩy","кома","ኮማ"],"1 kg sind …":["1 kg يساوي …","1 kg là …","1 kg – це …","1 kg … እዩ"],"mal":["ضرب","nhân","помножити","ምድማር"],"Stückpreis":["سعر الوحدة","đơn giá","ціна за штуку","ዋጋ ናይ ሓደ"],"Das Ergebnis ist …":["النتيجة هي …","Kết quả là …","Результат – …","እቲ ውጽኢት … እዩ"],"minus":["ناقص","trừ","мінус","ሚነስ"],"Hälfte":["النصف","một nửa","половина","ፍርቂ"],"je kg":["لكل كيلوغرام","mỗi kg","за kg","ነፍሲ ወከፍ kg"],"Viertel":["الربع","một phần tư","чверть","ርብዒ"],"Menge":["الكمية","số lượng","кількість","መጠን"],"3 × … = …":["3 × … = …","3 × … = …","3 × … = …","3 × … = …"],"zusammen":["معًا","cùng nhau","разом","ብሓባር"],"Summe":["المبلغ","số tiền","сума","ድምር"],"plus":["زائد","cộng","плюс","ፕላስ"],"… + … = …":["… + … = …","… + … = …","… + … = …","… + … = …"],"20,00 − … = …":["20,00 − … = …","20,00 − … = …","20,00 − … = …","20,00 − … = …"],"Käse: …":["الجبن: …","Phô mai: …","Сир: …","ቺዝ: …"],"Schinken: …":["اللحم المقدد: …","Giăm bông: …","Шинка: …","ሃም: …"],"Rückgeld: …":["الباقي: …","Tiền thối: …","Решта: …","ተመላሲ ገንዘብ: …"],"Artikel":["السلعة","món hàng","товар","ኣቕሓ"],"Preis":["السعر","giá","ціна","ዋጋ"],"Betrag":["المبلغ","số tiền","сума (Betrag)","ድምር ገንዘብ"],"Summe: …":["المجموع: …","Tổng: …","Сума: …","ድምር: …"],"Wechselgeld":["فكة","tiền lẻ","решта","ተመላሲ ገንዘብ"],"Ware A: …":["الصنف A: …","Hàng A: …","Товар A: …","ኣቕሓ A: …"],"Wechselgeld: …":["الباقي: …","Tiền thối: …","Решта: …","ተመላሲ ገንዘብ: …"],"Umsatz":["المبيعات","doanh thu","оборот","መሸጣ"],"Paar":["زوج","đôi","пара","ጽምዲ"],"Der Umsatz ist …":["المبيعات هي …","Doanh thu là …","Оборот – це …","እቲ መሸጣ … እዩ"],"Gutschein":["قسيمة شراء","phiếu quà tặng","ваучер","ቫውቸር"],"Stufe":["مرحلة","giai đoạn","Ланка","ደረጃ"],"Kaufsumme":["مبلغ الشراء","số tiền mua","сума покупки","ድምር ዕዳጋ"],"Abzug":["الخصم","khoản trừ","вирахування","ምቕናስ"],"Der Kunde muss … bezahlen.":["على العميل أن يدفع … .","Khách phải trả … .","Клієнт має заплатити … .","እቲ ዓሚል … ክኸፍል ኣለዎ።"],"Soll":["النظري (Soll)","theo sổ sách (Soll)","бажаний запас (Soll)","ድልዩ ክዕቀብ (Soll)"],"Ist":["الفعلي (Ist)","thực tế (Ist)","фактичний запас (Ist)","ሓቀኛ ክዕቀብ (Ist)"],"Bestand":["المخزون","tồn kho","запас","ክዕቀብ"],"Soll: …":["النظري (Soll): …","Theo sổ sách (Soll): …","Soll: …","Soll: …"],"Ist: …":["الفعلي (Ist): …","Thực tế (Ist): …","Ist: …","Ist: …"],"Die Differenz ist …":["الفرق هو …","Chênh lệch là …","Різниця – це …","እቲ ፍልልይ … እዩ"],"gerundet":["مقرَّب","đã làm tròn","округлено","ዝተኸበበ"],"Zwischenergebnis":["النتيجة الوسيطة","kết quả trung gian","проміжний результат","ማእከላይ ውጽኢት"],"Probe":["التحقق","phép thử","перевірка","ምርግጋጽ"],"Cent":["سنت","cent","цент","ሳንቲም"],"Die Probe weicht ab, weil …":["التحقق يختلف لأن …","Phép thử bị lệch vì …","Перевірка відхиляється, тому що …","እቲ ምርግጋጽ ይፈላለ፣ ምኽንያቱ …"],"Überschlag":["التقدير","ước tính nhanh","прикидка","ምግማት"],"runden":["يقرّب","làm tròn","округлювати","ምክባብ"],"Fehler":["خطأ","lỗi","помилка","ጌጋ"],"Der Überschlag ist …":["التقدير هو …","Ước tính nhanh là …","Прикидка – це …","እቲ ምግማት … እዩ"],"Er nützt, weil …":["فائدته أنه …","Nó có ích vì …","Вона корисна, тому що …","ይጠቅም፣ ምኽንያቱ …"],"Endergebnis":["النتيجة النهائية","kết quả cuối","кінцевий результат","መወዳእታ ውጽኢት"],"Der Fehler wird größer, weil …":["الخطأ يكبر لأن …","Lỗi lớn dần vì …","Помилка стає більшою, тому що …","እቲ ጌጋ ይዓቢ፣ ምኽንያቱ …"],"Ziffer":["الرقم","chữ số","цифра","ቁጽሪ"],"aufrunden":["التقريب للأعلى","làm tròn lên","округлити вгору","ናብ ላዕሊ ምክባብ"],"Übertrag":["التغيير المنقول","phần nhớ","перенесення","ዝተሰጋገረ"],"Die erste wegfallende Ziffer ist …":["أول رقم يسقط هو …","Chữ số đầu tiên bị bỏ đi là …","Перша цифра, що відпадає, – це …","እቲ ዝወድቕ ቀዳማይ ቁጽሪ … እዩ"],"Plausibilität":["المعقولية","tính hợp lý","правдоподібність","ርግጸኛነት"],"Der Preis wäre …, weil …":["السعر سيكون …، لأن …","Giá sẽ là …, vì …","Ціна була б …, тому що …","እቲ ዋጋ … ምኾነ፣ ምኽንያቱ …"],"Das kann nicht stimmen, weil …":["هذا لا يمكن أن يكون صحيحًا لأن …","Điều này không thể đúng vì …","Це не може бути правильно, тому що …","ከምኡ ክኸውን ኣይክእልን፣ ምኽንያቱ …"],"Minuten":["الدقائق","phút","хвилини","ደቒቕ"],"Stunde":["الساعة","giờ","година","ሰዓት"],"Viertelstunde":["ربع الساعة","một phần tư giờ","чверть години","ርብዒ ሰዓት"],"60":["60","60","60","60"],"Eine Stunde hat …":["الساعة فيها …","Một giờ có …","В одній годині …","ሓንቲ ሰዓት … ኣለዋ"],"45 min sind …":["45 min تساوي …","45 min là …","45 min – це …","45 min … እዩ"],"abrunden":["التقريب للأسفل","làm tròn xuống","округлити вниз","ናብ ታሕቲ ምክባብ"],"Stellen":["الخانات","chữ số","знаки","ቦታታት"],"Einheit":["الوحدة","đơn vị","одиниця","መዐቀኒ"],"Das Komma wandert …":["الفاصلة تنتقل …","Dấu phẩy dịch …","Кома зсувається …","እቲ ኮማ ይንቀሳቀስ …"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={ar:0,vi:1,uk:2,ti:3}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 3 · Modul 11 · Rechen-Start";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf3m11_v2";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),document.getElementById("a2btn")?["a2"]:[]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+if($("#a2btn"))$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF3_Modul11.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done&&$("#a2btn"))$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>

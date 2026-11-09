@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 3 · Modul 17 · Verteilungsrechnung</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="ar">🇸🇦 العربية</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+    <button class="pill" data-l="uk">🇺🇦 Українська</button>
+    <button class="pill" data-l="ti">🇪🇷 ትግርኛ</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 3 · Kunden im Servicebereich Kasse betreuen</p>
+  <h1 data-k="h1">Modul 17: Verteilungsrechnung</h1>
+  <p class="sub" data-k="meta">DS 34 · 2 Punkte · Lehrbuch S. 199–200</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann Kosten nach einem Schlüssel verteilen (Fläche, Gewicht, Stück, Personen).</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann die vier Schritte der Verteilungsrechnung nennen und die Probe machen.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a1_h">Aufgabe 1 · Ankommen: Was weißt du noch aus Modul 16?</h2>
+    <p data-k="a1_p">Aus dem Kopf beantworten.</p>
+    <div data-items="a1"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 2 · Die Pizza-Rechnung</h2>
+    <div class="merke" data-k="a2_sit"><b>Situation:</b> Drei Abteilungen bestellen zusammen Pizza für 84 €. Aus der Mode essen 5 Personen mit, aus den Schuhen 4, aus dem Sport 3. Jede Abteilung soll nach der Zahl ihrer Personen zahlen.</div>
+    <div data-items="a2"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> die Verteilungsrechnung · der Anteil · der Verteilungsschlüssel · nach Fläche (m²) · nach Gewicht (kg) · nach Köpfen (Personen) · nach Stück · die Probe
+      <div id="gloss"></div></div>
+    <div id="reading"></div>
+
+    <h3 style="margin-top:24px" data-k="t1_h">Kosten gerecht verteilen (Buch S. 199)</h3>
+    <table>
+      <tr><th data-k="th_schritt">Schritt</th><th data-k="th_rezept">Rezept</th><th data-k="th_bsp">Beispiel: 6.000 € nach Fläche – Drogerie 800 m², Sport 1.200 m², Lebensmittel 1.000 m²</th></tr>
+      <tr><td data-k="t1_s1">1 Anteile addieren</td><td data-k="t1_r1">Summe aller Anteile</td><td data-k="t1_b1">800 + 1.200 + 1.000 = 3.000 m²</td></tr>
+      <tr><td data-k="t1_s2">2 Wert von 1 Anteil</td><td data-k="t1_r2">Kosten : Summe</td><td data-k="t1_b2">6.000 : 3.000 = 2,00 € je m²</td></tr>
+      <tr><td data-k="t1_s3">3 eigener Anteil</td><td data-k="t1_r3">Wert von 1 Anteil × Anteil</td><td data-k="t1_b3">Drogerie: 2,00 × 800 = 1.600,00 €</td></tr>
+      <tr><td data-k="t1_s4">4 Probe</td><td data-k="t1_r4">alle Teile zusammen = Kosten</td><td data-k="t1_b4">1.600 + 2.400 + 2.000 = 6.000 ✓</td></tr>
+    </table>
+    <p data-k="t1_p">Das ist ein Dreisatz über den Wert von 1 m², 1 kg oder 1 Person: Kosten : Summe der Anteile × eigener Anteil.</p>
+    <div class="merke" data-k="merke_rez"><b>Merke:</b> Den Verteilungsschlüssel nennt die Aufgabe: nach Fläche, Gewicht, Stück oder Personen. Die Probe lohnt sich immer – dann siehst du sofort, ob du dich vertippt hast.</div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a3_h">Aufgabe 3 · Vorgemacht: Kosten nach Fläche</h2>
+    <p data-k="a3_p">So gehst du bei einer Prüfungsaufgabe vor. Lies die Schritte genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk0"><b>Die Aufgabe:</b> Drei Abteilungen beteiligen sich an einer Sonderaktion. Die Kosten von 7.500,00 € werden nach der Verkaufsfläche verteilt: Spielwaren 600 m² · Bekleidung 1.500 m² · Haushalt 900 m². Ermitteln Sie, wie viel Euro der Kosten auf die Abteilung Spielwaren entfallen!</div>
+    <div class="worked" data-k="wk1"><b>1 Lesen:</b> Gesucht: Kosten der Spielwaren · Schlüssel: Fläche</div>
+    <div class="worked" data-k="wk2"><b>2 Summe:</b> 600 + 1.500 + 900 = 3.000 m²</div>
+    <div class="worked" data-k="wk3"><b>3 Rechnen:</b> 7.500 : 3.000 × 600 = 1.500,00 €</div>
+    <div class="worked" data-k="wk4"><b>4 Prüfen:</b> 600 m² ist ein Fünftel der Fläche → ein Fünftel der Kosten ✓</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe die Beispiele gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a4_h">Aufgabe 4 · Geführte Übung</h2>
+    <h3 data-k="a41_h">4.1 Werbekosten von 4.500 € werden nach Fläche verteilt. Fülle die Tabelle aus und mach die Probe.</h3>
+    <table>
+      <tr><th data-k="th_abt">Abteilung</th><th data-k="th_fl">Fläche</th><th data-k="th_an">Anteil an den Kosten</th></tr>
+      <tr><td data-k="t41_m">Mode</td><td>450 m²</td><td>…</td></tr>
+      <tr><td data-k="t41_s">Schuhe</td><td>150 m²</td><td>…</td></tr>
+      <tr><td data-k="t41_sp">Sport</td><td>300 m²</td><td>…</td></tr>
+      <tr><td data-k="t41_su">Summe</td><td>…</td><td>…</td></tr>
+    </table>
+    <div data-items="a41"></div>
+    <h3 style="margin-top:18px" data-k="a42_h">4.2 Frachtkosten von 120 € werden nach Gewicht verteilt: Ware A 200 kg, Ware B 350 kg, Ware C 250 kg.</h3>
+    <div data-items="a42"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a5_h">Aufgabe 5 · Prüfungs-Check <span class="pts" data-k="pts_a5">3 Aufgaben · etwa 6 Minuten</span></h2>
+    <div data-items="a5"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a6p_h">Aufgabe 6 · Für Profis</h2>
+    <p data-k="a6p_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="a6p"></div>
+  </div>
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="a8_h">Aufgabe 8 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="a8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="a8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 7 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={vor:"Ankommen: Wiederholung Modul 16",txt:"Textverständnis: Die Pizza-Rechnung",trans:"Transfer: Kosten verteilen",wis:"Fachwissen: Prüfungs-Check",refl:"Weiterdenken"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{id:"a1_1",g:"a1",cat:"vor",q:"1.1 Wie rechnest du den gewogenen Durchschnitt?",kw:[["menge"],["preis"],["summe","gesamt","addier","geteilt","dividier","durch"]],min:2,rows:3,
+ h:["Denk an Modul 16: Jede Menge hat einen eigenen Preis.","Du brauchst zwei Summen: eine mit Menge und Preis, eine nur mit den Mengen. Was machst du mit beiden?"],
+ sol:"Summe (Menge × Preis) : Summe der Mengen"},
+{id:"a1_2",g:"a1",cat:"vor",q:"1.2 Kasse 5 Stunden offen, 120 Kunden. Kunden je Stunde?",kw:[["re:\\b24\\b"]],min:1,rows:2,
+ h:["„Je Stunde“ heißt: pro eine Stunde.","Teile die Kunden durch die Stunden."],
+ sol:"120 : 5 = 24 Kunden"},
+
+{id:"a2_1",g:"a2",cat:"txt",q:"2.1 Wie viel zahlt jede Abteilung? Wie seid ihr vorgegangen? Schreibe die drei Beträge und kurz den Rechenweg auf.",kw:[["re:\\b35\\b"],["re:\\b28\\b"],["re:\\b21\\b"]],min:3,rows:5,
+ h:["Wie viele Personen essen zusammen mit? Was kostet dann eine Person?","Wenn du weißt, was eine Person zahlt: Rechne mal die Zahl der Personen jeder Abteilung. Mach am Ende die Probe."],
+ sol:"12 Personen → 84 : 12 = 7 € je Person. Mode 5 × 7 = 35 € · Schuhe 4 × 7 = 28 € · Sport 3 × 7 = 21 €. Probe: 35 + 28 + 21 = 84 ✓"},
+
+{id:"a41_1",g:"a41",cat:"trans",q:"4.1 Trage die Anteile für Mode, Schuhe und Sport ein, nenne die Summe der Flächen und mach die Probe.",kw:[["2.250","2250"],["re:\\b750\\b"],["1.500","1500"],["re:\\b900\\b"]],min:3,rows:5,
+ h:["Rechne zuerst die Summe der Flächen. Dann: Was kostet 1 m²?","Wert von 1 m² mal die Fläche jeder Abteilung. Die drei Anteile zusammen müssen 4.500 € ergeben."],
+ sol:"Summe: 450 + 150 + 300 = 900 m². Wert von 1 m²: 4.500 : 900 = 5,00 €. Mode: 5,00 × 450 = 2.250,00 € · Schuhe: 5,00 × 150 = 750,00 € · Sport: 5,00 × 300 = 1.500,00 €. Probe: 2.250 + 750 + 1.500 = 4.500,00 € ✓"},
+{id:"a42_1",g:"a42",cat:"trans",q:"Wie viel entfällt auf Ware B?",kw:[["52,5","52.5"]],min:1,rows:4,
+ h:["Rechne zuerst die Summe der Kilogramm. Dann: Was kostet 1 kg?","Wert von 1 kg mal die Kilogramm von Ware B."],
+ sol:"200 + 350 + 250 = 800 kg · 120 : 800 = 0,15 € je kg. Ware B: 0,15 × 350 = 52,50 €"},
+
+{id:"a5_1",g:"a5",cat:"wis",q:"5.1 Sie beziehen eine Lieferung: Socken 90 Stück, Handschuhe 60 Stück, Schals 30 Stück. Der Transport kostet insgesamt 135,00 €. Ermitteln Sie, wie viel Euro auf die Socken entfallen, wenn nach Stückanteilen verteilt wird!",kw:[["67,5","67.5"]],min:1,rows:4,
+ h:["Schlüssel ist hier die Stückzahl. Rechne zuerst die Summe aller Stück.","Kosten : Summe aller Stück × Stück der Socken."],
+ sol:"90 + 60 + 30 = 180 · 135 : 180 × 90 = 67,50 €"},
+{id:"a5_2",g:"a5",cat:"wis",q:"5.2 Ihr Kaufhaus kauft mit zwei anderen Geschäften zusammen 500 kg Orangen; Ihr Kaufhaus nimmt 200 kg. Die Transportkosten von 150,00 € werden nach Gewicht verteilt. Ermitteln Sie den Anteil Ihres Kaufhauses!",kw:[["re:\\b60\\b"]],min:1,rows:4,
+ h:["Die Gesamtmenge steht schon in der Aufgabe. Du musst nicht addieren.","Kosten : Gesamtgewicht × eigenes Gewicht."],
+ sol:"150 : 500 × 200 = 60,00 €"},
+{id:"a5_3",g:"a5",cat:"wis",q:"5.3 Kosten von 5.400,00 € werden nach Fläche verteilt: Bücher 350 m² · Spielwaren 1.150 m² · Elektro 500 m². Wie viel Euro entfallen auf die Bücher?",kw:[["945"]],min:1,rows:4,
+ h:["Schlüssel ist die Fläche. Rechne zuerst die Summe aller Flächen.","Kosten : Summe der Flächen × Fläche der Bücher."],
+ sol:"350 + 1.150 + 500 = 2.000 m² · 5.400 : 2.000 × 350 = 945,00 €"},
+
+{id:"a6p_1",g:"a6p",cat:"refl",mode:"self",q:"6.1 Die Sportabteilung findet die Verteilung nach Fläche ungerecht: „Wir haben viel Fläche, aber wenig Umsatz.“ Beurteilen Sie zwei Verteilungsschlüssel (Fläche, Umsatz) und entscheiden Sie sich begründet.",rows:7,
+ h:["Für welche Art von Kosten passt die Fläche – und für welche der Umsatz?","Wer zahlt bei der Fläche mehr, wer bei dem Umsatz? Entscheide dich am Ende und begründe."],
+ sol:"Fläche: einfach zu messen, passt zu Kosten wie Miete, Heizung, Reinigung. Umsatz: passt zu Kosten, die mit dem Verkauf zusammenhängen (Werbung, Kassenkosten), und schont umsatzschwache Abteilungen. Für Werbekosten spricht mehr für den Umsatz, für Raumkosten mehr für die Fläche – Entscheidung mit Begründung."}
+];
+
+const READ=[
+{t:"Kosten gerecht verteilen",task:"Markiere, was verteilt wird, und wie man die Anteile nennt.",
+ x:"Wenn mehrere Abteilungen oder Geschäfte etwas gemeinsam bezahlen, müssen die [[Kosten]] gerecht verteilt werden. Dafür gibt es die [[Verteilungsrechnung]]. Jede Abteilung bekommt einen [[Anteil]]. Wie man verteilt, steht in der Aufgabe: Das ist der [[Verteilungsschlüssel]]. Ein Beispiel ist die {{Pizza}}-Rechnung: Dort bezahlen die Abteilungen zusammen eine Bestellung.",
+ q:"Was ist der Verteilungsschlüssel?",o:["Die Regel, nach der die Kosten verteilt werden (z. B. nach Fläche).","Der Gesamtbetrag aller Kosten.","Die Probe am Ende der Rechnung."],c:0},
+{t:"Welche Schlüssel gibt es?",task:"Markiere die vier Verteilungsschlüssel.",
+ x:"Den Verteilungsschlüssel nennt die Aufgabe. Man verteilt [[nach Fläche]] (m²), [[nach Gewicht]] (kg), [[nach Stück]] oder [[nach Köpfen]] (Personen). Bei der Pizza ist es die Zahl der Personen, bei der Sonderaktion die Verkaufsfläche, bei den Frachtkosten das Gewicht der Ware und bei einer Lieferung die Stückzahl. Der {{Preis}} ist in den Aufgaben dieses Moduls kein Schlüssel.",
+ q:"Frachtkosten werden verteilt. Welcher Schlüssel passt in Aufgabe 4.2?",o:["Nach Gewicht (kg)","Nach Fläche (m²)","Nach Personen"],c:0},
+{t:"Die vier Schritte",task:"Markiere die vier Schritte der Rechnung.",
+ x:"Die Verteilungsrechnung hat vier Schritte. Erstens: Du musst die [[Anteile addieren]] – das ist die Summe aller Anteile. Zweitens: Du rechnest den [[Wert von 1 Anteil]] aus, also Kosten : Summe. Drittens: Du rechnest den [[eigenen Anteil]], also Wert von 1 Anteil × Anteil. Viertens: Du machst die [[Probe]]: Alle Teile zusammen müssen die Kosten ergeben. Das {{Runden}} gehört nicht zu den vier Schritten.",
+ q:"Was ist Schritt 2?",o:["Wert von 1 Anteil = Kosten : Summe","Alle Anteile addieren","Eigener Anteil = Wert × Anteil"],c:0},
+{t:"Beispiel: 6.000 € nach Fläche",task:"Markiere die Summe, den Wert von 1 m² und den Anteil der Drogerie.",
+ x:"6.000 € werden nach Fläche verteilt: Drogerie 800 m², Sport 1.200 m², Lebensmittel 1.000 m². Die Summe ist [[3.000 m²]]. Der Wert von 1 m² ist 6.000 : 3.000 = [[2,00 € je m²]]. Die Drogerie bezahlt 2,00 × 800 = [[1.600,00 €]]. Bei der Probe rechnest du 1.600 + 2.400 + 2.000 = 6.000 €. Die {{Lebensmittel}} haben 1.000 m² und bezahlen 2.000 €.",
+ q:"Wie viel Euro kostet 1 m² im Beispiel?",o:["2,00 €","3,00 €","1.600,00 €"],c:0},
+{t:"Dreisatz und Probe",task:"Markiere, mit welcher Rechnung der Dreisatz geht und warum sich die Probe lohnt.",
+ x:"Die Verteilungsrechnung ist ein [[Dreisatz]] über den Wert von 1 m², 1 kg oder 1 Person. Die Formel heißt: [[Kosten : Summe der Anteile × eigener Anteil]]. Die [[Probe]] lohnt sich immer. Dann siehst du sofort, ob du dich [[vertippt]] hast. Ein {{Rabatt}} wird in dieser Rechnung nicht abgezogen.",
+ q:"Warum lohnt sich die Probe?",o:["Man sieht sofort, ob man sich vertippt hat.","Sie ersetzt den Dreisatz.","Sie macht die Kosten kleiner."],c:0}
+];
+
+/* Vertiefung (level v) – Zusatz, aus dem Material abgeleitet */
+ITEMS.push(
+{id:"v17_1",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.1 Warum müssen alle Teile zusammen genau die Kosten ergeben? Was bedeutet es, wenn bei der Probe ein anderer Betrag herauskommt?",rows:5,
+ h:["Die Kosten werden komplett auf alle Abteilungen verteilt. Was darf dabei nicht übrig bleiben oder fehlen?","Denk an die Probe in der Pizza-Rechnung: 35 + 28 + 21."],
+ sol:"Die Kosten werden vollständig auf alle verteilt: Nichts darf übrig bleiben und nichts fehlen. Deshalb müssen alle Anteile zusammen genau die Kosten ergeben. Kommt bei der Probe ein anderer Betrag heraus, hat man sich verrechnet oder vertippt (z. B. bei der Summe oder beim Wert von 1 Anteil)."},
+{id:"v17_2",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.2 Bei der Pizza-Rechnung könnte man auch 84 € durch 3 Abteilungen teilen (je 28 €). Warum ist das nicht gerecht? Begründe mit der Mode und dem Sport.",rows:5,
+ h:["Wie viele Personen essen in der Mode, wie viele im Sport?","Wer isst mehr – und wer würde bei gleichen Teilen zu viel oder zu wenig zahlen?"],
+ sol:"Die Mode isst mit 5 Personen mehr Pizza als der Sport mit 3 Personen. Bei gleichen Teilen (je 28 €) würde der Sport zu viel zahlen (richtig: 21 €) und die Mode zu wenig (richtig: 35 €). Gerecht ist es, nach dem Verteilungsschlüssel „Personen“ zu verteilen."},
+{id:"v17_3",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.3 Warum ist die Verteilungsrechnung ein Dreisatz? Erkläre es am Beispiel der Drogerie (800 m², 6.000 € Kosten, 3.000 m² insgesamt).",rows:5,
+ h:["Beim Dreisatz rechnest du erst auf „1“ und dann auf die gewünschte Zahl.","Was ist hier die „1“, und womit rechnest du danach weiter?"],
+ sol:"Beim Dreisatz rechnet man erst auf 1 und dann auf die gewünschte Menge: Zuerst den Wert von 1 m² (6.000 : 3.000 = 2,00 €), dann mal die eigene Fläche (2,00 × 800 = 1.600,00 €). Das ist dieselbe Rechnung wie bei der Verteilung."},
+{id:"v17_4",g:"a8",cat:"bonus",level:"v",mode:"self",q:"8.4 Was würde passieren, wenn die Spielwaren in Aufgabe 3 nicht 600 m², sondern 1.200 m² hätten (alles andere gleich)? Rechne und begründe: Wer zahlt mehr, wer weniger?",rows:6,
+ h:["Rechne zuerst die neue Summe der Flächen. Dann den neuen Wert von 1 m².","Vergleiche: Zahlt die Spielwaren-Abteilung mehr oder weniger als vorher? Und die anderen beiden?"],
+ sol:"Neue Summe: 1.200 + 1.500 + 900 = 3.600 m². Spielwaren: 7.500 : 3.600 × 1.200 = 2.500,00 € (vorher 1.500,00 €). Bekleidung: 3.125,00 € (vorher 3.750,00 €), Haushalt: 1.875,00 € (vorher 2.250,00 €). Probe: 2.500 + 3.125 + 1.875 = 7.500 € ✓. Die Spielwaren zahlen mehr, denn sie haben jetzt einen größeren Teil der Fläche. Die gesamten Kosten bleiben gleich, also zahlen die anderen beiden weniger."}
+);
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={
+a1_1:[["Menge","Preis","Summe","teilen"],["Man rechnet …"]],
+a1_2:[["Stunden","Kunden","teilen","je"],["Je Stunde kommen …"]],
+a2_1:[["Personen","Person","Probe","Rechenweg"],["Zuerst rechne ich …","Dann rechne ich …"]],
+a41_1:[["Fläche","Summe","m²","Probe"],["Zuerst rechne ich die Summe …","Ein m² kostet …"]],
+a42_1:[["Gewicht","Summe","kg","Ware B"],["Zuerst rechne ich …"]],
+a5_1:[["Stück","Summe","Transport","Socken"],["Auf die Socken entfallen …"]],
+a5_2:[["Gewicht","Transportkosten","Kaufhaus","Anteil"],["Mein Kaufhaus zahlt …"]],
+a5_3:[["Fläche","Summe","Bücher","Kosten"],["Auf die Bücher entfallen …"]],
+a6p_1:[["Fläche","Umsatz","Miete","Werbung"],["Ich entscheide mich für …, weil …"]],
+v17_1:[["Kosten","Anteile","vertippt","Probe"],["Die Anteile müssen …, weil …"]],
+v17_2:[["Personen","gleich","gerecht","Schlüssel"],["Das ist nicht gerecht, weil …"]],
+v17_3:[["Dreisatz","Wert von 1","Fläche","mal"],["Zuerst rechnet man auf …"]],
+v17_4:[["Summe","Fläche","mehr","weniger"],["Die Spielwaren zahlen …, weil …"]]
+};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+
+const GLOSS_DE=["die Verteilungsrechnung","der Anteil","der Verteilungsschlüssel","nach Fläche (m²)","nach Gewicht (kg)","nach Köpfen (Personen)","nach Stück","die Probe","der Dreisatz","die Summe"];
+
+const TX={"sub":["مجال التعلّم 3 · خدمة العملاء في منطقة الصندوق","Lĩnh vực học 3 · Phục vụ khách hàng tại khu vực quầy thu ngân","Навчальна галузь 3 · Обслуговування клієнтів у касовій зоні","ዓውዲ ትምህርቲ 3 · ኣብ ቦታ ካሳ ኣገልግሎት ዓማዊል"],"name":["الاسم","Họ tên","Ім'я","ሽም"],"date":["التاريخ","Ngày","Дата","ዕለት"],"can_h":["هذا ما سأستطيع فعله بعد ذلك","Sau bài này tôi có thể","Після цього я вмію","ድሕሪ እዚ እዚ ክገብር እኽእል እየ"],"can_note":["ضع علامة في النهاية على ما تستطيع فعله الآن.","Cuối bài, hãy đánh dấu những gì bạn đã làm được.","Наприкінці познач, що ти вже вмієш.","ኣብ መወዳእታ ሕጂ ክትገብሮ ዘኽእለካ ምልክት ግበር።"],"pts1":["نقطة واحدة","1 điểm","1 бал","1 ነጥቢ"],"pts2":["نقطتان","2 điểm","2 бали","2 ነጥቢ"],"read_h":["للقراءة والمراجعة · قراءة نشِطة","Đọc lại · đọc chủ động","Для читання · активне читання","ንምንባብ · ንጡፍ ንባብ"],"read_p":["اقرأ كل مقطع واضغط على المصطلحات المطلوبة (تصبح صفراء). انتبه: هناك مصطلحات خاطئة أيضًا! بعد ذلك تجيب عن سؤال قصير – وعندها فقط يُفتح المقطع التالي.","Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở.","Прочитай кожен абзац і торкнись потрібних слів (вони стануть жовтими). Увага: є й неправильні слова! Потім дай відповідь на коротке запитання – лише тоді відкриється наступний абзац.","ነፍሲ ወከፍ ክፍሊ ኣንብብ፣ እቶም ዝድለዩ ቃላት ተንከፎም (ብጫ ይኸውኑ)። ጥንቃቐ፡ ጌጋ ቃላት እውን ኣለዉ! ድሕሪኡ ሓጺር ሕቶ ምለስ – ሽዑ ጥራይ እቲ ዝቕጽል ክፍሊ ይኽፈት።"],"ws_h":["مخزن الكلمات (الترجمة)","Kho từ vựng (bản dịch)","Словник (переклад)","መዝገበ-ቃላት (ትርጉም)"],"a2btn":["قرأتُ الأمثلة","Tôi đã đọc các ví dụ","Я прочитав(ла) приклади","ኣብነታት ኣንቢበ ኣለኹ"],"a7_h":["المهمة 7 · قدِّر، اختبر، سجِّل","Bài 7 · Ước lượng, kiểm tra, ghi lại","Завдання 7 · Оціни, перевір, запиши","ዕዮ 7 · ገምግም፣ ፈትን፣ ጽሓፍ"],"a7_p":["كم نقطة من 20 ستحصل عليها في ورقة العمل هذه؟ سجِّل تقديرك قبل التقييم.","Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm.","Скільки з 20 балів ти отримаєш за цей аркуш? Запиши свою оцінку до перевірки.","ኣብዚ ወረቐት ስራሕ ካብ 20 ነጥቢ ክንደይ ክትረክብ ትሓስብ? ቅድሚ ግምጋሜ ግምትካ ጽሓፍ።"],"th1":["تقديري","Dự đoán của tôi","Моя оцінка","ግምተይ"],"th2":["نتيجتي","Kết quả của tôi","Мій результат","ውጽኢተይ"],"th3":["الفرق","Chênh lệch","Різниця","ፍሉይነት"],"th4":["نقاط لحساب النقاط","Điểm cho tài khoản điểm","Бали для рахунку балів","ነጥብታት ንናይ ነጥቢ ሕሳብ"],"submit_h":["انتهيت؟ إذن قيِّم!","Xong chưa? Hãy chấm điểm!","Готово? Тоді перевіряй!","ወዲእካ? እንተኾነ ገምግም!"],"submit_p":["يمكنك التقييم حتى لو لم تنجز كل شيء – المهام غير المنجزة تُحتسب بصفر.","Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm.","Можна оцінити, навіть якщо не все зроблено – незроблені завдання дають 0 балів.","ኩሉ ዘይተሰርሐ እኳ እንተኾነ ክትገምግም ትኽእል – ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"submit_b":["إرسال وتقييم","Gửi và chấm điểm","📊 Надіслати й оцінити","📊 ሰዲድካ ገምግም"],"res_h":["تقييمك","Kết quả của bạn","Твій результат","ውጽኢትካ"],"pdf_b":["تصدير كملف PDF (للمعلمة)","Xuất PDF (cho giáo viên)","🖨️ Експорт у PDF (для вчителя)","🖨️ ከም PDF ኣውጽእ (ንመምህር)"],"tip_t":["تلميح","Gợi ý","Підказка","ሓጋዚ ሓሳብ"],"tip_next":["تلميح آخر","Thêm gợi ý","Ще одна підказка","ካልእ ሓጋዚ ሓሳብ"],"close":["إغلاق","Đóng","Закрити","ዕጸው"],"chk":["تحقّق","Kiểm tra","✔ Перевірити","✔ ፈትሽ"],"shw":["إظهار الحل","Hiện lời giải","Показати розв'язок","መልሲ ርአይ"],"markb":["تحقّق من التظليل","Kiểm tra phần đánh dấu","Перевірити позначки","ምልክታት ፈትሽ"],"self_q":["ما مدى جودة إجابتك؟","Câu trả lời của bạn tốt đến đâu?","Наскільки добре ти відповів(ла)?","ምላስካ ክንደይ ጽቡቕ ነበረ?"],"self1":["نجحت","Đạt","✔ Вдалося","✔ ኣሸኒፈ"],"self2":["جزئيًا","Một phần","◐ Частково","◐ ብሓደ ኣቕጣጫ"],"self3":["ليس بعد","Chưa","✖ Ще ні","✖ ኣይተኻእለን"],"fb_ok":["ممتاز! أحسنت.","Đúng rồi! Làm tốt lắm.","✅ Правильно! Молодець.","✅ ቅኑዕ! ጽቡቕ ሰሪሕካ።"],"fb_part":["تقريبًا – ينقص جزء. قارن بالحل وأكمل.","Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung.","🟡 Майже – ще чогось бракує. Порівняй із розв'язком і доповни.","🟡 ቐረባ – ሓደ ክፍሊ ጎዲሉ። ምስ መልሲ ኣነጻጽርካ ወስኸሉ።"],"fb_bad":["ليس بعد. استعن بتلميح أو أعد قراءة النص.","Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản.","❌ Ще не те. Візьми підказку 💡 або перечитай текст.","❌ ገና ኣይቅኑዕን። ሓጋዚ ሓሳብ 💡 ውሰድ ወይ ጽሑፍ ዳግማይ ኣንብብ።"],"sol_lbl":["الحل:","Lời giải:","Розв'язок:","መልሲ፡"],"mk_ok":["تظليل صحيح! والآن السؤال:","Đánh dấu đúng! Giờ đến câu hỏi:","✅ Позначено правильно! Тепер запитання:","✅ ብቐንዱ ተሓሪዩ! ሕጂ እቲ ሕቶ፡"],"mk_bad":["ليس تمامًا بعد. اقرأ المهمة مرة أخرى.","Chưa hoàn toàn đúng. Hãy đọc lại đề bài.","Ще не зовсім. Прочитай завдання ще раз.","ገና ጥዑይ ኣይኮነን። ዕዮ ዳግማይ ኣንብብ።"],"zq_ok":["بالضبط! تم فتح المقطع التالي.","Chính xác! Đoạn tiếp theo đã mở.","✅ Точно! Наступний абзац відкрито.","✅ ልክዕ! እቲ ዝቕጽል ክፍሊ ተኸፊቱ።"],"zq_bad":["ليس تمامًا. أعد قراءة المقطع وحاول مجددًا.","Chưa đúng. Hãy đọc lại đoạn và thử lại.","Не зовсім. Перечитай абзац і спробуй ще раз.","ኣይኮነን ጥዑይ። ክፍሊ ዳግማይ ኣንብብ ከምኡውን እንደገና ፈትን።"],"res_pts":["من 20 نقطة","trên 20 điểm","з 20 балів","ካብ 20 ነጥቢ"],"res_an":["تحليل الأخطاء حسب مجالات الكفاءة","Phân tích lỗi theo lĩnh vực năng lực","Аналіз помилок за сферами компетенцій","ትንተና ጌጋታት ብዘርእስታት ክእለት"],"rep":["ما يجب أن تراجعه","Bạn nên ôn lại","Це треба повторити","እዚ ክትደግሞ ኣለካ"],"lab1":["ممتاز!","Tuyệt vời!","Чудово!","ብጣዕሚ ጽቡቕ!"],"lab2":["جيد – تحتاج مزيدًا من التمرين","Khá – cần luyện thêm","Добре – ще трохи практики","ጽቡቕ – ገለ ተወሳኺ ልምምድ"],"lab3":["تحتاج هنا إلى مزيد من التمرين","Phần này bạn cần luyện thêm","Тут тобі ще потрібна практика","ኣብዚ ገና ልምምድ የድልየካ"],"set_h":["الإعدادات","Cài đặt","Налаштування","ቅጥዕታት"],"set_mode":["الترجمة","Bản dịch","Переклад","ትርጉም"],"mode_tap":["بالنقر","Chạm để xem","Торкнутися","ብምንካፍ"],"mode_under":["تحت النص","Hiện bên dưới","Під текстом","ኣብ ትሕቲ ጽሑፍ"],"mode_off":["إيقاف","Tắt","Вимк.","ዕጹው"],"set_fs":["حجم الخط","Cỡ chữ","Розмір шрифту","ዓቐን ፊደል"],"set_level":["المستوى","Mức độ","Рівень","ደረጃ"],"lvl_b":["أساسي","Cơ bản","Базовий","መሰረታዊ"],"lvl_v":["تعمّق","Nâng cao","Поглиблений","ዓሚቝ"],"set_snd":["الصوت","Âm thanh","Звук","ድምጺ"],"set_reset":["البدء من جديد","Làm lại từ đầu","Почати спочатку","ካብ ሓድሽ ጀምር"],"dlg_reset":["حذف كل شيء والبدء من جديد؟ ستضيع إجاباتك في ورقة العمل هذه.","Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất.","Усе видалити й почати спочатку? Твої записи в цьому аркуші буде втрачено.","ኩሉ ይሰረዝ እሞ ካብ ሓድሽ ይጀመር? ኣብዚ ወረቐት ዘኣተኻዮ ይጥፍእ።"],"dlg_next":["الشخص التالي: سيتم حذف الإجابات والاسم.","Người tiếp theo: nội dung và tên sẽ bị xóa.","Наступна особа: записи та ім'я буде видалено.","ቀጻሊ ሰብ፡ ዘኣተኻዮን ስምን ይጥፍእ።"],"dlg_cancel":["إلغاء","Hủy","Скасувати","ሰርዝ"],"dlg_ok":["نعم","Đồng ý","Так","እወ"],"wg_h":["كلمات وبدايات جمل للمساعدة","Từ ngữ và gợi ý đầu câu","Слова та початки речень","ቃላትን መጀመርታ ሓሳባትን"],"a8_h":["المهمة 8 · التعمّق","Bài 8 · Nâng cao","Завдання 8 · Поглиблення","ዕዮ 8 · ምዕማቕ"],"pts_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"a8_p":["تظهر فقط في مستوى «التعمّق». علّل بجمل كاملة. هذه المهام تمنح نقاطًا إضافية ولا تخفض نقاطك الـ 20 أبدًا.","Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn.","Лише на рівні «Поглиблений». Обґрунтуй повними реченнями. Ці завдання дають бонусні бали й ніколи не зменшують твої 20 балів.","ኣብ ደረጃ «ዓሚቝ» ጥራይ። ብምሉእ ሓሳብ ኣብርህ። እዞም ዕዮታት ቦነስ ነጥቢ ይህቡ እሞ ኣብ 20 ነጥብታትካ ፈጺሞም ኣይጐድሉን።"],"res_card_h":["النتيجة للمعلمة","Kết quả cho giáo viên","Результат для вчителя","ውጽኢት ንመምህር"],"btn_img":["حفظ النتيجة كصورة","Lưu kết quả dưới dạng ảnh","🖼️ Зберегти результат як зображення","🖼️ ውጽኢት ከም ስእሊ ዓቅብ"],"btn_code":["نسخ الرمز","Sao chép mã","📋 Копіювати код","📋 ኮድ ቅዳሕ"],"btn_next":["الشخص التالي","Người tiếp theo","👤 Наступна особа","👤 ቀጻሊ ሰብ"],"res_open":["ملاحظة: المهام غير المنجزة تُحتسب بصفر.","Lưu ý: bài chưa làm tính 0 điểm.","Примітка: незроблені завдання дають 0 балів.","ሓበሬታ፡ ዘይተሰርሑ ዕዮታት 0 ነጥቢ ይሕዙ።"],"res_bonus":["نقاط إضافية","Điểm thưởng","Бонус","ቦነስ"],"cat_bonus":["نقاط إضافية (التعمّق)","Điểm thưởng (Nâng cao)","Бонус (поглиблення)","ቦነስ (ምዕማቕ)"],"fb_peek":["صحيح – لكنك نظرت إلى الحل قبل ذلك، لذلك تحصل على نصف النقاط.","Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm.","✅ Правильно – але ти раніше дивився(лась) розв'язок, тому половина балів.","✅ ቅኑዕ – ግን ቅድም መልሲ ርእይካዮ፣ ስለዚ ፍርቂ ነጥቢ።"],"t25":["بداية جيدة!","Khởi đầu tốt!","Гарний початок!","ጽቡቕ ጅምር!"],"t50":["اكتمل النصف!","Xong một nửa rồi!","Півдороги!","ፍርቂ!"],"t75":["اقتربت من الهدف!","Sắp đến đích rồi!","Майже готово!","ቐረባ!"],"t100":["أنجزت كل شيء! الآن قيِّم.","Đã làm xong hết! Giờ hãy chấm điểm.","Усе зроблено! Тепер оціни.","ኩሉ ተሰሪሑ! ሕጂ ገምግም።"],"t_write":["اكتب شيئًا أولًا","Hãy viết gì đó trước","Спочатку щось напиши","ቅድም ገለ ጽሓፍ"],"t_saved":["تم التسجيل","Đã ghi","Збережено","ተዓቒቡ"],"t_read":["تمت القراءة","Đã đọc","Прочитано","ተነቢቡ"],"t_resume":["تابع من حيث توقفت","Tiếp tục từ chỗ bạn dừng","Продовжуй, де зупинився(лась)","ኣብ ዝደው ዝበልካዮ ቀጽል"],"t_copy":["تم نسخ الرمز","Đã sao chép mã","Код скопійовано","ኮድ ተቐዲሑ"],"t_img":["تم حفظ الصورة","Đã lưu ảnh","Зображення збережено","ስእሊ ተዓቒቡ"],"h1":["الوحدة 17: حساب التوزيع (Verteilungsrechnung)","Bài 17: Tính toán phân chia chi phí (Verteilungsrechnung)","Модуль 17: Розподіл витрат (Verteilungsrechnung)","ሞዱል 17: ምክፋል ወጻኢታት (Verteilungsrechnung)"],"meta":["حصّتان دراسيتان (DS 34) · نقطتان · كتاب الدرس ص 199–200","2 tiết đôi (DS 34) · 2 điểm · Sách giáo khoa tr. 199–200","2 здвоєні уроки (DS 34) · 2 бали · Підручник с. 199–200","2 ድርብ ትምህርቲ (DS 34) · 2 ነጥቢ · መጽሓፍ ገጽ 199–200"],"can1":["أستطيع توزيع التكاليف حسب مفتاح توزيع (المساحة، الوزن، القطع، الأشخاص).","Tôi có thể phân chia chi phí theo một tiêu chí (diện tích, trọng lượng, số cái, số người).","Я вмію розподіляти витрати за ключем розподілу (площа, вага, штуки, особи).","ወጻኢታት ብመክፈሊ ቀለሊ (ስፍሓት፣ ክብደት፣ ቁጽሪ፣ ሰባት) ከካፍል እኽእል።"],"can2":["أستطيع ذكر الخطوات الأربع لحساب التوزيع وإجراء التحقق (Probe).","Tôi có thể nêu bốn bước của phép tính phân chia và làm phép thử (Probe).","Я вмію назвати чотири кроки розподілу витрат і зробити перевірку (Probe).","ኣርባዕተ ደረጃታት ምክፋል ወጻኢታት ክጽዕን ምርግጋጽ (Probe) ክገብርን እኽእል።"],"a1_h":["المهمة 1 · البداية: ماذا تتذكّر من الوحدة 16؟","Bài tập 1 · Khởi động: Bạn còn nhớ gì từ Bài 16?","Завдання 1 · Початок: Що ти пам'ятаєш з модуля 16?","ሕቶ 1 · ምጅማር: ካብ ሞዱል 16 እንታይ ትዝክር?"],"a1_p":["أجب من الذاكرة.","Trả lời theo trí nhớ.","Відповідай з пам'яті.","ብዘክሮኻ መልሲ።"],"a2_h":["المهمة 2 · حساب البيتزا","Bài tập 2 · Tính tiền pizza","Завдання 2 · Розрахунок за піцу","ሕቶ 2 · ሕሳብ ፒትዛ"],"a2_sit":["الموقف: ثلاثة أقسام تطلب معًا بيتزا بسعر 84 €. من قسم الأزياء يأكل 5 أشخاص، ومن الأحذية 4، ومن الرياضة 3. يجب أن يدفع كل قسم حسب عدد أشخاصه.","Tình huống: Ba bộ phận cùng đặt pizza giá 84 €. Bộ phận Thời trang có 5 người ăn, Giày dép 4 người, Thể thao 3 người. Mỗi bộ phận trả theo số người của mình.","Ситуація: Три відділи разом замовляють піцу за 84 €. З відділу моди їдять 5 осіб, з відділу взуття 4, з відділу спорту 3. Кожен відділ має платити за кількістю своїх осіб.","ኩነታት: ሰለስተ ክፍልታት ብሓባር ፒትዛ ብ84 € የዘዝዩ። ካብ ሞድ 5 ሰባት፣ ካብ ጫማ 4፣ ካብ ስፖርት 3 የብልዑ። ነፍስ ወከፍ ክፍሊ ከም ቁጽሪ ሰባቱ ይከፍል።"],"t1_h":["توزيع التكاليف بعدل (الكتاب ص 199)","Chia chi phí công bằng (Sách tr. 199)","Справедливий розподіл витрат (підручник с. 199)","ወጻኢታት ብፍትሒ ምክፋል (መጽሓፍ ገጽ 199)"],"th_schritt":["خطوة","bước","Крок","ደረጃ"],"th_rezept":["الوصفة","Công thức","Рецепт","ኣገባብ"],"th_bsp":["مثال: 6.000 € حسب المساحة – قسم الدروغري (Drogerie) 800 م²، الرياضة 1.200 م²، المواد الغذائية 1.000 م²","Ví dụ: 6.000 € chia theo diện tích – Mỹ phẩm (Drogerie) 800 m², Thể thao 1.200 m², Thực phẩm 1.000 m²","Приклад: 6.000 € за площею – побутова хімія (Drogerie) 800 м², спорт 1.200 м², продукти 1.000 м²","ኣብነት: 6.000 € ብስፍሓት – ድሮገሪ (Drogerie) 800 m²፣ ስፖርት 1.200 m²፣ መግቢ 1.000 m²"],"t1_s1":["1 اجمع الحصص","1 Cộng các phần","1 Додати частки","1 ድርሻታት ደምር"],"t1_r1":["مجموع كل الحصص","Tổng của tất cả các phần","Сума всіх часток","ድምር ኩሉ ድርሻታት"],"t1_b1":["800 + 1.200 + 1.000 = 3.000 m²","800 + 1.200 + 1.000 = 3.000 m²","800 + 1.200 + 1.000 = 3.000 m²","800 + 1.200 + 1.000 = 3.000 m²"],"t1_s2":["2 قيمة حصة واحدة","2 Giá trị của 1 phần","2 Вартість 1 частки","2 ዋጋ ሓደ ድርሻ"],"t1_r2":["التكاليف : المجموع","Chi phí : Tổng","Витрати : сума","ወጻኢታት : ድምር"],"t1_b2":["6.000 : 3.000 = 2,00 € لكل m²","6.000 : 3.000 = 2,00 € mỗi m²","6.000 : 3.000 = 2,00 € за m²","6.000 : 3.000 = 2,00 € ንሓደ m²"],"t1_s3":["3 حصتك الخاصة","3 Phần của mình","3 Власна частка","3 ናትካ ድርሻ"],"t1_r3":["قيمة حصة واحدة × الحصة","Giá trị của 1 phần × Phần","Вартість 1 частки × частка","ዋጋ ሓደ ድርሻ × ድርሻ"],"t1_b3":["الدروغري: 2,00 × 800 = 1.600,00 €","Mỹ phẩm: 2,00 × 800 = 1.600,00 €","Побутова хімія: 2,00 × 800 = 1.600,00 €","ድሮገሪ: 2,00 × 800 = 1.600,00 €"],"t1_s4":["4 التحقق (Probe)","4 Phép thử (Probe)","4 Перевірка (Probe)","4 ምርግጋጽ (Probe)"],"t1_r4":["كل الأجزاء معًا = التكاليف","tất cả các phần cộng lại = chi phí","усі частини разом = витрати","ኩሎም ክፋላት ብሓባር = ወጻኢታት"],"t1_b4":["1.600 + 2.400 + 2.000 = 6.000 ✓","1.600 + 2.400 + 2.000 = 6.000 ✓","1.600 + 2.400 + 2.000 = 6.000 ✓","1.600 + 2.400 + 2.000 = 6.000 ✓"],"t1_p":["هذه قاعدة الثلاثة (Dreisatz) عبر قيمة 1 م² أو 1 كغ أو شخص واحد: التكاليف : مجموع الحصص × حصتك الخاصة.","Đây là quy tắc tam suất (Dreisatz) qua giá trị của 1 m², 1 kg hoặc 1 người: Chi phí : Tổng các phần × phần của mình.","Це правило трьох (Dreisatz) через вартість 1 м², 1 кг або 1 особи: витрати : сума часток × власна частка.","እዚ ሰለስተ-ሕጊ (Dreisatz) እዩ ብዋጋ 1 m²፣ 1 ኪሎ ወይ 1 ሰብ: ወጻኢታት : ድምር ድርሻታት × ናትካ ድርሻ።"],"merke_rez":["تذكّر: مفتاح التوزيع (Verteilungsschlüssel) تذكره المسألة: حسب المساحة أو الوزن أو القطع أو الأشخاص. التحقق (Probe) مفيد دائمًا – فترى فورًا إن أخطأت في الكتابة.","Ghi nhớ: Tiêu chí phân chia (Verteilungsschlüssel) do đề bài nêu: theo diện tích, trọng lượng, số cái hoặc số người. Phép thử (Probe) lúc nào cũng đáng làm – bạn thấy ngay mình có bấm nhầm số không.","Запам'ятай: Ключ розподілу (Verteilungsschlüssel) називає завдання: за площею, вагою, штуками або особами. Перевірка (Probe) завжди корисна – так ти одразу побачиш, чи не помилився(-лася) при введенні.","ዘክር: መክፈሊ ቀለሊ (Verteilungsschlüssel) ሕቶኡ የመልክት: ብስፍሓት፣ ክብደት፣ ቁጽሪ ወይ ሰባት። ምርግጋጽ (Probe) ሽዑ ሽዑ ይጥቅም – ብኡ ክትጌጽ ከም ዝጎደልካ ብቀሊሉ ትርኢ።"],"a3_h":["المهمة 3 · مثال محلول: التكاليف حسب المساحة","Bài tập 3 · Làm mẫu: Chi phí theo diện tích","Завдання 3 · Зразок: витрати за площею","ሕቶ 3 · ኣብነት: ወጻኢታት ብስፍሓት"],"a3_p":["هكذا تتعامل مع مهمة امتحان. اقرأ الخطوات جيدًا، فستحتاجها بعد قليل.","Bạn làm một bài thi như thế này. Hãy đọc kỹ các bước, lát nữa bạn sẽ cần.","Так ти діятимеш в екзаменаційному завданні. Уважно прочитай кроки, вони скоро знадобляться.","ኣብ ፈተና ከምዚ ትሰርሕ። ደረጃታት ብጥንቃቐ ኣንብብ፣ ሕጂ ክትጥቀመሉ ኢኻ።"],"wk0":["المسألة: ثلاثة أقسام تشارك في حملة خاصة. تُوزَّع التكاليف البالغة 7.500,00 € حسب مساحة البيع: الألعاب 600 م² · الملابس 1.500 م² · الأدوات المنزلية 900 م². احسب كم يورو من التكاليف يخص قسم الألعاب!","Đề bài: Ba bộ phận cùng tham gia một đợt khuyến mại. Chi phí 7.500,00 € được chia theo diện tích bán hàng: Đồ chơi 600 m² · Quần áo 1.500 m² · Đồ gia dụng 900 m². Hãy tính xem bộ phận Đồ chơi phải chịu bao nhiêu euro!","Завдання: Три відділи беруть участь у спеціальній акції. Витрати 7.500,00 € розподіляються за торговою площею: іграшки 600 м² · одяг 1.500 м² · товари для дому 900 м². Визначте, скільки євро витрат припадає на відділ іграшок!","እቲ ሕቶ: ሰለስተ ክፍልታት ኣብ ፍሉይ ዘመቻ ይሳተፉ። ወጻኢታት 7.500,00 € ብስፍሓት ሽያጥ ይካፈል: መጻወቲ 600 m² · ክዳውንቲ 1.500 m² · ኣቑሑት ገዛ 900 m²። ኣብ ክፍሊ መጻወቲ ክንደይ ዩሮ ከም ዝወድቕ ኣሰላስል!"],"wk1":["1 القراءة: المطلوب: تكاليف قسم الألعاب · المفتاح: المساحة","1 Đọc: Cần tìm: chi phí của Đồ chơi · Tiêu chí: diện tích","1 Читання: Шукаємо: витрати відділу іграшок · Ключ: площа","1 ኣንብብ: ዝደልየ: ወጻኢታት መጻወቲ · መክፈሊ ቀለሊ: ስፍሓት"],"wk2":["2 المجموع: 600 + 1.500 + 900 = 3.000 m²","2 Tổng: 600 + 1.500 + 900 = 3.000 m²","2 Сума: 600 + 1.500 + 900 = 3.000 m²","2 ድምር: 600 + 1.500 + 900 = 3.000 m²"],"wk3":["3 الحساب: 7.500 : 3.000 × 600 = 1.500,00 €","3 Tính: 7.500 : 3.000 × 600 = 1.500,00 €","3 Обчислення: 7.500 : 3.000 × 600 = 1.500,00 €","3 ሕሰብ: 7.500 : 3.000 × 600 = 1.500,00 €"],"wk4":["4 المراجعة: 600 م² هي خُمس المساحة ← خُمس التكاليف ✓","4 Kiểm tra: 600 m² là một phần năm diện tích → một phần năm chi phí ✓","4 Перевірка: 600 м² – це одна п'ята площі → одна п'ята витрат ✓","4 ኣረጋግጽ: 600 m² ሓደ ሓምሻ ስፍሓት እዩ → ሓደ ሓምሻ ወጻኢታት ✓"],"a4_h":["المهمة 4 · تمرين موجَّه","Bài 4 · Luyện tập có hướng dẫn","Завдання 4 · Вправа з підказками","ሕቶ 4 · ብመሪሕነት ልምምድ"],"a41_h":["4.1 توزَّع تكاليف إعلان قدرها 4.500 € حسب المساحة. املأ الجدول وأجرِ التحقق.","4.1 Chi phí quảng cáo 4.500 € được chia theo diện tích. Điền vào bảng và làm phép thử.","4.1 Витрати на рекламу 4.500 € розподіляються за площею. Заповни таблицю й зроби перевірку.","4.1 ወጻኢታት ወከልቲ 4.500 € ብስፍሓት ይካፈል። ሰንጠረዥ ምላእ፣ ምርግጋጽ ግበር።"],"th_abt":["القسم","Bộ phận","Відділ","ክፍሊ"],"th_fl":["المساحة","Diện tích","Площа","ስፍሓት"],"th_an":["الحصة من التكاليف","Phần chi phí","Частка витрат","ድርሻ ካብ ወጻኢታት"],"t41_m":["الأزياء","Thời trang","Мода","ሞድ"],"t41_s":["الأحذية","đôi giày","Взуття","ጫማ"],"t41_sp":["الرياضة","Thể thao","Спорт","ስፖርት"],"t41_su":["المبلغ","số tiền","Сума","ድምር"],"a42_h":["4.2 تُوزَّع تكاليف شحن قدرها 120 € حسب الوزن: البضاعة A 200 كغ، البضاعة B 350 كغ، البضاعة C 250 كغ.","4.2 Chi phí vận chuyển 120 € được chia theo trọng lượng: Hàng A 200 kg, Hàng B 350 kg, Hàng C 250 kg.","4.2 Витрати на перевезення 120 € розподіляються за вагою: товар A 200 кг, товар B 350 кг, товар C 250 кг.","4.2 ወጻኢታት ምጽዋዕ 120 € ብክብደት ይካፈል: ኣቑሑት A 200 kg፣ ኣቑሑት B 350 kg፣ ኣቑሑት C 250 kg።"],"a5_h":["المهمة 5 · اختبار الامتحان 3 مسائل · نحو 6 دقائق","Bài tập 5 · Kiểm tra thi 3 bài · khoảng 6 phút","Завдання 5 · Екзаменаційна перевірка 3 завдання · близько 6 хвилин","ሕቶ 5 · ምርምራ ፈተና 3 ሕቶታት · ኣስታት 6 ደቒቕ"],"pts_a5":["3 مسائل · نحو 6 دقائق","3 bài · khoảng 6 phút","3 завдання · близько 6 хвилин","3 ሕቶታት · ኣስታት 6 ደቒቕ"],"a6p_h":["المهمة 6 · للمحترفين","Bài 6 · Dành cho người giỏi","Завдання 6 · Для знавців","ሕቶ 6 · ንክኢላታት"],"a6p_p":["للتفكير أكثر – بجمل كاملة ومع التعليل.","Để suy nghĩ sâu hơn – viết câu đầy đủ, có giải thích lý do.","Подумай далі – повними реченнями, з поясненням.","ዝያዳ ሕሰብ – ምሉእ ሓረጋት፣ ምስ ምኽንያት።"],"a1_1.q":["1.1 كيف تحسب المتوسط المرجَّح؟","1.1 Bạn tính trung bình có trọng số như thế nào?","1.1 Як обчислити середньозважене значення?","1.1 ዝተመዛዘነ ማእኸላይ (gewogener Durchschnitt) ከመይ ትሕስቦ?"],"a1_1.h0":["تذكّر الوحدة 16: لكل كمية سعرها الخاص.","Nhớ lại Bài 16: Mỗi số lượng có giá riêng.","Згадай модуль 16: кожна кількість має свою ціну.","ኣብ ሞዱል 16 ሕሰብ: ነፍስ ወከፍ መጠን ኣብ ዋጋ ኣለዋ።"],"a1_1.h1":["تحتاج إلى مجموعين: واحد فيه الكمية والسعر، وواحد فيه الكميات فقط. ماذا تفعل بهما؟","Bạn cần hai tổng: một tổng có số lượng và giá, một tổng chỉ có số lượng. Bạn làm gì với hai tổng đó?","Тобі потрібні дві суми: одна з кількістю й ціною, інша лише з кількостями. Що ти робиш з обома?","ክልተ ድምራት የድልዩ: ሓደ ምስ መጠንን ዋጋን፣ ሓደ መጠን ጥራይ። ምስ ክልቲኦም እንታይ ትገብር?"],"a1_1.s":["مجموع (الكمية × السعر) : مجموع الكميات","Tổng (số lượng × giá) : Tổng các số lượng","Сума (кількість × ціна) : сума кількостей","ድምር (መጠን × ዋጋ) : ድምር መጠን"],"a1_2.q":["1.2 الصندوق مفتوح 5 ساعات، و120 زبونًا. كم زبونًا في الساعة؟","1.2 Quầy thu ngân mở 5 giờ, có 120 khách. Mỗi giờ có bao nhiêu khách?","1.2 Каса відкрита 5 годин, 120 клієнтів. Скільки клієнтів за годину?","1.2 ካሳ 5 ሰዓታት ክፉት፣ 120 ዓማዊል። ዓማዊል ኣብ ሰዓት?"],"a1_2.h0":["«في الساعة» تعني: لكل ساعة واحدة.","„Mỗi giờ“ nghĩa là: cho một giờ.","„За годину“ означає: на одну годину.","„ኣብ ሰዓት“ ማለት: ንሓደ ሰዓት።"],"a1_2.h1":["اقسم الزبائن على الساعات.","Lấy số khách chia cho số giờ.","Поділи клієнтів на години.","ዓማዊል ብሰዓታት ከፋፍል።"],"a1_2.s":["120 : 5 = 24 زبونًا","120 : 5 = 24 khách","120 : 5 = 24 клієнти","120 : 5 = 24 ዓማዊል"],"a2_1.q":["2.1 كم يدفع كل قسم؟ كيف تصرّفتم؟ اكتب المبالغ الثلاثة وباختصار طريقة الحساب.","2.1 Mỗi bộ phận trả bao nhiêu? Các bạn đã làm như thế nào? Viết ba số tiền và ngắn gọn cách tính.","2.1 Скільки платить кожен відділ? Як ви діяли? Запиши три суми й коротко хід обчислення.","2.1 ነፍስ ወከፍ ክፍሊ ክንደይ ይከፍል? ከመይ ሰሪሕኩም? ሰለስተ ገንዘባት ከምኡውን ሓጺር መስርሕ ሕሳብ ጸሓፉ።"],"a2_1.h0":["كم شخصًا يأكلون معًا؟ وكم يكلّف الشخص الواحد إذن؟","Tổng cộng có bao nhiêu người ăn? Vậy một người phải trả bao nhiêu?","Скільки осіб їсть разом? Скільки тоді коштує одна особа?","ብሓባር ክንደይ ሰባት ይበልዑ? ሽዑ ሓደ ሰብ ክንደይ ይከፍል?"],"a2_1.h1":["عندما تعرف ما يدفعه شخص واحد: اضرب في عدد أشخاص كل قسم. وفي النهاية أجرِ التحقق.","Khi biết một người trả bao nhiêu: nhân với số người của từng bộ phận. Cuối cùng làm phép thử.","Коли знаєш, скільки платить одна особа: помнож на кількість осіб кожного відділу. Наприкінці зроби перевірку.","ሓደ ሰብ ክንደይ ከም ዝከፍል እንተ ፈሊጥካ: ቁጽሪ ሰባት ነፍስ ወከፍ ክፍሊ ተባዝሕ። ኣብ መወዳእታ ምርግጋጽ ግበር።"],"a2_1.s":["12 شخصًا ← 84 : 12 = 7 € للشخص. الأزياء 5 × 7 = 35 € · الأحذية 4 × 7 = 28 € · الرياضة 3 × 7 = 21 €. التحقق: 35 + 28 + 21 = 84 ✓","12 người → 84 : 12 = 7 € mỗi người. Thời trang 5 × 7 = 35 € · Giày dép 4 × 7 = 28 € · Thể thao 3 × 7 = 21 €. Phép thử: 35 + 28 + 21 = 84 ✓","12 осіб → 84 : 12 = 7 € на особу. Мода 5 × 7 = 35 € · Взуття 4 × 7 = 28 € · Спорт 3 × 7 = 21 €. Перевірка: 35 + 28 + 21 = 84 ✓","12 ሰባት → 84 : 12 = 7 € ንሓደ ሰብ። ሞድ 5 × 7 = 35 € · ጫማ 4 × 7 = 28 € · ስፖርት 3 × 7 = 21 €። ምርግጋጽ: 35 + 28 + 21 = 84 ✓"],"a41_1.q":["4.1 اكتب حصص الأزياء والأحذية والرياضة، واذكر مجموع المساحات وأجرِ التحقق.","4.1 Điền phần của Thời trang, Giày dép và Thể thao, nêu tổng diện tích và làm phép thử.","4.1 Запиши частки для моди, взуття й спорту, назви суму площ і зроби перевірку.","4.1 ድርሻታት ሞድ፣ ጫማ ከምኡውን ስፖርት ጸሓፍ፣ ድምር ስፍሓት ሰም፣ ምርግጋጽ ግበር።"],"a41_1.h0":["احسب أولًا مجموع المساحات. ثم: كم يكلّف 1 م²؟","Trước tiên tính tổng diện tích. Sau đó: 1 m² giá bao nhiêu?","Спочатку обчисли суму площ. Потім: скільки коштує 1 м²?","ቀዳማይ ድምር ስፍሓት ሕሰብ። ሽዑ: 1 m² ክንደይ ይኽፈል?"],"a41_1.h1":["قيمة 1 م² × مساحة كل قسم. الحصص الثلاث معًا يجب أن تعطي 4.500 €.","Giá trị của 1 m² nhân với diện tích của từng bộ phận. Ba phần cộng lại phải bằng 4.500 €.","Вартість 1 м² помнож на площу кожного відділу. Три частки разом мають дати 4.500 €.","ዋጋ 1 m² ብስፍሓት ነፍስ ወከፍ ክፍሊ ተባዝሕ። እቶም ሰለስተ ድርሻታት ብሓባር 4.500 € ክኾኑ ኣለዎም።"],"a41_1.s":["المجموع: 450 + 150 + 300 = 900 م². قيمة 1 م²: 4.500 : 900 = 5,00 €. الأزياء: 5,00 × 450 = 2.250,00 € · الأحذية: 5,00 × 150 = 750,00 € · الرياضة: 5,00 × 300 = 1.500,00 €. التحقق: 2.250 + 750 + 1.500 = 4.500,00 € ✓","Tổng: 450 + 150 + 300 = 900 m². Giá trị của 1 m²: 4.500 : 900 = 5,00 €. Thời trang: 5,00 × 450 = 2.250,00 € · Giày dép: 5,00 × 150 = 750,00 € · Thể thao: 5,00 × 300 = 1.500,00 €. Phép thử: 2.250 + 750 + 1.500 = 4.500,00 € ✓","Сума: 450 + 150 + 300 = 900 м². Вартість 1 м²: 4.500 : 900 = 5,00 €. Мода: 5,00 × 450 = 2.250,00 € · Взуття: 5,00 × 150 = 750,00 € · Спорт: 5,00 × 300 = 1.500,00 €. Перевірка: 2.250 + 750 + 1.500 = 4.500,00 € ✓","ድምር: 450 + 150 + 300 = 900 m²። ዋጋ 1 m²: 4.500 : 900 = 5,00 €። ሞድ: 5,00 × 450 = 2.250,00 € · ጫማ: 5,00 × 150 = 750,00 € · ስፖርት: 5,00 × 300 = 1.500,00 €። ምርግጋጽ: 2.250 + 750 + 1.500 = 4.500,00 € ✓"],"a42_1.q":["كم يخص البضاعة B؟","Hàng B phải chịu bao nhiêu?","Скільки припадає на товар B?","ኣብ ኣቑሑት B ክንደይ ይወድቕ?"],"a42_1.h0":["احسب أولًا مجموع الكيلوغرامات. ثم: كم يكلّف 1 كغ؟","Trước tiên tính tổng số ki-lô-gam. Sau đó: 1 kg giá bao nhiêu?","Спочатку обчисли суму кілограмів. Потім: скільки коштує 1 кг?","ቀዳማይ ድምር ኪሎግራም ሕሰብ። ሽዑ: 1 ኪሎ ክንደይ ይኽፈል?"],"a42_1.h1":["قيمة 1 كغ × كيلوغرامات البضاعة B.","Giá trị của 1 kg nhân với số kg của Hàng B.","Вартість 1 кг помнож на кілограми товару B.","ዋጋ 1 ኪሎ ብኪሎግራም ኣቑሑት B ተባዝሕ።"],"a42_1.s":["200 + 350 + 250 = 800 كغ · 120 : 800 = 0,15 € لكل كغ. البضاعة B: 0,15 × 350 = 52,50 €","200 + 350 + 250 = 800 kg · 120 : 800 = 0,15 € mỗi kg. Hàng B: 0,15 × 350 = 52,50 €","200 + 350 + 250 = 800 кг · 120 : 800 = 0,15 € за кг. Товар B: 0,15 × 350 = 52,50 €","200 + 350 + 250 = 800 kg · 120 : 800 = 0,15 € ንኪሎ። ኣቑሑት B: 0,15 × 350 = 52,50 €"],"a5_1.q":["5.1 تستلمون شحنة: جوارب 90 قطعة، قفازات 60 قطعة، أوشحة 30 قطعة. كلفة النقل 135,00 € في المجموع. احسب كم يورو يخص الجوارب إذا وُزِّعت التكاليف حسب عدد القطع!","5.1 Bạn nhận một lô hàng: tất 90 đôi, găng tay 60 đôi, khăn quàng 30 cái. Tiền vận chuyển tổng cộng 135,00 €. Hãy tính tất phải chịu bao nhiêu euro nếu chia theo số lượng cái!","5.1 Ви отримуєте партію: шкарпетки 90 штук, рукавички 60 штук, шарфи 30 штук. Перевезення коштує загалом 135,00 €. Визначте, скільки євро припадає на шкарпетки, якщо розподіл іде за кількістю штук!","5.1 ሓደ ምውሳድ ትቕበሉ: ካልሲ 90 ቁጽሪ፣ ጓንቲ 60 ቁጽሪ፣ ሻርፕ 30 ቁጽሪ። ምጕዓዝ ብሓባር 135,00 € ይኽፈል። ብድርሻ ቁጽሪ እንተ ተኻፊሉ ኣብ ካልሲ ክንደይ ዩሮ ይወድቕ ኣሰላስል!"],"a5_1.h0":["المفتاح هنا هو عدد القطع. احسب أولًا مجموع كل القطع.","Tiêu chí ở đây là số lượng. Trước tiên tính tổng tất cả số lượng.","Ключ тут – кількість штук. Спочатку обчисли суму всіх штук.","መክፈሊ ቀለሊ ኣብዚ ቁጽሪ እዩ። ቀዳማይ ድምር ኩሉ ቁጽሪ ሕሰብ።"],"a5_1.h1":["التكاليف : مجموع كل القطع × قطع الجوارب.","Chi phí : Tổng tất cả số lượng × số lượng của tất.","Витрати : сума всіх штук × штуки шкарпеток.","ወጻኢታት : ድምር ኩሉ ቁጽሪ × ቁጽሪ ካልሲ።"],"a5_1.s":["90 + 60 + 30 = 180 · 135 : 180 × 90 = 67,50 €","90 + 60 + 30 = 180 · 135 : 180 × 90 = 67,50 €","90 + 60 + 30 = 180 · 135 : 180 × 90 = 67,50 €","90 + 60 + 30 = 180 · 135 : 180 × 90 = 67,50 €"],"a5_2.q":["5.2 يشتري متجركم الكبير مع متجرين آخرين معًا 500 كغ برتقال؛ ويأخذ متجركم 200 كغ. تُوزَّع تكاليف النقل البالغة 150,00 € حسب الوزن. احسب حصة متجركم!","5.2 Cửa hàng bách hóa của bạn cùng với hai cửa hàng khác mua tổng cộng 500 kg cam; cửa hàng của bạn lấy 200 kg. Tiền vận chuyển 150,00 € được chia theo trọng lượng. Hãy tính phần của cửa hàng bạn!","5.2 Ваш універмаг купує разом з двома іншими магазинами 500 кг апельсинів; ваш універмаг бере 200 кг. Витрати на перевезення 150,00 € розподіляються за вагою. Визначте частку вашого універмагу!","5.2 ትካልኩም (Kaufhaus) ምስ ክልተ ካልኦት ሱቓት ብሓባር 500 ኪሎ ብርትኳን ትገዝእ፤ ትካልኩም 200 ኪሎ ትወስድ። ወጻኢታት ምጕዓዝ 150,00 € ብክብደት ይካፈል። ድርሻ ትካልኩም ኣሰላስሉ!"],"a5_2.h0":["الكمية الكلية مكتوبة في المسألة. لا تحتاج إلى الجمع.","Tổng số lượng đã có trong đề bài. Bạn không cần cộng.","Загальна кількість уже є в завданні. Додавати не треба.","ጠቕላላ መጠን ኣብ ሕቶ ኣሎ። ክትደምር የብልካን።"],"a5_2.h1":["التكاليف : الوزن الكلي × وزنك الخاص.","Chi phí : Tổng trọng lượng × trọng lượng của mình.","Витрати : загальна вага × власна вага.","ወጻኢታት : ጠቕላላ ክብደት × ናትካ ክብደት።"],"a5_2.s":["150 : 500 × 200 = 60,00 €","150 : 500 × 200 = 60,00 €","150 : 500 × 200 = 60,00 €","150 : 500 × 200 = 60,00 €"],"a5_3.q":["5.3 تُوزَّع تكاليف قدرها 5.400,00 € حسب المساحة: الكتب 350 م² · الألعاب 1.150 م² · الإلكترونيات 500 م². كم يورو يخص الكتب؟","5.3 Chi phí 5.400,00 € được chia theo diện tích: Sách 350 m² · Đồ chơi 1.150 m² · Điện máy 500 m². Bộ phận Sách phải chịu bao nhiêu euro?","5.3 Витрати 5.400,00 € розподіляються за площею: книги 350 м² · іграшки 1.150 м² · електроніка 500 м². Скільки євро припадає на книги?","5.3 ወጻኢታት 5.400,00 € ብስፍሓት ይካፈል: መጻሕፍቲ 350 m² · መጻወቲ 1.150 m² · ኤለክትሪክ 500 m²። ኣብ መጻሕፍቲ ክንደይ ዩሮ ይወድቕ?"],"a5_3.h0":["المفتاح هو المساحة. احسب أولًا مجموع كل المساحات.","Tiêu chí là diện tích. Trước tiên tính tổng tất cả diện tích.","Ключ – площа. Спочатку обчисли суму всіх площ.","መክፈሊ ቀለሊ ስፍሓት እዩ። ቀዳማይ ድምር ኩሉ ስፍሓት ሕሰብ።"],"a5_3.h1":["التكاليف : مجموع المساحات × مساحة الكتب.","Chi phí : Tổng diện tích × diện tích của Sách.","Витрати : сума площ × площа книг.","ወጻኢታት : ድምር ስፍሓት × ስፍሓት መጻሕፍቲ።"],"a5_3.s":["350 + 1.150 + 500 = 2.000 m² · 5.400 : 2.000 × 350 = 945,00 €","350 + 1.150 + 500 = 2.000 m² · 5.400 : 2.000 × 350 = 945,00 €","350 + 1.150 + 500 = 2.000 m² · 5.400 : 2.000 × 350 = 945,00 €","350 + 1.150 + 500 = 2.000 m² · 5.400 : 2.000 × 350 = 945,00 €"],"a6p_1.q":["6.1 يرى قسم الرياضة أن التوزيع حسب المساحة غير عادل: «لدينا مساحة كبيرة لكن مبيعات قليلة.» قيِّم مفتاحَي توزيع (المساحة، المبيعات) واتخذ قرارًا مع التعليل.","6.1 Bộ phận Thể thao thấy chia theo diện tích là không công bằng: „Chúng tôi có nhiều diện tích nhưng doanh thu thấp.“ Hãy đánh giá hai tiêu chí phân chia (diện tích, doanh thu) và quyết định có giải thích.","6.1 Відділ спорту вважає розподіл за площею несправедливим: „У нас багато площі, але малий оборот.“ Оціни два ключі розподілу (площа, оборот) і прийми рішення з обґрунтуванням.","6.1 ክፍሊ ስፖርት ምክፋል ብስፍሓት ዘይፍትሓዊ ይመስሎ: „ብዙሕ ስፍሓት ኣለና፣ ግን ውሑድ ሽያጥ።“ ክልተ መክፈሊ ቀለሊ (ስፍሓት፣ ሽያጥ/Umsatz) ገምግሙ፣ ብምኽንያት ድማ ውሰኑ።"],"a6p_1.h0":["لأي نوع من التكاليف تناسب المساحة – ولأي نوع تناسب المبيعات؟","Diện tích phù hợp với loại chi phí nào – còn doanh thu phù hợp với loại nào?","Для яких витрат підходить площа – а для яких оборот?","ስፍሓት ንኸመይ ዓይነት ወጻኢታት ይሰማማዕ – ሽያጥ (Umsatz) ድማ ንኸመይ?"],"a6p_1.h1":["من يدفع أكثر عند المساحة، ومن يدفع أكثر عند المبيعات؟ اتخذ قرارك في النهاية وعلّله.","Ai trả nhiều hơn khi chia theo diện tích, ai trả nhiều hơn khi chia theo doanh thu? Cuối cùng hãy quyết định và giải thích.","Хто платить більше за площею, а хто за оборотом? Наприкінці ухвали рішення й обґрунтуй його.","ብስፍሓት መን ዝያዳ ይከፍል፣ ብሽያጥ መን? ኣብ መወዳእታ ወስን፣ ምኽንያት ሃብ።"],"a6p_1.s":["المساحة: سهلة القياس، وتناسب تكاليف مثل الإيجار والتدفئة والتنظيف. المبيعات: تناسب التكاليف المرتبطة بالبيع (الإعلان، تكاليف الصندوق) وتخفف عن الأقسام قليلة المبيعات. للإعلان تميل الكفة نحو المبيعات، ولتكاليف المكان نحو المساحة – القرار مع التعليل.","Diện tích: dễ đo, phù hợp với chi phí như tiền thuê, sưởi ấm, vệ sinh. Doanh thu: phù hợp với chi phí liên quan đến việc bán hàng (quảng cáo, chi phí quầy thu ngân) và nhẹ gánh cho bộ phận doanh thu thấp. Với chi phí quảng cáo thì doanh thu hợp lý hơn, với chi phí mặt bằng thì diện tích hợp lý hơn – quyết định kèm lý do.","Площа: легко виміряти, підходить для витрат, як-от оренда, опалення, прибирання. Оборот: підходить для витрат, пов'язаних із продажем (реклама, витрати на касу), і щадить відділи з малим оборотом. Для витрат на рекламу більше аргументів за оборот, для витрат на приміщення – за площу. Рішення з обґрунтуванням.","ስፍሓት: ንምስላጥ ቀሊል፣ ንከም ክራይ፣ ሙቐት፣ ጽሬት ይሰማማዕ። ሽያጥ: ምስ ሽያጥ ንዝተኣሳሰሩ ወጻኢታት (ወከልቲ፣ ወጻኢታት ካሳ) ይሰማማዕ፣ ንውሑድ ሽያጥ ዘለዎም ክፍልታት ይከላኸል። ንወጻኢታት ወከልቲ ሽያጥ፣ ንወጻኢታት ክፍሊ ድማ ስፍሓት ይሰማማዕ – ውሳኔ ምስ ምኽንያት።"],"v17_1.q":["8.1 لماذا يجب أن تعطي كل الأجزاء معًا التكاليف بالضبط؟ ماذا يعني أن يظهر في التحقق مبلغ آخر؟","8.1 Tại sao tất cả các phần cộng lại phải đúng bằng chi phí? Điều gì có nghĩa nếu phép thử ra một số tiền khác?","8.1 Чому всі частини разом мають дати саме витрати? Що це означає, якщо при перевірці виходить інша сума?","8.1 ስለምንታይ ኩሎም ክፋላት ብሓባር ልክዕ ወጻኢታት ክኾኑ ኣለዎም? ኣብ ምርግጋጽ ካልእ ገንዘብ እንተ ወጺኡ እንታይ ማለት እዩ?"],"v17_1.h0":["التكاليف تُوزَّع كاملةً على كل الأقسام. ما الذي لا يجوز أن يزيد أو ينقص؟","Chi phí được chia hết cho tất cả bộ phận. Điều gì không được thừa hoặc thiếu?","Витрати розподіляються повністю між усіма відділами. Чого не може залишитися чи не вистачати?","ወጻኢታት ብምልኣቱ ኣብ ኩሎም ክፍልታት ይካፈል። እንታይ ክተርፍ ወይ ክጎድል የብሉን?"],"v17_1.h1":["تذكّر التحقق في حساب البيتزا: 35 + 28 + 21.","Nhớ phép thử trong bài tính tiền pizza: 35 + 28 + 21.","Згадай перевірку в розрахунку за піцу: 35 + 28 + 21.","ምርግጋጽ ኣብ ሕሳብ ፒትዛ ሕሰብ: 35 + 28 + 21።"],"v17_1.s":["تُوزَّع التكاليف كاملةً على الجميع: لا يجوز أن يبقى شيء ولا أن ينقص شيء. لذلك يجب أن تعطي كل الحصص معًا التكاليف بالضبط. إذا ظهر في التحقق مبلغ آخر فقد أخطأ الشخص في الحساب أو في الكتابة (مثلًا في المجموع أو في قيمة حصة واحدة).","Chi phí được chia hết cho mọi người: không được thừa gì và không được thiếu gì. Vì vậy tất cả các phần cộng lại phải đúng bằng chi phí. Nếu phép thử ra số tiền khác, tức là đã tính sai hoặc bấm nhầm số (ví dụ ở tổng hoặc ở giá trị của 1 phần).","Витрати розподіляються повністю між усіма: нічого не може залишитися й нічого не може не вистачати. Тому всі частки разом мають дати саме витрати. Якщо при перевірці виходить інша сума, то помилилися в обчисленні або при введенні (наприклад, у сумі чи у вартості 1 частки).","ወጻኢታት ብምሉኡ ኣብ ኩሎም ይካፈል: ዋላ ሓደ ኣይተርፍን ኣይጎድልን። ስለዚ ኩሎም ድርሻታት ብሓባር ልክዕ ወጻኢታት ክኾኑ ኣለዎም። ኣብ ምርግጋጽ ካልእ ገንዘብ እንተ ወጺኡ፣ ሕሳብ ጌጋ ወይ ጌጋ ጽሕፈት ኣሎ (ንኣብነት ኣብ ድምር ወይ ኣብ ዋጋ 1 ድርሻ)።"],"v17_2.q":["8.2 في حساب البيتزا يمكن أيضًا قسمة 84 € على 3 أقسام (28 € لكل قسم). لماذا هذا غير عادل؟ علّل بقسمَي الأزياء والرياضة.","8.2 Trong bài tính tiền pizza cũng có thể chia 84 € cho 3 bộ phận (mỗi bộ phận 28 €). Tại sao như vậy không công bằng? Giải thích với bộ phận Thời trang và Thể thao.","8.2 У розрахунку за піцу можна було б поділити 84 € на 3 відділи (по 28 €). Чому це несправедливо? Обґрунтуй на прикладі моди й спорту.","8.2 ኣብ ሕሳብ ፒትዛ 84 € ኣብ 3 ክፍልታት ክካፈል ይከኣል (ነፍስ ወከፍ 28 €)። ስለምንታይ ዘይፍትሓዊ እዩ? ብሞድን ስፖርትን ኣብርህ።"],"v17_2.h0":["كم شخصًا يأكل في الأزياء، وكم في الرياضة؟","Thời trang có bao nhiêu người ăn, Thể thao có bao nhiêu người?","Скільки осіб їсть у моді, скільки в спорті?","ኣብ ሞድ ክንደይ ሰባት፣ ኣብ ስፖርት ክንደይ ይበልዑ?"],"v17_2.h1":["من يأكل أكثر – ومن سيدفع أكثر من اللازم أو أقل من اللازم إذا كانت الأجزاء متساوية؟","Ai ăn nhiều hơn – và ai sẽ trả quá nhiều hoặc quá ít nếu chia đều?","Хто їсть більше – і хто платив би забагато або замало при рівних частинах?","መን ዝያዳ ይበልዕ – ብማዕረ ክፍሊት መን ዝያዳ ወይ ውሑድ ይከፍል?"],"v17_2.s":["قسم الأزياء يأكل بـ 5 أشخاص بيتزا أكثر من قسم الرياضة بـ 3 أشخاص. مع الأجزاء المتساوية (28 € لكل قسم) كانت الرياضة ستدفع أكثر من اللازم (الصحيح: 21 €) والأزياء أقل من اللازم (الصحيح: 35 €). العدل أن نوزّع حسب مفتاح التوزيع «الأشخاص».","Thời trang có 5 người nên ăn nhiều pizza hơn Thể thao có 3 người. Nếu chia đều (mỗi bộ phận 28 €), Thể thao sẽ trả quá nhiều (đúng là: 21 €) và Thời trang trả quá ít (đúng là: 35 €). Công bằng là chia theo tiêu chí phân chia „số người“.","Мода з 5 особами їсть більше піци, ніж спорт з 3 особами. При рівних частинах (по 28 €) спорт платив би забагато (правильно: 21 €), а мода замало (правильно: 35 €). Справедливо розподіляти за ключем „особи“.","ሞድ ብ5 ሰባት ካብ ስፖርት ብ3 ሰባት ዝያዳ ፒትዛ ይበልዕ። ብማዕረ ክፋል (ነፍስ ወከፍ 28 €) ስፖርት ብዙሕ ምከፈለ (ቅኑዕ: 21 €) ሞድ ድማ ውሑድ (ቅኑዕ: 35 €)። ፍትሓዊ ብመክፈሊ ቀለሊ „ሰባት“ ምክፋል እዩ።"],"v17_3.q":["8.3 لماذا حساب التوزيع هو قاعدة ثلاثة (Dreisatz)؟ اشرح ذلك بمثال قسم الدروغري (800 م²، تكاليف 6.000 €، 3.000 م² في المجموع).","8.3 Tại sao tính toán phân chia là một quy tắc tam suất (Dreisatz)? Hãy giải thích bằng ví dụ bộ phận Mỹ phẩm (800 m², chi phí 6.000 €, tổng cộng 3.000 m²).","8.3 Чому розподіл витрат – це правило трьох (Dreisatz)? Поясни на прикладі відділу побутової хімії (800 м², витрати 6.000 €, усього 3.000 м²).","8.3 ስለምንታይ ምክፋል ወጻኢታት ሰለስተ-ሕጊ (Dreisatz) እዩ? ብኣብነት ድሮገሪ (800 m²፣ ወጻኢታት 6.000 €፣ ጠቕላላ 3.000 m²) ኣብርህ።"],"v17_3.h0":["في قاعدة الثلاثة تحسب أولًا قيمة «1» ثم العدد المطلوب.","Với quy tắc tam suất, bạn tính trước về „1“ rồi mới tính ra số cần tìm.","У правилі трьох ти спочатку рахуєш на „1“, а потім на потрібне число.","ኣብ ሰለስተ-ሕጊ ቀዳማይ ናብ „1“ ተሕስብ፣ ሽዑ ናብ ዝደለኻዮ ቁጽሪ።"],"v17_3.h1":["ما هو «1» هنا، وبماذا تكمل الحساب بعد ذلك؟","Ở đây „1“ là gì, và sau đó bạn tính tiếp với cái gì?","Що тут „1“, і з чим ти рахуєш далі?","ኣብዚ „1“ እንታይ እዩ፣ ድሕሪኡ ብምንታይ ትቕጽል?"],"v17_3.s":["في قاعدة الثلاثة نحسب أولًا قيمة 1 ثم الكمية المطلوبة: أولًا قيمة 1 م² (6.000 : 3.000 = 2,00 €)، ثم نضرب في المساحة الخاصة (2,00 × 800 = 1.600,00 €). هذا هو الحساب نفسه في التوزيع.","Với quy tắc tam suất, ta tính trước về 1 rồi mới tính ra số lượng cần tìm: Trước tiên giá trị của 1 m² (6.000 : 3.000 = 2,00 €), sau đó nhân với diện tích của mình (2,00 × 800 = 1.600,00 €). Đó là cùng một phép tính như khi phân chia.","У правилі трьох спочатку рахують на 1, а потім на потрібну кількість: спершу вартість 1 м² (6.000 : 3.000 = 2,00 €), потім помножити на власну площу (2,00 × 800 = 1.600,00 €). Це те саме обчислення, що й при розподілі.","ኣብ ሰለስተ-ሕጊ ቀዳማይ ናብ 1 ሽዑ ናብ ዝደለኻዮ መጠን ይሕሰብ: ቀዳማይ ዋጋ 1 m² (6.000 : 3.000 = 2,00 €)፣ ሽዑ ብስፍሓት ናትካ ተባዝሕ (2,00 × 800 = 1.600,00 €)። እዚ ተመሳሳሊ ሕሳብ ምክፋል እዩ።"],"v17_4.q":["8.4 ماذا يحدث لو كانت مساحة قسم الألعاب في المهمة 3 ليست 600 م² بل 1.200 م² (وكل شيء آخر كما هو)؟ احسب وعلّل: من يدفع أكثر ومن يدفع أقل؟","8.4 Điều gì sẽ xảy ra nếu bộ phận Đồ chơi trong Bài tập 3 không có 600 m² mà có 1.200 m² (mọi thứ khác giữ nguyên)? Hãy tính và giải thích: ai trả nhiều hơn, ai trả ít hơn?","8.4 Що було б, якби відділ іграшок у завданні 3 мав не 600 м², а 1.200 м² (решта без змін)? Обчисли й обґрунтуй: хто платить більше, хто менше?","8.4 መጻወቲ ኣብ ሕቶ 3 ምእንታይ 600 m² ዘይኮነ 1.200 m² እንተ ነይሩ (ካልእ ተመሳሳሊ) እንታይ ይኸውን? ሕሰብ፣ ምኽንያት ሃብ: መን ዝያዳ፣ መን ውሑድ ይከፍል?"],"v17_4.h0":["احسب أولًا المجموع الجديد للمساحات. ثم القيمة الجديدة لـ 1 م².","Trước tiên tính tổng diện tích mới. Sau đó tính giá trị mới của 1 m².","Спочатку обчисли нову суму площ. Потім нову вартість 1 м².","ቀዳማይ ሓድሽ ድምር ስፍሓት ሕሰብ። ሽዑ ሓድሽ ዋጋ 1 m²።"],"v17_4.h1":["قارن: هل يدفع قسم الألعاب أكثر أم أقل من قبل؟ وماذا عن القسمين الآخرين؟","So sánh: bộ phận Đồ chơi trả nhiều hơn hay ít hơn trước? Còn hai bộ phận kia thì sao?","Порівняй: відділ іграшок платить більше чи менше, ніж раніше? А два інші?","ኣወዳድር: ክፍሊ መጻወቲ ካብ ቅድሚ ሕጂ ዝያዳ ድዩ ውሑድ ይከፍል? እቶም ካልኦት ክልተ?"],"v17_4.s":["المجموع الجديد: 1.200 + 1.500 + 900 = 3.600 م². الألعاب: 7.500 : 3.600 × 1.200 = 2.500,00 € (قبل ذلك 1.500,00 €). الملابس: 3.125,00 € (قبل ذلك 3.750,00 €)، الأدوات المنزلية: 1.875,00 € (قبل ذلك 2.250,00 €). التحقق: 2.500 + 3.125 + 1.875 = 7.500 € ✓. قسم الألعاب يدفع أكثر لأن حصته من المساحة صارت أكبر. التكاليف الكلية ثابتة، لذلك يدفع القسمان الآخران أقل.","Tổng mới: 1.200 + 1.500 + 900 = 3.600 m². Đồ chơi: 7.500 : 3.600 × 1.200 = 2.500,00 € (trước đây 1.500,00 €). Quần áo: 3.125,00 € (trước đây 3.750,00 €), Đồ gia dụng: 1.875,00 € (trước đây 2.250,00 €). Phép thử: 2.500 + 3.125 + 1.875 = 7.500 € ✓. Đồ chơi trả nhiều hơn vì giờ có phần diện tích lớn hơn. Tổng chi phí không đổi nên hai bộ phận kia trả ít hơn.","Нова сума: 1.200 + 1.500 + 900 = 3.600 м². Іграшки: 7.500 : 3.600 × 1.200 = 2.500,00 € (раніше 1.500,00 €). Одяг: 3.125,00 € (раніше 3.750,00 €), товари для дому: 1.875,00 € (раніше 2.250,00 €). Перевірка: 2.500 + 3.125 + 1.875 = 7.500 € ✓. Іграшки платять більше, бо тепер мають більшу частину площі. Загальні витрати не змінюються, тому два інші відділи платять менше.","ሓድሽ ድምር: 1.200 + 1.500 + 900 = 3.600 m²። መጻወቲ: 7.500 : 3.600 × 1.200 = 2.500,00 € (ቅድሚ ሕጂ 1.500,00 €)። ክዳውንቲ: 3.125,00 € (ቅድሚ ሕጂ 3.750,00 €)፣ ኣቑሑት ገዛ: 1.875,00 € (ቅድሚ ሕጂ 2.250,00 €)። ምርግጋጽ: 2.500 + 3.125 + 1.875 = 7.500 € ✓። መጻወቲ ዝያዳ ይከፍል፣ ምኽንያቱ ሕጂ ዝተዋሕለ ክፋል ስፍሓት ኣለዎ። ጠቕላላ ወጻኢታት ተመሳሳሊ ስለ ዝኾነ እቶም ካልኦት ክልተ ውሑድ ይከፍሉ።"],"r0.t":["توزيع التكاليف بعدل","Chia chi phí công bằng","Справедливий розподіл витрат","ወጻኢታት ብፍትሒ ምክፋል"],"r0.task":["ظلِّل ما يُوزَّع، واسم الأجزاء التي يأخذها كل قسم.","Tô sáng cái được chia và tên gọi của các phần.","Познач, що розподіляється, і як називаються частки.","እቲ ዝካፈል እንታይ ከምኡውን ድርሻታት እንታይ ይበሃሉ ምልክት ግበር።"],"r0.x":["عندما يدفع عدة أقسام أو متاجر شيئًا معًا، يجب توزيع التكاليف بعدل. لذلك يوجد حساب التوزيع (Verteilungsrechnung). يحصل كل قسم على حصة (Anteil). كيف نوزّع، تقوله المسألة: هذا هو مفتاح التوزيع (Verteilungsschlüssel). مثال على ذلك حساب البيتزا: هناك تدفع الأقسام معًا ثمن طلبية واحدة.","Khi nhiều bộ phận hoặc cửa hàng cùng trả tiền cho một thứ, chi phí phải được chia công bằng. Để làm việc đó có phép tính phân chia (Verteilungsrechnung). Mỗi bộ phận nhận một phần (Anteil). Chia như thế nào thì đề bài nêu: đó là tiêu chí phân chia (Verteilungsschlüssel). Một ví dụ là bài tính tiền pizza: ở đó các bộ phận cùng trả tiền cho một đơn đặt hàng.","Коли кілька відділів або магазинів платять за щось разом, витрати треба розподілити справедливо. Для цього є розподіл витрат (Verteilungsrechnung). Кожен відділ отримує частку (Anteil). Як розподіляти, сказано в завданні: це ключ розподілу (Verteilungsschlüssel). Приклад – розрахунок за піцу: там відділи разом платять за одне замовлення.","ብዙሓት ክፍልታት ወይ ሱቓት ሓደ ነገር ብሓባር ክኸፍሉ ከለዉ፣ ወጻኢታት ብፍትሒ ክካፈል ኣለዎ። ንዚ ምክፋል ወጻኢታት (Verteilungsrechnung) ኣሎ። ነፍስ ወከፍ ክፍሊ ድርሻ ይረክብ። ከመይ ከም ዝካፈል ኣብ ሕቶ ይነግር: እዚ መክፈሊ ቀለሊ (Verteilungsschlüssel) እዩ። ኣብነት ሕሳብ ፒትዛ እዩ: ኣብኡ ክፍልታት ሓደ ትእዛዝ ብሓባር ይኸፍሉ።"],"r0.q":["ما هو مفتاح التوزيع؟","Tiêu chí phân chia là gì?","Що таке ключ розподілу?","መክፈሊ ቀለሊ እንታይ እዩ?"],"r0.o0":["القاعدة التي تُوزَّع بها التكاليف (مثلًا حسب المساحة).","Quy tắc để chia chi phí (ví dụ theo diện tích).","Правило, за яким розподіляються витрати (наприклад, за площею).","እቲ ሕጊ ወጻኢታት ብኡ ዝካፈል (ንኣብነት ብስፍሓት)።"],"r0.o1":["المبلغ الكلي لكل التكاليف.","Tổng số tiền của tất cả chi phí.","Загальна сума всіх витрат.","ጠቕላላ መጠን ኩሉ ወጻኢታት።"],"r0.o2":["التحقق في نهاية الحساب.","Phép thử ở cuối bài tính.","Перевірка наприкінці обчислення.","ምርግጋጽ ኣብ መወዳእታ ሕሳብ።"],"r1.t":["ما هي مفاتيح التوزيع؟","Có những tiêu chí nào?","Які бувають ключі?","ኣየኖት ቀለልቲ ኣለዉ?"],"r1.task":["ظلِّل مفاتيح التوزيع الأربعة.","Tô sáng bốn tiêu chí phân chia.","Познач чотири ключі розподілу.","እቶም ኣርባዕተ መክፈሊ ቀለልቲ ምልክት ግበር።"],"r1.x":["مفتاح التوزيع تذكره المسألة. نوزّع حسب المساحة (م²)، أو حسب الوزن (كغ)، أو حسب القطع، أو حسب الأشخاص. في البيتزا هو عدد الأشخاص، وفي الحملة الخاصة مساحة البيع، وفي تكاليف الشحن وزن البضاعة، وفي شحنة البضائع عدد القطع. السعر ليس مفتاحًا في مسائل هذه الوحدة.","Tiêu chí phân chia do đề bài nêu. Ta chia theo diện tích (m²), theo trọng lượng (kg), theo số cái hoặc theo số người. Với pizza là số người, với đợt khuyến mại là diện tích bán hàng, với chi phí vận chuyển là trọng lượng hàng, và với một lô hàng là số lượng cái. Giá không phải là tiêu chí trong các bài tập của bài này.","Ключ розподілу називає завдання. Розподіляють за площею (м²), за вагою (кг), за штуками або за особами. У піці це кількість осіб, в акції – торгова площа, у витратах на перевезення – вага товару, у партії – кількість штук. Ціна не є ключем у завданнях цього модуля.","መክፈሊ ቀለሊ ሕቶኡ የመልክት። ብስፍሓት (m²)፣ ብክብደት (kg)፣ ብቁጽሪ ወይ ብርእሲ (ሰባት) ይካፈል። ኣብ ፒትዛ ቁጽሪ ሰባት፣ ኣብ ፍሉይ ዘመቻ ስፍሓት ሽያጥ፣ ኣብ ወጻኢታት ምጽዋዕ ክብደት ኣቑሑት፣ ኣብ ምውሳድ ድማ ቁጽሪ እዩ። ዋጋ ኣብዘን ሕቶታት መክፈሊ ቀለሊ ኣይኮነን።"],"r1.q":["تُوزَّع تكاليف الشحن. أي مفتاح يناسب المهمة 4.2؟","Chi phí vận chuyển được chia. Tiêu chí nào phù hợp trong Bài tập 4.2?","Розподіляються витрати на перевезення. Який ключ підходить у завданні 4.2?","ወጻኢታት ምጽዋዕ ይካፈል። ኣብ ሕቶ 4.2 ኣየናይ ቀለሊ ይሰማማዕ?"],"r1.o0":["حسب الوزن (كغ)","Theo trọng lượng (kg)","За вагою (кг)","ብክብደት (kg)"],"r1.o1":["حسب المساحة (م²)","Theo diện tích (m²)","За площею (м²)","ብስፍሓት (m²)"],"r1.o2":["حسب الأشخاص","Theo số người","За особами","ብሰባት"],"r2.t":["الخطوات الأربع","Bốn bước","Чотири кроки","እቶም ኣርባዕተ ደረጃታት"],"r2.task":["ظلِّل الخطوات الأربع للحساب.","Tô sáng bốn bước của phép tính.","Познач чотири кроки обчислення.","እቶም ኣርባዕተ ደረጃታት ሕሳብ ምልክት ግበር።"],"r2.x":["لحساب التوزيع أربع خطوات. أولًا: تجمع الحصص – وهذا هو مجموع كل الحصص. ثانيًا: تحسب قيمة حصة واحدة، أي التكاليف : المجموع. ثالثًا: تحسب حصتك الخاصة، أي قيمة حصة واحدة × الحصة. رابعًا: تجري التحقق (Probe): كل الأجزاء معًا يجب أن تعطي التكاليف. التقريب ليس من الخطوات الأربع.","Phép tính phân chia có bốn bước. Thứ nhất: bạn cộng các phần – đó là tổng của tất cả các phần. Thứ hai: bạn tính giá trị của 1 phần, tức là Chi phí : Tổng. Thứ ba: bạn tính phần của mình, tức là Giá trị của 1 phần × Phần. Thứ tư: bạn làm phép thử (Probe): tất cả các phần cộng lại phải bằng chi phí. Làm tròn không thuộc bốn bước này.","Розподіл витрат має чотири кроки. Перший: ти додаєш частки – це сума всіх часток. Другий: ти обчислюєш вартість 1 частки, тобто витрати : сума. Третій: ти обчислюєш власну частку, тобто вартість 1 частки × частка. Четвертий: ти робиш перевірку (Probe): усі частини разом мають дати витрати. Округлення не входить до цих чотирьох кроків.","ምክፋል ወጻኢታት ኣርባዕተ ደረጃታት ኣለዎ። ቀዳማይ: ድርሻታት ክትደምር ኣለካ – እዚ ድምር ኩሉ ድርሻታት እዩ። ካልኣይ: ዋጋ 1 ድርሻ ትሕስብ፣ ማለት ወጻኢታት : ድምር። ሳልሳይ: ናትካ ድርሻ ትሕስብ፣ ማለት ዋጋ 1 ድርሻ × ድርሻ። ራብዓይ: ምርግጋጽ ትገብር: ኩሎም ክፋላት ብሓባር ወጻኢታት ክህቡ ኣለዎም። ምጽጋን ኣብ እቶም ኣርባዕተ ደረጃታት የለን።"],"r2.q":["ما هي الخطوة 2؟","Bước 2 là gì?","Що таке крок 2?","ደረጃ 2 እንታይ እዩ?"],"r2.o0":["قيمة حصة واحدة = التكاليف : المجموع","Giá trị của 1 phần = Chi phí : Tổng","Вартість 1 частки = витрати : сума","ዋጋ 1 ድርሻ = ወጻኢታት : ድምር"],"r2.o1":["جمع كل الحصص","Cộng tất cả các phần","Додати всі частки","ኩሎም ድርሻታት ደምር"],"r2.o2":["الحصة الخاصة = القيمة × الحصة","Phần của mình = Giá trị × Phần","Власна частка = вартість × частка","ናትካ ድርሻ = ዋጋ × ድርሻ"],"r3.t":["مثال: 6.000 € حسب المساحة","Ví dụ: 6.000 € theo diện tích","Приклад: 6.000 € за площею","ኣብነት: 6.000 € ብስፍሓት"],"r3.task":["ظلِّل المجموع، وقيمة 1 م²، وحصة قسم الدروغري.","Tô sáng tổng, giá trị của 1 m² và phần của bộ phận Mỹ phẩm.","Познач суму, вартість 1 м² і частку відділу побутової хімії.","ድምር፣ ዋጋ 1 m² ከምኡውን ድርሻ ድሮገሪ ምልክት ግበር።"],"r3.x":["تُوزَّع 6.000 € حسب المساحة: الدروغري 800 م²، الرياضة 1.200 م²، المواد الغذائية 1.000 م². المجموع هو 3.000 م². قيمة 1 م² هي 6.000 : 3.000 = 2,00 € لكل م². يدفع الدروغري 2,00 × 800 = 1.600,00 €. في التحقق تحسب 1.600 + 2.400 + 2.000 = 6.000 €. أما المواد الغذائية فمساحتها 1.000 م² وتدفع 2.000 €.","6.000 € được chia theo diện tích: Mỹ phẩm 800 m², Thể thao 1.200 m², Thực phẩm 1.000 m². Tổng là 3.000 m². Giá trị của 1 m² là 6.000 : 3.000 = 2,00 € mỗi m². Mỹ phẩm trả 2,00 × 800 = 1.600,00 €. Ở phép thử bạn tính 1.600 + 2.400 + 2.000 = 6.000 €. Thực phẩm có 1.000 m² và trả 2.000 €.","6.000 € розподіляються за площею: побутова хімія 800 м², спорт 1.200 м², продукти 1.000 м². Сума – 3.000 м². Вартість 1 м² – 6.000 : 3.000 = 2,00 € за м². Побутова хімія платить 2,00 × 800 = 1.600,00 €. При перевірці ти рахуєш 1.600 + 2.400 + 2.000 = 6.000 €. Продукти мають 1.000 м² і платять 2.000 €.","6.000 € ብስፍሓት ይካፈል: ድሮገሪ 800 m²፣ ስፖርት 1.200 m²፣ መግቢ 1.000 m²። ድምር 3.000 m² እዩ። ዋጋ 1 m² 6.000 : 3.000 = 2,00 € ንሓደ m² እዩ። ድሮገሪ 2,00 × 800 = 1.600,00 € ይከፍል። ኣብ ምርግጋጽ 1.600 + 2.400 + 2.000 = 6.000 € ትሕስብ። መግቢ 1.000 m² ኣለዎ 2.000 € ድማ ይከፍል።"],"r3.q":["كم يورو يكلّف 1 م² في المثال؟","1 m² giá bao nhiêu euro trong ví dụ?","Скільки євро коштує 1 м² у прикладі?","ኣብ ኣብነት 1 m² ክንደይ ዩሮ ይኽፈል?"],"r3.o0":["2,00 €","2,00 €","2,00 €","2,00 €"],"r3.o1":["3,00 €","3,00 €","3,00 €","3,00 €"],"r3.o2":["1.600,00 €","1.600,00 €","1.600,00 €","1.600,00 €"],"r4.t":["قاعدة الثلاثة والتحقق","Tam suất và phép thử","Правило трьох і перевірка","ሰለስተ-ሕጊ ከምኡውን ምርግጋጽ"],"r4.task":["ظلِّل بأي حساب تسير قاعدة الثلاثة، ولماذا يفيد التحقق.","Tô sáng tam suất tính bằng phép tính nào và vì sao phép thử đáng làm.","Познач, яким обчисленням іде правило трьох і чому перевірка варта зусиль.","ሰለስተ-ሕጊ ብኸመይ ሕሳብ ከም ዝኸይድ ከምኡውን ምርግጋጽ ስለምንታይ ከም ዝጥቅም ምልክት ግበር።"],"r4.x":["حساب التوزيع هو قاعدة ثلاثة (Dreisatz) عبر قيمة 1 م² أو 1 كغ أو شخص واحد. الصيغة: التكاليف : مجموع الحصص × الحصة الخاصة. التحقق (Probe) مفيد دائمًا. فترى فورًا إن أخطأت في الكتابة. لا يُخصم الخصم (Rabatt) في هذا الحساب.","Tính toán phân chia là một quy tắc tam suất (Dreisatz) qua giá trị của 1 m², 1 kg hoặc 1 người. Công thức là: Chi phí : Tổng các phần × phần của mình. Phép thử (Probe) lúc nào cũng đáng làm. Khi đó bạn thấy ngay mình có bấm nhầm số không. Giảm giá (Rabatt) không bị trừ trong phép tính này.","Розподіл витрат – це правило трьох (Dreisatz) через вартість 1 м², 1 кг або 1 особи. Формула: витрати : сума часток × власна частка. Перевірка (Probe) завжди корисна. Тоді ти одразу бачиш, чи не помилився(-лася) при введенні. Знижка (Rabatt) у цьому обчисленні не віднімається.","ምክፋል ወጻኢታት ሰለስተ-ሕጊ (Dreisatz) እዩ ብዋጋ 1 m²፣ 1 ኪሎ ወይ 1 ሰብ። ቀመር: ወጻኢታት : ድምር ድርሻታት × ናትካ ድርሻ። ምርግጋጽ ሽዑ ሽዑ ይጥቅም። ሽዑ ብቀሊሉ ክትጌጽ ከም ዝጎደልካ ትርኢ። ቅናሽ ኣብዚ ሕሳብ ኣይውሰድን።"],"r4.q":["لماذا يفيد التحقق؟","Vì sao phép thử đáng làm?","Чому перевірка корисна?","ስለምንታይ ምርግጋጽ ይጥቅም?"],"r4.o0":["لأنك ترى فورًا إن أخطأت في الكتابة.","Vì ta thấy ngay mình có bấm nhầm số không.","Бо одразу видно, чи не помилився(-лася) при введенні.","ብቀሊሉ ጌጋ ጽሕፈት ከም ዘሎ ይርአ።"],"r4.o1":["لأنه يحلّ محل قاعدة الثلاثة.","Vì nó thay thế quy tắc tam suất.","Бо вона замінює правило трьох.","ሰለስተ-ሕጊ ይትክእ።"],"r4.o2":["لأنه يجعل التكاليف أصغر.","Vì nó làm chi phí nhỏ đi.","Бо вона зменшує витрати.","ወጻኢታት የንእሶ።"],"cat_vor":["البداية: مراجعة الوحدة 16","Khởi động: Ôn lại Bài 16","Початок: повторення модуля 16","ምጅማር: ድገም ሞዱል 16"],"cat_txt":["فهم النص: حساب البيتزا","Hiểu văn bản: Tính tiền pizza","Розуміння тексту: розрахунок за піцу","ምርዳእ ጽሑፍ: ሕሳብ ፒትዛ"],"cat_trans":["التطبيق: توزيع التكاليف","Vận dụng: Chia chi phí","Перенесення: розподіл витрат","ምትግባር: ወጻኢታት ምክፋል"],"cat_wis":["المعرفة المهنية: اختبار الامتحان","Kiến thức nghề: Kiểm tra kiểu thi","Фахові знання: екзаменаційна перевірка","ፍልጠት: ምርምራ ፈተና"],"cat_refl":["التفكير أبعد","Suy nghĩ thêm","Думати далі","ዝያዳ ምሕሳብ"]};
+const GLOSS=[["die Verteilungsrechnung","حساب التوزيع (Verteilungsrechnung)","tính toán phân chia (Verteilungsrechnung)","розподіл витрат (Verteilungsrechnung)","ምክፋል ወጻኢታት (die Verteilungsrechnung)"],["der Anteil","الحصة (Anteil)","phần (Anteil)","частка (Anteil)","ድርሻ (der Anteil)"],["der Verteilungsschlüssel","مفتاح التوزيع (Verteilungsschlüssel)","tiêu chí phân chia (Verteilungsschlüssel)","ключ розподілу (Verteilungsschlüssel)","መክፈሊ ቀለሊ (der Verteilungsschlüssel)"],["nach Fläche (m²)","حسب المساحة (م²)","theo diện tích (m²)","за площею (м²)","ብስፍሓት (nach Fläche, m²)"],["nach Gewicht (kg)","حسب الوزن (كغ)","theo trọng lượng (kg)","за вагою (кг)","ብክብደት (nach Gewicht, kg)"],["nach Köpfen (Personen)","حسب الأشخاص","theo số người","за особами","ብርእሲ (ሰባት) (nach Köpfen)"],["nach Stück","حسب القطع","theo số cái","за штуками","ብቁጽሪ (nach Stück)"],["die Probe","التحقق (Probe)","phép thử (Probe)","перевірка (Probe)","ምርግጋጽ (die Probe)"],["der Dreisatz","قاعدة الثلاثة (Dreisatz)","quy tắc tam suất (Dreisatz)","правило трьох (Dreisatz)","ሰለስተ-ሕጊ (der Dreisatz)"],["die Summe","المجموع (Summe)","tổng (Summe)","сума (Summe)","ድምር (die Summe)"]];
+const WTX={"Menge":["الكمية","số lượng","кількість","መጠን"],"Preis":["السعر","giá","ціна","ዋጋ"],"Summe":["المبلغ","số tiền","сума","ድምር"],"teilen":["قسمة","chia","ділити","ምክፋል"],"Man rechnet …":["نحسب …","Ta tính …","Рахують …","ይሕስብ …"],"Stunden":["ساعات","giờ","години","ሰዓታት"],"Kunden":["الزبائن","khách hàng","клієнти","ዓማዊል"],"je":["لكل","mỗi","за","ንሓደ"],"Je Stunde kommen …":["في الساعة يأتي …","Mỗi giờ có … khách","За годину приходить …","ኣብ ሰዓት ይመጹ …"],"Personen":["أشخاص","người","особи","ሰባት"],"Person":["شخص","cá nhân","особа","ሰብ"],"Probe":["تحقق","phép thử","перевірка","ምርግጋጽ"],"Rechenweg":["طريقة الحساب","cách tính","хід обчислення","መስርሕ ሕሳብ"],"Zuerst rechne ich …":["أولًا أحسب …","Trước tiên tôi tính …","Спочатку я обчислюю …","ቀዳማይ እሕስብ …"],"Dann rechne ich …":["ثم أحسب …","Sau đó tôi tính …","Потім я обчислюю …","ድሕሪኡ እሕስብ …"],"Fläche":["المساحة","diện tích","площа","ስፍሓት"],"m²":["م²","m²","м²","m²"],"Zuerst rechne ich die Summe …":["أولًا أحسب المجموع …","Trước tiên tôi tính tổng …","Спочатку я обчислюю суму …","ቀዳማይ ድምር እሕስብ …"],"Ein m² kostet …":["1 م² يكلّف …","1 m² giá …","1 м² коштує …","ሓደ m² ይኽፈል …"],"Gewicht":["الوزن","trọng lượng","вага","ክብደት"],"kg":["كغ","kg","кг","ኪሎ"],"Ware B":["البضاعة B","Hàng B","товар B","ኣቑሑት B"],"Stück":["قطعة","cái","штука","ቁጽሪ"],"Transport":["النقل","vận chuyển","перевезення","ምጕዓዝ"],"Socken":["جوارب","tất","шкарпетки","ካልሲ"],"Auf die Socken entfallen …":["يخص الجوارب …","Tất phải chịu …","На шкарпетки припадає …","ኣብ ካልሲ ይወድቕ …"],"Transportkosten":["تكاليف النقل","chi phí vận chuyển","витрати на перевезення","ወጻኢታት ምጕዓዝ"],"Kaufhaus":["المتجر الكبير","trung tâm thương mại","універмаг","ትካል ሽያጥ (Kaufhaus)"],"Anteil":["حصة","phần","частка","ድርሻ"],"Mein Kaufhaus zahlt …":["متجري الكبير يدفع …","Cửa hàng của tôi trả …","Мій універмаг платить …","ትካለይ ይከፍል …"],"Bücher":["كتب","sách","книги","መጻሕፍቲ"],"Kosten":["التكاليف","chi phí","витрати","ወጻኢታት"],"Auf die Bücher entfallen …":["يخص الكتب …","Sách phải chịu …","На книги припадає …","ኣብ መጻሕፍቲ ይወድቕ …"],"Umsatz":["المبيعات","doanh thu","оборот","ሽያጥ (Umsatz)"],"Miete":["الإيجار","tiền thuê","оренда","ክራይ"],"Werbung":["إعلان","quảng cáo","реклама","ወከልቲ (Werbung)"],"Ich entscheide mich für …, weil …":["أقرّر … لأن …","Tôi quyết định chọn …, vì …","Я обираю …, тому що …","ኣነ እመርጽ …፣ ምኽንያቱ …"],"Anteile":["حصص","các phần","частки","ድርሻታት"],"vertippt":["خطأ في الكتابة","bấm nhầm số","помилка введення","ጌጋ ተጽሒፉ"],"Die Anteile müssen …, weil …":["يجب أن تكون الحصص …، لأن …","Các phần phải …, vì …","Частки мають …, тому що …","ድርሻታት ክኾኑ ኣለዎም …፣ ምኽንያቱ …"],"gleich":["متساوٍ","bằng nhau","однаковий","ማዕረ"],"gerecht":["عادل","công bằng","справедливий","ፍትሓዊ"],"Schlüssel":["مفتاح","tiêu chí","ключ","ቀለሊ"],"Das ist nicht gerecht, weil …":["هذا غير عادل، لأن …","Như vậy không công bằng, vì …","Це несправедливо, тому що …","እዚ ፍትሓዊ ኣይኮነን፣ ምኽንያቱ …"],"Dreisatz":["قاعدة الثلاثة","tam suất","правило трьох","ሰለስተ-ሕጊ"],"Wert von 1":["قيمة 1","giá trị của 1","вартість 1","ዋጋ ሓደ"],"mal":["ضرب","nhân","помножити","ብዝሒ (×)"],"Zuerst rechnet man auf …":["أولًا نحسب على …","Trước tiên ta tính về …","Спочатку рахують на …","ቀዳማይ ናብ … ይሕስብ"],"mehr":["أكثر","nhiều hơn","більше","ዝያዳ"],"weniger":["أقل","ít hơn","менше","ውሑድ"],"Die Spielwaren zahlen …, weil …":["قسم الألعاب يدفع …، لأن …","Đồ chơi trả …, vì …","Іграшки платять …, тому що …","መጻወቲ ይከፍል …፣ ምኽንያቱ …"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={ar:0,vi:1,uk:2,ti:3}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 3 · Modul 17 · Verteilungsrechnung";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf3m17_v2";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),document.getElementById("a2btn")?["a2"]:[]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+if($("#a2btn"))$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF3_Modul17.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done&&$("#a2btn"))$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>
