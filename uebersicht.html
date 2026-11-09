@@ -99,6 +99,10 @@ h3{font-size:16px;margin:18px 0 8px;display:flex;align-items:center;gap:8px}
 .pill.me{background:var(--mu-line);color:#fff}
 .pill.new{background:var(--new);color:#fff}
 .pill.dl{background:#fff;color:#333;border:1px solid rgba(0,0,0,.2)}
+.mlx{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:14px;border:2px dashed var(--mu-line);background:var(--mu-bg);color:var(--mu-ink)}
+.mlx>span{font-size:18px}
+.mlb{display:inline-flex;align-items:center;justify-content:center;min-width:46px;min-height:44px;padding:0 10px;border-radius:12px;border:2px solid var(--mu-line);background:#fff;color:var(--mu-ink);font-weight:800;text-decoration:none;box-shadow:var(--sh)}
+.mlb:hover,.mlb:focus-visible{filter:brightness(.95);transform:translateY(-1px)}
 .sol{flex:0 1 auto;display:flex;align-items:center;gap:8px;text-decoration:none;border-radius:14px;padding:10px 14px;border:2px solid var(--de-line);background:var(--de-bg);color:var(--de-ink);font-weight:700;box-shadow:var(--sh)}
 .sol.mu{border-color:var(--mu-line);background:var(--mu-bg);color:var(--mu-ink)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;align-items:center}
@@ -124,6 +128,7 @@ a.chip:hover{background:var(--pri);color:var(--priink)}
 <body>
 <div id="app"></div>
 <script src="uebersicht_daten.js" charset="utf-8"></script>
+<script src="uebersicht_mehrsprachig.js" charset="utf-8"></script>
 <script>
 (function(){
 'use strict';
@@ -133,7 +138,7 @@ if(!D){app.innerHTML='<p style="padding:20px">uebersicht_daten.js fehlt.</p>';re
 
 /* ---------- Sprachen ---------- */
 var LANGS=['de','vi','ar','uk','ti','pt','es','ru'];
-var LN={de:['🇩🇪','Deutsch','DE'],vi:['🇻🇳','Tiếng Việt','VI'],ar:['🌐','العربية','AR'],uk:['🇺🇦','Українська','UK'],ti:['🌐','ትግርኛ','TI'],pt:['🇵🇹','Português','PT'],es:['🇪🇸','Español','ES'],ru:['🇷🇺','Русский','RU']};
+var LN={de:['🇩🇪','Deutsch','DE'],vi:['🇻🇳','Tiếng Việt','VI'],ar:['🌐','العربية','AR'],uk:['🇺🇦','Українська','UK'],ti:['🌐','ትግርኛ','TI'],pt:['🇵🇹','Português','PT'],es:['🇪🇸','Español','ES'],ru:['🇷🇺','Русский','RU'],tr:['🇹🇷','Türkçe','TR']};
 var TI=['vi','ar','uk','ti','pt','es','ru'];
 var UI={
 title:['Mein Lernstoff','Nội dung học của tôi','موادّي الدراسية','Мій навчальний матеріал','ናይ ዕዮይ ትምህርቲ','A minha matéria','Mi materia de estudio','Мой учебный материал'],
@@ -237,6 +242,12 @@ function matRow(m,icon,title,sub){
   var badges=(newish(m.mt)?'<span class="pill new">'+esc(t('isNew'))+'</span>':'')+langChips(m)+'<span class="pill">'+(m.t==='pdf'?'PDF':m.t==='ppt'?'PPT':esc(t('web')))+'</span>';
   return '<a class="mat '+(mu?'mu':'de')+'" href="'+m.u+'" target="_blank" rel="noopener"><span class="mi" aria-hidden="true">'+icon+'</span><span class="mt"><b>'+esc(title)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span><span class="mb">'+badges+'</span></a>';
 }
+var ML_NAMES={tr:'Türkçe',vi:'Tiếng Việt',ar:'العربية',ti:'ትግርኛ',ru:'Русский',es:'Español',pt:'Português'};
+function mlLinks(m){ /* Sprach-Buttons TR · VI · AR zu den mehrsprachigen Fassungen (Daten: uebersicht_mehrsprachig.js) */
+  var e=window.UEB_ML&&window.UEB_ML[m.u]; if(!e)return '';
+  return '<span class="mlx" role="group" aria-label="Mehrsprachige Fassung"><span aria-hidden="true">🌐</span>'+['tr','vi','ar','ti','ru','es','pt'].filter(function(c){return e[c];}).map(function(c){
+    return '<a class="mlb" lang="'+c+'" href="'+e[c]+'" target="_blank" rel="noopener" title="'+esc(ML_NAMES[c])+'" aria-label="'+esc(m.label)+' – '+esc(ML_NAMES[c])+'">'+c.toUpperCase()+'</a>';}).join('')+'</span>';
+}
 function sortMats(list){
   return list.slice().sort(function(a,b){
     var pa=(lang!=='de'&&(a.lang||[]).indexOf(lang)>-1)?0:isMulti(a)?1:2, pb=(lang!=='de'&&(b.lang||[]).indexOf(lang)>-1)?0:isMulti(b)?1:2;
@@ -332,7 +343,7 @@ function viewModule(gid,sid,mid){
         var title=c==='weiteres'?x.label:t('c_'+c);
         if(c==='weiteres')sub='';
         else if(sub&&sub.toLowerCase()===title.toLowerCase())sub='';
-        return matRow(x,CI[c],title,sub);
+        return '<div><div class="matrow">'+matRow(x,CI[c],title,sub)+mlLinks(x)+'</div></div>';
       }).join('')+'</div>';
   });
   if(!shown)out+='<div class="empty">'+esc(m.mats.length?t('noneInLang'):t('noMat'))+'</div>';
@@ -352,7 +363,7 @@ function viewExtras(gid,sid){
       var row=matRow(x,KI[kd],x.label,'');
       var belongs='<div class="chips"><span class="small">'+esc(t('belongs'))+':</span> '+rangeChips(g,s,x.mods)+'</div>';
       var sol=x.sol?'<a class="sol'+(isMulti(x)?' mu':'')+'" href="'+x.sol+'" target="_blank" rel="noopener">✅ '+esc(t('solution'))+(newish(x.solmt)?' <span class="pill new">'+esc(t('isNew'))+'</span>':'')+'</a>':'';
-      return '<div><div class="matrow">'+row+sol+'</div>'+belongs+'</div>';
+      return '<div><div class="matrow">'+row+mlLinks(x)+sol+'</div>'+belongs+'</div>';
     }).join('')+'</div>';
   });
   if(!any)out+='<div class="empty">'+esc(onlyLang&&lang!=='de'?t('noneInLang'):t('noMat'))+'</div>';
