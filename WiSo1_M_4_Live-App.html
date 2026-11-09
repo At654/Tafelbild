@@ -1,0 +1,2428 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Wann ist Schluss?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#eef1f3;--surface:#fff;--surface2:#f5f7f8;--ink:#1a1f24;--muted:#56606a;--line:#d3d9de;
+  --brand:#0f5c6e;--brand-ink:#fff;--ok:#1f7a3f;--bad:#b3261e;--warn:#a15c00;
+  --az:#1f5fae;--az-soft:#dde8f7;--be:#c2410c;--be-soft:#fbe6dc;
+  --display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111518;--surface:#1a2025;--surface2:#151a1e;--ink:#e8edf0;--muted:#a2adb6;--line:#333c43;
+  --brand:#5cc3d6;--brand-ink:#08191d;--ok:#6fcf8e;--bad:#ff8a80;--warn:#f0b35a;
+  --az:#7fb0ff;--az-soft:#1b2a40;--be:#ff8a5c;--be-soft:#3a2219;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#111518;--surface:#1a2025;--surface2:#151a1e;--ink:#e8edf0;--muted:#a2adb6;--line:#333c43;
+  --brand:#5cc3d6;--brand-ink:#08191d;--ok:#6fcf8e;--bad:#ff8a80;--warn:#f0b35a;
+  --az:#7fb0ff;--az-soft:#1b2a40;--be:#ff8a5c;--be-soft:#3a2219;color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.4}
+h1,h2,h3{font-family:var(--display);font-stretch:112%;margin:0 0 .4em;line-height:1.1}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:.6em 1em}
+button.pri{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:700}
+button:disabled{opacity:.45;cursor:default}
+input,textarea{font:inherit;width:100%;padding:.6em .7em;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.muted{color:var(--muted)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.merk{border-left:6px solid var(--brand);background:var(--surface);border-radius:10px;padding:12px 14px;margin:8px 0}
+.term{font-weight:700;border-bottom:3px solid var(--brand)}
+.alt{font-weight:400;color:var(--muted);font-size:.9em}
+.az{color:var(--az)} .be{color:var(--be)}
+/* ---------- Tafel ---------- */
+#tafel header{display:flex;align-items:center;gap:14px;padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap}
+#tafel header h1{font-size:1.35rem;margin:0}
+.steps{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.steps button{padding:.35em .8em;font-size:.9rem}
+.steps button.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.mini{display:flex;align-items:center;gap:10px;font-size:.9rem}
+.mini canvas{width:64px;height:64px;border-radius:6px;background:#fff}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bad);margin-right:4px}
+.dot.on{background:var(--ok)}
+#tMain{padding:20px 22px 40px;max-width:1400px;margin:0 auto}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.ctrl button{font-size:1.05rem}
+.big{font-size:clamp(1.6rem,3.2vw,2.6rem)}
+.join{display:grid;grid-template-columns:minmax(260px,420px) 1fr;gap:28px;align-items:start}
+.join canvas{width:100%;aspect-ratio:1;background:#fff;border-radius:14px}
+.code{font-family:var(--display);font-size:3rem;font-weight:800;letter-spacing:.12em}
+.nicks{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.nicks button{padding:.3em .7em;font-size:.95rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.sit{font-size:clamp(1.3rem,2.4vw,1.9rem);background:var(--surface);border-radius:14px;padding:16px 20px;border:2px solid var(--line)}
+.abcd{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.ab{border-radius:14px;padding:14px 16px;background:var(--surface);border:3px solid var(--line);font-size:1.2rem;position:relative}
+.ab .L{font-family:var(--display);font-weight:800;font-size:1.6rem;margin-right:8px}
+.ab .bar{height:12px;border-radius:6px;background:var(--surface2);margin-top:10px;overflow:hidden}
+.ab .bar i{display:block;height:100%;background:var(--brand);transition:width .4s}
+.ab .n{position:absolute;right:14px;top:10px;font-family:var(--display);font-size:1.7rem;font-weight:800}
+.ab.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--surface))}
+.ab.dim{opacity:.4}
+.schema{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;margin-top:12px;font-size:1.15rem}
+.schema b{font-family:var(--display)}
+.satzb{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.satzb span{background:var(--surface);border:1px dashed var(--brand);border-radius:8px;padding:4px 10px}
+.pfgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.pfc{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:12px 14px}
+.pfc.A{border-color:var(--az)} .pfc.B{border-color:var(--be)}
+.pfc .pc{font-family:var(--display);font-weight:800;font-size:1.5rem}
+.mbar{height:10px;border-radius:5px;background:color-mix(in srgb,var(--bad) 35%,var(--surface2));overflow:hidden;margin-top:6px}
+.mbar i{display:block;height:100%;background:var(--ok)}
+.mirror{width:100%;border-collapse:separate;border-spacing:0 8px;font-size:1.1rem}
+.mirror td{padding:10px 12px;background:var(--surface)}
+.mirror td:first-child{border-left:6px solid var(--az);border-radius:10px 0 0 10px}
+.mirror td:last-child{border-right:6px solid var(--be);border-radius:0 10px 10px 0}
+.mirror td.ar{text-align:center;color:var(--muted);font-weight:700;white-space:nowrap}
+.mirror th{font-family:var(--display);font-size:1.1rem;text-align:left;padding:0 12px}
+.verg{display:flex;align-items:flex-end;gap:14px;height:170px;margin:10px 0}
+.verg div{flex:1;background:var(--brand);color:var(--brand-ink);border-radius:10px 10px 0 0;text-align:center;font-family:var(--display);font-weight:800;font-size:1.3rem;padding-top:8px}
+.verg div small{display:block;font-family:var(--body);font-weight:400;font-size:.85rem}
+.whyl{list-style:none;padding:0;margin:10px 0}
+.whyl li{background:var(--surface);border-radius:10px;padding:8px 12px;margin-bottom:6px;font-size:1.1rem}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.timer{font-family:var(--display);font-size:3rem;font-weight:800;min-width:2.2em;text-align:center;border-radius:50%;background:var(--surface);border:4px solid var(--brand);aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.opt{border-radius:14px;padding:14px 16px;color:#fff;font-size:1.2rem;font-weight:700;position:relative}
+.o0{background:#b3261e}.o1{background:#1f5fae}.o2{background:#8a5300}.o3{background:#3a7a1c}.o4{background:#8537a3}
+.opt.wrong{opacity:.35}
+.opt .cnt{position:absolute;right:14px;top:10px;font-family:var(--display);font-size:1.6rem}
+.top{list-style:none;padding:0;margin:0}
+.top li{display:flex;justify-content:space-between;padding:8px 12px;border-radius:10px;background:var(--surface);margin-bottom:6px;font-size:1.15rem}
+.top li b{font-family:var(--display)}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:16px;margin-top:24px}
+.podium div{background:var(--brand);color:var(--brand-ink);border-radius:14px 14px 0 0;width:200px;text-align:center;padding:12px;font-family:var(--display);font-weight:800}
+.podium span{display:block;font-size:1.4rem}
+.pro{font-size:.75rem;font-weight:700;background:var(--brand);color:var(--brand-ink);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+@media (max-width:900px){.two,.join,.opts,.abcd{grid-template-columns:1fr}}
+/* ---------- Handy ---------- */
+#phone{max-width:560px;margin:0 auto;padding:14px 16px 40px}
+#phone .ph-top{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;color:var(--muted);margin-bottom:10px}
+.status{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--surface2)}
+.status.ok{background:color-mix(in srgb,var(--ok) 15%,var(--surface))}
+.status.bad{background:color-mix(in srgb,var(--bad) 15%,var(--surface))}
+.pbtn{display:block;width:100%;text-align:left;margin:8px 0;padding:14px;border-radius:14px;font-size:1.05rem}
+.pbtn .L{font-family:var(--display);font-weight:800;margin-right:6px}
+.pbtn.sel{outline:4px solid var(--ink);outline-offset:-2px;background:var(--surface2)}
+.yn{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.yn button{padding:22px 10px;font-size:1.2rem;font-weight:700;border-radius:14px;border:3px solid}
+.yn .A{background:var(--az-soft);border-color:var(--az);color:var(--az)}
+.yn .B{background:var(--be-soft);border-color:var(--be);color:var(--be)}
+.pcard{border-radius:18px;padding:20px 18px;border:3px solid var(--line);background:var(--surface);font-size:1.35rem;font-weight:700;text-align:center;margin:10px 0}
+.popt{display:block;width:100%;margin:10px 0;padding:16px 14px;border-radius:14px;color:#fff;border:none;font-size:1.05rem;font-weight:700;text-align:left}
+.bigpts{font-family:var(--display);font-size:2.4rem;font-weight:800}
+.prog{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;margin:6px 0 2px}
+.prog i{display:block;height:100%;background:var(--brand)}
+/* ---------- Wörter ---------- */
+#help{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;padding:14px 16px 40px}
+#help>*{max-width:760px;margin-left:auto;margin-right:auto}
+.hhead{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:-14px;background:var(--bg);padding:8px 0}
+.hw{background:var(--surface);border-left:6px solid var(--brand);border-radius:10px;padding:10px 14px;margin:8px 0;font-size:1.05rem}
+.hw b{font-family:var(--display);font-size:1.15rem}
+.hbtn{padding:.25em .7em;font-weight:700;border-radius:999px}
+:root{--ok-soft:#dff1e5;--bad-soft:#f8e0de;--warn-soft:#fbe9c9}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ok-soft:#183324;--bad-soft:#3a1d1b;--warn-soft:#3a2c14}}
+:root[data-theme="dark"]{--ok-soft:#183324;--bad-soft:#3a1d1b;--warn-soft:#3a2c14}
+svg.tree,svg.tlsvg{width:100%;height:auto;display:block}
+svg .tn-a{font-family:var(--display);font-weight:700;font-size:19px;fill:var(--ink)}
+svg .tn-b{font-family:var(--body);font-size:16px;fill:var(--muted)}
+svg .tn-w{fill:var(--ok)} svg .tn-u{fill:var(--bad)}
+svg .tl-lab{font-family:var(--body);font-weight:700;font-size:16px;fill:var(--muted)}
+.etab{width:100%;border-collapse:collapse;font-size:1.05rem;background:var(--surface);border-radius:10px;overflow:hidden}
+.etab th,.etab td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.etab th{font-family:var(--display);background:var(--surface2)}
+.mid{font-size:clamp(1.2rem,2vw,1.6rem)}
+.qlist{margin:.4em 0;padding-left:1.4em;font-size:1.05rem}.qlist li{margin:.2em 0}
+.seq{padding-left:1.4em;margin:10px 0}.seq li{background:var(--surface);border-radius:8px;padding:6px 10px;margin:4px 0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.fbtn{display:flex;flex-direction:column;gap:2px;padding:16px 10px;border-radius:14px;font-size:1.1rem;text-align:center}
+.fbtn span{font-size:.9rem;color:var(--muted)}
+.fbtn.done{border:2px solid var(--ok);background:var(--ok-soft)}
+.yn .W{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.yn .U{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.pzin{font-size:1.6rem;text-align:center;letter-spacing:.08em;margin-top:6px}
+.pfc.A .mbar i{background:var(--ok)}
+</style>
+</head>
+<body>
+<div id="tafel" hidden>
+  <header>
+    <h1>Wann ist Schluss?</h1>
+    <nav class="steps" id="steps"></nav>
+    <div class="mini"><canvas id="qrSmall" width="128" height="128"></canvas><div><b id="miniCode"></b><br><span id="miniN"></span><br><span id="conn"></span></div></div>
+  </header>
+  <main id="tMain"></main>
+</div>
+<div id="phone" hidden></div>
+<script>
+var QRLib=(function(){var M={};function R(n){n=n.replace("./","");return M[n]();}
+M["QR8bitByte"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMode = R("./QRMode");
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+})(c,c.exports);return c.exports;};})();
+M["QRBitBuffer"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+})(c,c.exports);return c.exports;};})();
+M["QRErrorCorrectLevel"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+})(c,c.exports);return c.exports;};})();
+M["QRMaskPattern"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+})(c,c.exports);return c.exports;};})();
+M["QRMath"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+})(c,c.exports);return c.exports;};})();
+M["QRMode"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+})(c,c.exports);return c.exports;};})();
+M["QRPolynomial"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMath = R("./QRMath");
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+})(c,c.exports);return c.exports;};})();
+M["QRRSBlock"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRErrorCorrectLevel = R("./QRErrorCorrectLevel");
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+})(c,c.exports);return c.exports;};})();
+M["QRUtil"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMode = R("./QRMode");
+var QRPolynomial = R("./QRPolynomial");
+var QRMath = R("./QRMath");
+var QRMaskPattern = R("./QRMaskPattern");
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+})(c,c.exports);return c.exports;};})();
+M["index"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = R("./QR8bitByte");
+var QRUtil = R("./QRUtil");
+var QRPolynomial = R("./QRPolynomial");
+var QRRSBlock = R("./QRRSBlock");
+var QRBitBuffer = R("./QRBitBuffer");
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+})(c,c.exports);return c.exports;};})();
+return {QRCode:R("./index"),ECL:R("./QRErrorCorrectLevel")};})();
+</script>
+<script>
+/* =========================================================
+   Kleiner MQTT-3.1.1-Client über WebSocket (wie im Standort-Spiel)
+   ========================================================= */
+const TE=new TextEncoder(), TD=new TextDecoder();
+function mqStr(s){const b=TE.encode(s);return [b.length>>8,b.length&255,...b];}
+function mqLen(n){const o=[];do{let d=n%128;n=Math.floor(n/128);if(n>0)d|=128;o.push(d);}while(n>0);return o;}
+function mqPacket(h,body){return new Uint8Array([h,...mqLen(body.length),...body]);}
+class MqttLink{
+  constructor(url,cid,onMsg,onStatus){this.url=url;this.cid=cid;this.onMsg=onMsg;this.onStatus=onStatus;this.subs=new Set();this.up=false;this.buf=new Uint8Array(0);this.pid=1;this.tries=0;this.connect();}
+  connect(){
+    clearTimeout(this.rt);clearInterval(this.ping);let ws;
+    try{ws=new WebSocket(this.url,["mqtt"]);}catch(e){this.retry();return;}
+    this.ws=ws;ws.binaryType="arraybuffer";
+    const guard=setTimeout(()=>{if(!this.up){try{ws.close();}catch(e){}}},9000);
+    ws.onopen=()=>{ws.send(mqPacket(0x10,[...mqStr("MQTT"),4,0x02,0,30,...mqStr(this.cid+"-"+Math.random().toString(36).slice(2,6))]));};
+    ws.onmessage=(ev)=>{const d=new Uint8Array(ev.data);const nb=new Uint8Array(this.buf.length+d.length);nb.set(this.buf);nb.set(d,this.buf.length);this.buf=nb;this.parse();};
+    ws.onclose=()=>{clearTimeout(guard);this.up=false;clearInterval(this.ping);this.onStatus();this.retry();};
+    ws.onerror=()=>{};
+  }
+  retry(){this.tries++;this.rt=setTimeout(()=>this.connect(),Math.min(15000,800*Math.pow(1.6,this.tries)));}
+  parse(){
+    while(this.buf.length>=2){
+      let mult=1,len=0,i=1,b;
+      do{if(i>=this.buf.length)return;b=this.buf[i++];len+=(b&127)*mult;mult*=128;}while(b&128);
+      if(this.buf.length<i+len)return;
+      const type=this.buf[0]>>4,flags=this.buf[0]&15,body=this.buf.subarray(i,i+len);this.buf=this.buf.slice(i+len);
+      if(type===2){if(body[1]===0){this.up=true;this.tries=0;for(const t of this.subs)this.sendSub(t);
+          this.ping=setInterval(()=>{try{this.ws.send(new Uint8Array([0xC0,0]));}catch(e){}},20000);this.onStatus(true);}else{try{this.ws.close();}catch(e){}}}
+      else if(type===3){const tl=(body[0]<<8)|body[1];const topic=TD.decode(body.subarray(2,2+tl));let p=2+tl;const qos=(flags>>1)&3;
+        if(qos>0){const id=(body[p]<<8)|body[p+1];p+=2;if(qos===1){try{this.ws.send(new Uint8Array([0x40,2,id>>8,id&255]));}catch(e){}}}
+        let payload=null;try{payload=JSON.parse(TD.decode(body.subarray(p)));}catch(e){}
+        if(payload!==null)this.onMsg(topic,payload,(flags&1)===1);}
+    }
+  }
+  sendSub(t){const id=this.pid=(this.pid%60000)+1;try{this.ws.send(mqPacket(0x82,[id>>8,id&255,...mqStr(t),0]));}catch(e){}}
+  subscribe(t){this.subs.add(t);if(this.up)this.sendSub(t);}
+  publish(t,obj,retain){if(!this.up)return false;const body=[...mqStr(t),...TE.encode(obj===null?"":JSON.stringify(obj))];
+    try{this.ws.send(mqPacket(retain?0x31:0x30,body));return true;}catch(e){return false;}}
+}
+/* Lokaler Testbetrieb: ?bc=1 verbindet nur Tabs im selben Browser (zum Ausprobieren ohne Internet) */
+class LocalLink{
+  constructor(cid,onMsg,onStatus){this.up=true;this.subs=new Set();this.bc=new BroadcastChannel("wisom4-ende");
+    this.bc.onmessage=e=>{const m=e.data;if(this.subs.has(m.t))onMsg(m.t,m.p,false);};setTimeout(()=>onStatus(true),50);}
+  subscribe(t){this.subs.add(t);}
+  publish(t,obj){this.bc.postMessage({t,p:JSON.parse(JSON.stringify(obj))});return true;}
+}
+const params=new URLSearchParams(location.search);
+const LOCAL=params.get("bc")==="1";
+const BROKERS=params.get("broker")?[params.get("broker")]:["wss://broker.hivemq.com:8884/mqtt","wss://broker.emqx.io:8084/mqtt"];
+const NS="wisom4ende1/";
+class Net{
+  constructor(onMsg,onStatus){
+    this.cid="p"+rnd(10);this.seen=new Map();this.onMsg=onMsg;
+    const st=()=>onStatus(this.count());
+    this.links=LOCAL?[new LocalLink(this.cid,(t,p,r)=>this.recv(t,p,r),st)]:BROKERS.map(u=>new MqttLink(u,this.cid,(t,p,r)=>this.recv(t,p,r),st));
+  }
+  count(){return {up:this.links.filter(l=>l.up).length,all:this.links.length};}
+  recv(t,p,r){
+    if(p&&typeof p==="object"&&p.mid){const now=Date.now();if(this.seen.has(p.mid))return;this.seen.set(p.mid,now);
+      if(this.seen.size>3000){for(const [k,v] of this.seen){if(now-v>600000)this.seen.delete(k);}}}
+    this.onMsg(t,p,r);
+  }
+  sub(t){this.links.forEach(l=>l.subscribe(NS+t));}
+  pub(t,obj,retain){obj.mid=rnd(12);let ok=false;this.links.forEach(l=>{if(l.publish(NS+t,obj,retain))ok=true;});return ok;}
+}
+function rnd(n){const a="abcdefghijkmnpqrstuvwxyz23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(n));for(const x of r)s+=a[x%a.length];return s;}
+function codeGen(){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(5));for(const x of r)s+=a[x%a.length];return s;}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k));localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+const $=id=>document.getElementById(id);
+function clean(s,max){return String(s==null?"":s).replace(/[\u0000-\u001f\u007f​-‏‪-‮]/g," ").trim().slice(0,max);}
+function h(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+const eur=c=>(c/100).toFixed(2).replace(".",",")+" €";
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+</script>
+<script>
+/* =========================================================
+   Inhalte: WiSo · Modul 4 – Probezeit, Ende, Kündigung
+   Fälle, Daten und Lösungen genau wie im Aufgabenblatt, Einstiegsmaterial und in den Lösungen.
+   ========================================================= */
+const PHASES=["Start","Ankommen","Wann ist Schluss?","Probezeit & Ende","Fall-Rallye","Zeugnis","Merken","Prüfungs-Check","Sieger"];
+
+/* Ankommen: Wiederholung Modul 3 (Aufgabe 1 des Aufgabenblatts, Spacing) */
+const WDH=[
+ {q:"Wo darfst du deinen Ausbildungsnachweis schreiben?",o:["nur zu Hause","im Betrieb, während der Ausbildungszeit","nur in der Pause in der Berufsschule","nur am Wochenende"],k:1,
+  x:"Der Betrieb muss dir Zeit geben, den Nachweis am Arbeitsplatz zu schreiben (§ 14 Abs. 2 BBiG)."},
+ {q:"Wie lange wird die Vergütung bei Krankheit weitergezahlt?",o:["gar nicht","zwei Wochen","bis zu sechs Wochen","drei Monate"],k:2,
+  x:"Bis zu sechs Wochen (§ 19 BBiG, Entgeltfortzahlungsgesetz)."},
+ {q:"Welche ist eine Pflicht des Azubis?",o:["Ausbildungsmittel kostenlos stellen","für die Berufsschule freistellen","über Geschäftsgeheimnisse schweigen","die Vergütung pünktlich zahlen"],k:2,
+  x:"Schweigepflicht ist Azubi-Pflicht (§ 13 BBiG). Die anderen drei sind Pflichten des Betriebs."},
+ {q:"Darf der Chef dich sein Privatauto waschen lassen?",o:["Ja – Azubis müssen alles machen.","Nein – Azubis bekommen nur Aufgaben, die der Ausbildung dienen.","Ja, wenn es kürzer als 30 Minuten dauert.","Ja, wenn du volljährig bist."],k:1,
+  x:"Nur Aufgaben, die dem Ausbildungszweck dienen (§ 14 Abs. 3 BBiG)."}
+];
+
+/* Zeitstrahl „Wann ist Schluss?“ – sechs Ereigniskarten aus dem Einstiegsmaterial, richtige Reihenfolge = Index.
+   Am Handy OHNE Datum (das Einstiegsmaterial druckt die Daten absichtlich klein), Daten erst bei der Auflösung. */
+const EV=[
+ {t:"Beginn der Ausbildung",d:"01.08.2026",m:0},
+ {t:"Ende der Probezeit",d:"nach vier Monaten: 30.11.2026",m:4},
+ {t:"Zwischenprüfung",d:"September 2027",m:13.5},
+ {t:"schriftliche Abschlussprüfung",d:"April 2028",m:20.5},
+ {t:"letzte Prüfung, Ergebnis wird bekannt gegeben",d:"20.06.2028",m:22.65},
+ {t:"Vertragsende laut Vertrag",d:"31.07.2028",m:24}
+];
+const ZQ={q:"Ab welchem Tag ist Emre kein Azubi mehr?",o:["31.07.2028 – Vertragsende","20.06.2028 – letzte Prüfung, Ergebnis wird bekannt gegeben","nach der schriftlichen Prüfung im April 2028","wenn das IHK-Zeugnis mit der Post kommt"],k:1,
+  x:"Besteht der Azubi vor dem Vertragsende, endet die Ausbildung mit der Bekanntgabe des Ergebnisses durch den Prüfungsausschuss (§ 21 Abs. 2 BBiG) – hier am 20.06.2028."};
+
+/* Probezeit rechnen – Aufgabe 2 (Emre), 3.1, 3.2, Prüfungsstil und Profi 3.3 (Lösungen: 30.11., 30.11., 14.10., 31.10., 11.01.) */
+const PZ=[
+ {t:"Emre beginnt am 01.08.2026. Im Vertrag steht eine Probezeit von vier Monaten. Mit Ablauf welchen Tages endet sie?",a:"30.11",
+  w:["Die Probezeit beginnt mit dem ersten Tag: 01.08.2026.","Vier Monate: August, September, Oktober, November.","Sie endet mit Ablauf des 30.11.2026."],
+  f:{"01.12":"Der 01.12. ist schon der erste Tag NACH der Probezeit.","31.12":"Du hast einen Monat zu viel gezählt.","31.11":"Den 31.11. gibt es nicht – der November hat 30 Tage."}},
+ {t:"Beginn 01.09.2026, Probezeit drei Monate.",a:"30.11",
+  w:["Drei Monate: September, Oktober, November.","Sie endet mit Ablauf des 30.11.2026."],
+  f:{"01.12":"Der 01.12. ist schon der erste Tag NACH der Probezeit.","31.12":"Du hast einen Monat zu viel gezählt.","01.11":"Du hast nur zwei Monate gezählt."}},
+ {t:"Beginn 15.08.2026, Probezeit zwei Monate.",a:"14.10",
+  w:["Beginnt die Ausbildung mitten im Monat, endet die Probezeit am Tag davor.","15.08. plus zwei Monate = 15.10.","Der Tag davor: Sie endet mit Ablauf des 14.10.2026."],
+  f:{"15.10":"Fast! Am 15.10. beginnt schon die Zeit nach der Probezeit. Die Probezeit endet am Tag davor.","31.10":"Nicht bis zum Monatsende zählen – die Ausbildung beginnt am 15."}},
+ {src:"Prüfungsstil",t:"Frau Sophie Brandt hat am 1. August 2026 eine dreijährige Ausbildung zur Verkäuferin begonnen. Laut Vertrag beträgt die Probezeit 3 Monate. Mit Ablauf welchen Tages endet die im Vertrag vereinbarte Probezeit? Die Ausbildung wurde nicht unterbrochen. Tragen Sie Tag und Monat (TT.MM) ein!",a:"31.10",
+  w:["Drei Monate: August, September, Oktober.","Lösung: 31.10"],
+  f:{"01.11":"Der 01.11. ist schon der erste Tag NACH der Probezeit.","30.10":"Der Oktober hat 31 Tage.","30.11":"Du hast einen Monat zu viel gezählt.","30.09":"Du hast nur zwei Monate gezählt."}},
+ {pro:1,t:"Ali beginnt am 01.08.2026, Probezeit vier Monate. In der Probezeit ist er sechs Wochen krank. Im Vertrag steht die Verlängerungsklausel. Mit Ablauf welchen Tages endet seine Probezeit?",a:"11.01",
+  hint:"Ein Drittel von vier Monaten sind etwa 40 Tage.",
+  w:["Normales Ende: 30.11.2026.","Sechs Wochen = 42 Tage. Das ist mehr als ein Drittel der Probezeit (etwa 40 Tage).","Also verlängert sich die Probezeit um 42 Tage: Sie endet mit Ablauf des 11.01.2027."],
+  f:{"30.11":"Die Krankheit war länger als ein Drittel der Probezeit – die Probezeit verlängert sich.","10.01":"Fast – zähle die 42 Tage noch einmal ab dem 01.12.","12.01":"Fast – zähle die 42 Tage noch einmal ab dem 01.12."}}
+];
+
+/* Ende der Ausbildung: Abstimmung auflösen + Aufgabe 4.2 und 4.3 */
+const END=[ZQ,
+ {q:"Emre besteht die Prüfung nicht. Er möchte weitermachen. Was gilt?",o:["Die Ausbildung endet trotzdem am 31.07.2028.","Auf sein Verlangen wird bis zur nächsten Wiederholungsprüfung verlängert – höchstens um ein Jahr.","Der Betrieb entscheidet, ob verlängert wird.","Die Ausbildung verlängert sich automatisch um zwei Jahre."],k:1,
+  x:"§ 21 Abs. 3 BBiG: Verlängerung auf Verlangen des Azubis bis zur nächstmöglichen Wiederholungsprüfung, höchstens um ein Jahr. Der Betrieb kann das nicht ablehnen."},
+ {q:"Emre besteht am 20.06.2028 und kommt am 21.06. einfach wieder zur Arbeit. Keiner sagt etwas. Was gilt?",o:["Er ist bis zum 31.07. weiter Azubi.","Er arbeitet ohne Vertrag und darf jederzeit gehen.","Es entsteht ein unbefristetes Arbeitsverhältnis.","Es entsteht ein befristetes Arbeitsverhältnis bis zum 31.07."],k:2,
+  x:"§ 24 BBiG: Wer nach dem Ende der Ausbildung weiterbeschäftigt wird, ohne dass etwas vereinbart ist, hat ein unbefristetes Arbeitsverhältnis."}
+];
+
+/* Fall-Rallye: Weg durch den Entscheidungsbaum. w = wirksam? */
+const G=[
+ {t:"nicht schriftlich – keine Unterschrift",w:false,p:["q1","u1","q1-u1"]},
+ {t:"in der Probezeit: ohne Frist und ohne Grund erlaubt",w:true,p:["q1","q2","w1","q1-q2","q2-w1"]},
+ {t:"wichtiger Grund, innerhalb von zwei Wochen gekündigt",w:true,p:["q1","q2","q3","q4","w2","q1-q2","q2-q3","q3-q4","q4-w2"]},
+ {t:"wichtiger Grund, aber zu spät gekündigt",w:false,p:["q1","q2","q3","q4","u2","q1-q2","q2-q3","q3-q4","q4-u2"]},
+ {t:"Azubi wechselt den Beruf oder hört auf: mit vier Wochen Frist",w:true,p:["q1","q2","q3","q5","w3","q1-q2","q2-q3","q3-q5","q5-w3"]},
+ {t:"nach der Probezeit ohne wichtigen Grund",w:false,p:["q1","q2","q3","q5","u3","q1-q2","q2-q3","q3-q5","q5-u3"]}
+];
+const FALL=[
+ {t:"Lisa (19) ist im zweiten Monat der Probezeit. Der Betrieb schreibt ihr per WhatsApp: „Du passt nicht zu uns. Ab morgen musst du nicht mehr kommen.“",g:0,
+  x:"Nicht schriftlich – eine WhatsApp-Nachricht hat keine Unterschrift (§ 22 Abs. 3 BBiG)."},
+ {t:"Wie Fall 1, aber Lisa bekommt einen unterschriebenen Brief ohne Begründung.",g:1,
+  x:"In der Probezeit darf jede Seite jederzeit ohne Frist und ohne Grund kündigen (§ 22 Abs. 1 BBiG)."},
+ {t:"Tim (18) ist im sechsten Monat. Die Probezeit betrug vier Monate. Der Chef kündigt schriftlich: „Wir haben zu wenig Arbeit.“",g:5,
+  x:"Nach der Probezeit kann der Betrieb nur aus wichtigem Grund kündigen. Wenig Arbeit ist kein wichtiger Grund."},
+ {t:"Sara (20) wird im zehnten Monat beim Griff in die Kasse erwischt. Fünf Tage später erhält sie eine schriftliche Kündigung mit Begründung.",g:2,
+  x:"Diebstahl ist ein wichtiger Grund. Grund genannt, innerhalb von zwei Wochen gekündigt – fristlos wirksam."},
+ {t:"Wie Fall 4, aber der Betrieb kündigt erst fünf Wochen nach dem Diebstahl.",g:3,knack:1,
+  x:"Zu spät: Die Kündigung muss innerhalb von zwei Wochen nach Bekanntwerden erfolgen (§ 22 Abs. 4 BBiG)."},
+ {t:"Can (18) ist im achten Monat. Er will Friseur werden und kündigt schriftlich mit Begründung und einer Frist von vier Wochen.",g:4,
+  x:"Berufswechsel: Der Azubi darf mit vier Wochen Frist kündigen (§ 22 Abs. 2 Nr. 2 BBiG)."},
+ {t:"Mia (18) ist seit einem Jahr im Betrieb. Sie will als Verkäuferin in einen anderen Supermarkt wechseln und kündigt mit vier Wochen Frist.",g:5,knack:1,
+  x:"Ein Betriebswechsel im selben Beruf ist kein Grund für die Kündigung mit Frist. Möglich ist nur ein Aufhebungsvertrag."},
+ {t:"Jonas (19) wird im fünften Monat von seinem Ausbilder immer wieder schwer beleidigt. Er kündigt schriftlich, nennt den Grund und hört sofort auf.",g:2,
+  x:"Schwere, wiederholte Beleidigung ist ein wichtiger Grund – auch der Azubi darf fristlos kündigen."}
+];
+const FSATZ=["Die Kündigung ist (un)wirksam, weil …","Nach § 22 BBiG …","Sie ist (nicht) schriftlich …","Die Probezeit ist schon vorbei, also …"];
+
+/* Zeugnis: Aufgabe 7 a) bis f) + zwei weitere Karten. E = steht schon im einfachen Zeugnis, Q = nur im qualifizierten */
+const ZG=[
+ {t:"Art der Ausbildung: Verkäuferin",w:"E"},
+ {t:"„Sie war stets pünktlich und hilfsbereit.“",w:"Q"},
+ {t:"Dauer: 01.08.2026 bis 20.06.2028",w:"E"},
+ {t:"„Ihre Leistungen haben uns jederzeit voll überzeugt.“",w:"Q"},
+ {t:"Erworbene Kenntnisse: Kassieren, Warenpräsentation, Kundenberatung",w:"E"},
+ {t:"„Gegenüber Kunden trat sie freundlich und sicher auf.“",w:"Q"},
+ {t:"Ziel der Ausbildung: Abschluss als Verkäuferin",w:"E"},
+ {t:"„Sie arbeitete selbstständig und sorgfältig.“",w:"Q"}
+];
+const ZW={E:"einfaches Zeugnis",Q:"nur qualifiziertes Zeugnis"};
+
+/* Prüfungs-Check. Tim Schmidt (S22/16) läuft bereits als Eingabe in „Probezeit rechnen“ und fehlt hier bewusst.
+   S26/14 ist im Original eine Aufgabe mit zwei Lösungsziffern – hier als Antwortpaare. */
+const QUIZ=[
+ {q:"Selin Aksoys Ausbildungsvertrag endet am 31. Juli 2027. Sie hat bereits einen Arbeitsvertrag mit der Nordring KG, der sofort nach bestandener Prüfung beginnt. Am 14. Juli 2027 besteht Frau Aksoy die Abschlussprüfung. Prüfen Sie, wann sie frühestens bei der Nordring KG anfangen kann!",src:"Prüfungsstil",
+  o:["Nur, wenn das Kaufhaus Hansa vorher zustimmt.","Am 15. Juli 2027, sie wird aber bis zum Kammerzeugnis als Auszubildende bezahlt.","Am 1. August 2027, weil der Vertrag am 31. Juli 2027 endet.","Erst nach dem 31. Juli 2027, weil die Ausbildung grundsätzlich zwei Jahre dauert.","Sie kann die Stelle am 15. Juli 2027 antreten."],k:4,
+  x:"Die Ausbildung endet mit der Bekanntgabe des Ergebnisses am 14.07. (§ 21 Abs. 2 BBiG). Ab dem 15.07. ist sie frei."},
+ {q:"Die 16-jährige Nora Kaiser möchte eine Berufsausbildung beginnen. Welche 2 Regelungen zur Berufsausbildung finden Sie im Berufsbildungsgesetz?",src:"Prüfungsstil (hier als Paare)",d:75,
+  l:["Die Probezeit beträgt mindestens vier Monate und darf nie verkürzt werden.","Besteht ein Azubi die Abschlussprüfung nicht, verlängert sich das Ausbildungsverhältnis auf sein Verlangen bis zur nächsten Wiederholungsprüfung, höchstens um ein Jahr.","Über die Zulassung zur Abschlussprüfung entscheidet die Berufsschule.","Eine Probezeit entfällt, wenn der Betrieb die Auszubildende schon als Aushilfe kannte.","Der Ausbildende kann nach der Probezeit jederzeit ohne Grund kündigen.","Berufsausbildungsverträge werden bei der zuständigen Stelle eingetragen."],
+  o:["1 und 3","2 und 5","2 und 6","4 und 6","1 und 5"],k:2,
+  x:"2 und 6. Probezeit 1 bis 4 Monate · kein Wegfall der Probezeit durch Aushilfstätigkeit · über die Zulassung entscheidet die zuständige Stelle · nach der Probezeit nur mit wichtigem Grund."},
+ {q:"Im Ausbildungsvertrag von Herrn Demir werden 3 Monate Probezeit vereinbart. In welchem Fall kann Herr Demir das Ausbildungsverhältnis auch nach Ablauf der Probezeit beenden?",src:"Prüfungsstil",
+  o:["Bei schlechten Noten im Zeugnis der Berufsschule","Bei einem Wechsel des Ausbilders","Bei einer als zu niedrig empfundenen Ausbildungsvergütung","Bei Aufgabe der Ausbildung, um sich in einem anderen Beruf ausbilden zu lassen","Bei Kündigung mit 6 Wochen Frist zum Quartalsende"],k:3,
+  x:"Berufswechsel: Kündigung mit vier Wochen Frist (§ 22 Abs. 2 Nr. 2 BBiG)."},
+ {q:"Herr Öztürk hat die Ausbildung zum Verkäufer beendet. Hat er bei Beendigung der Ausbildung ein Recht auf Ausstellung eines qualifizierten Ausbildungszeugnisses?",src:"Prüfungsstil",
+  o:["Ja, weil das im Manteltarifvertrag so vereinbart wurde","Ja, wenn er die Kosten für das Zeugnis selbst übernimmt","Ja, wenn er es verlangt","Nein, denn das Prüfungszeugnis der Kammer bescheinigt seine Kenntnisse","Nein, über die Ausbildungszeit dürfen keine Zeugnisse ausgestellt werden"],k:2,
+  x:"Das qualifizierte Zeugnis gibt es auf Verlangen, kostenlos (§ 16 Abs. 2 BBiG)."},
+ {q:"Welche Kündigung ist wirksam?",src:"Mischfrage zur Fall-Rallye",
+  o:["Der Betrieb kündigt in der Probezeit per WhatsApp.","Der Betrieb kündigt im sechsten Monat schriftlich wegen Auftragsmangels.","Der Betrieb kündigt fristlos, fünf Wochen nach einem Diebstahl.","Eine Azubi kündigt schriftlich mit vier Wochen Frist, weil sie Friseurin werden will.","Ein Azubi kündigt mit vier Wochen Frist, weil er als Verkäufer in einen anderen Supermarkt will."],k:3,
+  x:"Nur der Berufswechsel erlaubt die Kündigung mit vier Wochen Frist. WhatsApp ist nicht schriftlich, Auftragsmangel ist kein wichtiger Grund, fünf Wochen sind zu spät, Betriebswechsel ist kein Berufswechsel."},
+ {q:"Can kündigt nach der Probezeit ohne wichtigen Grund und erscheint ab sofort nicht mehr. Der Betrieb muss eine Aushilfe bezahlen. Was kann der Betrieb tun?",src:"nach Aufgabe 10.2 · § 23 BBiG",pro:1,
+  o:["Nichts – nach der Probezeit darf jeder sofort gehen.","Can eine Vertragsstrafe aus dem Ausbildungsvertrag abziehen.","Schadensersatz verlangen – innerhalb von drei Monaten nach dem Ende.","Die Vergütung der letzten sechs Monate zurückfordern.","Die IHK muss die Aushilfe bezahlen."],k:2,
+  pz:"Wer hat das Ende verschuldet? Und wie lange hat der Betrieb Zeit?",
+  x:"§ 23 BBiG: Endet die Ausbildung nach der Probezeit vorzeitig, kann der Betrieb Schadensersatz verlangen, wenn Can den Grund zu vertreten hat. Der Anspruch muss innerhalb von drei Monaten geltend gemacht werden. Eine Vertragsstrafe wäre nichtig (§ 12)."},
+ {q:"Leon beginnt am 01.08.2026, Probezeit drei Monate. Im Vertrag steht die Verlängerungsklausel. In der Probezeit ist er drei Wochen krank. Mit Ablauf welchen Tages endet seine Probezeit?",src:"Transfer zu Aufgabe 3.3",pro:1,
+  o:["31.10.2026","21.11.2026","30.11.2026","07.11.2026","31.01.2027"],k:0,
+  pz:"Wie viel ist ein Drittel von drei Monaten? Ist die Krankheit länger?",
+  x:"Ein Drittel von drei Monaten sind etwa 30 Tage. Drei Wochen = 21 Tage – nicht mehr als ein Drittel. Also keine Verlängerung: Ende mit Ablauf des 31.10.2026."}
+];
+const DUR=45,DURPRO=80;
+const qDur=Q=>Q.d||(Q.pro?DURPRO:DUR);
+
+/* ---------- Schaubilder (inline-SVG, Farben aus den Tokens) ---------- */
+const TN={
+ q1:{x:250,y:10,w:340,t:["Ist die Kündigung schriftlich?","(Papier mit Unterschrift)"]},
+ u1:{x:700,y:10,w:190,t:["unwirksam"],r:"u"},
+ q2:{x:250,y:110,w:340,t:["Ist die Probezeit noch nicht vorbei?"]},
+ w1:{x:700,y:110,w:190,t:["wirksam","ohne Frist, ohne Grund"],r:"w"},
+ q3:{x:250,y:210,w:340,t:["Gibt es einen wichtigen Grund?","(z. B. Diebstahl, schwere Beleidigung)"]},
+ q4:{x:10,y:330,w:380,t:["Innerhalb von zwei Wochen gekündigt?","(nachdem der Grund bekannt wurde)"]},
+ q5:{x:450,y:330,w:440,t:["Kündigt der Azubi, weil er aufhört","oder einen anderen Beruf lernen will?"]},
+ w2:{x:10,y:450,w:180,t:["wirksam","fristlos"],r:"w"},
+ u2:{x:210,y:450,w:180,t:["unwirksam","zu spät"],r:"u"},
+ w3:{x:450,y:450,w:210,t:["wirksam","mit 4 Wochen Frist"],r:"w"},
+ u3:{x:680,y:450,w:210,t:["unwirksam","nur Aufhebungsvertrag"],r:"u"}
+};
+const TE_=[ /* id, Punkte, Beschriftung, Beschriftungsposition */
+ ["q1-u1","590,40 700,40","nein",645,32],["q1-q2","420,70 420,110","ja",432,95],
+ ["q2-w1","590,140 700,140","ja",645,132],["q2-q3","420,170 420,210","nein",432,195],
+ ["q3-q4","420,270 420,295 200,295 200,330","ja",300,288],["q3-q5","420,270 420,295 670,295 670,330","nein",540,288],
+ ["q4-w2","200,390 200,420 100,420 100,450","ja",120,414],["q4-u2","200,390 200,420 300,420 300,450","nein",250,414],
+ ["q5-w3","670,390 670,420 555,420 555,450","ja",580,414],["q5-u3","670,390 670,420 785,420 785,450","nein",735,414]
+];
+function treeSVG(o){o=o||{};const on=new Set(o.path||[]),any=on.size>0,lv=o.leaves!==false;
+  let s=`<svg class="tree" viewBox="0 0 900 520" role="img" aria-label="Entscheidungsbaum: Ist die Kündigung wirksam?">`;
+  for(const [id,pts,lab,lx,ly] of TE_){const hi=on.has(id);
+    s+=`<polyline points="${pts}" fill="none" stroke="${hi?"var(--brand)":"var(--line)"}" stroke-width="${hi?6:3}" ${any&&!hi?'opacity=".45"':""}/>`+
+       `<text x="${lx}" y="${ly}" class="tl-lab" ${any&&!hi?'opacity=".45"':""}>${lab}</text>`;}
+  for(const id in TN){const n=TN[id],hi=on.has(id),leaf=!!n.r,show=!leaf||lv||hi;
+    const fill=leaf&&show?(n.r==="w"?"var(--ok-soft)":"var(--bad-soft)"):"var(--surface)";
+    const str=hi?"var(--brand)":leaf&&show?(n.r==="w"?"var(--ok)":"var(--bad)"):"var(--line)";
+    s+=`<g ${any&&!hi?'opacity=".45"':""}><rect x="${n.x}" y="${n.y}" width="${n.w}" height="60" rx="10" fill="${fill}" stroke="${str}" stroke-width="${hi?5:2}"/>`;
+    const lines=show?n.t:["?"],cx=n.x+n.w/2,y0=n.y+(lines.length===1?37:26);
+    lines.forEach((t,i)=>{s+=`<text x="${cx}" y="${y0+i*22}" text-anchor="middle" class="${i===0?"tn-a":"tn-b"}${leaf&&show&&i===0?(n.r==="w"?" tn-w":" tn-u"):""}">${h(t)}</text>`;});
+    s+=`</g>`;}
+  return s+`</svg>`;}
+const TREENOTE=`<p class="muted" style="margin:.4em 0 0">Immer: schriftlich mit Unterschrift · nach der Probezeit Gründe nennen · minderjährig → die Eltern kündigen oder stimmen zu · jederzeit möglich: Aufhebungsvertrag (beide einverstanden)</p>`;
+
+function tlSVG(o){o=o||{};const X=m=>40+m/24*920,pos=[["a",1,"start"],["b",1,"middle"],["a",1,"middle"],["b",1,"end"],["a",2,"end"],["b",2,"end"]];
+  let s=`<svg class="tlsvg" viewBox="0 -10 1000 320" role="img" aria-label="Zeitstrahl von Emres Ausbildung">`;
+  s+=`<rect x="${X(0)}" y="138" width="${X(4)-X(0)}" height="24" rx="6" fill="var(--warn-soft)"/><text x="${(X(0)+X(4))/2}" y="132" text-anchor="middle" class="tn-b">Probezeit</text>`;
+  s+=`<line x1="${X(0)}" y1="150" x2="${X(24)}" y2="150" stroke="var(--ink)" stroke-width="3"/>`;
+  EV.forEach((e,i)=>{const x=X(e.m),[side,lvl,anc]=pos[i],key=i===4&&o.mark;
+    const y1=side==="a"?150-(lvl===1?40:90):150+(lvl===1?40:90);
+    s+=`<line x1="${x}" y1="150" x2="${x}" y2="${y1}" stroke="${key?"var(--brand)":"var(--muted)"}" stroke-width="${key?4:2}"/><circle cx="${x}" cy="150" r="${key?11:7}" fill="${key?"var(--brand)":"var(--ink)"}"/>`;
+    const ty=side==="a"?y1-30:y1+20;
+    s+=`<text x="${x}" y="${ty}" text-anchor="${anc}" class="tn-a"${key?' style="fill:var(--brand)"':""}>${h(e.t)}</text>`;
+    if(o.dates!==false)s+=`<text x="${x}" y="${ty+20}" text-anchor="${anc}" class="tn-b">${h(e.d)}${o.pct?` · ${o.pct[i]} % richtig`:""}</text>`;
+    else if(o.pct)s+=`<text x="${x}" y="${ty+20}" text-anchor="${anc}" class="tn-b">${o.pct[i]} % richtig gelegt</text>`;});
+  if(o.mark)s+=`<text x="${X(22.65)-18}" y="136" text-anchor="end" class="tn-a" style="fill:var(--brand)">Hier ist Schluss!</text>`;
+  return s+`</svg>`;}
+
+const ENDE_TAB=`<table class="etab"><tr><th>Situation</th><th>Die Ausbildung endet …</th></tr>
+ <tr><td>normaler Fall</td><td>mit Ablauf der Ausbildungszeit (Datum im Vertrag)</td></tr>
+ <tr><td>Prüfung vor dem Vertragsende bestanden</td><td>mit der <b>Bekanntgabe des Ergebnisses</b> durch den Prüfungsausschuss (§ 21 Abs. 2)</td></tr>
+ <tr><td>Prüfung nicht bestanden</td><td>auf Verlangen des Azubis verlängert bis zur nächsten Wiederholungsprüfung, höchstens um ein Jahr</td></tr>
+ <tr><td>Azubi arbeitet einfach weiter, nichts vereinbart</td><td>Es entsteht ein <b>unbefristetes</b> Arbeitsverhältnis (§ 24)</td></tr></table>`;
+const KTAB=`<table class="etab"><tr><th>Wann?</th><th>Wer?</th><th>Wie?</th></tr>
+ <tr><td>in der Probezeit</td><td>beide Seiten</td><td>jederzeit, ohne Frist und ohne Grund</td></tr>
+ <tr><td>nach der Probezeit</td><td>beide Seiten</td><td>nur aus <b>wichtigem Grund</b>, fristlos – spätestens zwei Wochen, nachdem der Grund bekannt wurde</td></tr>
+ <tr><td>nach der Probezeit</td><td>nur der Azubi</td><td>mit <b>vier Wochen Frist</b>, wenn er aufhört oder einen anderen Beruf lernen will</td></tr>
+ <tr><td>jederzeit</td><td>beide gemeinsam</td><td><b>Aufhebungsvertrag</b></td></tr></table>`;
+
+/* Tafelbild „Merken“ (Dual Coding: Zeitstrahl + Baum + Tabelle) */
+const MERK=`<div class="box" style="margin-bottom:16px"><h3>Probezeit und Ende (§§ 20, 21, 24 BBiG)</h3>${tlSVG({mark:true})}
+ <div class="merk"><b>Probezeit:</b> mindestens 1, höchstens 4 Monate. Beginn am Ersten → Ende am letzten Tag des letzten Monats. Beginn mitten im Monat → Ende am Tag davor. Mehr als ein Drittel krank + Klausel im Vertrag → verlängert um die Fehlzeit.</div></div>
+ <div class="two"><div><h3>Ist die Kündigung wirksam? (§ 22)</h3>${treeSVG()}${TREENOTE}</div>
+ <div><h3>Kündigung</h3>${KTAB}
+ <h3 style="margin-top:14px">Zeugnis (§ 16)</h3><div class="merk"><b>einfach:</b> Art, Dauer, Ziel, was man gelernt hat · <b>qualifiziert</b> (auf Verlangen): dazu Verhalten und Leistung. Keine negativen Aussagen, keine Geheimcodes, kostenlos.</div>
+ <h3 style="margin-top:14px">So sagst du es</h3><div class="satzb">${FSATZ.map(s=>`<span>${h(s)}</span>`).join("")}<span>Die Ausbildung endet mit …</span></div></div></div>`;
+/* Handy-Fassung als Text (Grafiken wären auf dem Handy zu klein) */
+const MERK_P=`<div class="merk"><b>Probezeit:</b> 1 bis 4 Monate. Beginn am 01.08., vier Monate → Ende 30.11. Beginn am 15.08., zwei Monate → Ende 14.10. (Tag davor).</div>
+ <div class="merk"><b>Ende:</b> Prüfung bestanden → Schluss mit der <b>Bekanntgabe</b> des Ergebnisses. Nicht bestanden → auf Wunsch verlängert, höchstens 1 Jahr. Einfach weitergearbeitet → unbefristetes Arbeitsverhältnis.</div>
+ <div class="merk"><b>Kündigung – so prüfst du:</b><ol style="margin:.3em 0 0;padding-left:1.2em"><li>Schriftlich mit Unterschrift? Nein → unwirksam.</li><li>Probezeit? Ja → wirksam, ohne Frist und Grund.</li><li>Wichtiger Grund? Ja → innerhalb von 2 Wochen? Ja → fristlos wirksam, nein → zu spät.</li><li>Kein wichtiger Grund: Azubi hört auf oder wechselt den Beruf → 4 Wochen Frist. Sonst unwirksam (nur Aufhebungsvertrag).</li></ol></div>
+ <div class="merk"><b>Zeugnis:</b> einfach = Art, Dauer, Ziel, Kenntnisse. Qualifiziert (auf Verlangen) = dazu Verhalten und Leistung.</div>`;
+
+/* Wörter einfach erklärt (Wortspeicher aus dem Aufgabenblatt) */
+const WORT=[
+ ["die Probezeit","Die ersten 1 bis 4 Monate. Beide prüfen: Passt das?","Emre: 01.08. bis 30.11."],
+ ["die Kündigung","Einer sagt schriftlich: Die Ausbildung soll enden.",""],
+ ["schriftlich","Auf Papier mit Unterschrift. E-Mail oder WhatsApp reichen nicht.",""],
+ ["fristlos","Sofort, ohne Wartezeit.","Diebstahl → fristlose Kündigung."],
+ ["die Kündigungsfrist","Die Wartezeit bis zum Ende.","Berufswechsel: vier Wochen."],
+ ["der wichtige Grund","Etwas Schlimmes, das eine weitere Zusammenarbeit unmöglich macht.","Diebstahl, schwere Beleidigung."],
+ ["der Aufhebungsvertrag","Beide sind einverstanden, die Ausbildung zu beenden.","Mia will in einen anderen Supermarkt."],
+ ["die Bekanntgabe","Der Prüfungsausschuss sagt dir das Ergebnis.","„Sie haben bestanden.“"],
+ ["der Prüfungsausschuss","Die Prüferinnen und Prüfer der IHK.",""],
+ ["das Zeugnis","Ein Schreiben vom Betrieb über deine Ausbildung.",""],
+ ["qualifiziert","Mit Angaben zu Verhalten und Leistung.","„Sie war stets pünktlich.“"],
+ ["unbefristet","Ohne Enddatum.","Ein normaler Arbeitsvertrag."]
+];
+function openWort(){
+  let box=$("help");if(!box){box=document.createElement("div");box.id="help";document.body.appendChild(box);}
+  box.innerHTML=`<div class="hhead"><h2 style="margin:0">Wörter einfach erklärt</h2><button class="pri" id="hClose">Zurück</button></div>`+
+    WORT.map(w=>`<div class="hw"><b>${h(w[0])}</b><div>${h(w[1])}</div>${w[2]?`<div class="muted">Beispiel: ${h(w[2])}</div>`:""}</div>`).join("");
+  box.hidden=false;box.scrollTop=0;$("hClose").onclick=()=>{box.hidden=true;};}
+
+/* Datum TT.MM aus freier Eingabe: 30.11 · 30.11. · 30.11.2026 · 3011 */
+function normDate(s){s=String(s||"").trim();let d=0,m=0;const p=s.split(/[.\-\/ ,]+/).filter(Boolean);
+  if(p.length>=2){d=+p[0];m=+p[1];}else{const x=s.replace(/\D/g,"");if(x.length===4||x.length===8){d=+x.slice(0,2);m=+x.slice(2,4);}else if(x.length===3){d=+x.slice(0,1);m=+x.slice(1);}}
+  if(!(d>=1&&d<=31&&m>=1&&m<=12))return null;return String(d).padStart(2,"0")+"."+String(m).padStart(2,"0");}
+</script>
+<script>
+/* =========================================================
+   TAFEL (Lehrkraft, Beamer)
+   ========================================================= */
+function tafelApp(){
+  $("tafel").hidden=false;
+  const KEY="wisom4ende_tafel";
+  const fresh=()=>({code:codeGen(),ph:0,pl:{},kick:[],url:"",w:{i:-1,open:false},z:{st:0},e:{i:-1,open:false},
+    fr:{open:true,r:-1,show:false,leaves:false,showY:false},pzShow:false,zgShow:false,
+    v:{},zo:{},pz:{},fa:{},fy:{},zg:{},q:-1,qOpen:false,qStart:0,qAns:{}});
+  let T=store(KEY);if(!T||!T.code)T=fresh();
+  let conn={up:0,all:2},pubT=null,subbed="";
+  const net=new Net(onMsg,c=>{conn=c;if(c.up)pub();renderHead();});
+  function sub(){if(subbed!==T.code){subbed=T.code;net.sub(T.code+"/in");}}
+  sub();
+  const save=()=>store(KEY,T);
+  const players=()=>Object.keys(T.pl);
+  const curKey=()=>T.ph===1&&T.w.i>=0&&T.w.open?"w"+T.w.i:T.ph===2&&T.z.st===3?"z":T.ph===3&&T.e.i>=1&&T.e.open?"e"+T.e.i:null;
+  const isInt=(x,lo,hi)=>Number.isInteger(x)&&x>=lo&&x<=hi;
+
+  function onMsg(t,p){
+    if(t!==NS+T.code+"/in"||!p||!p.p)return;
+    const pid=clean(p.p,12);if(T.kick.includes(pid))return;
+    if(p.k==="hi"){const n=clean(p.n,16)||"?";if(!T.pl[pid])T.pl[pid]={n};else T.pl[pid].n=n;}
+    else if(!T.pl[pid])return;
+    else if(p.k==="v"){const key=curKey();if(!key||p.key!==key||!isInt(p.c,0,3))return;(T.v[key]=T.v[key]||{})[pid]=p.c;}
+    else if(p.k==="zo"){if(T.ph!==2||T.z.st!==1||!Array.isArray(p.o)||p.o.length!==EV.length)return;
+      const o=p.o.map(Number);if(new Set(o).size!==EV.length||!o.every(x=>isInt(x,0,EV.length-1)))return;T.zo[pid]=o;}
+    else if(p.k==="pz"){if(T.ph!==3||!isInt(p.i,0,PZ.length-1)||typeof p.a!=="string"||!/^\d\d\.\d\d$/.test(p.a))return;
+      const M=(T.pz[pid]=T.pz[pid]||{});if(M[p.i])return;M[p.i]=p.a;}
+    else if(p.k==="fa"){if(T.ph!==4||!T.fr.open||!isInt(p.i,0,FALL.length-1)||!isInt(p.c,0,1)||!isInt(p.g,0,G.length-1))return;
+      if((G[p.g].w?1:0)!==p.c)return;(T.fa[pid]=T.fa[pid]||{})[p.i]={c:p.c,g:p.g};}
+    else if(p.k==="fy"){if(T.ph!==4||!isInt(p.i,0,FALL.length-1))return;const tx=clean(p.tx,160);if(!tx)return;(T.fy[pid]=T.fy[pid]||{})[p.i]=tx;}
+    else if(p.k==="zg"){if(T.ph!==5||!isInt(p.i,0,ZG.length-1)||(p.c!=="E"&&p.c!=="Q"))return;const M=(T.zg[pid]=T.zg[pid]||{});if(M[p.i])return;M[p.i]=p.c;}
+    else if(p.k==="a"&&T.ph===7&&T.qOpen&&p.q===T.q){
+      const A=(T.qAns[T.q]=T.qAns[T.q]||{});if(A[pid])return;
+      const c=p.c;if(!isInt(c,0,QUIZ[T.q].o.length-1))return;
+      const dur=qDur(QUIZ[T.q]),s=(Date.now()-T.qStart)/1000;
+      A[pid]={c,g:c===QUIZ[T.q].k?1000+Math.round(500*Math.max(0,1-s/dur)):0};
+      if(Object.keys(A).length>=players().length)T.qOpen=false;}
+    else return;
+    save();pub();render();
+  }
+
+  /* ---------- Auswertungen ---------- */
+  const counts=key=>{const c=[0,0,0,0];const V=T.v[key]||{};for(const id in V)if(T.pl[id])c[V[id]]++;return c;};
+  const sum=a=>a.reduce((x,y)=>x+y,0);
+  function zoStats(){const ids=players().filter(id=>T.zo[id]);const pct=EV.map((_,i)=>ids.length?Math.round(100*ids.filter(id=>T.zo[id][i]===i).length/ids.length):0);
+    return {n:ids.length,all:ids.filter(id=>T.zo[id].every((x,i)=>x===i)).length,pct};}
+  const fallOk=(pid,i)=>{const a=(T.fa[pid]||{})[i];return !!a&&a.g===FALL[i].g;};
+  const fallRight=pid=>FALL.filter((_,i)=>fallOk(pid,i)).length;
+  const pzRight=pid=>PZ.filter((P,i)=>(T.pz[pid]||{})[i]===P.a).length;
+  function points(pid){let s=0;for(const qi in T.qAns){if(+qi<T.q||(+qi===T.q&&!T.qOpen)){const a=T.qAns[qi][pid];if(a)s+=a.g;}}return s;}
+  function ranking(){return players().map(id=>({id,n:T.pl[id].n,s:points(id)})).sort((a,b)=>b.s-a.s);}
+
+  /* ---------- Zustand an alle Handys ---------- */
+  function pub(){clearTimeout(pubT);pubT=setTimeout(()=>{
+    const pp={};
+    for(const id of players()){const v={};for(const k in T.v){if(T.v[k][id]!=null)v[k]=T.v[k][id];}
+      pp[id]={v,zo:T.zo[id]||null,pz:T.pz[id]||{},fa:T.fa[id]||{},fy:Object.keys(T.fy[id]||{}).map(Number),zg:T.zg[id]||{}};}
+    const S={ph:T.ph,j:players(),kick:T.kick,w:T.w,z:T.z,e:T.e,fr:{open:T.fr.open,r:T.fr.r,show:T.fr.show},pp,q:T.q,qOpen:T.qOpen,ans:[]};
+    if(T.ph===7&&T.q>=0){S.ans=Object.keys(T.qAns[T.q]||{});S.rem=T.qOpen?Math.max(0,qDur(QUIZ[T.q])-(Date.now()-T.qStart)/1000):0;}
+    if(T.ph>=7){const r=ranking();S.sc={};let rank=0,last=-1;
+      r.forEach((x,i)=>{if(x.s!==last){rank=i+1;last=x.s;}const a=(T.qAns[T.q]||{})[x.id];S.sc[x.id]=[x.s,rank,T.qOpen?0:(a?a.g:0)];});S.np=r.length;}
+    net.pub(T.code+"/st",S,true);},120);}
+  setInterval(pub,5000);
+
+  function go(ph){
+    if(T.ph===2&&ph!==2){if(T.z.st===1)T.z.st=2;if(T.z.st===3)T.z.st=4;}
+    T.ph=ph;if(ph!==7)T.qOpen=false;if(ph!==1)T.w.open=false;if(ph!==3)T.e.open=false;save();pub();render();}
+  const up=()=>{save();pub();render();};
+
+  /* ---------- Kopfzeile ---------- */
+  function joinUrl(){
+    const extra=(params.get("broker")?"&broker="+encodeURIComponent(params.get("broker")):"")+(LOCAL?"&bc=1":"");
+    if(location.protocol.startsWith("http"))return location.origin+location.pathname+"?s="+T.code+extra;
+    if(T.url){const u=T.url.trim();return u+(u.includes("?")?"&":"?")+"s="+T.code+extra;}
+    if(LOCAL)return location.href.split("?")[0]+"?s="+T.code+extra;return "";}
+  function drawQR(canvas,text){
+    const ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+    if(!text||typeof QRLib==="undefined"){ctx.fillStyle="#999";ctx.font="bold 16px sans-serif";ctx.textAlign="center";ctx.fillText("keine Adresse",canvas.width/2,canvas.height/2);return;}
+    const q=new QRLib.QRCode(-1,QRLib.ECL.M);q.addData(text);q.make();
+    const n=q.getModuleCount(),cell=Math.floor(canvas.width/(n+4)),off=Math.floor((canvas.width-cell*n)/2);
+    ctx.fillStyle="#000";for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))ctx.fillRect(off+c*cell,off+r*cell,cell,cell);}
+  function renderHead(){
+    $("steps").innerHTML=PHASES.map((p,i)=>`<button data-ph="${i}" class="${i===T.ph?"on":""}">${i} ${p}</button>`).join("");
+    $("steps").querySelectorAll("button").forEach(b=>b.onclick=()=>go(+b.dataset.ph));
+    $("miniCode").textContent="Code "+T.code;$("miniN").textContent=players().length+" dabei";
+    $("conn").innerHTML=`<span class="dot ${conn.up?"on":""}"></span>${conn.up?"verbunden":"keine Verbindung"}`;
+    if(!$("bWortT")){const b=document.createElement("button");b.id="bWortT";b.className="hbtn";b.textContent="Wörter";b.title="Wörter einfach erklärt";b.onclick=openWort;$("steps").after(b);}
+    drawQR($("qrSmall"),joinUrl());}
+  function render(){renderHead();const M=$("tMain");[rStart,rWdh,rZeit,rPzE,rFall,rZg,rMerk,rQuiz,rWin][T.ph](M);}
+
+  function abcd(opts,cnt,right,showCnt){const n=sum(cnt)||1;
+    return `<div class="abcd">${opts.map((o,i)=>`<div class="ab ${right==null?"":i===right?"right":"dim"}"><span class="L">${"ABCD"[i]}</span>${h(o)}
+      ${showCnt?`<span class="n">${cnt[i]}</span><div class="bar"><i style="width:${Math.round(100*cnt[i]/n)}%"></i></div>`:""}</div>`).join("")}</div>`;}
+  const bar=(lab,v,all,cls)=>{const pc=all?Math.round(100*v/all):0;return `<div class="pfc ${cls||""}" style="margin-bottom:8px"><div class="row" style="justify-content:space-between"><span>${lab}</span><b>${v} · ${pc} %</b></div><div class="mbar"><i style="width:${pc}%"></i></div></div>`;};
+
+  /* ---------- 0 Start ---------- */
+  function rStart(M){
+    const pl=Object.entries(T.pl);
+    M.innerHTML=`<div class="join"><div><canvas id="qrBig" width="600" height="600"></canvas></div>
+      <div><h2 class="big">Probezeit, Ende, Kündigung: Wann ist Schluss?</h2>
+      <p style="font-size:1.25rem">1. QR-Code mit dem Handy scannen.<br>2. Einen Spitznamen eingeben.<br>3. Warten, bis es losgeht.</p>
+      <p class="muted">Code: <span class="code">${T.code}</span><br><span id="jU" style="word-break:break-all"></span></p>
+      ${location.protocol.startsWith("http")||LOCAL?"":`<label>Internetadresse dieser Seite (nur nötig, wenn die Datei lokal geöffnet ist)<input id="tUrl" value="${h(T.url)}" placeholder="https://…/WiSo%20Modul%204%20-%20Live-App.html"></label>`}
+      <h3 style="margin-top:16px">${pl.length} dabei <span class="muted" style="font-size:.9rem;font-weight:400">· Antippen entfernt einen Namen</span></h3>
+      <div class="nicks">${pl.map(([id,x])=>`<button data-id="${h(id)}">${h(x.n)}</button>`).join("")}</div>
+      <div class="box" style="margin-top:14px"><b>Doppelstunde 1:</b> Phasen 1–3 (Ankommen, Zeitstrahl, Probezeit & Ende) · <b>Doppelstunde 2:</b> Phasen 4–8 (Fall-Rallye, Zeugnis, Merken, Prüfungs-Check). Die Sitzung bleibt gespeichert – in DS 2 einfach weitermachen oder neu starten.</div>
+      <div class="ctrl"><button class="pri" id="bGo">Los: Ankommen →</button><button id="bFr">Direkt zur Fall-Rallye (DS 2)</button><button id="bNew">Neue Sitzung (alles löschen)</button></div></div></div>`;
+    drawQR($("qrBig"),joinUrl());$("jU").textContent=joinUrl();
+    if($("tUrl"))$("tUrl").onchange=e=>{T.url=e.target.value;save();render();};
+    M.querySelectorAll(".nicks button").forEach(b=>b.onclick=()=>{const id=b.dataset.id;delete T.pl[id];T.kick.push(id);up();});
+    $("bGo").onclick=()=>go(1);$("bFr").onclick=()=>go(4);
+    $("bNew").onclick=()=>{if(window.confirm("Neue Sitzung starten? Alle Namen und Ergebnisse werden gelöscht.")){const u=T.url;T=fresh();T.url=u;save();sub();pub();render();}};
+  }
+
+  /* ---------- Abstimmung mit Auflösen (Ankommen und Ende) ---------- */
+  function hinge(M,list,st,pre,title,onNext,nextLabel){
+    const Q=list[st.i],key=pre+st.i,c=counts(key),n=sum(c);
+    M.innerHTML=`<p class="muted">${title} · Frage ${st.i+1} von ${list.length} · ${n} von ${players().length} geantwortet</p><h2 class="big">${h(Q.q)}</h2>
+      ${abcd(Q.o,c,st.open?null:Q.k,!st.open)}
+      ${st.open?"":`<div class="merk" style="font-size:1.2rem;margin-top:14px">${h(Q.x)}</div>`}
+      <div class="ctrl">${st.open?`<button class="pri" id="bR">Auflösen</button>`:st.i<list.length-1?`<button class="pri" id="bN">Nächste Frage →</button>`:`<button class="pri" id="bW">${nextLabel}</button>`}</div>`;
+    if($("bR"))$("bR").onclick=()=>{st.open=false;up();};
+    if($("bN"))$("bN").onclick=()=>{st.i++;st.open=true;up();};
+    if($("bW"))$("bW").onclick=onNext;
+  }
+
+  /* ---------- 1 Ankommen (Modul 3) ---------- */
+  function rWdh(M){
+    if(T.w.i<0){M.innerHTML=`<h2 class="big">Ankommen: Was weißt du noch aus Modul 3?</h2><p style="font-size:1.25rem">Vier Fragen zu Rechten und Pflichten. Aus dem Kopf – ohne Buch, ohne Punkte.</p>
+      <div class="ctrl"><button class="pri" id="bA">Erste Frage →</button><button id="bSkip">Überspringen →</button></div>`;
+      $("bA").onclick=()=>{T.w={i:0,open:true};up();};$("bSkip").onclick=()=>go(2);return;}
+    hinge(M,WDH,T.w,"w","Ankommen",()=>go(2),"Weiter: Wann ist Schluss? →");
+  }
+
+  /* ---------- 2 Wann ist Schluss? (Zeitstrahl ordnen, dann abstimmen – NICHT auflösen) ---------- */
+  function rZeit(M){
+    const st=T.z.st,Z=zoStats(),N=players().length;
+    if(st===0){M.innerHTML=`<h2 class="big">Wann ist Schluss?</h2>
+      <div class="two"><div class="sit">Emre macht eine Ausbildung zum Verkäufer.<br>Sein Vertrag läuft vom <b>01.08.2026</b> bis zum <b>31.07.2028</b>.</div>
+      <div style="font-size:1.25rem"><p>Am Handy bekommt ihr sechs Ereigniskarten – <b>ohne Datum</b>.</p><p>Tippt sie in der richtigen Reihenfolge an: Was passiert zuerst, was zuletzt?</p></div></div>
+      ${tlSVG({dates:false}).replace(/class="tn-a"[^>]*>[^<]*</g,'class="tn-a">?<')}
+      <div class="ctrl"><button class="pri" id="bS">Ordnen starten →</button></div>`;
+      $("bS").onclick=()=>{T.z.st=1;up();};return;}
+    if(st===1){M.innerHTML=`<div class="qhead"><div><h2 class="big">Ordnet Emres Ausbildung</h2><p style="font-size:1.2rem">Tippt die sechs Karten am Handy der Reihe nach an. Danach „Absenden“.</p></div>
+      <div class="box" style="text-align:center"><div class="bigpts">${Z.n}/${N}</div>fertig</div></div>
+      <div class="pfgrid">${EV.map(e=>e.t).sort((a,b)=>a.localeCompare(b,"de")).map(t=>`<div class="pfc" style="font-size:1.15rem">${h(t)}</div>`).join("")}</div>
+      <div class="ctrl"><button class="pri" id="bC">Ordnen beenden und auflösen</button></div>`;
+      $("bC").onclick=()=>{T.z.st=2;up();};return;}
+    if(st===2){M.innerHTML=`<h2 class="big">So liegt Emres Ausbildung</h2>
+      <p style="font-size:1.2rem">${Z.all} von ${Z.n} haben alle sechs Karten richtig gelegt.</p>
+      ${tlSVG({pct:Z.pct})}
+      <div class="merk" style="font-size:1.15rem">Jetzt die spannende Frage: <b>An welchem Tag ist Emre kein Azubi mehr?</b></div>
+      <div class="ctrl"><button class="pri" id="bV">Abstimmung starten →</button></div>`;
+      $("bV").onclick=()=>{T.z.st=3;up();};return;}
+    const c=counts("z"),n=sum(c);
+    M.innerHTML=`<p class="muted">${n} von ${N} haben gewählt${st===3?"":" · Abstimmung geschlossen"}</p><h2 class="big">${h(ZQ.q)}</h2>
+      ${abcd(ZQ.o,c,null,st===4)}
+      <div class="satzb"><span>Ich denke, Emre ist am … fertig, weil …</span><span>Ich bin für B, weil …</span></div>
+      ${st===4?`<div class="merk" style="font-size:1.15rem;margin-top:12px"><b>Heute noch keine Auflösung.</b> Erst lesen wir nach (Aufgabenblatt „Zum Nachlesen“, Buch S. 18–20) – dann schauen wir, wer richtig lag.</div>`:""}
+      <div class="ctrl">${st===3?`<button class="pri" id="bC">Abstimmung schließen</button>`:`<button id="bO">Noch einmal öffnen</button><button class="pri" id="bW">Weiter: Probezeit & Ende →</button>`}</div>`;
+    if($("bC"))$("bC").onclick=()=>{T.z.st=4;up();};
+    if($("bO"))$("bO").onclick=()=>{T.z.st=3;up();};
+    if($("bW"))$("bW").onclick=()=>go(3);
+  }
+
+  /* ---------- 3 Probezeit rechnen + Ende der Ausbildung ---------- */
+  function rPzE(M){
+    if(T.e.i<0){const N=players().length;
+      const rows=PZ.map((P,i)=>{let ok=0,all=0;const wr={};for(const id of players()){const a=(T.pz[id]||{})[i];if(!a)continue;all++;if(a===P.a)ok++;else wr[a]=(wr[a]||0)+1;}
+        const top=Object.entries(wr).sort((a,b)=>b[1]-a[1]).slice(0,2);const pc=all?Math.round(100*ok/all):null;
+        return `<div class="pfc"><div class="row" style="justify-content:space-between"><b>${i+1}${P.pro?' <span class="pro">Profi</span>':""}${P.src?` <span class="muted">${h(P.src)}</span>`:""}</b><span class="pc">${pc==null?"–":pc+" %"}</span></div>
+          <div style="margin:4px 0">${h(P.t.length>110?P.t.slice(0,108)+" …":P.t)}</div>
+          <div class="mbar"><i style="width:${pc||0}%"></i></div><div class="muted" style="margin-top:4px">${ok} von ${all} richtig${top.length?` · häufig falsch: ${top.map(x=>h(x[0])+" ("+x[1]+")").join(", ")}`:""}</div>
+          ${T.pzShow?`<div style="margin-top:6px"><b>Lösung: ${h(P.a)}.</b> ${P.w.map(h).join(" ")}</div>`:""}</div>`;}).join("");
+      const fertig=players().filter(id=>Object.keys(T.pz[id]||{}).length>=PZ.length).length;
+      M.innerHTML=`<div class="qhead"><div><h2 class="big">Probezeit rechnen</h2><p style="font-size:1.2rem">Am Handy: Tag und Monat eintippen (TT.MM) – wie in der IHK-Prüfung. Ihr seht sofort, ob es stimmt.</p></div>
+        <div class="box" style="text-align:center"><div class="bigpts">${fertig}/${N}</div>fertig</div></div>
+        <div class="merk" style="font-size:1.15rem"><b>Trick:</b> Beginn am Ersten → Ende am letzten Tag des letzten Monats. Beginn mitten im Monat → Ende am Tag davor. Satz: „Die Probezeit endet mit Ablauf des …“</div>
+        <div class="pfgrid">${rows}</div>
+        <div class="ctrl"><button id="bSh">${T.pzShow?"Lösungen ausblenden":"Lösungen zeigen"}</button><button class="pri" id="bE">Weiter: Wann ist Emre fertig? →</button></div>`;
+      $("bSh").onclick=()=>{T.pzShow=!T.pzShow;save();render();};
+      $("bE").onclick=()=>{T.e={i:0,open:false};up();};return;}
+    if(T.e.i===0){const c=counts("z"),n=sum(c);
+      M.innerHTML=`<p class="muted">Auflösung der Abstimmung von vorhin · ${n} Stimmen</p><h2 class="big">${h(ZQ.q)}</h2>
+        ${abcd(ZQ.o,c,ZQ.k,true)}
+        <div class="two" style="margin-top:14px"><div class="merk" style="font-size:1.15rem">${h(ZQ.x)}</div><div>${ENDE_TAB}</div></div>
+        <div class="ctrl"><button class="pri" id="bN">Nächste Frage: Was, wenn …? →</button></div>`;
+      $("bN").onclick=()=>{T.e={i:1,open:true};up();};return;}
+    hinge(M,END,T.e,"e","Ende der Ausbildung",()=>go(4),"Weiter: Fall-Rallye (DS 2) →");
+  }
+
+  /* ---------- 4 Fall-Rallye (Karten hängen im Raum) ---------- */
+  function rFall(M){
+    const F=T.fr,N=players().length;
+    if(F.r<0){
+      const cnt=FALL.map((_,i)=>players().filter(id=>(T.fa[id]||{})[i]).length);
+      M.innerHTML=`<div class="qhead"><div><h2 class="big">Fall-Rallye: Ist die Kündigung wirksam?</h2>
+        <p style="font-size:1.2rem">Die acht Fallkarten hängen im Raum. Geht zu zweit von Karte zu Karte. Am Handy: Fall antippen → <b>wirksam</b> oder <b>unwirksam</b> → <b>Warum?</b> Ändern geht, solange die Rallye läuft.</p></div>
+        <div class="box" style="text-align:center"><div class="bigpts">${players().filter(id=>Object.keys(T.fa[id]||{}).length>=FALL.length).length}/${N}</div>alle 8 fertig</div></div>
+        <div class="two"><div class="box">${treeSVG({leaves:F.leaves})}${TREENOTE}</div>
+        <div><div class="pfgrid" style="grid-template-columns:repeat(2,1fr)">${FALL.map((f,i)=>`<div class="pfc"><div class="row" style="justify-content:space-between"><b>Fall ${i+1}</b><span class="muted">${cnt[i]} Antworten</span></div><div class="mbar" style="background:var(--surface2)"><i style="width:${N?Math.round(100*cnt[i]/N):0}%;background:var(--brand)"></i></div></div>`).join("")}</div>
+        <div class="satzb" style="margin-top:12px">${FSATZ.map(s=>`<span>${h(s)}</span>`).join("")}</div></div></div>
+        <div class="ctrl"><button id="bLv">${F.leaves?"Ergebnisfelder ausblenden":"Ergebnisfelder zeigen"}</button>
+        <button class="pri" id="bE">Rallye beenden – Karte für Karte auflösen →</button></div>`;
+      $("bLv").onclick=()=>{F.leaves=!F.leaves;save();render();};
+      $("bE").onclick=()=>{F.open=false;F.r=0;F.show=false;F.showY=false;up();};return;}
+    if(F.r>=FALL.length){
+      const per=FALL.map((_,i)=>{const ids=players().filter(id=>(T.fa[id]||{})[i]);return {n:ids.length,ok:ids.filter(id=>fallOk(id,i)).length};});
+      const L=players().map(id=>({n:T.pl[id].n,k:fallRight(id)})).sort((a,b)=>b.k-a.k);
+      M.innerHTML=`<h2 class="big">So lief die Fall-Rallye</h2><div class="two"><div><h3>Ergebnis und Weg richtig</h3>${FALL.map((f,i)=>bar(`Fall ${i+1}${f.knack?" · Knacknuss":""}`,per[i].ok,per[i].n)).join("")}</div>
+        <div><h3>Fall-Profis (von 8)</h3><ol class="top">${L.slice(0,10).map((x,i)=>`<li><span>${i+1}. ${h(x.n)}</span><b>${x.k}</b></li>`).join("")}</ol></div></div>
+        <div class="ctrl"><button id="bB">← letzter Fall</button><button class="pri" id="bW">Weiter: Zeugnis →</button></div>`;
+      $("bB").onclick=()=>{F.r=FALL.length-1;F.show=true;up();};$("bW").onclick=()=>go(5);return;}
+    const f=FALL[F.r],ids=players().filter(id=>(T.fa[id]||{})[F.r]),wk=ids.filter(id=>T.fa[id][F.r].c===1).length;
+    const gc=G.map((_,g)=>ids.filter(id=>T.fa[id][F.r].g===g).length);
+    const Y=players().map(id=>(T.fy[id]||{})[F.r]).filter(Boolean),sol=G[f.g];
+    M.innerHTML=`<p class="muted">Fall ${F.r+1} von ${FALL.length}${f.knack?" · Knacknuss":""} · ${ids.length} Antworten</p>
+      <div class="two"><div><div class="sit">${h(f.t)}</div>
+        <div class="row" style="margin-top:12px;gap:12px"><div class="ab ${F.show?(sol.w?"right":"dim"):""}" style="flex:1"><span class="L">wirksam</span><span class="n">${wk}</span></div>
+        <div class="ab ${F.show?(!sol.w?"right":"dim"):""}" style="flex:1"><span class="L">unwirksam</span><span class="n">${ids.length-wk}</span></div></div>
+        <h3 style="margin-top:14px">Welcher Weg durch den Baum?</h3>${G.map((g,i)=>bar(h(g.t),gc[i],ids.length,F.show&&i===f.g?"A":"")).join("")}
+        ${F.show?`<div class="merk" style="font-size:1.15rem"><b>${sol.w?"wirksam":"unwirksam"}</b> – ${h(f.x)}</div>`:`<div class="merk" style="font-size:1.15rem">Ein Paar erklärt: Ergebnis und Weg durch den Baum.</div>`}
+        ${F.showY?`<h3>Profi-Begründungen (${Y.length})</h3><ul class="whyl">${Y.map(t=>`<li>${h(t)}</li>`).join("")||"<li class='muted'>keine</li>"}</ul>`:""}</div>
+      <div class="box">${treeSVG({leaves:true,path:F.show?sol.p:[]})}</div></div>
+      <div class="ctrl">${F.show?`<button class="pri" id="bN">${F.r<FALL.length-1?"Nächster Fall →":"Gesamtergebnis →"}</button>`:`<button class="pri" id="bL">Lösung zeigen</button>`}
+      <button id="bY">${F.showY?"Begründungen ausblenden":`Profi-Begründungen (${Y.length})`}</button>
+      ${F.r>0?`<button id="bB">← zurück</button>`:""}<button id="bO">Rallye wieder öffnen</button></div>`;
+    if($("bL"))$("bL").onclick=()=>{F.show=true;up();};
+    if($("bN"))$("bN").onclick=()=>{F.r++;F.show=false;F.showY=false;up();};
+    if($("bB"))$("bB").onclick=()=>{F.r--;F.show=true;up();};
+    $("bY").onclick=()=>{F.showY=!F.showY;save();render();};
+    $("bO").onclick=()=>{F.open=true;F.r=-1;F.show=false;up();};
+  }
+
+  /* ---------- 5 Zeugnis ---------- */
+  function rZg(M){
+    const N=players().length,fertig=players().filter(id=>Object.keys(T.zg[id]||{}).length>=ZG.length).length;
+    const st=ZG.map((c,i)=>{let ok=0,all=0;for(const id of players()){const a=(T.zg[id]||{})[i];if(a){all++;if(a===c.w)ok++;}}return {ok,all};});
+    const order=ZG.map((_,i)=>i);if(T.zgShow)order.sort((a,b)=>(st[a].all?st[a].ok/st[a].all:1)-(st[b].all?st[b].ok/st[b].all:1));
+    M.innerHTML=`<div class="qhead"><div><h2 class="big">Einfach oder qualifiziert?</h2><p style="font-size:1.2rem">Am Handy: Steht die Angabe schon im <b>einfachen</b> Zeugnis – oder <b>nur im qualifizierten</b>?</p></div>
+      <div class="box" style="text-align:center"><div class="bigpts">${fertig}/${N}</div>fertig</div></div>
+      <div class="pfgrid">${order.map(i=>{const c=ZG[i],s=st[i],pc=s.all?Math.round(100*s.ok/s.all):null;
+        return `<div class="pfc ${T.zgShow?(c.w==="E"?"A":"B"):""}"><div>${h(c.t)}</div>${T.zgShow?`<div style="margin-top:6px"><b class="${c.w==="E"?"az":"be"}">${ZW[c.w]}</b></div>`:""}
+          <div class="row" style="justify-content:space-between;margin-top:6px"><span class="pc">${pc==null?"–":pc+" %"}</span><span class="muted">${s.ok} von ${s.all} richtig</span></div><div class="mbar"><i style="width:${pc||0}%"></i></div></div>`;}).join("")}</div>
+      ${T.zgShow?`<div class="merk" style="font-size:1.15rem"><b>Regel:</b> Fakten (Art, Dauer, Ziel, Kenntnisse) = einfaches Zeugnis. Sätze über Verhalten und Leistung = nur qualifiziert, und das gibt es nur auf Verlangen (§ 16 BBiG).</div>`:""}
+      <div class="ctrl"><button id="bSh">${T.zgShow?"Lösung ausblenden":"Lösung zeigen und sortieren"}</button><button class="pri" id="bW">Weiter: Merken →</button></div>`;
+    $("bSh").onclick=()=>{T.zgShow=!T.zgShow;save();render();};$("bW").onclick=()=>go(6);
+  }
+
+  /* ---------- 6 Merken ---------- */
+  function rMerk(M){
+    M.innerHTML=`<h2 class="big">Das merken wir uns</h2>${MERK}
+      <p class="muted">Weiter im Aufgabenblatt: Aufgabe 8 und 9 (Prüfungs-Check), Profis Aufgabe 10, dann Selbsttest (Aufgabe 11).</p>
+      <div class="ctrl"><button class="pri" id="bNext">Weiter: Prüfungs-Check →</button></div>`;
+    $("bNext").onclick=()=>go(7);
+  }
+
+  /* ---------- 7 Prüfungs-Check ---------- */
+  function rQuiz(M){
+    if(T.q<0){M.innerHTML=`<h2 class="big">Prüfungs-Check</h2><p style="font-size:1.25rem">${QUIZ.length} Fragen, Aufgaben im Stil der IHK-Prüfung. Die letzten beiden sind für Profis <span class="pro">Profi</span>. Richtig ist wichtiger als schnell.</p>
+      <div class="ctrl"><button class="pri" id="bQ">Erste Frage →</button></div>`;$("bQ").onclick=()=>openQ(0);return;}
+    const Q=QUIZ[T.q],A=T.qAns[T.q]||{},cnt=Q.o.map((_,i)=>Object.values(A).filter(a=>a.c===i).length),n=Object.keys(A).length,dur=qDur(Q);
+    M.innerHTML=`<div class="qhead"><div><p class="muted">Frage ${T.q+1} von ${QUIZ.length}${Q.pro?' <span class="pro">Profi</span>':""} · ${h(Q.src)} · ${n} von ${players().length} geantwortet</p><h2 class="${Q.q.length>160||Q.l?"mid":"big"}">${h(Q.q)}</h2>
+      ${Q.l?`<ol class="qlist">${Q.l.map(x=>`<li>${h(x)}</li>`).join("")}</ol>`:""}</div>
+      ${T.qOpen?`<div class="timer" id="tm">${dur}</div>`:""}</div>
+      <div class="opts">${Q.o.map((o,i)=>`<div class="opt o${i} ${!T.qOpen&&i!==Q.k?"wrong":""}">${"ABCDE"[i]}: ${h(o)}${T.qOpen?"":`<span class="cnt">${cnt[i]}</span>`}</div>`).join("")}</div>
+      ${T.qOpen?"":`<div class="merk" style="font-size:1.15rem;margin-top:14px">${h(Q.x)}</div>`}
+      <div class="ctrl">${T.qOpen?`<button class="pri" id="bR">Auflösen</button>`:T.q<QUIZ.length-1?`<button class="pri" id="bN">Nächste Frage →</button>`:""}<button id="bW">Zur Siegerehrung</button></div>`;
+    if($("bR"))$("bR").onclick=()=>{T.qOpen=false;up();};
+    if($("bN"))$("bN").onclick=()=>openQ(T.q+1);
+    $("bW").onclick=()=>go(8);
+    if(T.qOpen){clearInterval(window._qt);window._qt=setInterval(()=>{const s=Math.max(0,Math.ceil(dur-(Date.now()-T.qStart)/1000));if($("tm"))$("tm").textContent=s;
+      if(s<=0&&T.qOpen){T.qOpen=false;up();}if(!T.qOpen)clearInterval(window._qt);},250);}
+  }
+  function openQ(i){T.q=i;T.qOpen=true;T.qStart=Date.now();up();}
+
+  /* ---------- 8 Sieger ---------- */
+  function rWin(M){
+    const r=ranking(),L=players().map(id=>({n:T.pl[id].n,k:fallRight(id),p:pzRight(id)})).sort((a,b)=>b.k-a.k||b.p-a.p);
+    M.innerHTML=`<h2 class="big">Siegerehrung</h2><div class="two"><div><h3>Prüfungs-Check</h3>
+      <div class="podium">${[1,0,2].filter(i=>r[i]).map(i=>`<div style="height:${[190,150,120][i]}px"><span>${i+1}.</span>${h(r[i].n)}<br>${r[i].s}</div>`).join("")}</div>
+      <ol class="top" style="margin-top:14px">${r.slice(3,10).map((x,i)=>`<li><span>${i+4}. ${h(x.n)}</span><b>${x.s}</b></li>`).join("")}</ol></div>
+      <div><h3>Fall-Profis: Rallye richtig (von 8) · Probezeit (von 5)</h3><ol class="top">${L.slice(0,6).map((x,i)=>`<li><span>${i+1}. ${h(x.n)}</span><b>${x.k} · ${x.p}</b></li>`).join("")}</ol></div></div>`;
+  }
+  render();
+}
+</script>
+<script>
+/* =========================================================
+   HANDY (Schülerinnen und Schüler)
+   ========================================================= */
+function phoneApp(){
+  $("phone").hidden=false;
+  const KEY="wisom4ende_p_"+roomCode+(params.get("t")||"");
+  let me=store(KEY)||{};if(!me.pid){me.pid=rnd(8);store(KEY,me);}
+  let S=null,lastKey="",pending=null,qEnd=0,qSel={},vSel={},conn={up:0};
+  let zSeq=[],pzFb=null,pzLoc={},pzErr="",frCur=null,frC=null,frStep=0,fySent={},zgLoc={},zgFb=null;
+  /* eigene, feste Reihenfolge der Karten (aus der Spieler-ID) */
+  let seed=0;for(const ch of me.pid)seed=(seed*31+ch.charCodeAt(0))>>>0;
+  const mix=n=>{const a=[...Array(n).keys()];for(let i=n-1;i>0;i--){seed=(seed*1103515245+12345)>>>0;const j=seed%(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+  const evOrder=mix(EV.length),zgOrder=mix(ZG.length);
+  const net=new Net((t,p)=>{if(t===NS+roomCode+"/st"&&p&&typeof p==="object")onState(p);},c=>{conn=c;if(c.up)hello();});
+  net.sub(roomCode+"/st");
+  const send=o=>{o.p=me.pid;net.pub(roomCode+"/in",o,false);};
+  function hello(){if(me.nick)send({k:"hi",n:me.nick});}
+  setInterval(()=>{if(!S)return;
+    if(me.nick&&!(S.j||[]).includes(me.pid))hello();
+    else if(pending&&pending.done&&!pending.done())send(pending.msg);},2500);
+  function onState(p){
+    if(p.qOpen&&(!S||!S.qOpen||S.q!==p.q))qEnd=Date.now()+p.rem*1000;
+    S=p;
+    if((S.kick||[]).includes(me.pid)&&me.nick){me={pid:rnd(8)};store(KEY,me);lastKey="";}
+    render();
+  }
+  const mine=()=>(S&&S.pp&&S.pp[me.pid])||{v:{},zo:null,pz:{},fa:{},fy:[],zg:{}};
+  function keyOf(){if(!me.nick)return "join";if(!S)return "wait";
+    return JSON.stringify([S.ph,S.w,S.z,S.e,S.fr,mine(),S.q,S.qOpen,(S.ans||[]).includes(me.pid),S.ph>=7&&S.sc?S.sc[me.pid]:0,
+      zSeq.length,pzFb,Object.keys(pzLoc).length,pzErr,frCur,frC,frStep,zgFb,Object.keys(zgLoc).length]);}
+  const rerender=()=>{lastKey="";render();};
+  /* Eingaben und geöffnete Profi-Felder über ein Neuzeichnen retten (Tafel-Updates kommen jederzeit) */
+  function render(){const keep={};$("phone").querySelectorAll("input[id],textarea[id]").forEach(x=>{keep[x.id]=[x.value,document.activeElement===x];});
+    const op=[...$("phone").querySelectorAll("details")].map(d=>d.open);
+    draw();
+    for(const id in keep){const x=$(id);if(x&&!x.value){x.value=keep[id][0];if(keep[id][1])x.focus();}}
+    $("phone").querySelectorAll("details").forEach((d,i)=>{if(op[i])d.open=true;});}
+  function draw(){const k=keyOf();if(k===lastKey)return;lastKey=k;const P=$("phone");
+    const top=`<div class="ph-top"><span>Wann ist Schluss? · ${roomCode}</span><span>${h(me.nick||"")} <button class="hbtn" data-wort="1">Wörter</button></span></div>`;
+    if(!me.nick){P.innerHTML=top+`<h2>Probezeit, Ende, Kündigung</h2><p>Gib einen Spitznamen ein.</p>
+      <input id="nk" maxlength="16" placeholder="Spitzname" autocomplete="off"><div style="height:10px"></div><button class="pri" id="bJ" style="width:100%">Mitmachen</button>`;
+      $("bJ").onclick=()=>{const n=clean($("nk").value,16);if(!n)return;me.nick=n;store(KEY,me);hello();rerender();};return;}
+    if(!S){P.innerHTML=top+`<p>Verbinde mit der Tafel …</p>`;return;}
+    if(S.ph===0){P.innerHTML=top+`<h2>Du bist drin!</h2><p>Warte, bis es an der Tafel losgeht.</p>
+      <div class="merk">Heute geht es um Probezeit, Ende der Ausbildung und Kündigung. Neue Wörter findest du oben unter „Wörter“.</div>`;return;}
+    if(S.ph===1)return rHinge(P,top,WDH,S.w,"w","Ankommen",1);
+    if(S.ph===2)return rZeit(P,top);
+    if(S.ph===3)return rPzE(P,top);
+    if(S.ph===4)return rFall(P,top);
+    if(S.ph===5)return rZg(P,top);
+    if(S.ph===6){P.innerHTML=top+`<h2>Das merken wir uns</h2>${MERK_P}`;return;}
+    if(S.ph===7)return rQuiz(P,top);
+    const sc=(S.sc&&S.sc[me.pid])||[0,"–",0];
+    P.innerHTML=top+`<h2>Geschafft!</h2><div class="box"><div class="bigpts">Platz ${sc[1]}</div>${sc[0]} Punkte im Prüfungs-Check · ${S.np||"?"} haben mitgespielt</div>
+      <p>Fall-Rallye: <b>${fallRight()} von 8</b> richtig · Probezeit: <b>${pzRight()} von ${PZ.length}</b> richtig.</p><p>Danke fürs Mitmachen!</p>`;
+  }
+  const fallRight=()=>{const fa=mine().fa;return FALL.filter((f,i)=>fa[i]&&fa[i].g===f.g).length;};
+  const pzRight=()=>{const pz=Object.assign({},pzLoc,mine().pz);return PZ.filter((p,i)=>pz[i]===p.a).length;};
+
+  /* Auswahl A–D senden (ändern erlaubt, solange offen) */
+  function voteButtons(P,key,opts,isOpen){
+    const saved=mine().v[key],sel=vSel[key]!=null?vSel[key]:saved;
+    const html=opts.map((o,i)=>`<button class="pbtn ${sel===i?"sel":""}" data-i="${i}"><span class="L">${"ABCD"[i]}</span>${h(o)}</button>`).join("")+
+      (sel!=null?`<div class="status ${saved===sel?"ok":""}">${saved===sel?"Gespeichert ✓ Du darfst noch wechseln.":"Wird gesendet …"}</div>`:"");
+    return {html,bind:()=>P.querySelectorAll(".pbtn").forEach(b=>b.onclick=()=>{const c=+b.dataset.i;vSel[key]=c;
+      pending={msg:{k:"v",key,c},done:()=>!isOpen()||mine().v[key]===vSel[key]};send(pending.msg);rerender();})};}
+
+  /* Frage mit Auflösung (Ankommen, Ende) */
+  function rHinge(P,top,list,st,pre,title,ph){
+    if(st.i<0){P.innerHTML=top+`<h2>${title}</h2><p>Gleich geht es los. Schau an die Tafel.</p>`;return;}
+    const Q=list[st.i],key=pre+st.i;
+    if(st.open){const i=st.i,ob=pre==="w"?"w":"e",B=voteButtons(P,key,Q.o,()=>S.ph===ph&&S[ob].open&&S[ob].i===i);
+      P.innerHTML=top+`<p class="muted">${title} · Frage ${st.i+1} von ${list.length}</p><h2>${h(Q.q)}</h2>`+B.html;B.bind();return;}
+    const my=mine().v[key];
+    P.innerHTML=top+`<p class="muted">${title} · Frage ${st.i+1} von ${list.length}</p><h2>${h(Q.q)}</h2>
+      <div class="status ${my==null?"":my===Q.k?"ok":"bad"}">${my==null?"Keine Antwort.":my===Q.k?"<b>Richtig!</b>":"<b>Leider falsch.</b>"}</div>
+      <p><b>Richtig: ${h(Q.o[Q.k])}</b><br>${h(Q.x)}</p>`;
+  }
+
+  /* ---------- 2 Wann ist Schluss? ---------- */
+  function rZeit(P,top){
+    const st=S.z.st,zo=mine().zo;
+    if(st===0){P.innerHTML=top+`<h2>Wann ist Schluss?</h2><div class="box">Emre macht eine Ausbildung zum Verkäufer. Sein Vertrag läuft vom <b>01.08.2026</b> bis zum <b>31.07.2028</b>.</div><p>Gleich ordnest du sechs Ereignisse auf seinem Zeitstrahl.</p>`;return;}
+    if(st===1){
+      if(zo){P.innerHTML=top+`<h2>Gespeichert ✓</h2><p>Deine Reihenfolge ist angekommen. Warte auf die Auflösung an der Tafel.</p>`;return;}
+      const left=evOrder.filter(i=>!zSeq.includes(i));
+      if(left.length===0){P.innerHTML=top+`<h2>Deine Reihenfolge</h2><ol class="seq">${zSeq.map(i=>`<li>${h(EV[i].t)}</li>`).join("")}</ol>
+        <button class="pri" id="bSend" style="width:100%">${pending&&pending.msg.k==="zo"?"Wird gesendet …":"Absenden"}</button><button id="bUndo" style="width:100%;margin-top:8px">Rückgängig</button>`;
+        $("bSend").onclick=()=>{pending={msg:{k:"zo",o:zSeq.slice()},done:()=>S.ph!==2||S.z.st!==1||!!mine().zo};send(pending.msg);rerender();};
+        $("bUndo").onclick=()=>{zSeq.pop();rerender();};return;}
+      P.innerHTML=top+`<p class="muted">${zSeq.length} von ${EV.length} gelegt</p><div class="prog"><i style="width:${Math.round(100*zSeq.length/EV.length)}%"></i></div>
+        <h2>${zSeq.length===0?"Was passiert zuerst?":"Was kommt danach?"}</h2>
+        ${left.map(i=>`<button class="pbtn" data-i="${i}">${h(EV[i].t)}</button>`).join("")}
+        ${zSeq.length?`<ol class="seq">${zSeq.map(i=>`<li>${h(EV[i].t)}</li>`).join("")}</ol><button id="bUndo" style="width:100%">Rückgängig</button>`:""}`;
+      P.querySelectorAll(".pbtn").forEach(b=>b.onclick=()=>{zSeq.push(+b.dataset.i);rerender();});
+      if($("bUndo"))$("bUndo").onclick=()=>{zSeq.pop();rerender();};return;}
+    if(st===2){const ok=zo?zo.filter((x,i)=>x===i).length:0;
+      P.innerHTML=top+`<h2>Die richtige Reihenfolge</h2>${zo?`<div class="status ${ok===EV.length?"ok":""}"><b>${ok} von ${EV.length}</b> an der richtigen Stelle.</div>`:`<div class="status">Du hast nicht abgegeben.</div>`}
+        <ol class="seq">${EV.map((e,i)=>`<li>${zo?(zo[i]===i?"✓ ":"✗ "):""}<b>${h(e.t)}</b><br><span class="muted">${h(e.d)}</span></li>`).join("")}</ol>`;return;}
+    if(st===3){const B=voteButtons(P,"z",ZQ.o,()=>S.ph===2&&S.z.st===3);
+      P.innerHTML=top+`<h2>${h(ZQ.q)}</h2><p class="muted">Entscheide nach deinem Gefühl. Aufgelöst wird später.</p>`+B.html;B.bind();return;}
+    const my=mine().v.z;
+    P.innerHTML=top+`<h2>${h(ZQ.q)}</h2><div class="status">${my==null?"Du hast nicht gewählt.":`Deine Wahl: <b>${"ABCD"[my]}</b> – ${h(ZQ.o[my])}`}</div>
+      <div class="merk">Die Auflösung kommt später – erst lesen wir nach.</div>`;
+  }
+
+  /* ---------- 3 Probezeit rechnen + Ende ---------- */
+  function rPzE(P,top){
+    if(S.e.i===0){const my=mine().v.z;
+      P.innerHTML=top+`<h2>${h(ZQ.q)}</h2><div class="status ${my==null?"":my===ZQ.k?"ok":"bad"}">${my==null?"Du hattest nicht gewählt.":`Deine Wahl vorhin: <b>${"ABCD"[my]}</b> – ${my===ZQ.k?"<b>richtig!</b>":"leider falsch."}`}</div>
+        <p><b>Richtig: ${h(ZQ.o[ZQ.k])}</b><br>${h(ZQ.x)}</p>`;return;}
+    if(S.e.i>=1)return rHinge(P,top,END,S.e,"e","Ende der Ausbildung",3);
+    const ans=Object.assign({},pzLoc,mine().pz),done=Object.keys(ans).length;
+    const prog=`<div class="muted">${done} von ${PZ.length} Aufgaben</div><div class="prog"><i style="width:${Math.round(100*done/PZ.length)}%"></i></div>`;
+    if(pzFb!=null){const Pz=PZ[pzFb],a=ans[pzFb],ok=a===Pz.a;
+      P.innerHTML=top+prog+`<div class="box">${h(Pz.t)}</div>
+        <div class="status ${ok?"ok":"bad"}">${ok?"<b>Richtig!</b>":`<b>Leider falsch.</b> Du hast ${h(a)} eingetippt. ${Pz.f&&Pz.f[a]?h(Pz.f[a]):""}`}</div>
+        <div class="box" style="margin-top:10px"><b>So rechnest du:</b>${Pz.w.map(x=>`<p style="margin:.3em 0">${h(x)}</p>`).join("")}</div>
+        <button class="pri" id="bNx" style="width:100%;margin-top:14px">${done<PZ.length?"Nächste Aufgabe →":"Fertig"}</button>`;
+      $("bNx").onclick=()=>{pzFb=null;rerender();};return;}
+    const next=PZ.findIndex((_,i)=>!ans[i]);
+    if(next<0){P.innerHTML=top+prog+`<h2>Fertig!</h2><div class="box"><div class="bigpts">${pzRight()} von ${PZ.length}</div>richtig gerechnet</div>
+      <div class="merk"><span class="pro">Profi</span> Erkläre deinem Nachbarn, warum die Probezeit bei Beginn am 15.08. am 14.10. endet und nicht am 15.10.</div>`;return;}
+    const Pz=PZ[next];
+    P.innerHTML=top+prog+`<p class="muted">Aufgabe ${next+1}${Pz.pro?' <span class="pro">Profi</span>':""}${Pz.src?" · "+h(Pz.src):""}</p><div class="box" style="font-size:1.1rem">${h(Pz.t)}</div>
+      ${Pz.hint?`<p class="muted">Tipp: ${h(Pz.hint)}</p>`:""}
+      <label style="display:block;margin-top:12px"><b>Lösung (TT.MM):</b><input id="pzIn" class="pzin" inputmode="decimal" maxlength="10" placeholder="TT.MM" autocomplete="off"></label>
+      ${pzErr?`<div class="status bad">${h(pzErr)}</div>`:""}
+      <button class="pri" id="bPz" style="width:100%;margin-top:10px">Prüfen</button>`;
+    $("bPz").onclick=()=>{const a=normDate($("pzIn").value);if(!a){pzErr="Bitte Tag und Monat eintippen, z. B. 30.11";rerender();return;}
+      pzErr="";pzLoc[next]=a;pzFb=next;const i=next;pending={msg:{k:"pz",i,a},done:()=>S.ph!==3||!!mine().pz[i]};send(pending.msg);rerender();};
+  }
+
+  /* ---------- 4 Fall-Rallye ---------- */
+  function rFall(P,top){
+    const fa=mine().fa,F=S.fr;
+    if(F.r>=0){
+      if(F.r>=FALL.length){P.innerHTML=top+`<h2>Fall-Rallye: Ergebnis</h2><div class="box"><div class="bigpts">${fallRight()} von 8</div>Ergebnis und Weg richtig</div>`;return;}
+      const f=FALL[F.r],a=fa[F.r],sol=G[f.g];
+      const my=a?`Eure Antwort: <b>${a.c?"wirksam":"unwirksam"}</b> – ${h(G[a.g].t)}`:"Keine Antwort zu diesem Fall.";
+      if(!F.show){P.innerHTML=top+`<p class="muted">Auflösung · Fall ${F.r+1}</p><div class="box">${h(f.t)}</div><div class="status">${my}</div><div class="merk">Schau an die Tafel: Welcher Weg durch den Baum?</div>`;return;}
+      P.innerHTML=top+`<p class="muted">Auflösung · Fall ${F.r+1}</p><div class="box">${h(f.t)}</div>
+        <div class="status ${!a?"":a.g===f.g?"ok":"bad"}">${my}${a?(a.g===f.g?" – <b>richtig!</b>":a.c===(sol.w?1:0)?" – Ergebnis richtig, aber anderer Weg.":" – leider falsch."):""}</div>
+        <p><b>Lösung: ${sol.w?"wirksam":"unwirksam"}</b> – ${h(sol.t)}<br>${h(f.x)}</p>`;return;}
+    if(!F.open){P.innerHTML=top+`<h2>Rallye beendet</h2><p>Schau an die Tafel.</p>`;return;}
+    if(frCur==null){const n=Object.keys(fa).length;
+      P.innerHTML=top+`<h2>Fall-Rallye</h2><p>Geht zu zweit zu einer Fallkarte im Raum. Tippt hier die Nummer an.</p>
+        <div class="muted">${n} von ${FALL.length} Fällen</div><div class="prog"><i style="width:${Math.round(100*n/FALL.length)}%"></i></div>
+        <div class="fgrid">${FALL.map((f,i)=>`<button class="fbtn ${fa[i]?"done":""}" data-i="${i}"><b>Fall ${i+1}</b><span>${fa[i]?(fa[i].c?"wirksam ✓":"unwirksam ✓"):"offen"}</span></button>`).join("")}</div>`;
+      P.querySelectorAll(".fbtn").forEach(b=>b.onclick=()=>{frCur=+b.dataset.i;frC=null;frStep=0;rerender();});return;}
+    const i=frCur,back=`<button id="bBk" style="width:100%;margin-top:12px">← Zur Übersicht</button>`;
+    const bindBack=()=>{$("bBk").onclick=()=>{frCur=null;rerender();};};
+    if(frStep===0){P.innerHTML=top+`<p class="muted">Fall ${i+1} · Lies die Karte im Raum.</p><h2>Ist die Kündigung wirksam?</h2>
+      <div class="yn"><button class="W" data-c="1">wirksam</button><button class="U" data-c="0">unwirksam</button></div>${back}`;
+      P.querySelectorAll(".yn button").forEach(b=>b.onclick=()=>{frC=+b.dataset.c;frStep=1;rerender();});bindBack();return;}
+    if(frStep===1){const opts=G.map((g,k)=>k).filter(k=>(G[k].w?1:0)===frC);
+      P.innerHTML=top+`<p class="muted">Fall ${i+1} · ${frC?"wirksam":"unwirksam"}</p><h2>Warum?</h2><p class="muted">Welcher Weg durch den Entscheidungsbaum?</p>
+        ${opts.map(k=>`<button class="pbtn" data-g="${k}">${h(G[k].t)}</button>`).join("")}<button id="bRe" style="width:100%">← anders entscheiden</button>`;
+      P.querySelectorAll(".pbtn").forEach(b=>b.onclick=()=>{const g=+b.dataset.g,c=frC;frStep=2;
+        pending={msg:{k:"fa",i,c,g},done:()=>S.ph!==4||!S.fr.open||(mine().fa[i]&&mine().fa[i].g===g)};send(pending.msg);rerender();});
+      $("bRe").onclick=()=>{frStep=0;rerender();};return;}
+    const a=fa[i],pm=pending&&pending.msg,okSent=!!a&&(!pm||pm.k!=="fa"||pm.i!==i||a.g===pm.g),hasY=(mine().fy||[]).includes(i);
+    P.innerHTML=top+`<p class="muted">Fall ${i+1}</p><div class="status ${okSent?"ok":""}">${okSent?"Gespeichert ✓ Ihr könnt bis zum Ende der Rallye noch ändern.":"Wird gesendet …"}</div>
+      ${hasY?`<div class="status ok" style="margin-top:10px"><span class="pro">Profi</span> Begründung angekommen ✓</div>`:
+      `<details style="margin-top:14px" ${fySent[i]?"open":""}><summary><span class="pro">Profi</span> Begründe in einem Satz mit Paragraf</summary>
+        <p class="muted">Zum Beispiel: „Die Kündigung ist unwirksam, weil nach § 22 Abs. 3 BBiG …“</p>
+        <textarea id="fy" rows="3" maxlength="160">${h(fySent[i]||"")}</textarea><button id="bFy" style="width:100%;margin-top:8px">${fySent[i]?"Wird gesendet …":"Begründung senden"}</button></details>`}
+      <button class="pri" id="bOv" style="width:100%;margin-top:14px">Nächster Fall →</button>`;
+    $("bOv").onclick=()=>{frCur=null;rerender();};
+    if($("bFy"))$("bFy").onclick=()=>{const tx=clean($("fy").value,160);if(!tx)return;fySent[i]=tx;
+      pending={msg:{k:"fy",i,tx},done:()=>S.ph!==4||(mine().fy||[]).includes(i)};send(pending.msg);$("bFy").textContent="Wird gesendet …";};
+  }
+
+  /* ---------- 5 Zeugnis ---------- */
+  function rZg(P,top){
+    const ans=Object.assign({},zgLoc,mine().zg),done=Object.keys(ans).length,ok=Object.keys(ans).filter(i=>ans[i]===ZG[i].w).length;
+    const prog=`<div class="muted">${done} von ${ZG.length} Karten</div><div class="prog"><i style="width:${Math.round(100*done/ZG.length)}%"></i></div>`;
+    if(zgFb!=null){const c=ZG[zgFb],right=ans[zgFb]===c.w;
+      P.innerHTML=top+prog+`<div class="pcard">${h(c.t)}</div>
+        <div class="status ${right?"ok":"bad"}">${right?"<b>Richtig!</b>":"<b>Leider falsch.</b>"} ${c.w==="E"?"Das ist eine Tatsache – sie steht schon im <b class='az'>einfachen</b> Zeugnis.":"Das sagt etwas über Verhalten oder Leistung – das steht <b class='be'>nur im qualifizierten</b> Zeugnis."}</div>
+        <button class="pri" id="bNx" style="width:100%;margin-top:14px">${done<ZG.length?"Nächste Karte →":"Fertig"}</button>`;
+      $("bNx").onclick=()=>{zgFb=null;rerender();};return;}
+    const next=zgOrder.find(i=>!ans[i]);
+    if(next==null){P.innerHTML=top+prog+`<h2>Fertig!</h2><div class="box"><div class="bigpts">${ok} von ${ZG.length}</div>richtig</div>
+      <div class="merk"><span class="pro">Profi</span> Warum darf ein Zeugnis keine negativen Aussagen und keine Geheimcodes enthalten? Finde eine Begründung.</div>`;return;}
+    P.innerHTML=top+prog+`<p><b>Wo steht das?</b></p><div class="pcard">${h(ZG[next].t)}</div>
+      <div class="yn"><button class="A" data-c="E">einfaches Zeugnis</button><button class="B" data-c="Q">nur qualifiziert</button></div>`;
+    P.querySelectorAll(".yn button").forEach(b=>b.onclick=()=>{const c=b.dataset.c,i=next;zgLoc[i]=c;zgFb=i;
+      pending={msg:{k:"zg",i,c},done:()=>S.ph!==5||!!mine().zg[i]};send(pending.msg);rerender();});
+  }
+
+  /* ---------- 7 Prüfungs-Check ---------- */
+  function rQuiz(P,top){
+    const sc=(S.sc&&S.sc[me.pid])||[0,"–",0];
+    if(S.q<0){P.innerHTML=top+`<h2>Prüfungs-Check</h2><p>Gleich geht es los. Lies jede Frage genau. Richtig ist wichtiger als schnell!</p>`;return;}
+    const Q=QUIZ[S.q],answered=(S.ans||[]).includes(me.pid);
+    const list=Q.l?`<ol class="qlist">${Q.l.map(x=>`<li>${h(x)}</li>`).join("")}</ol>`:"";
+    if(S.qOpen){
+      if(answered||qSel[S.q]!=null){P.innerHTML=top+`<p class="muted">Frage ${S.q+1}</p><h2>${h(Q.q)}</h2><div class="status ${answered?"ok":""}">${answered?"Antwort gespeichert ✓":"Wird gesendet …"} Warte auf die Auflösung.</div>
+        ${Q.pz?`<div class="merk"><b>Profi-Zusatz:</b> ${h(Q.pz)}</div>`:""}`;return;}
+      P.innerHTML=top+`<div class="row" style="justify-content:space-between"><span class="muted">Frage ${S.q+1} von ${QUIZ.length}${Q.pro?' <span class="pro">Profi</span>':""}</span><b id="ptm"></b></div><h2>${h(Q.q)}</h2>${list}
+        ${Q.o.map((o,i)=>`<button class="popt o${i}" data-i="${i}">${"ABCDE"[i]}: ${h(o)}</button>`).join("")}`;
+      P.querySelectorAll(".popt").forEach(b=>b.onclick=()=>{const q=S.q;qSel[q]=+b.dataset.i;pending={msg:{k:"a",q,c:+b.dataset.i},done:()=>S.q!==q||!S.qOpen||(S.ans||[]).includes(me.pid)};send(pending.msg);rerender();});
+      const t=()=>{const s=Math.max(0,Math.ceil((qEnd-Date.now())/1000));if($("ptm"))$("ptm").textContent=s+" s";};t();clearInterval(window._pt);window._pt=setInterval(t,250);return;}
+    const my=qSel[S.q],ok=my===Q.k;
+    P.innerHTML=top+`<p class="muted">Frage ${S.q+1} von ${QUIZ.length}</p>
+      <div class="status ${my==null?"":ok?"ok":"bad"}">${my==null?"Keine Antwort.":ok?"<b>Richtig!</b> +"+sc[2]+" Punkte":"<b>Leider falsch.</b>"}</div>
+      <p><b>Richtig: ${h(Q.o[Q.k])}</b><br>${h(Q.x)}</p>
+      <div class="box"><div class="bigpts">${sc[0]} Punkte</div>Platz ${sc[1]} von ${S.np||"?"}</div>`;
+  }
+  $("phone").addEventListener("click",e=>{if(e.target.closest("[data-wort]"))openWort();});
+  render();
+}
+const roomCode=(params.get("s")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);
+if(params.get("woerter")){document.title="Wann ist Schluss? – Wörter";openWort();$("hClose").remove();}else if(roomCode)phoneApp();else tafelApp();
+</script>
+<script>
+/* =========================================================
+   QUIZ-MUSIK v2 (Skill live-klassen-app) – eigene Kompositionen, live per WebAudio erzeugt,
+   keine Musikdatei, keine Rechte Dritter. Jede Abfrage bekommt ein ANDERES Stück aus dem Pool
+   (gemischt, nie zweimal hintereinander). Läuft nur auf der Tafel.
+   Ablauf: Loop während der Frage · letzte 10 s schneller · Ticks in den letzten 5 s · Jingle beim Auflösen · Fanfare beim Sieger
+   ========================================================= */
+const MUSIK_POOL=[
+  {name:"Spannung",bpm:124,fast:156,bass:[45,45,41,40],ch:[[69,72,76],[69,72,76],[65,69,72],[64,68,71]],ap:[0,1,2,1,0,2,1,2],arp:"square",kick:[0,4,8,12],snare:[4,12],hat:"off"},
+  {name:"Funk",bpm:104,fast:132,swing:.16,bass:[40,40,43,45],bp:[0,3,6,8,10,11,14],bt:"sawtooth",ch:[[64,67,71,74],[64,67,71,74],[67,71,74,77],[69,72,76,79]],ap:[0,2,1,3],as:[2,6,10,13],ad:.07,arp:"sawtooth",kick:[0,6,8],snare:[4,12],hat:"all"},
+  {name:"Marimba",bpm:116,fast:144,bass:[48,45,41,43],ch:[[72,76,79],[69,72,76],[65,69,72],[67,71,74]],ap:[0,1,2,1,2,1,0,1],ad:.22,arp:"sine",oct:1,kick:[0,8],snare:[],hat:"none",cl:[3,11]},
+  {name:"Chiptune",bpm:144,fast:176,bass:[43,43,40,38],bt:"square",ch:[[67,71,74],[67,71,74],[64,67,71],[62,66,69]],ap:[0,1,2,3,2,1],arp:"square",oct:1,ad:.06,kick:[0,8],snare:[4,12],hat:"none"},
+  {name:"Latin",bpm:112,fast:140,bass:[38,38,43,45],bp:[0,3,8,11],ch:[[62,65,69],[62,65,69],[67,70,74],[69,73,76]],ap:[0,2,1,2],as:[0,2,3,6,8,10,11,14],arp:"triangle",kick:[0,6,8,14],snare:[],hat:"off",cl:[0,3,6,10,12]},
+  {name:"Jazz",bpm:132,fast:164,swing:.3,walk:1,bass:[41,38,43,36],bp:[0,4,8,12],ch:[[65,69,72,76],[62,65,69,72],[67,70,74,77],[60,64,67,70]],ap:[0,2,1,3],as:[0,6,10],ad:.18,arp:"triangle",kick:[],snare:[],hat:"jazz"},
+  {name:"Synthwave",bpm:100,fast:128,bass:[47,43,38,45],bp:[0,2,4,6,8,10,12,14],bt:"sawtooth",ch:[[71,74,78],[67,71,74],[62,66,69],[69,73,76]],ap:[0,1,2,1],arp:"sawtooth",ad:.14,kick:[0,4,8,12],snare:[4,12],hat:"all"},
+  {name:"Detektiv",bpm:92,fast:120,bass:[37,37,42,44],bp:[0,3,8,10],ch:[[61,64,68],[61,64,68],[66,69,73],[68,72,75]],ap:[0,1,2,1,2,0],as:[0,2,4,7,8,10,12,15],ad:.12,arp:"triangle",kick:[0],snare:[8],hat:"off"}
+];
+const Music=(()=>{
+  const ls=(k,v)=>{try{if(v===undefined){const x=localStorage.getItem(k);return x==null?null:JSON.parse(x);}localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}};
+  let ctx=null,master=null,timer=null,next=0,step=0,fast=false,nbuf=null,on=ls("quizmusik")!==false;
+  let order=[],last=-1,S=MUSIK_POOL[0];
+  const mf=m=>440*Math.pow(2,(m-69)/12),AV={square:.04,sawtooth:.03,triangle:.08,sine:.1};
+  function pick(){if(!order.length){order=MUSIK_POOL.map((_,i)=>i);for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+      if(order[0]===last&&order.length>1)order.push(order.shift());}
+    last=order.shift();S=MUSIK_POOL[last];return last;}
+  function init(){try{if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;ctx=new AC();
+      master=ctx.createGain();master.gain.value=.24;master.connect(ctx.destination);}
+    if(ctx.state==="suspended")ctx.resume();return true;}catch(e){return false;}}
+  function tone(f,t,d,type,v){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.05);}
+  function noise(t,d,v,hp){if(!nbuf){nbuf=ctx.createBuffer(1,ctx.sampleRate*.3,ctx.sampleRate);const a=nbuf.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1;}
+    const s=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();s.buffer=nbuf;f.type="highpass";f.frequency.value=hp;
+    g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(master);s.start(t);s.stop(t+d+.02);}
+  function kick(t){const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(45,t+.13);
+    g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.0001,t+.18);o.connect(g);g.connect(master);o.start(t);o.stop(t+.2);}
+  function play(st,t){const bar=Math.floor(st/16)%S.bass.length,s=st%16,ch=S.ch[bar%S.ch.length];
+    const bp=S.bp||[0,2,4,6,8,10,12,14];
+    if(bp.includes(s)){const off=S.walk?[0,4,7,9][Math.floor(s/4)%4]:(s%4===0?0:12);tone(mf(S.bass[bar]+off),t,S.walk?.3:.16,S.bt||"triangle",S.bt==="sawtooth"?.12:S.bt==="square"?.1:.32);}
+    if(!S.as||S.as.includes(s))tone(mf(ch[S.ap[s%S.ap.length]%ch.length]+12*(S.oct||0)+(fast?12:0)),t,S.ad||.09,S.arp,AV[S.arp]||.05);
+    if(S.kick.includes(s))kick(t);
+    if(S.snare.includes(s))noise(t,.12,.25,1800);
+    if(S.cl&&S.cl.includes(s))tone(1250,t,.04,"sine",.18);
+    const hat=S.hat;
+    if(hat==="all"||fast||(hat==="off"&&s%2===1)||(hat==="jazz"&&(s%4===0||s%8===6)))noise(t,.03,.07,7000);}
+  function sched(){const d=60/(fast?S.fast:S.bpm)/4;
+    if(next<ctx.currentTime-.05)next=ctx.currentTime+.02;
+    while(next<ctx.currentTime+.12){play(step,next+(step%2?d*(S.swing||0):0));next+=d;step++;}}
+  const root=()=>S.ch[0][0]%12+60;
+  return {
+    pool:MUSIK_POOL,
+    current(){return S.name;},
+    unlock(){if(on)init();},
+    isOn(){return on;},
+    toggle(){on=!on;ls("quizmusik",on);if(!on)this.stop();return on;},
+    start(){if(!on||timer||!init())return;pick();fast=false;step=0;next=ctx.currentTime+.06;timer=setInterval(sched,25);
+      try{console.log("[Quiz-Musik] Stück",last,S.name);}catch(e){}},
+    hurry(){fast=true;},
+    tick(){if(!on||!init())return;tone(1760,ctx.currentTime,.06,"sine",.25);},
+    stop(){clearInterval(timer);timer=null;fast=false;},
+    reveal(){this.stop();if(!on||!init())return;const t=ctx.currentTime+.03,r=root();
+      [0,4,7].forEach((m,i)=>tone(mf(r+m),t+i*.09,.25,"square",.08));
+      [0,4,7,12].forEach(m=>tone(mf(r+m),t+.3,.9,"triangle",.14));kick(t+.3);noise(t+.3,.25,.25,3000);},
+    fanfare(){this.stop();if(!on||!init())return;const t=ctx.currentTime+.05,r=60;
+      [[-5,0],[0,.15],[4,.3],[7,.45],[4,.7],[7,.85]].forEach(([m,d])=>tone(mf(r+m),t+d,.22,"square",.09));
+      [0,4,7,12].forEach(m=>tone(mf(r+m),t+1.05,1.6,"triangle",.15));[0,.45,1.05].forEach(d=>kick(t+d));noise(t+1.05,.5,.3,2500);}
+  };})();
+/* Quiz-Musik automatisch an die Tafel koppeln: Timer #tm sichtbar = Abfrage läuft (Quiz, Prüfungs-Check, Abstimmung) */
+(function MusicAuto(){
+  if(new URLSearchParams(location.search).get("s"))return;
+  const tf=document.getElementById("tafel"),st=document.getElementById("steps");
+  let was=false,lastS=-1,pod=false;
+  function btn(){if(!st||document.getElementById("bMus"))return;const b=document.createElement("button");b.id="bMus";b.type="button";
+    b.title="Quiz-Musik an oder aus";b.style.cssText="padding:.25em .7em;font-weight:700;border-radius:999px;white-space:nowrap";
+    b.onclick=()=>{Music.toggle();if(Music.isOn()&&was)Music.start();lab();};st.after(b);lab();}
+  function lab(){const b=document.getElementById("bMus");if(b)b.textContent=Music.isOn()?"Musik: an":"Musik: aus";}
+  document.addEventListener("pointerdown",()=>Music.unlock(),true);
+  btn();
+  setInterval(()=>{if(!tf||tf.hidden)return;btn();
+    const tm=document.getElementById("tm"),vis=!!(tm&&tm.offsetParent!==null);
+    if(vis){if(!was){was=true;lastS=-1;Music.start();}
+      const s=parseInt(tm.textContent,10);if(!isNaN(s)&&s!==lastS){lastS=s;if(s<=10&&s>0)Music.hurry();if(s<=5&&s>0)Music.tick();}}
+    else if(was){was=false;Music.reveal();}
+    const p=document.querySelector("#tMain .podium"),pv=!!(p&&p.offsetParent!==null);
+    if(pv&&!pod){pod=true;Music.fanfare();}if(!pv)pod=false;
+  },200);
+})();
+</script>
+<script id="es-hover">
+/* Spanisch-Hover (Knopf unten rechts): ersetzt alle Texte durch die spanische Übersetzung; deutsches Original per Maus-Hover (title). Antworten laufen weiter über Indizes, nichts ändert sich am Spiel. */
+(function(){
+  var ES={"(Papier mit Unterschrift)": "(papel con firma)", "(nachdem der Grund bekannt wurde)": "(después de conocerse el motivo)", "(z. B. Diebstahl, schwere Beleidigung)": "(p. ej. robo, insulto grave)", ". Richtig ist wichtiger als schnell.": ". Es más importante acertar que ser rápido.", "0 Antworten": "0 respuestas", "0 Start": "0 Inicio", "0 dabei": "0 participantes", "0 von 0 haben alle sechs Karten richtig gelegt.": "0 de 0 han colocado bien las seis tarjetas.", "0 von 0 haben gewählt": "0 de 0 han votado", "0 von 0 haben gewählt · Abstimmung geschlossen": "0 de 0 han votado · votación cerrada", "0 von 0 richtig": "0 de 0 correctas", "01.08.2026 · 0 % richtig": "01.08.2026 · 0 % correcto", "1 Ankommen": "1 Llegada", "1 dabei": "1 participante", "2 Wann ist Schluss?": "2 ¿Cuándo se acaba?", "2 und 6. Probezeit 1 bis 4 Monate · kein Wegfall der Probezeit durch Aushilfstätigkeit · über die Zulassung entscheidet die zuständige Stelle · nach der Probezeit nur mit wichtigem Grund.": "2 y 6. Período de prueba de 1 a 4 meses · el período de prueba no desaparece por trabajar como temporal · sobre la admisión decide el organismo competente · después del período de prueba solo con causa grave.", "20.06.2028 · 0 % richtig": "20.06.2028 · 0 % correcto", "20.06.2028 – letzte Prüfung, Ergebnis wird bekannt gegeben": "20.06.2028: último examen, se comunica el resultado", "3 Probezeit & Ende": "3 Período de prueba y final", "31.07.2028 · 0 % richtig": "31.07.2028 · 0 % correcto", "31.07.2028 – Vertragsende": "31.07.2028: fin del contrato", "4 Fall-Rallye": "4 Rally de casos", "5 Zeugnis": "5 Certificado", "6 Merken": "6 Recordar", "7 Fragen, Aufgaben im Stil der IHK-Prüfung. Die letzten beiden sind für Profis": "7 preguntas, ejercicios al estilo del examen de la IHK. Las dos últimas son para expertos", "7 Prüfungs-Check": "7 Control de examen", "8 Sieger": "8 Ganadores", "A: 1 und 3": "A: 1 y 3", "1 und 3": "1 y 3", "A: Bei schlechten Noten im Zeugnis der Berufsschule": "A: Si hay malas notas en el boletín de la escuela profesional", "Bei schlechten Noten im Zeugnis der Berufsschule": "Si hay malas notas en el boletín de la escuela profesional", "A: Ja, weil das im Manteltarifvertrag so vereinbart wurde": "A: Sí, porque así se acordó en el convenio marco", "Ja, weil das im Manteltarifvertrag so vereinbart wurde": "Sí, porque así se acordó en el convenio marco", "A: Nur, wenn das Kaufhaus Hansa vorher zustimmt.": "A: Solo si los grandes almacenes Hansa lo aprueban antes.", "Nur, wenn das Kaufhaus Hansa vorher zustimmt.": "Solo si los grandes almacenes Hansa lo aprueban antes.", "Ab welchem Tag ist Emre kein Azubi mehr?": "¿A partir de qué día deja Emre de ser aprendiz?", "Abstimmung schließen": "Cerrar la votación", "Abstimmung starten →": "Iniciar la votación →", "Ali beginnt am 01.08.2026, Probezeit vier Monate. In der Probezeit ist er sechs Wochen krank. Im Vertrag ste …": "Ali empieza el 01.08.2026, período de prueba cuatro meses. En el período de prueba está seis semanas enfermo. En el contrato figura la …", "Am Handy: Tag und Monat eintippen (TT.MM) – wie in der IHK-Prüfung. Ihr seht sofort, ob es stimmt.": "En el móvil: escribe día y mes (DD.MM), como en el examen de la IHK. Ves enseguida si es correcto.", "Ankommen · Frage 1 von 4 · 0 von 0 geantwortet": "Llegada · Pregunta 1 de 4 · 0 de 0 han respondido", "Ankommen · Frage 2 von 4 · 0 von 0 geantwortet": "Llegada · Pregunta 2 de 4 · 0 de 0 han respondido", "Ankommen · Frage 3 von 4 · 0 von 0 geantwortet": "Llegada · Pregunta 3 de 4 · 0 de 0 han respondido", "Ankommen: Was weißt du noch aus Modul 3?": "Llegada: ¿qué recuerdas aún del módulo 3?", "April 2028": "abril de 2028", "April 2028 · 0 % richtig": "abril de 2028 · 0 % correcto", "Art der Ausbildung: Verkäuferin": "Tipo de formación: vendedora", "Auf Papier mit Unterschrift. E-Mail oder WhatsApp reichen nicht.": "En papel con firma. El correo electrónico o WhatsApp no bastan.", "Auf sein Verlangen wird bis zur nächsten Wiederholungsprüfung verlängert – höchstens um ein Jahr.": "A petición suya se prolonga hasta el siguiente examen de repetición, como máximo un año.", "Aufhebungsvertrag": "Contrato de rescisión (Aufhebungsvertrag)", "Auflösen": "Mostrar solución", "Auflösung der Abstimmung von vorhin · 0 Stimmen": "Solución de la votación de antes · 0 votos", "Ausbildungsmittel kostenlos stellen": "Proporcionar gratis los medios de formación", "Azubi arbeitet einfach weiter, nichts vereinbart": "El aprendiz sigue trabajando sin más, no se ha acordado nada", "Azubi wechselt den Beruf oder hört auf: mit vier Wochen Frist": "El aprendiz cambia de profesión o lo deja: con plazo de cuatro semanas", "B: 2 und 5": "B: 2 y 5", "2 und 5": "2 y 5", "B: Am 15. Juli 2027, sie wird aber bis zum Kammerzeugnis als Auszubildende bezahlt.": "B: El 15 de julio de 2027, pero se le paga como aprendiz hasta el certificado de la Cámara.", "Am 15. Juli 2027, sie wird aber bis zum Kammerzeugnis als Auszubildende bezahlt.": "El 15 de julio de 2027, pero se le paga como aprendiz hasta el certificado de la Cámara.", "B: Bei einem Wechsel des Ausbilders": "B: En caso de cambio de instructor", "Bei einem Wechsel des Ausbilders": "En caso de cambio de instructor", "B: Ja, wenn er die Kosten für das Zeugnis selbst übernimmt": "B: Sí, si él mismo asume los costes del certificado", "Ja, wenn er die Kosten für das Zeugnis selbst übernimmt": "Sí, si él mismo asume los costes del certificado", "Beginn 01.09.2026, Probezeit drei Monate.": "Inicio 01.09.2026, período de prueba tres meses.", "Beginn 15.08.2026, Probezeit zwei Monate.": "Inicio 15.08.2026, período de prueba dos meses.", "Beginn der Ausbildung": "Inicio de la formación", "Begründungen ausblenden": "Ocultar justificaciones", "Beide sind einverstanden, die Ausbildung zu beenden.": "Ambos están de acuerdo en terminar la formación.", "Beispiel: Berufswechsel: vier Wochen.": "Ejemplo: cambio de profesión: cuatro semanas.", "Beispiel: Diebstahl → fristlose Kündigung.": "Ejemplo: robo → despido sin plazo.", "Beispiel: Diebstahl, schwere Beleidigung.": "Ejemplo: robo, insulto grave.", "Beispiel: Ein normaler Arbeitsvertrag.": "Ejemplo: un contrato de trabajo normal.", "Beispiel: Emre: 01.08. bis 30.11.": "Ejemplo: Emre: del 01.08. al 30.11.", "Beispiel: Mia will in einen anderen Supermarkt.": "Ejemplo: Mia quiere ir a otro supermercado.", "Beispiel: „Sie haben bestanden.“": "Ejemplo: «Ha aprobado.»", "Beispiel: „Sie war stets pünktlich.“": "Ejemplo: «Siempre fue puntual.»", "Berufsausbildungsverträge werden bei der zuständigen Stelle eingetragen.": "Los contratos de formación profesional se inscriben en el organismo competente.", "Berufswechsel: Kündigung mit vier Wochen Frist (§ 22 Abs. 2 Nr. 2 BBiG).": "Cambio de profesión: rescisión con plazo de cuatro semanas (§ 22 apdo. 2 n.º 2 BBiG).", "Besteht der Azubi vor dem Vertragsende, endet die Ausbildung mit der Bekanntgabe des Ergebnisses durch den Prüfungsausschuss (§ 21 Abs. 2 BBiG) – hier am 20.06.2028.": "Si el aprendiz aprueba antes del fin del contrato, la formación termina con la comunicación del resultado por el tribunal examinador (§ 21 apdo. 2 BBiG), aquí el 20.06.2028.", "Besteht ein Azubi die Abschlussprüfung nicht, verlängert sich das Ausbildungsverhältnis auf sein Verlangen bis zur nächsten Wiederholungsprüfung, höchstens um ein Jahr.": "Si un aprendiz no aprueba el examen final, la relación de formación se prolonga a petición suya hasta el siguiente examen de repetición, como máximo un año.", "Bis zu sechs Wochen (§ 19 BBiG, Entgeltfortzahlungsgesetz).": "Hasta seis semanas (§ 19 BBiG, Ley de Continuación del Pago de la Retribución).", "C: 2 und 6": "C: 2 y 6", "2 und 6": "2 y 6", "C: Am 1. August 2027, weil der Vertrag am 31. Juli 2027 endet.": "C: El 1 de agosto de 2027, porque el contrato termina el 31 de julio de 2027.", "Am 1. August 2027, weil der Vertrag am 31. Juli 2027 endet.": "El 1 de agosto de 2027, porque el contrato termina el 31 de julio de 2027.", "C: Bei einer als zu niedrig empfundenen Ausbildungsvergütung": "C: Si la retribución de formación se considera demasiado baja", "Bei einer als zu niedrig empfundenen Ausbildungsvergütung": "Si la retribución de formación se considera demasiado baja", "C: Ja, wenn er es verlangt": "C: Sí, si lo solicita", "Ja, wenn er es verlangt": "Sí, si lo solicita", "Code:": "Código:", "D: 4 und 6": "D: 4 y 6", "4 und 6": "4 y 6", "D: Bei Aufgabe der Ausbildung, um sich in einem anderen Beruf ausbilden zu lassen": "D: Al abandonar la formación para formarse en otra profesión", "Bei Aufgabe der Ausbildung, um sich in einem anderen Beruf ausbilden zu lassen": "Al abandonar la formación para formarse en otra profesión", "D: Erst nach dem 31. Juli 2027, weil die Ausbildung grundsätzlich zwei Jahre dauert.": "D: Solo después del 31 de julio de 2027, porque la formación dura en principio dos años.", "Erst nach dem 31. Juli 2027, weil die Ausbildung grundsätzlich zwei Jahre dauert.": "Solo después del 31 de julio de 2027, porque la formación dura en principio dos años.", "D: Nein, denn das Prüfungszeugnis der Kammer bescheinigt seine Kenntnisse": "D: No, porque el certificado de examen de la Cámara acredita sus conocimientos", "Nein, denn das Prüfungszeugnis der Kammer bescheinigt seine Kenntnisse": "No, porque el certificado de examen de la Cámara acredita sus conocimientos", "Das merken wir uns": "Esto lo recordamos", "Das qualifizierte Zeugnis gibt es auf Verlangen, kostenlos (§ 16 Abs. 2 BBiG).": "El certificado cualificado se da si se solicita, gratuitamente (§ 16 apdo. 2 BBiG).", "Dauer: 01.08.2026 bis 20.06.2028": "Duración: del 01.08.2026 al 20.06.2028", "Der Ausbildende kann nach der Probezeit jederzeit ohne Grund kündigen.": "La empresa formadora puede rescindir en cualquier momento sin motivo después del período de prueba.", "Der Betrieb entscheidet, ob verlängert wird.": "La empresa decide si se prolonga.", "Der Betrieb muss dir Zeit geben, den Nachweis am Arbeitsplatz zu schreiben (§ 14 Abs. 2 BBiG).": "La empresa debe darte tiempo para escribir el registro en el puesto de trabajo (§ 14 apdo. 2 BBiG).", "Der Prüfungsausschuss sagt dir das Ergebnis.": "El tribunal examinador te dice el resultado.", "Die 16-jährige Nora Kaiser möchte eine Berufsausbildung beginnen. Welche 2 Regelungen zur Berufsausbildung finden Sie im Berufsbildungsgesetz?": "Nora Kaiser, de 16 años, quiere empezar una formación profesional. ¿Qué 2 regulaciones sobre la formación profesional encuentra usted en la Ley de Formación Profesional?", "Die Ausbildung endet mit der Bekanntgabe des Ergebnisses am 14.07. (§ 21 Abs. 2 BBiG). Ab dem 15.07. ist sie frei.": "La formación termina con la comunicación del resultado el 14.07. (§ 21 apdo. 2 BBiG). A partir del 15.07. queda libre.", "Die Ausbildung endet mit …": "La formación termina con …", "Die Ausbildung endet trotzdem am 31.07.2028.": "La formación termina igualmente el 31.07.2028.", "Die Ausbildung endet …": "La formación termina …", "Die Ausbildung verlängert sich automatisch um zwei Jahre.": "La formación se prolonga automáticamente dos años.", "Die Kündigung ist (un)wirksam, weil …": "La rescisión es (in)válida, porque …", "Die Probezeit beträgt mindestens vier Monate und darf nie verkürzt werden.": "El período de prueba es como mínimo de cuatro meses y nunca puede acortarse.", "Die Probezeit ist schon vorbei, also …": "El período de prueba ya ha terminado, por tanto …", "Die Prüferinnen und Prüfer der IHK.": "Los examinadores de la IHK.", "Die Wartezeit bis zum Ende.": "El tiempo de espera hasta el final.", "Die ersten 1 bis 4 Monate. Beide prüfen: Passt das?": "Los primeros 1 a 4 meses. Ambos comprueban: ¿encaja?", "Direkt zur Fall-Rallye (DS 2)": "Directamente al rally de casos (DH 2)", "Du bist drin!": "¡Ya estás dentro!", "E: 1 und 5": "E: 1 y 5", "1 und 5": "1 y 5", "E: Bei Kündigung mit 6 Wochen Frist zum Quartalsende": "E: Rescisión con plazo de 6 semanas a final de trimestre", "Bei Kündigung mit 6 Wochen Frist zum Quartalsende": "Rescisión con plazo de 6 semanas a final de trimestre", "E: Nein, über die Ausbildungszeit dürfen keine Zeugnisse ausgestellt werden": "E: No, durante el tiempo de formación no se pueden expedir certificados", "Nein, über die Ausbildungszeit dürfen keine Zeugnisse ausgestellt werden": "No, durante el tiempo de formación no se pueden expedir certificados", "E: Sie kann die Stelle am 15. Juli 2027 antreten.": "E: Puede incorporarse al puesto el 15 de julio de 2027.", "Sie kann die Stelle am 15. Juli 2027 antreten.": "Puede incorporarse al puesto el 15 de julio de 2027.", "Ein Paar erklärt: Ergebnis und Weg durch den Baum.": "Una pareja lo explica: resultado y camino por el árbol.", "Ein Schreiben vom Betrieb über deine Ausbildung.": "Una carta de la empresa sobre tu formación.", "Eine Probezeit entfällt, wenn der Betrieb die Auszubildende schon als Aushilfe kannte.": "El período de prueba no existe si la empresa ya conocía a la aprendiz como temporal.", "Einer sagt schriftlich: Die Ausbildung soll enden.": "Uno dice por escrito: la formación debe terminar.", "Einfach oder qualifiziert?": "¿Simple o cualificado?", "Emre beginnt am 01.08.2026. Im Vertrag steht eine Probezeit von vier Monaten. Mit Ablauf welchen Tages endet …": "Emre empieza el 01.08.2026. En el contrato figura un período de prueba de cuatro meses. ¿Al finalizar qué día termina …", "Emre besteht am 20.06.2028 und kommt am 21.06. einfach wieder zur Arbeit. Keiner sagt etwas. Was gilt?": "Emre aprueba el 20.06.2028 y el 21.06. vuelve a trabajar sin más. Nadie dice nada. ¿Qué vale?", "Emre besteht die Prüfung nicht. Er möchte weitermachen. Was gilt?": "Emre no aprueba el examen. Quiere seguir. ¿Qué vale?", "Ende der Ausbildung · Frage 2 von 3 · 0 von 0 geantwortet": "Fin de la formación · Pregunta 2 de 3 · 0 de 0 han respondido", "Ende der Ausbildung · Frage 3 von 3 · 0 von 0 geantwortet": "Fin de la formación · Pregunta 3 de 3 · 0 de 0 han respondido", "Ende der Probezeit": "Fin del período de prueba", "Er arbeitet ohne Vertrag und darf jederzeit gehen.": "Trabaja sin contrato y puede irse en cualquier momento.", "Er ist bis zum 31.07. weiter Azubi.": "Sigue siendo aprendiz hasta el 31.07.", "Ergebnisfelder ausblenden": "Ocultar campos de resultado", "Ergebnisfelder zeigen": "Mostrar campos de resultado", "Erste Frage →": "Primera pregunta →", "Erworbene Kenntnisse: Kassieren, Warenpräsentation, Kundenberatung": "Conocimientos adquiridos: cobrar en caja, presentación de mercancías, asesoramiento al cliente", "Es entsteht ein befristetes Arbeitsverhältnis bis zum 31.07.": "Se crea una relación laboral de duración determinada hasta el 31.07.", "Es entsteht ein unbefristetes Arbeitsverhältnis.": "Se crea una relación laboral indefinida.", "Etwas Schlimmes, das eine weitere Zusammenarbeit unmöglich macht.": "Algo grave que hace imposible seguir colaborando.", "Fall 1": "Caso 1", "Fall 1 von 8 · 0 Antworten": "Caso 1 de 8 · 0 respuestas", "Fall 2": "Caso 2", "Fall 2 von 8 · 0 Antworten": "Caso 2 de 8 · 0 respuestas", "Fall 3": "Caso 3", "Fall 4": "Caso 4", "Fall 5": "Caso 5", "Fall 6": "Caso 6", "Fall 7": "Caso 7", "Fall 8": "Caso 8", "Fall-Profis: Rallye richtig (von 8) · Probezeit (von 5)": "Expertos en casos: rally correcto (de 8) · período de prueba (de 5)", "Fall-Rallye: Ist die Kündigung wirksam?": "Rally de casos: ¿es válida la rescisión?", "Frage 1 von 7 · Prüfungsstil · 0 von 0 geantwortet": "Pregunta 1 de 7 · estilo examen · 0 de 0 han respondido", "Frage 2 von 7 · Prüfungsstil (hier als Paare) · 0 von 0 geantwortet": "Pregunta 2 de 7 · estilo examen (aquí en parejas) · 0 de 0 han respondido", "Frage 3 von 7 · Prüfungsstil · 0 von 0 geantwortet": "Pregunta 3 de 7 · estilo examen · 0 de 0 han respondido", "Frage 4 von 7 · Prüfungsstil · 0 von 0 geantwortet": "Pregunta 4 de 7 · estilo examen · 0 de 0 han respondido", "Frau Sophie Brandt hat am 1. August 2026 eine dreijährige Ausbildung zur Verkäuferin begonnen. Laut Vertrag  …": "Sophie Brandt comenzó el 1 de agosto de 2026 una formación de tres años como vendedora. Según el contrato …", "Gib einen Spitznamen ein.": "Escribe un apodo.", "Gibt es einen wichtigen Grund?": "¿Hay una causa grave?", "Herr Öztürk hat die Ausbildung zum Verkäufer beendet. Hat er bei Beendigung der Ausbildung ein Recht auf Ausstellung eines qualifizierten Ausbildungszeugnisses?": "El Sr. Öztürk ha terminado la formación de vendedor. ¿Tiene derecho, al terminar la formación, a que se le expida un certificado de formación cualificado?", "Heute geht es um Probezeit, Ende der Ausbildung und Kündigung. Neue Wörter findest du oben unter „Wörter“.": "Hoy se trata del período de prueba, el fin de la formación y la rescisión. Las palabras nuevas las encuentras arriba en «Wörter» (palabras).", "Hier ist Schluss!": "¡Aquí se acaba!", "Ich bin für B, weil …": "Estoy a favor de B, porque …", "Ich denke, Emre ist am … fertig, weil …": "Creo que Emre termina el …, porque …", "Im Ausbildungsvertrag von Herrn Demir werden 3 Monate Probezeit vereinbart. In welchem Fall kann Herr Demir das Ausbildungsverhältnis auch nach Ablauf der Probezeit beenden?": "En el contrato de formación del Sr. Demir se acuerdan 3 meses de período de prueba. ¿En qué caso puede el Sr. Demir terminar la relación de formación también después del período de prueba?", "Immer: schriftlich mit Unterschrift · nach der Probezeit Gründe nennen · minderjährig → die Eltern kündigen oder stimmen zu · jederzeit möglich: Aufhebungsvertrag (beide einverstanden)": "Siempre: por escrito con firma · después del período de prueba, indicar motivos · menores de edad → los padres rescinden o consienten · siempre posible: contrato de rescisión (ambos de acuerdo)", "Innerhalb von zwei Wochen gekündigt?": "¿Rescindido en un plazo de dos semanas?", "Ist die Kündigung schriftlich?": "¿La rescisión es por escrito?", "Ist die Kündigung wirksam? (§ 22)": "¿Es válida la rescisión? (§ 22)", "Ist die Probezeit noch nicht vorbei?": "¿Todavía no ha terminado el período de prueba?", "Kündigt der Azubi, weil er aufhört": "Rescinde el aprendiz porque lo deja", "Kündigung": "Rescisión", "Lisa (19) ist im zweiten Monat der Probezeit. Der Betrieb schreibt ihr per WhatsApp: „Du passt nicht zu uns. Ab morgen musst du nicht mehr kommen.“": "Lisa (19) está en el segundo mes del período de prueba. La empresa le escribe por WhatsApp: «No encajas con nosotros. A partir de mañana no tienes que venir.»", "Los: Ankommen →": "Vamos: Llegada →", "Lösung ausblenden": "Ocultar solución", "Lösung zeigen": "Mostrar solución", "Lösung zeigen und sortieren": "Mostrar solución y ordenar", "Lösungen ausblenden": "Ocultar soluciones", "Lösungen zeigen": "Mostrar soluciones", "Mit Angaben zu Verhalten und Leistung.": "Con datos sobre comportamiento y rendimiento.", "Mitmachen": "Participar", "Musik: an": "Música: sí", "Nach § 22 BBiG …": "Según el § 22 BBiG …", "Neue Sitzung (alles löschen)": "Nueva sesión (borrar todo)", "Noch einmal öffnen": "Abrir otra vez", "Nächste Frage →": "Siguiente pregunta →", "Nächste Frage: Was, wenn …? →": "Siguiente pregunta: ¿y si …? →", "Nächster Fall →": "Siguiente caso →", "Ohne Enddatum.": "Sin fecha de fin.", "Ordnen beenden und auflösen": "Terminar de ordenar y resolver", "Ordnen starten →": "Empezar a ordenar →", "Ordnet Emres Ausbildung": "Ordenad la formación de Emre", "Probezeit": "Período de prueba", "Probezeit rechnen": "Calcular el período de prueba", "Probezeit und Ende (§§ 20, 21, 24 BBiG)": "Período de prueba y final (§§ 20, 21, 24 BBiG)", "Probezeit, Ende, Kündigung": "Período de prueba, final, rescisión", "Probezeit, Ende, Kündigung: Wann ist Schluss?": "Período de prueba, final, rescisión: ¿cuándo se acaba?", "Profi": "Experto/a", "Profi-Begründungen (0)": "Justificaciones de expertos (0)", "Prüfung nicht bestanden": "Examen no aprobado", "Prüfung vor dem Vertragsende bestanden": "Examen aprobado antes del fin del contrato", "Prüfungs-Check": "Control de examen", "Prüfungsstil": "Estilo examen", "Rallye beenden – Karte für Karte auflösen →": "Terminar el rally – resolver tarjeta por tarjeta →", "Rallye wieder öffnen": "Volver a abrir el rally", "Selin Aksoys Ausbildungsvertrag endet am 31. Juli 2027. Sie hat bereits einen Arbeitsvertrag mit der Nordring KG, der sofort nach bestandener Prüfung beginnt. Am 14. Juli 2027 besteht Frau Aksoy die Abschlussprüfung. Prüfen Sie, wann sie frühestens bei der Nordring KG anfangen kann!": "El contrato de formación de Selin Aksoy termina el 31 de julio de 2027. Ya tiene un contrato de trabajo con Nordring KG que empieza inmediatamente después de aprobar el examen. El 14 de julio de 2027 la Sra. Aksoy aprueba el examen final. ¡Comprueba cuándo puede empezar como pronto en Nordring KG!", "September 2027": "septiembre de 2027", "September 2027 · 0 % richtig": "septiembre de 2027 · 0 % correcto", "Sie ist (nicht) schriftlich …": "Es (no) por escrito …", "Siegerehrung": "Ceremonia de premios", "Situation": "Situación", "So liegt Emres Ausbildung": "Así es la formación de Emre", "So sagst du es": "Así lo dices", "Sofort, ohne Wartezeit.": "Inmediatamente, sin tiempo de espera.", "Tippt die sechs Karten am Handy der Reihe nach an. Danach „Absenden“.": "Toca las seis tarjetas en el móvil por orden. Después «Enviar».", "Tippt sie in der richtigen Reihenfolge an: Was passiert zuerst, was zuletzt?": "Tócalas en el orden correcto: ¿qué pasa primero y qué pasa al final?", "Vertragsende laut Vertrag": "Fin del contrato según el contrato", "Vier Fragen zu Rechten und Pflichten. Aus dem Kopf – ohne Buch, ohne Punkte.": "Cuatro preguntas sobre derechos y obligaciones. De memoria, sin libro, sin puntos.", "Wann ist Schluss?": "¿Cuándo se acaba?", "Wann ist Schluss? · MCQ44": "¿Cuándo se acaba? · MCQ44", "Wann?": "¿Cuándo?", "Warte, bis es an der Tafel losgeht.": "Espera a que empiece en la pizarra.", "Weiter im Aufgabenblatt: Aufgabe 8 und 9 (Prüfungs-Check), Profis Aufgabe 10, dann Selbsttest (Aufgabe 11).": "Seguid en la hoja de ejercicios: ejercicios 8 y 9 (control de examen), expertos ejercicio 10, luego autotest (ejercicio 11).", "Weiter: Merken →": "Siguiente: recordar →", "Weiter: Probezeit & Ende →": "Siguiente: período de prueba y final →", "Weiter: Prüfungs-Check →": "Siguiente: control de examen →", "Weiter: Wann ist Emre fertig? →": "Siguiente: ¿cuándo termina Emre? →", "Welche ist eine Pflicht des Azubis?": "¿Cuál es una obligación del aprendiz?", "Welcher Weg durch den Baum?": "¿Qué camino por el árbol?", "Wer?": "¿Quién?", "Wie Fall 1, aber Lisa bekommt einen unterschriebenen Brief ohne Begründung.": "Como el caso 1, pero Lisa recibe una carta firmada sin motivo.", "Wie lange wird die Vergütung bei Krankheit weitergezahlt?": "¿Cuánto tiempo se sigue pagando la retribución en caso de enfermedad?", "Wie?": "¿Cómo?", "Wo darfst du deinen Ausbildungsnachweis schreiben?": "¿Dónde puedes escribir tu registro de formación?", "Wörter": "Palabras", "Wörter einfach erklärt": "Palabras explicadas de forma sencilla", "Zeugnis (§ 16)": "Certificado (§ 16)", "Ziel der Ausbildung: Abschluss als Verkäuferin": "Objetivo de la formación: título de vendedora", "Zur Siegerehrung": "A la ceremonia de premios", "Zurück": "Atrás", "Zwischenprüfung": "Examen intermedio", "alle 8 fertig": "los 8 terminados", "auf Verlangen des Azubis verlängert bis zur nächsten Wiederholungsprüfung, höchstens um ein Jahr": "prolongada a petición del aprendiz hasta el siguiente examen de repetición, como máximo un año", "beide Seiten": "ambas partes", "beide gemeinsam": "ambos juntos", "bis zu sechs Wochen": "hasta seis semanas", "das Zeugnis": "el certificado", "der Aufhebungsvertrag": "el contrato de rescisión", "der Prüfungsausschuss": "el tribunal examinador", "der wichtige Grund": "la causa grave", "die Bekanntgabe": "la comunicación", "die Kündigung": "la rescisión", "die Kündigungsfrist": "el plazo de preaviso", "die Probezeit": "el período de prueba", "die Vergütung pünktlich zahlen": "pagar la retribución puntualmente", "drei Monate": "tres meses", "einfaches Zeugnis": "certificado simple", "fertig": "listo", "fristlos": "sin plazo", "für die Berufsschule freistellen": "dar permiso para la escuela profesional", "gar nicht": "de ningún modo", "im Betrieb, während der Ausbildungszeit": "en la empresa, durante el tiempo de formación", "in der Probezeit": "en el período de prueba", "in der Probezeit: ohne Frist und ohne Grund erlaubt": "en el período de prueba: permitido sin plazo y sin motivo", "ja": "sí", "jederzeit": "en cualquier momento", "jederzeit, ohne Frist und ohne Grund": "en cualquier momento, sin plazo y sin motivo", "keine": "ninguna", "letzte Prüfung, Ergebnis wird bekannt gegeben": "último examen, se comunica el resultado", "mit 4 Wochen Frist": "con plazo de 4 semanas", "mit Ablauf der Ausbildungszeit (Datum im Vertrag)": "al terminar el tiempo de formación (fecha del contrato)", "nach der Probezeit": "después del período de prueba", "nach der Probezeit ohne wichtigen Grund": "después del período de prueba sin causa grave", "nach der schriftlichen Prüfung im April 2028": "tras el examen escrito de abril de 2028", "nach vier Monaten: 30.11.2026": "después de cuatro meses: 30.11.2026", "nach vier Monaten: 30.11.2026 · 0 % richtig": "después de cuatro meses: 30.11.2026 · 0 % correcto", "nein": "no", "nicht schriftlich – keine Unterschrift": "no es por escrito: sin firma", "normaler Fall": "caso normal", "nur Aufhebungsvertrag": "solo contrato de rescisión", "nur am Wochenende": "solo el fin de semana", "nur der Azubi": "solo el aprendiz", "nur in der Pause in der Berufsschule": "solo en el recreo en la escuela profesional", "nur qualifiziertes Zeugnis": "solo certificado cualificado", "nur zu Hause": "solo en casa", "oder einen anderen Beruf lernen will?": "¿o quiere aprender otra profesión?", "ohne Frist, ohne Grund": "sin plazo, sin motivo", "qualifiziert": "cualificado", "schriftlich": "por escrito", "schriftliche Abschlussprüfung": "examen final escrito", "unbefristet": "indefinido", "unwirksam": "nulo", "verbunden": "conectado", "wenn das IHK-Zeugnis mit der Post kommt": "cuando el certificado de la IHK llega por correo", "wichtiger Grund, aber zu spät gekündigt": "causa grave, pero rescindido demasiado tarde", "wichtiger Grund, innerhalb von zwei Wochen gekündigt": "causa grave, rescindido en un plazo de dos semanas", "wirksam": "válido", "zu spät": "demasiado tarde", "zwei Wochen": "dos semanas", "§ 21 Abs. 3 BBiG: Verlängerung auf Verlangen des Azubis bis zur nächstmöglichen Wiederholungsprüfung, höchstens um ein Jahr. Der Betrieb kann das nicht ablehnen.": "§ 21 apdo. 3 BBiG: prolongación a petición del aprendiz hasta el siguiente examen de repetición posible, como máximo un año. La empresa no puede rechazarlo.", "· Antippen entfernt einen Namen": "· Tocar para quitar un nombre", "Über die Zulassung zur Abschlussprüfung entscheidet die Berufsschule.": "Sobre la admisión al examen final decide la escuela profesional.", "Überspringen →": "Saltar →", "über Geschäftsgeheimnisse schweigen": "guardar silencio sobre los secretos comerciales", "„Gegenüber Kunden trat sie freundlich und sicher auf.“": "«Con los clientes se mostró amable y segura.»", "„Ihre Leistungen haben uns jederzeit voll überzeugt.“": "«Su rendimiento nos convenció plenamente en todo momento.»", "„Sie arbeitete selbstständig und sorgfältig.“": "«Trabajó de forma autónoma y esmerada.»", "„Sie war stets pünktlich und hilfsbereit.“": "«Siempre fue puntual y servicial.»", "← zurück": "← atrás", "% richtig gelegt": "% colocado correctamente", "1 bis 4 Monate. Beginn am 01.08., vier Monate → Ende 30.11. Beginn am 15.08., zwei Monate → Ende 14.10. (Tag davor).": "De 1 a 4 meses. Inicio el 01.08., cuatro meses → final 30.11. Inicio el 15.08., dos meses → final 14.10. (el día anterior).", "Ali beginnt am 01.08.2026, Probezeit vier Monate. In der Probezeit ist er sechs Wochen krank. Im Vertrag steht die Verlängerungsklausel. Mit Ablauf welchen Tages endet seine Probezeit?": "Ali empieza el 01.08.2026, período de prueba cuatro meses. En el período de prueba está seis semanas enfermo. En el contrato figura la cláusula de prolongación. ¿Al finalizar qué día termina su período de prueba?", "Berufswechsel: Der Azubi darf mit vier Wochen Frist kündigen (§ 22 Abs. 2 Nr. 2 BBiG).": "Cambio de profesión: el aprendiz puede rescindir con plazo de cuatro semanas (§ 22 apdo. 2 n.º 2 BBiG).", "Can (18) ist im achten Monat. Er will Friseur werden und kündigt schriftlich mit Begründung und einer Frist von vier Wochen.": "Can (18) está en el octavo mes. Quiere ser peluquero y rescinde por escrito con motivo y un plazo de cuatro semanas.", "Can eine Vertragsstrafe aus dem Ausbildungsvertrag abziehen.": "descontar a Can una penalización contractual del contrato de formación.", "Can kündigt nach der Probezeit ohne wichtigen Grund und erscheint ab sofort nicht mehr. Der Betrieb muss eine Aushilfe bezahlen. Was kann der Betrieb tun?": "Can rescinde después del período de prueba sin causa grave y desde ya no se presenta. La empresa debe pagar a un temporal. ¿Qué puede hacer la empresa?", "Darf der Chef dich sein Privatauto waschen lassen?": "¿Puede el jefe hacer que laves su coche privado?", "Den 31.11. gibt es nicht – der November hat 30 Tage.": "El 31.11. no existe: noviembre tiene 30 días.", "Der 01.11. ist schon der erste Tag NACH der Probezeit.": "El 01.11. ya es el primer día DESPUÉS del período de prueba.", "Der 01.12. ist schon der erste Tag NACH der Probezeit.": "El 01.12. ya es el primer día DESPUÉS del período de prueba.", "Der Betrieb kündigt fristlos, fünf Wochen nach einem Diebstahl.": "La empresa rescinde sin plazo, cinco semanas después de un robo.", "Der Betrieb kündigt im sechsten Monat schriftlich wegen Auftragsmangels.": "La empresa rescinde por escrito en el sexto mes por falta de pedidos.", "Der Betrieb kündigt in der Probezeit per WhatsApp.": "La empresa rescinde en el período de prueba por WhatsApp.", "Der Oktober hat 31 Tage.": "Octubre tiene 31 días.", "Die IHK muss die Aushilfe bezahlen.": "La IHK debe pagar al temporal.", "Die Krankheit war länger als ein Drittel der Probezeit – die Probezeit verlängert sich.": "La enfermedad duró más de un tercio del período de prueba: el período de prueba se prolonga.", "Die Vergütung der letzten sechs Monate zurückfordern.": "Reclamar la retribución de los últimos seis meses.", "Diebstahl ist ein wichtiger Grund. Grund genannt, innerhalb von zwei Wochen gekündigt – fristlos wirksam.": "El robo es una causa grave. Motivo indicado, rescindido en un plazo de dos semanas: válido sin plazo.", "Du hast einen Monat zu viel gezählt.": "Has contado un mes de más.", "Du hast nur zwei Monate gezählt.": "Solo has contado dos meses.", "Ein Azubi kündigt mit vier Wochen Frist, weil er als Verkäufer in einen anderen Supermarkt will.": "Un aprendiz rescinde con plazo de cuatro semanas porque, como vendedor, quiere ir a otro supermercado.", "Ein Betriebswechsel im selben Beruf ist kein Grund für die Kündigung mit Frist. Möglich ist nur ein Aufhebungsvertrag.": "Un cambio de empresa en la misma profesión no es motivo de rescisión con plazo. Solo es posible un contrato de rescisión.", "Ein Drittel von vier Monaten sind etwa 40 Tage.": "Un tercio de cuatro meses son unos 40 días.", "Eine Azubi kündigt schriftlich mit vier Wochen Frist, weil sie Friseurin werden will.": "Una aprendiz rescinde por escrito con plazo de cuatro semanas porque quiere ser peluquera.", "Emre beginnt am 01.08.2026. Im Vertrag steht eine Probezeit von vier Monaten. Mit Ablauf welchen Tages endet sie?": "Emre empieza el 01.08.2026. En el contrato figura un período de prueba de cuatro meses. ¿Al finalizar qué día termina?", "Fast – zähle die 42 Tage noch einmal ab dem 01.12.": "Casi: cuenta otra vez los 42 días desde el 01.12.", "Fast! Am 15.10. beginnt schon die Zeit nach der Probezeit. Die Probezeit endet am Tag davor.": "¡Casi! El 15.10. ya empieza el tiempo después del período de prueba. El período de prueba termina el día anterior.", "Frau Sophie Brandt hat am 1. August 2026 eine dreijährige Ausbildung zur Verkäuferin begonnen. Laut Vertrag beträgt die Probezeit 3 Monate. Mit Ablauf welchen Tages endet die im Vertrag vereinbarte Probezeit? Die Ausbildung wurde nicht unterbrochen. Tragen Sie Tag und Monat (TT.MM) ein!": "Sophie Brandt comenzó el 1 de agosto de 2026 una formación de tres años como vendedora. Según el contrato, el período de prueba es de 3 meses. ¿Al finalizar qué día termina el período de prueba acordado en el contrato? La formación no se ha interrumpido. ¡Escribe día y mes (DD.MM)!", "In der Probezeit darf jede Seite jederzeit ohne Frist und ohne Grund kündigen (§ 22 Abs. 1 BBiG).": "En el período de prueba cada parte puede rescindir en cualquier momento sin plazo y sin motivo (§ 22 apdo. 1 BBiG).", "Ja – Azubis müssen alles machen.": "Sí: los aprendices tienen que hacerlo todo.", "Ja, wenn du volljährig bist.": "Sí, si eres mayor de edad.", "Ja, wenn es kürzer als 30 Minuten dauert.": "Sí, si dura menos de 30 minutos.", "Jonas (19) wird im fünften Monat von seinem Ausbilder immer wieder schwer beleidigt. Er kündigt schriftlich, nennt den Grund und hört sofort auf.": "Jonas (19) es insultado gravemente una y otra vez por su instructor en el quinto mes. Rescinde por escrito, indica el motivo y lo deja de inmediato.", "Kein wichtiger Grund: Azubi hört auf oder wechselt den Beruf → 4 Wochen Frist. Sonst unwirksam (nur Aufhebungsvertrag).": "Sin causa grave: el aprendiz lo deja o cambia de profesión → plazo de 4 semanas. Si no, nula (solo contrato de rescisión).", "Kündigung – so prüfst du:": "Rescisión: así la compruebas:", "Leon beginnt am 01.08.2026, Probezeit drei Monate. Im Vertrag steht die Verlängerungsklausel. In der Probezeit ist er drei Wochen krank. Mit Ablauf welchen Tages endet seine Probezeit?": "Leon empieza el 01.08.2026, período de prueba tres meses. En el contrato figura la cláusula de prolongación. En el período de prueba está tres semanas enfermo. ¿Al finalizar qué día termina su período de prueba?", "Mia (18) ist seit einem Jahr im Betrieb. Sie will als Verkäuferin in einen anderen Supermarkt wechseln und kündigt mit vier Wochen Frist.": "Mia (18) lleva un año en la empresa. Quiere cambiar a otro supermercado como vendedora y rescinde con plazo de cuatro semanas.", "Mischfrage zur Fall-Rallye": "Pregunta mixta sobre el rally de casos", "Nach der Probezeit kann der Betrieb nur aus wichtigem Grund kündigen. Wenig Arbeit ist kein wichtiger Grund.": "Después del período de prueba la empresa solo puede rescindir con causa grave. Poco trabajo no es una causa grave.", "Nein – Azubis bekommen nur Aufgaben, die der Ausbildung dienen.": "No: a los aprendices solo se les dan tareas que sirvan a la formación.", "Nicht bis zum Monatsende zählen – die Ausbildung beginnt am 15.": "No contar hasta fin de mes: la formación empieza el 15.", "Nichts – nach der Probezeit darf jeder sofort gehen.": "Nada: después del período de prueba cualquiera puede irse enseguida.", "Nur Aufgaben, die dem Ausbildungszweck dienen (§ 14 Abs. 3 BBiG).": "Solo tareas que sirvan al fin de la formación (§ 14 apdo. 3 BBiG).", "Nur der Berufswechsel erlaubt die Kündigung mit vier Wochen Frist. WhatsApp ist nicht schriftlich, Auftragsmangel ist kein wichtiger Grund, fünf Wochen sind zu spät, Betriebswechsel ist kein Berufswechsel.": "Solo el cambio de profesión permite rescindir con plazo de cuatro semanas. WhatsApp no es por escrito, la falta de pedidos no es causa grave, cinco semanas es demasiado tarde, cambiar de empresa no es cambiar de profesión.", "Probezeit? Ja → wirksam, ohne Frist und Grund.": "¿Período de prueba? Sí → válido, sin plazo ni motivo.", "Prüfung bestanden → Schluss mit der": "Examen aprobado → fin de la", "Sara (20) wird im zehnten Monat beim Griff in die Kasse erwischt. Fünf Tage später erhält sie eine schriftliche Kündigung mit Begründung.": "Sara (20) es sorprendida en el décimo mes metiendo la mano en la caja. Cinco días después recibe una rescisión por escrito con motivo.", "Schadensersatz verlangen – innerhalb von drei Monaten nach dem Ende.": "Reclamar una indemnización, en un plazo de tres meses desde el final.", "Schriftlich mit Unterschrift? Nein → unwirksam.": "¿Por escrito con firma? No → nula.", "Schweigepflicht ist Azubi-Pflicht (§ 13 BBiG). Die anderen drei sind Pflichten des Betriebs.": "El deber de confidencialidad es una obligación del aprendiz (§ 13 BBiG). Las otras tres son obligaciones de la empresa.", "Schwere, wiederholte Beleidigung ist ein wichtiger Grund – auch der Azubi darf fristlos kündigen.": "Un insulto grave y repetido es una causa grave: también el aprendiz puede rescindir sin plazo.", "Tim (18) ist im sechsten Monat. Die Probezeit betrug vier Monate. Der Chef kündigt schriftlich: „Wir haben zu wenig Arbeit.“": "Tim (18) está en el sexto mes. El período de prueba fue de cuatro meses. El jefe rescinde por escrito: «Tenemos muy poco trabajo.»", "Transfer zu Aufgabe 3.3": "Transferencia al ejercicio 3.3", "Welche Kündigung ist wirksam?": "¿Qué rescisión es válida?", "Wer hat das Ende verschuldet? Und wie lange hat der Betrieb Zeit?": "¿Quién tuvo la culpa del final? ¿Y de cuánto tiempo dispone la empresa?", "Wichtiger Grund? Ja → innerhalb von 2 Wochen? Ja → fristlos wirksam, nein → zu spät.": "¿Causa grave? Sí → ¿en un plazo de 2 semanas? Sí → válido sin plazo; no → demasiado tarde.", "Wie Fall 4, aber der Betrieb kündigt erst fünf Wochen nach dem Diebstahl.": "Como el caso 4, pero la empresa rescinde solo cinco semanas después del robo.", "Wie viel ist ein Drittel von drei Monaten? Ist die Krankheit länger?": "¿Cuánto es un tercio de tres meses? ¿Es más larga la enfermedad?", "Zeugnis:": "Certificado:", "Zu spät: Die Kündigung muss innerhalb von zwei Wochen nach Bekanntwerden erfolgen (§ 22 Abs. 4 BBiG).": "Demasiado tarde: la rescisión debe producirse en un plazo de dos semanas desde que se conoce el hecho (§ 22 apdo. 4 BBiG).", "des Ergebnisses. Nicht bestanden → auf Wunsch verlängert, höchstens 1 Jahr. Einfach weitergearbeitet → unbefristetes Arbeitsverhältnis.": "del resultado. No aprobado → prolongado si se solicita, como máximo 1 año. Se siguió trabajando sin más → relación laboral indefinida.", "nach Aufgabe 10.2 · § 23 BBiG": "después del ejercicio 10.2 · § 23 BBiG", "§ 23 BBiG: Endet die Ausbildung nach der Probezeit vorzeitig, kann der Betrieb Schadensersatz verlangen, wenn Can den Grund zu vertreten hat. Der Anspruch muss innerhalb von drei Monaten geltend gemacht werden. Eine Vertragsstrafe wäre nichtig (§ 12).": "§ 23 BBiG: si la formación termina antes de tiempo después del período de prueba, la empresa puede exigir una indemnización si Can es responsable del motivo. La reclamación debe hacerse en un plazo de tres meses. Una penalización contractual sería nula (§ 12).", "§ 24 BBiG: Wer nach dem Ende der Ausbildung weiterbeschäftigt wird, ohne dass etwas vereinbart ist, hat ein unbefristetes Arbeitsverhältnis.": "§ 24 BBiG: quien sigue empleado después del fin de la formación sin que se haya acordado nada tiene una relación laboral indefinida.", "Begründe in einem Satz": "Justifica en una frase", "Begründe in einem Satz mit Paragraf": "Justifica en una frase con el artículo (§)", "Danke fürs Mitmachen!": "¡Gracias por participar!", "Das ist eine Pflicht": "Esto es una obligación", "Deine Begründung ist angekommen ✓": "Tu justificación ha llegado ✓", "Begründung angekommen ✓": "Justificación recibida ✓", "Deine Wahl vorhin:": "Tu elección de antes:", "Deine Wahl:": "Tu elección:", "Die Auflösung kommt später. Schau an die Tafel: Wie hat die Klasse gewählt?": "La solución viene después. Mira la pizarra: ¿cómo ha votado la clase?", "Du hattest nicht gewählt.": "No habías votado.", "Du hast nicht gewählt.": "No has votado.", "Du hast nicht abgegeben.": "No has enviado nada.", "Es gibt noch keine Auflösung. Entscheide nach deinem Gefühl.": "Todavía no hay solución. Decide según tu intuición.", "Fertig!": "¡Listo!", "Geschafft!": "¡Lo lograste!", "Gleich geht es los. Lies jede Frage genau. Richtig ist wichtiger als schnell!": "Ya empezamos. Lee cada pregunta con atención. ¡Es más importante acertar que ser rápido!", "Gleich kommen drei Fragen aus Modul 1 und 2. Aus dem Kopf!": "Ahora vienen tres preguntas de los módulos 1 y 2. ¡De memoria!", "Gleich kommen sechs Situationen. Du entscheidest: A, B, C oder D.": "Ahora vienen seis situaciones. Tú decides: A, B, C o D.", "Jetzt schauen wir: Wer lag vorhin richtig?": "Ahora vemos: ¿quién acertó antes?", "Kennst du jetzt die Regel? Welcher Paragraf passt?": "¿Conoces ya la regla? ¿Qué artículo (§) encaja?", "Neue Sitzung starten? Alle Namen und Ergebnisse werden gelöscht.": "¿Empezar una nueva sesión? Se borrarán todos los nombres y resultados.", "Punkte im Prüfungs-Check": "puntos en el control de examen", "Richtig:": "Correcto:", "Situationen.": "situaciones.", "Tipp: Tabelle „Wer muss was?“ im Arbeitsblatt.": "Pista: tabla «¿Quién debe qué?» en la hoja de trabajo.", "Verbinde mit der Tafel …": "Conectando con la pizarra …", "Vorher richtig vermutet:": "Acertaste de antemano:", "Warte auf die Auflösung.": "Espera la solución.", "Weiter: Wessen Pflicht? →": "Siguiente: ¿obligación de quién? →", "Wer muss das tun?": "¿Quién debe hacerlo?", "Wird gesendet …": "Enviando …", "Zum Beispiel: „Ich denke, das darf er nicht, weil …“": "Por ejemplo: «Creo que no puede hacerlo, porque …»", "haben mitgespielt": "han jugado", "keine Adresse": "sin dirección", "richtig zugeordnet": "asignadas correctamente", "Rückgängig": "Deshacer", "Deine Reihenfolge": "Tu orden", "Deine Reihenfolge ist angekommen. Warte auf die Auflösung an der Tafel.": "Tu orden ha llegado. Espera la solución en la pizarra.", "Das ist eine Tatsache – sie steht schon im": "Esto es un hecho: ya figura en el", "Das sagt etwas über Verhalten oder Leistung – das steht": "Esto dice algo sobre comportamiento o rendimiento: eso figura", "Emre macht eine Ausbildung zum Verkäufer. Sein Vertrag läuft vom": "Emre hace la formación de vendedor. Su contrato va del", "Ergebnis und Weg richtig": "Resultado y camino correctos", "Gespeichert ✓": "Guardado ✓", "Gespeichert ✓ Ihr könnt bis zum Ende der Rallye noch ändern.": "Guardado ✓ Podéis cambiarlo hasta el final del rally.", "Gleich geht es los. Schau an die Tafel.": "Ya empezamos. Mira la pizarra.", "Gleich ordnest du sechs Ereignisse auf seinem Zeitstrahl.": "Ahora ordenarás seis eventos en su línea del tiempo.", "Leider falsch.": "Lamentablemente, incorrecto.", "Nächste Aufgabe →": "Siguiente ejercicio →", "Nächste Karte →": "Siguiente tarjeta →", "Phasen 1–3 (Ankommen, Zeitstrahl, Probezeit & Ende)": "Fases 1–3 (llegada, línea del tiempo, período de prueba y final)", "Richtig!": "¡Correcto!", "richtig!": "¡correcto!", "richtig.": "correcto.", "So lief die Fall-Rallye": "Así fue el rally de casos", "Tipp:": "Pista:", "Weiter: Fall-Rallye (DS 2) →": "Siguiente: rally de casos (DH 2) →", "Weiter: Wann ist Schluss? →": "Siguiente: ¿cuándo se acaba? →", "Zum Beispiel: „Die Kündigung ist unwirksam, weil nach § 22 Abs. 3 BBiG …“": "Por ejemplo: «La rescisión es nula, porque según el § 22 apdo. 3 BBiG …»", "an der richtigen Stelle.": "en el lugar correcto.", "eingetippt.": "escrito.", "richtig · Probezeit:": "correcto · período de prueba:", "– Ergebnis richtig, aber anderer Weg.": "– resultado correcto, pero otro camino.", "– leider falsch.": "– lamentablemente incorrecto.", "Zu jeder Pflicht gehört ein Recht der anderen Seite. Beispiel: Der Betrieb muss freistellen – also hat der Azubi das Recht, zur Schule zu gehen.": "A cada obligación le corresponde un derecho de la otra parte. Ejemplo: la empresa debe dar permiso, por tanto el aprendiz tiene derecho a ir a la escuela.", "Zu jeder Pflicht gehört ein Recht der anderen Seite. Beispiel: Der Betrieb muss freistellen – also hat der Azubi das Recht, zur Schule zu gehen. Finde zwei weitere Paare.": "A cada obligación le corresponde un derecho de la otra parte. Ejemplo: la empresa debe dar permiso, por tanto el aprendiz tiene derecho a ir a la escuela. Encuentra dos pares más.", "Musik: aus": "Música: no"};
+  var HT={"1. QR-Code mit dem Handy scannen.<br>2. Einen Spitznamen eingeben.<br>3. Warten, bis es losgeht.": "<b>1.</b> Escanea el código QR con el móvil.<br>2. Escribe un apodo.<br>3. Espera a que empiece.", "<b>Doppelstunde 1:</b> Phasen 1–3 (Ankommen, Zeitstrahl, Probezeit &amp; Ende) · <b>Doppelstunde 2:</b> Phasen 4–8 (Fall-Rallye, Zeugnis, Merken, Prüfungs-Check). Die Sitzung bleibt gespeichert – in DS 2 einfach weitermachen oder neu starten.": "<b>Doble hora 1:</b> fases 1–3 (llegada, línea del tiempo, período de prueba y final) · <b>Doble hora 2:</b> fases 4–8 (rally de casos, certificado, recordar, control de examen). La sesión queda guardada: en la DH 2 simplemente seguid o empezad de nuevo.", "<b>Heute noch keine Auflösung.</b> Erst lesen wir nach (Aufgabenblatt „Zum Nachlesen“, Buch S. 18–20) – dann schauen wir, wer richtig lag.": "<b>Hoy todavía no hay solución.</b> Primero lo leemos (hoja de ejercicios «Para leer», libro pp. 18–20); luego vemos quién acertó.", "<b>Lösung: 11.01.</b> Normales Ende: 30.11.2026. Sechs Wochen = 42 Tage. Das ist mehr als ein Drittel der Probezeit (etwa 40 Tage). Also verlängert sich die Probezeit um 42 Tage: Sie endet mit Ablauf des 11.01.2027.": "<b>Solución: 11.01.</b> Final normal: 30.11.2026. Seis semanas = 42 días. Eso es más de un tercio del período de prueba (unos 40 días). Por tanto el período de prueba se prolonga 42 días: termina al finalizar el 11.01.2027.", "<b>Lösung: 14.10.</b> Beginnt die Ausbildung mitten im Monat, endet die Probezeit am Tag davor. 15.08. plus zwei Monate = 15.10. Der Tag davor: Sie endet mit Ablauf des 14.10.2026.": "<b>Solución: 14.10.</b> Si la formación empieza a mitad de mes, el período de prueba termina el día anterior. 15.08. más dos meses = 15.10. El día anterior: termina al finalizar el 14.10.2026.", "<b>Lösung: 30.11.</b> Die Probezeit beginnt mit dem ersten Tag: 01.08.2026. Vier Monate: August, September, Oktober, November. Sie endet mit Ablauf des 30.11.2026.": "<b>Solución: 30.11.</b> El período de prueba empieza el primer día: 01.08.2026. Cuatro meses: agosto, septiembre, octubre, noviembre. Termina al finalizar el 30.11.2026.", "<b>Lösung: 30.11.</b> Drei Monate: September, Oktober, November. Sie endet mit Ablauf des 30.11.2026.": "<b>Solución: 30.11.</b> Tres meses: septiembre, octubre, noviembre. Termina al finalizar el 30.11.2026.", "<b>Lösung: 31.10.</b> Drei Monate: August, September, Oktober. Lösung: 31.10": "<b>Solución: 31.10.</b> Tres meses: agosto, septiembre, octubre. Solución: 31.10", "<b>Probezeit:</b> mindestens 1, höchstens 4 Monate. Beginn am Ersten → Ende am letzten Tag des letzten Monats. Beginn mitten im Monat → Ende am Tag davor. Mehr als ein Drittel krank + Klausel im Vertrag → verlängert um die Fehlzeit.": "<b>Período de prueba:</b> mínimo 1, máximo 4 meses. Inicio el día 1 → final el último día del último mes. Inicio a mitad de mes → final el día anterior. Más de un tercio de baja + cláusula en el contrato → se prolonga lo que dure la baja.", "<b>Regel:</b> Fakten (Art, Dauer, Ziel, Kenntnisse) = einfaches Zeugnis. Sätze über Verhalten und Leistung = nur qualifiziert, und das gibt es nur auf Verlangen (§ 16 BBiG).": "<b>Regla:</b> hechos (tipo, duración, objetivo, conocimientos) = certificado simple. Frases sobre comportamiento y rendimiento = solo cualificado, y solo si se solicita (§ 16 BBiG).", "<b>Trick:</b> Beginn am Ersten → Ende am letzten Tag des letzten Monats. Beginn mitten im Monat → Ende am Tag davor. Satz: „Die Probezeit endet mit Ablauf des …“": "<b>Truco:</b> inicio el día 1 → final el último día del último mes. Inicio a mitad de mes → final el día anterior. Frase: «El período de prueba termina al finalizar el …»", "<b>einfach:</b> Art, Dauer, Ziel, was man gelernt hat · <b>qualifiziert</b> (auf Verlangen): dazu Verhalten und Leistung. Keine negativen Aussagen, keine Geheimcodes, kostenlos.": "<b>simple:</b> tipo, duración, objetivo, lo aprendido · <b>cualificado</b> (si se solicita): además comportamiento y rendimiento. Sin afirmaciones negativas, sin códigos secretos, gratuito.", "<b>unwirksam</b> – Nicht schriftlich – eine WhatsApp-Nachricht hat keine Unterschrift (§ 22 Abs. 3 BBiG).": "<b>nula</b>: no es por escrito; un mensaje de WhatsApp no tiene firma (§ 22 apdo. 3 BBiG).", "Am Handy bekommt ihr sechs Ereigniskarten – <b>ohne Datum</b>.": "En el móvil recibís seis tarjetas de eventos, <b>sin fecha</b>.", "Am Handy: Steht die Angabe schon im <b>einfachen</b> Zeugnis – oder <b>nur im qualifizierten</b>?": "En el móvil: ¿el dato ya figura en el certificado <b>simple</b> o <b>solo en el cualificado</b>?", "Die acht Fallkarten hängen im Raum. Geht zu zweit von Karte zu Karte. Am Handy: Fall antippen → <b>wirksam</b> oder <b>unwirksam</b> → <b>Warum?</b> Ändern geht, solange die Rallye läuft.": "Las ocho tarjetas de casos cuelgan en la sala. Id por parejas de tarjeta en tarjeta. En el móvil: tocar el caso → <b>válida</b> o <b>nula</b> → <b>¿Por qué?</b> Se puede cambiar mientras dure el rally.", "Emre macht eine Ausbildung zum Verkäufer.<br>Sein Vertrag läuft vom <b>01.08.2026</b> bis zum <b>31.07.2028</b>.": "Emre hace la formación de vendedor.<br>Su contrato va del <b>01.08.2026</b> al <b>31.07.2028</b>.", "Es entsteht ein <b>unbefristetes</b> Arbeitsverhältnis (§ 24)": "Se crea una relación laboral <b>indefinida</b> (§ 24)", "Jetzt die spannende Frage: <b>An welchem Tag ist Emre kein Azubi mehr?</b>": "Ahora la pregunta emocionante: <b>¿en qué día deja Emre de ser aprendiz?</b>", "mit <b>vier Wochen Frist</b>, wenn er aufhört oder einen anderen Beruf lernen will": "con <b>plazo de cuatro semanas</b>, si lo deja o quiere aprender otra profesión", "mit der <b>Bekanntgabe des Ergebnisses</b> durch den Prüfungsausschuss (§ 21 Abs. 2)": "con la <b>comunicación del resultado</b> por el tribunal examinador (§ 21 apdo. 2)", "nur aus <b>wichtigem Grund</b>, fristlos – spätestens zwei Wochen, nachdem der Grund bekannt wurde": "solo por <b>causa grave</b>, sin plazo; como máximo dos semanas después de conocerse el motivo"};
+  var PH={"Spitzname": "Apodo"};
+  var PAT=[[/^Code (\S+)$/,"Código $1"],[/^(\d+) % richtig$/,"$1 % correcto"],[/^(\d+) von (\d+) geantwortet$/,"$1 de $2 han respondido"],[/^Frage (\d+) von (\d+)$/,"Pregunta $1 de $2"],[/^Situation (\d+) von (\d+)$/,"Situación $1 de $2"],[/^Fall (\d+) von (\d+)$/,"Caso $1 de $2"],[/^(\d+) von (\d+) haben gewählt$/,"$1 de $2 han votado"],[/^(\d+) Stimmen von vorhin$/,"$1 votos de antes"],[/^(\d+) von (\d+) richtig$/,"$1 de $2 correctas"],[/^(\d+) dabei$/,"$1 participantes"],[/^Begründungen \((\d+)\)$/,"Justificaciones ($1)"],[/^Begründungen zeigen \((\d+)\)$/,"Mostrar justificaciones ($1)"],[/^Profi-Begründungen \((\d+)\)$/,"Justificaciones de expertos ($1)"],[/^(\d+) Antworten$/,"$1 respuestas"],[/^Platz (\d+)$/,"Puesto $1"],[/^(\d+) Punkte$/,"$1 puntos"],[/^(\d+) von (\d+)$/,"$1 de $2"],[/^Abstimmung geschlossen$/,"votación cerrada"],[/^Prüfungsstil$/,"estilo examen"],[/^Prüfungsstil \(hier als Paare\)$/,"estilo examen (aquí en parejas)"],[/^Ankommen$/,"Llegada"],[/^Ende der Ausbildung$/,"Fin de la formación"],[/^(\d+) Fragen? von (\d+)$/,"$1 de $2"],[/^(\d+) haben mitgespielt$/,"$1 han jugado"]];
+  var origH=new Map();
+  var KEY="es-hover-an";
+  var on=false, orig=new Map(), busy=false, obs=null;
+  var rev={}; for(var k in ES){rev[ES[k]]=1;}
+  function norm(s){return s.replace(/\s+/g," ").trim();}
+  function lookupSimple(core){for(var i=0;i<PAT.length;i++){if(PAT[i][0].test(core)){return core.replace(PAT[i][0],PAT[i][1]);}}return null;}
+  function lookup(core){
+    if(Object.prototype.hasOwnProperty.call(ES,core))return ES[core];
+    for(var i=0;i<PAT.length;i++){var m=PAT[i][0].exec(core);if(m){return core.replace(PAT[i][0],PAT[i][1]);}}
+    var pm=/^((?:\d+\.\s+)|(?:[✓✗↑↓→–]\s*)+|(?:[A-E]:\s+)|(?:[„"]))(.*)$/.exec(core);
+    if(pm&&pm[2]){var r=lookup(pm[2]);if(r)return pm[1]+r;}
+    if(core.indexOf(" · ")>0){var parts=core.split(" · "),hit=0,res=parts.map(function(x){var r=Object.prototype.hasOwnProperty.call(ES,x)?ES[x]:lookupSimple(x);if(r!=null){hit++;return r;}return x;});if(hit)return res.join(" · ");}
+    if(/…$/.test(core)&&core.length>20){var pre=core.replace(/\s*…$/,"");for(var kk in ES){if(kk.indexOf(pre)===0)return ES[kk];}}
+    var sm=/^(.*?)(\s*[:?!.])$/.exec(core);
+    if(sm&&sm[1]&&Object.prototype.hasOwnProperty.call(ES,sm[1]))return ES[sm[1]]+sm[2];
+    return null;
+  }
+  function trNode(n){
+    var p=n.parentNode; if(!p)return;
+    var tag=p.nodeName; if(tag==="SCRIPT"||tag==="STYLE"||tag==="TEXTAREA")return;
+    if(p.closest&&(p.closest("#es-btn")||p.closest("[data-es-h]")))return;
+    var v=n.nodeValue; if(!v||!/\S/.test(v))return;
+    var core=norm(v); if(rev[core])return;
+    var t=lookup(core); if(t==null)return;
+    var lead=/^\s*/.exec(v)[0], trail=/\s*$/.exec(v)[0];
+    orig.set(n,v); n.nodeValue=lead+t+trail;
+    if(p.nodeType===1&&!(p.namespaceURI&&p.namespaceURI.indexOf("svg")>=0)&&!p.hasAttribute("data-es-t")){
+      var cur=p.getAttribute("title"); p.setAttribute("data-es-t",cur==null?"":cur); p.setAttribute("title","DE: "+core);
+    }
+  }
+  var ATTRS=["placeholder","aria-label"];
+  function trAttrs(e){
+    ATTRS.forEach(function(a){var v=e.getAttribute&&e.getAttribute(a);if(!v)return;var core=norm(v);var t=(a==="placeholder"&&PH[core])||null;
+      if(t==null)return;e.setAttribute("data-es-"+a,v);e.setAttribute(a,t);});
+  }
+  var INL={B:1,I:1,EM:1,STRONG:1,SPAN:1,BR:1,SUP:1,SUB:1,CODE:1,U:1,SMALL:1,MARK:1,A:1};
+  function allInline(el){for(var i=0;i<el.children.length;i++){var c=el.children[i];if(!INL[c.tagName]||c.id||!allInline(c))return false;}return true;}
+  function trUnit(el){
+    if(el.hasAttribute("data-es-h")||!el.children.length)return false;
+    if(el.id==="es-btn"||el.closest("svg")||/^(SCRIPT|STYLE|SVG)$/i.test(el.tagName))return false;
+    var dt=false;for(var i=0;i<el.childNodes.length;i++){var n=el.childNodes[i];if(n.nodeType===3&&/\S/.test(n.nodeValue))dt=true;}
+    if(!dt||!allInline(el)||el.querySelector("[id]"))return false;
+    var key=norm(el.innerHTML),t=Object.prototype.hasOwnProperty.call(HT,key)?HT[key]:null;
+    if(t==null)return false;
+    origH.set(el,el.innerHTML);el.innerHTML=t;el.setAttribute("data-es-h","1");
+    var cur=el.getAttribute("title");el.setAttribute("data-es-t",cur==null?"":cur);el.setAttribute("title","DE: "+norm(origH.get(el).replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ")));
+    return true;
+  }
+  function walk(root){
+    if(root.nodeType===3){trNode(root);return;}
+    if(root.nodeType!==1)return;
+    var els=[root].concat([].slice.call(root.querySelectorAll?root.querySelectorAll("*"):[]));
+    els.forEach(function(e){trUnit(e);});
+    var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),n,list=[];
+    while((n=w.nextNode()))list.push(n);
+    list.forEach(trNode);
+    if(root.querySelectorAll){trAttrs(root);root.querySelectorAll("[placeholder],[aria-label]").forEach(trAttrs);}
+  }
+  function restore(){
+    busy=true;
+    orig.forEach(function(v,n){if(n.parentNode)n.nodeValue=v;});
+    orig.clear();
+    origH.forEach(function(v,e){e.innerHTML=v;e.removeAttribute("data-es-h");});origH.clear();
+    document.querySelectorAll("[data-es-t]").forEach(function(e){var o=e.getAttribute("data-es-t");if(o==="")e.removeAttribute("title");else e.setAttribute("title",o);e.removeAttribute("data-es-t");});
+    ATTRS.forEach(function(a){document.querySelectorAll("[data-es-"+a+"]").forEach(function(e){e.setAttribute(a,e.getAttribute("data-es-"+a));e.removeAttribute("data-es-"+a);});});
+    busy=false;
+  }
+  function start(){
+    walk(document.body);
+    if(obs)obs.disconnect();
+    obs=new MutationObserver(function(ms){
+      if(busy||!on)return; busy=true;
+      try{ms.forEach(function(m){
+        if(m.type==="childList"){m.addedNodes.forEach(function(n){walk(n);});}
+        else if(m.type==="characterData"){trNode(m.target);}
+        else if(m.type==="attributes"){trAttrs(m.target);}
+      });}catch(e){}
+      obs.takeRecords(); busy=false;
+    });
+    obs.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:ATTRS});
+  }
+  function set(v){
+    on=v;
+    var b=document.getElementById("es-btn");
+    if(b){b.setAttribute("aria-pressed",v?"true":"false");b.textContent=v?"🇩🇪 Deutsch":"🇪🇸 Español";}
+    try{localStorage.setItem(KEY,v?"1":"0");}catch(e){}
+    if(v){busy=true;try{start();}catch(e){}busy=false;if(obs)obs.takeRecords();}
+    else{if(obs){obs.disconnect();obs=null;}restore();}
+  }
+  function init(){
+    var css=document.createElement("style");
+    css.textContent="#es-btn{position:fixed;right:10px;bottom:10px;z-index:99999;border:2px solid #0f5c6e;background:#fff;color:#0f5c6e;font:700 15px/1 system-ui,-apple-system,Segoe UI,sans-serif;padding:11px 14px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;min-height:44px}#es-btn[aria-pressed=true]{background:#0f5c6e;color:#fff}body{padding-bottom:64px}@media print{#es-btn{display:none}}";
+    document.head.appendChild(css);
+    var b=document.createElement("button");b.id="es-btn";b.type="button";b.textContent="🇪🇸 Español";
+    b.setAttribute("aria-pressed","false");b.title="Traducción al español / Spanische Übersetzung";
+    b.addEventListener("click",function(){set(!on);});
+    document.body.appendChild(b);
+    var saved=null;try{saved=localStorage.getItem(KEY);}catch(e){}
+    if(saved==="1")set(true);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
+</body>
+</html>
