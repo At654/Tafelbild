@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LF10 Situations-Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+body{margin:0}
+
+/* Layout: eine Spalte wie ein Kassenbon – oben Situation (Bon), darunter drei Schritte; rechts/unten Fortschritt */
+:root{
+  --bg:#EEF1F4; --paper:#FFFFFF; --ink:#16202B; --muted:#5B6672; --line:#CBD3DC;
+  --accent:#1F4E79; --accent-soft:#E3ECF5; --ok:#2E6B45; --ok-soft:#E3F1E7; --bad:#B42318; --bad-soft:#FBE9E7; --warn:#8A5A00; --warn-soft:#FFF4D6;
+  --f-display:"Archivo","Arial Narrow",Arial,sans-serif; --f-body:"Atkinson Hyperlegible",Verdana,Arial,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F151C; --paper:#18212B; --ink:#E6ECF2; --muted:#9AA7B4; --line:#2C3946;
+  --accent:#8EB8E5; --accent-soft:#1D2E40; --ok:#7CC796; --ok-soft:#173023; --bad:#F2998C; --bad-soft:#3A1F1C; --warn:#E9C46A; --warn-soft:#352B12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F151C; --paper:#18212B; --ink:#E6ECF2; --muted:#9AA7B4; --line:#2C3946;
+  --accent:#8EB8E5; --accent-soft:#1D2E40; --ok:#7CC796; --ok-soft:#173023; --bad:#F2998C; --bad-soft:#3A1F1C; --warn:#E9C46A; --warn-soft:#352B12; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 60px;display:grid;gap:18px}
+header.top{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:end;justify-content:space-between}
+header.top h1{font-family:var(--f-display);font-weight:800;font-size:clamp(24px,5vw,32px);line-height:1.1;margin:0;text-wrap:balance}
+header.top .sub{font-size:14px;color:var(--muted);margin:4px 0 0}
+.count{font-family:var(--f-mono);font-size:14px;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px 12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:600 14px var(--f-body);border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.chip:focus-visible,button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+/* Bon */
+.bon{background:var(--paper);border:1px solid var(--line);padding:18px 20px 16px;position:relative;
+  -webkit-mask:radial-gradient(circle 6px at 50% 100%,#0000 98%,#000) 50% 100%/16px 100% repeat-x;mask:radial-gradient(circle 6px at 50% 100%,#0000 98%,#000) 50% 100%/16px 100% repeat-x;padding-bottom:26px}
+.bon .meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--f-mono);font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px dashed var(--line);padding-bottom:8px;margin-bottom:12px}
+.bon p.sit{font-size:clamp(18px,3.6vw,21px);margin:0;font-weight:700}
+.step{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:16px 18px;display:grid;gap:10px}
+.step h2{font-family:var(--f-display);font-size:16px;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.step[aria-disabled="true"]{opacity:.55}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;font:16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.right{background:var(--ok-soft);border-color:var(--ok)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.fb{border-radius:6px;padding:10px 12px;font-size:15.5px}
+.fb.ok{background:var(--ok-soft);color:var(--ink);border-left:4px solid var(--ok)}
+.fb.no{background:var(--bad-soft);color:var(--ink);border-left:4px solid var(--bad)}
+.fb b.ft{color:var(--bad)}
+textarea{width:100%;min-height:96px;font:16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button.main{font:700 16px var(--f-body);background:var(--accent);color:var(--paper);border:0;border-radius:6px;padding:10px 18px;cursor:pointer}
+button.ghost{font:600 15px var(--f-body);background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:9px 14px;cursor:pointer}
+.muster{background:var(--accent-soft);border-radius:6px;padding:12px 14px;display:grid;gap:6px}
+.muster .lab{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.muster q{font-size:17px;quotes:"„" "“"}
+.check{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.check label{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
+.hint{font-size:14px;color:var(--warn);background:var(--warn-soft);border-radius:6px;padding:8px 10px}
+.pruef{font-size:15.5px;border-top:1px dashed var(--line);padding-top:8px}
+.nachweis{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:16px 18px;display:grid;gap:10px}
+.nachweis h2{font-family:var(--f-display);font-size:18px;margin:0}
+.nachweis ol{margin:0;padding-left:22px;font-size:15px;columns:2 260px}
+.nachweis input{font:16px var(--f-body);padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%}
+.small{font-size:13.5px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.step{transition:opacity .2s}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Situations-Trainer Lernfeld 10</h1>
+      <p class="sub">Kasse, Info, Verkaufsfläche: Situation lesen · Aspekt erkennen · in wörtlicher Rede antworten · mit der Musterlösung vergleichen.</p>
+    </div>
+    <div class="count" id="count">0 / 12 bearbeitet</div>
+  </header>
+
+  <div class="filters" role="group" aria-label="Thema wählen" id="filters"></div>
+
+  <article class="bon" aria-live="polite">
+    <div class="meta"><span id="ort">Kasse 3</span><span id="thema">Thema</span><span id="nr">Nr. 01</span></div>
+    <p class="sit" id="sit">…</p>
+  </article>
+
+  <section class="step" id="s1">
+    <h2>1 · Worauf musst du achten?</h2>
+    <div class="opts" id="opts"></div>
+    <div id="fb1"></div>
+  </section>
+
+  <section class="step" id="s2" aria-disabled="true">
+    <h2>2 · Was sagst du? (wörtliche Rede)</h2>
+    <label for="antwort" class="small">Schreib genau so, wie du es zum Kunden sagen würdest – mit Anführungszeichen.</label>
+    <textarea id="antwort" placeholder="„…“"></textarea>
+    <div class="row"><button class="main" id="vergleich" type="button">Mit Musterlösung vergleichen</button></div>
+    <div id="out2"></div>
+  </section>
+
+  <div class="row">
+    <button class="main" id="weiter" type="button">Nächste Situation</button>
+    <button class="ghost" id="zeigeNachweis" type="button">Nachweis anzeigen</button>
+  </div>
+
+  <section class="nachweis" id="nachweis" hidden>
+    <h2>Nachweis für das Punktekonto</h2>
+    <p class="small">12 bearbeitete Situationen = 4 Erledigungspunkte. Zeig diese Seite deiner Lehrkraft.</p>
+    <label for="name" class="small">Name</label>
+    <input id="name" type="text" placeholder="Vor- und Nachname">
+    <ol id="liste"></ol>
+    <p class="small" id="stand"></p>
+  </section>
+  <p class="small">Lehrbuch „Kompetenz im Einzelhandel 2“, LF 10, S. 165–195. Die Fälle sind an IHK-Prüfungsaufgaben (Verkauf und Werbemaßnahmen 2017–2026) und Fachgespräch-Fälle angelehnt.</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+var T={J:"Jugendschutz",K:"Kasse besonders",B:"Beschwerde",U:"Umtausch/Reklamation",R:"Rechte bei Mängeln",D:"Diebstahl",G:"Kundengruppen",S:"Spezielle Situationen",Z:"Ratenkauf"};
+/* s = Situation, o = Optionen [Text, Fehlertyp oder null], m = Musterantwort (woertlich), c = Checkliste, p = Pruefungssprache */
+var S=[
+{t:"J",ort:"Kasse 2",s:"Ein etwa 12-jähriges Mädchen möchte alkoholhaltige Pralinen für ihren Vater zum Geburtstag kaufen.",o:[["Jugendschutz: branntweinhaltige Lebensmittel erst ab 18",null],["Kein Problem, Pralinen sind Lebensmittel","branntweinhaltige Lebensmittel übersehen"],["Verkaufen, weil sie für den Vater sind","„für die Eltern“ für eine Ausnahme gehalten"],["Diebstahlprävention","Aspekt verwechselt"]],m:"Es tut mir leid, aber diese Pralinen darf ich dir erst verkaufen, wenn du 18 Jahre alt bist. Such dir doch eine Sorte ohne Alkohol aus.",c:["Bedauern („Es tut mir leid“)","Grund: Alter 18 / Gesetz","Alternative angeboten","Kind mit „du“ angesprochen"],p:"Branntweinhaltige Lebensmittel dürfen nach § 9 JuSchG nicht an Kinder und Jugendliche unter 18 abgegeben werden.",src:"IHK W 2025/26, 4.2"},
+{t:"J",ort:"Kasse 1",s:"Ein 16-jähriger Jugendlicher möchte eine Flasche Wodka kaufen.",o:[["Jugendschutz: Branntwein erst ab 18",null],["Verkaufen – ab 16 ist Alkohol erlaubt","Bier/Wein mit Branntwein verwechselt"],["Verkaufen, wenn er bar bezahlt","Bezahlart mit Jugendschutz verwechselt"],["Hilfestellung, Service","Aspekt verwechselt"]],m:"Leider darf ich Ihnen die Flasche nicht verkaufen. Das ist gesetzlich nicht zulässig.",c:["Bedauern","Grund: Gesetz / Altersgrenze","freundlich, ohne zu belehren"],p:"Spirituosen erst ab 18 Jahren (§ 9 JuSchG).",src:"IHK W 2023/24, 2.2"},
+{t:"J",ort:"Kasse 4",s:"Ein Junge, etwa 14, legt Einweg-E-Zigaretten „ohne Nikotin“ aufs Band.",o:[["Jugendschutz: E-Zigaretten auch ohne Nikotin erst ab 18",null],["Ohne Nikotin ist es erlaubt","„ohne Nikotin“ für eine Ausnahme gehalten"],["Ab 16 erlaubt","Tabak mit Bier verwechselt"],["Diebstahlprävention","Aspekt verwechselt"]],m:"Tut mir leid, E-Zigaretten darf ich dir erst verkaufen, wenn du 18 bist – auch die ohne Nikotin.",c:["Bedauern","Grund: ab 18, auch ohne Nikotin","„du“"],p:"Tabakwaren und E-Zigaretten, auch nikotinfrei, dürfen nicht an unter 18-Jährige abgegeben werden (§ 10 JuSchG).",src:"Modul 1"},
+{t:"K",ort:"Kasse 3",s:"Bei einem Blick in den Einkaufswagen stellen Sie fest, dass eine Kundin ihren Einkauf nicht vollständig auf das Band gelegt hat.",o:[["Diebstahlprävention: Ware könnte verdeckt oder vergessen sein",null],["Jugendschutz","Aspekt verwechselt"],["Kulanz","Kulanz mit Kontrolle verwechselt"],["Nichts sagen, sie bezahlt es schon","Kontrollpflicht vergessen"]],m:"Können Sie bitte Ihren Korb anheben, damit ich in Ihren Einkaufswagen schauen kann?",c:["höfliche Bitte","kein Vorwurf / keine Unterstellung","konkret: Korb, Wagen, Ware"],p:"Diebstahlprävention: Einkaufswagen und Umverpackungen werden kontrolliert, ohne die Kundin zu verdächtigen.",src:"IHK W 2025/26, 4.2"},
+{t:"K",ort:"Kasse 2",s:"Ein Kunde sucht verzweifelt nach seinem Geld und merkt, dass er seinen Geldbeutel vergessen hat. Alles ist schon eingescannt.",o:[["Zahlung: Kaufvertrag besteht, kundenorientiert zurücklegen/anderes Zahlungsmittel",null],["Kein Kaufvertrag, da nicht bezahlt","Vertragsschluss mit Bezahlen verwechselt"],["Polizei rufen","Zahlungsproblem mit Straftat verwechselt"],["Kunde muss die Ware selbst zurückräumen","Service vergessen"]],m:"Haben Sie die Möglichkeit, ein anderes Zahlungsmittel zu verwenden? Sonst lege ich Ihnen die Sachen gern zurück.",c:["anderes Zahlungsmittel angeboten","Ware zurücklegen / Vorgang parken","freundlich, ohne Vorwurf"],p:"Mit Antrag (Ware aufs Band) und Annahme (Scannen) ist ein Kaufvertrag zustande gekommen; kundenorientiert wird die Ware zurückgelegt oder der Vorgang geparkt.",src:"IHK W 2025/26, W 2024/25"},
+{t:"K",ort:"Kasse 1",s:"Eine Kundin möchte mit der Girocard ihres Mannes bezahlen. Sie kennt seine PIN.",o:[["Girocard ist personengebunden und nicht übertragbar",null],["Mit Unterschrift geht es","Unterschrift für Erlaubnis gehalten"],["Bis 50 € erlaubt","erfundene Betragsgrenze"],["Jugendschutz","Aspekt verwechselt"]],m:"Die Karte ist leider an Ihren Mann gebunden. Haben Sie eine eigene Karte oder Bargeld dabei? Sonst lege ich die Ware gern zurück.",c:["Grund: personengebunden","Alternative Zahlung","Zurücklegen angeboten"],p:"Die Girocard ist personengebunden und nicht übertragbar; alternative Zahlungsmöglichkeiten anbieten.",src:"IHK S 2020, 1.3"},
+{t:"K",ort:"Kasse 2",s:"Am Regal stand 1,60 €, die Kasse zeigt 6,10 €. Der Kunde besteht auf 1,60 €.",o:[["Kein Rechtsanspruch auf den Auszeichnungspreis",null],["Ware muss für 1,60 € verkauft werden","Preisschild für verbindliches Angebot gehalten"],["Kunde zahlt eine Strafe","Kunde für Fehler verantwortlich gemacht"],["Reklamation","Preisfehler mit Mangel verwechselt"]],m:"Entschuldigen Sie bitte, da ist uns am Regal ein Zahlendreher passiert. Der richtige Preis ist 6,10 €. Ich frage kurz meine Abteilungsleitung, ob wir Ihnen entgegenkommen können.",c:["entschuldigt sich","erklärt den Fehler","bietet Rücksprache/Kulanz an"],p:"Die Preisauszeichnung ist nur eine Aufforderung zur Abgabe eines Angebots; der Kunde hat keinen Rechtsanspruch auf den ausgezeichneten Preis.",src:"IHK S 2020, 1.4"},
+{t:"G",ort:"Kasse 4",s:"Ein älterer Herr sucht in seiner Geldbörse verzweifelt nach den richtigen Münzen. Die Schlange wird länger.",o:[["Hilfestellung, Service",null],["Diebstahlprävention","Aspekt verwechselt"],["Den Herrn zur Eile auffordern","Druck statt Hilfe"],["Jugendschutz","Aspekt verwechselt"]],m:"Lassen Sie sich ruhig Zeit. Darf ich Ihnen helfen, das Kleingeld abzuzählen?",c:["Geduld zeigen","Hilfe anbieten","respektvoll"],p:"Hilfestellung und Service für ältere Kunden: Geduld, Hilfe anbieten.",src:"IHK S 2023, 1.2"},
+{t:"B",ort:"Info",s:"Ein Kunde kommt laut schimpfend an die Info: „Der Toaster ist Schrott! Nach zwei Wochen kaputt!“ Andere Kunden schauen her.",o:[["Erst beruhigen: zuhören, entschuldigen, ruhige Zone",null],["Sofort erklären, dass er ihn falsch benutzt hat","Unterstellung statt Beruhigen"],["„Nun beruhigen Sie sich doch erst mal!“","gut gemeint, wirkt eskalierend"],["Kassenbon verlangen, sonst nichts","Sache vor Mensch"]],m:"Das ist wirklich ärgerlich, entschuldigen Sie bitte. Kommen Sie doch mit an den Tisch, dann schauen wir uns den Toaster in Ruhe an.",c:["Verständnis + Entschuldigung","ruhige Zone","Lösung in Aussicht"],p:"Ruhe bewahren, Kunden aussprechen lassen, Verständnis zeigen, in eine ruhige Zone bitten, Lösung in Aussicht stellen.",src:"IHK W 2022/23, 2.5"},
+{t:"B",ort:"Abteilung",s:"Ein Kunde kommt wegen eines Akkuschraubers aus dem Prospekt. Der Artikel ist ausverkauft. Er ist verärgert.",o:[["Beschwerde ernst nehmen: Bedauern, Lösung anbieten",null],["„Sie hätten früher kommen müssen.“","Vorwurf an den Kunden"],["Auf den nächsten Prospekt verweisen","Kunde abgewimmelt"],["Reklamation aufnehmen","Beschwerde mit Reklamation verwechselt"]],m:"Es tut mir leid, dass die Ware schon ausverkauft ist. Gerne notiere ich Ihren Namen und Ihre Telefonnummer. Sobald sie nachgeliefert ist, melde ich mich bei Ihnen.",c:["Bedauern","konkrete Lösung (Rückruf/Alternative)"],p:"Beschwerden ernst nehmen, sonst wandern Kunden zum Mitbewerber ab und erzählen es weiter.",src:"IHK W 2023/24, 4.2.3"},
+{t:"U",ort:"Info",s:"Eine Kundin will eine ungetragene Bluse zurückgeben, weil ihr die Farbe zu Hause nicht gefällt.",o:[["Kein Mangel → kein Rechtsanspruch, Umtausch nur aus Kulanz",null],["14 Tage Widerrufsrecht","Widerrufsrecht aus dem Onlinehandel übertragen"],["Reklamation","Umtausch mit Reklamation verwechselt"],["2 Jahre Gewährleistung","Kulanz mit Gewährleistung verwechselt"]],m:"Gern tauschen wir Ihnen die Bluse um. Möchten Sie eine andere Farbe oder lieber einen Gutschein?",c:["freundlich, kein Hinweis „eigentlich müssen wir nicht“ als Drohung","Alternative oder Gutschein"],p:"Es handelt sich um keine Reklamation, da kein Mangel vorliegt; ein Umtausch ist eine freiwillige Leistung (Kulanz).",src:"IHK W 2019/20, 2.3"},
+{t:"U",ort:"Info",s:"Ein Kunde will einen Artikel zurückgeben, den er gestern für 59,95 € gekauft hat. Beim Mitbewerber kostet er 49,95 €.",o:[["Keine Reklamation, da kein Mangel",null],["Reklamation wegen Preisunterschied","Preisunterschied für Mangel gehalten"],["Garantiefall","Garantie mit Preis verwechselt"],["Produkthaftung","Produkthaftung mit Preis verwechselt"]],m:"Ich schaue kurz nach, ob es wirklich derselbe Artikel ist. Wenn ja, sprechen wir mit der Abteilungsleitung über einen Preisausgleich.",c:["Preis prüfen","kundenorientierte Lösung (Ausgleich, Zugabe, Kulanz)"],p:"Keine Reklamation, da kein Mangel an der Ware vorliegt.",src:"IHK S 2024, 3.2"},
+{t:"U",ort:"Info",s:"Die Halskette ist zwei Wochen alt. Am Verschluss stellen Sie einen Verarbeitungsfehler fest.",o:[["Reklamation, da ein Mangel vorliegt",null],["Umtausch aus Kulanz","Mangel nicht erkannt"],["Nur mit Garantiekarte","Garantie mit Gewährleistung verwechselt"],["Zu spät reklamiert","Gewährleistungsfrist falsch eingeschätzt"]],m:"Am Verschluss ist ein Verarbeitungsfehler. Selbstverständlich kümmern wir uns darum – möchten Sie eine Reparatur oder eine neue Kette?",c:["Mangel benannt","Lösung: Reparatur oder neue Ware"],p:"Da ein Mangel vorliegt, handelt es sich um eine Reklamation.",src:"IHK W 2020/21, 2.5.2"},
+{t:"R",ort:"Info",s:"Ein Smartphone lädt nach vier Monaten nicht mehr. Der Kunde will sofort sein Geld zurück.",o:[["Vorrangig Nacherfüllung: Nachbesserung oder Ersatzlieferung",null],["Sofort Rücktritt","Rangfolge der Rechte übersprungen"],["Nur Minderung möglich","vorrangige mit nachrangigen Rechten verwechselt"],["Kunde muss den Mangel beweisen","veraltete 6-Monats-Regel / Beweislast verkannt"]],m:"Ich verstehe Sie. Zuerst haben Sie die Wahl: Wir lassen das Handy reparieren oder Sie bekommen ein neues. Klappt das nicht, bekommen Sie Ihr Geld zurück.",c:["Wahl Reparatur/neue Ware","Rücktritt als zweite Stufe erklärt"],p:"Vorrangig Nacherfüllung (Nachbesserung oder Ersatzlieferung, § 439 BGB); nachrangig Rücktritt, Minderung, Schadensersatz.",src:"IHK S 2025, 2.8"},
+{t:"R",ort:"Info",s:"Ein Sessel für 198,00 € hat einen Kratzer. Die Kundin behält ihn bei 25 % Minderung. Wie viel bekommt sie zurück?",o:[["49,50 €",null],["148,50 €","neuen Preis statt Minderung angegeben"],["25,00 €","Prozent als Euro übernommen"],["173,00 €","falsch gerechnet"]],m:"Bei 25 % Minderung bekommen Sie 49,50 € zurück.",c:["Rechenweg 198 × 25 : 100","Ergebnis mit €"],p:"198,00 € × 25 : 100 = 49,50 €.",src:"IHK W 2022/23, 2.8"},
+{t:"R",ort:"Abteilung",s:"Eine Kundin fragt beim Bügeleisen: „Was heißt ‚3 Jahre Herstellergarantie‘?“",o:[["Freiwillige Leistung des Herstellers zusätzlich zur Gewährleistung",null],["Das ist die gesetzliche Gewährleistung","Garantie mit Gewährleistung verwechselt"],["Recht auf Umtausch ohne Grund","Garantie mit Kulanz verwechselt"],["Haftung für Folgeschäden","Garantie mit Produkthaftung verwechselt"]],m:"Die Garantie ist eine freiwillige Leistung des Herstellers. Sie gilt zusätzlich zu unserer gesetzlichen Gewährleistung von zwei Jahren.",c:["freiwillig","zusätzlich zur Gewährleistung"],p:"Garantie ist eine freiwillige Leistung eines Herstellers oder Händlers und geht über die gesetzliche Gewährleistung hinaus.",src:"IHK W 2023/24, 5.7"},
+{t:"R",ort:"Info",s:"T-Shirts, 40 % reduziert, nach drei Wochen Nähte gerissen. Die Kollegin sagte: „Reduzierte Ware ist ausgeschlossen.“",o:[["Gewährleistung gilt auch für reduzierte Ware",null],["Kollegin hat recht","Kulanzausschluss mit Gewährleistung verwechselt"],["Drei Wochen sind zu spät","Gewährleistungsfrist falsch"],["Nur mit Kassenbon","Kassenbon für zwingend gehalten"]],m:"Entschuldigen Sie das Missverständnis. Die Nähte dürfen nicht reißen – das ist ein Mangel, auch bei reduzierter Ware. Wir geben Ihnen neue T-Shirts oder Ihr Geld zurück.",c:["Missverständnis entschuldigt","Mangel benannt","Lösung angeboten"],p:"Ausgeschlossen werden kann nur der freiwillige Umtausch; die Gewährleistung gilt auch für reduzierte Ware (außer für einen bekannten Fehler, § 442 BGB).",src:"Fachgespräch Beratung, Fall 1/2"},
+{t:"D",ort:"Kosmetik",s:"Sie sehen, wie eine Kundin einen Lippenstift in die Jackentasche steckt und Richtung Ausgang geht.",o:[["Kollegin/Detektiv informieren, diskret ansprechen, Zeugen, Nebenraum",null],["Laut „Diebin!“ rufen","Kundin bloßgestellt"],["Allein festhalten und Tasche durchsuchen","Eigenschutz missachtet"],["Nichts tun","Mitwirkung vergessen"]],m:"Entschuldigen Sie bitte, ich glaube, Sie haben noch einen Lippenstift in der Tasche, der nicht bezahlt ist. Kommen Sie bitte kurz mit ins Büro.",c:["Hilfe geholt","diskret, ohne Beschuldigung","Nebenraum / Zeugen"],p:"Bei Diebstahlverdacht: Ruhe bewahren, Vorgesetzte/Detektiv informieren, diskret ansprechen, Zeugen, Nebenraum, Polizei.",src:"Modul 6"},
+{t:"D",ort:"Kasse 1",s:"Ein sehr gesprächiger Kunde erzählt Witze. Unten im Wagen steht eine Kiste Wasser, die nicht aufs Band kommt.",o:[["Freundlich bleiben, aber die Kiste ansprechen",null],["Mitlachen und schneller kassieren","Ablenkung nicht bedacht"],["Kunden bitten, still zu sein","unhöflich"],["Kasse schließen","unverhältnismäßig"]],m:"Da wünsche ich Ihnen ein schönes Wochenende! Die Kiste Wasser unten im Wagen – soll die mit? Dann scanne ich sie mit dem Handscanner.",c:["freundlich","Ware konkret angesprochen","Service (Handscanner)"],p:"Trotz Ablenkung den Wagen kontrollieren; Kassenanweisungen einhalten.",src:"Fachgespräch Kasse, Fall 3"},
+{t:"G",ort:"Abteilung",s:"Ein Kunde sagt: „Das sagen Sie doch nur, damit ich es kaufe. Stimmt das wirklich?“",o:[["Misstrauischer Kunde: Belege zeigen",null],["Sparsamer Kunde: Rabatt anbieten","Kundentyp verwechselt"],["Unentschlossener Kunde: mehr Artikel zeigen","Kundentyp verwechselt"],["Druck machen: nur heute im Angebot","Druck statt Beleg"]],m:"Das kann ich verstehen. Schauen Sie: Der Wasserkocher ist bei Stiftung Warentest mit „gut“ bewertet. Sie können ihn hier gern ausprobieren.",c:["Verständnis","Beleg (Test/Siegel)","Ausprobieren oder Umtausch angeboten"],p:"Den misstrauischen Kunden mit objektiven Belegen überzeugen (Testergebnisse, Gütesiegel, Ausprobieren).",src:"IHK S 2023, 2.1 (sinngemäß)"},
+{t:"S",ort:"Mode",s:"19:52 Uhr, Ladenschluss um 20 Uhr. Eine Kundin will noch drei Kleider anprobieren.",o:[["In Ruhe beraten, nicht drängen",null],["Sagen, dass sie sich beeilen soll","Kundin unter Druck gesetzt"],["Schon das Licht ausmachen","Kundin vertrieben"],["Nur ein Kleid erlauben","willkürliche Regel"]],m:"Guten Abend! Probieren Sie die Kleider gern in Ruhe an. Wenn es knapp wird, lege ich Ihnen eins bis morgen zurück.",c:["freundlich","nicht drängen","Lösung (Zurücklegen)"],p:"Auch kurz vor Ladenschluss vollständig und ohne Zeitdruck beraten.",src:"Lehrbuch Kap. 3.2"},
+{t:"S",ort:"Spielwaren",s:"Ein Kunde sucht ein Geschenk für seine Nichte.",o:[["Offene Fragen zur Bedarfsermittlung",null],["„Soll es ein Buch sein?“","geschlossene Frage – in der Prüfung 0 P."],["Teuerstes Produkt zeigen","Bedarf nicht ermittelt"],["Gutschein empfehlen, ohne zu fragen","Beratung übersprungen"]],m:"Wie alt ist Ihre Nichte denn, und welche Hobbys hat sie?",c:["offene Fragen (W-Fragen)","in wörtlicher Rede"],p:"Beim Geschenkkauf offene Fragen: für wen, Anlass, Alter, Hobbys, Preisvorstellung.",src:"IHK S 2024, 4.1"},
+{t:"S",ort:"Kasse 2",s:"Unerwarteter Kundenandrang. In der Schlange wird jemand laut: „Hier dauert alles ewig!“",o:[["Ruhig bleiben, entschuldigen, zweite Kasse öffnen lassen",null],["Zurückrufen: „Ich kann auch nicht zaubern!“","heizt an"],["Ignorieren","Wartende nicht wahrgenommen"],["Kasse offen lassen und helfen gehen","Diebstahlrisiko"]],m:"Entschuldigen Sie bitte die Wartezeit. Ich rufe sofort eine Kollegin, damit eine zweite Kasse öffnet.",c:["Entschuldigung","konkrete Lösung (zweite Kasse)"],p:"Bei Hochbetrieb Wartende wahrnehmen, Ruhe bewahren, Hilfe holen.",src:"Fachgespräch Kasse, Fall 1"},
+{t:"Z",ort:"Elektro",s:"Ein Kunde will einen Fernseher für 899 € in Raten zahlen und fragt, was im Vertrag stehen muss.",o:[["Barzahlungs- und Teilzahlungspreis, Raten, Zins, Widerrufsbelehrung",null],["Nur der Endpreis","Pflichtangaben übersehen"],["Höchstens 12 Raten","erfundene Grenze"],["Garantie des Herstellers","Garantie mit Vertragsinhalt verwechselt"]],m:"Im Vertrag stehen der Barzahlungspreis, der Gesamtpreis bei Raten, die Höhe und Zahl der Raten und der Zins. Und Sie können ihn 14 Tage lang widerrufen.",c:["Pflichtangaben","14 Tage Widerruf"],p:"Teilzahlungsgeschäfte mit Verbrauchern: Schriftform, Pflichtangaben, Belehrung über das Widerrufsrecht (14 Tage).",src:"IHK WiSo S 2018, 10"}
+];
+var ZIEL=12, filt="alle", cur=null, done={};
+function load(){try{var d=JSON.parse(localStorage.getItem("lf10trainer")||"{}");done=d.done||{};document.getElementById("name").value=d.name||"";}catch(e){done={};}}
+function save(){try{localStorage.setItem("lf10trainer",JSON.stringify({done:done,name:document.getElementById("name").value}));}catch(e){}}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function mische(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function count(){var n=Object.keys(done).length;document.getElementById("count").textContent=n+" / "+ZIEL+" bearbeitet";}
+function chips(){var f=document.getElementById("filters");var keys=["alle"].concat(Object.keys(T));f.innerHTML="";keys.forEach(function(k){var b=document.createElement("button");b.type="button";b.className="chip";b.textContent=k==="alle"?"Alle gemischt":T[k];b.setAttribute("aria-pressed",String(k===filt));b.onclick=function(){filt=k;chips();neu();};f.appendChild(b);});}
+function pool(){return S.map(function(x,i){return i;}).filter(function(i){return filt==="alle"||S[i].t===filt;});}
+function neu(){var p=pool();var offen=p.filter(function(i){return !done[i];});var w=(offen.length?offen:p);var i=w[Math.floor(Math.random()*w.length)];if(w.length>1&&i===cur){i=w[(w.indexOf(i)+1)%w.length];}zeige(i);}
+function zeige(i){cur=i;var x=S[i];document.getElementById("ort").textContent=x.ort;document.getElementById("thema").textContent=T[x.t];document.getElementById("nr").textContent="Nr. "+String(i+1).padStart(2,"0");
+ document.getElementById("sit").textContent=x.s;var o=document.getElementById("opts");o.innerHTML="";document.getElementById("fb1").innerHTML="";
+ mische(x.o.map(function(_,k){return k;})).forEach(function(k){var b=document.createElement("button");b.type="button";b.className="opt";b.textContent=x.o[k][0];b.onclick=function(){waehle(k,b);};o.appendChild(b);});
+ var s2=document.getElementById("s2");s2.setAttribute("aria-disabled","true");document.getElementById("antwort").value="";document.getElementById("out2").innerHTML="";}
+function waehle(k,btn){var x=S[cur];var ok=x.o[k][1]===null;btn.classList.add(ok?"right":"wrong");var fb=document.getElementById("fb1");
+ if(ok){fb.innerHTML='<div class="fb ok"><b>Richtig.</b> '+esc(x.o[k][0])+'</div>';document.getElementById("s2").setAttribute("aria-disabled","false");document.getElementById("antwort").focus();}
+ else{fb.innerHTML='<div class="fb no"><b class="ft">Fehlertyp: '+esc(x.o[k][1])+'</b><br>Versuch es noch einmal.</div>';}}
+function vergleich(){var x=S[cur];var a=document.getElementById("antwort").value.trim();var h="";
+ if(!a){h+='<p class="hint">Schreib zuerst deine eigene Antwort – erst dann lohnt der Vergleich.</p>';document.getElementById("out2").innerHTML=h;return;}
+ if(!/[„“"»«]/.test(a)){h+='<p class="hint">Tipp: In der Prüfung zählt die wörtliche Rede. Setz deine Antwort in Anführungszeichen.</p>';}
+ h+='<div class="muster"><span class="lab">Musterlösung (Kundensprache)</span><q>'+esc(x.m)+'</q><span class="lab">Hast du das drin?</span><ul class="check">';
+ x.c.forEach(function(c,j){h+='<li><label><input type="checkbox" id="c'+cur+'_'+j+'"> '+esc(c)+'</label></li>';});
+ h+='</ul><div class="pruef"><span class="lab">Prüfungssprache</span><br>'+esc(x.p)+'</div><span class="small">Quelle: '+esc(x.src)+'</span></div>';
+ document.getElementById("out2").innerHTML=h;done[cur]=true;save();count();liste();}
+function liste(){var l=document.getElementById("liste");l.innerHTML="";Object.keys(done).map(Number).sort(function(a,b){return a-b;}).forEach(function(i){var li=document.createElement("li");li.textContent=T[S[i].t]+": "+S[i].s.slice(0,60)+(S[i].s.length>60?"…":"");l.appendChild(li);});
+ var n=Object.keys(done).length;document.getElementById("stand").textContent=n>=ZIEL?"Ziel erreicht: "+n+" Situationen bearbeitet.":"Noch "+(ZIEL-n)+" Situationen bis zum Nachweis.";}
+document.getElementById("vergleich").onclick=vergleich;
+document.getElementById("weiter").onclick=neu;
+document.getElementById("zeigeNachweis").onclick=function(){var n=document.getElementById("nachweis");n.hidden=!n.hidden;liste();if(!n.hidden)n.scrollIntoView({behavior:"smooth"});};
+document.getElementById("name").addEventListener("input",save);
+load();chips();count();liste();zeige(0);
+})();
+</script>
+
+</body>
+</html>

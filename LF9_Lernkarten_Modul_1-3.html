@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 9 Lernkarten</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: eine Karte pro Bildschirm, wie eine Story am Handy; unten Zurück/Weiter, oben Fortschritt. Gleiche Bildsprache wie der LF-9-Einstieg. */
+:root{
+  --bg:#f4ecdf; --paper:#fffaf2; --ink:#1f1a14; --muted:#6b5f50; --line:#d9cbb5;
+  --red:#c8321f; --red-soft:#f6d9d2; --green:#2f7a4a; --green-soft:#d7eedd;
+  --blue:#3d5a80; --blue-soft:#dde6f1; --sand:#e0a458; --sand-soft:#f6e6cc;
+  --display:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1b1713; --paper:#26201a; --ink:#f3ead9; --muted:#b5a68f; --line:#40362b;
+    --red:#ef6a52; --red-soft:#3e2420; --green:#6cc28b; --green-soft:#1f3627;
+    --blue:#8fb0da; --blue-soft:#22303f; --sand:#d99a4e; --sand-soft:#3a2d1c; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1b1713; --paper:#26201a; --ink:#f3ead9; --muted:#b5a68f; --line:#40362b;
+  --red:#ef6a52; --red-soft:#3e2420; --green:#6cc28b; --green-soft:#1f3627;
+  --blue:#8fb0da; --blue-soft:#22303f; --sand:#d99a4e; --sand-soft:#3a2d1c; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:18px/1.55 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:560px;margin:0 auto;padding-block:1rem 2rem}
+h1,h2,h3{font-family:var(--display);line-height:1.12;margin:0;text-wrap:balance}
+h1{font-size:clamp(2rem,8vw,2.6rem);font-weight:800}
+h2{font-size:1.55rem;font-weight:800}
+p{margin:.45rem 0}
+.muted{color:var(--muted)}
+.kicker{font:700 .78rem/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--red)}
+button{font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--ink);color:var(--paper);
+  border-radius:10px;padding:.6rem 1rem;cursor:pointer;min-height:48px}
+button.ghost{background:transparent;color:var(--ink)}
+button:disabled{opacity:.35;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+
+/* Startseite */
+.hero{padding-block:1rem .5rem;display:grid;gap:.5rem}
+.mods{display:grid;gap:.8rem;margin-top:1rem}
+.mod{display:grid;grid-template-columns:auto 1fr;gap:.2rem 1rem;align-items:center;text-align:left;
+  background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:1rem}
+.mod .num{grid-row:span 3;font:800 2.6rem/1 var(--display);color:var(--red);min-width:2.2ch;text-align:center}
+.mod b{font-family:var(--display);font-size:1.25rem}
+.mod small{color:var(--muted);font-weight:400}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--green);border-radius:4px}
+.how{margin-top:1.4rem;padding:1rem;border-radius:14px;background:var(--sand-soft);font-size:.95rem}
+.how ul{margin:.3rem 0 0;padding-left:1.2rem}
+
+/* Kartenansicht */
+.top{display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem}
+.top .t{flex:1;min-width:0;font:800 1rem/1.2 var(--display)}
+.icon{min-height:44px;min-width:44px;padding:.3rem;display:grid;place-items:center}
+.icon svg{width:22px;height:22px}
+.dots{display:flex;gap:4px;margin-bottom:.8rem}
+.dots i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.dots i.on{background:var(--red)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:1.2rem;min-height:58vh;
+  display:flex;flex-direction:column;gap:.7rem;animation:in .25s ease}
+@keyframes in{from{transform:translateX(18px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.card{animation:none}}
+.nav{display:flex;gap:.6rem;margin-top:.9rem}
+.nav button{flex:1}
+.lockhint{font-size:.85rem;color:var(--muted);text-align:center;margin-top:.4rem;min-height:1.3em}
+
+/* Chat */
+.chat{display:flex;flex-direction:column;gap:.55rem}
+.msg{max-width:85%;padding:.6rem .85rem;border-radius:16px;line-height:1.4}
+.msg .who{display:block;font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:.1rem}
+.msg.l{align-self:flex-start;background:var(--blue-soft);border-bottom-left-radius:4px}
+.msg.r{align-self:flex-end;background:var(--sand-soft);border-bottom-right-radius:4px}
+.msg.k{align-self:flex-start;background:var(--red-soft);border-bottom-left-radius:4px}
+
+/* Bausteine */
+.big{font:800 clamp(2.2rem,11vw,3.2rem)/1 var(--display);color:var(--red)}
+.box{border-radius:12px;padding:.8rem 1rem;background:var(--bg)}
+.merke{border-radius:12px;padding:.8rem 1rem;background:var(--green-soft)}
+.merke b:first-child{display:block;font-family:var(--display);margin-bottom:.2rem}
+.rule{display:grid;grid-template-columns:auto 1fr;gap:.35rem .8rem;align-items:baseline}
+.rule .f{font:800 1.3rem/1.2 var(--display);color:var(--red);white-space:nowrap;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;width:100%;font-size:.95rem;font-variant-numeric:tabular-nums}
+td,th{padding:.4rem .3rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap}
+.tw{overflow-x:auto}
+.grid100{display:grid;grid-template-columns:repeat(20,1fr);gap:2px;max-width:320px}
+.grid100 i{aspect-ratio:1;border-radius:2px;background:var(--line)}
+.grid100 i.on{background:var(--red)}
+.pbar{display:flex;height:42px;border-radius:8px;overflow:hidden;font:700 .85rem/42px var(--body);color:#fff;text-align:center}
+.pbar span{white-space:nowrap;overflow:hidden}
+.legend{display:flex;flex-wrap:wrap;gap:.3rem .9rem;font-size:.85rem}
+.legend i{display:inline-block;width:.8em;height:.8em;border-radius:2px;margin-right:.3em;vertical-align:-.05em}
+.stairs{display:flex;flex-direction:column-reverse;gap:4px}
+.stairs div{border-radius:8px;padding:.45rem .7rem;display:flex;justify-content:space-between;gap:.5rem;font-size:.95rem}
+.stairs b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.flow{display:flex;flex-direction:column;gap:3px}
+.flow div{display:grid;grid-template-columns:2.2rem 1fr;gap:.6rem;align-items:center;padding:.45rem .6rem;border-radius:8px;background:var(--bg)}
+.flow .op{font:800 1.3rem/1 var(--display);color:var(--red);text-align:center}
+.flow .res{background:var(--blue-soft);font-weight:700}
+.keys{font-family:ui-monospace,Menlo,monospace;font-size:.9rem;background:var(--bg);border-radius:8px;padding:.45rem .7rem}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;font-size:.92rem}
+.split>div{border-radius:10px;padding:.6rem .7rem;min-width:0}
+
+/* Fragen */
+.opts{display:grid;gap:.5rem}
+.opt{text-align:left;background:var(--paper);color:var(--ink);border:2px solid var(--line);font-weight:400}
+.opt.ok{border-color:var(--green);background:var(--green-soft);font-weight:700}
+.opt.no{border-color:var(--red);background:var(--red-soft)}
+.fb{border-radius:10px;padding:.6rem .8rem;font-size:.95rem}
+.fb.ok{background:var(--green-soft)}
+.fb.no{background:var(--red-soft)}
+.calc{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.calc input{font:700 1.3rem var(--body);width:9.5rem;min-height:52px;padding:.3rem .6rem;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);text-align:right}
+.steps tr{transition:opacity .2s}
+.steps tr.hide{opacity:0;visibility:hidden}
+input[type=range]{width:100%;accent-color:var(--red);height:40px}
+.profi{border:2px dashed var(--blue);border-radius:12px;padding:.8rem 1rem}
+.tagp{display:inline-block;background:var(--blue);color:var(--paper);font-size:.75rem;font-weight:700;padding:.15rem .5rem;border-radius:6px;letter-spacing:.04em}
+.done{text-align:center;display:grid;gap:.8rem;justify-items:center}
+</style>
+</head>
+<body>
+
+
+<div class="wrap" id="app"></div>
+
+<script>
+const E = (n) => n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const HANNA = 'Hanna (Filialleiterin)';
+
+const MODS = [
+{ id:1, title:'Das Prozent-Werkzeug', sub:'Prozent als Faktor · runden wie die IHK', cards:[
+ {t:'chat', title:'Ein Schild, eine Frage', msgs:[
+  ['r','Du','Hanna, auf dem Schild steht „– 30 %“. Wie rechne ich das schnell aus?'],
+  ['l',HANNA,'Mit einem Faktor. Eine Zahl, ein Mal-Zeichen, fertig.'],
+  ['r','Du','Ein Faktor? Klingt nach Mathe.'],
+  ['l',HANNA,'Ist ein Trick. Den brauchst du in diesem Lernfeld bei jeder Rechnung. Wisch weiter, ich zeig ihn dir.']]},
+ {t:'info', kicker:'Grundidee', title:'Prozent heißt „von Hundert“', html:`
+  <p>19 % sind 19 von 100. Als Zahl: <b>0,19</b>.</p>
+  <div class="grid100" aria-label="100 Kästchen, 19 davon rot">${Array.from({length:100},(_,i)=>`<i class="${i<19?'on':''}"></i>`).join('')}</div>
+  <p>Der Preis, von dem du ausgehst, ist immer <b>100 %</b>.</p>`},
+ {t:'info', kicker:'Der Trick – Teil 1', title:'Plus heißt: mal 1,…', html:`
+  <p>Aus 100 % werden bei + 19 % genau <b>119 %</b>. Und 119 % sind <b>1,19</b>.</p>
+  <div class="pbar"><span style="flex:100;background:var(--blue)">100 %</span><span style="flex:19;background:var(--red)">+19</span></div>
+  <div class="rule"><span class="f">+ 19 %</span><span>· 1,19</span><span class="f">+ 7 %</span><span>· 1,07</span><span class="f">+ 50 %</span><span>· 1,5</span></div>
+  <p class="muted">Ein Schritt statt zwei: Preis und Aufschlag zusammen.</p>`},
+ {t:'check', title:'Kurz prüfen', q:'Welcher Faktor gehört zu <b>+ 7 %</b>?', opts:[
+  ['1,7',0,'1,7 wären + 70 %. Bei 7 % steht die 7 an der zweiten Stelle: 1,07.'],
+  ['1,07',1,'Genau. 100 % + 7 % = 107 % = 1,07.'],
+  ['0,07',0,'0,07 ist nur der Aufschlag allein. Du willst Preis und Aufschlag zusammen: 1,07.'],
+  ['0,93',0,'0,93 wäre minus 7 %. Hier kommt etwas dazu.']]},
+ {t:'info', kicker:'Der Trick – Teil 2', title:'Minus heißt: mal 0,…', html:`
+  <p>Aus 100 % werden bei – 10 % nur noch <b>90 %</b>. Das sind <b>0,9</b>.</p>
+  <div class="pbar"><span style="flex:90;background:var(--blue)">90 % bleiben</span><span style="flex:10;background:var(--line);color:var(--muted)">–10</span></div>
+  <div class="rule"><span class="f">– 10 %</span><span>· 0,9</span><span class="f">– 2 %</span><span>· 0,98</span><span class="f">– 25 %</span><span>· 0,75</span></div>
+  <p class="muted">Rabatt, Skonto, Preissenkung: Immer „mal 0,…“.</p>`},
+ {t:'check', title:'Kurz prüfen', q:'Der Lieferant gibt <b>2 % Skonto</b>. Mit welchem Faktor rechnest du?', opts:[
+  ['0,8',0,'0,8 wären – 20 %. Bei 2 % bleiben 98 % übrig: 0,98.'],
+  ['1,02',0,'1,02 wäre ein Aufschlag. Skonto ist ein Abzug.'],
+  ['0,98',1,'Richtig. 100 % – 2 % = 98 % = 0,98.'],
+  ['0,02',0,'0,02 ist nur der Skonto selbst. Gefragt ist, was du bezahlst: 0,98.']]},
+ {t:'steps', title:'Vorgemacht: Jacke mit Umsatzsteuer', task:'Eine Jacke kostet 80,00 € netto. Dazu kommen 19 % Umsatzsteuer. Was kostet sie brutto?', steps:[
+  ['Was passiert?','+ 19 % → Faktor 1,19',''],
+  ['Rechnung','80,00 · 1,19',''],
+  ['Ergebnis','','95,20 €']], keys:'80 × 1,19 ='},
+ {t:'info', kicker:'Der Trick – Teil 3', title:'Zurück heißt: geteilt durch', html:`
+  <p>Du kennst den Bruttopreis und willst den Nettopreis? Dann <b>teilst</b> du durch denselben Faktor.</p>
+  <div class="box"><b>59,50 € : 1,19 = 50,00 €</b></div>
+  <div class="fb no"><b>Achtung, beliebter Prüfungsfehler:</b> nicht „mal 0,81“!<br>59,50 · 0,81 = 48,20 € – das ist falsch. Die 19 % wurden ja auf die 50 € gerechnet, nicht auf die 59,50 €.</div>`},
+ {t:'calc', title:'Jetzt du', q:'Eine Rechnung über <b>120,00 €</b>. Du bekommst <b>15 % Rabatt</b>. Wie viel zahlst du?', ans:102, unit:'€', hint:'– 15 % → Faktor 0,85', sol:'120,00 · 0,85 = <b>102,00 €</b>'},
+ {t:'calc', title:'Jetzt du', q:'Ein Artikel kostet <b>23,80 € brutto</b> (19 % USt). Wie hoch ist der Nettopreis?', ans:20, unit:'€', hint:'Zurückrechnen: geteilt durch 1,19', sol:'23,80 : 1,19 = <b>20,00 €</b>'},
+ {t:'info', kicker:'Mehrere Prozente', title:'Faktoren nacheinander malnehmen', html:`
+  <p>100 € + 10 % und dann noch einmal + 10 %:</p>
+  <div class="box"><b>100 · 1,1 · 1,1 = 121 €</b></div>
+  <p>Nicht 120 €! Der zweite Aufschlag rechnet schon vom höheren Preis (110 €).</p>
+  <p class="muted">Faktoren werden <b>nie zusammengezählt</b>, immer malgenommen.</p>`},
+ {t:'info', kicker:'Runden wie die IHK', title:'Erst am Ende runden', html:`
+  <div class="rule">
+   <span class="f">1</span><span>Alles in <b>einer Kette</b> in den Taschenrechner tippen. Zwischenergebnisse nicht runden.</span>
+   <span class="f">€</span><span>Euro auf <b>2</b> Stellen: 27,694 → 27,69 · 12,566 → 12,57</span>
+   <span class="f">F</span><span>Kalkulationsfaktor auf <b>4</b> Stellen: 1,785714 → 1,7857</span>
+   <span class="f">%</span><span>Prozent so, wie es in der Aufgabe steht.</span></div>`},
+ {t:'check', title:'Prüfungsfrage', q:'Mitarbeiter erhalten <b>8 % Personalrabatt</b>. Eine Kollegin kauft einen Artikel für <b>148,00 €</b>. Wie viel bezahlt sie?', opts:[
+  ['11,84 €',0,'Das ist nur der Rabatt. Gefragt ist, was sie bezahlt: 148,00 · 0,92.'],
+  ['136,16 €',1,'Richtig: 148,00 · 0,92 = 136,16 €.'],
+  ['133,20 €',0,'Das wären 10 % Rabatt (· 0,9). Es sind 8 % → · 0,92.'],
+  ['159,84 €',0,'Das ist ein Aufschlag (· 1,08). Rabatt wird abgezogen.']]},
+ {t:'profi', title:'Warum ist „– 19 %“ nicht dasselbe wie „: 1,19“?', html:`
+  <p>Rechne mit 100 €:</p>
+  <table><tr><td>100 · 0,81</td><td class="n">81,00 €</td></tr><tr><td>100 : 1,19</td><td class="n">84,03 €</td></tr></table>
+  <p>Beim Aufschlag sind 19 % von <b>100 €</b> dazugekommen. Beim Zurückrechnen startest du aber bei <b>119 €</b>. 19 % von 119 € wären 22,61 € – zu viel. Deshalb musst du durch 1,19 teilen.</p>
+  <p class="muted">Gleiche Idee: + 10 % und danach – 10 % ergibt 100 · 1,1 · 0,9 = 99 €, nicht 100 €.</p>`},
+ {t:'merke', title:'Das nimmst du mit', html:`
+  <div class="rule">
+   <span class="f">+ p %</span><span>· (1 + p : 100) &nbsp; <span class="muted">+ 19 % → · 1,19</span></span>
+   <span class="f">– p %</span><span>· (1 – p : 100) &nbsp; <span class="muted">– 10 % → · 0,9</span></span>
+   <span class="f">zurück</span><span>: denselben Faktor &nbsp; <span class="muted">brutto : 1,19</span></span>
+   <span class="f">mehrere</span><span>Faktoren nacheinander malnehmen</span>
+   <span class="f">runden</span><span>erst am Ende · € 2 Stellen · Faktor 4 Stellen</span></div>`,
+  next:'Weiter auf dem Aufgabenblatt mit <b>Aufgabe 3</b>. Am Ende: Selbsttest Modul 1.'}
+]},
+
+{ id:2, title:'Vom Listenpreis zum Bezugspreis', sub:'Rabatt · Skonto · Bezugskosten · Angebote vergleichen', cards:[
+ {t:'chat', title:'100 Deckenleuchten', msgs:[
+  ['l',HANNA,'Wir brauchen 100 Deckenleuchten. Zwei Lieferanten haben geantwortet.'],
+  ['r','Du','Dann nehmen wir den mit dem billigsten Stückpreis.'],
+  ['l',HANNA,'Langsam. Einer gibt mehr Rabatt, einer Skonto, einer will Geld für die Fracht.'],
+  ['l',HANNA,'Wir wollen wissen: Was kostet die Ware <b>wirklich</b>, bis sie bei uns im Lager steht? Das heißt <b>Bezugspreis</b>.']]},
+ {t:'guess', title:'Dein Bauchgefühl', html:`
+  <div class="tw"><table><tr><th></th><th>A: Licht-Werk</th><th>B: Lampen-Hansen</th></tr>
+  <tr><td>Preis je Stück</td><td>20,00 €</td><td>21,00 €</td></tr>
+  <tr><td>Rabatt</td><td>10 %</td><td>15 %</td></tr>
+  <tr><td>Skonto</td><td>keins</td><td>3 %</td></tr>
+  <tr><td>Lieferung</td><td>frei Haus</td><td>Fracht 35,00 €</td></tr></table></div>
+  <p>Welches Angebot ist günstiger? <b>Nicht rechnen</b>, nur tippen.</p>`,
+  opts:['Angebot A','Angebot B'], reveal:'Gemerkt! Ob du richtig liegst, rechnest du gleich selbst nach.'},
+ {t:'info', kicker:'Das Schema', title:'Der Weg zum Bezugspreis', html:`
+  <div class="flow">
+   <div><span class="op"></span><span>Listeneinkaufspreis <span class="muted">(Preis laut Angebot · Menge)</span></span></div>
+   <div><span class="op">–</span><span>Rabatt <span class="muted">(immer zuerst)</span></span></div>
+   <div class="res"><span class="op">=</span><span>Zieleinkaufspreis</span></div>
+   <div><span class="op">–</span><span>Skonto <span class="muted">(für schnelles Zahlen)</span></span></div>
+   <div class="res"><span class="op">=</span><span>Bareinkaufspreis</span></div>
+   <div><span class="op">+</span><span>Bezugskosten <span class="muted">(Fracht, Verpackung …)</span></span></div>
+   <div class="res"><span class="op">=</span><span>Bezugspreis <span class="muted">(auch: Einstandspreis)</span></span></div></div>
+  <p><b>Eselsbrücke: R – S – B.</b> Erst Rabatt, dann Skonto, dann Bezugskosten.</p>`},
+ {t:'info', kicker:'Drei Nachlässe', title:'Rabatt, Skonto, Bonus', html:`
+  <div class="rule">
+   <span class="f">Rabatt</span><span>gibt es <b>sofort</b> auf der Rechnung: für große Mengen (Mengenrabatt), für Stammkunden (Treuerabatt), zum Jubiläum (Sonderrabatt).</span>
+   <span class="f">Skonto</span><span>gibt es, wenn man <b>schnell bezahlt</b>, z. B. innerhalb von 10 Tagen.</span>
+   <span class="f">Bonus</span><span>gibt es <b>nachträglich</b>, z. B. am Jahresende, wenn genug Umsatz gemacht wurde.</span></div>`},
+ {t:'check', title:'Welcher Nachlass?', q:'„Der Lieferant zieht 3 % ab, weil wir innerhalb von 8 Tagen gezahlt haben.“', opts:[
+  ['Rabatt',0,'Rabatt gibt es für Menge oder Treue. Hier geht es ums schnelle Zahlen.'],
+  ['Skonto',1,'Genau: schnell zahlen → Skonto.'],
+  ['Bonus',0,'Ein Bonus kommt nachträglich, z. B. am Jahresende.']]},
+ {t:'check', title:'Welcher Nachlass?', q:'„Am Jahresende schreibt uns der Lieferant 2 % vom Jahresumsatz gut.“', opts:[
+  ['Rabatt',0,'Rabatt steht sofort auf der Rechnung. Hier kommt das Geld später.'],
+  ['Skonto',0,'Skonto gibt es für schnelles Zahlen einer Rechnung.'],
+  ['Bonus',1,'Richtig: nachträglich, für den Umsatz im ganzen Jahr → Bonus.']]},
+ {t:'info', kicker:'Zwei Regeln', title:'Bezugskosten und Umsatzsteuer', html:`
+  <div class="split">
+   <div style="background:var(--blue-soft)"><b>Bezugskosten</b><br>Fracht, Porto, Verpackung des Lieferanten, Transportversicherung, Zoll.<br><br>Werden <b>dazugezählt</b> (+ Betrag). Kein Rabatt, kein Skonto darauf.</div>
+   <div style="background:var(--red-soft)"><b>Umsatzsteuer</b><br>Steht zwar auf der Rechnung, gehört aber <b>nicht</b> in den Bezugspreis.<br><br>Die Kaufhaus Hansa GmbH bekommt sie vom Finanzamt zurück. Also: <b>weglassen</b>.</div></div>
+  <p class="muted">Wird der Preis für <b>ein Stück</b> gefragt: Am Ende durch die Stückzahl teilen.</p>`},
+ {t:'steps', title:'Vorgemacht: ein Hemd', task:'200 Poloshirts zu je 15,00 €, abzüglich 8 % Rabatt, zuzüglich 20,00 € Verpackung, zuzüglich 19 % Umsatzsteuer. Bezugspreis (netto) für <b>ein</b> Poloshirt?', steps:[
+  ['Listeneinkaufspreis','200 · 15,00','3.000,00 €'],
+  ['– 8 % Rabatt','3.000,00 · 0,92','2.760,00 €'],
+  ['+ Verpackung','2.760,00 + 20,00','2.780,00 €'],
+  ['Umsatzsteuer?','weglassen – Bezugspreis ist netto','–'],
+  ['je Poloshirt','2.780,00 : 200','13,90 €']], keys:'200 × 15 × 0,92 + 20 = ÷ 200 ='},
+ {t:'calc', title:'Jetzt du: 50 Rucksäcke', q:'50 Rucksäcke zu je 12,00 €. <b>20 % Rabatt</b>, <b>2 % Skonto</b>, Fracht <b>14,40 €</b>. Wir zahlen sofort. Bezugspreis für die <b>ganze</b> Lieferung?', ans:484.8, unit:'€', hint:'50 · 12 · 0,8 · 0,98 + 14,40', sol:'600,00 · 0,8 = 480,00 → · 0,98 = 470,40 → + 14,40 = <b>484,80 €</b>'},
+ {t:'check', title:'Prüfungsfrage', q:'Welche Kosten zählen zu den <b>Bezugskosten</b>?', opts:[
+  ['Miete für das Warenlager',0,'Die Miete entsteht in unserem Betrieb – das sind Handlungskosten (Modul 3).'],
+  ['Gehälter der Einkaufsabteilung',0,'Gehälter zahlen wir in unserem Betrieb – Handlungskosten.'],
+  ['Frachtkosten für die Anlieferung der Ware',1,'Richtig. Alles, was anfällt, bis die Ware bei uns ist, sind Bezugskosten.'],
+  ['Werbekosten für die neue Ware',0,'Werbung machen wir selbst – Handlungskosten.']]},
+ {t:'steps', title:'Auflösung: die Deckenleuchten', task:'Jetzt wird gerechnet. Wir zahlen innerhalb von 10 Tagen.', steps:[
+  ['A: 100 · 20,00 · 0,9','frei Haus, kein Skonto','1.800,00 €'],
+  ['B: 100 · 21,00 · 0,85','= 1.785,00','1.785,00 €'],
+  ['B: – 3 % Skonto','1.785,00 · 0,97','1.731,45 €'],
+  ['B: + Fracht','1.731,45 + 35,00','1.766,45 €'],
+  ['Günstiger?','B ist 33,55 € günstiger','Angebot B']], keys:'100 × 21 × 0,85 × 0,97 + 35 =', after:'Lag dein Bauchgefühl richtig? Der höhere Stückpreis allein sagt wenig.'},
+ {t:'calc', title:'Prüfungsfrage', q:'Eine Rechnung über <b>2.840,00 €</b> wird mit <b>2 % Skonto</b> bezahlt. Wie hoch ist der Überweisungsbetrag?', ans:2783.2, unit:'€', hint:'– 2 % → · 0,98', sol:'2.840,00 · 0,98 = <b>2.783,20 €</b>'},
+ {t:'profi', title:'Lohnt sich ein Kredit, um Skonto zu bekommen?', html:`
+  <p>Angebot: „2 % Skonto innerhalb von 10 Tagen oder 30 Tage netto.“ Wer Skonto nutzt, zahlt <b>20 Tage früher</b> und spart 2 %.</p>
+  <div class="box">2 % für 20 Tage → aufs Jahr (360 Tage): 2 · 360 : 20 = <b>36 %</b></div>
+  <p>Ein Kredit kostet 8 % im Jahr. 36 % sind viel mehr als 8 %. Also: <b>Kredit aufnehmen und Skonto nutzen lohnt sich.</b></p>
+  <p class="muted">Begründe mit diesem Vergleich, wenn in der Prüfung „Beurteilen Sie …“ steht.</p>`},
+ {t:'merke', title:'Das nimmst du mit', html:`
+  <div class="box"><b>Listeneinkaufspreis – Rabatt – Skonto + Bezugskosten = Bezugspreis</b></div>
+  <div class="rule">
+   <span class="f">Kette</span><span>Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten</span>
+   <span class="f">netto</span><span>Umsatzsteuer immer weglassen</span>
+   <span class="f">je Stück</span><span>am Ende durch die Stückzahl teilen</span>
+   <span class="f">Nachlass</span><span>Rabatt sofort · Skonto für schnelles Zahlen · Bonus nachträglich</span></div>`,
+  next:'Weiter auf dem Aufgabenblatt mit <b>Aufgabe 4</b>. Am Ende: Selbsttest Modul 2.'}
+]},
+
+{ id:3, title:'Was ein Preis bezahlen muss', sub:'Handlungskosten · Gewinn · Umsatzsteuer · Preisuntergrenze', cards:[
+ {t:'chat', title:'„Das ist doch Abzocke!“', msgs:[
+  ['k','Kunde','Das Poloshirt hat euch im Einkauf 13,90 € gekostet. Und ihr verlangt 26,55 €? Das ist doch Abzocke!'],
+  ['r','Du','Ähm … Hanna?'],
+  ['l',HANNA,'Gute Frage eigentlich. Wohin gehen die 12,65 € Unterschied? Was glaubst du?']]},
+ {t:'slider', title:'Schätz mal', q:'Wie viel von den 26,55 € bleibt am Ende als <b>Gewinn</b> bei der Kaufhaus Hansa GmbH?', min:0, max:13, step:.5, start:6, ans:1.46, reveal:`
+  <p>Nur <b>1,46 €</b>. Der Rest geht so weg:</p>
+  <div class="pbar" aria-label="Aufteilung des Preises">
+   <span style="flex:1390;background:var(--blue)">13,90</span><span style="flex:695;background:var(--sand)">6,95</span><span style="flex:146;background:var(--green)"></span><span style="flex:424;background:var(--red)">4,24</span></div>
+  <div class="legend"><span><i style="background:var(--blue)"></i>Einkauf 13,90 €</span><span><i style="background:var(--sand)"></i>Kosten im Betrieb 6,95 €</span><span><i style="background:var(--green)"></i>Gewinn 1,46 €</span><span><i style="background:var(--red)"></i>Staat (USt) 4,24 €</span></div>`},
+ {t:'info', kicker:'Die Preistreppe', title:'Vier Teile in jedem Preis', html:`
+  <div class="stairs">
+   <div style="background:var(--blue-soft)"><span>Bezugspreis <span class="muted">– Einkauf (Modul 2)</span></span><b>13,90 €</b></div>
+   <div style="background:var(--sand-soft)"><span>+ Handlungskosten</span><b>6,95 €</b></div>
+   <div style="background:var(--bg)"><span>= <b>Selbstkosten</b></span><b>20,85 €</b></div>
+   <div style="background:var(--green-soft)"><span>+ Gewinn</span><b>1,46 €</b></div>
+   <div style="background:var(--bg)"><span>= <b>Nettoverkaufspreis</b></span><b>22,31 €</b></div>
+   <div style="background:var(--red-soft)"><span>+ Umsatzsteuer 19 %</span><b>4,24 €</b></div>
+   <div style="background:var(--bg)"><span>= <b>Bruttoverkaufspreis</b></span><b>26,55 €</b></div></div>
+  <p class="muted">Lebensmittel und Bücher: 7 % Umsatzsteuer statt 19 %.</p>`},
+ {t:'info', kicker:'Die Faustregel', title:'Bezugskosten oder Handlungskosten?', html:`
+  <div class="split">
+   <div style="background:var(--blue-soft)"><b>Bis die Ware bei uns ist</b><br>→ <b>Bezugskosten</b><br><span class="muted">Fracht, Porto, Rollgeld, Verpackung des Lieferanten, Transportversicherung, Zoll</span></div>
+   <div style="background:var(--sand-soft)"><b>Alles danach, im eigenen Betrieb</b><br>→ <b>Handlungskosten</b><br><span class="muted">Löhne, Miete, Strom, Werbung, Lager, Versicherungen, Reparaturen, Büromaterial</span></div></div>
+  <p>Frag dich: <b>Ist die Ware schon bei uns angekommen?</b></p>`},
+ {t:'check', title:'B oder H?', q:'Transportversicherung für eine Lieferung', opts:[
+  ['Bezugskosten',1,'Richtig – die Ware ist noch unterwegs zu uns.'],
+  ['Handlungskosten',0,'Die Versicherung gilt für den Transport zu uns. Die Ware ist also noch nicht da → Bezugskosten.']]},
+ {t:'check', title:'B oder H?', q:'Strom für die Beleuchtung im Laden', opts:[
+  ['Bezugskosten',0,'Der Strom hat mit der Lieferung nichts zu tun. Er fällt in unserem Betrieb an.'],
+  ['Handlungskosten',1,'Genau – Kosten im eigenen Betrieb.']]},
+ {t:'check', title:'Prüfungsfrage', q:'Die <b>Energiekosten</b> der Kaufhaus Hansa GmbH sind stark gestiegen. Welche Auswirkung hat das auf die Kalkulation?', opts:[
+  ['Die Handlungskosten erhöhen sich.',1,'Richtig. Energie ist ein Kostenblock im eigenen Betrieb.'],
+  ['Der Bezugspreis erhöht sich.',0,'Der Bezugspreis hängt nur am Einkauf (Lieferant, Fracht). Strom gehört nicht dazu.'],
+  ['Die Umsatzsteuer erhöht sich.',0,'Der Steuersatz bleibt 19 %. Den legt der Staat fest.'],
+  ['Der Skonto erhöht sich.',0,'Skonto gibt der Lieferant. Mit unseren Energiekosten hat das nichts zu tun.']]},
+ {t:'info', kicker:'Zuschläge in Prozent', title:'Wie viel kommt obendrauf?', html:`
+  <p>Die Kaufhaus Hansa GmbH rechnet aus den Zahlen vom letzten Jahr aus, wie viel sie aufschlagen muss.</p>
+  <div class="box"><b>Handlungskostenzuschlag</b> = Handlungskosten : Wareneinsatz · 100</div>
+  <p class="muted"><b>Wareneinsatz</b> = Bezugspreise aller verkauften Waren in einem Jahr.</p>
+  <div class="box"><b>Gewinnzuschlag</b> = Gewinn : Selbstkosten · 100</div>
+  <p class="muted">Immer: geteilt durch die Stufe <b>direkt darunter</b> auf der Preistreppe.</p>`},
+ {t:'steps', title:'Vorgemacht: die Sportabteilung', task:'Wareneinsatz 820.000,00 € · Handlungskosten 369.000,00 €. Handlungskostenzuschlag in Prozent?', steps:[
+  ['Formel','Handlungskosten : Wareneinsatz · 100',''],
+  ['Rechnung','369.000 : 820.000 · 100','45 %'],
+  ['Bedeutung','Auf jeden Euro Einkauf kommen 45 Cent Kosten im Betrieb.','']], keys:'369000 ÷ 820000 × 100 ='},
+ {t:'calc', title:'Jetzt du', q:'Spielwarenabteilung: Wareneinsatz <b>1.250.000,00 €</b>, Handlungskosten <b>500.000,00 €</b>. Handlungskostenzuschlag?', ans:40, unit:'%', tol:.05, hint:'Handlungskosten : Wareneinsatz · 100', sol:'500.000 : 1.250.000 · 100 = <b>40 %</b>'},
+ {t:'calc', title:'Jetzt du', q:'Selbstkosten <b>1.750.000,00 €</b>, Gewinn <b>140.000,00 €</b>. Gewinnzuschlag?', ans:8, unit:'%', tol:.05, hint:'Gewinn : Selbstkosten · 100', sol:'140.000 : 1.750.000 · 100 = <b>8 %</b>'},
+ {t:'info', kicker:'Die rote Linie', title:'Die Preisuntergrenze', html:`
+  <p>Ein Kunde will Rabatt. Wie weit darfst du runtergehen?</p>
+  <div class="box"><b>Selbstkosten + Umsatzsteuer</b></div>
+  <p>Beim Hemd: 20,85 · 1,19 = <b>24,81 €</b>. Billiger heißt: Die Kaufhaus Hansa GmbH macht mit dem Hemd <b>Verlust</b>.</p>
+  <p class="muted">Warum mit Umsatzsteuer? Die muss trotzdem ans Finanzamt.</p>`},
+ {t:'check', title:'Prüfungsfrage', q:'Welcher Verkaufspreis ist die <b>Untergrenze</b>, damit du keinen Verlust machst?', opts:[
+  ['Bezugspreis zuzüglich Umsatzsteuer',0,'Dann wären die Kosten im Betrieb (Miete, Personal …) nicht bezahlt.'],
+  ['Selbstkostenpreis zuzüglich Umsatzsteuer',1,'Richtig. Alle Kosten sind gedeckt, nur kein Gewinn.'],
+  ['Nettoverkaufspreis zuzüglich Umsatzsteuer',0,'Das ist der normale Preis mit Gewinn – keine Untergrenze.'],
+  ['Selbstkostenpreis ohne Umsatzsteuer',0,'Die Umsatzsteuer muss trotzdem ans Finanzamt. Ohne sie machst du Verlust.']]},
+ {t:'profi', title:'Unter der Preisuntergrenze verkaufen – warum macht man das?', html:`
+  <p><b>Gründe:</b> Lockangebot – Kunden kommen wegen eines Artikels und kaufen mehr. Restbestände oder Saisonware loswerden. Gegen einen Mitbewerber bestehen.</p>
+  <p><b>Risiko:</b> Kunden kaufen nur das Lockangebot. Dann bleibt der Verlust.</p>
+  <p><b>Und warum bezieht sich der Handlungskostenzuschlag auf den Wareneinsatz?</b> Weil die Kalkulation beim Bezugspreis startet. Der Zuschlag wird später auf den Bezugspreis gerechnet – also muss er auch aus den Bezugspreisen (dem Wareneinsatz) berechnet werden.</p>`},
+ {t:'merke', title:'Das nimmst du mit', html:`
+  <div class="box"><b>Bezugspreis + Handlungskosten = Selbstkosten + Gewinn = Nettoverkaufspreis + USt = Bruttoverkaufspreis</b></div>
+  <div class="rule">
+   <span class="f">B / H</span><span>bis die Ware bei uns ist: Bezugskosten · danach: Handlungskosten</span>
+   <span class="f">HKZ</span><span>Handlungskosten : Wareneinsatz · 100</span>
+   <span class="f">GZ</span><span>Gewinn : Selbstkosten · 100</span>
+   <span class="f">Grenze</span><span>Selbstkosten + Umsatzsteuer</span></div>`,
+  next:'Weiter auf dem Aufgabenblatt mit <b>Aufgabe 4</b>. Am Ende: Selbsttest Modul 3.'}
+]}
+];
+
+/* ---------- Zustand ---------- */
+const KEY='lf9-lernkarten-v1';
+let prog={}; try{prog=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(prog))}catch(e){}}
+let cur=null, idx=0, locked=false;
+const app=document.getElementById('app');
+const speak='speechSynthesis' in window;
+
+function home(){
+  cur=null; stopSpeak();
+  app.innerHTML=`<div class="hero"><span class="kicker">Lernfeld 9 · Preispolitik</span><h1>Lernkarten statt Lehrbuch</h1>
+  <p class="muted">Wisch dich durch. Eine Idee pro Karte, dazwischen kurze Fragen. Etwa 10 Minuten pro Modul.</p></div>
+  <div class="mods">${MODS.map(m=>{const p=prog[m.id]||0;const pct=Math.round(p/m.cards.length*100);
+   return `<button class="mod" data-m="${m.id}"><span class="num">${m.id}</span><b>${m.title}</b><small>${m.sub}</small>
+   <span class="bar" aria-label="${pct} Prozent geschafft"><i style="width:${pct}%"></i></span></button>`}).join('')}</div>
+  <div class="how"><b>So geht's</b><ul><li>Weiter mit dem Button, durch Wischen oder mit der Pfeiltaste.</li>
+  <li>Bei Fragen geht es erst weiter, wenn du geantwortet hast.</li>
+  ${speak?'<li>Mit dem Lautsprecher-Symbol liest dir das Handy die Karte vor.</li>':''}
+  <li>Taschenrechner bereithalten.</li></ul></div>`;
+  app.querySelectorAll('.mod').forEach(b=>b.onclick=()=>open(+b.dataset.m,0));
+}
+function open(id,i){cur=MODS.find(m=>m.id===id); idx=i; show(); window.scrollTo(0,0)}
+
+const ICON_BACK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>';
+const ICON_SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>';
+
+function show(){
+  stopSpeak();
+  const c=cur.cards[idx]; const n=cur.cards.length;
+  prog[cur.id]=Math.max(prog[cur.id]||0, idx+1); save();
+  app.innerHTML=`<div class="top"><button class="ghost icon" id="home" aria-label="Zur Übersicht">${ICON_BACK}</button>
+   <span class="t">Modul ${cur.id} · ${cur.title}</span>
+   ${speak?`<button class="ghost icon" id="spk" aria-label="Karte vorlesen">${ICON_SPK}</button>`:''}</div>
+   <div class="dots">${cur.cards.map((_,i)=>`<i class="${i<=idx?'on':''}"></i>`).join('')}</div>
+   <div class="card" id="card"></div>
+   <div class="nav"><button class="ghost" id="prev" ${idx===0?'disabled':''}>Zurück</button>
+   <button id="next">${idx===n-1?'Fertig':'Weiter'}</button></div><div class="lockhint" id="lh"></div>`;
+  const card=document.getElementById('card');
+  locked=false; build(card,c);
+  document.getElementById('home').onclick=home;
+  document.getElementById('prev').onclick=()=>{if(idx>0){idx--;show()}};
+  document.getElementById('next').onclick=next;
+  const s=document.getElementById('spk'); if(s) s.onclick=()=>readCard(card);
+  setLock(locked);
+}
+function next(){ if(locked) return; if(idx<cur.cards.length-1){idx++;show();window.scrollTo(0,0)} else finish(); }
+function setLock(v){ locked=v; const b=document.getElementById('next'); if(b){b.disabled=v}
+  const h=document.getElementById('lh'); if(h) h.textContent=v?'Erst antworten, dann geht es weiter.':''; }
+function finish(){
+  stopSpeak();
+  const last=cur.cards[cur.cards.length-1];
+  app.innerHTML=`<div class="card done"><span class="kicker">Modul ${cur.id} geschafft</span><h2>Stark gemacht!</h2>
+  <p>${last.next||''}</p><div class="row" style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center">
+  <button class="ghost" id="again">Noch mal ansehen</button><button id="ov">Zur Übersicht</button></div></div>`;
+  document.getElementById('again').onclick=()=>open(cur.id,0);
+  document.getElementById('ov').onclick=home;
+}
+
+function head(c,kicker){return `<span class="kicker">${kicker||''}</span><h2>${c.title}</h2>${c.src?`<p class="muted" style="font-size:.85rem">${c.src}</p>`:''}`}
+
+function build(el,c){
+  if(c.t==='chat'){
+    el.innerHTML=head(c,'Im Hafenstore')+`<div class="chat">${c.msgs.map(m=>`<div class="msg ${m[0]}"><span class="who">${m[1]}</span>${m[2]}</div>`).join('')}</div>`;
+  } else if(c.t==='info'){
+    el.innerHTML=head(c,c.kicker)+c.html;
+  } else if(c.t==='merke'){
+    el.innerHTML=head(c,'Merkkarte')+c.html+`<p class="muted" style="font-size:.9rem">Tipp: Mach von dieser Karte einen Screenshot. Das ist dein Spickzettel fürs Modul.</p>`;
+  } else if(c.t==='profi'){
+    el.innerHTML=`<span class="tagp">FÜR PROFIS · FREIWILLIG</span><h2>${c.title}</h2><div class="profi">${c.html}</div>`;
+  } else if(c.t==='check'){
+    el.innerHTML=head(c,'Frage')+`<p>${c.q}</p><div class="opts">${c.opts.map((o,i)=>`<button class="opt" data-i="${i}">${o[0]}</button>`).join('')}</div><div id="fb"></div>`;
+    locked=true;
+    el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const o=c.opts[+b.dataset.i]; const fb=el.querySelector('#fb');
+      b.classList.add(o[1]?'ok':'no');
+      fb.innerHTML=`<div class="fb ${o[1]?'ok':'no'}">${o[1]?'<b>Richtig!</b> ':'<b>Nicht ganz.</b> '}${o[2]}${o[1]?'':' Versuch es noch einmal.'}</div>`;
+      if(o[1]){ el.querySelectorAll('.opt').forEach(x=>x.disabled=true); setLock(false); }
+    });
+  } else if(c.t==='calc'){
+    el.innerHTML=head(c,'Rechnen')+`<p>${c.q}</p><div class="calc"><input id="in" inputmode="decimal" autocomplete="off" aria-label="Ergebnis"> <b>${c.unit}</b>
+     <button id="ck">Prüfen</button></div><div id="fb"></div>`;
+    locked=true; let tries=0;
+    const go=()=>{
+      const v=parseNum(el.querySelector('#in').value); const fb=el.querySelector('#fb');
+      if(v===null){fb.innerHTML='<div class="fb no">Gib eine Zahl ein, z. B. 12,50.</div>';return}
+      const ok=Math.abs(v-c.ans)<=(c.tol||.006);
+      tries++;
+      if(ok){fb.innerHTML=`<div class="fb ok"><b>Richtig!</b> ${c.sol}</div>`;setLock(false);el.querySelector('#ck').disabled=true}
+      else if(tries===1){fb.innerHTML=`<div class="fb no"><b>Noch nicht.</b> Tipp: ${c.hint}</div>`}
+      else{fb.innerHTML=`<div class="fb no"><b>So geht's:</b> ${c.sol}<br>Tippe das Ergebnis ein oder geh weiter.</div>`;setLock(false)}
+    };
+    el.querySelector('#ck').onclick=go;
+    el.querySelector('#in').onkeydown=e=>{if(e.key==='Enter')go()};
+  } else if(c.t==='steps'){
+    el.innerHTML=head(c,'Vorgemacht')+`<p>${c.task}</p><div class="tw"><table class="steps">${c.steps.map(s=>`<tr class="hide"><td>${s[0]}</td><td>${s[1]}</td><td class="n"><b>${s[2]}</b></td></tr>`).join('')}</table></div>
+     <button class="ghost" id="st">Nächster Schritt</button><div id="after"></div>`;
+    locked=true; const rows=[...el.querySelectorAll('tr')]; let k=0;
+    const st=el.querySelector('#st');
+    st.onclick=()=>{ rows[k].classList.remove('hide'); k++;
+      if(k===rows.length){ st.hidden=true; setLock(false);
+        el.querySelector('#after').innerHTML=(c.keys?`<div class="keys">Taschenrechner: ${c.keys}</div>`:'')+(c.after?`<p>${c.after}</p>`:''); } };
+  } else if(c.t==='guess'){
+    el.innerHTML=head(c,'Erst schätzen')+c.html+`<div class="opts">${c.opts.map(o=>`<button class="opt">${o}</button>`).join('')}</div><div id="fb"></div>`;
+    locked=true;
+    el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{el.querySelectorAll('.opt').forEach(x=>{x.disabled=true});b.classList.add('ok');
+      el.querySelector('#fb').innerHTML=`<div class="fb ok">${c.reveal}</div>`;setLock(false)});
+  } else if(c.t==='slider'){
+    el.innerHTML=head(c,'Erst schätzen')+`<p>${c.q}</p><input type="range" id="sl" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.start}" aria-label="Schätzung in Euro">
+     <div class="big" id="sv" style="text-align:center">${E(c.start)} €</div><button id="ok">Das ist meine Schätzung</button><div id="fb"></div>`;
+    locked=true; const sl=el.querySelector('#sl');
+    sl.oninput=()=>el.querySelector('#sv').textContent=E(+sl.value)+' €';
+    el.querySelector('#ok').onclick=()=>{ const d=+sl.value-c.ans; sl.disabled=true; el.querySelector('#ok').hidden=true;
+      el.querySelector('#fb').innerHTML=`<p><b>Deine Schätzung: ${E(+sl.value)} €.</b> ${Math.abs(d)<1?'Sehr nah dran!':d>0?'Viel weniger, als die meisten denken.':''}</p>`+c.reveal; setLock(false); };
+  }
+}
+function parseNum(s){ s=(s||'').replace(/[€%\s]/g,''); if(!s) return null;
+  if(s.includes(',')) s=s.replace(/\./g,'').replace(',','.'); else if((s.match(/\./g)||[]).length>1) s=s.replace(/\./g,'');
+  const v=parseFloat(s); return isNaN(v)?null:v; }
+
+/* Vorlesen */
+function readCard(card){
+  if(!speak) return;
+  if(speechSynthesis.speaking){stopSpeak();return}
+  const clone=card.cloneNode(true); clone.querySelectorAll('.hide,button,input').forEach(x=>x.remove());
+  let t=clone.innerText.replace(/·/g,' mal ').replace(/ : /g,' geteilt durch ').replace(/–/g,' minus ').replace(/\+/g,' plus ').replace(/%/g,' Prozent');
+  const u=new SpeechSynthesisUtterance(t); u.lang='de-DE'; u.rate=.95;
+  const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.startsWith('de')); if(v) u.voice=v;
+  speechSynthesis.speak(u);
+}
+function stopSpeak(){ try{ if(speak) speechSynthesis.cancel() }catch(e){} }
+
+/* Wischen und Tasten */
+let sx=null,sy=null;
+document.addEventListener('touchstart',e=>{if(!cur)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+document.addEventListener('touchend',e=>{if(!cur||sx===null)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.5){ if(e.target.closest('input,.tw')) return; if(dx<0) next(); else if(idx>0){idx--;show()} } sx=null},{passive:true});
+document.addEventListener('keydown',e=>{if(!cur||e.target.tagName==='INPUT')return;if(e.key==='ArrowRight')next();if(e.key==='ArrowLeft'&&idx>0){idx--;show()}});
+
+const H=(location.hash.match(/^#modul-(\d+)$/)||[])[1];
+if(H&&MODS.find(m=>m.id===+H)) open(+H,0); else home();
+</script>
+
+</body>
+</html>

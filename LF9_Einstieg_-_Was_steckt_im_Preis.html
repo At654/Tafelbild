@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 9 – Was steckt in 49,99 €?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4ecdf; --paper:#fffaf2; --ink:#1f1a14; --muted:#6b5f50; --line:#d9cbb5;
+  --red:#c8321f; --red-soft:#f6d9d2; --green:#2f7a4a; --green-soft:#d7eedd;
+  --l1:#3d5a80; --l2:#98c1d9; --l3:#e0a458; --l4:#c8321f;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1b1713; --paper:#26201a; --ink:#f3ead9; --muted:#b5a68f; --line:#40362b;
+    --red:#ef6a52; --red-soft:#3e2420; --green:#6cc28b; --green-soft:#1f3627;
+    --l1:#7fa3d1; --l2:#4b7f9c; --l3:#d99a4e; --l4:#ef6a52;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1b1713; --paper:#26201a; --ink:#f3ead9; --muted:#b5a68f; --line:#40362b;
+  --red:#ef6a52; --red-soft:#3e2420; --green:#6cc28b; --green-soft:#1f3627;
+  --l1:#7fa3d1; --l2:#4b7f9c; --l3:#d99a4e; --l4:#ef6a52;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:18px/1.55 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:640px;margin:0 auto;padding:1.25rem 1rem 3rem}
+h1,h2,.big{font-family:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;line-height:1.1;margin:0}
+h2{font-size:1.6rem;font-weight:800;margin:0 0 .5rem}
+p{margin:.5rem 0}
+.muted{color:var(--muted)}
+section{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:1.25rem;margin:1.25rem 0}
+.step{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;color:var(--red);font-size:1rem;margin-bottom:.25rem}
+button{font:inherit;font-weight:700;border:2px solid var(--ink);background:var(--ink);color:var(--paper);
+  border-radius:10px;padding:.7rem 1.1rem;cursor:pointer;min-height:48px}
+button.ghost{background:transparent;color:var(--ink)}
+button:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.75rem}
+
+/* Hero: Preisschild */
+.hero{display:grid;gap:1rem;justify-items:center;text-align:center;padding:1.5rem 0 .5rem}
+.tag{position:relative;background:var(--red);color:#fff;padding:1.2rem 2.2rem 1.2rem 3.2rem;
+  border-radius:8px 18px 18px 8px;transform:rotate(-4deg);box-shadow:0 8px 0 rgba(0,0,0,.12)}
+.tag::before{content:"";position:absolute;left:1.1rem;top:50%;width:14px;height:14px;margin-top:-7px;
+  border-radius:50%;background:var(--bg)}
+.tag .big{font-size:clamp(3rem,15vw,5rem);font-weight:800;letter-spacing:-.02em}
+.tag small{display:block;font-size:.9rem;opacity:.9}
+.hero h1{font-size:clamp(1.9rem,7vw,2.6rem);font-weight:800;max-width:15ch}
+
+/* Schätzen */
+input[type=range]{width:100%;accent-color:var(--red);height:40px}
+.guess{font-family:"Bricolage Grotesque",sans-serif;font-size:2.4rem;font-weight:800;text-align:center}
+.reveal{display:none;margin-top:.75rem;padding:.9rem;border-radius:10px;background:var(--green-soft)}
+.reveal.on{display:block}
+
+/* Preistreppe */
+.stack{display:flex;flex-direction:column-reverse;height:330px;border:2px solid var(--ink);border-radius:10px;overflow:hidden;background:var(--bg)}
+.layer{display:flex;align-items:center;justify-content:space-between;padding:0 .8rem;color:#fff;font-weight:700;
+  height:0;opacity:0;transition:height .6s ease,opacity .4s;overflow:hidden;white-space:nowrap;font-size:.95rem}
+.layer.on{opacity:1}
+.layer[data-i="0"]{background:var(--l1)} .layer[data-i="1"]{background:var(--l2);color:#10202b}
+.layer[data-i="2"]{background:var(--l3);color:#2b1a05} .layer[data-i="3"]{background:var(--l4)}
+.explain{min-height:4.5em;margin-top:.75rem}
+.total{display:flex;justify-content:space-between;font-weight:700;border-top:2px dashed var(--line);margin-top:.5rem;padding-top:.5rem}
+
+/* Karten */
+.card{border:1px solid var(--line);border-radius:10px;padding:.9rem;margin:.75rem 0;background:var(--bg)}
+.card .fb{display:none;margin-top:.5rem;padding:.6rem .8rem;border-radius:8px}
+.card .fb.ok{display:block;background:var(--green-soft)}
+.card .fb.no{display:block;background:var(--red-soft)}
+
+/* Route */
+ol.route{list-style:none;margin:0;padding:0;counter-reset:m}
+ol.route li{counter-increment:m;display:grid;grid-template-columns:2.6rem 1fr;gap:.75rem;padding:.7rem 0;border-bottom:1px dashed var(--line)}
+ol.route li::before{content:counter(m);font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.3rem;
+  width:2.4rem;height:2.4rem;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center}
+ol.route li.goal::before{background:var(--red);border-color:var(--red);color:#fff}
+ol.route b{display:block}
+.stat{display:flex;gap:1rem;align-items:center;margin:.5rem 0 1rem}
+.stat .big{font-size:2.6rem;font-weight:800;color:var(--red)}
+
+/* Profi */
+.profi{border:2px dashed var(--ink)}
+.profi input{font:inherit;font-size:1.3rem;width:6rem;padding:.5rem;border:2px solid var(--ink);border-radius:8px;background:var(--paper);color:var(--ink)}
+footer{text-align:center;margin-top:2rem}
+</style>
+</head>
+<body>
+<main>
+
+<header class="hero">
+  <div class="tag"><span class="big">49,99&nbsp;€</span><small>Kapuzenpulli · Kaufhaus Hansa</small></div>
+  <h1>Was steckt eigentlich in diesem Preis?</h1>
+  <p class="muted">Lernfeld 9 · Preispolitische Maßnahmen · ca. 10 Minuten</p>
+</header>
+
+<section>
+  <div class="step">Schritt 1 · Schätzen</div>
+  <h2>Was hat der Laden für den Pulli bezahlt?</h2>
+  <p>Der Pulli kostet 49,99&nbsp;€. Was glaubst du: Wie viel hat Kaufhaus Hansa selbst beim Lieferanten bezahlt (mit Lieferung)?</p>
+  <div class="guess" id="gv">25,00 €</div>
+  <input type="range" id="g" min="5" max="49" step="0.5" value="25" aria-label="Deine Schätzung in Euro">
+  <div class="row"><button id="gbtn">Schätzung festmachen</button></div>
+  <div class="reveal" id="grev"></div>
+</section>
+
+<section>
+  <div class="step">Schritt 2 · Die Preistreppe</div>
+  <h2>So entsteht der Preis</h2>
+  <p>Tippe auf „Nächste Stufe“. Der Preis wächst Stück für Stück.</p>
+  <div class="stack" id="stack"></div>
+  <div class="total"><span>Preis bis jetzt</span><span id="sum">0,00 €</span></div>
+  <p class="explain" id="exp"></p>
+  <div class="row"><button id="next">Nächste Stufe</button><button class="ghost" id="reset">Von vorn</button></div>
+</section>
+
+<section>
+  <div class="step">Schritt 3 · Schnäppchen oder Schein?</div>
+  <h2>Stimmt das?</h2>
+  <p>Entscheide aus dem Bauch. Ob du richtig liegst, ist hier egal – du sollst nur neugierig werden.</p>
+  <div id="cards"></div>
+</section>
+
+<section>
+  <div class="step">Schritt 4 · Dein Weg</div>
+  <h2>Was dich in Lernfeld 9 erwartet</h2>
+  <div class="stat"><span class="big">19/19</span><span>In <b>allen</b> 19 Abschlussprüfungen seit 2017 musstest du den Bezugspreis und den Verkaufspreis ausrechnen. Diese Punkte holst du dir hier.</span></div>
+  <ol class="route" id="route"></ol>
+  <p class="muted">Dazu gibt es den Kalkulations-Trainer zum Üben, eine Übungsklausur und die Klausur.</p>
+</section>
+
+<section class="profi">
+  <div class="step">Für Profis</div>
+  <h2>Ab wann ist der Pulli ein Verlustgeschäft?</h2>
+  <p>Ohne Gewinn müsste der Laden mindestens 39,98&nbsp;€ (mit Steuer) verlangen, sonst deckt er seine Kosten nicht. Ab wie viel Prozent Rabatt auf 49,99&nbsp;€ verdient er am Pulli nichts mehr?</p>
+  <div class="row"><input id="pin" inputmode="decimal" placeholder="%" aria-label="Rabatt in Prozent"><button id="pbtn">Prüfen</button></div>
+  <p id="pfb"></p>
+</section>
+
+<footer>
+  <p id="end" class="muted">Merk dir deine Schätzung aus Schritt 1. Wenn du die Preistreppe in Lernfeld 9 gelernt hast, rechnest du den Pulli selbst nach.</p>
+  <p class="muted">Viel Erfolg! 🏷️</p>
+</footer>
+</main>
+
+<script>
+// ===== Inhalte (hier anpassen) =====
+const EK = 24.00; // Bezugspreis
+const STUFEN = [ // Begriffe und Reihenfolge wie Modul 4 (Vorwärtskalkulation)
+  {name:"Bezugspreis", wert:24.00, text:"Listeneinkaufspreis minus Rabatt und Skonto, plus Bezugskosten (z. B. Fracht): Der <b>Bezugspreis</b> des Pullis ist <b>24,00 €</b>."},
+  {name:"+ 40 % Handlungskosten", wert:9.60, text:"Miete, Gehälter, Strom, Werbung: <b>40 % Handlungskosten</b> auf den Bezugspreis sind <b>9,60 €</b>. Bezugspreis + Handlungskosten = <b>Selbstkosten 33,60 €</b>."},
+  {name:"+ 25 % Gewinn", wert:8.40, text:"<b>25 % Gewinn</b> auf die Selbstkosten sind <b>8,40 €</b>. Selbstkosten + Gewinn = <b>Nettoverkaufspreis 42,00 €</b>."},
+  {name:"+ 19 % Umsatzsteuer", wert:7.98, text:"<b>19 % Umsatzsteuer</b> auf den Nettoverkaufspreis sind <b>7,98 €</b> – sie geht ans Finanzamt. <b>Bruttoverkaufspreis 49,98 €</b>; auf dem Schild steht der Schwellenpreis <b>49,99 €</b>.<br>In einer Kette: 24,00 · 1,4 · 1,25 · 1,19 = 49,98 €. Kalkulationsfaktor: 49,98 : 24,00 = <b>2,0825</b> (≈ 2,08)."}
+];
+const KARTEN = [
+  {t:"Der Laden verdient am Pulli fast so viel, wie er im Einkauf bezahlt hat.", ok:false,
+   e:"Nein. Vom Pulli bleiben nur 8,40 € Gewinn. Der größte Teil geht für Einkauf, Kosten und Steuer weg."},
+  {t:"Auf einer 500-g-Packung Kaffee muss auch der Preis für 1 kg stehen.", ok:true,
+   e:"Stimmt. Das ist der Grundpreis. Er steht in der Preisangabenverordnung, damit Kunden Packungen vergleichen können."},
+  {t:"„Statt 79,99 € jetzt 49,99 €“ – den alten Preis darf sich der Laden frei aussuchen.", ok:false,
+   e:"Nein. Der „statt“-Preis muss der niedrigste Preis der letzten 30 Tage sein. Sonst ist das Angebot nur Schein."},
+  {t:"9,99 € wirkt auf viele Kunden deutlich günstiger als 10,00 €.", ok:true,
+   e:"Stimmt. Das nennt man Schwellenpreis. Der Kopf liest zuerst die 9 – ein Trick der Preispolitik."}
+];
+const MODULE = [ // abgeglichen mit den Modulthemen (LF9 Übersicht, Stand 10/2026)
+  ["Modul 1 · Das Prozent-Werkzeug","Faktor-Bingo: Plus 19 % heißt mal 1,19 – ein Trick für jede Prozentaufgabe."],
+  ["Modul 2 · Vom Listenpreis zum Bezugspreis","Bauchgefühl gegen Rechnung: Rabatt, Skonto, Bezugskosten – was kostet die Ware den Laden wirklich?"],
+  ["Modul 3 · Was ein Preis bezahlen muss","Wohin geht mein Euro? Miete, Personal, Gewinn, Steuer – und wie tief darf ein Preis sinken?"],
+  ["Modul 4 · Vorwärtskalkulation","Die Preistreppe: vom Bezugspreis zum Bruttoverkaufspreis – genau wie beim Pulli oben."],
+  ["Modul 5 · Kalkulationsfaktor und Kalkulationszuschlag","Das Faktor-Rennen: mit einer einzigen Zahl zum Verkaufspreis und wieder zurück."],
+  ["Modul 6 · Preise senken und Aktionen rechnen","Schnäppchen oder Schein? Preissenkung in Prozent, Umsatz der Aktion, Umsatzsteuer in der Kasse."],
+  ["Modul 7 · Preise festlegen und begründen","Der Preis-Rat: Mitbewerber, Nachfrage, Lockangebot – und was du sagst, wenn es woanders billiger ist."],
+  ["Modul 8 · Die Preisangabenverordnung","Preisschild-Check: Endpreis, Grundpreis, falsches Schild am Regal."],
+  ["Modul 9 · Prüfungstraining und Escape Room","Der Preis-Tresor: alle Aufgabenmuster der Prüfung gemischt."]
+];
+// ===================================
+const eur = n => n.toFixed(2).replace(".",",")+" €";
+const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+// Schritt 1
+const g=document.getElementById("g"), gv=document.getElementById("gv"), grev=document.getElementById("grev");
+const saved = store.get("lf9-schaetzung");
+if(saved){g.value=saved; gv.textContent=eur(+saved);}
+g.oninput=()=>gv.textContent=eur(+g.value);
+document.getElementById("gbtn").onclick=()=>{
+  const v=+g.value; store.set("lf9-schaetzung",v);
+  const d=Math.abs(v-EK);
+  let msg = d<=2 ? "Sehr nah dran! 👏" : d<=6 ? "Gar nicht schlecht." : (v>EK ? "Du hast zu hoch geschätzt – die meisten tun das." : "Du hast zu niedrig geschätzt – der Laden zahlt mehr, als viele denken.");
+  grev.innerHTML=`Deine Schätzung: <b>${eur(v)}</b>. Tatsächlich: <b>${eur(EK)}</b> – also knapp die Hälfte des Preises. ${msg}<br>Wo bleibt der Rest? Schritt 2 zeigt es dir.`;
+  grev.classList.add("on");
+  document.getElementById("end").innerHTML=`Deine Schätzung: <b>${eur(v)}</b>. Wenn du die Preistreppe in Lernfeld 9 gelernt hast, rechnest du den Pulli selbst nach.`;
+};
+
+// Schritt 2
+const stack=document.getElementById("stack"), exp=document.getElementById("exp"), sum=document.getElementById("sum"), nb=document.getElementById("next");
+STUFEN.forEach((s,i)=>{const d=document.createElement("div");d.className="layer";d.dataset.i=i;d.innerHTML=`<span>${s.name}</span><span>${eur(s.wert)}</span>`;stack.appendChild(d);});
+let st=0;
+function show(){
+  const L=stack.querySelectorAll(".layer"); let total=0;
+  L.forEach((l,i)=>{ if(i<st){l.classList.add("on"); l.style.height=(STUFEN[i].wert/50*100)+"%"; total+=STUFEN[i].wert;} else {l.classList.remove("on"); l.style.height="0";} });
+  sum.textContent=eur(total);
+  exp.innerHTML = st===0 ? "Noch leer. Los geht’s!" : STUFEN[st-1].text;
+  nb.disabled = st>=STUFEN.length;
+}
+nb.onclick=()=>{st++;show()}; document.getElementById("reset").onclick=()=>{st=0;show()}; show();
+
+// Schritt 3
+const cw=document.getElementById("cards");
+KARTEN.forEach(k=>{
+  const c=document.createElement("div"); c.className="card";
+  c.innerHTML=`<p>${k.t}</p><div class="row"><button class="ghost" data-a="1">Stimmt</button><button class="ghost" data-a="0">Stimmt nicht</button></div><div class="fb"></div>`;
+  const fb=c.querySelector(".fb");
+  c.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    const right=(b.dataset.a==="1")===k.ok;
+    fb.className="fb "+(right?"ok":"no");
+    fb.innerHTML=(right?"<b>Richtig.</b> ":"<b>Daneben – macht nichts.</b> ")+k.e;
+    c.querySelectorAll("button").forEach(x=>x.disabled=true);
+  });
+  cw.appendChild(c);
+});
+
+// Schritt 4
+const r=document.getElementById("route");
+MODULE.forEach((m,i)=>{const li=document.createElement("li"); if(i===MODULE.length-1)li.className="goal"; li.innerHTML=`<div><b>${m[0]}</b>${m[1]}</div>`; r.appendChild(li);});
+
+// Profi
+document.getElementById("pbtn").onclick=()=>{
+  const v=parseFloat(document.getElementById("pin").value.replace(",",".")), f=document.getElementById("pfb");
+  if(isNaN(v)){f.textContent="Gib eine Zahl ein.";return;}
+  f.innerHTML = Math.abs(v-20)<=0.5
+    ? "<b>Genau.</b> 49,99 € − 20 % = 39,99 €. Ab etwa 20 % Rabatt verdient der Laden am Pulli nichts mehr. Darum geht es in „Schnäppchen oder Schein?“."
+    : "<b>Noch nicht.</b> Tipp: Um wie viel Euro darf der Preis höchstens sinken? Diesen Betrag teilst du durch 49,99 € und nimmst ihn mal 100.";
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zahlen-Trainer LF 8</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&display=swap">
+<style>
+/* Layout: Werkbank – oben Runden und Stufe, in der Mitte die Aufgabenkarte, unten der Fortschritt zum Nachweis. Serie LF 8: dunkel, Lampengelb. */
+:root{
+  --nacht:#0f1b2b; --nacht2:#16263b; --linie:#2b4160; --text:#e8eef6; --leise:#9fb3cc;
+  --lampe:#f4d35e; --rot:#e5484d; --gruen:#4fbf8a; --blau:#9DC3E6; --papier:#f7f4ec; --tinte:#1c2530;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif; --body:"Barlow",Arial,Helvetica,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{background:var(--nacht);color:var(--text)}
+body{margin:0;font-family:var(--body);font-size:17px;line-height:1.45}
+.wrap{max-width:900px;margin:0 auto;padding-inline:16px;padding-block:18px 60px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--linie);padding-bottom:10px;margin-bottom:14px}
+.marke{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;color:var(--lampe);text-transform:uppercase}
+.marke small{display:block;font-size:15px;letter-spacing:2px;color:var(--leise);font-weight:600}
+h2{font-family:var(--display);font-weight:800;font-size:24px;margin:0 0 8px}
+p{margin:0 0 10px}.leise{color:var(--leise)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tab{font-family:var(--display);font-weight:800;font-size:18px;padding:8px 12px;border-radius:8px;border:2px solid var(--linie);background:transparent;color:var(--text);cursor:pointer;min-height:44px}
+.tab[aria-selected=true]{background:var(--lampe);color:#1b1500;border-color:var(--lampe)}
+.tab .n{font-family:var(--body);font-weight:600;font-size:13px;margin-left:6px;opacity:.85}
+.stufen{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.stufe{font:inherit;font-size:15px;padding:6px 12px;border-radius:999px;border:1px solid var(--linie);background:transparent;color:var(--text);cursor:pointer;min-height:36px}
+.stufe[aria-pressed=true]{background:var(--blau);color:#0f1b2b;border-color:var(--blau)}
+.karte{background:var(--papier);color:var(--tinte);border-radius:8px;padding:18px}
+.karte table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums;margin:8px 0}
+.karte th,.karte td{border-bottom:1px solid #d8d1c0;padding:4px 6px;text-align:left}.karte td.r,.karte th.r{text-align:right}
+.karte th{background:#e5b8b7}
+.tw{overflow-x:auto}
+.frage{font-weight:600;margin:10px 0 6px}
+.eing{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.eing label{min-width:0;flex:1 1 220px}
+input[type=text]{font:inherit;font-size:20px;padding:8px 10px;border-radius:8px;border:2px solid #cfc7b5;background:#fff;color:var(--tinte);width:170px}
+.opts{display:grid;gap:8px}
+.opt{font:inherit;text-align:left;padding:10px 12px;border-radius:6px;border:2px solid #cfc7b5;background:#fff;color:var(--tinte);cursor:pointer;min-height:44px}
+.opt.r{border-color:#2e8b57;background:#e3f4ea}.opt.f{border-color:#c0392b;background:#fbe6e4}
+.btn{font-family:var(--display);font-weight:800;font-size:20px;border:0;border-radius:8px;padding:10px 18px;cursor:pointer;min-height:46px;background:#1F4E79;color:#fff}
+.btn.gelb{background:var(--lampe);color:#1b1500}.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible,input:focus-visible,.tab:focus-visible,.opt:focus-visible{outline:3px solid #f4d35e;outline-offset:2px}
+.rueck{margin-top:12px;padding:10px 12px;border-radius:6px;font-size:16px}
+.rueck.ok{background:#e3f4ea;border-left:4px solid #2e8b57}.rueck.no{background:#fbe6e4;border-left:4px solid #c0392b}
+.fort{margin-top:16px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.fort{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.f{background:var(--nacht2);border:1px solid var(--linie);border-radius:8px;padding:8px 10px;font-size:14px}
+.f b{display:block;font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums}
+.f.voll{border-color:var(--gruen)}.f.voll b{color:var(--gruen)}
+.nachweis{margin-top:18px;background:var(--nacht2);border:2px solid var(--lampe);border-radius:10px;padding:16px}
+.code{font-family:var(--display);font-weight:800;font-size:34px;letter-spacing:3px;color:var(--lampe)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="marke">Zahlen-Trainer<small>LF 8 · Inventur · Bilanz · GuV · Kennzahlen</small></div><div class="leise" id="gesamt">0 von 20 für den Nachweis</div></header>
+<p class="leise">Jede Aufgabe ist neu gewürfelt – genau die Aufgabentypen aus der IHK-Prüfung. Taschenrechner benutzen, nur das Ergebnis eintippen. Für den Nachweis im Punktekonto brauchst du <b>4 richtige Aufgaben in jeder der 5 Runden</b> (egal welche Stufe).</p>
+<div class="tabs" role="tablist" id="tabs"></div>
+<div class="stufen" id="stufen"><span class="leise" style="font-size:14px">Stufe:</span></div>
+<div class="karte" id="karte" aria-live="polite"></div>
+<div class="fort" id="fort"></div>
+<div class="nachweis" id="nachweis" hidden></div>
+</div>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const de=(x,d)=>Number(x).toLocaleString("de-DE",{minimumFractionDigits:d==null?2:d,maximumFractionDigits:d==null?2:d});
+const eur=x=>de(x,2)+" €";
+const rd=(x,d)=>Math.round(x*Math.pow(10,d))/Math.pow(10,d);
+function zahl(s){s=String(s||"").replace(/[\s€%]/g,"");if(!s)return NaN;if(s.indexOf(",")>=0)s=s.replace(/\./g,"").replace(",",".");else if(/^-?\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,"");return Number(s);}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k));localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+const RUNDEN=[{id:"inv",name:"Inventurdifferenz"},{id:"ek",name:"Eigenkapitalanteil"},{id:"guv",name:"Gewinn"},{id:"kz",name:"Kennzahlen"},{id:"zu",name:"Zuordnen"}];
+const STUFEN=["Basis","Prüfung","Profi"];
+const SOCKEN=["Möwe","Kuschel","Wanderprofi","Baby-Ringel","Thermo","Sneaker","Kniestrumpf","Hafenblau"];
+let S=store("lf8trainer")||{runde:"inv",stufe:1,ok:{inv:0,ek:0,guv:0,kz:0,zu:0}};
+if(!S.ok)S.ok={inv:0,ek:0,guv:0,kz:0,zu:0};
+let A=null;
+function speichern(){store("lf8trainer",S);}
+function tab(h,rows,rcols){let s='<div class="tw"><table><thead><tr>'+h.map((x,i)=>'<th'+((rcols||[]).includes(i)?' class="r"':'')+'>'+x+'</th>').join("")+'</tr></thead><tbody>';
+  rows.forEach(r=>{s+='<tr>'+r.map((x,i)=>'<td'+((rcols||[]).includes(i)?' class="r"':'')+'>'+x+'</td>').join("")+'</tr>';});return s+'</tbody></table></div>';}
+/* Jede Aufgabe: {html, felder:[{label, r, tol, einheit, fallen:[{w,ft,tol}]}], weg} oder {html, mc:{o,r,ft}} */
+const GEN={
+ inv(st){
+  if(st===0){const n=pick(SOCKEN),soll=R(20,120),ist=soll-R(1,9),bp=R(150,990)/100,d=(soll-ist)*bp;
+   return {html:'<p>Inventur im Laden „Fußnote“: Sorte <b>„'+n+'“</b> · Sollbestand laut WWS <b>'+soll+' Paar</b> · gezählt (Ist) <b>'+ist+' Paar</b> · Bezugspreis <b>'+eur(bp)+'</b>.</p>',
+    felder:[{label:"Inventurdifferenz in €",r:rd(d,2),tol:0.01,einheit:"€",fallen:[{w:rd(ist*bp,2),ft:"Das ist der Ist-Wert in €, nicht die Differenz."},{w:soll-ist,ft:"Das sind Stück – noch mit dem Bezugspreis malnehmen."},{w:-rd(d,2),ft:"Differenz falsch herum: Soll − Ist."}]}],
+    weg:"("+soll+" − "+ist+") × "+de(bp)+" = "+eur(d)};}
+  if(st===1){const rows=[],n=4;let sS=0,sI=0;const names=SOCKEN.slice().sort(()=>Math.random()-.5).slice(0,n);
+   names.forEach(nm=>{const bp=R(150,790)/100,soll=R(15,90),ist=soll-R(0,6);sS+=soll*bp;sI+=ist*bp;rows.push([nm,de(bp),soll,de(soll*bp),ist,de(ist*bp)]);});
+   const d=sS-sI,p=d*100/sS;
+   return {html:'<p>Auszug aus der Inventurliste:</p>'+tab(["Artikel","Bezugspreis €","Soll Stück","Soll €","Ist Stück","Ist €"],rows.concat([["<b>Summe</b>","","","<b>"+de(sS)+"</b>","","<b>"+de(sI)+"</b>"]]),[1,2,3,4,5]),
+    felder:[{label:"Summe der Inventurdifferenz in €",r:rd(d,2),tol:0.01,einheit:"€",fallen:[{w:rd(sI,2),ft:"Das ist die Summe Ist."},{w:-rd(d,2),ft:"Differenz falsch herum: Soll − Ist."}]},
+     {label:"Inventurdifferenz in % (eine Stelle nach dem Komma)",r:rd(p,1),tol:0.05,einheit:"%",fallen:[{w:rd(d*100/sI,1),ft:"Falscher Grundwert: vom Istbestand gerechnet. Grundwert ist der Sollbestand.",tol:0.05},{w:rd(p/100,3),ft:"× 100 vergessen.",tol:0.001}]}],
+    weg:de(sS)+" − "+de(sI)+" = "+eur(d)+" · "+de(d)+" × 100 : "+de(sS)+" = "+de(p,3)+" → "+de(rd(p,1),1)+" %"};}
+  const v=R(0,1);
+  if(v===0){const u=R(8,90)*50000,p=R(3,12)/10,d=u*p/100;
+   return {html:'<p>Die Abteilung hatte einen Umsatz von <b>'+eur(u)+'</b>. Die Inventurdifferenz betrug <b>'+de(p,1)+' % vom Umsatz</b>.</p>',
+    felder:[{label:"Inventurdifferenz in €",r:rd(d,2),tol:0.01,einheit:"€",fallen:[{w:rd(u*p/10,2),ft:"Komma verrutscht: × Prozentsatz : 100."},{w:rd(u*p,2),ft:": 100 vergessen."}]}],weg:de(u)+" × "+de(p,1)+" : 100 = "+eur(d)};}
+  const rows=[];let sS=0,sI=0;const names=SOCKEN.slice().sort(()=>Math.random()-.5).slice(0,4);
+  names.forEach((nm,i)=>{const bp=R(150,790)/100,soll=R(15,90),ist=i===2?soll+R(1,3):soll-R(1,6);sS+=soll*bp;sI+=ist*bp;rows.push([nm,de(bp),soll,ist]);});
+  const d=sS-sI,p=d*100/sS;
+  return {html:'<p>Inventurliste mit einem <b>Mehrbestand</b>. Rechne Soll € und Ist € selbst aus.</p>'+tab(["Artikel","Bezugspreis €","Soll Stück","Ist Stück"],rows,[1,2,3]),
+   felder:[{label:"Summe der Inventurdifferenz in €",r:rd(d,2),tol:0.02,einheit:"€",fallen:[]},{label:"Inventurdifferenz in % (eine Stelle)",r:rd(p,1),tol:0.05,einheit:"%",fallen:[{w:rd(d*100/sI,1),ft:"Falscher Grundwert: vom Ist gerechnet.",tol:0.05}]}],
+   weg:"Soll € "+de(sS)+" − Ist € "+de(sI)+" = "+eur(d)+" (der Mehrbestand wird abgezogen) · % = "+de(p,2)};
+ },
+ ek(st){
+  if(st===0){const ek=R(5,90)*10000,fk=R(5,150)*10000,g=ek+fk,p=ek*100/g;
+   return {html:'<p>Eigenkapital <b>'+eur(ek)+'</b> · Fremdkapital <b>'+eur(fk)+'</b>.</p>',felder:[{label:"Eigenkapitalanteil in % (eine Stelle)",r:rd(p,1),tol:0.05,einheit:"%",fallen:[{w:rd(ek*100/fk,1),ft:"Durch das Fremdkapital geteilt – richtig: durch das Gesamtkapital.",tol:0.05},{w:rd(100-p,1),ft:"Das ist der Fremdkapitalanteil.",tol:0.05}]}],
+    weg:"Gesamtkapital "+eur(g)+" · "+de(ek,0)+" × 100 : "+de(g,0)+" = "+de(p,2)+" %"};}
+  const av=[["Grundstücke und Gebäude",R(20,90)*10000],["Betriebs- und Geschäftsausstattung",R(5,60)*10000],["Fuhrpark",R(2,20)*10000]];
+  const uv=[["Waren",R(10,80)*10000],["Forderungen a. LL.",R(1,20)*5000],["Bank",R(1,30)*5000],["Kasse",R(2,20)*500]];
+  const sum=av.concat(uv).reduce((s,x)=>s+x[1],0),ek=Math.round(sum*R(20,60)/100/100)*100,verb=Math.round(sum*R(5,15)/100/100)*100,darl=sum-ek-verb;
+  const pas=[["Eigenkapital",ek],["Darlehen",darl],["Verbindlichkeiten a. LL.",verb]];const rows=[];const a=av.concat(uv);
+  for(let i=0;i<a.length;i++)rows.push([a[i][0],de(a[i][1]),pas[i]?pas[i][0]:"",pas[i]?de(pas[i][1]):""]);
+  rows.push(["<b>Summe</b>","<b>"+(st===2?"?":de(sum))+"</b>","<b>Summe</b>","<b>"+(st===2?"?":de(sum))+"</b>"]);
+  const dg=st===2?2:1,p=ek*100/sum;
+  return {html:'<p>Bilanz zum 31.12.'+(st===2?' – die Bilanzsumme musst du selbst bilden.':'')+'</p>'+tab(["Aktiva","€","Passiva","€"],rows,[1,3]),
+   felder:[{label:"Anteil des Eigenkapitals am Gesamtkapital in % ("+(dg===2?"zwei Stellen":"eine Stelle")+")",r:rd(p,dg),tol:dg===2?0.005:0.05,einheit:"%",fallen:[{w:rd(ek*100/(darl+verb),dg),ft:"Durch das Fremdkapital geteilt – richtig: durch die Bilanzsumme.",tol:0.05},{w:rd(ek*100/av.reduce((s,x)=>s+x[1],0),dg),ft:"Durch das Anlagevermögen geteilt.",tol:0.05}]}],
+   weg:de(ek,0)+" × 100 : "+de(sum,0)+" = "+de(p,3)+" %"};
+ },
+ guv(st){
+  if(st===0){const u=R(10,90)*10000,a=Math.round(u*R(80,110)/100/100)*100,g=u-a;
+   return {html:'<p>Umsatzerlöse <b>'+eur(u)+'</b> · alle Aufwendungen zusammen <b>'+eur(a)+'</b>. (Ein Verlust wird mit Minus eingetragen.)</p>',
+    felder:[{label:"Gewinn bzw. Verlust in €",r:g,tol:0.01,einheit:"€",fallen:[{w:u+a,ft:"Addiert statt abgezogen."},{w:-g,ft:"Falsch herum: Erträge − Aufwendungen."}]}],weg:de(u)+" − "+de(a)+" = "+eur(g)};}
+  const u=R(40,250)*10000,we=Math.round(u*R(45,62)/100/100)*100,pers=Math.round(u*R(14,20)/100/100)*100,miete=Math.round(u*R(6,10)/100/100)*100,werb=R(5,40)*500,en=R(4,30)*500,so=R(4,40)*500;
+  const items=[["Aufwendungen für Waren",we],["Personalaufwand",pers],["Mietaufwand",miete],["Werbeaufwand",werb],["Aufwendungen für Energie",en],["Sonstige Aufwendungen",so]];
+  const sumA=items.reduce((s,x)=>s+x[1],0),g=u-sumA,rg=u-we;const rows=items.map((x,i)=>[x[0],de(x[1]),i===0?"Umsatzerlöse für Waren":"",i===0?de(u):""]);rows.push(["Gewinn","?","",""]);
+  const h='<p>GuV-Konto am Jahresende:</p>'+tab(["S","€","H","€"],rows,[1,3]);
+  if(st===1)return {html:h,felder:[{label:"Gewinn in €",r:g,tol:0.01,einheit:"€",fallen:[{w:rg,ft:"Das ist der Rohgewinn – alle Aufwendungen abziehen."},{w:u-(sumA-we),ft:"Den Wareneinsatz vergessen."}]}],weg:"Aufwendungen "+eur(sumA)+" · "+de(u)+" − "+de(sumA)+" = "+eur(g)};
+  const vj=Math.round(g*R(70,95)/100/100)*100,ver=(g-vj)*100/vj;
+  return {html:h+'<p>Im Vorjahr betrug der Gewinn <b>'+eur(vj)+'</b>.</p>',felder:[{label:"Rohgewinn in €",r:rg,tol:0.01,einheit:"€",fallen:[{w:g,ft:"Das ist der Gewinn – für den Rohgewinn nur den Wareneinsatz abziehen."}]},
+   {label:"Veränderung des Gewinns gegenüber dem Vorjahr in % (eine Stelle)",r:rd(ver,1),tol:0.05,einheit:"%",fallen:[{w:rd((g-vj)*100/g,1),ft:"Falscher Grundwert: Teile durch den alten Wert (Vorjahr).",tol:0.05}]}],
+   weg:"Rohgewinn "+de(u)+" − "+de(we)+" = "+eur(rg)+" · Gewinn "+eur(g)+" · ("+de(g,0)+" − "+de(vj,0)+") × 100 : "+de(vj,0)+" = "+de(ver,2)+" %"};
+ },
+ kz(st){
+  if(st===0){const m=R(40,400),u=m*R(20,90)*100;return {html:'<p>Bruttoumsatz <b>'+eur(u)+'</b> · Verkaufsfläche <b>'+m+' m²</b>.</p>',felder:[{label:"Bruttoumsatz je m² Verkaufsfläche",r:rd(u/m,2),tol:0.01,einheit:"€",fallen:[{w:rd(m/u,4),ft:"Verkehrt herum geteilt: Umsatz : Fläche.",tol:0.0001}]}],weg:de(u)+" : "+m+" = "+eur(u/m)};}
+  if(st===1){if(R(0,1)){const ab=["A","B","C","D"].map(x=>[x,R(200000,700000)/100,R(150,380)]);const su=ab.reduce((s,x)=>s+x[1],0),sk=ab.reduce((s,x)=>s+x[2],0);
+     return {html:'<p>Umsätze und Kunden am Aktionstag:</p>'+tab(["Abteilung","Umsatz €","Kunden"],ab.map(x=>[x[0],de(x[1]),x[2]]),[1,2]),felder:[{label:"durchschnittlicher Umsatz je Kunde",r:rd(su/sk,2),tol:0.01,einheit:"€",
+      fallen:[{w:rd(ab.reduce((s,x)=>s+x[1]/x[2],0)/4,2),ft:"Durchschnitt der Durchschnitte – richtig: Gesamtumsatz : Gesamtkunden.",tol:0.02}]}],weg:de(su)+" : "+sk+" = "+eur(su/sk)};}
+   const q=[R(10,40)*1000,R(10,40)*1000,R(10,40)*1000,R(10,40)*1000],s=q.reduce((a,b)=>a+b,0);
+   return {html:'<p>Kosten einer Abteilung: 1. Quartal '+eur(q[0])+' · 2. Quartal '+eur(q[1])+' · 3. Quartal '+eur(q[2])+' · 4. Quartal '+eur(q[3])+'.</p>',felder:[{label:"Kosten je Monat im Jahresdurchschnitt",r:rd(s/12,2),tol:0.01,einheit:"€",fallen:[{w:rd(s/4,2),ft:"Durch 4 geteilt – das ist der Durchschnitt je Quartal. Ein Jahr hat 12 Monate."}]}],weg:de(s)+" : 12 = "+eur(s/12)};}
+  if(R(0,1)){const alt=R(100,400)*1000,neu=Math.round(alt*R(90,115)/100/100)*100,v=(neu-alt)*100/alt;
+   return {html:'<p>Personalaufwand im Vorjahr <b>'+eur(alt)+'</b>, in diesem Jahr <b>'+eur(neu)+'</b>. (Abnahme mit Minus.)</p>',felder:[{label:"Veränderung in % (eine Stelle)",r:rd(v,1),tol:0.05,einheit:"%",fallen:[{w:rd((neu-alt)*100/neu,1),ft:"Falscher Grundwert: Teile durch den alten Wert.",tol:0.05}]}],weg:"("+de(neu,0)+" − "+de(alt,0)+") × 100 : "+de(alt,0)+" = "+de(v,2)+" %"};}
+  const m=R(80,400),n=m*R(20,70)*100,b=n*1.19;
+  return {html:'<p>Nettoumsatzerlöse <b>'+eur(n)+'</b> · Umsatzsteuer 19 % · Verkaufsfläche <b>'+m+' m²</b>.</p>',felder:[{label:"Bruttoumsatz je m² (zwei Stellen)",r:rd(b/m,2),tol:0.01,einheit:"€",fallen:[{w:rd(n/m,2),ft:"Mit dem Nettoumsatz gerechnet – gefragt ist brutto (× 1,19)."}]}],weg:de(n)+" × 1,19 = "+de(b)+" · : "+m+" = "+eur(b/m)};
+ },
+ zu(st){
+  const P=[{f:"Bilanz oder GuV?",o:["Bilanz","GuV"],i:[["Waren",0],["Umsatzerlöse",1],["Mietaufwand",1],["Darlehen",0],["Kasse",0],["Personalaufwand",1],["Forderungen",0],["Zinsaufwand",1],["Eigenkapital",0],["Werbeaufwand",1]],ft:"Bilanz und GuV verwechselt: Die Bilanz zeigt Vermögen und Kapital, die GuV Aufwand und Ertrag."},
+   {f:"Aufwand oder Ertrag?",o:["Aufwand","Ertrag"],i:[["Umsatzerlöse",1],["Zinserträge",1],["Mieterträge",1],["Wareneinsatz",0],["Gehälter",0],["Miete für den Laden",0],["Strom",0],["Werbung",0]],ft:"Aufwand = Wert fließt hinaus; Ertrag = Wert fließt hinein."},
+   {f:"Aktiva oder Passiva?",o:["Aktiva","Passiva"],i:[["Lieferwagen",0],["Waren",0],["Bankguthaben",0],["Forderungen",0],["Gebäude",0],["Eigenkapital",1],["Darlehen",1],["Verbindlichkeiten a. LL.",1]],ft:"Aktiva = Was hat der Laden? Passiva = Woher kommt das Geld?"},
+   {f:"Zu welchem Teil der Bilanz gehört der Posten?",o:["Anlagevermögen","Umlaufvermögen","Eigenkapital","Fremdkapital"],i:[["Regale",0],["Kassensystem",0],["Fuhrpark",0],["Waren",1],["Bank",1],["Forderungen",1],["Kasse",1],["Kapital der Inhaberin",2],["Darlehen",3],["Verbindlichkeiten a. LL.",3]],ft:"AV bleibt lange · UV läuft um · EK = eigenes Geld · FK = Schulden."}];
+  const pool=st===0?[P[0],P[1]]:st===1?[P[0],P[1],P[2]]:P;const p=pick(pool),it=pick(p.i);
+  return {html:'<p class="frage">'+p.f+'</p><p style="font-size:22px"><b>'+it[0]+'</b></p>',mc:{o:p.o,r:it[1],ft:p.ft}};
+ }
+};
+function neueAufgabe(){A=GEN[S.runde](S.stufe);A.done=false;zeichneKarte();}
+function zeichneKarte(){
+  const k=$("karte");let h='<h2 style="color:#1F4E79">'+RUNDEN.find(r=>r.id===S.runde).name+' · '+STUFEN[S.stufe]+'</h2>'+A.html;
+  if(A.mc){h+='<div class="opts" id="opts">'+A.mc.o.map((o,i)=>'<button class="opt" data-i="'+i+'">'+o+'</button>').join("")+'</div>';}
+  else{A.felder.forEach((f,i)=>{h+='<div class="eing"><label for="f'+i+'">'+f.label+'</label><input type="text" inputmode="decimal" id="f'+i+'" autocomplete="off"> '+f.einheit+'</div>';});h+='<button class="btn" id="pruefen" style="margin-top:8px">Prüfen</button>';}
+  h+='<div id="rueck"></div><button class="btn gelb" id="weiter" style="margin-top:10px" hidden>Nächste Aufgabe</button>';
+  k.innerHTML=h;
+  if(A.mc){k.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{if(A.done)return;const i=Number(b.dataset.i);
+    if(i===A.mc.r){b.classList.add("r");geschafft(true,"Richtig.");}else{b.classList.add("f");k.querySelectorAll(".opt")[A.mc.r].classList.add("r");geschafft(false,"<b>Fehlertyp:</b> "+A.mc.ft);}});}
+  else{$("pruefen").onclick=pruefe;k.querySelectorAll("input").forEach(x=>x.addEventListener("keydown",e=>{if(e.key==="Enter")pruefe();}));$("f0").focus();}
+  $("weiter").onclick=neueAufgabe;
+}
+function pruefe(){if(A.done)return;let alle=true,txt=[];
+  A.felder.forEach((f,i)=>{const raw=$("f"+i).value,v=zahl(raw),ok=!isNaN(v)&&Math.abs(v-f.r)<=f.tol;if(!ok){alle=false;let ft="Rechenfehler – geh den Rechenweg Schritt für Schritt durch.";if(raw.trim()==="")ft="nicht ausgefüllt";
+    (f.fallen||[]).forEach(fl=>{if(!isNaN(v)&&Math.abs(v-fl.w)<=(fl.tol==null?Math.max(f.tol,0.01):fl.tol))ft=fl.ft;});txt.push("<b>"+f.label+":</b> richtig wäre "+de(f.r,f.einheit==="%"?(String(f.r).split(".")[1]||"").length||0:2)+" "+f.einheit+" – <b>Fehlertyp:</b> "+ft);}});
+  geschafft(alle,alle?"Richtig.":txt.join("<br>"));}
+function geschafft(ok,msg){A.done=true;const r=document.createElement("div");r.className="rueck "+(ok?"ok":"no");
+  r.innerHTML=msg+(A.weg?"<br><span style='color:#555'>Rechenweg: "+A.weg+"</span>":"");$("rueck").appendChild(r);
+  if(ok){S.ok[S.runde]=(S.ok[S.runde]||0)+1;speichern();fortschritt();}
+  if($("pruefen"))$("pruefen").disabled=true;$("weiter").hidden=false;$("weiter").focus();}
+function fortschritt(){
+  let h="",g=0;RUNDEN.forEach(r=>{const n=S.ok[r.id]||0;g+=Math.min(4,n);h+='<div class="f'+(n>=4?' voll':'')+'"><span class="leise">'+r.name+'</span><b>'+Math.min(n,99)+' / 4</b></div>';});
+  $("fort").innerHTML=h;$("gesamt").textContent=g+" von 20 für den Nachweis";
+  document.querySelectorAll(".tab").forEach(t=>{const n=S.ok[t.dataset.r]||0;t.querySelector(".n").textContent=n>=4?"✓":n+"/4";});
+  const nw=$("nachweis");
+  if(g>=20){nw.hidden=false;if(!nw.dataset.on){nw.dataset.on="1";nw.innerHTML='<h2>Nachweis für dein Punktekonto (5 EP)</h2><p>Du hast in allen fünf Runden mindestens vier Aufgaben richtig gelöst.</p><div class="eing"><label for="nwName">Dein Name</label><input type="text" id="nwName" style="width:240px"></div><p>Datum: <b>'+new Date().toLocaleDateString("de-DE")+'</b></p><p>Code: <span class="code" id="nwCode">LF8-…</span></p><p class="leise">Zeig diesen Bildschirm deiner Lehrkraft oder mach einen Screenshot für itslearning.</p>';
+    const upd=()=>{const n=($("nwName").value||"").trim();let h=0;for(const c of n.toUpperCase())h=(h*31+c.charCodeAt(0))%9000;$("nwCode").textContent="LF8-ZT-"+(1000+h);};$("nwName").oninput=upd;upd();}}
+}
+function tabs(){$("tabs").innerHTML=RUNDEN.map(r=>'<button class="tab" role="tab" data-r="'+r.id+'" aria-selected="'+(r.id===S.runde)+'">'+r.name+'<span class="n"></span></button>').join("");
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{S.runde=t.dataset.r;speichern();tabs();neueAufgabe();});
+  const st=$("stufen");st.querySelectorAll(".stufe").forEach(x=>x.remove());
+  STUFEN.forEach((n,i)=>{const b=document.createElement("button");b.className="stufe";b.textContent=n;b.setAttribute("aria-pressed",i===S.stufe);b.onclick=()=>{S.stufe=i;speichern();tabs();neueAufgabe();};st.appendChild(b);});
+  fortschritt();}
+tabs();neueAufgabe();
+</script>
+
+</body>
+</html>

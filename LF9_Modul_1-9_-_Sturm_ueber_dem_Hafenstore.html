@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sturm über dem Hafenstore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: eine schmale App-Spalte wie ein Logbuch – oben Hafenkarte und Anzeigen, darunter die Szene des Tages, dann die Karten mit Entscheidungen. */
+:root{
+  --bg:#E6ECEE; --paper:#F8FAFA; --ink:#0F2730; --muted:#4D6670; --line:#C5D2D6;
+  --accent:#D4511C; --accent-ink:#FFFFFF; --sea:#1D5C6C; --sea-soft:#D3E4E8;
+  --ok:#25744A; --ok-soft:#DDF0E4; --bad:#B4271E; --bad-soft:#F8E0DD;
+  --krake:#6A46A6; --krake-soft:#E9E1F5; --gold:#B88412;
+  --f-display:'Big Shoulders Display', 'Arial Narrow', Impact, sans-serif;
+  --f-body:'Atkinson Hyperlegible', 'Segoe UI', Verdana, sans-serif;
+  --f-mono:'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0B181D; --paper:#132329; --ink:#E3ECEE; --muted:#93AAB2; --line:#284049;
+  --accent:#F07A42; --accent-ink:#1A0D06; --sea:#5FB0C2; --sea-soft:#163944;
+  --ok:#5EC089; --ok-soft:#163626; --bad:#F2796E; --bad-soft:#3E1C1A;
+  --krake:#B595EC; --krake-soft:#2C2240; --gold:#E2B54A; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0B181D; --paper:#132329; --ink:#E3ECEE; --muted:#93AAB2; --line:#284049;
+  --accent:#F07A42; --accent-ink:#1A0D06; --sea:#5FB0C2; --sea-soft:#163944;
+  --ok:#5EC089; --ok-soft:#163626; --bad:#F2796E; --bad-soft:#3E1C1A;
+  --krake:#B595EC; --krake-soft:#2C2240; --gold:#E2B54A; color-scheme:dark }
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;margin:0}
+.app{max-width:680px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.05;text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:clamp(2.6rem,11vw,4.2rem);text-transform:uppercase}
+h2{font-size:1.9rem;text-transform:uppercase}
+h3{font-size:1.35rem}
+p{margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* Kopfleiste */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px 8px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.hud-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.route{display:flex;gap:4px;align-items:center;flex-wrap:nowrap;min-width:0}
+.route i{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;font-family:var(--f-mono);font-size:.62rem;color:var(--muted);flex:none}
+.route i.done{background:var(--sea);border-color:var(--sea);color:var(--paper)}
+.route i.now{border-color:var(--accent);color:var(--accent);font-weight:600;transform:scale(1.15)}
+.tools{display:flex;gap:6px;flex:none}
+.iconbtn{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--paper);display:grid;place-items:center}
+.iconbtn svg{width:22px;height:22px}
+.iconbtn[aria-pressed="true"]{background:var(--sea);border-color:var(--sea);color:var(--paper)}
+.meters{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:center}
+.meter{display:flex;flex-direction:column;gap:3px;min-width:0}
+.meter .lab{display:flex;justify-content:space-between;font-size:.74rem;color:var(--muted);gap:4px}
+.bar{height:9px;border-radius:5px;background:var(--line);overflow:hidden}
+.bar b{display:block;height:100%;border-radius:5px;transition:width .6s ease}
+.bar.v b{background:var(--ok)} .bar.k b{background:var(--krake)}
+.pts{font-family:var(--f-mono);font-weight:600;font-size:1.05rem;text-align:right;line-height:1.1}
+.pts small{display:block;font-family:var(--f-body);font-weight:400;font-size:.7rem;color:var(--muted)}
+
+/* Szene */
+.scene{margin-top:14px;border-radius:var(--r);overflow:hidden;aspect-ratio:8/3;max-width:100%;background:#9fc3cf;position:relative}
+.scene svg{display:block;width:100%;height:100%}
+.place{position:absolute;left:10px;bottom:10px;background:rgba(10,30,38,.78);color:#fff;font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:6px}
+.wave{animation:drift 7s ease-in-out infinite alternate}
+.wave2{animation:drift 9s ease-in-out infinite alternate-reverse}
+@keyframes drift{from{transform:translateX(-18px)}to{transform:translateX(18px)}}
+.rain{animation:rain .7s linear infinite}
+@keyframes rain{from{transform:translate(0,-40px)}to{transform:translate(-20px,40px)}}
+.beam{animation:beam 4s ease-in-out infinite alternate;transform-origin:500px 70px}
+@keyframes beam{from{opacity:.25;transform:rotate(-8deg)}to{opacity:.6;transform:rotate(8deg)}}
+.fw{animation:fw 2.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes fw{0%{transform:scale(.1);opacity:0}20%{opacity:1}100%{transform:scale(1.25);opacity:0}}
+.flash{animation:flash 5s linear infinite}
+@keyframes flash{0%,88%,100%{opacity:0}90%,93%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.wave,.wave2,.rain,.beam,.fw,.flash{animation:none}.bar b{transition:none}}
+
+/* Karten */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:14px;margin-top:14px}
+.card.krake{border-color:var(--krake);background:linear-gradient(var(--krake-soft),var(--paper) 70%)}
+.situ{background:var(--sea-soft);border-radius:10px;padding:12px 14px}
+.q{font-weight:700;font-size:1.12rem}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{text-align:left;padding:14px 16px;min-height:54px;border-radius:12px;border:2px solid var(--line);background:var(--paper);display:flex;gap:12px;align-items:flex-start;line-height:1.35}
+.opt .key{flex:none;width:26px;height:26px;border-radius:7px;background:var(--sea-soft);color:var(--sea);font-family:var(--f-mono);font-weight:600;display:grid;place-items:center;font-size:.85rem}
+.opt .tx{min-width:0}
+.opt.num .tx{font-family:var(--f-mono);font-weight:600;font-size:1.08rem}
+.opt:hover:not(:disabled){border-color:var(--sea)}
+.opt.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.opt.sel .key{background:var(--accent);color:var(--accent-ink)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .ft{display:block;font-family:var(--f-body);font-weight:400;font-size:.85rem;color:var(--muted);margin-top:3px}
+.btn{border:none;border-radius:12px;padding:14px 20px;min-height:52px;font-weight:700;font-size:1.05rem;background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sec{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.wide{width:100%}
+.inp{display:flex;gap:8px;align-items:center}
+.inp input{flex:1;min-width:0;font-family:var(--f-mono);font-size:1.3rem;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--paper);color:var(--ink)}
+.inp span{font-family:var(--f-mono);font-size:1.2rem;color:var(--muted)}
+.hint{border-left:4px solid var(--gold);padding:8px 12px;background:var(--sea-soft);border-radius:0 10px 10px 0;font-size:.95rem}
+.fb{display:flex;flex-direction:column;gap:10px}
+.way{font-family:var(--f-mono);font-size:.92rem;background:var(--bg);border-radius:10px;padding:10px 12px;overflow-x:auto}
+.ihk{font-size:.92rem;color:var(--muted)}
+.ihk b{color:var(--ink)}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:20px;background:var(--sea-soft);color:var(--sea)}
+.tag.k{background:var(--krake-soft);color:var(--krake)}
+.tag.g{background:var(--accent);color:var(--accent-ink)}
+
+/* Hanna */
+.talk{display:flex;gap:12px;align-items:flex-start}
+.talk svg{width:64px;height:64px;flex:none}
+.bubble{position:relative;background:var(--sea-soft);border-radius:14px;padding:10px 14px;min-width:0}
+.bubble.k{background:var(--krake-soft)}
+.bubble b{display:block}
+
+/* Start */
+.hero{padding-block:24px 6px;display:flex;flex-direction:column;gap:12px}
+.hero p.lead{font-size:1.1rem;max-width:34ch}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mode{text-align:left;border:2px solid var(--line);border-radius:var(--r);background:var(--paper);padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.mode svg{width:44px;height:44px}
+.mode .nm{font-family:var(--f-display);font-weight:800;font-size:clamp(1.25rem,5.5vw,1.6rem);overflow-wrap:anywhere;text-transform:uppercase;line-height:1}
+.mode .ds{font-size:.9rem;color:var(--muted)}
+.mode.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.prog{display:block;font-size:.78rem;color:var(--muted)}
+.prog .bar{display:block;height:6px;margin-top:4px}
+.prog .bar b{background:var(--sea)}
+label.f{display:flex;flex-direction:column;gap:6px;font-weight:700}
+label.f input{font:inherit;font-weight:400;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--paper);color:var(--ink)}
+.note{font-size:.85rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{font-size:.85rem;padding:4px 10px;border-radius:20px;border:1px solid var(--line);background:var(--bg)}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.92rem;max-width:calc(100% - 32px);z-index:20}
+
+/* Ende */
+.score{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.score div{background:var(--bg);border-radius:12px;padding:10px;text-align:center}
+.score b{display:block;font-family:var(--f-mono);font-size:1.4rem}
+.score span{font-size:.75rem;color:var(--muted)}
+.stars{display:flex;gap:6px;justify-content:center}
+.stars svg{width:42px;height:42px}
+table.res{width:100%;border-collapse:collapse;font-size:.9rem}
+table.res td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+table.res td:last-child{text-align:right;font-family:var(--f-mono);white-space:nowrap}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.badge{display:flex;gap:8px;align-items:center;font-size:.82rem;line-height:1.25;opacity:.35}
+.badge.on{opacity:1}
+.badge svg{width:40px;height:40px;flex:none}
+details{border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--paper)}
+details summary{cursor:pointer;font-weight:700}
+.wl{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.wl div{border-top:1px solid var(--line);padding-top:8px;font-size:.9rem}
+
+/* Werkzeugkarte */
+.overlay{position:fixed;inset:0;background:rgba(5,15,20,.55);z-index:30;display:flex;justify-content:center;align-items:flex-start;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 16px;overflow-y:auto}
+.sheet{background:var(--paper);border-radius:var(--r);max-width:640px;width:100%;padding:18px;display:flex;flex-direction:column;gap:14px}
+.sheet h3{font-size:1.3rem}
+.tw{overflow-x:auto}
+.tw table{border-collapse:collapse;font-size:.88rem;min-width:100%}
+.tw td,.tw th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.tw th{background:var(--sea-soft)}
+.treppe{display:flex;flex-direction:column-reverse;gap:4px;font-size:.88rem}
+.treppe div{background:var(--sea-soft);border-radius:8px;padding:6px 10px}
+.treppe div:nth-child(2){margin-left:8%}.treppe div:nth-child(3){margin-left:16%}.treppe div:nth-child(4){margin-left:24%}
+.confirm{border:2px solid var(--bad);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.card > .tag{align-self:flex-start}
+#code{font-size:1.05rem}
+.roles{display:flex;flex-direction:column;gap:6px;background:var(--bg);border:1px dashed var(--sea);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.said{align-self:flex-start;border:2px solid var(--sea);background:var(--paper);border-radius:10px;padding:8px 12px;font-weight:700;min-height:44px}
+.said[aria-pressed="true"]{background:var(--sea);color:var(--paper)}
+.opt-box{padding:10px 14px}
+.opt-box summary{font-weight:700}
+.opt-box[open]{display:flex;flex-direction:column;gap:10px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two input{min-width:0;width:100%}
+ol.tl{margin:6px 0 0;padding-left:1.4em;display:flex;flex-direction:column;gap:8px}
+ol.tl li{padding-left:4px}
+.tlb{text-align:left;width:100%;border:2px solid var(--accent);background:var(--paper);border-radius:10px;padding:10px 12px;line-height:1.35}
+.tlb.right{border-color:var(--ok);background:var(--ok-soft)} .tlb.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.tlb:disabled{cursor:default;color:var(--ink)}
+.dayp{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.dayb{text-align:left;border:2px solid var(--line);border-radius:12px;background:var(--paper);padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-height:58px;line-height:1.25}
+.dayb b{font-family:var(--f-display);font-size:1.2rem;text-transform:uppercase}
+.dayb span{font-size:.82rem;color:var(--muted);overflow-wrap:anywhere;hyphens:auto}
+.dayb{min-width:0}
+.dayb:hover{border-color:var(--sea)}
+@media (max-width:420px){ .meters{grid-template-columns:1fr 1fr} .pts{grid-column:1/-1;text-align:left;display:flex;gap:8px;align-items:baseline} .pts small{display:inline} .route i{width:18px;height:18px} }
+@media (max-width:360px){ .modes{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="app">
+  <header id="hud" class="hud" hidden>
+    <div class="hud-top"><div class="route" aria-label="Hafenkarte: Tag 1 bis 10"></div>
+      <div class="tools"><button class="iconbtn" id="toolbtn" aria-label="Werkzeugkarte öffnen"></button><button class="iconbtn" id="musicbtn" aria-label="Musik an"></button></div></div>
+    <div class="meters">
+      <div class="meter"><div class="lab"><span>Kundenvertrauen</span><span class="vval mono">50 %</span></div><div class="bar v"><b style="width:50%"></b></div></div>
+      <div class="meter"><div class="lab"><span>Krake-Druck</span><span class="kval mono">55 %</span></div><div class="bar k"><b style="width:55%"></b></div></div>
+      <div class="pts">0<small>Punkte</small></div>
+    </div>
+  </header>
+  <main id="app"></main>
+</div>
+<script>
+/* ===== DATEN: Kapitel 1–5 =====
+   Option: [Text, Fehlertyp (null = richtig), Prüfrechnung]  – die erste Option ist immer richtig, sie wird beim Anzeigen gemischt.
+   Frage: id, q, o, w (Rechenweg), p (So steht es in der Prüfung), h (Tipp), n/d (Zahl für Eingabe im Profi-Modus), pro (nur Profi) */
+const KAP = [];
+
+KAP.push({
+  nr:1, ort:'Weserdeich am Leuchtturm', szene:'deich', modul:'Modul 1 · Das Prozent-Werkzeug',
+  titel:'Der Faktor-Kompass',
+  story:'Erster Tag. Hanna Lührs wartet am Deich. Der Wind ist kalt. Sie gibt euch einen alten Kompass. „Auf dem Schiff hat mich der Kompass geführt. Im Laden führt euch der Faktor. Plus 19 % heißt mal 1,19. Minus 10 % heißt mal 0,9. Merkt euch das.“',
+  wort:['der Faktor','der Grundwert (100 %)','der Prozentwert','der Prozentsatz','der Aufschlag','der Nachlass','runden'],
+  dec:[
+    {id:'k1d1', s:'Kollegin Jette kauft eine Regenjacke für 148,00 €. Mitarbeiter bekommen 8 % Personalrabatt. Sie steht an deiner Kasse.',
+     q:'Welchen Betrag tippst du in die Kasse?',
+     o:[['136,16 €',null,'148*0.92'],['159,84 €','Rabatt aufgeschlagen statt abgezogen','148*1.08'],['11,84 €','Nur den Rabatt ausgerechnet, nicht den Zahlbetrag','148*0.08'],['137,04 €','Zurückgerechnet (: 1,08) statt abgezogen','148/1.08'],['133,20 €','Falscher Faktor: 10 % statt 8 %','148*0.9']],
+     w:'– 8 % → · 0,92 · 148,00 · 0,92 = 136,16 €', p:'148,00 · 0,92 = 136,16 €',
+     y:['weil minus 8 % mal (1 – 0,08) = mal 0,92 bedeutet','weil man beim Rabatt durch 1,08 teilt','weil der Rabatt zum Preis dazukommt'],
+     h:'Minus p % heißt mal (1 – p : 100). 1 – 0,08 = ?'},
+    {id:'k1d2', s:'Ein Segler kauft ein Marine-Fernglas für 649,00 €. Er leistet eine Anzahlung von 30 %. Den Rest zahlt er bei Abholung.',
+     q:'Wie hoch ist die Anzahlung?',
+     o:[['194,70 €',null,'649*0.3'],['454,30 €','Restbetrag statt Anzahlung ausgerechnet','649*0.7'],['843,70 €','30 % aufgeschlagen statt Anteil berechnet','649*1.3'],['19,47 €','Komma verrutscht: 3 % statt 30 %','649*0.03'],['499,23 €','Zurückgerechnet (: 1,3) statt Anteil berechnet','649/1.3']],
+     w:'30 % von 649,00 € → 649,00 · 0,3 = 194,70 €', p:'649,00 · 0,3 = 194,70 €',
+     y:['weil 30 % als Dezimalzahl 0,3 sind und der Prozentwert = Grundwert · 0,3 ist','weil man 649 durch 30 teilt','weil 30 % immer der Rest sind'],
+     h:'30 % sind 30 von 100 – also 0,3.'},
+    {id:'k1d3', s:'Eine Kundin hat einen Coupon über 25 % auf ihren ganzen Einkauf. Der Einkauf kostet 312,40 €.',
+     q:'Wie viel muss sie bezahlen?',
+     o:[['234,30 €',null,'312.4*0.75'],['390,50 €','Rabatt aufgeschlagen statt abgezogen','312.4*1.25'],['78,10 €','Nur den Rabatt ausgerechnet','312.4*0.25'],['249,92 €','Zurückgerechnet (: 1,25) statt abgezogen','312.4/1.25'],['281,16 €','Falscher Faktor: 10 % statt 25 %','312.4*0.9']],
+     w:'– 25 % → · 0,75 · 312,40 · 0,75 = 234,30 €', p:'312,40 · 0,75 = 234,30 €',
+     y:['weil minus 25 % mal 0,75 bedeutet – Preis und Nachlass in einem Schritt','weil man 25 % zum Preis addiert','weil man durch 1,25 teilt'],
+     h:'– 25 % → mal (1 – 0,25).'}
+  ],
+  pool:[
+    {id:'q101', q:'+ 19 % Umsatzsteuer. Welcher Faktor?', o:[['· 1,19',null],['· 0,19','Nur der Steueranteil, ohne den Preis'],['· 1,9','Komma verrutscht'],['· 0,81','Minus statt plus'],['· 19','Prozentzahl statt Faktor']], w:'100 % + 19 % = 119 % = 1,19', p:'plus p % → mal (1 + p : 100)'},
+    {id:'q102', q:'– 10 % Rabatt. Welcher Faktor?', o:[['· 0,9',null],['· 1,1','Plus statt minus'],['· 0,1','Nur der Rabatt'],['· 0,09','Komma verrutscht'],['· 10','Prozentzahl statt Faktor']], w:'100 % – 10 % = 90 % = 0,9', p:'minus p % → mal (1 – p : 100)'},
+    {id:'q103', q:'– 3 % Skonto. Welcher Faktor?', o:[['· 0,97',null],['· 0,7','Komma verrutscht (30 %)'],['· 1,03','Plus statt minus'],['· 0,03','Nur der Skonto'],['· 0,93','Falsch abgezogen']], w:'100 % – 3 % = 97 % = 0,97', p:'minus p % → mal (1 – p : 100)'},
+    {id:'q104', q:'+ 60 % Handlungskosten. Welcher Faktor?', o:[['· 1,6',null],['· 1,06','Komma verrutscht (6 %)'],['· 0,6','Nur der Zuschlag'],['· 0,4','Minus statt plus'],['· 60','Prozentzahl statt Faktor']], w:'100 % + 60 % = 160 % = 1,6', p:'plus p % → mal (1 + p : 100)'},
+    {id:'q105', q:'45,00 € netto plus 19 % Umsatzsteuer. Wie viel brutto?', o:[['53,55 €',null,'45*1.19'],['37,82 €','Geteilt statt mal','45/1.19'],['8,55 €','Nur die Steuer','45*0.19'],['36,45 €','Minus statt plus','45*0.81']], w:'45,00 · 1,19 = 53,55 €', p:'netto · 1,19 = brutto', n:53.55, u:'€', h:'+ 19 % → · 1,19'},
+    {id:'q106', q:'120,00 € minus 15 % Rabatt. Neuer Betrag?', o:[['102,00 €',null,'120*0.85'],['138,00 €','Aufgeschlagen statt abgezogen','120*1.15'],['18,00 €','Nur der Rabatt','120*0.15'],['104,35 €','Zurückgerechnet statt abgezogen','120/1.15']], w:'120,00 · 0,85 = 102,00 €', p:'minus 15 % → · 0,85', n:102, u:'€', h:'1 – 0,15 = 0,85'},
+    {id:'q107', q:'Rechnung 360,00 € minus 2 % Skonto. Überweisung?', o:[['352,80 €',null,'360*0.98'],['367,20 €','Aufgeschlagen statt abgezogen','360*1.02'],['7,20 €','Nur der Skonto','360*0.02'],['288,00 €','20 % statt 2 % gerechnet','360*0.8']], w:'360,00 · 0,98 = 352,80 €', p:'minus 2 % → · 0,98', n:352.8, u:'€', h:'– 2 % → · 0,98'},
+    {id:'q108', q:'23,80 € brutto (19 % USt). Wie viel ist das netto?', o:[['20,00 €',null,'23.8/1.19'],['19,28 €','19 % vom Bruttobetrag abgezogen (· 0,81)','23.8*0.81'],['28,32 €','Steuer noch einmal aufgeschlagen','23.8*1.19'],['4,52 €','Nur 19 % vom Brutto','23.8*0.19']], w:'23,80 : 1,19 = 20,00 €', p:'netto = brutto : 1,19 (nie · 0,81)', n:20, u:'€', h:'Zurück heißt: geteilt durch denselben Faktor.'},
+    {id:'q109', q:'2,14 € brutto (7 % USt, Lebensmittel). Wie viel netto?', o:[['2,00 €',null,'2.14/1.07'],['1,80 €','19 % statt 7 % herausgerechnet','2.14/1.19'],['1,99 €','7 % vom Brutto abgezogen (· 0,93)','2.14*0.93'],['2,29 €','Steuer aufgeschlagen statt herausgerechnet','2.14*1.07']], w:'2,14 : 1,07 = 2,00 €', p:'Lebensmittel: 7 % → : 1,07', n:2, u:'€', h:'7 % → Faktor 1,07'},
+    {id:'q110', q:'50,00 € plus 50 %, danach plus 10 %. Ergebnis?', o:[['82,50 €',null,'50*1.5*1.1'],['80,00 €','Prozente addiert (60 %)','50*1.6'],['75,00 €','Zweiten Aufschlag vergessen','50*1.5'],['55,00 €','Ersten Aufschlag vergessen','50*1.1']], w:'50,00 · 1,5 · 1,1 = 82,50 €', p:'Faktoren nacheinander malnehmen, nie zusammenzählen', n:82.5, u:'€', h:'Erst · 1,5, dann · 1,1.'},
+    {id:'q111', q:'Wie viel Prozent sind 36 € von 240 €?', o:[['15 %',null,'36/240*100'],['6,67 %','Teil und Ganzes vertauscht','240/36'],['86,40 %','Prozentwert statt Prozentsatz gerechnet','36*240/100'],['85 %','Den Rest ausgerechnet','100-36/240*100']], w:'36 : 240 · 100 = 15 %', p:'Prozentsatz = Teil : Ganzes · 100', n:15, u:'%', h:'Teil durch Ganzes, mal 100.'},
+    {id:'q112', q:'100 € plus 10 %, danach noch einmal plus 10 %. Ergebnis?', o:[['121,00 €',null,'100*1.1*1.1'],['120,00 €','Prozente addiert','100*1.2'],['110,00 €','Zweiten Aufschlag vergessen','100*1.1'],['99,00 €','Einmal plus, einmal minus','100*1.1*0.9']], w:'100 · 1,1 · 1,1 = 121,00 €', p:'Der zweite Aufschlag rechnet schon vom höheren Preis.', n:121, u:'€'},
+    {id:'q113', q:'Der Taschenrechner zeigt den Kalkulationsfaktor 1,837209… Wie schreibt ihn die IHK?', o:[['1,8372',null],['1,84','Nur 2 Stellen – beim Faktor sind 4 verlangt'],['1,8373','Falsch aufgerundet (5. Stelle ist eine 0)'],['1,83','Abgeschnitten statt gerundet']], w:'4 Nachkommastellen: 1,8372|09 → die 5. Stelle ist 0 → abrunden', p:'Kalkulationsfaktor auf 4 Nachkommastellen runden'},
+    {id:'q114', q:'Ergebnis 27,694 €. Wie rundest du?', o:[['27,69 €',null],['27,70 €','Falsch aufgerundet (3. Stelle ist eine 4)'],['28,00 €','Auf ganze Euro gerundet'],['27,60 €','Ziffer verloren']], w:'Euro auf 2 Stellen: 27,69|4 → abrunden', p:'Euro auf 2 Nachkommastellen, erst am Schluss runden'},
+    {id:'q115', q:'Sneaker 89,99 € minus 30 %. Neuer Preis?', o:[['62,99 €',null,'89.99*0.7'],['116,99 €','Aufgeschlagen statt abgezogen','89.99*1.3'],['27,00 €','Nur der Rabatt','89.99*0.3'],['69,22 €','Zurückgerechnet statt abgezogen','89.99/1.3']], w:'89,99 · 0,7 = 62,99 €', p:'minus 30 % → · 0,7', n:62.99, u:'€'},
+    {id:'q116', q:'Kaffeemaschine 149,00 € minus 20 %. Neuer Preis?', o:[['119,20 €',null,'149*0.8'],['178,80 €','Aufgeschlagen statt abgezogen','149*1.2'],['29,80 €','Nur der Rabatt','149*0.2'],['124,17 €','Zurückgerechnet statt abgezogen','149/1.2']], w:'149,00 · 0,8 = 119,20 €', p:'minus 20 % → · 0,8', n:119.2, u:'€'},
+    {id:'q117', pro:1, q:'Für Profis: Ein Preis wird erst um 10 % erhöht, dann um 10 % gesenkt. Warum ist er danach nicht wieder so hoch wie vorher?', o:[['Die Senkung rechnet vom höheren Preis: 100 · 1,1 = 110, 110 · 0,9 = 99 €.',null],['Weil die Umsatzsteuer dazukommt.','Hat mit der Steuer nichts zu tun'],['Doch, der Preis ist danach wieder genau gleich.','Der Grundwert ändert sich'],['Weil die IHK immer abrundet.','Runden ist nicht der Grund']], w:'110 € · 0,9 = 99 € – 10 % von 110 € sind 11 €, nicht 10 €.', p:'Jeder Prozentsatz bezieht sich auf das Ergebnis davor.'},
+    {id:'q118', pro:1, q:'Für Profis: Warum ist „– 19 %“ nicht dasselbe wie „geteilt durch 1,19“?', o:[['– 19 % ist · 0,81. Geteilt durch 1,19 macht einen Aufschlag rückgängig (119 € → 100 €).',null],['Es ist dasselbe, nur anders geschrieben.','119 · 0,81 = 96,39 €, nicht 100 €'],['Weil man bei Minus immer mal 1,19 rechnet.','Plus und Minus verwechselt'],['Weil 19 % nur bei Lebensmitteln gilt.','Lebensmittel haben 7 %']], w:'119 € : 1,19 = 100 € · aber 119 € · 0,81 = 96,39 €', p:'netto = brutto : 1,19 – nie · 0,81'}
+  ]
+});
+
+KAP.push({
+  nr:2, ort:'Containerterminal', szene:'container', modul:'Modul 2 · Vom Listenpreis zum Bezugspreis',
+  titel:'Zwei Angebote im Wind',
+  story:'Am Containerterminal stapeln sich bunte Container. Für den Hafenstore muss Ware her. Zwei Lieferanten haben Angebote geschickt. Hanna sagt: „Nicht nach dem Bauch entscheiden. Erst Rabatt, dann Skonto, dann die Fracht. Dann vergleichen.“',
+  wort:['der Listeneinkaufspreis','der Rabatt','der Zieleinkaufspreis','der Skonto','der Bareinkaufspreis','die Bezugskosten','der Bezugspreis','frei Haus'],
+  dec:[
+    {id:'k2d1', s:'Ihr braucht 100 Deckenleuchten. Angebot A (Licht-Werk): 20,00 € je Stück, 10 % Rabatt, kein Skonto, frei Haus. Angebot B (Lampen-Hansen): 21,00 € je Stück, 15 % Rabatt, 3 % Skonto, Fracht 35,00 €. Ihr zahlt innerhalb von 10 Tagen.',
+     q:'Welches Angebot nehmt ihr – und wie hoch ist sein Bezugspreis?',
+     o:[['Angebot B · 1.766,45 €',null,'2100*0.85*0.97+35'],['Angebot A · 1.800,00 €','A wirkt durch „frei Haus“ günstiger – B ist billiger','2000*0.9'],['Angebot B · 1.731,45 €','Fracht vergessen','2100*0.85*0.97'],['Angebot B · 1.757,00 €','Rabatt und Skonto zusammengezählt (18 %)','2100*0.82+35'],['Angebot A · 2.000,00 €','Rabatt vergessen','2000']],
+     w:'A: 2.000,00 · 0,9 = 1.800,00 € · B: 2.100,00 · 0,85 · 0,97 + 35,00 = 1.766,45 € → B ist 33,55 € günstiger.', p:'Listeneinkaufspreis – Rabatt – Skonto + Bezugskosten = Bezugspreis',
+     y:['weil man erst Rabatt, dann Skonto abzieht und dann die Fracht addiert – erst dann sind die Angebote vergleichbar','weil „frei Haus“ immer günstiger ist','weil der niedrigere Listenpreis entscheidet'],
+     h:'Rechne beide Angebote ganz durch: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Fracht.'},
+    {id:'k2d2', s:'Ihr braucht 60 Rucksäcke für Deich-Wanderer. Angebot A (Trekking-Profi): 28,50 € je Stück, 12 % Rabatt, 2 % Skonto, frei Haus. Angebot B (Outdoor-Welt): 27,00 € je Stück, 8 % Rabatt, kein Skonto, Fracht 45,00 €.',
+     q:'Welches Angebot nehmt ihr – und wie hoch ist sein Bezugspreis?',
+     o:[['Angebot A · 1.474,70 €',null,'60*28.5*0.88*0.98'],['Angebot B · 1.490,40 €','Fracht vergessen – so wirkt B günstiger','60*27*0.92'],['Angebot B · 1.535,40 €','Richtig gerechnet, aber das teurere Angebot','60*27*0.92+45'],['Angebot A · 1.504,80 €','Skonto vergessen','60*28.5*0.88'],['Angebot A · 1.470,60 €','Rabatt und Skonto zusammengezählt (14 %)','60*28.5*0.86']],
+     w:'A: 60 · 28,50 · 0,88 · 0,98 = 1.474,70 € · B: 60 · 27,00 · 0,92 + 45,00 = 1.535,40 € → A ist 60,70 € günstiger.', p:'Reihenfolge: Rabatt – Skonto – Bezugskosten',
+     y:['weil A nach Rabatt und Skonto ohne Fracht billiger ist als B mit Fracht','weil B den niedrigeren Listenpreis hat','weil Skonto nie zählt'],
+     h:'Bei B kommen 45,00 € Fracht dazu. Bei A gibt es Skonto.'},
+    {id:'k2d3', s:'Ihr braucht 100 Deckenstrahler. Angebot Italo: 52,00 € je Stück, 12 % Rabatt, 2 % Skonto, frei Haus. Angebot Susan: 46,00 € je Stück, 5 % Rabatt, kein Skonto, Fracht 30,00 €.',
+     q:'Welches Angebot nehmt ihr – und wie hoch ist sein Bezugspreis?',
+     o:[['Susan · 4.400,00 €',null,'4600*0.95+30'],['Italo · 4.484,48 €','Richtig gerechnet, aber das teurere Angebot','5200*0.88*0.98'],['Italo · 4.472,00 €','Rabatt und Skonto zusammengezählt (14 %)','5200*0.86'],['Susan · 4.370,00 €','Fracht vergessen','4600*0.95'],['Italo · 4.576,00 €','Skonto vergessen','5200*0.88']],
+     w:'Italo: 5.200,00 · 0,88 · 0,98 = 4.484,48 € · Susan: 4.600,00 · 0,95 + 30,00 = 4.400,00 €', p:'Bezugspreis des günstigeren Angebots ermitteln',
+     y:['weil Susan mit Fracht immer noch unter Italo nach Rabatt und Skonto liegt','weil Italo mehr Rabatt gibt','weil frei Haus teurer ist'],
+     h:'Rechne beide Bezugspreise für 100 Stück aus.'}
+  ],
+  pool:[
+    {id:'q201', q:'100 Taschenlampen zu 3,60 €, 15 % Rabatt, 3 % Skonto, Bezugskosten 8,40 €. Bezugspreis der Lieferung?', o:[['305,22 €',null,'100*3.6*0.85*0.97+8.4'],['296,82 €','Bezugskosten vergessen','100*3.6*0.85*0.97'],['303,60 €','Rabatt und Skonto zusammengezählt','360*0.82+8.4'],['314,40 €','Skonto vergessen','360*0.85+8.4'],['363,21 €','Umsatzsteuer auf den Bezugspreis','(100*3.6*0.85*0.97+8.4)*1.19']], w:'100 · 3,60 · 0,85 · 0,97 + 8,40 = 305,22 €', p:'', n:305.22, u:'€', h:'Kette: Menge · Preis · 0,85 · 0,97 + Bezugskosten'},
+    {id:'q202', q:'240 Blusen zu je 14,00 €, 5 % Rabatt, 30,00 € Verpackung und Versand, zzgl. 19 % USt. Bezugspreis für eine Bluse?', o:[['13,43 €',null,'(240*14*0.95+30)/240'],['13,30 €','Verpackung vergessen','240*14*0.95/240'],['15,98 €','Umsatzsteuer dazugerechnet – der Bezugspreis ist netto','(240*14*0.95+30)/240*1.19'],['14,13 €','Rabatt vergessen','(240*14+30)/240'],['3.222,00 €','Ganze Lieferung statt je Stück','240*14*0.95+30']], w:'240 · 14,00 · 0,95 + 30,00 = 3.222,00 € : 240 = 13,43 €', p:'', n:13.43, u:'€', h:'Am Ende durch 240 teilen. Umsatzsteuer weglassen.'},
+    {id:'q203', q:'160 Hosen zu je 18,00 €, 8 % Rabatt, 24,00 € Verpackung, zzgl. 19 % USt. Bezugspreis je Hose?', o:[['16,71 €',null,'(160*18*0.92+24)/160'],['16,56 €','Verpackung vergessen','160*18*0.92/160'],['19,88 €','Umsatzsteuer dazugerechnet','(160*18*0.92+24)/160*1.19'],['18,15 €','Rabatt vergessen','(160*18+24)/160']], w:'160 · 18,00 · 0,92 + 24,00 = 2.673,60 € : 160 = 16,71 €', p:'', n:16.71, u:'€'},
+    {id:'q204', q:'50 Rucksäcke zu 12,00 €, 20 % Rabatt, 2 % Skonto, Fracht 14,40 €. Bezugspreis für 1 Rucksack?', o:[['9,70 €',null,'(50*12*0.8*0.98+14.4)/50'],['9,41 €','Fracht vergessen','50*12*0.8*0.98/50'],['9,89 €','Skonto vergessen','(50*12*0.8+14.4)/50'],['9,65 €','Rabatt und Skonto zusammengezählt','(50*12*0.78+14.4)/50']], w:'50 · 12,00 · 0,8 · 0,98 + 14,40 = 484,80 € : 50 = 9,70 €', p:'Bezugspreis je Stück = Bezugspreis der Lieferung : Stückzahl', n:9.7, u:'€'},
+    {id:'q205', q:'Welche Kosten zählen zu den Bezugskosten?', o:[['Frachtkosten für die Anlieferung der Ware',null],['Miete für das Warenlager','Handlungskosten (im Betrieb)'],['Gehälter der Einkaufsabteilung','Handlungskosten (Personal)'],['Werbekosten für die neue Ware','Handlungskosten (Werbung)'],['Energiekosten der Verkaufsräume','Handlungskosten (Energie)']], w:'Fracht erhöht den Bezugspreis. Alles andere sind Handlungskosten.', p:''},
+    {id:'q206', q:'Eine Rechnung über 4.280,00 € wird mit 2 % Skonto bezahlt. Überweisungsbetrag?', o:[['4.194,40 €',null,'4280*0.98'],['4.365,60 €','Aufgeschlagen statt abgezogen','4280*1.02'],['85,60 €','Nur der Skonto','4280*0.02'],['4.196,08 €','Zurückgerechnet (: 1,02)','4280/1.02']], w:'4.280,00 · 0,98 = 4.194,40 €', p:'', n:4194.4, u:'€'},
+    {id:'q207', q:'Der Lieferant zieht 3 % ab, weil ihr innerhalb von 8 Tagen zahlt. Welcher Nachlass ist das?', o:[['Skonto',null],['Rabatt','Rabatt gibt es sofort, z. B. für die Menge'],['Bonus','Bonus kommt nachträglich, z. B. am Jahresende']], w:'Skonto = Nachlass für schnelle Zahlung', p:'Skonto: Zahlung innerhalb einer Frist'},
+    {id:'q208', q:'Am Jahresende schreibt der Lieferant 2 % des Jahresumsatzes gut. Welcher Nachlass ist das?', o:[['Bonus',null],['Rabatt','Rabatt steht sofort auf der Rechnung'],['Skonto','Skonto gibt es für schnelles Zahlen']], w:'Bonus = nachträglicher Nachlass bei erreichtem Umsatz', p:'Bonus: nachträglich, z. B. am Jahresende'},
+    {id:'q209', q:'Ab 100 Stück gibt es 10 % Nachlass. Welcher Nachlass ist das?', o:[['Rabatt (Mengenrabatt)',null],['Skonto','Hat nichts mit der Zahlungsfrist zu tun'],['Bonus','Kommt nicht nachträglich']], w:'Mengenrabatt steht sofort auf der Rechnung.', p:'Rabatt: sofort, z. B. Mengen-, Treue-, Sonderrabatt'},
+    {id:'q210', q:'In welcher Reihenfolge rechnest du zum Bezugspreis?', o:[['Listeneinkaufspreis – Rabatt – Skonto + Bezugskosten',null],['Listeneinkaufspreis – Skonto – Rabatt + Bezugskosten','Skonto vor Rabatt'],['Listeneinkaufspreis + Bezugskosten – Rabatt – Skonto','Bezugskosten mit Rabatt verrechnet'],['Listeneinkaufspreis – Rabatt + Bezugskosten – Skonto','Skonto auf die Fracht gerechnet']], w:'Rabatt immer zuerst, Skonto vom Zieleinkaufspreis, Bezugskosten zum Schluss.', p:'Listeneinkaufspreis – Rabatt – Skonto + Bezugskosten = Bezugspreis'},
+    {id:'q211', q:'Warum gehört die Umsatzsteuer nicht zum Bezugspreis?', o:[['Der Betrieb bekommt sie als Vorsteuer vom Finanzamt zurück.',null],['Weil der Lieferant sie selbst bezahlt.','Der Betrieb zahlt sie, bekommt sie aber zurück'],['Weil es auf Waren keine Umsatzsteuer gibt.','Auf der Rechnung steht Umsatzsteuer'],['Weil sie nur bei Lebensmitteln gilt.','Gilt für alle Waren (7 % oder 19 %)']], w:'Bezugspreis ist immer netto.', p:'Immer netto – die Umsatzsteuer zählt nicht zum Bezugspreis.'},
+    {id:'q212', q:'40 Stück zu je 10,00 €, 20 % Rabatt, 10,00 € Fracht. Bezugspreis je Stück?', o:[['8,25 €',null,'(40*10*0.8+10)/40'],['8,00 €','Fracht vergessen','40*10*0.8/40'],['10,25 €','Rabatt vergessen','(40*10+10)/40'],['9,82 €','Umsatzsteuer dazugerechnet','(40*10*0.8+10)/40*1.19']], w:'40 · 10,00 · 0,8 + 10,00 = 330,00 € : 40 = 8,25 €', p:'Bezugspreis je Stück: am Ende durch die Stückzahl', n:8.25, u:'€'},
+    {id:'q213', pro:1, q:'Für Profis: Warum wird Skonto erst nach dem Rabatt abgezogen?', o:[['Skonto ist ein Nachlass auf den Betrag, der wirklich überwiesen wird – das ist der Preis nach Rabatt.',null],['Weil Skonto immer kleiner ist als Rabatt.','Die Größe spielt keine Rolle'],['Weil Skonto nur auf die Fracht kommt.','Bezugskosten werden nicht skontiert'],['Das ist egal, man darf beides zusammenzählen.','Zusammenzählen ist ein Prüfungsfehler']], w:'Der Rabatt steht beim Kauf fest, Skonto erst bei der Zahlung.', p:'Skonto vom Zieleinkaufspreis, nicht vom Listenpreis'},
+    {id:'q214', pro:1, q:'Für Profis: „2 % Skonto in 10 Tagen oder 30 Tage netto“. Ein Kredit kostet 8 % im Jahr. Lohnt sich der Kredit, um Skonto zu nutzen?', o:[['Ja: 2 % für 20 Tage sind etwa 36 % im Jahr – viel mehr als 8 %.',null],['Nein: 8 % sind mehr als 2 %.','Zeiträume nicht verglichen (Jahr gegen 20 Tage)'],['Nein: Mit Kredit lohnt sich Skonto nie.','Ohne Rechnung entschieden'],['Ja: weil dann auch der Rabatt steigt.','Rabatt bleibt gleich']], w:'2 · 360 : 20 = 36 % im Jahr > 8 %', p:'Skonto ausnutzen lohnt sich meistens.'}
+  ]
+});
+
+KAP.push({
+  nr:3, ort:'Lager im Hafenstore', szene:'lager', modul:'Modul 3 · Was ein Preis bezahlen muss',
+  titel:'Wohin geht der Euro?',
+  story:'Im Lager riecht es nach Pappe. Hanna zeigt auf die Lampen, den Kühlschrank und die Kasse. „Das alles kostet Geld: Miete, Strom, Personal, Werbung. Das sind Handlungskosten. Ein Preis muss das alles bezahlen – sonst geht der Laden unter.“',
+  wort:['die Handlungskosten','die Selbstkosten','der Gewinn','der Nettoverkaufspreis','der Wareneinsatz','der Handlungskostenzuschlag','die Preisuntergrenze'],
+  dec:[
+    {id:'k3d1', s:'Ein Kunde will das Marine-Fernglas billiger. Er sagt: „Ein anderer Laden ist günstiger.“ Hanna fragt euch: „Wie weit dürfen wir höchstens runtergehen?“',
+     q:'Welcher Verkaufspreis ist die Untergrenze, damit ihr keinen Verlust macht?',
+     o:[['Selbstkostenpreis zuzüglich Umsatzsteuer',null],['Bezugspreis zuzüglich Umsatzsteuer','Die Handlungskosten fehlen'],['Nettoverkaufspreis zuzüglich Umsatzsteuer','Das ist der normale Preis mit Gewinn'],['Selbstkostenpreis ohne Umsatzsteuer','Die Steuer muss an das Finanzamt'],['Listeneinkaufspreis','Ohne Kosten und ohne Steuer']],
+     w:'Selbstkosten decken Einkauf und Betrieb, die Umsatzsteuer geht an das Finanzamt.', p:'Preisuntergrenze = Selbstkostenpreis + Umsatzsteuer',
+     y:['weil die Selbstkosten Einkauf und Betrieb decken und die Umsatzsteuer abgeführt werden muss','weil immer etwas Gewinn drin sein muss','weil der Bezugspreis allein reicht'],
+     h:'Unter die Selbstkosten darf der Preis auf Dauer nicht fallen. Und die Steuer?'},
+    {id:'k3d2', s:'Die Zentrale schickt Zahlen der Sportabteilung vom letzten Jahr: Wareneinsatz 820.000,00 €, Handlungskosten 369.000,00 €.',
+     q:'Mit welchem Handlungskostenzuschlag kalkuliert ihr?',
+     o:[['45 %',null,'369000/820000*100'],['31,03 %','Auf Wareneinsatz plus Handlungskosten bezogen','369000/1189000*100'],['222,22 %','Zahlen vertauscht','820000/369000*100'],['55 %','Den Rest bis 100 % gerechnet','100-369000/820000*100']],
+     w:'369.000 : 820.000 · 100 = 45 % – auf jeden Euro Einkauf kommen 45 Cent Handlungskosten.', p:'Handlungskostenzuschlag = Handlungskosten : Wareneinsatz · 100',
+     y:['weil der Zuschlag zeigt, wie viel Handlungskosten auf jeden Euro Wareneinsatz kommen','weil man den Wareneinsatz durch die Kosten teilt','weil man vom Umsatz ausgeht'],
+     h:'Handlungskosten geteilt durch Wareneinsatz, mal 100.'},
+    {id:'k3d3', s:'Die Abteilung hatte Selbstkosten von 1.750.000,00 € und einen Gewinn von 140.000,00 €. Hanna will den Gewinnzuschlag wissen.',
+     q:'Wie hoch ist der Gewinnzuschlag?',
+     o:[['8 %',null,'140000/1750000*100'],['12,5 %','Zahlen vertauscht (1.750.000 : 140.000)','1750000/140000'],['7,41 %','Auf Selbstkosten plus Gewinn bezogen','140000/1890000*100'],['92 %','Den Rest bis 100 % gerechnet','100-140000/1750000*100']],
+     w:'140.000 : 1.750.000 · 100 = 8 %', p:'Gewinnzuschlag = Gewinn : Selbstkosten · 100',
+     y:['weil der Gewinn auf die Selbstkosten aufgeschlagen wird','weil der Gewinn auf den Bezugspreis kommt','weil man die Selbstkosten durch den Gewinn teilt'],
+     h:'Gewinn geteilt durch Selbstkosten, mal 100.'}
+  ],
+  pool:[
+    {id:'q301', q:'Frachtkosten für eine Lieferung Schuhe sind …', o:[['Bezugskosten',null],['Handlungskosten','Fracht fällt an, bis die Ware bei uns ist']], w:'Bis die Ware bei uns ankommt: Bezugskosten.', p:'Fracht, Porto, Verpackung des Lieferers, Transportversicherung = Bezugskosten'},
+    {id:'q302', q:'Das Gehalt der Abteilungsleiterin ist …', o:[['Handlungskosten',null],['Bezugskosten','Personal fällt im eigenen Betrieb an']], w:'Im Betrieb: Handlungskosten.', p:'Personal, Miete, Energie, Werbung = Handlungskosten'},
+    {id:'q303', q:'Die Miete für das Lager ist …', o:[['Handlungskosten',null],['Bezugskosten','Miete fällt im eigenen Betrieb an']], w:'Im Betrieb: Handlungskosten.', p:'Miete = Handlungskosten'},
+    {id:'q304', q:'Die Transportversicherung für eine Lieferung ist …', o:[['Bezugskosten',null],['Handlungskosten','Fällt beim Transport zu uns an']], w:'Gehört zum Weg der Ware: Bezugskosten.', p:'Transportversicherung = Bezugskosten'},
+    {id:'q305', q:'Strom für die Beleuchtung im Laden ist …', o:[['Handlungskosten',null],['Bezugskosten','Energie fällt im eigenen Betrieb an']], w:'Im Betrieb: Handlungskosten.', p:'Energie = Handlungskosten'},
+    {id:'q306', q:'Verpackung, die der Lieferant berechnet, ist …', o:[['Bezugskosten',null],['Handlungskosten','Der Lieferant berechnet sie mit der Ware']], w:'Kommt mit der Lieferung: Bezugskosten.', p:'Verpackung des Lieferers = Bezugskosten'},
+    {id:'q307', q:'Prospekte für die Sommeraktion sind …', o:[['Handlungskosten',null],['Bezugskosten','Werbung fällt im eigenen Betrieb an']], w:'Werbung: Handlungskosten.', p:'Werbung = Handlungskosten'},
+    {id:'q308', q:'Die Reparatur der Rolltreppe ist …', o:[['Handlungskosten',null],['Bezugskosten','Reparaturen fallen im eigenen Betrieb an']], w:'Im Betrieb: Handlungskosten.', p:'Reparaturen = Handlungskosten'},
+    {id:'q309', q:'Ihr wechselt zu einer günstigeren Werbeagentur. Was passiert in der Kalkulation?', o:[['Die Handlungskosten verringern sich.',null],['Der Bezugspreis verringert sich.','Werbung gehört nicht zum Einkauf'],['Der Kalkulationsfaktor erhöht sich.','Weniger Kosten → eher kleinerer Faktor'],['Der Gewinn verringert sich.','Weniger Kosten → eher mehr Gewinn'],['Die Umsatzsteuer verringert sich.','Steuersatz bleibt gleich']], w:'Werbung ist eine Handlungskostenart.', p:''},
+    {id:'q310', q:'Sportartikel: Wareneinsatz 2.800.000,00 €, Handlungskosten 840.000,00 €. Handlungskostenzuschlag?', o:[['30 %',null,'840000/2800000*100'],['23,08 %','Auf Wareneinsatz plus Handlungskosten bezogen','840000/3640000*100'],['333,33 %','Zahlen vertauscht','2800000/840000*100'],['70 %','Den Rest bis 100 % gerechnet','100-840000/2800000*100']], w:'840.000 : 2.800.000 · 100 = 30 %', p:'', n:30, u:'%'},
+    {id:'q311', q:'Selbstkosten 524.000,00 €, Gewinn 78.600,00 €. Gewinnzuschlag?', o:[['15 %',null,'78600/524000*100'],['13 %','Auf Selbstkosten plus Gewinn bezogen','78600/602600*100'],['667 %','Zahlen vertauscht','524000/78600*100'],['85 %','Den Rest bis 100 % gerechnet','100-78600/524000*100']], w:'78.600 : 524.000 · 100 = 15 %', p:'', n:15, u:'%'},
+    {id:'q312', q:'Die Energiekosten sind stark gestiegen. Welche Auswirkung hat das?', o:[['Die Handlungskosten erhöhen sich.',null],['Der Bezugspreis erhöht sich.','Energie gehört nicht zum Einkauf'],['Die Umsatzsteuer erhöht sich.','Steuersatz bleibt gleich'],['Der Listeneinkaufspreis sinkt.','Hat damit nichts zu tun'],['Der Skonto erhöht sich.','Hat damit nichts zu tun']], w:'Energie ist eine Handlungskostenart.', p:''},
+    {id:'q313', q:'Bezugspreis + Handlungskosten = …', o:[['Selbstkosten',null],['Nettoverkaufspreis','Da fehlt noch der Gewinn'],['Bruttoverkaufspreis','Da fehlen Gewinn und Steuer'],['Bareinkaufspreis','Das ist eine Stufe beim Einkauf']], w:'Preistreppe: Bezugspreis → Selbstkosten → Nettoverkaufspreis → Bruttoverkaufspreis', p:'Bezugspreis + Handlungskosten = Selbstkosten'},
+    {id:'q314', q:'Selbstkosten + Gewinn = …', o:[['Nettoverkaufspreis',null],['Bruttoverkaufspreis','Da fehlt noch die Umsatzsteuer'],['Bezugspreis','Das ist die unterste Stufe'],['Zieleinkaufspreis','Das ist eine Stufe beim Einkauf']], w:'Nettoverkaufspreis + Umsatzsteuer = Bruttoverkaufspreis', p:'Selbstkosten + Gewinn = Nettoverkaufspreis'},
+    {id:'q315', q:'Ein Hemd kostet im Laden 27,69 € (19 % USt). Wie viel davon bekommt der Staat?', o:[['4,42 €',null,'27.69-27.69/1.19'],['5,26 €','19 % vom Bruttopreis gerechnet','27.69*0.19'],['7,25 €','Das sind die Handlungskosten'],['1,52 €','Das ist der Gewinn']], w:'27,69 : 1,19 = 23,27 € netto · 27,69 – 23,27 = 4,42 €', p:'Umsatzsteuer = brutto – brutto : 1,19', n:4.42, u:'€'},
+    {id:'q316', q:'Wareneinsatz 1.250.000,00 €, Handlungskosten 500.000,00 €. Handlungskostenzuschlag?', o:[['40 %',null,'500000/1250000*100'],['28,57 %','Auf Wareneinsatz plus Handlungskosten bezogen','500000/1750000*100'],['250 %','Zahlen vertauscht','1250000/500000*100'],['60 %','Den Rest bis 100 % gerechnet','100-500000/1250000*100']], w:'500.000 : 1.250.000 · 100 = 40 %', p:'Handlungskosten : Wareneinsatz · 100', n:40, u:'%'},
+    {id:'q317', q:'Der Verkaufspreis bleibt gleich, aber der Einkauf wird teurer. Was passiert?', o:[['Der Gewinn sinkt.',null],['Die Handlungskosten steigen.','Der Einkauf ist der Bezugspreis'],['Die Umsatzsteuer sinkt.','Steuersatz bleibt gleich'],['Der Bezugspreis sinkt.','Er steigt']], w:'Mehr Einkauf, gleicher Preis → weniger bleibt übrig.', p:'Stufe nennen und Richtung: Der Gewinn sinkt.'},
+    {id:'q318', pro:1, q:'Für Profis: Warum bezieht man den Handlungskostenzuschlag auf den Wareneinsatz und nicht auf den Umsatz?', o:[['Die Kalkulation startet beim Bezugspreis. Der Umsatz enthält schon Handlungskosten und Gewinn – das wäre doppelt gezählt.',null],['Weil der Umsatz geheim ist.','Kein fachlicher Grund'],['Weil der Umsatz immer kleiner ist als der Wareneinsatz.','Der Umsatz ist größer'],['Weil das Finanzamt es so vorschreibt.','Es ist eine Rechenlogik, keine Vorschrift']], w:'Zuschlag = wie viel Handlungskosten auf jeden Euro Einkauf kommen.', p:'Handlungskostenzuschlag = Handlungskosten : Wareneinsatz · 100'},
+    {id:'q319', pro:1, q:'Für Profis: Manche Händler verkaufen einzelne Artikel kurz unter der Preisuntergrenze. Was ist ein Grund – und das Risiko?', o:[['Lockangebot: Kunden kaufen andere Artikel mit. Risiko: Verlust, wenn sie nur das Angebot kaufen.',null],['Weil die Steuer dann wegfällt. Risiko: keines.','Die Steuer fällt nie weg'],['Weil die Handlungskosten dann sinken. Risiko: keines.','Die Kosten bleiben'],['Das ist verboten, also gibt es keinen Grund.','Kurzfristig ist es erlaubt']], w:'Ausgleich über andere Waren oder Restposten räumen.', p:'Unter Selbstkosten + USt entsteht Verlust.'}
+  ]
+});
+
+KAP.push({
+  nr:4, ort:'Fischereihafen', szene:'fisch', modul:'Modul 4 · Vorwärtskalkulation',
+  titel:'Preise wie im Fischereihafen',
+  story:'Im Fischereihafen schreien die Möwen. Der Hafenstore bekommt eine Feinkost-Ecke und neue Ware. Jetzt müssen Preise aufs Schild. Hanna: „Vom Bezugspreis die Treppe hoch: Handlungskosten, Gewinn, Umsatzsteuer. Und Achtung: Lebensmittel haben 7 %!“',
+  wort:['die Vorwärtskalkulation','der Handlungskostenzuschlag','der Gewinnzuschlag','die Selbstkosten','der Nettoverkaufspreis','der Bruttoverkaufspreis','7 % / 19 % Umsatzsteuer'],
+  dec:[
+    {id:'k4d1', s:'Neu in der Feinkost-Ecke: ein Glas Sanddorn-Konfitüre. Das ist ein Lebensmittel. Bezugspreis 7,80 €. Kalkuliert wird mit 40 % Handlungskosten und 8 % Gewinn.',
+     q:'Welcher Preis kommt aufs Schild?',
+     o:[['12,62 €',null,'7.8*1.4*1.08*1.07'],['14,03 €','19 % statt 7 % Umsatzsteuer (Lebensmittel!)','7.8*1.4*1.08*1.19'],['11,79 €','Umsatzsteuer vergessen','7.8*1.4*1.08'],['12,09 €','Prozente addiert (40 + 8 + 7 = 55 %)','7.8*1.55'],['12,35 €','Gewinn auf den Bezugspreis statt auf die Selbstkosten','7.8*1.48*1.07']],
+     w:'7,80 · 1,4 · 1,08 · 1,07 = 12,62 €', p:'Lebensmittel: · 1,07 statt · 1,19',
+     y:['weil jeder Zuschlag auf das Ergebnis davor kommt und Lebensmittel 7 % Umsatzsteuer haben','weil man alle Prozente zusammenzählt','weil alle Waren 19 % haben'],
+     h:'Bezugspreis · 1,4 · 1,08 · … – welcher Steuersatz gilt für Lebensmittel?'},
+    {id:'k4d2', s:'Ein Rucksack für Hafen-Touristen. Bezugspreis 38,50 €. Kalkuliert wird mit 50 % Handlungskosten, 8 % Gewinn und 19 % Umsatzsteuer.',
+     q:'Welcher Bruttoverkaufspreis kommt aufs Schild?',
+     o:[['74,22 €',null,'38.5*1.5*1.08*1.19'],['62,37 €','Umsatzsteuer vergessen','38.5*1.5*1.08'],['66,74 €','7 % statt 19 % Umsatzsteuer','38.5*1.5*1.08*1.07'],['68,15 €','Prozente addiert (50 + 8 + 19 = 77 %)','38.5*1.77'],['72,39 €','Gewinn auf den Bezugspreis statt auf die Selbstkosten','38.5*1.58*1.19']],
+     w:'38,50 · 1,5 · 1,08 · 1,19 = 74,22 €', p:'',
+     y:['weil Gewinn auf die Selbstkosten und Umsatzsteuer auf den Nettoverkaufspreis kommt – deshalb Faktoren nacheinander','weil man 60 + 7 + 19 = 86 % aufschlägt','weil die Umsatzsteuer auf den Bezugspreis kommt'],
+     h:'Kette: 38,50 · 1,5 · 1,08 · 1,19'},
+    {id:'k4d3', s:'Laufschuhe für den Deichlauf. Bezugspreis 52,60 €. Handlungskosten 55 %, Gewinn 9 %, Umsatzsteuer 19 %.',
+     q:'Welcher Bruttoverkaufspreis kommt aufs Schild?',
+     o:[['105,75 €',null,'52.6*1.55*1.09*1.19'],['88,87 €','Umsatzsteuer vergessen','52.6*1.55*1.09'],['96,26 €','Prozente addiert (55 + 9 + 19 = 83 %)','52.6*1.83'],['102,65 €','Gewinn auf den Bezugspreis statt auf die Selbstkosten','52.6*1.64*1.19'],['95,09 €','7 % statt 19 % Umsatzsteuer','52.6*1.55*1.09*1.07']],
+     w:'52,60 · 1,55 · 1,09 · 1,19 = 105,75 €', p:'',
+     y:['weil jeder Zuschlag auf das Ergebnis davor gerechnet wird','weil man alle Prozente addiert','weil Schuhe 7 % Umsatzsteuer haben'],
+     h:'Kette: 52,60 · 1,55 · 1,09 · 1,19'}
+  ],
+  pool:[
+    {id:'q401', q:'Bezugspreis 15,80 €. 40 % Handlungskosten, 8 % Gewinn, 19 % USt. Bruttoverkaufspreis?', o:[['28,43 €',null,'15.8*1.4*1.08*1.19'],['23,89 €','Umsatzsteuer vergessen','15.8*1.4*1.08'],['26,39 €','Prozente addiert','15.8*1.67'],['27,83 €','Gewinn auf den Bezugspreis','15.8*1.48*1.19']], w:'15,80 · 1,4 · 1,08 · 1,19 = 28,43 €', p:'', n:28.43, u:'€'},
+    {id:'q402', q:'Topf-Set: Bezugspreis 64,00 €. 45 % Handlungskosten, 12 % Gewinn, 19 % USt. Bruttoverkaufspreis?', o:[['123,68 €',null,'64*1.45*1.12*1.19'],['103,94 €','Umsatzsteuer vergessen','64*1.45*1.12'],['112,64 €','Prozente addiert','64*1.76'],['119,57 €','Gewinn auf den Bezugspreis','64*1.57*1.19']], w:'64,00 · 1,45 · 1,12 · 1,19 = 123,68 €', p:'', n:123.68, u:'€'},
+    {id:'q403', q:'Aktentasche: Bezugspreis 24,00 €. 40 % Handlungskosten, 6,25 % Gewinn, 19 % USt. Bruttoverkaufspreis?', o:[['42,48 €',null,'24*1.4*1.0625*1.19'],['35,70 €','Umsatzsteuer vergessen','24*1.4*1.0625'],['39,66 €','Prozente addiert','24*1.6525'],['41,77 €','Gewinn auf den Bezugspreis','24*1.4625*1.19']], w:'24,00 · 1,4 · 1,0625 · 1,19 = 42,48 €', p:'Bezugspreis · HK-Faktor · Gewinn-Faktor · USt-Faktor', n:42.48, u:'€'},
+    {id:'q404', q:'Halstuch: Bezugspreis 5,00 €. 60 % Handlungskosten, 25 % Gewinn, 19 % USt. Bruttoverkaufspreis?', o:[['11,90 €',null,'5*1.6*1.25*1.19'],['10,00 €','Umsatzsteuer vergessen','5*1.6*1.25'],['10,20 €','Prozente addiert','5*2.04'],['11,01 €','Gewinn auf den Bezugspreis','5*1.85*1.19']], w:'5,00 · 1,6 · 1,25 · 1,19 = 11,90 €', p:'Vorwärtskalkulation in einer Kette', n:11.9, u:'€'},
+    {id:'q405', q:'Laptoptasche: Bezugspreis 30,00 €. 50 % Handlungskosten, 8 % Gewinn, 19 % USt. Bruttoverkaufspreis?', o:[['57,83 €',null,'30*1.5*1.08*1.19'],['48,60 €','Umsatzsteuer vergessen','30*1.5*1.08'],['53,10 €','Prozente addiert','30*1.77'],['56,41 €','Gewinn auf den Bezugspreis','30*1.58*1.19']], w:'30,00 · 1,5 · 1,08 · 1,19 = 57,83 €', p:'Erst am Schluss runden', n:57.83, u:'€'},
+    {id:'q406', q:'Die Preistreppe von unten nach oben:', o:[['Bezugspreis → Selbstkosten → Nettoverkaufspreis → Bruttoverkaufspreis',null],['Bezugspreis → Nettoverkaufspreis → Selbstkosten → Bruttoverkaufspreis','Selbstkosten kommen vor dem Gewinn'],['Selbstkosten → Bezugspreis → Bruttoverkaufspreis → Nettoverkaufspreis','Ganz durcheinander'],['Bezugspreis → Selbstkosten → Bruttoverkaufspreis → Nettoverkaufspreis','Steuer kommt zuletzt']], w:'+ Handlungskosten, + Gewinn, + Umsatzsteuer', p:'Bezugspreis + HK = Selbstkosten + Gewinn = NVP + USt = BVP'},
+    {id:'q407', q:'Kevin rechnet: 20,00 · 1,79 = 35,80 € (50 % HK, 10 % Gewinn, 19 % USt). Richtig wäre 39,27 €. Was ist sein Fehler?', o:[['Prozente addiert (50 + 10 + 19 = 79 %)',null],['Umsatzsteuer vergessen','Die 19 % stecken in seinen 79 %'],['7 % statt 19 % genommen','Er hat 19 % genommen'],['Rabatt vergessen','Kein Rabatt in der Aufgabe']], w:'Richtig: 20,00 · 1,5 · 1,1 · 1,19 = 39,27 €', p:'Prozente nie addieren – Faktoren nacheinander malnehmen'},
+    {id:'q408', q:'Aylin rechnet: 20,00 · 1,5 · 1,1 = 33,00 €. Richtig wäre 39,27 €. Was ist ihr Fehler?', o:[['Umsatzsteuer vergessen',null],['Prozente addiert','Sie hat Faktoren genommen'],['7 % statt 19 % genommen','Sie hat gar keine Steuer genommen'],['Gewinn vergessen','· 1,1 ist der Gewinn']], w:'33,00 € ist der Nettoverkaufspreis. · 1,19 fehlt.', p:'USt immer zuletzt auf den Nettoverkaufspreis'},
+    {id:'q409', q:'Marco rechnet: 20,00 · 1,5 · 1,1 · 1,07 = 35,31 €. Richtig wäre 39,27 €. Was ist sein Fehler?', o:[['7 % statt 19 % Umsatzsteuer',null],['Umsatzsteuer vergessen','Er hat 1,07 genommen'],['Prozente addiert','Er hat Faktoren genommen'],['Gewinn auf den Bezugspreis','Das hat er richtig gemacht']], w:'7 % nur bei Lebensmitteln, Büchern, Zeitschriften.', p:'Lies die Aufgabe genau: 7 % oder 19 %?'},
+    {id:'q410', q:'Bezugspreis und Umsatzsteuersatz sind bekannt. Welche zwei Angaben brauchst du noch für den Bruttoverkaufspreis?', o:[['Handlungskostenzuschlag und Gewinnzuschlag',null],['Rabattsatz und Skontosatz','Stecken schon im Bezugspreis'],['Listeneinkaufspreis und Skontosatz','Stecken schon im Bezugspreis'],['Gewinnzuschlag und Rabattsatz','Rabatt steckt schon im Bezugspreis']], w:'Rabatt, Skonto und Listenpreis stecken schon im Bezugspreis.', p:''},
+    {id:'q411', q:'Was versteht man unter dem Rohgewinn?', o:[['Umsatzerlöse (netto) minus Wareneinsatz',null],['Umsatzerlöse minus alle Kosten','Das ist der Reingewinn'],['Bruttoverkaufspreis minus Umsatzsteuer','Das ist der Nettoverkaufspreis'],['Bezugspreis plus Handlungskosten','Das sind die Selbstkosten']], w:'Der Rohgewinn muss Handlungskosten und Gewinn decken.', p:''},
+    {id:'q412', q:'Für welche Waren gilt 7 % Umsatzsteuer?', o:[['Lebensmittel, Bücher und Zeitschriften',null],['Kleidung und Schuhe','19 %'],['Elektrogeräte','19 %'],['Spielwaren','19 %']], w:'Sonst gilt der Normalsatz 19 %.', p:'„… Umsatzsteuer 7 % …“ → · 1,07 statt · 1,19'},
+    {id:'q413', pro:1, q:'Für Profis: Im zweiten Halbjahr 2020 galten vorübergehend 16 % USt. Bezugspreis 18,40 €, 50 % HK, 8 % Gewinn, 16 % USt. Bruttoverkaufspreis?', o:[['34,58 €',null,'18.4*1.5*1.08*1.16'],['35,47 €','19 % statt 16 % genommen','18.4*1.5*1.08*1.19'],['29,81 €','Umsatzsteuer vergessen','18.4*1.5*1.08'],['32,02 €','Prozente addiert','18.4*1.74']], w:'18,40 · 1,5 · 1,08 · 1,16 = 34,58 €', p:'', n:34.58, u:'€'},
+    {id:'q414', pro:1, q:'Für Profis: Hemd, Bezugspreis 14,50 €, Verkauf für 29,99 €. 50 % HK, 19 % USt. Mit wie viel Prozent Gewinn kalkuliert ihr? (1 Stelle)', o:[['15,9 %',null,'(29.99/1.19-14.5*1.5)/(14.5*1.5)*100'],['37,9 %','Umsatzsteuer nicht herausgerechnet','(29.99-21.75)/21.75*100'],['13,7 %','Gewinn auf den Nettopreis bezogen','(29.99/1.19-21.75)/(29.99/1.19)*100'],['23,8 %','Gewinn auf den Bezugspreis bezogen','(29.99/1.19-21.75)/14.5*100']], w:'29,99 : 1,19 = 25,20 € · Selbstkosten 21,75 € · Gewinn 3,45 € · 3,45 : 21,75 · 100 = 15,9 %', p:'Rückwärts: erst netto, dann Gewinn : Selbstkosten · 100', n:15.9, u:'%', d:1}
+  ]
+});
+
+KAP.push({
+  nr:5, ort:'Werfthalle', szene:'werft', modul:'Modul 5 · Kalkulationsfaktor und Kalkulationszuschlag',
+  titel:'Die Abkürzung der Werft',
+  story:'In der alten Werfthalle liegt ein Schiff im Dock. Hanna klopft an den Rumpf. „Früher haben wir jedes Teil einzeln gerechnet. Heute nehmen wir eine Abkürzung: den Kalkulationsfaktor. Einmal mal – fertig. Und rückwärts geht es mit geteilt.“',
+  wort:['der Kalkulationsfaktor','der Kalkulationszuschlag','rückwärts rechnen','4 Nachkommastellen','Bruttoverkaufspreis : Bezugspreis'],
+  dec:[
+    {id:'k5d1', s:'Für ein Kombüsen-Topf-Set habt ihr einen Bruttoverkaufspreis von 238,40 € festgelegt. Bei dieser Ware kalkuliert ihr mit dem Kalkulationsfaktor 1,6000. Der Einkauf will wissen, was das Set höchstens kosten darf.',
+     q:'Wie hoch ist der Bezugspreis?',
+     o:[['149,00 €',null,'238.4/1.6'],['381,44 €','Mal statt geteilt','238.4*1.6'],['125,21 €','Faktor auf den Nettopreis bezogen (vorher : 1,19)','238.4/1.19/1.6'],['95,36 €','Zuschlag (60 %) vom Verkaufspreis abgezogen','238.4*0.4'],['140,24 €','Falscher Faktor (1,7 statt 1,6)','238.4/1.7']],
+     w:'238,40 : 1,6 = 149,00 €', p:'Bezugspreis = Bruttoverkaufspreis : Kalkulationsfaktor',
+     y:['weil man vom Verkaufspreis nach unten zum Bezugspreis rechnet – also geteilt durch den Faktor','weil man beim Faktor immer malnimmt','weil man vorher die Umsatzsteuer abziehen muss'],
+     h:'Nach unten: geteilt.'},
+    {id:'k5d2', s:'Im Kühlregal steht ein Hafen-Joghurt für 0,79 €. Der Bezugspreis beträgt 0,43 €. Hanna fragt nach dem Kalkulationsfaktor (4 Stellen).',
+     q:'Wie hoch ist der Kalkulationsfaktor?',
+     o:[['1,8372',null,'0.79/0.43'],['1,84','Nur 2 Stellen – 4 Stellen sind verlangt','0.79/0.43'],['0,5443','Klein durch groß geteilt','0.43/0.79'],['1,5439','Faktor auf den Nettopreis bezogen (vorher : 1,19)','0.79/1.19/0.43'],['0,8372','1 abgezogen – das ist der Zuschlag als Dezimalzahl','0.79/0.43-1']],
+     w:'0,79 : 0,43 = 1,837209… → 1,8372', p:'Kalkulationsfaktor = Bruttoverkaufspreis : Bezugspreis',
+     y:['weil der Faktor Bruttoverkaufspreis geteilt durch Bezugspreis ist, auf 4 Stellen gerundet','weil man den Bezugspreis durch den Verkaufspreis teilt','weil der Faktor immer kleiner als 1 ist'],
+     h:'Groß durch klein. Ergebnis größer als 1?'},
+    {id:'k5d3', s:'Ein Fahrradanhänger für Deich-Touren: Bareinkaufspreis 342,00 €, Bezugskosten 28,00 €. Ihr kalkuliert mit 48 % Kalkulationszuschlag.',
+     q:'Welcher Bruttoverkaufspreis kommt aufs Schild?',
+     o:[['547,60 €',null,'(342+28)*1.48'],['506,16 €','Bezugskosten vergessen','342*1.48'],['534,16 €','Bezugskosten erst nach dem Zuschlag addiert','342*1.48+28'],['460,17 €','Umsatzsteuer herausgerechnet','(342+28)*1.48/1.19'],['370,00 €','Zuschlag vergessen','342+28']],
+     w:'(342,00 + 28,00) · 1,48 = 370,00 · 1,48 = 547,60 €', p:'',
+     y:['weil der Zuschlag auf den Bezugspreis kommt – und der enthält die Bezugskosten','weil die Bezugskosten am Ende dazukommen','weil der Zuschlag vom Verkaufspreis abgezogen wird'],
+     h:'Erst Bezugspreis = Bareinkaufspreis + Bezugskosten. Dann · 1,48.'}
+  ],
+  pool:[
+    {id:'q501', q:'Toaster: Bezugspreis 16,50 €, Kalkulationsfaktor 1,9. Bruttoverkaufspreis?', o:[['31,35 €',null,'16.5*1.9'],['8,68 €','Geteilt statt mal','16.5/1.9'],['26,34 €','Umsatzsteuer herausgerechnet','16.5*1.9/1.19'],['47,85 €','Mit 2,9 statt 1,9 gerechnet','16.5*2.9']], w:'16,50 · 1,9 = 31,35 €', p:'Bruttoverkaufspreis = Bezugspreis · Kalkulationsfaktor', n:31.35, u:'€'},
+    {id:'q502', q:'Skateboard: Bezugspreis 45,00 €, Kalkulationsfaktor 1,7. Bruttoverkaufspreis?', o:[['76,50 €',null,'45*1.7'],['26,47 €','Geteilt statt mal','45/1.7'],['64,29 €','Umsatzsteuer herausgerechnet','45*1.7/1.19'],['31,50 €','Nur der Zuschlag','45*0.7']], w:'45,00 · 1,7 = 76,50 €', p:'nach oben: malnehmen', n:76.5, u:'€'},
+    {id:'q503', q:'T-Shirt: Bruttoverkaufspreis 29,90 €, Bezugspreis 17,94 €. Kalkulationsfaktor (4 Stellen)?', o:[['1,6667',null,'29.9/17.94'],['0,6000','Klein durch groß geteilt','17.94/29.9'],['1,67','Nur 2 Stellen'],['1,4006','Auf den Nettopreis bezogen','29.9/1.19/17.94']], w:'29,90 : 17,94 = 1,6667', p:'Faktor auf 4 Nachkommastellen', n:1.6667, d:4},
+    {id:'q504', q:'Kaffeemaschine: Bruttoverkaufspreis 113,19 €, Kalkulationsfaktor 1,54. Bezugspreis?', o:[['73,50 €',null,'113.19/1.54'],['174,31 €','Mal statt geteilt','113.19*1.54'],['61,76 €','Faktor auf den Nettopreis bezogen','113.19/1.19/1.54'],['52,07 €','Zuschlag vom Verkaufspreis abgezogen','113.19*0.46']], w:'113,19 : 1,54 = 73,50 €', p:'nach unten: teilen', n:73.5, u:'€'},
+    {id:'q505', q:'Müsliriegel: Bezugspreis 0,34 €, Bruttoverkaufspreis 0,65 €. Kalkulationszuschlag in % (2 Stellen)?', o:[['91,18 %',null,'(0.65-0.34)/0.34*100'],['47,69 %','Auf den Verkaufspreis bezogen','(0.65-0.34)/0.65*100'],['191,18 %','1 nicht abgezogen','0.65/0.34*100'],['31 %','Differenz in Cent als Prozent']], w:'(0,65 – 0,34) : 0,34 · 100 = 91,18 %', p:'Kalkulationszuschlag = (BVP – Bezugspreis) : Bezugspreis · 100', n:91.18, u:'%'},
+    {id:'q506', q:'Kopfhörer: Bezugspreis 80,00 €, Kalkulationszuschlag 90 %. Bruttoverkaufspreis?', o:[['152,00 €',null,'80*1.9'],['72,00 €','Mit 0,9 statt 1,9 gerechnet','80*0.9'],['87,20 €','9 % statt 90 %','80*1.09'],['127,73 €','Umsatzsteuer herausgerechnet','80*1.9/1.19']], w:'90 % → Faktor 1,9 · 80,00 · 1,9 = 152,00 €', p:'Vom Zuschlag zum Faktor: durch 100, plus 1', n:152, u:'€'},
+    {id:'q507', q:'Bezugspreis 34,00 €, Kalkulationsfaktor 1,7059. Bruttoverkaufspreis?', o:[['58,00 €',null,'34*1.7059'],['19,93 €','Geteilt statt mal','34/1.7059'],['48,74 €','Umsatzsteuer herausgerechnet','34*1.7059/1.19'],['57,80 €','Faktor zu früh gerundet (1,7)','34*1.7']], w:'34,00 · 1,7059 = 58,00 €', p:'', n:58, u:'€'},
+    {id:'q508', q:'Herrenduft: Verkauf für 74,90 €, Bezugspreis 46,00 €. Kalkulationsfaktor (2 Stellen)?', o:[['1,63',null,'74.9/46'],['0,61','Klein durch groß geteilt','46/74.9'],['1,37','Auf den Nettopreis bezogen','74.9/1.19/46'],['28,90','Differenz statt Faktor','74.9-46']], w:'74,90 : 46,00 = 1,63', p:'', n:1.63},
+    {id:'q509', q:'Grill: Verkauf für 144,00 €, Bezugspreis 80,00 €. Kalkulationsfaktor?', o:[['1,8',null,'144/80'],['0,5556','Klein durch groß geteilt','80/144'],['1,5126','Auf den Nettopreis bezogen','144/1.19/80'],['64','Differenz statt Faktor','144-80']], w:'144,00 : 80,00 = 1,8', p:'', n:1.8},
+    {id:'q510', q:'Im Artikelstammblatt eines Tennisschlägers steht: Bezugspreis 44,39 € und die Zahl 1,8. Was bedeutet 1,8?', o:[['der Kalkulationsfaktor',null],['die Gewinnspanne in Prozent','Prozent wären z. B. 80 %'],['der Rabattsatz des Lieferers','Rabatt steckt im Bezugspreis'],['die Umsatzsteuer','USt ist 1,19 oder 1,07'],['der Mindestbestand','Das wäre eine Stückzahl']], w:'44,39 · 1,8 = 79,90 € Bruttoverkaufspreis', p:''},
+    {id:'q511', q:'Kalkulationsfaktor 1,6. Wie hoch ist der Kalkulationszuschlag?', o:[['60 %',null],['16 %','Komma verrutscht'],['160 %','1 nicht abgezogen'],['0,6 %','Nicht mal 100 genommen']], w:'(1,6 – 1) · 100 = 60 %', p:'Vom Faktor zum Zuschlag: 1 abziehen, mal 100'},
+    {id:'q512', q:'Kalkulationszuschlag 90 %. Welcher Faktor?', o:[['1,9',null],['0,9','Die 1 fehlt'],['1,09','Komma verrutscht'],['90','Prozentzahl statt Faktor']], w:'90 : 100 + 1 = 1,9', p:'Vom Zuschlag zum Faktor: durch 100, plus 1'},
+    {id:'q513', q:'Bruttoverkaufspreis und Faktor sind gegeben. Gesucht ist der Bezugspreis. Welches Rechenzeichen?', o:[['geteilt ( : )',null],['mal ( · )','Mal geht nach oben'],['plus ( + )','Kein Faktor-Rechnen'],['minus ( – )','Kein Faktor-Rechnen']], w:'nach unten: teilen', p:'Bezugspreis = Bruttoverkaufspreis : Kalkulationsfaktor'},
+    {id:'q514', q:'Hemd: Bezugspreis 14,50 €, Bruttoverkaufspreis 27,69 €. Kalkulationsfaktor (4 Stellen)?', o:[['1,9097',null,'27.69/14.5'],['1,91','Nur 2 Stellen'],['0,5237','Klein durch groß geteilt','14.5/27.69'],['1,6048','Auf den Nettopreis bezogen','27.69/1.19/14.5']], w:'27,69 : 14,50 = 1,9097', p:'Faktor = BVP : Bezugspreis', n:1.9097, d:4},
+    {id:'q515', pro:1, q:'Für Profis: Bezugspreis 54,99 €, Kalkulationszuschlag 40 %. Der Bezugspreis sinkt um 10 %. Neuer Bruttoverkaufspreis?', o:[['69,29 €',null,'54.99*0.9*1.4'],['76,99 €','Senkung vergessen','54.99*1.4'],['71,49 €','Prozente verrechnet (40 % – 10 % = 30 %)','54.99*1.3']], w:'54,99 · 0,9 · 1,4 = 69,29 €', p:'', n:69.29, u:'€'},
+    {id:'q516', pro:1, q:'Für Profis: 50 % HK, 10 % Gewinn, 19 % USt. Wie hoch ist der Kalkulationsfaktor?', o:[['1,9635',null,'1.5*1.1*1.19'],['1,79','Prozente addiert','1+0.5+0.1+0.19'],['1,6500','Umsatzsteuer vergessen','1.5*1.1'],['1,96','Nur 2 Stellen']], w:'1,5 · 1,1 · 1,19 = 1,9635 – gilt für alle Artikel mit diesen Sätzen', p:'Der Faktor hängt nur von den Prozentsätzen ab.', n:1.9635, d:4},
+    {id:'q517', pro:1, q:'Für Profis: Warum ist der Faktor bei 40 %, 25 % und 19 % nicht 1 + 0,40 + 0,25 + 0,19 = 1,84?', o:[['Die Prozente beziehen sich auf verschiedene Grundwerte – beim Addieren fehlen die Zuschläge auf die Zuschläge.',null],['Doch, 1,84 ist richtig.','24,00 · 1,84 = 44,16 € statt 49,98 €'],['Weil die Umsatzsteuer nicht in den Faktor gehört.','Bei der IHK gehört sie hinein'],['Weil man den Faktor immer auf 2 Stellen rundet.','4 Stellen – und darum geht es nicht']], w:'1,4 · 1,25 · 1,19 = 2,0825', p:'Faktor = (1 + HK) · (1 + G) · (1 + USt)'}
+  ]
+});
+
+/* ===== DATEN: Kapitel 6–9 ===== */
+KAP.push({
+  nr:6, ort:'Sturmflut-Nacht am Neuen Hafen', szene:'sturm', modul:'Modul 6 · Preise senken und Aktionen rechnen',
+  titel:'Die Sturmflut',
+  story:'In der Nacht kommt der Sturm. Das Wasser drückt gegen die Kaje. Am Morgen steht Wasser im Lager. Viel Ware ist noch gut, aber die Kisten sind nass. Hanna: „Wir räumen das Lager. Mit Aktionspreisen. Aber sauber gerechnet!“',
+  wort:['die Preissenkung','der Aktionspreis','der ursprüngliche Preis','der Umsatz','brutto · netto','der Einheitspreis','der Sondertisch'],
+  dec:[
+    {id:'k6d1', s:'Die Jacken habt ihr schon auf 60,00 € gesenkt. Jetzt bietet ihr die restlichen 40 Jacken für 51,00 € an. Für das Aktionsplakat braucht ihr die Prozentzahl.',
+     q:'Um wie viel Prozent habt ihr den Preis nochmals reduziert?',
+     o:[['15 %',null,'(60-51)/60*100'],['17,65 %','Durch den neuen Preis geteilt','(60-51)/51*100'],['85 %','Den Anteil ausgerechnet, der übrig bleibt','51/60*100'],['35,44 %','Vom ursprünglichen Preis (79,00 €) gerechnet','(79-51)/79*100'],['9,00 %','Differenz in Euro als Prozent genommen']],
+     w:'(60,00 – 51,00) : 60,00 · 100 = 15 %', p:'Bei der 2. Senkung ist der 1. gesenkte Preis der alte Preis',
+     y:['weil bei der zweiten Senkung der erste gesenkte Preis der Grundwert ist','weil man immer durch den neuen Preis teilt','weil man vom ursprünglichen Preis ausgeht'],
+     h:'(alt – neu) : alt · 100. Welcher Preis ist hier „alt“?'},
+    {id:'k6d2', s:'Auf einen Sondertisch kommen Socken: 15 Paar zu 5,00 €, 10 Paar zu 7,00 € und 6 Paar zu 5,50 €. Alle sollen einen einheitlichen Preis bekommen.',
+     q:'Welcher Einheitspreis kommt aufs Schild?',
+     o:[['5,74 €',null,'(15*5+10*7+6*5.5)/31'],['5,83 €','Einfacher Durchschnitt der drei Preise','(5+7+5.5)/3'],['178,00 €','Summe statt Preis je Paar','15*5+10*7+6*5.5'],['4,83 €','Umsatzsteuer herausgerechnet','(15*5+10*7+6*5.5)/31/1.19'],['11,87 €','Nur durch die erste Gruppe (15 Paar) geteilt','178/15']],
+     w:'15 · 5,00 + 10 · 7,00 + 6 · 5,50 = 178,00 € : 31 Paar = 5,74 €', p:'Einheitspreis = alle Beträge zusammen : Anzahl aller Stücke',
+     y:['weil man alle Beträge zusammenzählt und durch die Anzahl aller Paare teilt (gewogener Durchschnitt)','weil man die drei Preise addiert und durch 3 teilt','weil der teuerste Preis gilt'],
+     h:'Erst jeden Betrag (Paar · Preis), dann zusammen, dann durch 31.'},
+    {id:'k6d3', s:'Rucksäcke kosteten in der ersten Aktion 89,99 €. In der zweiten Aktion bietet ihr die restlichen 18 Rucksäcke für 64,99 € an. Alle werden verkauft.',
+     q:'Wie hoch ist der Bruttoumsatz der zweiten Aktion?',
+     o:[['1.169,82 €',null,'18*64.99'],['1.619,82 €','Mit dem alten Preis gerechnet','18*89.99'],['983,04 €','Netto statt brutto','18*64.99/1.19'],['450,00 €','Ersparnis statt Umsatz','18*25'],['947,55 €','19 % vom Brutto abgezogen','18*64.99*0.81']],
+     w:'18 · 64,99 = 1.169,82 €', p:'Umsatz der Aktion = Menge · Aktionspreis',
+     y:['weil der Umsatz Menge mal Aktionspreis ist','weil man mit dem alten Preis rechnet','weil man die Umsatzsteuer abzieht'],
+     h:'Menge · Aktionspreis.'},
+    {id:'k6d4', s:'Eine Daunenjacke hat ein Aktionsschild: „statt 79,99 € jetzt 59,99 €“. Eine Kundin ist misstrauisch: „Ist das wirklich reduziert – oder war die nie so teuer?“',
+     q:'Was antwortest du?',
+     o:[['„Der alte Preis ist der niedrigste Preis der letzten 30 Tage. Sie sparen 20 €, das sind 25 %.“',null],['„Den alten Preis darf jeder Laden frei wählen.“','Falsch: Die PAngV verlangt den niedrigsten Preis der letzten 30 Tage'],['„Sie sparen 33 %.“','20 : 59,99 – durch den neuen Preis geteilt'],['„Das ist egal, Hauptsache billig.“','Nicht kundenorientiert, keine Erklärung'],['„Das ist die Preisempfehlung, die zählt nicht.“','Ausrede statt Regel']],
+     w:'(79,99 – 59,99) : 79,99 · 100 = 25,00 %', p:'Bei Preisermäßigungen ist der niedrigste Gesamtpreis der letzten 30 Tage anzugeben (PAngV).',
+     y:['weil die Preisangabenverordnung bei einer Ermäßigung den niedrigsten Preis der letzten 30 Tage verlangt','weil der Laden den alten Preis frei wählen darf','weil der alte Preis die Preisempfehlung ist'],
+     h:'Welche Regel gilt für „statt“-Preise? (30 Tage)'}
+  ],
+  pool:[
+    {id:'q601', q:'Laufschuh statt 149,00 € nur noch 99,00 €. Um wie viel Prozent gesenkt? (2 Stellen)', o:[['33,56 %',null,'50/149*100'],['50,51 %','Durch den neuen Preis geteilt','50/99*100'],['66,44 %','Den Rest ausgerechnet','99/149*100'],['50,00 %','Differenz in Euro als Prozent']], w:'(149 – 99) : 149 · 100 = 33,56 %', p:'Senkung in % = (alt – neu) : alt · 100', n:33.56, u:'%'},
+    {id:'q602', q:'Coupon über 25 %. Der Artikel kostet 119,00 €. Wie viel Euro spart die Kundin?', o:[['29,75 €',null,'119*0.25'],['89,25 €','Zahlbetrag statt Ersparnis','119*0.75'],['23,80 €','Zurückgerechnet (: 1,25)','119-119/1.25'],['148,75 €','Aufgeschlagen','119*1.25']], w:'119,00 · 0,25 = 29,75 €', p:'Prozentwert = Grundwert · Prozentsatz', n:29.75, u:'€'},
+    {id:'q603', q:'Nach 10 % Rabatt zahlt ein Kunde 180,00 €. Wie hoch war der ursprüngliche Preis?', o:[['200,00 €',null,'180/0.9'],['198,00 €','10 % auf den neuen Preis aufgeschlagen','180*1.1'],['162,00 €','Noch einmal 10 % abgezogen','180*0.9'],['190,00 €','10 € statt 10 % addiert']], w:'180,00 : 0,9 = 200,00 €', p:'alter Preis = neuer Preis : (1 – p : 100)', n:200, u:'€', h:'Die 10 % beziehen sich auf den alten Preis.'},
+    {id:'q604', q:'Mixer: 69,90 € → Sonderaktion 39,90 €. Um wie viel Prozent reduziert? (1 Stelle)', o:[['42,9 %',null,'30/69.9*100'],['75,2 %','Durch den neuen Preis geteilt','30/39.9*100'],['57,1 %','Den Rest ausgerechnet','39.9/69.9*100'],['30,0 %','Differenz in Euro als Prozent']], w:'(69,90 – 39,90) : 69,90 · 100 = 42,9 %', p:'Grundwert = Preis vor der Senkung', n:42.9, u:'%', d:1},
+    {id:'q605', q:'Kassenabrechnung: 14.970,20 € brutto (19 %). Nettoumsatz?', o:[['12.580,00 €',null,'14970.2/1.19'],['12.125,86 €','19 % vom Brutto abgezogen (· 0,81)','14970.2*0.81'],['17.814,54 €','Steuer aufgeschlagen','14970.2*1.19'],['2.390,20 €','Das ist die Umsatzsteuer','14970.2-14970.2/1.19']], w:'14.970,20 : 1,19 = 12.580,00 €', p:'netto = brutto : 1,19', n:12580, u:'€'},
+    {id:'q606', q:'Wie viel Umsatzsteuer steckt in 29,90 € (19 %)?', o:[['4,77 €',null,'29.9-29.9/1.19'],['5,68 €','19 % vom Bruttopreis gerechnet','29.9*0.19'],['25,13 €','Das ist der Nettopreis','29.9/1.19'],['35,58 €','Steuer aufgeschlagen','29.9*1.19']], w:'29,90 : 1,19 = 25,13 € · 29,90 – 25,13 = 4,77 €', p:'brutto – netto = Umsatzsteuer', n:4.77, u:'€'},
+    {id:'q607', q:'Socken-Sondertisch: 31 Paar zu 5,74 €. Am Ende sind noch 8 Paar übrig. Bruttoumsatz?', o:[['132,02 €',null,'23*5.74'],['45,92 €','Mit der Restmenge gerechnet','8*5.74'],['177,94 €','Alle 31 Paar gerechnet','31*5.74'],['110,94 €','Umsatzsteuer herausgerechnet','23*5.74/1.19']], w:'31 – 8 = 23 Paar · 23 · 5,74 = 132,02 €', p:'Umsatz = verkaufte Menge · Preis', n:132.02, u:'€'},
+    {id:'q608', q:'Obsttheke: 0,400 kg zu 1,20 €/kg, 0,250 kg zu 2,20 €/kg, 1,340 kg zu 1,95 €/kg, 0,760 kg zu 3,50 €/kg. Zu zahlen?', o:[['6,30 €',null,'0.4*1.2+0.25*2.2+1.34*1.95+0.76*3.5'],['8,85 €','Nur die Kilopreise addiert','1.2+2.2+1.95+3.5'],['2,75 €','Kilo statt Euro addiert','0.4+0.25+1.34+0.76'],['7,50 €','Mit 1 kg je Sorte gerechnet']], w:'0,48 + 0,55 + 2,613 + 2,66 = 6,303 → 6,30 €', p:'Menge (kg) · Kilopreis, dann addieren', n:6.3, u:'€'},
+    {id:'q609', q:'Protein-Shake: kalkuliert 52,40 €. Mitbewerber verlangen 49,10 €, ihr übernehmt den Preis. Um wie viel % liegt der neue Preis darunter?', o:[['6,30 %',null,'(52.4-49.1)/52.4*100'],['6,72 %','Durch den neuen Preis geteilt','(52.4-49.1)/49.1*100'],['93,70 %','Den Rest ausgerechnet','49.1/52.4*100'],['2,93 %','Differenz in Euro als Prozent']], w:'(52,40 – 49,10) : 52,40 · 100 = 6,30 %', p:'', n:6.3, u:'%'},
+    {id:'q610', q:'Restposten von 17,80 € auf 14,50 € reduziert. Preisnachlass in %? (1 Stelle)', o:[['18,5 %',null,'3.3/17.8*100'],['22,8 %','Durch den neuen Preis geteilt','3.3/14.5*100'],['81,5 %','Den Rest ausgerechnet','14.5/17.8*100'],['3,3 %','Differenz in Euro als Prozent']], w:'(17,80 – 14,50) : 17,80 · 100 = 18,5 %', p:'', n:18.5, u:'%', d:1},
+    {id:'q611', q:'Sondertisch: 15 Paar zu 7,00 €, 25 Paar zu 6,00 €, 10 Paar zu 9,00 €. Einheitspreis?', o:[['6,90 €',null,'(105+150+90)/50'],['7,33 €','Einfacher Durchschnitt','(7+6+9)/3'],['345,00 €','Summe statt Preis je Paar','105+150+90'],['5,80 €','Umsatzsteuer herausgerechnet','345/50/1.19']], w:'(105 + 150 + 90) : 50 = 6,90 €', p:'', n:6.9, u:'€'},
+    {id:'q612', q:'Feinkosttheke: 1,500 kg zu 11,40 €/kg, 250 g zu 16,80 €/kg, 0,360 kg zu 14,50 €/kg. Rechnungsbetrag?', o:[['26,52 €',null,'1.5*11.4+0.25*16.8+0.36*14.5'],['42,70 €','Nur die Kilopreise addiert','11.4+16.8+14.5'],['64,32 €','250 g als 2,5 kg gerechnet','1.5*11.4+2.5*16.8+0.36*14.5'],['2,11 €','Kilo statt Euro addiert','1.5+0.25+0.36']], w:'17,10 + 4,20 + 5,22 = 26,52 €', p:'', n:26.52, u:'€', h:'250 g = 0,25 kg'},
+    {id:'q613', q:'Euer Preis 24,95 €, die UVP des Herstellers 29,90 €. Um wie viel % liegt ihr unter der UVP? (1 Stelle)', o:[['16,6 %',null,'4.95/29.9*100'],['19,8 %','Durch den eigenen Preis geteilt','4.95/24.95*100'],['83,4 %','Den Rest ausgerechnet','24.95/29.9*100'],['4,95 %','Differenz in Euro als Prozent']], w:'(29,90 – 24,95) : 29,90 · 100 = 16,6 %', p:'', n:16.6, u:'%', d:1},
+    {id:'q614', q:'Einige Sporthosen haben nach der Sturmflut leichte Wasserflecken. Was ist kaufmännisch sinnvoll?', o:[['Reduziert auf einem eigenen Warenträger anbieten – mit Hinweis auf den Mangel',null],['Ohne Hinweis zum normalen Preis verkaufen','Führt zu Reklamationen'],['Sofort entsorgen','Verschenkt Umsatz'],['Den Preis erhöhen, um den Verlust auszugleichen','Kauft niemand']], w:'Mit Hinweis gibt es später keine Reklamation.', p:'Farbabweichung)'},
+    {id:'q615', q:'Für die Aktion müsst ihr neue Daten ins Warenwirtschaftssystem eingeben. Warum?', o:[['Die Verkaufspreise ändern sich.',null],['Die Lieferanten ändern sich.','Lieferanten bleiben gleich'],['Die Artikelnummern ändern sich.','Nummern bleiben gleich'],['Die Umsatzsteuer ändert sich.','Steuersatz bleibt gleich']], w:'An der Kasse muss der Aktionspreis erscheinen.', p:''},
+    {id:'q616', q:'Jacke: 59,90 € → Schlussverkauf 44,90 €. Um wie viel % gesenkt? (2 Stellen)', o:[['25,04 %',null,'15/59.9*100'],['33,41 %','Durch den neuen Preis geteilt','15/44.9*100'],['74,96 %','Den Rest ausgerechnet','44.9/59.9*100'],['15,00 %','Differenz in Euro als Prozent']], w:'(59,90 – 44,90) : 59,90 · 100 = 25,04 %', p:'Senkung in % = Differenz : alter Preis · 100', n:25.04, u:'%'},
+    {id:'q617', pro:1, q:'Für Profis: Fernseher sofort 649,00 € mit 5 % Sonderrabatt – oder 80,00 € Anzahlung und 6 Raten zu 105,00 €. Ersparnis beim Sofortkauf?', o:[['93,45 €',null,'80+6*105-649*0.95'],['61,00 €','Ohne Sonderrabatt verglichen','80+6*105-649'],['32,45 €','Nur der Rabatt','649*0.05'],['616,55 €','Sofortpreis statt Ersparnis','649*0.95']], w:'Raten: 80 + 6 · 105 = 710,00 € · sofort: 649 · 0,95 = 616,55 € · Ersparnis 93,45 €', p:'', n:93.45, u:'€'},
+    {id:'q618', pro:1, q:'Für Profis: 15 % Rabatt entsprechen 90,00 €. Ursprünglicher Preis und Preis nach Rabatt?', o:[['600,00 € und 510,00 €',null],['103,50 € und 90,00 €','90 € als Grundwert genommen'],['690,00 € und 600,00 €','Rabatt aufgeschlagen']], w:'90 : 0,15 = 600,00 € · 600 – 90 = 510,00 €', p:''},
+    {id:'q619', pro:1, q:'Für Profis: Ein Preis wird zweimal um 10 % gesenkt. Wie viel ist das insgesamt?', o:[['19 %',null],['20 %','Prozente addiert'],['21 %','Wie zweimal + 10 %'],['10 %','Zweite Senkung vergessen']], w:'0,9 · 0,9 = 0,81 → insgesamt 19 %', p:'Die zweite Senkung rechnet vom schon gesenkten Preis.'}
+  ]
+});
+
+KAP.push({
+  nr:7, ort:'Fußgängerzone', szene:'center', modul:'Modul 7 · Preise festlegen und begründen',
+  titel:'Krake24 schlägt zu',
+  story:'In der Fußgängerzone hängt ein riesiges Plakat: „Krake24 – alles billiger!“ Kunden kommen mit dem Handy in den Hafenstore und zeigen Online-Preise. Hanna bleibt ruhig. „Billiger ist nicht alles. Wir müssen erklären können, warum unser Preis stimmt.“',
+  wort:['das Kriterium','innerbetrieblich · außerbetrieblich','der Mitbewerber','die Nachfrage','die Preisempfehlung (UVP)','das Lockangebot','der Absatz'],
+  dec:[
+    {id:'k7d1', s:'Ein Kunde hält dir sein Handy hin: „Die Kopfhörer kosten bei Krake24 20 € weniger!“',
+     q:'Was sagst du?',
+     o:[['„Danke für den Hinweis! Ist es genau dieses Modell – und ein Aktionspreis? Ich frage gern die Chefin nach einem Preisangleich. Bei uns können Sie die Kopfhörer sofort testen und mitnehmen.“',null],['„Dann bestellen Sie doch bei Krake24.“','Kunde geht – Umsatz weg'],['„Okay, ich ziehe Ihnen einfach 20 € ab.“','Ohne Befugnis – Preisuntergrenze nicht geprüft'],['„Krake24 verkauft nur Schrott.“','Mitbewerber abwerten ist unprofessionell'],['„Unsere Preise sind gesetzlich festgelegt.“','Falsch – der Laden legt seine Preise selbst fest']],
+     w:'Freundlich bleiben, Angebot prüfen, Preis angleichen nach Rücksprache oder Zugabe, Vorteile nennen.', p:'Kunde: „Woanders ist es billiger.“ → freundlich bleiben, Angebot prüfen, angleichen oder Vorteile nennen (Beratung, Service, Umtausch)',
+     y:['weil der Fachhandel höhere Handlungskosten hat, dafür aber Beratung, Service und sofortige Verfügbarkeit bietet','weil Kunden immer das billigste Angebot nehmen','weil Verkäufer Preise frei senken dürfen'],
+     h:'Freundlich – nachfragen – angleichen nach Rücksprache – Vorteile nennen.'},
+    {id:'k7d2', s:'Für die Hafenfest-Woche plant ihr Aktionspreise. Die Zentrale will drei Ziele auf dem Planungsblatt sehen.',
+     q:'Welche drei Ziele schreibt ihr auf?',
+     o:[['Umsatz steigern · neue Kunden gewinnen · Restbestände abbauen',null],['mehr verkaufen · mehr Umsatz · mehr Absatz','Dreimal dasselbe – gibt nur 1 Punkt'],['Handlungskosten erhöhen · Gewinn senken · Kunden vertreiben','Das sind keine Ziele'],['Umsatzsteuer sparen · Preisangaben weglassen · Lieferanten wechseln','Nicht erlaubt bzw. kein Ziel von Sonderpreisen'],['Mindestbestand senken · Inventur machen · Regale putzen','Hat nichts mit Sonderpreisen zu tun']],
+     w:'Drei verschiedene Ziele, je ein Punkt.', p:'Ziele: Umsatz/Absatz steigern · neue Kunden · Kunden binden · bekannter werden · Restbestände abbauen · Platz schaffen',
+     y:['weil die IHK drei verschiedene Ziele will – nicht dreimal dasselbe','weil man möglichst lange Sätze schreiben muss','weil nur Umsatz zählt'],
+     h:'Drei verschiedene Ziele – nicht dreimal „mehr verkaufen“.'},
+    {id:'k7d3', s:'Die Zentrale fragt: „Warum ist Krake24 bei vielen Artikeln günstiger?“ Hanna will zwei Gründe für die Antwort-Mail.',
+     q:'Welche Gründe schreibt ihr?',
+     o:[['Krake24 hat niedrigere Handlungskosten (keine Ladenmiete, weniger Personal) und kauft größere Mengen günstiger ein.',null],['Wir zahlen mehr Umsatzsteuer als Krake24.','Der Steuersatz ist für alle gleich'],['Online gilt die Preisangabenverordnung nicht.','Sie gilt auch online'],['Krake24 hat einen höheren Bezugspreis.','Dann wäre Krake24 teurer'],['Krake24 bekommt den Preis vom Staat vorgeschrieben.','Preise legt der Händler fest']],
+     w:'Gründe: Aktionsware · günstigerer Bezugspreis · niedrigere Handlungskosten · weniger Gewinn · Lockangebot', p:'',
+     y:['weil niedrigere Handlungskosten und ein günstigerer Bezugspreis einen niedrigeren Preis möglich machen','weil Online-Händler keine Steuern zahlen','weil der Staat die Preise festlegt'],
+     h:'Denk an die Preistreppe: Wo kann Krake24 sparen?'},
+    {id:'k7d4', s:'Neue Ware für die Sportabteilung bekommt Preise. Die Zentrale fragt nach zwei Kriterien, die ihr bei der Preisbildung beachtet.',
+     q:'Welche zwei Kriterien nennt ihr?',
+     o:[['die Selbstkosten des Artikels und die Preise der Mitbewerber',null],['die Artikelnummer und die Regalhöhe','Keine Kriterien der Preisbildung'],['der Mindestbestand und die Lieferzeit','Das ist Lagerhaltung'],['der Skonto des Kunden und die Öffnungszeit','Keine Kriterien der Preisbildung'],['die Kassenlage und die Schaufensterdeko','Keine Kriterien der Preisbildung']],
+     w:'Kriterien: Selbstkosten · Gewinn · Mitbewerber · Nachfrage · psychologische Preise · UVP', p:'',
+     y:['weil der Preis die Kosten decken und gleichzeitig zum Markt passen muss','weil nur die Kosten zählen','weil der Hersteller den Preis bestimmt'],
+     h:'Ein Kriterium von innen, eins von außen.'}
+  ],
+  pool:[
+    {id:'q701', q:'Selbstkosten des Artikels – Kriterium von …', o:[['innen (aus dem Betrieb)',null],['außen (vom Markt)','Kosten entstehen im Betrieb']], w:'innerbetrieblich', p:'Von innen: Selbstkosten, Gewinn, Handlungskosten'},
+    {id:'q702', q:'Preise der Mitbewerber – Kriterium von …', o:[['außen (vom Markt)',null],['innen (aus dem Betrieb)','Mitbewerber sind der Markt']], w:'außerbetrieblich', p:'Von außen: Mitbewerber, Nachfrage, UVP, Trends, Konjunktur'},
+    {id:'q703', q:'Gewünschter Gewinn – Kriterium von …', o:[['innen (aus dem Betrieb)',null],['außen (vom Markt)','Den Gewinn plant der Betrieb']], w:'innerbetrieblich', p:'Von innen: gewünschter Gewinn'},
+    {id:'q704', q:'Nachfrage der Kunden – Kriterium von …', o:[['außen (vom Markt)',null],['innen (aus dem Betrieb)','Kunden sind der Markt']], w:'außerbetrieblich', p:'Von außen: Nachfrage'},
+    {id:'q705', q:'Preisempfehlung des Herstellers (UVP) – Kriterium von …', o:[['außen (vom Markt)',null],['innen (aus dem Betrieb)','Der Hersteller ist außerhalb']], w:'außerbetrieblich', p:'Von außen: Preisempfehlung des Herstellers'},
+    {id:'q706', q:'Lage der Wirtschaft (Konjunktur) – Kriterium von …', o:[['außen (vom Markt)',null],['innen (aus dem Betrieb)','Die Wirtschaftslage kommt von außen']], w:'außerbetrieblich', p:'Von außen: Konjunktur, Trends, Mode, Jahreszeit'},
+    {id:'q707', q:'Warum kann ein Händler nicht immer den kalkulierten Preis verlangen?', o:[['Weil Mitbewerber den Artikel günstiger anbieten.',null],['Weil die Umsatzsteuer sich ständig ändert.','Sie ändert sich selten'],['Weil der Handlungskostenzuschlag gesetzlich festgelegt ist.','Ist er nicht'],['Weil der Hersteller den Preis vorschreibt.','Er empfiehlt nur (UVP)'],['Weil der Bezugspreis immer sinkt.','Stimmt nicht']], w:'Der Markt bestimmt mit.', p:''},
+    {id:'q708', q:'Wegen höherer Energiepreise erhöht ihr die Preise. Viele Kunden kaufen weniger. Folge?', o:[['Der Absatz geht zurück.',null],['Der Absatz steigt.','Weniger Käufe = weniger Absatz'],['Die Handlungskosten sinken.','Sie sind gestiegen'],['Die Umsatzsteuer sinkt.','Steuersatz bleibt gleich']], w:'Kaufzurückhaltung = weniger verkaufte Stücke.', p:''},
+    {id:'q709', q:'Mit der Kundenkarte gibt es Preisnachlässe. Welches Ziel steckt dahinter?', o:[['Absatz und Umsatz steigern, Kunden sollen wiederkommen',null],['Die Handlungskosten sollen steigen','Kein Ziel'],['Die Umsatzsteuer soll sinken','Kein Ziel'],['Die Preisangabenverordnung soll umgangen werden','Nicht erlaubt']], w:'Kundenbindung', p:''},
+    {id:'q710', q:'Was ist der Marktpreis?', o:[['Der Preis, der sich aus Angebot und Nachfrage bildet',null],['Der Preis, den der Hersteller empfiehlt','Das ist die UVP'],['Der Preis auf dem Wochenmarkt','Wortspiel – falsch'],['Der Preis, den der Staat festlegt','Der Staat legt keine Preise fest']], w:'Angebot und Nachfrage treffen sich.', p:''},
+    {id:'q711', q:'Im Februar liegen noch 40 Winterjacken im Lager. Welches Ziel hat eine Preissenkung?', o:[['Restbestände abbauen und Platz für neue Ware schaffen',null],['Neue Lieferanten finden','Kein Ziel von Sonderpreisen'],['Die Handlungskosten erhöhen','Kein Ziel'],['Die Preisangaben vermeiden','Nicht erlaubt']], w:'Saisonware abbauen', p:'Ziel: Restbestände und Saisonware abbauen'},
+    {id:'q712', q:'9,99 € statt 10,00 €. Wie heißt das?', o:[['psychologische Preisgestaltung (Schwellenpreis)',null],['Preisuntergrenze','Das sind die Selbstkosten + USt'],['Kalkulationsfaktor','Hat nichts damit zu tun'],['Mengenrabatt','Hat nichts damit zu tun']], w:'Der Preis wirkt günstiger.', p:'Kriterium: psychologische Preisgestaltung'},
+    {id:'q713', q:'Eine Cola kostet im Discounter 0,99 € und am Bahnhofskiosk 2,50 €. Ein Grund für den Kioskpreis?', o:[['Der Kiosk hat hohe Handlungskosten (Miete, lange Öffnungszeiten), und am Bahnhof ist die Nachfrage hoch.',null],['Am Kiosk gilt eine höhere Umsatzsteuer.','Gleicher Steuersatz'],['Der Kiosk muss keine Preise auszeichnen.','Muss er'],['Die Cola ist am Kiosk eine andere Ware.','Gleiche Flasche']], w:'Kosten und Nachfrage bestimmen den Preis mit.', p:'Kriterien: Handlungskosten (innen) und Nachfrage (außen)'},
+    {id:'q714', q:'Eine neue Filiale eröffnet mit Eröffnungsangeboten. Welches Ziel?', o:[['neue Kunden gewinnen und bekannter werden',null],['Restbestände abbauen','Eine neue Filiale hat noch keine Restbestände'],['Handlungskosten senken','Kein Ziel von Sonderpreisen'],['Lieferanten wechseln','Kein Ziel von Sonderpreisen']], w:'Bekanntheit steigern', p:'Ziel: neue Kunden gewinnen, bekannter werden'},
+    {id:'q715', pro:1, q:'Für Profis: Der Preis wird um 20 % gesenkt, die Selbstkosten bleiben gleich. Auswirkung auf den Gewinn je Stück?', o:[['Er sinkt – bis zum Verlust, wenn der Preis unter Selbstkosten + USt fällt. Ausgleich nur über mehr Stück.',null],['Er steigt, weil mehr Kunden kommen.','Je Stück sinkt er'],['Er bleibt gleich, weil die Kosten gleich bleiben.','Der Preis sinkt'],['Die Umsatzsteuer gleicht das aus.','Die Steuer geht an den Staat']], w:'Weniger Preis bei gleichen Kosten → weniger Gewinn je Stück.', p:''},
+    {id:'q716', pro:1, q:'Für Profis: Zwei Vorteile von Handelsmarken (eigenen Marken) für den Händler?', o:[['Freier kalkulierbar und kein direkter Preisvergleich möglich',null],['Keine Umsatzsteuer und kein Preisschild','Beides falsch'],['Der Hersteller zahlt die Werbung und die Miete','Falsch'],['Sie müssen nicht im Warenwirtschaftssystem stehen','Falsch']], w:'Auch: Kunden binden, eigenes Image.', p:''},
+    {id:'q717', pro:1, q:'Für Profis: Lockangebot Bluetooth-Box 34,00 € netto, Selbstkosten 40,00 €, 300 Stück. Kopfhörer bringen 3,00 € Gewinn je Stück. Wie viele Kopfhörer gleichen den Verlust aus?', o:[['600',null,'300*(40-34)/3'],['100','Nur jeder dritte Kunde gerechnet','300/3'],['1.800','Das ist der Verlust in Euro','300*6'],['200','Mit 9 € je Kopfhörer gerechnet','1800/9']], w:'Verlust 300 · 6,00 € = 1.800,00 € · 1.800 : 3,00 = 600 Kopfhörer', p:'Mischkalkulation: Verlust beim Lockangebot über andere Waren ausgleichen', n:600, d:0},
+    {id:'q718', pro:1, q:'Für Profis: Welche Bedingung muss ein Lockangebot rechtlich erfüllen?', o:[['Die Ware muss in angemessener Menge vorrätig sein (sonst irreführend, UWG).',null],['Es muss unter dem Bezugspreis liegen.','Keine Pflicht'],['Es darf nur online stehen.','Keine Pflicht'],['Es braucht keinen Grundpreis.','Grundpreisregeln gelten trotzdem']], w:'Sonst ist das Lockangebot irreführende Werbung.', p:'Lockangebot: Ware in angemessener Menge vorrätig'},
+    {id:'q719', pro:1, q:'Für Profis: Was beschreibt die Hochpreisstrategie?', o:[['Hohe Preise für hohe Qualität, Service und Image',null],['Dauerhaft günstige Preise mit wenig Service','Das ist die Niedrigpreisstrategie'],['Preise immer genau wie die Mitbewerber','Das ist Anpassung'],['Preise unter den Selbstkosten','Das ist Verlust']], w:'Niedrigpreis: viele Kunden, wenig Service (Discounter).', p:'Lehrbuch S. 148–150'}
+  ]
+});
+
+KAP.push({
+  nr:8, ort:'Hafenfest-Stand an der Kaje', szene:'fest', modul:'Modul 8 · Die Preisangabenverordnung',
+  titel:'Schilder für das Hafenfest',
+  story:'Morgen beginnt das Hafenfest. Der Hafenstore hat einen Stand an der Kaje. Hunderte Gäste werden kommen – und jedes Schild muss stimmen. Hanna: „Krake24 sucht nur einen Fehler. Die Preisangabenverordnung schützt die Kunden. Und sie schützt uns, wenn wir sie einhalten.“',
+  wort:['die Preisangabenverordnung (PAngV)','der Endpreis','der Grundpreis','je 1 kg / 1 l','die Regalauszeichnung','kulant'],
+  dec:[
+    {id:'k8d1', s:'Fünf Schilder liegen bereit. Nur eins darf so an den Stand.',
+     q:'Welches Schild ist richtig?',
+     o:[['Bio-Honig, 500 g · 6,49 € · 1 kg = 12,98 €',null],['Olivenöl, 0,75 l · 8,99 € · ohne Grundpreis','Grundpreis fehlt (11,99 € je Liter)'],['Kaffee, 500 g · 5,99 € zzgl. MwSt. · 1 kg = 11,98 €','Endpreis fehlt – der Preis muss die Umsatzsteuer enthalten'],['Waschmittel, 1,35 kg · 4,95 € · 1 kg = 3,76 €','Grundpreis falsch: 4,95 : 1,35 = 3,67 €'],['Duschgel, 250 ml · 1,95 € · 100 ml = 0,78 €','Grundpreis muss je 1 Liter stehen: 7,80 €']],
+     w:'Pflicht: Endpreis mit Umsatzsteuer und Grundpreis je 1 kg bzw. 1 l.', p:'Preisangabenverordnung: Endpreis · Grundpreis · Menge · gut lesbar und zugeordnet',
+     y:['weil Endpreis mit Umsatzsteuer und Grundpreis je 1 kg dastehen und der Grundpreis stimmt','weil Honig keinen Grundpreis braucht','weil der Preis mit ,49 endet'],
+     h:'Prüfe: Endpreis mit Steuer? Grundpreis je 1 kg / 1 l? Stimmt die Rechnung?'},
+    {id:'k8d2', s:'Am Regal steht 2,30 €. An der Kasse werden 3,20 € berechnet. Der Kunde ist sauer: „Ich zahle nur 2,30 €!“',
+     q:'Wie handelt ihr?',
+     o:[['Entschuldigen, aus Kulanz 2,30 € gewähren (nach Rücksprache) und das Schild sofort berichtigen – einen Anspruch hat der Kunde aber nicht.',null],['Er hat Recht: Das Preisschild ist ein verbindliches Angebot.','Das Schild ist nur eine Aufforderung zum Angebot'],['„Pech gehabt, 3,20 € oder gar nicht.“','Rechtlich richtig, aber nicht kundenorientiert'],['Das Schild hängen lassen, das merkt keiner.','Verstößt gegen die PAngV'],['Den Preis an der Kasse auf 2,30 € ändern und das Schild lassen.','Der Fehler bleibt bestehen']],
+     w:'Der Kaufvertrag entsteht erst an der Kasse.', p:'Die Preisauszeichnung ist eine Aufforderung zur Abgabe eines Angebots; ein Anspruch auf den falschen Preis besteht nicht.',
+     y:['weil das Preisschild nur eine Aufforderung zum Angebot ist und der Kaufvertrag erst an der Kasse entsteht','weil das Preisschild ein verbindliches Angebot ist','weil der Kunde immer Recht hat'],
+     h:'Wann entsteht der Kaufvertrag?'},
+    {id:'k8d3', s:'Am Stand gibt es Hafen-Frikadellen. Eine Packung (450 g) kostet 7,65 €. Auf das Schild muss auch der Kilopreis.',
+     q:'Welcher Kilopreis kommt aufs Schild?',
+     o:[['17,00 € je kg',null,'7.65/0.45'],['3,44 € je kg','Mal statt geteilt','7.65*0.45'],['1,70 € je kg','Je 100 g statt je kg','7.65/4.5'],['14,29 € je kg','Umsatzsteuer herausgerechnet – der Grundpreis ist ein Endpreis','7.65/0.45/1.19'],['0,02 € je kg','Gramm nicht in kg umgerechnet','7.65/450']],
+     w:'450 g = 0,45 kg · 7,65 : 0,45 = 17,00 € je kg', p:'Grundpreis = Preis : Menge in kg',
+     y:['weil der Grundpreis der Preis je 1 kg ist: Preis geteilt durch die Menge in kg','weil man den Preis mal die Menge nimmt','weil der Grundpreis ohne Umsatzsteuer angegeben wird'],
+     h:'Gramm in kg umrechnen, dann Preis : Menge.'},
+    {id:'k8d4', s:'Eine Kundin steht vor dem Kaffeeregal: „Da steht 6,49 € und darunter 12,98 € pro Kilo. Muss ich jetzt 12,98 € bezahlen?“',
+     q:'Was antwortest du?',
+     o:[['„Sie bezahlen nur 6,49 €. Die 12,98 € zeigen, was ein Kilo kosten würde. So sehen Sie sofort, welche Packung günstiger ist.“',null],['„Ja, an der Kasse kostet es 12,98 €.“','Der Grundpreis ist nicht der Zahlpreis'],['„Das ist der Preis ohne Steuer.“','Beide Preise enthalten die Steuer'],['„Keine Ahnung, das macht die Zentrale.“','Nicht kundenorientiert'],['„Das ist der alte Preis vor der Aktion.“','Verwechselt mit einem Streichpreis']],
+     w:'6,49 : 0,5 = 12,98 € je kg', p:'Bei Waren nach Gewicht oder Volumen muss neben dem Gesamtpreis der Grundpreis je 1 kg oder 1 l stehen, damit Kunden vergleichen können.',
+     y:['weil die Preisangabenverordnung den Grundpreis zum Vergleichen verlangt','weil der Grundpreis der Preis ohne Steuer ist','weil der Grundpreis der alte Preis ist'],
+     h:'Wozu gibt es den Grundpreis?'}
+  ],
+  pool:[
+    {id:'q801', q:'Shampoo, 300 ml, 2,85 €. Grundpreis je Liter?', o:[['9,50 €',null,'2.85/0.3'],['0,86 €','Mal statt geteilt','2.85*0.3'],['0,95 €','Je 100 ml statt je Liter','2.85/3'],['7,98 €','Umsatzsteuer herausgerechnet','2.85/0.3/1.19']], w:'300 ml = 0,3 l · 2,85 : 0,3 = 9,50 €', p:'Grundpreis = Preis : Menge in l', n:9.5, u:'€'},
+    {id:'q802', q:'Orangensaft, 1,5 l, 2,19 €. Grundpreis je Liter?', o:[['1,46 €',null,'2.19/1.5'],['3,29 €','Mal statt geteilt','2.19*1.5'],['2,19 €','Packungspreis übernommen'],['0,15 €','Je 100 ml','2.19/15']], w:'2,19 : 1,5 = 1,46 €', p:'Grundpreis je 1 l', n:1.46, u:'€'},
+    {id:'q803', q:'Müsli, 750 g, 3,99 €. Grundpreis je kg?', o:[['5,32 €',null,'3.99/0.75'],['2,99 €','Mal statt geteilt','3.99*0.75'],['0,53 €','Je 100 g statt je kg','3.99/7.5'],['4,47 €','Umsatzsteuer herausgerechnet','3.99/0.75/1.19']], w:'750 g = 0,75 kg · 3,99 : 0,75 = 5,32 €', p:'Grundpreis je 1 kg', n:5.32, u:'€'},
+    {id:'q804', q:'Nudeln A: 500 g für 1,29 €. Nudeln B: 1 kg für 2,49 €. Welche Packung ist günstiger?', o:[['B (2,49 € je kg statt 2,58 € je kg)',null],['A, weil 1,29 € weniger ist als 2,49 €','Packungspreise statt Kilopreise verglichen'],['Beide kosten gleich viel','A kostet 2,58 € je kg'],['Kann man nicht vergleichen','Doch – mit dem Grundpreis']], w:'A: 1,29 : 0,5 = 2,58 €/kg · B: 2,49 €/kg', p:'Der Grundpreis hilft, Packungen zu vergleichen.'},
+    {id:'q805', q:'Ihr schreibt Preisschilder für eine Werbeaktion. Welche rechtliche Vorgabe gilt?', o:[['die Preisangabenverordnung (PAngV)',null],['das Ladenschlussgesetz','Regelt Öffnungszeiten'],['das Berufsbildungsgesetz','Regelt die Ausbildung'],['das Jugendarbeitsschutzgesetz','Regelt Arbeitszeiten Jugendlicher']], w:'PAngV', p:''},
+    {id:'q806', q:'Zwei Angaben, die nach der PAngV auf dem Preisschild stehen müssen?', o:[['Endpreis (mit Umsatzsteuer) und Grundpreis',null],['Bezugspreis und Gewinn','Interne Zahlen'],['Lieferant und Artikelnummer','Keine Pflichtangaben der PAngV'],['Nettopreis und Steuersatz','Der Endpreis muss die Steuer enthalten']], w:'Auch: Menge, ggf. Güteklasse', p:''},
+    {id:'q807', q:'Die Waren sind nur am Regal ausgezeichnet, nicht auf jedem Artikel. Ein Kunde beschwert sich. Ist das zulässig?', o:[['Ja – wenn der Preis gut lesbar und eindeutig der Ware zugeordnet ist.',null],['Nein – jeder Artikel braucht ein eigenes Schild.','Regalauszeichnung ist erlaubt'],['Nur bei Lebensmitteln.','Gilt allgemein'],['Nur wenn der Kunde fragt.','Preise müssen sichtbar sein']], w:'Regalauszeichnung ist erlaubt.', p:''},
+    {id:'q808', q:'Was soll die Preisangabenverordnung?', o:[['Verbrauchern Preisinformationen geben und Preisvergleiche ermöglichen',null],['Festlegen, wie hoch Preise sein dürfen','Sie legt keine Preishöhe fest'],['Vorschreiben, dass Preise mit ,99 enden','Falsch'],['Sonderangebote verbieten','Falsch']], w:'Verbraucherschutz durch Preisklarheit', p:''},
+    {id:'q809', q:'Honig: 500 g für 7,20 € und 250 g für 4,00 €. Um wie viel Euro sind 100 g in der großen Packung günstiger?', o:[['0,16 €',null,'4/2.5-7.2/5'],['3,20 €','Packungspreise verglichen','7.2-4'],['0,40 €','Je 250 g verglichen','4-7.2/2']], w:'7,20 : 5 = 1,44 € · 4,00 : 2,5 = 1,60 € · Unterschied 0,16 €', p:'', n:0.16, u:'€'},
+    {id:'q810', q:'Kaffee, 500 g, 6,49 €. Grundpreis je kg?', o:[['12,98 €',null,'6.49/0.5'],['1,30 €','Je 100 g statt je kg','6.49/5'],['10,91 €','Umsatzsteuer herausgerechnet','6.49/0.5/1.19'],['6,49 €','Packungspreis übernommen']], w:'6,49 : 0,5 = 12,98 €', p:'Grundpreis je 1 kg', n:12.98, u:'€'},
+    {id:'q811', q:'250 g für 2,49 €. Grundpreis je kg?', o:[['9,96 €',null,'2.49/0.25'],['0,62 €','Mal statt geteilt','2.49*0.25'],['1,00 €','Je 100 g statt je kg','2.49/2.5'],['8,37 €','Umsatzsteuer herausgerechnet','2.49/0.25/1.19']], w:'2,49 : 0,25 = 9,96 €', p:'Grundpreis = Preis : Menge in kg', n:9.96, u:'€'},
+    {id:'q812', q:'Bei welcher Ware muss kein Grundpreis stehen?', o:[['Jeans, Größe 32/32',null],['Honig, 500 g','Ware nach Gewicht'],['Olivenöl, 0,75 l','Ware nach Volumen'],['Waschmittel, 1,35 kg','Ware nach Gewicht']], w:'Stückware braucht keinen Grundpreis.', p:'Kein Grundpreis, wenn die Ware nicht nach Gewicht, Volumen, Länge oder Fläche verkauft wird'},
+    {id:'q813', q:'Waschmittel, 1,35 kg, 4,95 €. Richtiger Grundpreis je kg?', o:[['3,67 €',null,'4.95/1.35'],['3,76 €','Zahlendreher'],['6,68 €','Mal statt geteilt','4.95*1.35'],['3,08 €','Umsatzsteuer herausgerechnet','4.95/1.35/1.19']], w:'4,95 : 1,35 = 3,67 €', p:'Grundpreis nachrechnen', n:3.67, u:'€'},
+    {id:'q814', q:'Duschgel, 250 ml, 1,95 €. Grundpreis je Liter?', o:[['7,80 €',null,'1.95/0.25'],['0,78 €','Je 100 ml statt je Liter','1.95/2.5'],['0,49 €','Mal statt geteilt','1.95*0.25'],['6,55 €','Umsatzsteuer herausgerechnet','1.95/0.25/1.19']], w:'1,95 : 0,25 = 7,80 €', p:'Grundpreis je 1 l', n:7.8, u:'€'},
+    {id:'q815', q:'Was ist der Endpreis?', o:[['Der Preis, den der Kunde wirklich zahlt – mit Umsatzsteuer',null],['Der Preis ohne Umsatzsteuer','Das ist der Nettopreis'],['Der Preis je 1 kg','Das ist der Grundpreis'],['Der letzte Preis vor dem Ausverkauf','Wortspiel – falsch']], w:'Endpreis = Bruttoverkaufspreis', p:'Endpreis (Bruttoverkaufspreis inkl. Umsatzsteuer)'},
+    {id:'q816', pro:1, q:'Für Profis: Ein Online-Shop zeigt „49,99 € zzgl. Versand“. Ist das mit der PAngV vereinbar?', o:[['Ja, wenn die Versandkosten klar genannt werden und der Preis die Umsatzsteuer enthält.',null],['Nein, „zzgl.“ ist nie erlaubt.','Nur die Steuer darf nicht „zzgl.“ sein'],['Ja, die PAngV gilt online nicht.','Sie gilt auch online'],['Nein, Versand muss immer kostenlos sein.','Keine Pflicht']], w:'Nur die Umsatzsteuer darf nicht „zzgl.“ sein.', p:'Endpreis mit Umsatzsteuer; Versandkosten klar angeben'},
+    {id:'q817', pro:1, q:'Für Profis: Frau Kaya will die Hose aus dem Schaufenster für 39,99 €. An der Kasse kostet sie 49,99 €. Kann sie 39,99 € verlangen?', o:[['Nein. Auch das Schaufensterschild ist nur eine Aufforderung zum Angebot. Kulanz ist aber sinnvoll, das Schild muss berichtigt werden.',null],['Ja, Schaufensterpreise sind immer verbindlich.','Auch dort entsteht der Vertrag erst an der Kasse'],['Ja, aber nur am Samstag.','Unsinn'],['Nein, und das Schild darf so bleiben.','Das Schild muss berichtigt werden']], w:'Kaufvertrag entsteht an der Kasse.', p:'Preisschild = Aufforderung zur Abgabe eines Angebots'}
+  ]
+});
+
+KAP.push({
+  nr:9, ort:'Alter Hafen', szene:'alt', modul:'Modul 9 · Prüfungstraining',
+  titel:'Hannas Logbuch',
+  story:'Am Alten Hafen öffnet Hanna eine alte Kiste. Darin: ihr Logbuch aus der Zeit, bevor sie zur See fuhr. Damals war sie Azubi im Einzelhandel. „Hier stehen meine Fehler von damals. Jede falsche Zahl hat einen Grund. Wer die Gründe kennt, fällt in der Prüfung auf keine Falle rein.“',
+  wort:['der Ablenker','der Fehlertyp','zu früh gerundet','Grundwert','Open Book','Werkzeugkarte'],
+  dec:[
+    {id:'k9d1', s:'Logbuch, Seite 1: 180 Trinkflaschen zu je 9,20 €, 10 % Rabatt, 2 % Skonto, Bezugskosten 54,00 €. Ihr zahlt in der Skontofrist.',
+     q:'Wie hoch ist der Bezugspreis für eine Flasche?',
+     o:[['8,41 €',null,'(180*9.2*0.9*0.98+54)/180'],['8,40 €','Zu früh gerundet (0,882 → 0,88)','(180*9.2*0.88+54)/180'],['8,58 €','Skonto vergessen','(180*9.2*0.9+54)/180'],['8,11 €','Bezugskosten vergessen','180*9.2*0.9*0.98/180'],['10,01 €','Umsatzsteuer auf den Bezugspreis','(180*9.2*0.9*0.98+54)/180*1.19']],
+     w:'180 · 9,20 · 0,90 · 0,98 + 54,00 = 1.514,59 € : 180 = 8,41 €', p:'Ablenker-Detektiv D1',
+     h:'Kette ohne Zwischenrunden: 180 · 9,20 · 0,90 · 0,98 + 54, dann : 180.'},
+    {id:'k9d2', s:'Logbuch, Seite 2: Daunenweste, Bezugspreis 36,40 €. 45 % Handlungskosten, 8 % Gewinn, 19 % USt.',
+     q:'Wie hoch ist der Bruttoverkaufspreis?',
+     o:[['67,83 €',null,'36.4*1.45*1.08*1.19'],['57,00 €','Umsatzsteuer vergessen','36.4*1.45*1.08'],['67,70 €','Zu früh gerundet (Faktor 1,86)','36.4*1.86'],['63,92 €','Umsatzsteuer auf den Bezugspreis','36.4*1.45*1.08+36.4*0.19'],['66,27 €','Gewinn auf den Bezugspreis statt auf die Selbstkosten','36.4*1.53*1.19']],
+     w:'36,40 · 1,45 · 1,08 · 1,19 = 67,83 €', p:'Ablenker-Detektiv D2', h:'Kette: 36,40 · 1,45 · 1,08 · 1,19'},
+    {id:'k9d3', s:'Logbuch, Seite 3: Wanderschuhe, Listeneinkaufspreis 60,00 €, 20 % Rabatt, 2 % Skonto, Bezugskosten 1,96 € je Paar. 40 % HK, 10 % Gewinn, 19 % USt.',
+     q:'Wie hoch ist der Bruttoverkaufspreis für ein Paar?',
+     o:[['89,80 €',null,'(60*0.8*0.98+1.96)*1.4*1.1*1.19'],['86,21 €','Bezugskosten vergessen','60*0.8*0.98*1.4*1.1*1.19'],['89,36 €','Skonto vom Listenpreis (Rabatt und Skonto zusammengezählt)','(60*0.78+1.96)*1.4*1.1*1.19'],['95,56 €','Handlungskosten auf den Listenpreis','(49+24)*1.1*1.19'],['75,46 €','Umsatzsteuer vergessen','49*1.4*1.1']],
+     w:'60,00 · 0,8 · 0,98 + 1,96 = 49,00 € · 49,00 · 1,4 · 1,1 · 1,19 = 89,80 €', p:'Ablenker-Detektiv D3', h:'Erst Bezugspreis (49,00 €), dann die Treppe hoch.'},
+    {id:'k9d4', s:'Logbuch, Seite 4: Ein Rucksack soll 89,90 € kosten. Kalkulationsfaktor 1,85 (bezogen auf den Bruttoverkaufspreis).',
+     q:'Welchen Bezugspreis darf der Rucksack höchstens haben?',
+     o:[['48,59 €',null,'89.9/1.85'],['47,32 €','Zu früh gerundet (Faktor 1,9)','89.9/1.9'],['166,32 €','Mal statt geteilt','89.9*1.85'],['40,84 €','Faktor auf den Nettopreis bezogen','89.9/1.19/1.85'],['13,49 €','Zuschlag vom Verkaufspreis abgezogen (falscher Grundwert)','89.9*0.15']],
+     w:'89,90 : 1,85 = 48,59 €', p:'Ablenker-Detektiv D4', h:'Nach unten: geteilt.'},
+    {id:'k9d5', s:'Logbuch, Seite 5: Sweatshirts kosteten 29,99 €. Erste Aktion: 23,99 €. Zweite Aktion: 17,99 €.',
+     q:'Um wie viel Prozent wurde in der zweiten Aktion noch einmal gesenkt? (2 Stellen)',
+     o:[['25,01 %',null,'(23.99-17.99)/23.99*100'],['25,00 %','Zu früh gerundet (0,7499… → 0,75)'],['40,01 %','Vom ursprünglichen Preis gerechnet','(29.99-17.99)/29.99*100'],['33,35 %','Durch den neuen Preis geteilt','6/17.99*100'],['74,99 %','Anteil, der übrig bleibt','17.99/23.99*100']],
+     w:'(23,99 – 17,99) : 23,99 · 100 = 25,01 %', p:'Ablenker-Detektiv D5', h:'Grundwert = erster Aktionspreis.'},
+    {id:'k9d6', s:'Logbuch, Seite 6: Tagesumsatz der Spielwaren 8.627,50 € brutto. Alles mit 19 % USt.',
+     q:'Wie hoch ist der Nettoumsatz?',
+     o:[['7.250,00 €',null,'8627.5/1.19'],['6.988,28 €','19 % vom Brutto abgezogen (· 0,81)','8627.5*0.81'],['10.266,73 €','Steuer aufgeschlagen statt herausgerechnet','8627.5*1.19'],['7.189,58 €','Zu früh gerundet (1,19 → 1,2)','8627.5/1.2'],['8.063,08 €','7 % statt 19 % (Spielwaren haben den Normalsatz)','8627.5/1.07']],
+     w:'8.627,50 : 1,19 = 7.250,00 €', p:'Ablenker-Detektiv D6', h:'netto = brutto : 1,19'}
+  ],
+  pool:[
+    {id:'q901', q:'100 Kerzen zu 5,20 €, 12 % Rabatt, 2 % Skonto, Bezugskosten 30,00 €. Bezugspreis der Lieferung?', o:[['478,45 €',null,'520*0.88*0.98+30'],['448,45 €','Bezugskosten vergessen','520*0.88*0.98'],['477,20 €','Rabatt und Skonto zusammengezählt','520*0.86+30'],['569,35 €','Umsatzsteuer auf den Bezugspreis','(520*0.88*0.98+30)*1.19']], w:'520 · 0,88 · 0,98 + 30 = 478,45 €', p:'', n:478.45, u:'€'},
+    {id:'q902', q:'Kassenabrechnung 5.950,00 € brutto (19 %). Nettoumsatz?', o:[['5.000,00 €',null,'5950/1.19'],['4.819,50 €','19 % vom Brutto abgezogen','5950*0.81'],['7.080,50 €','Steuer aufgeschlagen','5950*1.19'],['950,00 €','Das ist die Umsatzsteuer','5950-5950/1.19']], w:'5.950,00 : 1,19 = 5.000,00 €', p:'netto aus brutto', n:5000, u:'€'},
+    {id:'q903', q:'Einführungspreis 74,99 € statt kalkuliert 119,99 €. Reduzierung in % (ganze Zahl)?', o:[['38 %',null,'45/119.99*100'],['60 %','Durch den neuen Preis geteilt','45/74.99*100'],['62 %','Den Rest ausgerechnet','74.99/119.99*100'],['37 %','Falsch gerundet']], w:'(119,99 – 74,99) : 119,99 · 100 = 38 %', p:'', n:38, u:'%', d:0},
+    {id:'q904', q:'Personalrabatt 15 % auf 140,00 €. Wie viel spart die Mitarbeiterin?', o:[['21,00 €',null,'140*0.15'],['119,00 €','Zahlbetrag statt Ersparnis','140*0.85'],['161,00 €','Aufgeschlagen','140*1.15'],['18,26 €','Zurückgerechnet','140-140/1.15']], w:'140,00 · 0,15 = 21,00 €', p:'Prozentwert', n:15.75, u:'€'},
+    {id:'q905', q:'Restposten Schals: 15 Stück zu 12 €, 25 zu 10 €, 10 zu 8 €. Einheitspreis?', o:[['10,20 €',null,'(15*12+25*10+10*8)/50'],['10,00 €','Einfacher Durchschnitt','(12+10+8)/3'],['510,00 €','Summe statt Preis je Stück','15*12+25*10+10*8'],['8,57 €','Umsatzsteuer herausgerechnet','510/50/1.19']], w:'(180 + 250 + 80) : 50 = 10,20 €', p:'', n:10.2, u:'€'},
+    {id:'q906', q:'Bezugspreis 22,40 €, Kalkulationsfaktor 1,7857. Bruttoverkaufspreis?', o:[['40,00 €',null,'22.4*1.7857'],['12,54 €','Geteilt statt mal','22.4/1.7857'],['33,61 €','Umsatzsteuer herausgerechnet','22.4*1.7857/1.19'],['40,32 €','Faktor zu früh gerundet (1,8)','22.4*1.8']], w:'22,40 · 1,7857 = 40,00 €', p:'', n:40, u:'€'},
+    {id:'q907', q:'Nach 15 % Rabatt zahlt eine Kundin 85,00 €. Ursprünglicher Preis?', o:[['100,00 €',null,'85/0.85'],['97,75 €','15 % auf den neuen Preis aufgeschlagen','85*1.15'],['72,25 €','Noch einmal abgezogen','85*0.85']], w:'85,00 : 0,85 = 100,00 €', p:'alter Preis = neuer Preis : (1 – p : 100)', n:100, u:'€'},
+    {id:'q908', q:'Reklamation: Kaufpreisminderung 20 % von 245,00 €. Wie viel Euro bekommt der Kunde zurück?', o:[['49,00 €',null,'245*0.2'],['196,00 €','Restpreis statt Erstattung','245*0.8'],['40,83 €','Zurückgerechnet','245-245/1.2'],['294,00 €','Aufgeschlagen','245*1.2']], w:'245,00 · 0,2 = 49,00 €', p:'', n:49, u:'€'},
+    {id:'q909', q:'Die Kosten für die Anlieferung der Waren sind gestiegen. Auswirkung?', o:[['Der Bezugspreis erhöht sich.',null],['Die Handlungskosten erhöhen sich.','Anlieferung = Bezugskosten'],['Der Gewinn erhöht sich.','Eher weniger'],['Die Umsatzsteuer sinkt.','Steuersatz bleibt'],['Der Kalkulationsfaktor sinkt.','Hat damit nichts zu tun']], w:'Anlieferung = Bezugskosten', p:''},
+    {id:'q910', q:'Klausur-Strategie: Wann rundest du?', o:[['Erst am Schluss – Zwischenergebnisse nicht runden',null],['Nach jedem Schritt auf 2 Stellen','Führt zu „zu früh gerundet“'],['Gar nicht','Euro auf 2, Faktor auf 4 Stellen'],['Immer auf ganze Euro','Falsch']], w:'Kette in einem Zug in den Taschenrechner', p:'Zwischenergebnisse nicht runden, erst das Ergebnis'},
+    {id:'q911', q:'Klausur-Strategie: Dein Ergebnis ist falsch, aber der Rechenweg stimmt. Was passiert?', o:[['Für den richtigen Weg gibt es Punkte. Folgefehler kosten keine Punkte.',null],['Es gibt 0 Punkte.','Rechenweg bringt Punkte'],['Der Rechenweg zählt nie.','Doch'],['Man muss die Aufgabe neu schreiben.','Nein']], w:'Rechenweg immer hinschreiben', p:'Rechenwege aufschreiben – dafür gibt es Punkte'},
+    {id:'q912', q:'Klausur-Strategie: Eine offene Frage gibt 2 Punkte. Wie viele Antworten schreibst du?', o:[['zwei verschiedene Stichworte',null],['so viele wie möglich','Nur die ersten zwei zählen'],['eine lange','Zwei Punkte = zwei Antworten'],['keine, nur rechnen','Offene Fragen bringen Punkte']], w:'So viele Antworten wie Punkte', p:'„Nennen Sie 2 …“ – nur die ersten zwei zählen'},
+    {id:'q913', pro:1, q:'Für Profis: 15 m² Parkett kosten 1.125,00 € netto. Der Kunde kauft 9 m² nach. Rechnungsbetrag für alle 24 m² mit 19 % USt?', o:[['2.142,00 €',null,'1125/15*24*1.19'],['1.800,00 €','Umsatzsteuer vergessen','1125/15*24'],['803,25 €','Nur die 9 m² gerechnet','9*75*1.19'],['2.160,00 €','Mit 1,2 statt 1,19 gerechnet','1125/15*24*1.2']], w:'1.125 : 15 = 75,00 €/m² · 24 · 75 = 1.800,00 € · 1,19 = 2.142,00 €', p:'', n:2142, u:'€'}
+  ]
+});
+
+/* ===== FINALE: Aufgabenketten (eine wird gezogen) ===== */
+const FINALE = [
+  {id:'f1', s:'Die Zentrale schickt die Aufgabe: 240 Damenblusen zu je 18,00 € (netto), 5 % Rabatt, 24,00 € Verpackung, zzgl. 19 % USt.', quelle:'', steps:[ {q:'Bezugspreis in Euro (netto) für ein Stück?', o:[['17,20 €',null,'(240*18*0.95+24)/240'], ['17,10 €','Verpackung vergessen','240*18*0.95/240'], ['20,47 €','Umsatzsteuer dazugerechnet','(240*18*0.95+24)/240*1.19'], ['18,10 €','Rabatt vergessen','(240*18+24)/240'], ['4.128,00 €','Ganze Lieferung statt je Stück','240*18*0.95+24']], w:'240 · 18 · 0,95 + 24 = 4.128,00 € : 240 = 17,20 €', n:17.2, u:'€'}, {q:'Bruttoverkaufspreis bei 50 % HK, 8 % Gewinn, 19 % USt?', o:[['33,16 €',null,'17.2*1.5*1.08*1.19'], ['27,86 €','Umsatzsteuer vergessen','17.2*1.5*1.08'], ['32,34 €','Gewinn auf den Bezugspreis','17.2*1.58*1.19'], ['30,44 €','Prozente addiert','17.2*1.77']], w:'17,20 · 1,5 · 1,08 · 1,19 = 33,16 €', n:33.16, u:'€'}, {q:'Kalkulationsfaktor (4 Stellen)?', o:[['1,9279',null,'33.16/17.2'], ['1,93','Nur 2 Stellen'], ['0,5187','Klein durch groß geteilt','17.2/33.16'], ['1,6201','Auf den Nettopreis bezogen','33.16/1.19/17.2']], w:'33,16 : 17,20 = 1,9279', n:1.9279, d:4}, {q:'Der Preis wurde auf 30,00 € gesenkt. Jetzt kosten die restlichen 100 Stück 24,00 €. Um wie viel % nochmals reduziert?', o:[['20,00 %',null,'6/30*100'], ['25,00 %','Durch den neuen Preis geteilt','6/24*100'], ['27,62 %','Vom kalkulierten Preis 33,16 € gerechnet','(33.16-24)/33.16*100'], ['80,00 %','Anteil, der übrig bleibt','24/30*100']], w:'(30,00 – 24,00) : 30,00 · 100 = 20 %', n:20, u:'%'}, {q:'Bruttoumsatz dieser Sonderaktion?', o:[['2.400,00 €',null,'100*24'], ['2.016,81 €','Netto statt brutto','100*24/1.19'], ['3.000,00 €','Mit 30,00 € gerechnet','100*30'], ['600,00 €','Ersparnis statt Umsatz','100*6']], w:'100 · 24,00 = 2.400,00 €', n:2400, u:'€'} ]},
+  {id:'f2', s:'Die Zentrale schickt die Aufgabe: 200 Poloshirts zu je 14,00 €, 5 % Rabatt, 36,00 € Verpackung, zzgl. 19 % USt.', quelle:'', steps:[ {q:'Bezugspreis in Euro (netto) für ein Stück?', o:[['13,48 €',null,'(200*14*0.95+36)/200'], ['13,30 €','Verpackung vergessen','200*14*0.95/200'], ['16,04 €','Umsatzsteuer dazugerechnet','(200*14*0.95+36)/200*1.19'], ['14,18 €','Rabatt vergessen','(200*14+36)/200'], ['2.696,00 €','Ganze Lieferung statt je Stück','200*14*0.95+36']], w:'200 · 14 · 0,95 + 36 = 2.696,00 € : 200 = 13,48 €', n:13.48, u:'€'}, {q:'Bruttoverkaufspreis bei 45 % HK, 6 % Gewinn, 19 % USt?', o:[['24,66 €',null,'13.48*1.45*1.06*1.19'], ['20,72 €','Umsatzsteuer vergessen','13.48*1.45*1.06'], ['24,22 €','Gewinn auf den Bezugspreis','13.48*1.51*1.19'], ['22,92 €','Prozente addiert','13.48*1.7']], w:'13,48 · 1,45 · 1,06 · 1,19 = 24,66 €', n:24.66, u:'€'}, {q:'Kalkulationsfaktor (4 Stellen)?', o:[['1,8294',null,'24.66/13.48'], ['1,83','Nur 2 Stellen'], ['0,5466','Klein durch groß geteilt','13.48/24.66'], ['1,5373','Auf den Nettopreis bezogen','24.66/1.19/13.48']], w:'24,66 : 13,48 = 1,8294', n:1.8294, d:4}, {q:'Der Preis wird von 24,66 € auf 19,90 € gesenkt. Um wie viel %? (2 Stellen)', o:[['19,30 %',null,'(24.66-19.9)/24.66*100'], ['23,92 %','Durch den neuen Preis geteilt','(24.66-19.9)/19.9*100'], ['80,70 %','Anteil, der übrig bleibt','19.9/24.66*100'], ['4,76 %','Differenz in Euro als Prozent','24.66-19.9']], w:'(24,66 – 19,90) : 24,66 · 100 = 19,30 %', n:19.3, u:'%'}, {q:'Später werden 80 Stück zu je 17,50 € verkauft. Nettoumsatz dieser Aktion?', o:[['1.176,47 €',null,'80*17.5/1.19'], ['1.400,00 €','Brutto statt netto','80*17.5'], ['1.134,00 €','19 % vom Brutto abgezogen','80*17.5*0.81'], ['1.666,00 €','Steuer aufgeschlagen','80*17.5*1.19']], w:'80 · 17,50 = 1.400,00 € : 1,19 = 1.176,47 €', n:1176.47, u:'€'} ]},
+  {id:'f3', s:'Die Zentrale schickt die Aufgabe: 150 Pullover zu je 22,00 €, 10 % Rabatt, 42,00 € Verpackung und Versand, zzgl. 19 % USt.', quelle:'', steps:[ {q:'Bezugspreis in Euro (netto) für ein Stück?', o:[['20,08 €',null,'(150*22*0.9+42)/150'], ['19,80 €','Verpackung vergessen','150*22*0.9/150'], ['23,90 €','Umsatzsteuer dazugerechnet','(150*22*0.9+42)/150*1.19'], ['22,28 €','Rabatt vergessen','(150*22+42)/150'], ['3.012,00 €','Ganze Lieferung statt je Stück','150*22*0.9+42']], w:'150 · 22 · 0,9 + 42 = 3.012,00 € : 150 = 20,08 €', n:20.08, u:'€'}, {q:'Bruttoverkaufspreis bei 55 % HK, 5 % Gewinn, 19 % USt?', o:[['38,89 €',null,'20.08*1.55*1.05*1.19'], ['32,68 €','Umsatzsteuer vergessen','20.08*1.55*1.05'], ['38,23 €','Gewinn auf den Bezugspreis','20.08*1.6*1.19'], ['35,94 €','Prozente addiert','20.08*1.79']], w:'20,08 · 1,55 · 1,05 · 1,19 = 38,89 €', n:38.89, u:'€'}, {q:'Kalkulationsfaktor (4 Stellen)?', o:[['1,9368',null,'38.89/20.08'], ['1,94','Nur 2 Stellen'], ['0,5163','Klein durch groß geteilt','20.08/38.89'], ['1,6275','Auf den Nettopreis bezogen','38.89/1.19/20.08']], w:'38,89 : 20,08 = 1,9368', n:1.9368, d:4}, {q:'Der Preis wurde auf 36,00 € gesenkt. Jetzt kosten die restlichen 40 Stück 29,00 €. Um wie viel % nochmals reduziert?', o:[['19,44 %',null,'7/36*100'], ['24,14 %','Durch den neuen Preis geteilt','7/29*100'], ['25,43 %','Vom kalkulierten Preis 38,89 € gerechnet','(38.89-29)/38.89*100'], ['80,56 %','Anteil, der übrig bleibt','29/36*100']], w:'(36,00 – 29,00) : 36,00 · 100 = 19,44 %', n:19.44, u:'%'}, {q:'Bruttoumsatz dieser Sonderaktion?', o:[['1.160,00 €',null,'40*29'], ['974,79 €','Netto statt brutto','40*29/1.19'], ['1.440,00 €','Mit 36,00 € gerechnet','40*36'], ['280,00 €','Ersparnis statt Umsatz','40*7']], w:'40 · 29,00 = 1.160,00 €', n:1160, u:'€'} ]}
+];
+
+/* Showdown gegen Krake24 (Fachgespräch) */
+const SHOW = [
+  {id:'s1', s:'Auf der Bühne des Hafenfests stellt der Krake24-Manager eine Frage ans Publikum – und an euch: „Warum soll irgendwer bei euch kaufen? Online ist es 15 € billiger!“',
+   q:'Eure Antwort vor allen Gästen:',
+   o:[['„Bei uns können Sie anprobieren und testen, wir beraten Sie, und wenn etwas nicht passt, tauschen wir sofort um. Dafür haben wir höhere Kosten für Laden und Personal – die stecken im Preis.“',null],['„Weil wir netter sind.“','Keine fachliche Begründung'],['„Online ist alles gefälscht.“','Mitbewerber abwerten'],['„Wir senken ab heute alle Preise um 15 €.“','Ohne Rücksicht auf die Preisuntergrenze'],['„Weil die Preisangabenverordnung Online-Handel verbietet.“','Falsch']],
+   p:'Der Fachhandel hat höhere Handlungskosten (Miete, Personal); dafür bietet er Beratung, Service und sofortige Verfügbarkeit (Zusatznutzen).'},
+  {id:'s2', s:'Der Krake24-Manager zeigt auf euer Aktionsschild: „Statt 79,99 € jetzt 59,99 € – das ist doch ein Fake-Rabatt!“',
+   q:'Eure Antwort vor allen Gästen:',
+   o:[['„Nein. Der alte Preis ist der niedrigste Preis der letzten 30 Tage – so verlangt es die Preisangabenverordnung. Die Kunden sparen 20 €, das sind 25 %.“',null],['„Den alten Preis dürfen wir frei wählen.“','Falsch – 30-Tage-Regel'],['„Die Kunden sparen 33 %.“','Durch den neuen Preis geteilt'],['„Bei Krake24 sind die Rabatte auch erfunden.“','Ablenken statt erklären'],['„Das ist die UVP, die zählt nicht.“','Ausrede statt Regel']],
+   p:'Bei Preisermäßigungen ist der niedrigste Gesamtpreis der letzten 30 Tage anzugeben (PAngV).'},
+  {id:'s3', s:'Der Krake24-Manager ruft: „Bei euch stand 2,30 € am Regal, und an der Kasse waren es 3,20 €! Ihr müsst 2,30 € verlangen!“',
+   q:'Eure Antwort vor allen Gästen:',
+   o:[['„Das Schild ist nur eine Aufforderung zum Angebot – der Kaufvertrag entsteht an der Kasse. Trotzdem haben wir dem Kunden aus Kulanz 2,30 € berechnet und das Schild sofort berichtigt.“',null],['„Stimmt, das Schild ist ein verbindliches Angebot.“','Falsch'],['„Das war die Schuld des Kunden.“','Nicht kundenorientiert'],['„Preisschilder sind freiwillig.“','Falsch – PAngV'],['„Das passiert bei Krake24 auch.“','Ablenken statt erklären']],
+   p:'Die Preisauszeichnung ist eine Aufforderung zur Abgabe eines Angebots; ein Anspruch auf den falschen Preis besteht nicht. Kulant handeln, Schild berichtigen.'}
+];
+
+/* ===== ZUFALLSEREIGNISSE ===== */
+const EREIG = [
+  {id:'ev01', t:'Post vom Lieferanten', s:'„2 % Skonto bei Zahlung in 10 Tagen oder 30 Tage netto.“ Auf dem Konto ist genug Geld.', q:'Was macht ihr?', o:[['In 10 Tagen zahlen und 2 % Skonto abziehen',null],['30 Tage warten – Geld ist Geld','2 % für 20 Tage sind etwa 36 % im Jahr'],['Gar nicht zahlen','Mahnung, Ärger mit dem Lieferanten']], w:'Skonto ausnutzen lohnt sich fast immer.', kasse:300},
+  {id:'ev02', t:'Rollgeld wird teurer', s:'Das Terminal erhöht die Gebühr für die Anlieferung der Container.', q:'Was ändert sich in eurer Kalkulation?', o:[['Der Bezugspreis steigt.',null],['Die Handlungskosten steigen.','Anlieferung gehört zu den Bezugskosten'],['Die Umsatzsteuer steigt.','Steuersatz bleibt']], w:'Anlieferung = Bezugskosten → Bezugspreis steigt.', kasse:-200},
+  {id:'ev03', t:'Strompreis-Schock', s:'Die Kühltheke und das Licht kosten jetzt viel mehr Strom.', q:'Was ändert sich in eurer Kalkulation?', o:[['Die Handlungskosten steigen.',null],['Der Bezugspreis steigt.','Strom gehört nicht zum Einkauf'],['Der Gewinn steigt.','Mehr Kosten → eher weniger Gewinn']], w:'Energie ist eine Handlungskostenart.', kasse:-300},
+  {id:'ev04', t:'Kreuzfahrtschiff legt an', s:'3.000 Gäste gehen an Land. Es regnet. Alle wollen Regenschirme.', q:'Welches Kriterium der Preisbildung ist gerade besonders wichtig?', o:[['die Nachfrage der Kunden (außerbetrieblich)',null],['der Handlungskostenzuschlag','Ändert sich durch den Regen nicht'],['der Skonto des Lieferanten','Hat damit nichts zu tun']], w:'Nachfrage ist ein außerbetriebliches Kriterium.', kasse:500},
+  {id:'ev05', t:'Neue Werbeagentur', s:'Die Zentrale wechselt zu einer günstigeren Werbeagentur.', q:'Was passiert in eurer Kalkulation?', o:[['Die Handlungskosten sinken.',null],['Der Bezugspreis sinkt.','Werbung gehört nicht zum Einkauf'],['Die Umsatzsteuer sinkt.','Steuersatz bleibt']], w:'Werbung ist eine Handlungskostenart.', kasse:200},
+  {id:'ev06', t:'Farbfehler in der Lieferung', s:'Bei 20 Sweatshirts ist die Farbe leicht abweichend.', q:'Was tut ihr?', o:[['Reduziert auf einem eigenen Ständer anbieten – mit Hinweis auf den Mangel',null],['Normal verkaufen, fällt keinem auf','Führt zu Reklamationen'],['Wegwerfen','Verschenkt Umsatz']], w:'Hinweis auf den Mangel → keine Reklamation.', kasse:100},
+  {id:'ev07', t:'Kasse zeigt alten Preis', s:'Die Aktion läuft, aber die Kasse kennt den Aktionspreis nicht.', q:'Was fehlt?', o:[['Die neuen Verkaufspreise im Warenwirtschaftssystem',null],['Neue Artikelnummern','Die Nummern bleiben gleich'],['Ein neuer Lieferant','Hat damit nichts zu tun']], w:'Für Sonderpreise müssen neue Daten ins WWS.', kasse:0},
+  {id:'ev08', t:'Kundenkarte startet', s:'Die Zentrale führt eine Kundenkarte mit 5 % Rabatt ein.', q:'Welches Ziel steckt dahinter?', o:[['Kunden binden – sie sollen wiederkommen',null],['Handlungskosten erhöhen','Kein Ziel'],['Umsatzsteuer sparen','Nicht möglich']], w:'Kundenbindung, Absatz und Umsatz steigern.', kasse:200},
+  {id:'ev09', t:'Beschwerde im Laden', s:'Ein Kunde meckert: „Die Preise stehen nur am Regal, nicht auf jeder Dose!“', q:'Ist das erlaubt?', o:[['Ja, wenn der Preis gut lesbar und eindeutig zugeordnet ist.',null],['Nein, jede Dose braucht ein Schild.','Regalauszeichnung ist erlaubt'],['Nur bei Getränken.','Gilt allgemein']], w:'Regalauszeichnung ist nach PAngV zulässig.', kasse:0},
+  {id:'ev10', t:'Bonus-Brief', s:'Ein Lieferant schreibt: „Am Jahresende bekommen Sie 2 % Ihres Jahresumsatzes gutgeschrieben.“', q:'Wie heißt dieser Nachlass?', o:[['Bonus',null],['Skonto','Skonto gibt es für schnelles Zahlen'],['Mengenrabatt','Rabatt steht sofort auf der Rechnung']], w:'Bonus = nachträglicher Nachlass.', kasse:300},
+  {id:'ev11', t:'Lockangebot geplant', s:'Die Zentrale will eine Bluetooth-Box als Lockangebot unter Selbstkosten anbieten.', q:'Worauf müsst ihr achten?', o:[['Die Box muss in angemessener Menge vorrätig sein.',null],['Es reicht, wenn eine Box da ist.','Irreführend (UWG)'],['Preisschilder dürfen weggelassen werden.','PAngV gilt immer']], w:'Sonst ist das Lockangebot irreführend.', kasse:0},
+  {id:'ev12', t:'Preise rauf, Kunden weg', s:'Ein Kollege hat die Preise wegen der Stromkosten erhöht. Viele Kunden kaufen weniger.', q:'Was passiert?', o:[['Der Absatz geht zurück.',null],['Der Absatz steigt.','Weniger Käufe = weniger Absatz'],['Die Handlungskosten sinken.','Sie sind gestiegen']], w:'Höhere Preise → Kaufzurückhaltung.', kasse:-200},
+  {id:'ev13', t:'Online-Preis mit Versand', s:'Krake24 wirbt mit „19,99 € zzgl. Versand“.', q:'Darf man so werben?', o:[['Ja, wenn der Preis die Umsatzsteuer enthält und die Versandkosten klar genannt werden.',null],['Nein, „zzgl.“ ist nie erlaubt.','Nur die Umsatzsteuer darf nicht „zzgl.“ sein'],['Ja, online gilt die PAngV nicht.','Sie gilt auch online']], w:'Endpreis mit USt, Versandkosten klar angeben.', kasse:0}
+];
+
+/* ===== KUNDENGESPRÄCHE (aus den Fachgespräch-Karten M6–M8) ===== */
+const TALKS = {
+  5:{s:'Am Aktionsständer hängt eine Daunenjacke: „statt 79,99 € jetzt 59,99 €“. Eine Kundin ist misstrauisch: „Ist das wirklich reduziert – oder war die nie so teuer?“',
+     lines:['„Gute Frage – das verstehe ich. Es gibt leider viele falsche Rabatte.“','„Der alte Preis auf dem Schild ist der niedrigste Preis der letzten 30 Tage.“','„Sie sparen 20 €. Das sind 25 %, also ein Viertel.“','„Möchten Sie die Jacke einmal anprobieren?“'],
+     tags:['freundlich, Verständnis zeigen','Regel in Kundensprache erklären','vorrechnen','mit Angebot oder Frage abschließen'],
+     wrong:'„Den alten Preis darf jeder Laden selbst wählen.“', fehler:'falsch: Die Preisangabenverordnung verlangt den niedrigsten Preis der letzten 30 Tage.',
+     p:'Bei Preisermäßigungen ist der niedrigste Gesamtpreis der letzten 30 Tage anzugeben (PAngV); die Senkung beträgt 25 %.'},
+  6:{s:'Ein Kunde hält dir sein Handy hin: Die Laufschuhe, die er gerade anprobiert, kosten online 15 € weniger. „Warum ist das bei Ihnen teurer?“',
+     lines:['„Ich verstehe, dass Sie Preise vergleichen. Danke für den Hinweis!“','„Ist das genau dieses Modell – und ist es ein Aktionspreis?“','„Bei uns können Sie anprobieren, wir analysieren Ihren Laufstil, und wenn etwas drückt, tauschen wir sofort um.“','„Ich frage gern meine Chefin, ob wir beim Preis etwas machen können. Möchten Sie die Schuhe so lange weiter testen?“'],
+     tags:['freundlich, Verständnis zeigen','nachfragen: gleicher Artikel? Aktion?','Vorteile des Fachhandels nennen','Rücksprache anbieten und mit Frage abschließen'],
+     wrong:'„Online kauft man sowieso nur Fälschungen.“', fehler:'Mitbewerber abwerten ist unprofessionell und nicht belegt.',
+     p:'Der Fachhandel hat höhere Handlungskosten (Miete, Personal); dafür bietet er Beratung, Service und sofortige Verfügbarkeit (Zusatznutzen).'},
+  7:{s:'Eine Kundin steht vor dem Kaffeeregal: „Da steht 6,49 € und darunter 12,98 € pro Kilo. Muss ich jetzt 12,98 € bezahlen?“',
+     lines:['„Gute Frage – die zwei Preise verwirren viele Kunden.“','„Sie bezahlen nur 6,49 € für diese Packung.“','„Die 12,98 € zeigen, was ein ganzes Kilo kosten würde. Damit können Sie Packungen vergleichen.“','„Soll ich Ihnen zeigen, welche Packung im Kilopreis am günstigsten ist?“'],
+     tags:['freundlich, Verständnis zeigen','in Kundensprache erklären','Grundpreis erklären','mit Angebot oder Frage abschließen'],
+     wrong:'„Der Kilopreis ist der Preis ohne Steuer.“', fehler:'falsch: Auch der Grundpreis ist ein Endpreis mit Umsatzsteuer.',
+     p:'Nach der Preisangabenverordnung muss bei Waren nach Gewicht oder Volumen neben dem Gesamtpreis der Grundpreis je 1 kg oder 1 l stehen, damit Kunden Preise vergleichen können.'}
+};
+
+/* ===== BILDER (eigene SVG-Zeichnungen) ===== */
+const SKY = {
+  deich:['#7FB2C6','#D7E8EC'], container:['#8CB7C9','#E4ECE6'], fisch:['#9DB8C8','#EDE3D2'], werft:['#7E97A6','#CBD6DA'],
+  sturm:['#26333D','#4F5F68'], center:['#93B9CC','#E7EEF0'], fest:['#2E3B6B','#E79A6B'], alt:['#C98E6B','#F1D7B0'], finale:['#0D1630','#253A62']
+};
+function skyline(c){ // Ferne Silhouette: Segel-Hochhaus, Wellen-Bau, Kräne
+  return `<g fill="${c}" opacity=".55">
+    <path d="M90 205 L104 120 Q116 150 118 205 Z"/>
+    <path d="M130 205 v-40 q20 -16 40 0 q20 -16 40 0 v40 Z"/>
+    <rect x="232" y="176" width="34" height="29"/><rect x="270" y="186" width="26" height="19"/>
+    <path d="M640 205 v-70 h4 v70 Z M600 140 h70 v5 h-70 Z M612 145 l4 18 h-3 l-4-18 Z"/>
+    <path d="M700 205 v-58 h4 v58 Z M672 150 h62 v4 h-62 Z"/>
+  </g>`;
+}
+function water(top,c1,c2){
+  return `<rect x="0" y="${top}" width="800" height="${300-top}" fill="${c1}"/>
+  <g class="wave"><path d="M-40 ${top+14} q25 -8 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0" stroke="${c2}" stroke-width="3" fill="none" opacity=".7"/></g>
+  <g class="wave2"><path d="M-40 ${top+34} q30 -9 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0" stroke="${c2}" stroke-width="3" fill="none" opacity=".5"/></g>`;
+}
+function storeSign(x,y,lit){
+  return `<g><rect x="${x}" y="${y}" width="118" height="24" rx="4" fill="${lit?'#F07A42':'#1D5C6C'}"/>
+  <text x="${x+59}" y="${y+17}" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="800" font-size="16" fill="#fff" letter-spacing="1.5">HAFENSTORE</text></g>`;
+}
+function gulls(){return `<g stroke="#2A3D45" stroke-width="2.4" fill="none" stroke-linecap="round"><path d="M300 60 q8 -8 16 0 q8 -8 16 0"/><path d="M350 85 q6 -6 12 0 q6 -6 12 0"/><path d="M420 50 q7 -7 14 0 q7 -7 14 0"/></g>`}
+
+function scene(key){
+  const s = SKY[key]||SKY.deich, g = `<defs><linearGradient id="sky_${key}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s[0]}"/><stop offset="1" stop-color="${s[1]}"/></linearGradient></defs>`;
+  let b = '';
+  if(key==='lager'){
+    b = `<rect width="800" height="300" fill="#D9CFBF"/><rect y="250" width="800" height="50" fill="#A99A86"/>
+    ${[60,300,540].map(x=>`<g><rect x="${x}" y="40" width="200" height="210" fill="#8B6F52"/>
+      ${[70,130,190].map(y=>`<rect x="${x}" y="${y}" width="200" height="8" fill="#5E4A37"/>`).join('')}
+      ${[0,1,2].map(r=>[0,1,2,3].map(c=>`<rect x="${x+8+c*48}" y="${50+r*60}" width="40" height="${18+((r+c)%2)*0}" fill="${['#C9A26B','#B98F57','#D8B47C','#A57D4A'][(r+c)%4]}" stroke="#7A5C3A" stroke-width="1.5"/>`).join('')).join('')}</g>`).join('')}
+    <rect x="270" y="10" width="260" height="24" rx="4" fill="#1D5C6C"/><text x="400" y="27" text-anchor="middle" fill="#fff" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="2">LAGER · HAFENSTORE</text>
+    <g><circle cx="130" cy="275" r="16" fill="#2E7D4F"/><text x="130" y="280" text-anchor="middle" fill="#fff" font-size="13" font-family="IBM Plex Mono, monospace">€</text></g>
+    <g transform="translate(600 205)"><rect width="120" height="70" rx="6" fill="#33464E"/><rect x="10" y="10" width="100" height="26" rx="3" fill="#9FE0B5"/><text x="60" y="29" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" fill="#13321F">27,69 €</text><rect x="10" y="44" width="100" height="16" rx="3" fill="#56707A"/></g>`;
+    return `<svg viewBox="0 0 800 300" role="img" aria-label="Lager des Hafenstores">${b}</svg>`;
+  }
+  b += `<rect width="800" height="300" fill="url(#sky_${key})"/>`;
+  if(key==='finale'||key==='fest'){ b += `<g fill="#fff" opacity=".8">${[[60,30],[180,60],[330,25],[520,45],[700,30],[760,80],[420,80]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.6"/>`).join('')}</g>`; }
+  if(key==='sturm'){ b += `<path class="flash" d="M560 20 l-30 70 h22 l-26 70 l60 -90 h-24 l26 -50 Z" fill="#FFE68A"/>`; }
+  if(key==='alt'){ b += `<circle cx="640" cy="120" r="40" fill="#F6C27A" opacity=".9"/>`; }
+  if(key==='deich'||key==='container'||key==='center'){ b += `<circle cx="700" cy="60" r="26" fill="#FFF3C9" opacity=".9"/>`; }
+  b += skyline(key==='sturm'?'#0f1b21':key==='finale'?'#05080f':'#3E5A66');
+  if(key==='deich'){
+    b += water(215,'#3F7F91','#CFE6EC');
+    b += `<path d="M0 225 Q150 140 290 200 Q370 240 440 300 L0 300 Z" fill="#6E9E57"/><path d="M0 250 Q150 185 290 226 Q350 255 390 300 L0 300 Z" fill="#5B8A47"/>
+    <polygon class="beam" points="500,70 800,20 800,120" fill="#FFF6C4" opacity=".4"/>
+    <g><path d="M482 210 L490 78 h20 L518 210 Z" fill="#B23A2B"/><rect x="487" y="110" width="26" height="12" fill="#F4EFE6"/><rect x="485" y="150" width="30" height="12" fill="#F4EFE6"/>
+    <rect x="484" y="62" width="32" height="18" fill="#F4E5A1" stroke="#33464E" stroke-width="3"/><path d="M480 62 L500 44 L520 62 Z" fill="#33464E"/><rect x="474" y="208" width="52" height="10" fill="#6B5A4A"/></g>
+    <g transform="translate(610 205)"><path d="M0 10 h70 l-10 14 h-50 Z" fill="#F4EFE6"/><path d="M34 8 V-50 L66 4 Z" fill="#F4EFE6" stroke="#B7C7CC"/><path d="M30 8 V-38 L8 4 Z" fill="#D4511C"/></g>`;
+    b += gulls();
+  }
+  if(key==='container'){
+    b += water(232,'#2F6576','#BFDDE5');
+    const cols=['#C0392B','#2E86AB','#E1A33A','#3F8F5A','#8E44AD','#D35400'];
+    b += `<rect y="200" width="800" height="34" fill="#7F8B8F"/>`;
+    for(let r=0;r<3;r++)for(let c=0;c<7;c++) b+=`<rect x="${40+c*46}" y="${168-r*22}" width="44" height="20" fill="${cols[(r*3+c)%6]}" stroke="#0004"/>`;
+    [[400,'#E0632A'],[560,'#E0632A']].forEach(([x,col])=>{ b+=`<g fill="${col}"><rect x="${x}" y="70" width="10" height="132"/><rect x="${x+70}" y="70" width="10" height="132"/><rect x="${x-40}" y="62" width="200" height="12"/><rect x="${x+140}" y="40" width="8" height="34"/><path d="M${x} 110 L${x+80} 80 M${x} 80 L${x+80} 110" stroke="${col}" stroke-width="5"/></g><line x1="${x+30}" y1="74" x2="${x+30}" y2="150" stroke="#222" stroke-width="2"/><rect x="${x+18}" y="150" width="26" height="14" fill="${cols[x%5]}"/>`; });
+    b += `<path d="M380 238 h400 l-25 40 h-350 Z" fill="#1E2A30"/><rect x="420" y="218" width="44" height="20" fill="#C0392B"/><rect x="466" y="218" width="44" height="20" fill="#2E86AB"/><rect x="512" y="218" width="44" height="20" fill="#E1A33A"/><rect x="700" y="196" width="40" height="42" fill="#F4EFE6"/>`;
+  }
+  if(key==='fisch'){
+    b += water(235,'#336F80','#C8E1E8');
+    b += `<rect y="205" width="800" height="32" fill="#8D8076"/>`;
+    for(let i=0;i<5;i++){ const x=30+i*110; b+=`<g><path d="M${x} 205 V140 L${x+50} 110 L${x+100} 140 V205 Z" fill="${i%2?'#9C4A35':'#AE5640'}"/><rect x="${x+38}" y="160" width="24" height="45" fill="#3B2A22"/>${[0,1].map(k=>`<rect x="${x+12+k*60}" y="150" width="16" height="16" fill="#F2D99B"/>`).join('')}</g>`;}
+    b += `<g transform="translate(590 200)"><path d="M0 30 h150 l-18 32 h-118 Z" fill="#1F4E79"/><rect x="40" y="6" width="56" height="26" fill="#F4EFE6"/><rect x="48" y="12" width="12" height="10" fill="#7FB2C6"/><line x1="110" y1="30" x2="110" y2="-60" stroke="#33464E" stroke-width="4"/><path d="M110 -55 L170 30" stroke="#33464E" stroke-width="2"/><path d="M110 -40 L60 6" stroke="#33464E" stroke-width="2"/><path d="M120 -20 q20 30 40 40" stroke="#C9B37A" stroke-width="3" fill="none" stroke-dasharray="4 3"/></g>`;
+    b += gulls();
+  }
+  if(key==='werft'){
+    b += `<rect y="230" width="800" height="70" fill="#5E6C72"/><rect x="120" y="230" width="560" height="70" fill="#3D4A50"/>`;
+    b += `<path d="M170 140 h460 q-10 60 -60 80 h-340 q-50 -20 -60 -80 Z" fill="#A23B2C"/><path d="M170 140 h460 v16 h-460 Z" fill="#1E2A30"/><rect x="300" y="96" width="120" height="44" fill="#F4EFE6"/><rect x="316" y="106" width="20" height="14" fill="#7FB2C6"/><rect x="346" y="106" width="20" height="14" fill="#7FB2C6"/><rect x="430" y="110" width="18" height="30" fill="#E1A33A"/>`;
+    for(let i=0;i<6;i++) b+=`<rect x="${200+i*80}" y="220" width="30" height="12" fill="#8C7B5A"/>`;
+    b += `<g stroke="#C7A43A" stroke-width="3" fill="none"><path d="M140 230 V60 M180 230 V60 M140 100 H180 M140 150 H180 M140 60 L180 100 L140 150 L180 200"/></g><path d="M160 60 H360" stroke="#E0632A" stroke-width="8"/><line x1="330" y1="60" x2="330" y2="92" stroke="#222" stroke-width="2"/>`;
+    b += `<g fill="#FFD36B"><circle cx="560" cy="170" r="3"/><circle cx="572" cy="162" r="2"/><circle cx="550" cy="160" r="2"/></g>`;
+  }
+  if(key==='sturm'){
+    b += `<g class="rain" stroke="#BCD0DA" stroke-width="2" opacity=".55">${Array.from({length:40},(_,i)=>`<line x1="${(i*41)%820}" y1="${(i*53)%240}" x2="${(i*41)%820-10}" y2="${(i*53)%240+22}"/>`).join('')}</g>`;
+    b += `<g><rect x="80" y="110" width="250" height="140" fill="#5A6A72"/><rect x="100" y="150" width="70" height="100" fill="#22343C"/><rect x="190" y="150" width="120" height="60" fill="#8FB4C2" opacity=".6"/>${storeSign(146,120,false)}</g>`;
+    b += `<rect x="0" y="222" width="800" height="78" fill="#1C3A47"/><path class="wave" d="M-40 228 q30 -26 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V300 H-40 Z" fill="#2B5566"/><path class="wave2" d="M-40 250 q40 -20 80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 t80 0 V300 H-40 Z" fill="#3B6E80" opacity=".8"/>`;
+  }
+  if(key==='center'){
+    b += `<rect y="230" width="800" height="70" fill="#B5ADA3"/><path d="M0 240 H800" stroke="#9C9389" stroke-width="2"/>`;
+    b += `<rect x="20" y="90" width="230" height="140" fill="#C9BBA8"/><rect x="40" y="110" width="40" height="40" fill="#8FB4C2"/><rect x="100" y="110" width="40" height="40" fill="#8FB4C2"/><rect x="160" y="110" width="40" height="40" fill="#8FB4C2"/><rect x="70" y="170" width="110" height="60" fill="#8FB4C2" opacity=".7"/>${storeSign(66,66,false)}`;
+    b += `<rect x="300" y="40" width="460" height="190" fill="#D6D0C7"/><rect x="330" y="60" width="400" height="120" rx="6" fill="#6A46A6"/>
+      <g transform="translate(370 82)">${krakeShape('#E9E1F5','#6A46A6',0.95)}</g>
+      <text x="580" y="115" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="800" font-size="40" fill="#fff">KRAKE24</text>
+      <text x="580" y="148" text-anchor="middle" font-family="Atkinson Hyperlegible, sans-serif" font-size="18" fill="#E9E1F5">alles billiger!*</text>
+      <text x="720" y="172" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#E9E1F5">*angeblich</text>`;
+    [[120,1],[270,0],[460,1],[640,0],[720,1]].forEach(([x,ph])=>{ b+=`<g fill="#2A3D45"><circle cx="${x}" cy="${206}" r="7"/><rect x="${x-7}" y="214" width="14" height="22" rx="5"/>${ph?`<rect x="${x+6}" y="212" width="6" height="10" rx="1" fill="#7FD4E0"/>`:''}</g>`; });
+  }
+  if(key==='fest'){
+    b += water(240,'#24485A','#9CC4D2');
+    b += `<rect y="215" width="800" height="28" fill="#6B5F55"/>`;
+    b += `<g transform="translate(640 120)"><circle r="70" fill="none" stroke="#F4EFE6" stroke-width="4"/>${Array.from({length:8},(_,i)=>{const a=i*Math.PI/4;return `<line x1="0" y1="0" x2="${70*Math.cos(a)}" y2="${70*Math.sin(a)}" stroke="#F4EFE6" stroke-width="2"/><rect x="${70*Math.cos(a)-7}" y="${70*Math.sin(a)-5}" width="14" height="12" rx="2" fill="${['#D4511C','#E1A33A','#2E86AB','#3F8F5A'][i%4]}"/>`}).join('')}<path d="M0 0 L-30 95 M0 0 L30 95" stroke="#F4EFE6" stroke-width="4"/></g>`;
+    [[40,'#D4511C'],[200,'#2E86AB'],[360,'#3F8F5A']].forEach(([x,c],i)=>{ b+=`<g><rect x="${x}" y="160" width="140" height="56" fill="#F4EFE6"/><path d="M${x-8} 160 h156 l-12 -26 h-132 Z" fill="${c}"/>${Array.from({length:6},(_,k)=>`<path d="M${x-8+k*26} 160 q13 14 26 0" fill="${k%2?c:'#fff'}"/>`).join('')}${i===0?storeSign(x+11,182,true):''}</g>`; });
+    b += `<path d="M0 60 Q200 110 400 60 T800 60" stroke="#F4EFE6" stroke-width="1.5" fill="none"/>${Array.from({length:16},(_,i)=>{const x=25+i*50;const y=60+ (Math.sin((x/800)*Math.PI*2-Math.PI/2)+1)*0;return `<path d="M${x} ${78+18*Math.cos(x/127.3)} l10 0 l-5 14 Z" fill="${['#D4511C','#E1A33A','#2E86AB','#3F8F5A'][i%4]}"/>`}).join('')}`;
+  }
+  if(key==='alt'){
+    b += water(232,'#4C7C86','#E7D7B9');
+    b += `<rect x="20" y="120" width="200" height="112" fill="#8C4B36"/><path d="M20 120 L120 80 L220 120 Z" fill="#6E3A2B"/>${[0,1,2].map(i=>`<rect x="${40+i*60}" y="150" width="28" height="36" fill="#E7C98F"/>`).join('')}`;
+    b += `<g transform="translate(360 0)"><path d="M0 230 h330 l-30 40 h-270 Z" fill="#3A2A20"/><line x1="90" y1="230" x2="90" y2="40" stroke="#3A2A20" stroke-width="6"/><line x1="200" y1="230" x2="200" y2="30" stroke="#3A2A20" stroke-width="6"/><line x1="290" y1="230" x2="290" y2="70" stroke="#3A2A20" stroke-width="5"/>
+      ${[[90,60],[90,120],[200,50],[200,115],[290,90]].map(([x,y])=>`<path d="M${x-45} ${y} h90 l-8 44 h-74 Z" fill="#F1E6CF" opacity=".95"/>`).join('')}<path d="M0 230 L-30 210" stroke="#3A2A20" stroke-width="4"/></g>`;
+    b += `<g transform="translate(250 196)"><rect width="70" height="40" rx="4" fill="#7A5230"/><rect y="0" width="70" height="10" fill="#5B3B22"/><rect x="30" y="14" width="10" height="10" fill="#E1A33A"/></g>`;
+  }
+  if(key==='finale'){
+    b += water(232,'#13263F','#4D6F9A');
+    b += `<g><rect x="60" y="130" width="250" height="102" fill="#2A3B4F"/><rect x="80" y="160" width="210" height="60" fill="#F7C873" opacity=".85"/>${storeSign(126,138,true)}</g>`;
+    [[470,70,'#F07A42'],[600,50,'#7FD4E0'],[720,90,'#FFD36B'],[380,40,'#B595EC']].forEach(([x,y,c],i)=>{ b+=`<g class="fw" style="animation-delay:${i*.6}s">${Array.from({length:12},(_,k)=>{const a=k*Math.PI/6;return `<line x1="${x+8*Math.cos(a)}" y1="${y+8*Math.sin(a)}" x2="${x+34*Math.cos(a)}" y2="${y+34*Math.sin(a)}" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`}).join('')}</g>`; });
+    b += `<g transform="translate(460 200)"><path d="M0 32 h250 l-20 28 h-210 Z" fill="#0B1220"/><rect x="40" y="6" width="120" height="26" fill="#1F2D44"/>${Array.from({length:8},(_,i)=>`<circle cx="${50+i*14}" cy="19" r="3" fill="#FFD36B"/>`).join('')}</g>`;
+  }
+  return `<svg viewBox="0 0 800 300" role="img" aria-label="Szene: ${key}">${g}${b}</svg>`;
+}
+
+function krakeShape(body,eye,s){
+  s=s||1;
+  return `<g transform="scale(${s})"><path d="M30 6 C52 6 60 24 56 40 C70 44 72 58 64 62 C60 54 54 52 50 54 C54 64 50 74 42 74 C44 64 40 58 36 58 C36 68 30 76 22 72 C28 66 26 58 22 56 C18 62 10 64 4 58 C12 54 12 46 8 42 C2 26 10 6 30 6 Z" fill="${body}"/><circle cx="22" cy="30" r="6" fill="#fff"/><circle cx="40" cy="30" r="6" fill="#fff"/><circle cx="23" cy="31" r="3" fill="${eye}"/><circle cx="41" cy="31" r="3" fill="${eye}"/><path d="M24 44 q7 5 14 0" stroke="${eye}" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`;
+}
+function krakeSVG(){ return `<svg viewBox="0 0 76 80" aria-hidden="true">${krakeShape('#6A46A6','#2A1846',1)}</svg>`; }
+
+function hannaSVG(mood){
+  const mouth = mood==='happy'?'M30 54 q10 9 20 0':mood==='worried'?'M30 57 q10 -6 20 0':'M31 55 h18';
+  const brow = mood==='worried'?'M27 36 l9 -3 M53 36 l-9 -3':'M27 34 h9 M44 34 h9';
+  return `<svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="38" fill="#D3E4E8"/>
+  <path d="M14 52 Q12 26 40 24 Q68 26 66 52 Q60 40 40 40 Q20 40 14 52 Z" fill="#BFC5CB"/>
+  <ellipse cx="40" cy="47" rx="20" ry="22" fill="#F0C7A0"/>
+  <path d="M18 30 Q40 6 62 30 Z" fill="#1D3557"/><rect x="16" y="28" width="48" height="6" rx="3" fill="#0F1F33"/><rect x="18" y="22" width="44" height="4" fill="#D4511C"/>
+  <path d="M37 13 v7 M34 16 h6 M34 19 q3 3 6 0" stroke="#E1A33A" stroke-width="1.6" fill="none"/>
+  <path d="${brow}" stroke="#7D8389" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="32" cy="42" r="2.6" fill="#1E2A30"/><circle cx="48" cy="42" r="2.6" fill="#1E2A30"/>
+  <path d="${mouth}" stroke="#7A3B2E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M22 76 Q40 62 58 76" fill="#1D3557"/></svg>`;
+}
+const ICON = {
+  tool:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+  musicOn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>',
+  musicOff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>',
+  anf:'<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#D3E4E8"/><path d="M24 8 L30 26 L24 22 L18 26 Z" fill="#D4511C"/><path d="M24 40 L18 22 L24 26 L30 22 Z" fill="#1D5C6C"/><circle cx="24" cy="24" r="3" fill="#0F2730"/></svg>',
+  pro:'<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1D3557"/><circle cx="24" cy="24" r="13" fill="none" stroke="#E1A33A" stroke-width="3"/><path d="M24 7v34M7 24h34" stroke="#E1A33A" stroke-width="3"/><circle cx="24" cy="24" r="4" fill="#F07A42"/></svg>',
+  star:(on)=>`<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8Z" fill="${on?'#E1A33A':'none'}" stroke="#B88412" stroke-width="1.5"/></svg>`
+};
+function badgeSVG(n,col){ return `<svg viewBox="0 0 40 40"><path d="M12 26 L8 39 L14 35 L18 39 L20 28 Z M28 26 L32 39 L26 35 L22 39 L20 28 Z" fill="#B4271E"/><circle cx="20" cy="17" r="14" fill="${col}" stroke="#B88412" stroke-width="2.5"/><text x="20" y="22" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="800" font-size="15" fill="#fff">${n}</text></svg>`; }
+
+/* ===== SPIEL-LOGIK ===== */
+const MERKE = [
+ 'Plus p % heißt mal (1 + p : 100). Minus p % heißt mal (1 – p : 100). Zurück heißt: geteilt durch denselben Faktor.',
+ 'Listeneinkaufspreis – Rabatt – Skonto + Bezugskosten = Bezugspreis. Immer ohne Umsatzsteuer.',
+ 'Preis = Bezugspreis + Handlungskosten + Gewinn + Umsatzsteuer. Untergrenze: Selbstkosten + Umsatzsteuer.',
+ 'Jeder Aufschlag rechnet auf das Ergebnis davor. Prozente nie addieren. Lebensmittel: 7 % Umsatzsteuer.',
+ 'Faktor = Bruttoverkaufspreis : Bezugspreis (4 Stellen). Hoch: mal. Zurück: geteilt.',
+ 'Bei „um wie viel Prozent“ steht der alte Preis unten. Netto = brutto : 1,19 – nie mal 0,81.',
+ 'Der kalkulierte Preis ist ein Vorschlag – der Markt entscheidet mit. Auf Dauer nie unter Selbstkosten + Umsatzsteuer.',
+ 'Pflicht: Endpreis mit Umsatzsteuer und Grundpreis je 1 kg / 1 l. Der Kaufvertrag entsteht erst an der Kasse.',
+ 'Jede falsche Zahl hat einen Grund. Wer die Fehlertypen kennt, fällt auf keine Falle rein.'
+];
+const OKLINES = ['Gut gesteuert!','Klarer Kurs!','So rechnet die IHK.','Volle Fahrt voraus!','Das sitzt.','Sauber gerechnet!'];
+const NOLINES = ['Kurs korrigieren!','Da hat uns der Wind erwischt.','Fast. Schau dir den Rechenweg an.','Kein Problem – daraus lernen wir.'];
+const KRAKELINES = ['Krake24: „Danke für den Fehler!“','Krake24: „Das notieren wir uns …“','Krake24: „Ihr macht es uns leicht.“'];
+const BADGES = [
+ {id:'b1',n:'1',col:'#1D5C6C',t:'Faktor-Kompass',d:'Tag 1 ohne Fehler'},
+ {id:'b2',n:'2',col:'#2E86AB',t:'Containerprofi',d:'Tag 2 ohne Fehler'},
+ {id:'b6',n:'6',col:'#33464E',t:'Sturmfest',d:'Tag 6 ohne Fehler'},
+ {id:'b8',n:'8',col:'#D4511C',t:'Schilder-Profi',d:'Tag 8 ohne Fehler'},
+ {id:'b9',n:'9',col:'#7A5230',t:'Logbuch-Leser',d:'Tag 9 ohne Fehler'},
+ {id:'bz',n:'↺',col:'#3F8F5A',t:'Zweite Chance',d:'5 alte Fehler ausgebügelt'},
+ {id:'br',n:'★',col:'#B88412',t:'Hafenstore gerettet',d:'Krake24 vertrieben'},
+ {id:'bk',n:'K',col:'#1D3557',t:'Kapitän',d:'Profi mit 3 Sternen'}
+];
+
+/* Speicher (nur auf diesem Gerät) */
+let STORE_OK = true;
+function sget(k,def){ try{ const v=localStorage.getItem('hs9_'+k); return v==null?def:JSON.parse(v);}catch(e){ STORE_OK=false; return def; } }
+function sset(k,v){ try{ localStorage.setItem('hs9_'+k,JSON.stringify(v)); }catch(e){ STORE_OK=false; } }
+function sdel(k){ try{ localStorage.removeItem('hs9_'+k);}catch(e){} }
+
+const $ = s=>document.querySelector(s);
+const app = ()=>$('#app');
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function hashStr(t){ let h=1779033703^t.length; for(let i=0;i<t.length;i++){ h=Math.imul(h^t.charCodeAt(i),3432918353); h=h<<13|h>>>19; } return h>>>0; }
+function RND(){ if(G&&G.code){ G.rs=(G.rs+0x6D2B79F5)|0; let t=G.rs; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; } return Math.random(); }
+function tagesCode(){ const d=new Date(); return 'HAFEN-'+String(d.getDate()).padStart(2,'0')+String(d.getMonth()+1).padStart(2,'0'); }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(RND()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function pnum(t){ const m=String(t).replace(/\s/g,'').replace(/[€%]/g,'').match(/-?[\d.]*\d(,\d+)?|-?\d+(\.\d+)?/); if(!m) return NaN;
+  let x=m[0]; if(x.includes(',')) x=x.replace(/\./g,'').replace(',','.'); else if((x.match(/\./g)||[]).length>1 || /\.\d{3}$/.test(x)&&x.length>5) x=x.replace(/\./g,''); return parseFloat(x); }
+function fmtN(v,d){ return v.toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function isNumOpt(t){ return /^[\d.]+(,\d+)?\s*(€|%)?(\s*je|$)/.test(t); }
+
+/* Gesehene Aufgaben je Modus – zuerst Neues ziehen */
+function seen(){ return sget('seen_'+G.mode,[]); }
+function markSeen(id){ const s=seen(); if(!s.includes(id)){ s.push(id); sset('seen_'+G.mode,s);} }
+function pickFrom(ids,n,label){
+  if(G&&G.code) return shuffle(ids).slice(0,n);
+  let s=seen(), fresh=ids.filter(i=>!s.includes(i));
+  if(fresh.length<n){ // Pool erschöpft → zurücksetzen
+    sset('seen_'+G.mode,s.filter(i=>!ids.includes(i)));
+    if(ids.length>n && label) toast('Alle Aufgaben aus „'+label+'“ geschafft – jetzt geht es gemischt von vorn los.');
+    const rest=shuffle(ids.filter(i=>!fresh.includes(i)));
+    return shuffle(fresh).concat(rest).slice(0,n);
+  }
+  return shuffle(fresh).slice(0,n);
+}
+function allIds(mode){ const ids=[]; KAP.forEach(k=>{k.dec.forEach(d=>ids.push(d.id)); k.pool.forEach(q=>{ if(mode==='pro'||!q.pro) ids.push(q.id);});}); EREIG.forEach(e=>ids.push(e.id)); FINALE.forEach(f=>ids.push(f.id)); SHOW.forEach(s=>ids.push(s.id)); return ids; }
+function wrongList(){ return sget('wrong_'+G.mode,[]); }
+function addWrong(id){ const w=wrongList(); if(!w.includes(id)){ w.push(id); sset('wrong_'+G.mode,w);} }
+function delWrong(id){ const w=wrongList(); const i=w.indexOf(id); if(i>=0){ w.splice(i,1); sset('wrong_'+G.mode,w); const c=sget('fixed',0)+1; sset('fixed',c); if(c>=5) giveBadge('bz'); } }
+
+function byId(id){
+  for(const k of KAP){ for(const d of k.dec) if(d.id===id) return d; for(const q of k.pool) if(q.id===id) return q; }
+  return EREIG.find(e=>e.id===id)||FINALE.find(f=>f.id===id)||SHOW.find(s=>s.id===id);
+}
+
+/* Spielzustand */
+let G = null;
+function newGame(mode,team,opt){
+  opt=opt||{};
+  G = {mode, team:team||'Team Hafen', code:opt.code||'', rs:hashStr((opt.code||'')+'|'+mode+(opt.day!=null?'|'+opt.day:'')), roles:opt.roles||null, turn:0, single:opt.day!=null, ch:opt.day!=null?opt.day:0, step:0, plan:null, pts:0, max:0, V:50, K:55, chRes:[], log:[], over:false, hints:0};
+  planChapter(); save(); renderChapter();
+}
+function save(){ if(G) sset('game',G); }
+
+function planChapter(){
+  const c=G.ch;
+  if(c<9){
+    const k=KAP[c], pro=G.mode==='pro';
+    const dec=pickFrom(k.dec.map(d=>d.id),1,'Tag '+(c+1))[0];
+    const pool=k.pool.filter(q=>pro||!q.pro).map(q=>q.id);
+    const n=pro?3:2;
+    let quiz=pickFrom(pool,n,k.titel).map(id=>({id,second:false}));
+    const w=wrongList().filter(id=>pool.includes(id) && !quiz.some(q=>q.id===id));
+    if(!G.code && w.length && RND()<0.7){ quiz[quiz.length-1]={id:shuffle(w)[0],second:true}; }
+    quiz.forEach(q=>{ const it=byId(q.id); q.inp = pro && it.n!==undefined && RND()<0.5; });
+    const ev = c>0 ? pickFrom(EREIG.map(e=>e.id),1,'Ereignisse')[0] : null;
+    G.plan={dec, why:pro, quiz, ev};
+    const steps=['intro','dec']; if(pro) steps.push('why'); if(TALKS[c]) steps.push('talk'); quiz.forEach((q,i)=>steps.push('q'+i)); if(ev) steps.push('ev'); steps.push('sum');
+    G.steps=steps;
+  } else {
+    const chain=pickFrom(FINALE.map(f=>f.id),1,'Finale')[0], show=pickFrom(SHOW.map(s=>s.id),1,'Showdown')[0];
+    const f=FINALE.find(x=>x.id===chain);
+    G.plan={chain, show, inp:f.steps.map(s=>G.mode==='pro'&&s.n!==undefined&&RND()<0.5)};
+    G.steps=['intro','f0','f1','f2','f3','f4','show','end'];
+  }
+  G.step=0; G.chRes[c]={ok:0,n:0};
+}
+
+/* Punkte und Anzeigen */
+function addRes(ok,pts,dv,dk,id){
+  G.max+=pts; if(ok) G.pts+=pts;
+  G.V=Math.max(0,Math.min(100,G.V+dv)); G.K=Math.max(0,Math.min(100,G.K+dk));
+  const r=G.chRes[G.ch]; r.n++; if(ok) r.ok++;
+  if(id){ if(ok) delWrong(id); else addWrong(id); }
+  hud();
+}
+function hud(){
+  const h=$('#hud'); if(!h||!G) return;
+  h.hidden=false;
+  h.querySelector('.route').innerHTML=Array.from({length:10},(_,i)=>`<i class="${i===G.ch?'now':(!G.single&&i<G.ch)?'done':''}" title="Tag ${i+1}">${i+1}</i>`).join('');
+  h.querySelector('.bar.v b').style.width=G.V+'%'; h.querySelector('.vval').textContent=G.V+' %';
+  h.querySelector('.bar.k b').style.width=G.K+'%'; h.querySelector('.kval').textContent=Math.round(G.K)+' %';
+  h.querySelector('.pts').innerHTML=`${G.pts}<small>Punkte · ${G.mode==='pro'?'Profi':'Anfänger'}</small>`;
+}
+let toastT=null;
+function toast(t){ let el=$('.toast'); if(!el){ el=document.createElement('div'); el.className='toast'; el.setAttribute('role','status'); document.body.appendChild(el);} el.textContent=t; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true,4200); }
+
+/* ---------- Startseite ---------- */
+function renderStart(){
+  MUSIK.stop();
+  $('#hud').hidden=true;
+  const g=sget('game',null), ids={anf:allIds('anf'),pro:allIds('pro')};
+  const progress=m=>{ const s=sget('seen_'+m,[]); const n=ids[m].filter(i=>!s.includes(i)).length; return {n,t:ids[m].length}; };
+  const best=m=>sget('best_'+m,null);
+  const pa=progress('anf'), pp=progress('pro');
+  const sel=sget('lastmode','anf');
+  app().innerHTML=`
+  <section class="hero">
+    <span class="eyebrow">Lernfeld 9 · Preispolitische Maßnahmen · Bremerhaven</span>
+    <h1>Sturm über dem Hafenstore</h1>
+    <p class="lead">Zehn Tage bis zum Hafenfest. Rettet den Hafenstore vor Krake24 – mit Preisen, die stimmen.</p>
+  </section>
+  <div class="scene">${scene('finale')}<span class="place">Neuer Hafen · Bremerhaven</span></div>
+  ${g&&!g.over?`<div class="card"><div class="row" style="justify-content:space-between"><div><span class="eyebrow">Gespeichertes Spiel</span><h3>${esc(g.team)} · Tag ${g.ch+1}${g.single?' (einzeln)':''} · ${g.mode==='pro'?'Profi':'Anfänger'}</h3></div><button class="btn" id="resume">Weiterspielen</button></div></div>`:''}
+  <div class="card">
+    <label class="f" for="team">Euer Teamname<input id="team" maxlength="24" autocomplete="off" placeholder="z. B. Möwen-Crew" value="${esc(sget('team',''))}"></label>
+    <details class="opt-box"><summary>Rollen im Zweierteam (freiwillig)</summary>
+      <p class="note">Tragt zwei Namen ein. Bei jeder Aufgabe entscheidet eine Person („am Steuer“). Die andere („Lotse“) sagt laut, warum – mit „weil“. Danach wird getauscht.</p>
+      <div class="two"><label class="f" for="n1">Name 1<input id="n1" maxlength="16" autocomplete="off"></label><label class="f" for="n2">Name 2<input id="n2" maxlength="16" autocomplete="off"></label></div>
+    </details>
+    <details class="opt-box"><summary>Klassen-Challenge (Code von der Tafel)</summary>
+      <p class="note">Alle Teams mit demselben Code und demselben Modus bekommen genau dieselben Aufgaben und Ereignisse. So könnt ihr die Punkte fair vergleichen.</p>
+      <div class="inp"><input id="code" maxlength="14" autocomplete="off" placeholder="z. B. HAFEN-42" style="text-transform:uppercase"><button class="btn sec" id="tcode" type="button" style="min-height:48px">Tagescode</button></div>
+    </details>
+    <div><span class="eyebrow">Modus wählen</span></div>
+    <div class="modes">
+      ${[['anf','Anfänger','3 Antworten, Tipps von Hanna, Rechenweg nach jeder Aufgabe.',pa],['pro','Profi','5 Antworten wie in der IHK-Prüfung, Zahlen selbst eintippen, mit „weil“ begründen.',pp]].map(([m,nm,ds,p])=>`
+      <button class="mode ${sel===m?'sel':''}" data-mode="${m}" aria-pressed="${sel===m}">${ICON[m]}<span class="nm">${nm}</span><span class="ds">${ds}</span>
+        <span class="prog">Neu für dich: ${p.n} von ${p.t}<span class="bar"><b style="width:${Math.round((p.t-p.n)/p.t*100)}%"></b></span></span>
+        ${best(m)?`<span class="prog">Rekord: ${best(m).pct} % · ${'★'.repeat(best(m).stars)}</span>`:''}
+      </button>`).join('')}
+    </div>
+    <button class="btn wide" id="go">Leinen los – alle 10 Tage</button>
+    <div class="dayp"><span class="eyebrow">Oder nur einen Tag spielen (ca. 10–15 Minuten)</span>
+      <div class="days">${KAP.map((k,i)=>`<button class="dayb" data-day="${i}" type="button"><b>Tag ${i+1}</b><span>${esc(k.modul.replace(/^Modul (\d+) · /,'M$1 · '))}</span></button>`).join('')}<button class="dayb" data-day="9" type="button"><b>Tag 10</b><span>Finale · Hafenfest</span></button></div></div>
+    <p class="note">${STORE_OK?'Fortschritt und Rekord werden nur auf diesem Gerät gespeichert.':'Hinweis: Dieses Fenster speichert nichts. Das Spiel läuft trotzdem, merkt sich aber keine Aufgaben.'} Ihr braucht: Taschenrechner. Die Werkzeugkarte ist oben im Spiel eingebaut.</p>
+  </div>
+  <div class="card"><span class="eyebrow">Abzeichen</span><div class="badges">${BADGES.map(b=>`<div class="badge ${sget('badges',[]).includes(b.id)?'on':''}">${badgeSVG(b.n,b.col)}<span><b>${b.t}</b><br>${b.d}</span></div>`).join('')}</div></div>
+  <div class="card" id="resetbox"><button class="btn sec" id="reset">Fortschritt zurücksetzen</button></div>`;
+  let mode=sel;
+  app().querySelectorAll('.mode').forEach(b=>b.onclick=()=>{ mode=b.dataset.mode; app().querySelectorAll('.mode').forEach(x=>{x.classList.toggle('sel',x===b); x.setAttribute('aria-pressed',x===b);}); });
+  $('#tcode').onclick=()=>{ $('#code').value=tagesCode(); };
+  const opts=()=>{ const t=$('#team').value.trim(); sset('team',t); sset('lastmode',mode); MUSIK.unlock();
+    const n1=$('#n1').value.trim(), n2=$('#n2').value.trim(), code=$('#code').value.trim().toUpperCase().replace(/\s+/g,'');
+    return [t,{code, roles:(n1&&n2)?[n1,n2]:null}]; };
+  $('#go').onclick=()=>{ const [t,o]=opts(); newGameIntro(mode,t,o); };
+  app().querySelectorAll('.dayb').forEach(b=>b.onclick=()=>{ const [t,o]=opts(); o.day=+b.dataset.day; newGame(mode,t,o); });
+  if($('#resume')) $('#resume').onclick=()=>{ MUSIK.unlock(); G=g; renderChapter(); };
+  $('#reset').onclick=()=>{ $('#resetbox').innerHTML=`<div class="confirm"><b>Wirklich alles zurücksetzen?</b><p>Gesehene Aufgaben, Fehlerliste, Rekorde, Abzeichen und das gespeicherte Spiel werden auf diesem Gerät gelöscht.</p><div class="row"><button class="btn" id="rsYes">Ja, zurücksetzen</button><button class="btn sec" id="rsNo">Abbrechen</button></div></div>`;
+    $('#rsNo').onclick=renderStart; $('#rsYes').onclick=()=>{ ['seen_anf','seen_pro','wrong_anf','wrong_pro','best_anf','best_pro','bestday_anf','bestday_pro','badges','game','fixed'].forEach(sdel); toast('Fortschritt gelöscht.'); renderStart(); }; };
+}
+
+function newGameIntro(mode,team,opt){
+  G=null; // vorläufig für HUD-Text
+  app().innerHTML=`
+  <div class="scene">${scene('container')}<span class="place">Bremerhaven · Oktober</span></div>
+  <div class="card">
+    <span class="eyebrow">Prolog</span><h2>Ein neuer Laden am Neuen Hafen</h2>
+    <div class="talk">${hannaSVG('happy')}<div class="bubble"><b>Hanna Lührs, Filialleiterin</b>„Moin! Ich war 30 Jahre Kapitänin auf Containerschiffen. Jetzt leite ich den neuen Hafenstore von Kaufhaus Hansa. Und ihr seid meine Azubi-Crew.“</div></div>
+    <div class="talk">${krakeSVG()}<div class="bubble k"><b>Mail von Krake24</b>„Wir kaufen euren Laden. Ihr schafft das sowieso nicht. Unsere Preise sind besser.“</div></div>
+    <p>Die Zentrale sagt: <b>Zeigt bis zum Hafenfest in 10 Tagen, dass eure Preise stimmen.</b> Sonst wird der Hafenstore an Krake24 verkauft.</p>
+    <p class="note">Oben seht ihr zwei Anzeigen: <b>Kundenvertrauen</b> soll hoch, <b>Krake-Druck</b> soll runter. Richtige Entscheidungen helfen. Fehler helfen Krake24.</p>
+    ${opt&&opt.code?`<p class="tag g" style="align-self:flex-start">Klassen-Challenge ${esc(opt.code)}</p>`:''}
+    <button class="btn wide" id="start">Tag 1 beginnen</button>
+  </div>`;
+  window.scrollTo(0,0);
+  $('#start').onclick=()=>newGame(mode,team,opt);
+}
+
+/* ---------- Kapitel ---------- */
+function renderChapter(){
+  hud(); save();
+  const c=G.ch, st=G.steps[G.step];
+  const isFin=c===9, k=KAP[c];
+  const sceneKey=isFin?'finale':k.szene, place=isFin?'Hafenfest · Finale':k.ort;
+  let body='';
+  if(st==='intro') body=introCard();
+  app().innerHTML=`<div class="scene">${scene(sceneKey)}<span class="place">${esc(place)}</span></div><div id="stage">${body}</div>`;
+  window.scrollTo({top:0});
+  if(st==='intro'){ MUSIK.calm(); $('#next').onclick=nextStep; return; }
+  runStep(st);
+}
+function introCard(){
+  const c=G.ch;
+  if(c===9){ return `<div class="card"><span class="eyebrow">Tag 10 · Finale</span><h2>Das Hafenfest</h2>
+    <p>Feuerwerk über der Weser. Tausende Gäste. Und auf der Bühne: der Manager von Krake24. Die Zentrale hat eine letzte Prüfungsaufgabe geschickt – fünf Schritte, eine Kette wie in der IHK-Prüfung. Danach kommt der Showdown.</p>
+    <div class="talk">${hannaSVG('neutral')}<div class="bubble"><b>Hanna</b>„Jetzt zählt alles, was ihr gelernt habt. Rechenweg im Kopf, Werkzeugkarte in der Hand. Volle Kraft voraus!“</div></div>
+    <p class="note">Im Finale zählt jede Aufgabe doppelt.</p>
+    <button class="btn wide" id="next">Zum Finale</button></div>`; }
+  const k=KAP[c];
+  return `<div class="card"><span class="eyebrow">Tag ${c+1} von 10 · ${esc(k.modul)}</span><h2>${esc(k.titel)}</h2>
+    <div class="talk">${hannaSVG('neutral')}<div class="bubble"><b>Hanna</b>${esc(k.story)}</div></div>
+    <div><span class="eyebrow">Wortspeicher</span><div class="chips">${k.wort.map(w=>`<span>${esc(w)}</span>`).join('')}</div></div>
+    <button class="btn wide" id="next">Los geht's</button></div>`;
+}
+function nextStep(){
+  G.step++;
+  if(G.step>=G.steps.length){ return; }
+  save();
+  const st=G.steps[G.step];
+  $('#stage').innerHTML=''; runStep(st); window.scrollTo({top:$('.scene').offsetHeight*0.6,behavior:'smooth'});
+}
+function nextChapter(){
+  G.ch++; planChapter(); save(); renderChapter();
+}
+
+function runStep(st){
+  const c=G.ch, pro=G.mode==='pro';
+  if(c<9){
+    const k=KAP[c];
+    if(st==='dec'){ const d=byId(G.plan.dec); markSeen(d.id);
+      ask({tag:'Entscheidung', ctx:d.s, q:d.q, item:d, pts:10, dv:8, dk:-6, kb:8, big:true, input:false}, ok=>{ G._decOk=ok; if(!ok) krakeTaunt(); }); }
+    else if(st==='why'){ const d=byId(G.plan.dec);
+      if(c===8){ fehlerFrage(d); }
+      else askWhy(d); }
+    else if(st[0]==='q'){ const qp=G.plan.quiz[+st.slice(1)], it=byId(qp.id); markSeen(it.id);
+      ask({tag:qp.second?'Zweite Chance':'Aufgabe', ctx:'', q:it.q, item:it, pts:5, dv:1, dk:-2, kb:2.5, input:qp.inp}); }
+    else if(st==='ev'){ const e=byId(G.plan.ev); markSeen(e.id);
+      ask({tag:'Zufallsereignis', title:e.t, ctx:e.s, q:e.q, item:e, pts:5, dv:3, dk:-2, kb:2.5, input:false}); }
+    else if(st==='talk'){ talkGame(); }
+    else if(st==='sum'){ summary(); }
+  } else {
+    const f=FINALE.find(x=>x.id===G.plan.chain);
+    if(st[0]==='f'){ const i=+st.slice(1), s=f.steps[i]; if(i===0) markSeen(f.id);
+      ask({tag:'Finale · Schritt '+(i+1)+' von 5', ctx:i===0?f.s:'', q:s.q, item:Object.assign({p:''},s), pts:10, dv:3, dk:-3, kb:4, input:G.plan.inp[i]}); }
+    else if(st==='show'){ const s=byId(G.plan.show); markSeen(s.id);
+      ask({tag:'Showdown', krake:true, ctx:s.s, q:s.q, item:s, pts:15, dv:10, dk:-10, kb:12, input:false}, ok=>{ if(!ok) krakeTaunt(); }); }
+    else if(st==='end'){ renderEnd(); }
+  }
+}
+
+/* Eine Frage stellen: Multiple Choice oder Eingabe */
+function ask(cfg,after){
+  const pro=G.mode==='pro', it=cfg.item; const hintText=it.h||(G.ch<9?MERKE[G.ch]:'');
+  const correct=it.o[0];
+  let opts;
+  if(pro) opts=[correct].concat(it.o.slice(1,5));
+  else { const wr=shuffle(it.o.slice(1)).slice(0,2); opts=[correct].concat(wr); }
+  opts=shuffle(opts);
+  const allNum=opts.every(o=>isNumOpt(o[0]));
+  const isIn=cfg.input && it.n!==undefined;
+  const d=it.d!==undefined?it.d:2, unit=it.u||'';
+  const st=$('#stage');
+  const card=document.createElement('div'); card.className='card'+(cfg.krake?' krake':'');
+  card.innerHTML=`<div class="row" style="justify-content:space-between"><span class="tag ${cfg.tag==='Zufallsereignis'?'g':cfg.krake?'k':''}">${esc(cfg.tag)}</span>${!pro&&hintText?`<button class="btn sec" id="hintb" style="min-height:40px;padding:6px 12px;font-size:.9rem">Hanna fragen (–2)</button>`:''}</div>
+    ${rolesHTML()}
+    ${cfg.title?`<h3>${esc(cfg.title)}</h3>`:''}
+    ${cfg.ctx?`<div class="situ">${esc(cfg.ctx)}</div>`:''}
+    <p class="q">${esc(cfg.q)}</p>
+    <div id="hintbox"></div>
+    ${isIn?`<div class="inp"><input id="ans" type="text" inputmode="decimal" autocomplete="off" placeholder="${d===0?'0':'0,'+'0'.repeat(d)}" aria-label="Ergebnis eingeben"><span>${unit}</span></div><p class="note">Runden: ${d===0?'ganze Zahl':d+' Nachkommastellen'}. Komma oder Punkt geht beide.</p>`
+      :`<div class="opts">${opts.map((o,i)=>`<button class="opt ${allNum?'num':''}" data-i="${i}"><span class="key">${'ABCDE'[i]}</span><span class="tx">${esc(o[0])}</span></button>`).join('')}</div>`}
+    <button class="btn wide" id="lock" disabled>Entscheidung festlegen</button>
+    <div id="fb"></div>`;
+  st.appendChild(card);
+  MUSIK.tense(G.ch);
+  let sel=-1, chosen=false, said=!G.roles;
+  const upd=()=>{ card.querySelector('#lock').disabled=!(chosen&&said); };
+  const sb=card.querySelector('.said'); if(sb) sb.onclick=()=>{ said=!said; sb.setAttribute('aria-pressed',said); sb.textContent=said?'✓ '+sb.dataset.n+' hat begründet':sb.dataset.n+' hat begründet'; upd(); };
+  if(isIn){ const a=card.querySelector('#ans'); a.oninput=()=>{ chosen=!!a.value.trim(); upd(); }; a.onkeydown=e=>{ if(e.key==='Enter'&&a.value.trim()) card.querySelector('#lock').click(); }; }
+  else card.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{ sel=+b.dataset.i; card.querySelectorAll('.opt').forEach(x=>x.classList.toggle('sel',x===b)); chosen=true; upd(); });
+  const hb=card.querySelector('#hintb');
+  if(hb) hb.onclick=()=>{ hb.disabled=true; G.pts=Math.max(0,G.pts-2); G.hints++; hud(); card.querySelector('#hintbox').innerHTML=`<div class="hint"><b>Hanna:</b> ${esc(hintText)}</div>`; };
+  card.querySelector('#lock').onclick=()=>{
+    let ok, fehler='', yourText='';
+    if(isIn){ const v=pnum(card.querySelector('#ans').value); ok=Math.abs(v-it.n)<0.5*Math.pow(10,-d)+1e-9;
+      yourText=card.querySelector('#ans').value; card.querySelector('#ans').disabled=true;
+      if(!ok){ const m=it.o.slice(1).find(o=>isNumOpt(o[0]) && Math.abs(pnum(o[0])-v)<0.5*Math.pow(10,-d)+1e-9); fehler=m?m[1]:'Rechne noch einmal mit der Werkzeugkarte nach.'; } }
+    else { ok=opts[sel]===correct; if(!ok) fehler=opts[sel][1];
+      card.querySelectorAll('.opt').forEach((b,i)=>{ b.disabled=true; if(opts[i]===correct) b.classList.add('right'); else if(i===sel) b.classList.add('wrong');
+        if(opts[i]!==correct && (i===sel || pro)) b.querySelector('.tx').insertAdjacentHTML('beforeend',`<span class="ft">${esc(opts[i][1])}</span>`); }); }
+    card.querySelector('#lock').remove(); if(hb) hb.remove(); if(sb) sb.disabled=true; if(G.roles) G.turn++;
+    addRes(ok,cfg.pts,ok?cfg.dv:-(cfg.dv+3),ok?cfg.dk:cfg.kb,it.id||null);
+    G.log.push({ch:G.ch,id:it.id||null,q:cfg.q,ok,w:it.w||'',p:it.p||'',right:correct[0]});
+    MUSIK.calm(); if(ok) MUSIK.ding(); else MUSIK.thud();
+    const mood=ok?'happy':'worried', line=(ok?OKLINES:NOLINES)[Math.floor(Math.random()*(ok?OKLINES:NOLINES).length)];
+    card.querySelector('#fb').innerHTML=`<div class="fb">
+      <div class="talk">${hannaSVG(mood)}<div class="bubble"><b>${ok?'Richtig!':'Nicht ganz.'}</b>${esc(line)}${!ok&&fehler?`<br>Dein Fehler: <b style="display:inline">${esc(fehler)}</b>`:''}${!ok?`<br>Richtig ist: <b style="display:inline">${esc(correct[0])}</b>`:''}</div></div>
+      ${it.w?`<div class="way">${esc(it.w)}</div>`:''}
+      ${it.p?`<p class="ihk"><b>So steht es in der Prüfung:</b> ${esc(it.p)}</p>`:''}
+      <button class="btn wide" id="weiter">Weiter</button></div>`;
+    if(after) after(ok);
+    save();
+    card.querySelector('#weiter').onclick=nextStep;
+    card.querySelector('#fb').scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
+}
+
+/* Profi: Begründung mit „weil“ */
+function askWhy(d){
+  const ok0=G._decOk!==false;
+  const opts=shuffle(d.y.map((t,i)=>[t,i===0]));
+  const st=$('#stage'); const card=document.createElement('div'); card.className='card';
+  card.innerHTML=`<span class="tag">Profi · Begründen</span><p class="q">Begründet: Warum ist ${d.o[0][0].length<60?'„'+esc(d.o[0][0])+'“':'diese Antwort'} richtig?</p><p class="note">Wählt den „weil“-Satz, der fachlich stimmt.</p>
+   ${!ok0?`<p class="note">Eure Entscheidung war falsch – begründet jetzt die richtige Antwort. Punkte gibt es nur für richtige Entscheidung <b>und</b> richtige Begründung.</p>`:''}
+   <div class="opts">${opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="key">${'ABC'[i]}</span><span class="tx">Richtig, ${esc(o[0])}.</span></button>`).join('')}</div>
+   <button class="btn wide" id="lock" disabled>Begründung festlegen</button><div id="fb"></div>`;
+  st.appendChild(card); MUSIK.calm();
+  let sel=-1;
+  card.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{ sel=+b.dataset.i; card.querySelectorAll('.opt').forEach(x=>x.classList.toggle('sel',x===b)); card.querySelector('#lock').disabled=false; });
+  card.querySelector('#lock').onclick=()=>{
+    const ok=opts[sel][1];
+    card.querySelectorAll('.opt').forEach((b,i)=>{ b.disabled=true; if(opts[i][1]) b.classList.add('right'); else if(i===sel) b.classList.add('wrong'); });
+    card.querySelector('#lock').remove();
+    const full=ok&&ok0;
+    addRes(full,5,full?2:0,full?-1:1,null);
+    card.querySelector('#fb').innerHTML=`<div class="fb"><div class="talk">${hannaSVG(ok?'happy':'worried')}<div class="bubble"><b>${ok?'Gut begründet.':'Die Begründung passt nicht.'}</b>${ok?(ok0?'Entscheidung und Begründung stimmen: +5 Punkte.':'Begründung richtig – aber die Entscheidung war falsch. Keine Punkte.'):'Richtig ist: … '+esc(d.y[0])+'.'}</div></div>
+      <p class="ihk"><b>Satzbaustein:</b> Aussage + „weil/da“ + Fachbegriff.</p><button class="btn wide" id="weiter">Weiter</button></div>`;
+    card.querySelector('#weiter').onclick=nextStep; save();
+  };
+}
+/* Profi, Tag 9: Welcher Fehler steckt hinter einer falschen Zahl? */
+function fehlerFrage(d){
+  const wrongs=d.o.slice(1); const target=wrongs[Math.floor(RND()*wrongs.length)];
+  const others=shuffle(wrongs.filter(w=>w!==target && w[1]!==target[1])).slice(0,2).map(w=>[w[1],false]);
+  const opts=shuffle([[target[1],true]].concat(others));
+  const st=$('#stage'); const card=document.createElement('div'); card.className='card';
+  card.innerHTML=`<span class="tag">Profi · Ablenker-Detektiv</span><p class="q">In Hannas Logbuch steht auch die falsche Zahl <span class="mono">${esc(target[0])}</span>. Welcher Fehler steckt dahinter?</p>
+   <div class="opts">${opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="key">${'ABC'[i]}</span><span class="tx">${esc(o[0])}</span></button>`).join('')}</div>
+   <button class="btn wide" id="lock" disabled>Festlegen</button><div id="fb"></div>`;
+  st.appendChild(card); MUSIK.calm();
+  let sel=-1;
+  card.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{ sel=+b.dataset.i; card.querySelectorAll('.opt').forEach(x=>x.classList.toggle('sel',x===b)); card.querySelector('#lock').disabled=false; });
+  card.querySelector('#lock').onclick=()=>{
+    const ok=opts[sel][1];
+    card.querySelectorAll('.opt').forEach((b,i)=>{ b.disabled=true; if(opts[i][1]) b.classList.add('right'); else if(i===sel) b.classList.add('wrong'); });
+    card.querySelector('#lock').remove();
+    addRes(ok,5,ok?2:0,ok?-1:1,null);
+    card.querySelector('#fb').innerHTML=`<div class="fb"><div class="talk">${hannaSVG(ok?'happy':'worried')}<div class="bubble"><b>${ok?'Fehler erkannt!':'Nicht ganz.'}</b>${esc(target[0])} entsteht so: ${esc(target[1])}.</div></div><button class="btn wide" id="weiter">Weiter</button></div>`;
+    card.querySelector('#weiter').onclick=nextStep; save();
+  };
+}
+function krakeTaunt(){ const el=document.createElement('div'); el.className='talk'; el.style.marginTop='10px'; el.innerHTML=`${krakeSVG()}<div class="bubble k">${esc(KRAKELINES[Math.floor(Math.random()*KRAKELINES.length)])}</div>`; const fb=$('#stage .card:last-child #fb .fb'); if(fb) fb.insertBefore(el,fb.lastElementChild); }
+
+/* Rollen im Zweierteam */
+function rolesHTML(){
+  if(!G||!G.roles) return '';
+  const a=G.roles[G.turn%2], b=G.roles[(G.turn+1)%2];
+  return `<div class="roles"><span>Am Steuer: <b>${esc(a)}</b> – entscheidet</span><span>Lotse: <b>${esc(b)}</b> – sagt laut, warum („… weil …“)</span><button class="said" type="button" aria-pressed="false" data-n="${esc(b)}">${esc(b)} hat begründet</button></div>`;
+}
+
+/* Mini-Spiel: Kundengespräch ordnen (Tag 6–8) */
+function talkGame(){
+  const t=TALKS[G.ch], pro=G.mode==='pro';
+  const pool=shuffle(t.lines.map((x,i)=>({x,i})).concat(pro?[{x:t.wrong,i:-1}]:[]));
+  let picked=[];
+  const st=$('#stage'); const card=document.createElement('div'); card.className='card';
+  card.innerHTML=`<span class="tag">Kundengespräch</span><div class="situ">${esc(t.s)}</div>
+    <p class="q">Legt das Gespräch in die richtige Reihenfolge: Tippt die Sätze nacheinander an.${pro?' Achtung: Ein Satz gehört nicht hinein.':''}</p>
+    <div><span class="eyebrow">Euer Gespräch</span><ol class="tl" id="tl"></ol></div>
+    <div class="opts" id="tp"></div>
+    <button class="btn wide" id="lock" disabled>Gespräch festlegen</button><div id="fb"></div>`;
+  st.appendChild(card); MUSIK.calm();
+  const draw=()=>{
+    card.querySelector('#tl').innerHTML=picked.length?picked.map((p,k)=>`<li><button class="tlb" data-k="${k}" type="button">${esc(p.x)}</button></li>`).join(''):'<li class="note">Noch leer – tippt unten den ersten Satz an.</li>';
+    card.querySelector('#tp').innerHTML=pool.filter(p=>!picked.includes(p)).map(p=>`<button class="opt" data-i="${pool.indexOf(p)}" type="button"><span class="tx">${esc(p.x)}</span></button>`).join('');
+    card.querySelectorAll('#tp .opt').forEach(b=>b.onclick=()=>{ if(picked.length<4){ picked.push(pool[+b.dataset.i]); draw(); } });
+    card.querySelectorAll('.tlb').forEach(b=>b.onclick=()=>{ picked.splice(+b.dataset.k,1); draw(); });
+    card.querySelector('#lock').disabled=picked.length!==4;
+  };
+  draw();
+  card.querySelector('#lock').onclick=()=>{
+    const ok=picked.map(p=>p.i).join()==='0,1,2,3';
+    card.querySelector('#lock').remove(); card.querySelector('#tp').remove();
+    card.querySelectorAll('.tlb').forEach((b,k)=>{ b.disabled=true; b.classList.add(picked[k].i===k?'right':'wrong'); });
+    addRes(ok,5,ok?1:-4,ok?-2:2.5,null);
+    G.log.push({ch:G.ch,id:null,q:'Kundengespräch: '+t.s,ok,w:t.lines.map((x,i)=>(i+1)+'. '+x).join(' '),p:t.p,right:'Reihenfolge siehe Rechenweg'});
+    card.querySelector('#fb').innerHTML=`<div class="fb"><div class="talk">${hannaSVG(ok?'happy':'worried')}<div class="bubble"><b>${ok?'Starkes Gespräch!':'Die Reihenfolge stimmt noch nicht.'}</b>${ok?'So überzeugt ihr Kunden.':'So geht es:'}</div></div>
+      <ol class="tl">${t.lines.map((x,i)=>`<li><span class="eyebrow">${esc(t.tags[i])}</span><br>${esc(x)}</li>`).join('')}</ol>
+      ${pro?`<p class="ihk"><b>Gehört nicht hinein:</b> ${esc(t.wrong)} – ${esc(t.fehler)}</p>`:''}
+      <p class="ihk"><b>In der Prüfung schreibe ich:</b> ${esc(t.p)}</p>
+      <button class="btn wide" id="weiter">Weiter</button></div>`;
+    card.querySelector('#weiter').onclick=nextStep; save();
+  };
+}
+
+/* Tagesbilanz */
+function summary(){
+  const c=G.ch, r=G.chRes[c], k=KAP[c];
+  const perfect=r.ok===r.n;
+  if(perfect){ const map={0:'b1',1:'b2',5:'b6',7:'b8',8:'b9'}; if(map[c]) giveBadge(map[c]); }
+  const st=$('#stage'); const card=document.createElement('div'); card.className='card';
+  card.innerHTML=`<span class="eyebrow">Tagesbilanz · Tag ${c+1}</span><h2>${perfect?'Tag ohne Fehler!':r.ok>=r.n/2?'Guter Tag':'Harter Tag'}</h2>
+    <div class="score"><div><b>${r.ok}/${r.n}</b><span>richtig</span></div><div><b>${G.V} %</b><span>Kundenvertrauen</span></div><div><b>${Math.round(G.K)} %</b><span>Krake-Druck</span></div></div>
+    <div class="hint"><b>Das nehme ich mit:</b> ${esc(MERKE[c])}</div>
+    <button class="btn wide" id="nextday">${G.single?'Zur Auswertung':c===8?'Zum Hafenfest-Finale':'Weiter zu Tag '+(c+2)}</button>`;
+  st.appendChild(card); MUSIK.calm();
+  card.querySelector('#nextday').onclick=G.single?renderDayEnd:nextChapter;
+}
+function giveBadge(id){ const b=sget('badges',[]); if(!b.includes(id)){ b.push(id); sset('badges',b); const bd=BADGES.find(x=>x.id===id); toast('Neues Abzeichen: '+bd.t); } }
+
+/* ---------- Ende ---------- */
+function renderDayEnd(){
+  G.over=true; MUSIK.fanfare(); sdel('game');
+  const c=G.ch, r=G.chRes[c], pct=G.max?Math.round(G.pts/G.max*100):0, stars=pct>=85?3:pct>=60?2:1;
+  const wr=G.log.filter(l=>!l.ok), name=c<9?KAP[c].titel:'Das Hafenfest', mod=c<9?KAP[c].modul:'Finale · alle Module';
+  const best=sget('bestday_'+G.mode,{}); const rec=!best[c]||pct>best[c]; if(rec){ best[c]=pct; sset('bestday_'+G.mode,best); }
+  app().innerHTML=`<div class="scene">${scene(c<9?KAP[c].szene:'finale')}<span class="place">Tag ${c+1} · Ergebnis</span></div>
+  <div class="card"><span class="eyebrow">Punktekarte zum Zeigen · ${esc(mod)}${G.code?' · Klassen-Challenge '+esc(G.code):''}${G.roles?' · '+esc(G.roles.join(' & ')):''}</span><h2>Tag ${c+1}: ${esc(name)}</h2>
+    <div class="stars">${[1,2,3].map(i=>ICON.star(i<=stars)).join('')}</div>
+    <div class="talk">${hannaSVG(pct>=60?'happy':'worried')}<div class="bubble"><b>Hanna</b>${pct>=85?'Klarer Kurs! Diesen Tag habt ihr im Griff.':pct>=60?'Gut gemacht. Ein paar Wellen waren noch dabei.':'Das üben wir noch. Spielt den Tag noch einmal – ihr bekommt neue Aufgaben.'}</div></div>
+    <div class="score"><div><b>${G.pts}</b><span>von ${G.max} Punkten</span></div><div><b>${pct} %</b><span>${rec?'neuer Tagesrekord!':'Rekord: '+best[c]+' %'}</span></div><div><b>${r.ok}/${r.n}</b><span>richtig · ${G.mode==='pro'?'Profi':'Anfänger'}</span></div></div>
+    ${c<9?`<div class="hint"><b>Das nehme ich mit:</b> ${esc(MERKE[c])}</div>`:''}
+    ${G.hints?`<p class="note">Hanna-Tipps genutzt: ${G.hints} (je –2 Punkte)</p>`:''}
+  </div>
+  ${wr.length?`<details class="card"><summary>Das übst du noch (${wr.length})</summary><div class="wl">${wr.map(l=>`<div>${esc(l.q)}<br>Richtig: <b>${esc(l.right)}</b>${l.w?`<div class="way" style="margin-top:6px">${esc(l.w)}</div>`:''}</div>`).join('')}</div></details>`:''}
+  <div class="card"><div class="row"><button class="btn" id="again">Tag ${c+1} nochmal</button>${c<9?`<button class="btn sec" id="nxt">Tag ${c+2} spielen</button>`:''}<button class="btn sec" id="home">Startseite</button></div></div>`;
+  $('#hud').hidden=true; window.scrollTo(0,0);
+  const t=G.team, m=G.mode, o={code:G.code, roles:G.roles};
+  $('#again').onclick=()=>newGame(m,t,Object.assign({},o,{day:c}));
+  if($('#nxt')) $('#nxt').onclick=()=>newGame(m,t,Object.assign({},o,{day:c+1}));
+  $('#home').onclick=renderStart;
+}
+function renderEnd(){
+  if(G.single) return renderDayEnd();
+  G.over=true; save(); MUSIK.fanfare();
+  const pct=G.max?Math.round(G.pts/G.max*100):0;
+  const stars=pct>=85?3:pct>=60?2:1;
+  const saved=G.K<=60;
+  if(saved) giveBadge('br'); if(G.mode==='pro'&&stars===3) giveBadge('bk');
+  const best=sget('best_'+G.mode,null); const rec=!best||pct>best.pct; if(rec) sset('best_'+G.mode,{pct,stars,team:G.team});
+  sdel('game');
+  const end = G.K<=30?['Krake24 gibt auf!','Der Manager von Krake24 packt seine Sachen. Die Zentrale ist begeistert: Der Hafenstore bleibt – und wird zur Vorzeige-Filiale.','happy']
+    : saved?['Gerettet – knapp!','Die Zentrale gibt grünes Licht. Der Hafenstore bleibt. Aber Krake24 lauert noch im Hafenbecken.','happy']
+    : ['Krake24 ist noch da …','Die Zentrale gibt euch eine letzte Chance. Revanche? Spielt noch einmal – ihr bekommt neue Aufgaben.','worried'];
+  const wr=G.log.filter(l=>!l.ok);
+  app().innerHTML=`<div class="scene">${scene(saved?'finale':'sturm')}<span class="place">Hafenfest · Ergebnis</span></div>
+  <div class="card"><span class="eyebrow">Punktekarte zum Zeigen${G.code?' · Klassen-Challenge '+esc(G.code):''}${G.roles?' · '+esc(G.roles.join(' & ')):''}</span><h2>${esc(end[0])}</h2>
+    <div class="stars">${[1,2,3].map(i=>ICON.star(i<=stars)).join('')}</div>
+    <div class="talk">${hannaSVG(end[2])}<div class="bubble"><b>Hanna</b>${esc(end[1])}</div></div>
+    <div class="score"><div><b>${G.pts}</b><span>von ${G.max} Punkten</span></div><div><b>${pct} %</b><span>${rec?'neuer Rekord!':'Rekord: '+best.pct+' %'}</span></div><div><b>${G.mode==='pro'?'Profi':'Anf.'}</b><span>${esc(G.team)}</span></div></div>
+    <div class="meters"><div class="meter"><div class="lab"><span>Kundenvertrauen</span><span>${G.V} %</span></div><div class="bar v"><b style="width:${G.V}%"></b></div></div><div class="meter"><div class="lab"><span>Krake-Druck</span><span>${Math.round(G.K)} %</span></div><div class="bar k"><b style="width:${G.K}%"></b></div></div></div>
+    <table class="res">${G.chRes.map((r,i)=>`<tr><td>${i<9?'Tag '+(i+1)+' · '+esc(KAP[i].modul.replace(/^Modul \d+ · /,'')):'Finale'}</td><td>${r.ok}/${r.n} ${r.ok===r.n?'✓':''}</td></tr>`).join('')}</table>
+    ${G.hints?`<p class="note">Hanna-Tipps genutzt: ${G.hints} (je –2 Punkte)</p>`:''}
+  </div>
+  ${wr.length?`<details class="card"><summary>Das übst du noch (${wr.length})</summary><div class="wl">${wr.map(l=>`<div><b>Tag ${l.ch+1}:</b> ${esc(l.q)}<br>Richtig: <b>${esc(l.right)}</b>${l.w?`<div class="way" style="margin-top:6px">${esc(l.w)}</div>`:''}</div>`).join('')}</div><p class="note" style="margin-top:8px">Diese Aufgaben kommen im nächsten Spiel als „Zweite Chance“ wieder.</p></details>`:''}
+  <div class="card"><div class="row"><button class="btn" id="again">Nochmal (${G.mode==='pro'?'Profi':'Anfänger'})</button><button class="btn sec" id="other">${G.mode==='pro'?'Anfänger':'Profi'} spielen</button><button class="btn sec" id="home">Startseite</button></div>
+  <p class="note">Beim nächsten Spiel bekommt ihr neue Aufgaben, solange es auf diesem Gerät noch ungesehene gibt.</p></div>`;
+  $('#hud').hidden=true; window.scrollTo(0,0);
+  const t=G.team, m=G.mode, o={code:G.code, roles:G.roles};
+  $('#again').onclick=()=>newGameIntro(m,t,o);
+  $('#other').onclick=()=>newGameIntro(m==='pro'?'anf':'pro',t,o);
+  $('#home').onclick=renderStart;
+}
+
+/* ---------- Werkzeugkarte ---------- */
+function openTools(){
+  const o=document.createElement('div'); o.className='overlay'; o.setAttribute('role','dialog'); o.setAttribute('aria-label','Werkzeugkarte');
+  o.innerHTML=`<div class="sheet"><div class="row" style="justify-content:space-between"><h3>Werkzeugkarte</h3><button class="btn sec" id="cl" style="min-height:40px;padding:6px 14px">Schließen</button></div>
+  <div class="tw"><table><tr><th>Prozent</th><th>Faktor</th><th>Prozent</th><th>Faktor</th></tr>
+   ${[['+ 5 %','1,05','– 2 %','0,98'],['+ 7 %','1,07','– 3 %','0,97'],['+ 10 %','1,1','– 5 %','0,95'],['+ 19 %','1,19','– 10 %','0,9'],['+ 25 %','1,25','– 20 %','0,8'],['+ 50 %','1,5','– 25 %','0,75'],['+ 60 %','1,6','– 30 %','0,7']].map(r=>`<tr>${r.map((c,i)=>`<td class="${i%2?'mono':''}">${c}</td>`).join('')}</tr>`).join('')}</table></div>
+  <p class="note">plus p % → mal (1 + p : 100) · minus p % → mal (1 – p : 100) · zurück → geteilt durch denselben Faktor</p>
+  <h3>Die Preistreppe</h3>
+  <div class="treppe"><div>Bezugspreis</div><div>+ Handlungskosten = Selbstkosten</div><div>+ Gewinn = Nettoverkaufspreis</div><div>+ Umsatzsteuer = Bruttoverkaufspreis</div></div>
+  <p class="note">Vorher: Listeneinkaufspreis – Rabatt – Skonto + Bezugskosten = Bezugspreis (immer netto)</p>
+  <h3>Formeln</h3>
+  <div class="tw"><table>
+   ${[['Kalkulationsfaktor','Bruttoverkaufspreis : Bezugspreis (4 Stellen)'],['Bezugspreis rückwärts','Bruttoverkaufspreis : Faktor'],['Kalkulationszuschlag','(BVP – Bezugspreis) : Bezugspreis · 100'],['Handlungskostenzuschlag','Handlungskosten : Wareneinsatz · 100'],['Gewinnzuschlag','Gewinn : Selbstkosten · 100'],['Preissenkung in %','(alt – neu) : alt · 100'],['alter Preis','neuer Preis : (1 – p : 100)'],['netto aus brutto','brutto : 1,19 (Lebensmittel : 1,07)'],['Einheitspreis','alle Beträge zusammen : Anzahl aller Stücke'],['Grundpreis','Preis : Menge in kg oder l']].map(r=>`<tr><td>${r[0]}</td><td class="mono">${r[1]}</td></tr>`).join('')}</table></div>
+  <h3>Runden und Prüfen</h3><p>Zwischenergebnisse nicht runden. Euro: 2 Stellen · Faktor: 4 Stellen. Verkaufspreis größer als Bezugspreis? Faktor größer als 1?</p>
+  <h3>Bezugskosten oder Handlungskosten?</h3><p><b>Bezugskosten:</b> Fracht, Porto, Rollgeld, Verpackung des Lieferers, Transportversicherung, Zoll. <b>Handlungskosten:</b> Personal, Miete, Energie, Werbung, Lager, Versicherungen, Büro.</p>
+  </div>`;
+  document.body.appendChild(o);
+  const close=()=>{ o.remove(); $('#toolbtn').focus(); };
+  o.querySelector('#cl').onclick=close; o.onclick=e=>{ if(e.target===o) close(); };
+  o.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
+  o.querySelector('#cl').focus();
+}
+
+/* ---------- Musik (Web Audio, Standard aus) ---------- */
+const MUSIK = (()=>{
+  let ctx=null, on=sget('music',false), timer=null, step=0, level=0, master=null, playing=false;
+  function ensure(){ if(!ctx){ try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); master=ctx.createGain(); master.gain.value=0.3; master.connect(ctx.destination);}catch(e){ ctx=null; } } return ctx; }
+  function tone(f,t,dur,type,vol){ if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain(); o.type=type||'triangle'; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.2,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+0.05); }
+  const bass=[110,110,130.81,98], arp=[220,261.63,329.63,261.63,246.94,293.66,349.23,293.66];
+  function tick(){ if(!ctx||!playing) return; const t=ctx.currentTime+0.05, bpm=104+level*4, sp=60/bpm/2;
+    for(let i=0;i<4;i++){ const s=step+i, tt=t+i*sp; if(s%2===0) tone(bass[Math.floor(s/8)%4]/1,tt,sp*1.6,'sawtooth',0.07); tone(arp[s%8]*(level>6?2:1),tt,sp*0.8,'triangle',0.05+level*0.004); if(s%4===2) tone(2000,tt,0.03,'square',0.015); }
+    step+=4; timer=setTimeout(tick, sp*4*1000-30); }
+  function start(){ if(!on||!ensure()) return; if(ctx.state==='suspended') ctx.resume(); if(!playing){ playing=true; tick(); } }
+  function stop(){ playing=false; clearTimeout(timer); }
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden) stop(); });
+  return {
+    get on(){return on;},
+    unlock(){ if(on) ensure(); },
+    toggle(){ on=!on; sset('music',on); if(on){ ensure(); toast('Musik an – bitte leise stellen oder Kopfhörer nutzen.'); } else stop(); return on; },
+    tense(l){ level=l||0; start(); },
+    calm(){ stop(); },
+    stop,
+    ding(){ if(on&&ensure()){ const t=ctx.currentTime; tone(659.25,t,0.15,'sine',0.15); tone(987.77,t+0.1,0.25,'sine',0.15);} },
+    thud(){ if(on&&ensure()){ const t=ctx.currentTime; tone(155.56,t,0.3,'sine',0.18); tone(116.54,t+0.15,0.4,'sine',0.15);} },
+    fanfare(){ stop(); if(on&&ensure()){ const t=ctx.currentTime; [523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,t+i*0.14,0.5,'triangle',0.16)); } }
+  };
+})();
+
+/* ---------- Start ---------- */
+function boot(){
+  const tb=$('#toolbtn'), mb=$('#musicbtn');
+  tb.innerHTML=ICON.tool; tb.onclick=openTools;
+  const setM=()=>{ mb.innerHTML=MUSIK.on?ICON.musicOn:ICON.musicOff; mb.setAttribute('aria-pressed',MUSIK.on); mb.setAttribute('aria-label',MUSIK.on?'Musik aus':'Musik an'); };
+  setM(); mb.onclick=()=>{ MUSIK.toggle(); setM(); };
+  sget('x',null);
+  renderStart();
+}
+boot();
+
+</script>
+</body>
+</html>

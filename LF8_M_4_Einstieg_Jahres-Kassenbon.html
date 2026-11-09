@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Der Jahres-Kassenbon</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+/* Layout: links der Bon, der Zeile für Zeile aus der Kasse kommt; rechts das Becken, das sich füllt oder leert. Dunkel wie die Serie. */
+:root{
+  --nacht:#0f1b2b; --nacht2:#16263b; --linie:#2b4160; --text:#e8eef6; --leise:#9fb3cc;
+  --lampe:#f4d35e; --rot:#e5484d; --gruen:#4fbf8a; --wasser:#3a8fd8; --papier:#f7f4ec; --tinte:#1c2530;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif; --body:"Barlow",Arial,Helvetica,sans-serif; --bon:"Courier Prime","Courier New",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{background:var(--nacht);color:var(--text)}
+body{margin:0;font-family:var(--body);font-size:17px;line-height:1.45}
+.wrap{max-width:1000px;margin:0 auto;padding-inline:16px;padding-block:18px 60px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--linie);padding-bottom:10px;margin-bottom:16px}
+.marke{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;color:var(--lampe);text-transform:uppercase}
+.marke small{display:block;font-size:15px;letter-spacing:2px;color:var(--leise);font-weight:600}
+h1,h2{font-family:var(--display);font-weight:800;margin:0 0 8px;text-wrap:balance}h1{font-size:30px}h2{font-size:24px}
+p{margin:0 0 10px;max-width:64ch}.leise{color:var(--leise)}
+.spiel{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px;align-items:start}
+@media (max-width:700px){.spiel{grid-template-columns:1fr}}
+.bon{background:var(--papier);color:var(--tinte);font-family:var(--bon);padding:16px 18px 26px;border-radius:2px;position:relative;min-height:220px}
+.bon::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:12px;background:linear-gradient(-45deg,transparent 6px,var(--papier) 0) 0 0/12px 12px,linear-gradient(45deg,transparent 6px,var(--papier) 0) 0 0/12px 12px}
+.bon .kopf{text-align:center;font-weight:700;border-bottom:1px dashed #999;padding-bottom:8px;margin-bottom:8px}
+.zeile{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-variant-numeric:tabular-nums}.zeile span:last-child{white-space:nowrap}
+.zeile.e{color:#1f6b45}.zeile.a{color:#a3262b}.zeile.n{color:#666;text-decoration:line-through}
+.neu{color:var(--tinte);background:#fff3c4;border:2px dashed #b07a2a;padding:10px;margin-top:10px;font-size:19px}
+.knoepfe{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+@media (max-width:480px){.knoepfe{grid-template-columns:1fr}}
+.btn{font-family:var(--display);font-weight:800;font-size:20px;border:0;border-radius:8px;padding:10px 12px;cursor:pointer;min-height:52px;color:#1b1500;background:var(--lampe)}
+.btn.e{background:var(--gruen);color:#06210f}.btn.a{background:var(--rot);color:#2a0507}.btn.n{background:#c9d3de;color:#0f1b2b}
+.btn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.rueck{min-height:48px;margin-top:10px;font-size:16px}
+.becken{background:var(--nacht2);border:1px solid var(--linie);border-radius:10px;padding:14px;text-align:center}
+.becken svg{width:100%;max-width:220px;height:auto}
+.stand{font-family:var(--display);font-weight:800;font-size:34px;color:var(--lampe);font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+td,th{border-bottom:1px solid var(--linie);padding:5px 8px;text-align:left}td.r,th.r{text-align:right}
+.tabwrap{overflow-x:auto}
+@media (prefers-reduced-motion:reduce){#wasser{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="marke">Der Jahres-Kassenbon<small>LF 8 · Kapitel 4 · Hat sich das Jahr gelohnt?</small></div><div class="leise" id="fehler">0 Fehler</div></header>
+<p>Die Kasse druckt den Bon für das ganze Jahr – Zeile für Zeile. Entscheide bei jeder Zeile: <b>fließt Wert in den Laden hinein (Ertrag)</b>, <b>fließt Wert hinaus (Aufwand)</b> – oder <b>gehört die Zeile gar nicht in die GuV</b>? Das Becken zeigt, was übrig bleibt.</p>
+<div class="spiel">
+  <div>
+    <div class="bon" id="bon"><div class="kopf">SOCKENLADEN FUSSNOTE<br>Bon 1.1.–31.12.</div><div id="zeilen"></div></div>
+    <div id="aktuell" style="margin-top:18px">
+      <div class="neu" id="neu"></div>
+      <div class="knoepfe"><button class="btn e" data-k="e">Ertrag – fließt rein</button><button class="btn a" data-k="a">Aufwand – fließt raus</button><button class="btn n" data-k="n">gehört nicht in die GuV</button></div>
+      <div class="rueck" id="rueck" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="becken">
+    <svg viewBox="0 0 200 300" aria-label="Becken: Erträge minus Aufwendungen"><rect x="20" y="20" width="160" height="260" fill="#0a1320" stroke="#9DC3E6" stroke-width="4"/><rect id="wasser" x="22" y="278" width="156" height="0" fill="#3a8fd8" style="transition:all .6s"/><line x1="20" y1="150" x2="26" y2="150" stroke="#9DC3E6"/></svg>
+    <div class="leise">Im Becken</div><div class="stand" id="stand">0 €</div>
+    <div class="leise" id="sumE">rein: 0 €</div><div class="leise" id="sumA">raus: 0 €</div>
+  </div>
+</div>
+<div id="ende" hidden style="margin-top:22px"></div>
+</div>
+<script>
+"use strict";
+const ZEILEN=[
+ {t:"Umsatzerlöse Januar–März",b:38000,k:"e",x:"Umsatzerlöse sind Erträge: Socken wurden verkauft, Wert fließt in den Laden."},
+ {t:"Verkaufte Socken zum Bezugspreis (Wareneinsatz)",b:96000,k:"a",x:"Der Wareneinsatz ist ein Aufwand – der größte im Handel. Die verkauften Socken sind weg."},
+ {t:"Umsatzerlöse April–Juni",b:41000,k:"e",x:"Wieder Umsatzerlöse = Ertrag."},
+ {t:"Neuer Kredit der Hafenbank",b:10000,k:"n",x:"Geliehenes Geld ist kein Ertrag! Es muss zurückgezahlt werden. Ein Kredit ist Fremdkapital und steht in der Bilanz."},
+ {t:"Gehälter Malte und Aushilfen",b:48000,k:"a",x:"Personalaufwand – Wert fließt hinaus."},
+ {t:"Umsatzerlöse Juli–September",b:37000,k:"e",x:"Umsatzerlöse = Ertrag."},
+ {t:"Miete Hafenstraße",b:18000,k:"a",x:"Mietaufwand."},
+ {t:"Umsatzerlöse Oktober–Dezember (Weihnachten!)",b:82000,k:"e",x:"Das Weihnachtsgeschäft: Umsatzerlöse = Ertrag."},
+ {t:"Werbung (Flyer, Social Media)",b:4200,k:"a",x:"Werbeaufwand."},
+ {t:"Strom und Heizung",b:3600,k:"a",x:"Aufwand für Energie."},
+ {t:"Sonstiges (Versicherung, Steuerberaterin Dr. Korn …)",b:8700,k:"a",x:"Sonstige Aufwendungen."}
+];
+const MAXB=198000;
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n).toLocaleString("de-DE")+" €";
+let i=0,E=0,A=0,fehler=0,versuche=0;
+function zeige(){
+  if(i>=ZEILEN.length){ende();return;}
+  const z=ZEILEN[i];$("neu").innerHTML="<b>Neue Zeile:</b> "+z.t+" <b style='float:right'>"+fmt(z.b)+"</b>";$("rueck").textContent="";versuche=0;
+  document.querySelectorAll(".knoepfe .btn").forEach(b=>b.disabled=false);
+}
+function becken(){const v=Math.max(0,E-A),h=v/MAXB*256;const w=$("wasser");w.setAttribute("y",278-h);w.setAttribute("height",h);
+  $("stand").textContent=fmt(E-A);$("sumE").textContent="rein: "+fmt(E);$("sumA").textContent="raus: "+fmt(A);}
+document.querySelectorAll(".knoepfe .btn").forEach(b=>b.onclick=()=>{
+  const z=ZEILEN[i];if(!z)return;
+  if(b.dataset.k===z.k){
+    const d=document.createElement("div");d.className="zeile "+z.k;d.innerHTML="<span>"+(z.k==="e"?"+ ":z.k==="a"?"− ":"× ")+z.t+"</span><span>"+fmt(z.b)+"</span>";$("zeilen").appendChild(d);
+    if(z.k==="e")E+=z.b;else if(z.k==="a")A+=z.b;becken();
+    $("rueck").innerHTML="<b style='color:var(--gruen)'>Richtig.</b> "+z.x;i++;document.querySelectorAll(".knoepfe .btn").forEach(x=>x.disabled=true);setTimeout(zeige,1700);
+  }else{fehler++;versuche++;b.disabled=true;$("fehler").textContent=fehler+(fehler===1?" Fehler":" Fehler");
+    $("rueck").innerHTML="<b style='color:var(--rot)'>Nicht ganz.</b> "+(z.k==="n"?"Denk nach: Gehört dieses Geld dem Laden – oder muss es zurück?":z.k==="e"?"Kommt durch diese Zeile Wert in den Laden hinein?":"Wird hier etwas verbraucht oder bezahlt?");}
+});
+function ende(){
+  $("aktuell").hidden=true;const e=$("ende");e.hidden=false;
+  e.innerHTML='<h2>Das Jahr ist abgerechnet: '+(E>A?'Gewinn':'Verlust')+' '+fmt(Math.abs(E-A))+'</h2>'+
+  '<div class="tabwrap"><table><thead><tr><th>S · Aufwendungen</th><th class="r">€</th><th>H · Erträge</th><th class="r">€</th></tr></thead><tbody>'+
+  '<tr><td>Wareneinsatz</td><td class="r">96.000</td><td>Umsatzerlöse</td><td class="r">198.000</td></tr><tr><td>Personal</td><td class="r">48.000</td><td></td><td></td></tr>'+
+  '<tr><td>Miete</td><td class="r">18.000</td><td></td><td></td></tr><tr><td>Werbung</td><td class="r">4.200</td><td></td><td></td></tr><tr><td>Energie</td><td class="r">3.600</td><td></td><td></td></tr>'+
+  '<tr><td>Sonstiges</td><td class="r">8.700</td><td></td><td></td></tr><tr><td><b>Gewinn</b></td><td class="r"><b>19.500</b></td><td></td><td></td></tr>'+
+  '<tr><td></td><td class="r"><b>198.000</b></td><td></td><td class="r"><b>198.000</b></td></tr></tbody></table></div>'+
+  '<p style="margin-top:12px"><b>Gewinn = Erträge − Aufwendungen = 198.000 − 178.500 = 19.500 €.</b> Malte dachte an 198.000 € – das ist nur der Umsatz. Und der Kredit (10.000 €) ist kein Ertrag: geliehenes Geld steht in der Bilanz.</p>'+
+  '<p class="leise">Du hattest '+fehler+' Fehler. Im Unterricht: Wo steht der Gewinn im GuV-Konto – und warum auf der linken Seite?</p><button class="btn" id="neu2">Noch einmal</button>';
+  $("neu2").onclick=()=>{i=0;E=0;A=0;fehler=0;$("zeilen").innerHTML="";$("fehler").textContent="0 Fehler";$("aktuell").hidden=false;e.hidden=true;becken();zeige();};
+}
+becken();zeige();
+</script>
+
+</body>
+</html>

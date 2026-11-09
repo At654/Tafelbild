@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Die Zahlen-Zentrale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,800&family=IBM+Plex+Mono:wght@400;700&display=swap">
+<style>
+/* Layout: eine Spalte wie ein Klemmbrett in der Zahlen-Zentrale – oben das Büro mit Pinnwand, darunter das Prüfungsblatt mit Grafik und die Entscheidungskarte */
+:root{
+  --bg:#eef1f5; --grid:#dfe5ec; --surface:#ffffff; --surface2:#f5f7fa; --ink:#18212d; --muted:#556172; --line:#cfd7e1;
+  --navy:#1f3a5c; --on-navy:#ffffff; --signal:#d9572b; --on-signal:#ffffff; --signal-soft:#fbe6dc; --sky:#2f6f9f; --sky-soft:#dcebf5;
+  --good:#1d7a48; --mid:#946400; --bad:#b4321f; --good-bg:#e0f2e7; --mid-bg:#fbf0d3; --bad-bg:#fbe2dd;
+  --display:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1620; --grid:#172231; --surface:#17212e; --surface2:#1e2a39; --ink:#e8eef5; --muted:#a3b1c2; --line:#2d3c4f;
+  --navy:#8fb7e6; --on-navy:#0d1a2a; --signal:#ff8a5c; --on-signal:#2a0f04; --signal-soft:#3a2219; --sky:#7fb8e0; --sky-soft:#18324a;
+  --good:#5fd08f; --mid:#eebd4c; --bad:#f2836f; --good-bg:#16382a; --mid-bg:#3a3016; --bad-bg:#40211c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1620; --grid:#172231; --surface:#17212e; --surface2:#1e2a39; --ink:#e8eef5; --muted:#a3b1c2; --line:#2d3c4f;
+  --navy:#8fb7e6; --on-navy:#0d1a2a; --signal:#ff8a5c; --on-signal:#2a0f04; --signal-soft:#3a2219; --sky:#7fb8e0; --sky-soft:#18324a;
+  --good:#5fd08f; --mid:#eebd4c; --bad:#f2836f; --good-bg:#16382a; --mid-bg:#3a3016; --bad-bg:#40211c; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--body);font-size:17px;line-height:1.5;margin:0;padding-block:0 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:760px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);font-weight:800;line-height:1.08;text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(2.2rem,9vw,3.6rem);color:var(--navy)}
+h2{font-size:clamp(1.4rem,5vw,1.85rem)}
+h3{font-size:1.15rem}
+p{margin:0}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--signal);outline-offset:2px;border-radius:8px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--muted)} .small{font-size:.9rem}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-size:.76rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+
+/* Statusleiste */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:8px max(16px,env(safe-area-inset-left,0px));
+  background:var(--surface);border-bottom:3px solid var(--navy);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;font-size:1.1rem;display:flex;align-items:center;gap:7px;margin-right:auto;color:var(--navy);background:none;border:0;padding:4px 0;cursor:pointer}
+.brand .ic{color:var(--signal)}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);font-weight:700;font-size:.92rem}
+.pill.warn{background:var(--signal-soft);border-color:var(--signal);color:var(--ink)}
+.iconbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;min-width:40px;padding:6px 10px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);cursor:pointer;font-weight:700;font-size:.9rem}
+.iconbtn[aria-pressed="true"]{background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
+
+/* Karten und Knöpfe */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.card.tight{padding:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:12px 20px;border-radius:14px;border:2px solid var(--navy);background:var(--navy);color:var(--on-navy);font-weight:700;font-size:1.05rem;cursor:pointer;text-align:center}
+.btn.alt{background:var(--surface);color:var(--navy)}
+.btn.sig{background:var(--signal);border-color:var(--signal);color:var(--on-signal)}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:14px 14px;border-radius:14px;border:2px solid var(--line);background:var(--surface);cursor:pointer;min-height:56px}
+.opt .k{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--surface2);border:1px solid var(--line);font-weight:700;font-family:var(--mono)}
+.opt .t{flex:1;min-width:0}
+.opt .c{flex:none;font-family:var(--mono);font-size:.82rem;color:var(--muted);padding-top:4px;white-space:nowrap}
+.opt[aria-pressed="true"]{border-color:var(--sky);background:var(--sky-soft)}
+.opt[aria-pressed="true"] .k{background:var(--sky);color:#fff;border-color:var(--sky)}
+.opt:disabled{opacity:.5;cursor:not-allowed}
+.opt.r-good{border-color:var(--good);background:var(--good-bg)} .opt.r-mid{border-color:var(--mid);background:var(--mid-bg)} .opt.r-bad{border-color:var(--bad);background:var(--bad-bg)}
+.opt[class*="r-"]:disabled{opacity:1}
+.opts{display:flex;flex-direction:column;gap:10px}
+
+/* Szene */
+.scene{width:100%;height:auto;display:block;border-radius:var(--r);border:1px solid var(--line)}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+
+/* Prüfungsblatt mit Diagramm */
+.paper{margin:0;background:#fdfdfb;color:#1f2226;border:1px solid #c9ccd1;border-radius:10px;padding:12px 12px 10px;box-shadow:0 1px 0 #0000000d}
+.paper figcaption{display:flex;flex-direction:column;gap:1px;margin-bottom:6px}
+.paper figcaption b{font-size:1rem;line-height:1.25}
+.paper figcaption span{font-size:.86rem;color:#4a4f56}
+.paper .chartbox{max-width:560px;margin:0 auto}
+.paper svg{width:100%;height:auto;display:block}
+.paper .ax{font:11px var(--body);fill:#2c3036} .paper .ax.u{font-weight:700} .paper .ax.big{font-size:12px}
+.paper .vl{font:700 10.5px var(--mono);fill:#1f2226}
+.paper .kz{font:700 12px var(--mono);fill:#1f2226}
+.paper .kb{font:700 10.5px var(--body);fill:#1f2226;letter-spacing:.04em}
+.paper .lg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.86rem;margin-top:6px;justify-content:center}
+.paper .lg span{display:inline-flex;align-items:center;gap:6px}
+.paper .lg svg{width:auto;flex:none}
+.paper .src{font-size:.78rem;color:#4a4f56;margin-top:6px;text-align:right}
+.tblwrap{overflow-x:auto}
+.itbl{border-collapse:collapse;width:100%;font-size:.9rem;font-variant-numeric:tabular-nums}
+.itbl th,.itbl td{border:1px solid #9aa0a7;padding:5px 7px;text-align:right;white-space:nowrap}
+.itbl thead th{background:#e6e8eb;text-align:center;white-space:normal;vertical-align:bottom}
+@media (max-width:480px){.itbl{font-size:.82rem}.itbl th,.itbl td{padding:4px 5px}.brand .bt,.iconbtn .lbl{display:none}.hcard b{font-size:.9rem}.hcard .small{font-size:.78rem}}
+.itbl tbody th,.itbl tfoot th{text-align:left;font-weight:700;background:#f1f2f4}
+.itbl tfoot td,.itbl tfoot th{border-top:2px solid #1f2226;font-weight:700}
+.itbl .gap{display:inline-block;min-width:2.2em;text-align:center;background:#ffe9a8;border:1px dashed #8a6a00;border-radius:4px;font-weight:700}
+.itbl td.mk{outline:3px solid #2f6f9f;outline-offset:-3px;background:#dcebf5}
+
+/* Grafik-Check */
+.check{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:start;font-size:.92rem}
+.check b{font-family:var(--display);font-size:1.05rem;width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:var(--navy);color:var(--on-navy)}
+.check span{min-width:0;padding-top:3px}
+
+/* Persona */
+.ask{display:flex;gap:12px;align-items:flex-start}
+.ask .face{flex:none;border-radius:50%;border:2px solid var(--line);background:var(--surface)}
+.bubble{position:relative;flex:1;min-width:0;background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.bubble::before{content:"";position:absolute;left:-8px;top:18px;border:8px solid transparent;border-right-color:var(--line);border-left:0}
+.bubble .who{font-size:.8rem;font-weight:700;color:var(--muted)}
+.react.good .bubble{background:var(--good-bg);border-color:var(--good)} .react.mid .bubble{background:var(--mid-bg);border-color:var(--mid)} .react.bad .bubble{background:var(--bad-bg);border-color:var(--bad)}
+
+/* Fachbegriff-Karte */
+.term{border-left:6px solid var(--signal);background:var(--signal-soft);border-radius:12px;padding:12px 14px}
+.term h3{color:var(--ink)}
+.ihk{border:2px dashed var(--navy);border-radius:12px;padding:10px 12px;font-size:.95rem}
+.ihk .eyebrow{color:var(--navy)}
+.hint{background:var(--sky-soft);border-radius:12px;padding:10px 12px;font-size:.95rem}
+
+/* Start */
+.hero{display:grid;gap:14px;padding-block:22px 6px}
+.hero .lead{font-size:1.08rem;max-width:58ch}
+.houses,.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.modes{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:640px){.modes{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.hcard,.mcard{overflow-wrap:anywhere;display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:10px;border-radius:14px;border:2px solid var(--line);background:var(--surface);cursor:pointer;min-width:0}
+.hcard svg{width:100%;height:auto;border-radius:8px}
+.hcard b,.mcard b{font-family:var(--display);font-size:1.02rem;line-height:1.1}
+.hcard[aria-pressed="true"],.mcard[aria-pressed="true"]{border-color:var(--signal);box-shadow:0 0 0 2px var(--signal) inset}
+.mcard .ic{color:var(--navy)}
+.mcard .d{font-size:.84rem;color:var(--muted);line-height:1.3}
+.mcard .new{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--signal)}
+.prog{height:7px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);overflow:hidden;width:100%}
+.prog i{display:block;height:100%;background:var(--sky)}
+.field{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:.92rem}
+.field input{min-height:48px;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-weight:400;font-size:1rem}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.badge.on .med{fill:#e9b93a}.badge.on .in{fill:#f8d873}.badge.on .rib{fill:var(--signal)}.badge.on .gl{color:#5a3d00}
+.badge.off .med{fill:var(--line)}.badge.off .in{fill:var(--surface2)}.badge.off .rib{fill:var(--line)}.badge.off .gl{color:var(--muted)}
+.bdg{display:flex;flex-direction:column;align-items:center;width:84px;text-align:center;font-size:.72rem;line-height:1.2;gap:2px}
+
+/* Personakarte drehen */
+.flip{perspective:900px;max-width:420px;margin:0 auto;width:100%}
+.flip-in{position:relative;transition:transform .8s cubic-bezier(.3,.7,.3,1);transform-style:preserve-3d;min-height:300px}
+.flip.on .flip-in{transform:rotateY(180deg)}
+.flip-f,.flip-b{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;border:2px solid var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px;text-align:center}
+.flip-f{background:var(--navy);color:var(--on-navy)}
+.flip-f .ic{color:var(--signal)}
+.flip-b{background:var(--surface);transform:rotateY(180deg)}
+
+/* Mini-Spiele */
+.amp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.amp button{min-height:48px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-weight:700;cursor:pointer;font-size:.92rem;padding:6px}
+.amp button.g[aria-pressed="true"]{background:var(--good);border-color:var(--good);color:#fff}
+.amp button.y[aria-pressed="true"]{background:var(--mid);border-color:var(--mid);color:#fff}
+.amp button.r[aria-pressed="true"]{background:var(--bad);border-color:var(--bad);color:#fff}
+.timer{height:10px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
+.timer i{display:block;height:100%;background:var(--signal);transition:width .25s linear}
+.numgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.numgrid button{min-height:46px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font:700 1.1rem var(--mono);cursor:pointer}
+.numgrid button[aria-pressed="true"]{background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
+.stmt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--surface);cursor:pointer}
+.stmt[aria-pressed="true"]{border-color:var(--bad);background:var(--bad-bg)}
+.stmt .mark{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;font-weight:700}
+.stmt[aria-pressed="true"] .mark{border-color:var(--bad);background:var(--bad);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:40px;padding:6px 12px;border-radius:999px;border:2px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700;font-size:.88rem}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:var(--on-navy)}
+
+/* Auswertung */
+.scorecard{background:var(--navy);color:var(--on-navy);border-radius:20px;padding:20px;display:grid;gap:10px;text-align:center}
+.scorecard h2{color:var(--on-navy)}
+.scorecard .big{font:800 3.2rem/1 var(--display)}
+.stars svg.on{fill:#f2b632}.stars svg.off{fill:currentColor;opacity:.25}
+.stars{display:inline-flex;gap:4px;justify-content:center}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:600px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi b{display:block;font:700 1.5rem var(--mono)}
+.meter{height:14px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--sky),var(--good))}
+.modbar{display:grid;grid-template-columns:3.2em 1fr 3.4em;gap:8px;align-items:center;font-size:.9rem}
+.res{border-left:6px solid var(--line);padding:10px 12px;border-radius:10px;background:var(--surface)}
+.res.good{border-color:var(--good)} .res.mid{border-color:var(--mid)} .res.bad{border-color:var(--bad)}
+.res .sym{font-weight:800;font-family:var(--mono)}
+.res.good .sym{color:var(--good)} .res.mid .sym{color:var(--mid)} .res.bad .sym{color:var(--bad)}
+.better{font-size:.93rem;background:var(--surface2);border-radius:8px;padding:6px 10px}
+details.sheet{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+details.sheet summary{cursor:pointer;font-weight:700}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:700;z-index:20;max-width:calc(100% - 32px)}
+.walker{transition:transform 1.1s ease-in-out}
+.overlay{position:fixed;inset:0;background:#0008;z-index:30;display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.overlay .card{max-width:640px;width:100%;max-height:82vh;overflow:auto}
+.wsp{display:flex;flex-wrap:wrap;gap:6px}
+.wsp span{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:.9rem}
+.confirm{border:2px solid var(--bad);background:var(--bad-bg);border-radius:12px;padding:12px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ===== Die Zahlen-Zentrale – Daten =====
+   Alle Rechenwege, Fallen und Satzbausteine stammen aus den Lösungsheften WPF Grafiken M1–M6
+   und der Grafik-Werkzeugkarte. Keine IHK-Originalaufgaben (Spiel ist online). */
+
+const HAEUSER = {
+  frischmarkt:{n:"Frischmarkt Nordstadt", k:"Frischmarkt", d:"Lebensmittel, Getränke, Drogerie"},
+  modehaus:{n:"Modehaus Kranz", k:"Modehaus", d:"Bekleidung, Schuhe, Onlineshop"},
+  baumarkt:{n:"Gartencenter Grünland", k:"Gartencenter", d:"Garten, Werkzeug, Farben"}
+};
+
+const PERSONAS = [
+  {id:"ahrens", n:"Frau Ahrens", r:"Controlling", motto:"Mir zählen genaue Zahlen – mit Einheit.",
+   focus:["anteil","veraenderung","durchschnitt","luecke"], look:{skin:"#f1c7a5",hair:"#5b3a29",style:"bob",top:"#2f5d8a",glasses:true},
+   good:["Sauber gerechnet. So kommt das in den Bericht.","Genau. Zahl, Einheit, Rechenweg – perfekt.","Das prüfe ich nach … stimmt!"],
+   mid:["Fast. Aber im Bericht brauche ich es genauer.","Die Richtung stimmt, die Zahl noch nicht ganz."],
+   bad:["Halt! Diese Zahl stimmt nicht.","Damit hätten wir falsch geplant. Nochmal lesen!"]},
+  {id:"yilmaz", n:"Herr Yilmaz", r:"Werbung", motto:"Sagt es mir in Worten, die jeder versteht.",
+   focus:["diagrammart","raten","aussage"], look:{skin:"#c98e64",hair:"#1f1a17",style:"short",top:"#c4532b",beard:true},
+   good:["Super, das versteht jeder Kunde.","Klar und ehrlich – so mag ich das.","Das kann ich so auf das Plakat schreiben."],
+   mid:["Hm, das klingt noch nicht rund.","Nicht falsch, aber das geht besser."],
+   bad:["Oh nein, das wäre peinlich geworden.","Das stimmt so nicht – das darf nicht raus!"]},
+  {id:"dombrowski", n:"Frau Dombrowski", r:"Marktleitung", motto:"Was heißt das für unseren Laden?",
+   focus:["grafikcheck","durchschnitt","luecke","aussage"], look:{skin:"#f3d2b8",hair:"#b8742f",style:"long",top:"#3d7a5a"},
+   good:["Danke, damit kann ich planen.","Prima, so stelle ich das Personal ein.","Das hilft mir richtig weiter."],
+   mid:["Mit der Antwort kann ich noch nicht planen.","Halb gut. Was genau heißt das für uns?"],
+   bad:["So hätte ich falsch geplant.","Das passt nicht zu unseren Zahlen."]},
+  {id:"petersen", n:"Herr Petersen", r:"Betriebsrat", motto:"Bitte nichts behaupten, was nicht drinsteht.",
+   focus:["grundwert","raten","aussage"], look:{skin:"#e8b896",hair:"#9a9a9a",style:"bald",top:"#6b4f8a",glasses:true},
+   good:["Ehrlich und richtig. Danke.","Das kann ich so im Team vorstellen.","Genau so steht es in der Grafik."],
+   mid:["Da fehlt noch ein Stück.","Nicht ganz – lest noch mal genau."],
+   bad:["Das steht so nicht in der Grafik!","Vorsicht, das stimmt nicht."]},
+  {id:"okafor", n:"Frau Okafor", r:"Ausbildungsleitung", motto:"Ich will sehen, dass ihr prüfungsfit seid.",
+   focus:["grafikcheck","grundwert","markt"], look:{skin:"#7a4b31",hair:"#20140f",style:"curl",top:"#b0892a"},
+   good:["Prüfungsreif! Genau so.","Sehr gut – das gibt in der Prüfung Punkte.","Richtig gelesen, richtig gedacht."],
+   mid:["Da wäre in der Prüfung nur ein Teilpunkt drin.","Fast. Schaut auf die Werkzeugkarte."],
+   bad:["Das wäre in der Prüfung falsch.","Achtung, das ist eine typische Prüfungsfalle!"]}
+];
+
+/* Stationen in Modul-Reihenfolge */
+const STATIONEN = [
+  {id:"grafikcheck", mod:"M1", n:"Grafik-Check", icon:"lupe"},
+  {id:"diagrammart", mod:"M1", n:"Diagrammart", icon:"diagramm"},
+  {id:"anteil", mod:"M2", n:"Anteil und Prozentwert", icon:"kreis"},
+  {id:"grundwert", mod:"M2", n:"Das Ganze finden", icon:"ganzes"},
+  {id:"veraenderung", mod:"M3", n:"Veränderung in %", icon:"pfeil"},
+  {id:"raten", mod:"M3", n:"Veränderungsraten", icon:"null"},
+  {id:"durchschnitt", mod:"M4", n:"Durchschnitt", icon:"tabelle"},
+  {id:"luecke", mod:"M4", n:"Lücken und je m²", icon:"luecke"},
+  {id:"aussage", mod:"M5", n:"Aussagen und Fazit", icon:"ampel"},
+  {id:"markt", mod:"M6", n:"Marktdiagramm", icon:"markt"}
+];
+
+/* Strategie (Runde 0) */
+const STRATEGIE = {
+  id:"strategie", ask:"Bevor es losgeht: Wie arbeitet euer Team mit Grafiken?",
+  opts:[
+    {k:"immer", t:"Immer zuerst den Grafik-Check T-A-E-L-Q, dann die Frage, dann rechnen.", q:2,
+     why:"Genau so steht es auf der Werkzeugkarte: Erst lesen, dann rechnen. Der Check kostet in jeder Runde 1 Minute, schützt aber vor den meisten Fallen."},
+    {k:"manchmal", t:"Den Grafik-Check nur machen, wenn eine Grafik schwierig aussieht.", q:1,
+     why:"Besser als gar nicht. Aber Fallen wie die falsche Einheit stecken oft in einfachen Grafiken."},
+    {k:"tempo", t:"Sofort rechnen – so sparen wir Zeit.", q:0, bad:true,
+     why:"Die meisten Punkte gehen verloren, weil die falsche Säule, das falsche Jahr oder die falsche Einheit genommen wird."}
+  ],
+  term:{w:"Grafik-Check T-A-E-L-Q", d:"Titel, Achsen, Einheit, Legende, Quelle. Merkwort: Tante Anna Erzählt Lustige Quatschgeschichten."},
+  ihk:"Erst T-A-E-L-Q, dann die Frage lesen, dann erst rechnen."
+};
+
+/* ===== Szenen: je Station 3 Varianten =====
+   q: 2 = richtig, 1 = halb richtig, 0 = falsch · c = Minuten · falle = Art des Fehlers */
+const SZENEN = [
+/* ---------- M1 Grafik-Check ---------- */
+{id:"s1v1", st:"grafikcheck", shop:"frischmarkt",
+ ask:"Für den Monatsbericht brauche ich den Umsatz der Abteilung Getränke im Jahr 2026.",
+ chart:{type:"col", title:"Umsatz der Abteilungen im Frischmarkt Nordstadt", sub:"2025 und 2026", unit:"in Tausend €", xl:"Abteilung", yl:"Umsatz",
+   x:["Lebensmittel","Getränke","Drogerie","Non-Food"], series:[{n:"2025",v:[385,172,96,58],s:"light"},{n:"2026",v:[398,165,104,61],s:"dark"}], labels:true, ymax:450, step:50, src:"Warenwirtschaftssystem"},
+ opts:[
+  {t:"165.000 €", q:2, c:3, why:"Dunkle Säule = 2026 (Legende), Wert 165, Einheit „in Tausend €“: 165 · 1.000 = 165.000 €."},
+  {t:"165 €", q:0, c:2, bad:true, falle:"einheit", why:"Die Einheit wurde übersehen. „in Tausend €“ heißt: 165 bedeutet 165.000 €."},
+  {t:"172.000 €", q:0, c:2, falle:"stelle", why:"Das ist die helle Säule – also das Jahr 2025. Erst in der Legende nachsehen, welches Muster zu welchem Jahr gehört."}],
+ weil:["… weil die dunkle Säule laut Legende 2026 ist und die Einheit Tausend € lautet.","… weil man immer die höhere Säule nehmen muss.","… weil Getränke immer mehr Umsatz machen als Drogerie."],
+ term:{w:"die Einheit", d:"Steht an der Achse oder im Untertitel. „in Tausend €“: 165 bedeutet 165.000 €."},
+ ihk:"Erst T-A-E-L-Q, dann die Frage lesen, dann erst rechnen."},
+{id:"s1v2", st:"grafikcheck", shop:"modehaus",
+ ask:"Am Freitag in der Filiale Lehe: Wie viele Kunden waren da? Danach plane ich das Personal.",
+ chart:{type:"col", title:"Kunden je Wochentag in der 14. KW", sub:"Modehaus Kranz, Filialen Mitte und Lehe", unit:"Anzahl Kunden", xl:"Wochentag", yl:"Kunden",
+   x:["Mo","Di","Mi","Do","Fr","Sa"], series:[{n:"Filiale Mitte",v:[640,590,610,700,820,1180]},{n:"Filiale Lehe",v:[520,480,530,610,760,1320]}], labels:false, ymax:1400, step:200, src:"Kassensystem des Modehauses Kranz"},
+ opts:[
+  {t:"760 Kunden", q:2, c:3, why:"Laut Legende ist Lehe die helle Säule. Am Freitag endet sie bei 760 Kunden."},
+  {t:"820 Kunden", q:0, c:2, bad:true, falle:"stelle", why:"Das ist die dunkle Säule – Filiale Mitte. Legende vertauscht."},
+  {t:"760 €", q:1, c:2, falle:"einheit", why:"Die Zahl stimmt, aber die Einheit nicht: Die Grafik zeigt Kunden, keine Euro."}],
+ weil:["… weil die helle Säule laut Legende zur Filiale Lehe gehört.","… weil die rechte Säule immer die kleinere Filiale ist.","… weil am Freitag immer weniger Kunden kommen."],
+ term:{w:"die Legende", d:"Sie sagt, welche Farbe oder welches Muster zu welcher Reihe gehört. In der Prüfung sind alle Säulen grau – genau hinschauen!"},
+ ihk:"Die meisten Punkte gehen verloren, weil die falsche Säule, das falsche Jahr oder die falsche Einheit genommen wird."},
+{id:"s1v3", st:"grafikcheck", shop:"baumarkt",
+ ask:"Wie hoch war unser Umsatz im Jahr 2024? Bitte als Eurobetrag für die Bank.",
+ chart:{type:"col", title:"Umsatz des Gartencenters Grünland", sub:"Geschäftsjahre 2021 bis 2026", unit:"in Mio. €", xl:"Geschäftsjahr", yl:"Umsatz",
+   x:["2021","2022","2023","2024","2025","2026"], series:[{n:"Umsatz",v:[4.6,4.9,4.8,5.1,5.4,5.3]}], labels:true, ymax:6, step:1, src:"Controlling Gartencenter Grünland", dec:1},
+ opts:[
+  {t:"5.100.000 €", q:2, c:3, why:"Säule 2024: 5,1. Einheit „in Mio. €“: 5,1 Mio. € = 5.100.000 €."},
+  {t:"5.100 €", q:0, c:2, bad:true, falle:"einheit", why:"„Mio.“ heißt Millionen: 5,1 Mio. € sind 5.100.000 €, nicht 5.100 €."},
+  {t:"ungefähr 5 Mio. € – genauer geht es nicht", q:1, c:2, falle:"schaetzen", why:"Der Wert steht an der Säule. Dann nimmst du genau diesen Wert: 5,1 Mio. €."}],
+ weil:["… weil an der Säule 5,1 steht und die Einheit Millionen Euro ist.","… weil man Werte immer auf volle Millionen rundet.","… weil 2024 das letzte Jahr in der Grafik ist."],
+ term:{w:"Mio. (Millionen)", d:"5,1 Mio. € = 5.100.000 €. Steht der Wert an der Säule, nimm genau diesen Wert."},
+ ihk:"Steht der Wert an der Säule, nimm genau diesen Wert. Nur bei „ca.“ reicht eine gute Schätzung."},
+
+/* ---------- M1 Diagrammart ---------- */
+{id:"s2v1", st:"diagrammart", shop:"frischmarkt",
+ ask:"Ich will auf einem Aushang zeigen, wie unsere Kunden am Samstag bezahlt haben. Welche Diagrammart nehmen wir?",
+ chart:{type:"table", title:"Zahlungsarten am Samstag", sub:"600 Kassiervorgänge = 100 %", head:["Zahlungsart","Anzahl","Anteil in %"],
+   rows:[["bar","210","35,0"],["girocard","270","45,0"],["Kreditkarte","45","7,5"],["Smartphone","75","12,5"]], foot:["Insgesamt","600","100"], src:"Kassenauswertung Frischmarkt Nordstadt"},
+ opts:[
+  {t:"Kreisdiagramm", q:2, c:3, why:"Es geht um Anteile an einem Ganzen (alle Kassiervorgänge = 100 %). Dafür nimmt man das Kreisdiagramm."},
+  {t:"Liniendiagramm", q:0, c:2, bad:true, falle:"art", why:"Eine Linie zeigt eine Entwicklung über die Zeit. Hier gibt es keine Zeitreihe."},
+  {t:"Säulendiagramm", q:1, c:2, falle:"art", why:"Geht zum Vergleichen, aber dass alles zusammen 100 % ergibt, zeigt der Kreis besser."}],
+ weil:["… weil die Zahlungsarten zusammen ein Ganzes (100 %) ergeben.","… weil ein Kreis auf einem Aushang am schönsten aussieht.","… weil man den Samstag mit dem Montag vergleichen will."],
+ term:{w:"das Kreisdiagramm", d:"Zeigt Anteile an einem Ganzen. Alle Stücke zusammen = 100 %."},
+ ihk:"Anteile → Kreis · Entwicklung → Linie · vergleichen → Säulen · Rangfolge mit langen Namen → Balken."},
+{id:"s2v2", st:"diagrammart", shop:"baumarkt",
+ ask:"Ich möchte zeigen, wie sich unsere Kundenzahl über zwölf Monate entwickelt hat. Welches Diagramm passt?",
+ chart:{type:"table", title:"Kunden je Monat 2026", sub:"Gartencenter Grünland", head:["Monat","Kunden in Tausend","Monat","Kunden in Tausend"],
+   rows:[["Januar","3,1","Juli","6,7"],["Februar","3,8","August","5,9"],["März","6,4","September","4,8"],["April","8,9","Oktober","4,2"],["Mai","9,6","November","3,6"],["Juni","8,0","Dezember","5,1"]], src:"Kassensystem Gartencenter Grünland"},
+ opts:[
+  {t:"Liniendiagramm", q:2, c:3, why:"Die Linie verbindet die Monate und zeigt den Verlauf: Anstieg bis Mai, dann Rückgang."},
+  {t:"Kreisdiagramm", q:0, c:2, bad:true, falle:"art", why:"Zwölf Monate als Tortenstücke zeigen keine Entwicklung. Ein Kreis zeigt nur Anteile."},
+  {t:"Balkendiagramm", q:1, c:2, falle:"art", why:"Balken zeigen eine Rangfolge. Eine Entwicklung über die Zeit zeigt die Linie besser."}],
+ weil:["… weil die Linie die Monate verbindet und Anstieg und Rückgang zeigt.","… weil zwölf Werte nicht in einen Kreis passen.","… weil eine Linie weniger Platz braucht."],
+ term:{w:"das Liniendiagramm", d:"Punkte, mit einer Linie verbunden. Zeigt eine Entwicklung über die Zeit (Trend)."},
+ ihk:"Ein Liniendiagramm zeigt den Verlauf (Anstieg, Rückgang). Ein Kreisdiagramm zeigt nur Anteile an einem Ganzen."},
+{id:"s2v3", st:"diagrammart", shop:"modehaus",
+ ask:"Ich will den Beschwerdegründen eine Rangfolge geben – was kommt am häufigsten vor? Die Namen sind lang.",
+ chart:{type:"table", title:"Beschwerden im 1. Quartal", sub:"Modehaus Kranz, Anzahl Beschwerden", head:["Beschwerdegrund","Anzahl"],
+   rows:[["Lange Wartezeit an der Kasse","48"],["Größe nicht vorrätig","41"],["Umtausch zu kompliziert","27"],["Beratung unfreundlich","15"],["Parkplatz voll","12"],["Preis falsch ausgezeichnet","9"]], src:"Beschwerdebuch Modehaus Kranz"},
+ opts:[
+  {t:"Balkendiagramm", q:2, c:3, why:"Waagerechte Balken: Die langen Namen passen davor, und die Rangfolge ist sofort zu sehen."},
+  {t:"Liniendiagramm", q:0, c:2, bad:true, falle:"art", why:"Eine Linie verbindet Zeitpunkte. Beschwerdegründe sind keine Zeitreihe."},
+  {t:"Säulendiagramm", q:1, c:2, falle:"art", why:"Geht zum Vergleichen, aber die langen Namen passen schlecht unter senkrechte Säulen."}],
+ weil:["… weil viele Gruppen mit langen Namen am besten als Balken in eine Rangfolge passen.","… weil Balken immer moderner aussehen.","… weil Beschwerden eine Entwicklung über die Zeit sind."],
+ term:{w:"das Balkendiagramm", d:"Waagerechte Balken. Für viele Gruppen mit langen Namen und um eine Rangfolge zu zeigen."},
+ ihk:"Balkendiagramm: viele Gruppen mit langen Namen vergleichen, Rangfolge zeigen."},
+
+/* ---------- M2 Anteil ---------- */
+{id:"s3v1", st:"anteil", shop:"frischmarkt",
+ ask:"Wie viel Euro Umsatz machte die Drogerie im Mai?",
+ chart:{type:"pie", title:"Umsatzanteile im Mai", sub:"Gesamtumsatz 480.000 € = 100 %", parts:[{n:"Lebensmittel",v:52},{n:"Getränke",v:21},{n:"Drogerie",v:15},{n:"Non-Food",v:12}], src:"Kassenauswertung Frischmarkt Nordstadt"},
+ opts:[
+  {t:"72.000 € (480.000 · 15 : 100)", q:2, c:3, why:"Das Ganze steht im Untertitel: 480.000 € = 100 %. Teil = Ganzes · Prozentsatz : 100 = 72.000 €. Probe: 10 % wären 48.000 €, 15 % etwas mehr – passt."},
+  {t:"32.000 € (480.000 : 15)", q:0, c:2, bad:true, falle:"rechnen", why:"Falscher Rechenweg. Teil = Ganzes · Prozentsatz : 100."},
+  {t:"15 % – mehr steht nicht in der Grafik", q:1, c:2, falle:"frage", why:"Der Anteil ist richtig abgelesen, aber gefragt war der Betrag in Euro. Das Ganze steht im Untertitel."}],
+ weil:["… weil das Ganze im Untertitel steht: 480.000 € · 15 : 100.","… weil man den Prozentsatz immer durch das Ganze teilt.","… weil Drogerie das kleinste Tortenstück ist."],
+ term:{w:"der Prozentwert", d:"Der Teil in € oder Stück. Rechnung: Ganzes · Prozentsatz : 100."},
+ ihk:"Frag dich immer zuerst: Was ist hier das Ganze? Teil = Ganzes · Prozentsatz : 100."},
+{id:"s3v2", st:"anteil", shop:"modehaus",
+ ask:"Wie viele Kunden kamen mit dem Fahrrad? Ich will Fahrradständer bestellen.",
+ chart:{type:"hbar", title:"Wie kommen Sie zu uns?", sub:"Befragung von 1.200 Kunden", unit:"in %", xl:"", yl:"",
+   x:["Auto","Bus oder Bahn","Fahrrad","zu Fuß"], series:[{n:"Anteil",v:[42,25,18,15]}], labels:true, ymax:50, step:10, src:"Kundenbefragung Modehaus Kranz"},
+ opts:[
+  {t:"216 Kunden (1.200 · 18 : 100)", q:2, c:3, why:"Das Ganze: 1.200 befragte Kunden (Untertitel). 1.200 · 18 : 100 = 216 Kunden."},
+  {t:"18 Kunden", q:0, c:2, bad:true, falle:"einheit", why:"18 ist der Prozentsatz, nicht die Anzahl. Mit dem Ganzen (1.200) rechnen."},
+  {t:"6.667 Kunden (1.200 : 18 · 100)", q:0, c:3, falle:"rechnen", why:"Diese Formel sucht das Ganze. Hier ist das Ganze bekannt, gesucht ist der Teil: 1.200 · 18 : 100."}],
+ weil:["… weil 1.200 Kunden das Ganze sind und davon 18 % mit dem Fahrrad kamen.","… weil 18 % immer 18 Personen sind.","… weil man bei Befragungen immer durch 100 teilt."],
+ term:{w:"der Grundwert", d:"Das Ganze = 100 %. Oft im Titel oder Untertitel: „Befragung von 1.200 Kunden“."},
+ ihk:"Teil = Ganzes · Prozentsatz : 100 – Beispiel: 1.200 · 18 : 100 = 216 Kunden."},
+{id:"s3v3", st:"anteil", shop:"baumarkt",
+ ask:"Wie viel Prozent der Reklamationen im April betrafen Werkzeug?",
+ chart:{type:"table", title:"Reklamationen im April", sub:"Gartencenter Grünland", head:["Warengruppe","Reklamationen"],
+   rows:[["Werkzeug","45"],["Garten","27"],["Farben","18"],["Holz","12"],["Sonstiges","18"]], foot:["Insgesamt","120"], src:"Reklamationsliste Kundendienst"},
+ opts:[
+  {t:"37,5 % (45 : 120 · 100)", q:2, c:3, why:"Das Ganze steht in der Summenzeile: 120. Anteil = Teil : Ganzes · 100 = 37,5 %."},
+  {t:"45 %", q:0, c:2, bad:true, falle:"einheit", why:"45 ist die Anzahl der Reklamationen, kein Prozentsatz."},
+  {t:"266,7 % (120 : 45 · 100)", q:0, c:3, falle:"rechnen", why:"Teil und Ganzes vertauscht. Ein Teil kann nie mehr als 100 % sein."}],
+ weil:["… weil die Summenzeile „Insgesamt 120“ das Ganze ist.","… weil Werkzeug die erste Zeile ist.","… weil man die größte Zahl immer durch die kleinste teilt."],
+ term:{w:"die Summenzeile", d:"„Insgesamt“, „Summe“, „Gesamt“. Sie ist oft der Grundwert."},
+ ihk:"Anteil = Teil : Ganzes · 100. Probe: Alle Anteile zusammen ergeben 100 %."},
+
+/* ---------- M2 Grundwert / nicht ---------- */
+{id:"s4v1", st:"grundwert", shop:"frischmarkt",
+ ask:"Wie viel Prozent der Kunden haben am Samstag NICHT bar bezahlt?",
+ chart:{type:"pie", title:"Zahlungsarten am Samstag", sub:"600 Kassiervorgänge = 100 %", parts:[{n:"bar",v:35},{n:"girocard",v:45},{n:"Kreditkarte",v:7.5},{n:"Smartphone",v:12.5}], src:"Kassenauswertung Frischmarkt Nordstadt"},
+ opts:[
+  {t:"65 % (100 % − 35 %)", q:2, c:3, why:"Das kleine Wort „nicht“: 100 % minus Anteil „bar“ = 65 %."},
+  {t:"35 %", q:0, c:2, bad:true, falle:"nicht", why:"Das ist der Anteil, der bar bezahlt hat. „nicht“ überlesen."},
+  {t:"390 Kunden", q:1, c:3, falle:"frage", why:"Richtig gerechnet (600 · 65 : 100), aber gefragt war der Anteil in Prozent."}],
+ weil:["… weil „nicht“ heißt: 100 % minus den Wert aus der Grafik.","… weil man bei „nicht“ den kleinsten Wert nimmt.","… weil girocard und bar zusammen 100 % sind."],
+ term:{w:"das kleine Wort „nicht“", d:"„Wie viel Prozent … nicht …?“ → 100 % minus den Wert aus der Grafik."},
+ ihk:"„nicht“: 100 % – Wert."},
+{id:"s4v2", st:"grundwert", shop:"modehaus",
+ ask:"Wie viele Artikel kamen 2026 zurück, weil sie beschädigt waren?",
+ chart:{type:"hbar", title:"Retouren im Onlineshop 2026: insgesamt 2.400 Retouren", sub:"Gründe in % (nur die häufigsten Gründe)", unit:"in %", xl:"", yl:"",
+   x:["passt nicht","gefällt nicht","falsche Farbe","beschädigt"], series:[{n:"Anteil",v:[46,22,9,4.5]}], labels:true, ymax:50, step:10, src:"Warenwirtschaftssystem Modehaus Kranz", dec:1},
+ opts:[
+  {t:"108 Artikel (2.400 · 4,5 : 100)", q:2, c:3, why:"Das Ganze steht im Titel: 2.400 Retouren. 2.400 · 4,5 : 100 = 108 Artikel."},
+  {t:"4,5 Artikel", q:0, c:2, bad:true, falle:"einheit", why:"4,5 ist ein Prozentsatz, keine Stückzahl."},
+  {t:"Kann man nicht rechnen – die Balken ergeben nicht 100 %", q:0, c:2, falle:"grundwert", why:"Es sind nur die häufigsten Gründe abgebildet. Das Ganze (2.400) steht trotzdem im Titel und bleibt das Ganze."}],
+ weil:["… weil der Grundwert 2.400 im Titel steht – auch wenn nicht alle Gründe abgebildet sind.","… weil man die Balken zusammenzählen muss, bevor man rechnet.","… weil beschädigte Ware immer selten ist."],
+ term:{w:"Grundwert im Titel", d:"Oft steht das Ganze im Titel oder Untertitel – zum Beispiel „insgesamt 2.400 Retouren“."},
+ ihk:"Such das Ganze im Titel, im Aufgabentext oder in der Summenzeile. Fehlen Gruppen, bleibt der Grundwert trotzdem das Ganze."},
+{id:"s4v3", st:"grundwert", shop:"baumarkt",
+ ask:"Welchen Anteil hat die Warengruppe Garten an unserem Gesamtumsatz?",
+ chart:{type:"col", title:"Umsatz nach Warengruppen 2026", sub:"Gartencenter Grünland", unit:"in Tausend €", xl:"Warengruppe", yl:"Umsatz",
+   x:["Garten","Werkzeug","Farben","Holz","Sanitär"], series:[{n:"Umsatz",v:[840,520,310,230,100]}], labels:true, ymax:1000, step:200, src:"Warenwirtschaftssystem"},
+ opts:[
+  {t:"42 % (840 : 2.000 · 100)", q:2, c:3, why:"Kein Ganzes angegeben – also selbst addieren: 840 + 520 + 310 + 230 + 100 = 2.000. 840 : 2.000 · 100 = 42 %."},
+  {t:"161,5 % (840 : 520 · 100)", q:0, c:2, bad:true, falle:"grundwert", why:"Mit der zweitgrößten Gruppe verglichen. Das Ganze ist die Summe aller Gruppen."},
+  {t:"Garten ist die größte Gruppe.", q:1, c:2, falle:"frage", why:"Stimmt, beantwortet aber nicht die Frage nach dem Anteil in Prozent."}],
+ weil:["… weil das Ganze nirgends steht und man alle Gruppen selbst addieren muss.","… weil man den größten Wert immer durch den zweitgrößten teilt.","… weil 1.000 die oberste Zahl an der Achse ist."],
+ term:{w:"selbst addieren", d:"Steht das Ganze nirgends, zählst du alle Gruppen zusammen."},
+ ihk:"Steht das Ganze nirgends – dann selbst addieren."},
+
+/* ---------- M3 Veränderung ---------- */
+{id:"s5v1", st:"veraenderung", shop:"frischmarkt",
+ ask:"Um wie viel Prozent ist unser Umsatz von 2022 bis 2026 gestiegen?",
+ chart:{type:"line", title:"Umsatz des Frischmarkts Nordstadt", sub:"2022 bis 2026", unit:"in Mio. €", xl:"Jahr", yl:"Umsatz",
+   x:["2022","2023","2024","2025","2026"], series:[{n:"Umsatz",v:[2.40,2.55,2.75,2.70,2.90]}], labels:true, ymin:2, ymax:3, step:0.2, src:"Controlling", dec:2},
+ opts:[
+  {t:"20,8 % ((2,90 − 2,40) : 2,40 · 100)", q:2, c:3, why:"Der alte Wert (2022) ist der Grundwert: 0,50 : 2,40 · 100 = 20,8 %."},
+  {t:"17,2 % ((2,90 − 2,40) : 2,90 · 100)", q:0, c:3, bad:true, falle:"grundwert", why:"Durch den neuen Wert geteilt. Der Grundwert ist immer der frühere Wert („von 2022 auf 2026“)."},
+  {t:"um 0,50 Mio. €", q:1, c:2, falle:"frage", why:"Die Differenz stimmt, aber gefragt war die Veränderung in Prozent."}],
+ weil:["… weil der alte Wert (2022) der Grundwert ist.","… weil man immer durch den größeren Wert teilt.","… weil 2026 das wichtigste Jahr ist."],
+ term:{w:"Veränderung in %", d:"(neu – alt) : alt · 100. Der alte Wert steht hinter „von“."},
+ ihk:"Veränderung in % = (neu – alt) : alt · 100. Der Grundwert ist immer der frühere Wert."},
+{id:"s5v2", st:"veraenderung", shop:"baumarkt",
+ ask:"2025 haben wir 12.500 Säcke Blumenerde verkauft, 2026 nur 11.250. Um wie viel Prozent ist der Absatz gesunken?",
+ chart:{type:"col", title:"Absatz Blumenerde", sub:"Gartencenter Grünland, 2025 und 2026", unit:"in Säcken", xl:"Jahr", yl:"Absatz",
+   x:["2025","2026"], series:[{n:"Absatz",v:[12500,11250]}], labels:true, ymax:14000, step:2000, src:"Warenwirtschaftssystem"},
+ opts:[
+  {t:"10 % (1.250 : 12.500 · 100)", q:2, c:3, why:"Differenz 1.250. Grundwert = alter Wert 12.500. 1.250 : 12.500 · 100 = 10 % gesunken."},
+  {t:"11,1 % (1.250 : 11.250 · 100)", q:0, c:3, falle:"grundwert", why:"Durch den neuen Wert geteilt. Der alte Wert (2025) ist der Grundwert."},
+  {t:"1.250 %", q:0, c:2, bad:true, falle:"rechnen", why:"1.250 ist die Differenz in Säcken, kein Prozentsatz."}],
+ weil:["… weil 12.500 der alte Wert und damit der Grundwert ist.","… weil man durch den kleineren Wert teilt.","… weil bei einem Rückgang immer der neue Wert zählt."],
+ term:{w:"der Rückgang", d:"Auch beim Sinken gilt: Differenz : alter Wert · 100."},
+ ihk:"Schritt 1: Differenz = neu – alt. Schritt 2: Differenz : alter Wert · 100."},
+{id:"s5v3", st:"veraenderung", shop:"modehaus",
+ ask:"Der Anteil der Kartenzahlungen stieg von 40 % auf 50 %. Wie schreibe ich das richtig in die Kundenzeitung?",
+ chart:{type:"col", title:"Anteil der Kartenzahlungen", sub:"Modehaus Kranz, 2025 und 2026", unit:"in %", xl:"Jahr", yl:"Anteil",
+   x:["2025","2026"], series:[{n:"Anteil",v:[40,50]}], labels:true, ymax:60, step:10, src:"Kassenauswertung"},
+ opts:[
+  {t:"Der Anteil stieg um 10 Prozentpunkte – das sind 25 % mehr.", q:2, c:3, why:"50 – 40 = 10 Prozentpunkte. In Prozent: 10 : 40 · 100 = 25 %."},
+  {t:"Der Anteil stieg um 10 %.", q:0, c:2, falle:"pp", why:"Ungenau: Die Differenz zweier Prozentsätze heißt Prozentpunkte. In Prozent wären es 25 %."},
+  {t:"Der Anteil stieg um 50 %.", q:0, c:2, bad:true, falle:"rechnen", why:"50 % ist der neue Anteil, nicht die Veränderung."}],
+ weil:["… weil die Differenz zweier Prozentsätze in Prozentpunkten angegeben wird.","… weil Prozentpunkte genauer klingen.","… weil 50 % die Hälfte ist."],
+ term:{w:"Prozentpunkte", d:"Differenz zweier Prozentsätze: 40 % → 50 % = 10 Prozentpunkte."},
+ ihk:"Prozentpunkte = Differenz zweier Prozentsätze (40 % → 50 % = 10 Prozentpunkte)."},
+
+/* ---------- M3 Veränderungsraten ---------- */
+{id:"s6v1", st:"raten", shop:"frischmarkt",
+ ask:"Ein Kollege sagt: „Von Januar bis März ist die Kundenzahl zurückgegangen.“ Stimmt das?",
+ chart:{type:"chg", title:"Kunden im Vergleich zum Vorjahresmonat", sub:"Frischmarkt Nordstadt, 1. Halbjahr", unit:"Veränderung in %", xl:"Monat",
+   x:["Jan","Feb","Mär","Apr","Mai","Jun"], v:[9,6,3,0,-2,-8], ymin:-10, ymax:10, step:2, src:"Kassensystem"},
+ opts:[
+  {t:"Nein. Alle Werte sind Plus: Es kamen jeden Monat mehr Kunden als im Vorjahr. Nur der Zuwachs wurde kleiner.", q:2, c:3, why:"Plus bleibt Plus – auch wenn die Säule kleiner wird."},
+  {t:"Ja, die Säulen werden immer kleiner.", q:0, c:2, bad:true, falle:"richtung", why:"Kleinere Plus-Säule heißt: immer noch mehr als im Vorjahr, nur weniger Zuwachs."},
+  {t:"Das kann man nicht wissen – es gibt keine Kundenzahlen.", q:1, c:2, falle:"nichtdrin", why:"Die genauen Kundenzahlen fehlen wirklich. Aber der Vergleich zum Vorjahr steht drin: jeden Monat ein Plus."}],
+ weil:["… weil eine Säule über der Nulllinie mehr als im Vorjahr bedeutet.","… weil kleinere Säulen immer weniger bedeuten.","… weil der März im Frühling liegt."],
+ term:{w:"die Veränderungsrate", d:"Veränderung in % zum Vorjahr. Über der Nulllinie: mehr als im Vorjahr. Unter der Nulllinie: weniger."},
+ ihk:"Veränderungsdiagramm: Plus bleibt Plus – auch wenn die Säule kleiner wird. 0 % = gleich wie im Vorjahr."},
+{id:"s6v2", st:"raten", shop:"baumarkt",
+ ask:"In welcher Woche war der Rückgang zur Vorjahreswoche am größten?",
+ chart:{type:"chg", title:"Umsatz im Vergleich zur Vorjahreswoche", sub:"Gartencenter Grünland, Sommer", unit:"Veränderung in %", xl:"Kalenderwoche",
+   x:["KW 27","KW 28","KW 29","KW 30","KW 31","KW 32"], v:[5,4,-3,2,-11,-6], ymin:-12, ymax:6, step:3, src:"Warenwirtschaftssystem"},
+ opts:[
+  {t:"KW 31 (−11 %)", q:2, c:3, why:"Die längste Säule unter der Nulllinie: −11 %."},
+  {t:"KW 28 – die Säule ist kleiner als in KW 27", q:0, c:2, bad:true, falle:"richtung", why:"+4 % ist immer noch ein Plus. Kein Rückgang."},
+  {t:"KW 29 – da ging es zum ersten Mal ins Minus", q:0, c:2, falle:"stelle", why:"−3 % ist ein Rückgang, aber nicht der größte."}],
+ weil:["… weil −11 % die längste Säule unter der Nulllinie ist.","… weil die erste Minus-Säule immer die wichtigste ist.","… weil man die Werte zusammenzählen muss."],
+ term:{w:"die Nulllinie", d:"0 % = genauso viel wie im Vorjahr. Darunter: weniger, darüber: mehr."},
+ ihk:"Säule unter der Nulllinie (–): weniger als im Vorjahr. Die Werte verschiedener Wochen darf man nicht addieren."},
+{id:"s6v3", st:"raten", shop:"modehaus",
+ ask:"Was bedeutet der Wert 0 % im September?",
+ chart:{type:"chg", title:"Absatz Jacken im Vergleich zum Vorjahresmonat", sub:"Modehaus Kranz, Juli bis Oktober", unit:"Veränderung in %", xl:"Monat",
+   x:["Jul","Aug","Sep","Okt"], v:[3,1,0,-4], ymin:-6, ymax:6, step:2, src:"Warenwirtschaftssystem"},
+ opts:[
+  {t:"Im September wurden genauso viele Jacken verkauft wie im September des Vorjahres.", q:2, c:3, why:"0 % = keine Veränderung zum Vorjahresmonat."},
+  {t:"Im September wurden keine Jacken verkauft.", q:0, c:2, bad:true, falle:"nullprozent", why:"0 % heißt nicht „null Jacken“, sondern „gleich viel wie im Vorjahr“."},
+  {t:"Im September wurden genauso viele Jacken verkauft wie im August.", q:0, c:2, falle:"stelle", why:"Verglichen wird immer mit demselben Monat im Vorjahr, nicht mit dem Vormonat."}],
+ weil:["… weil 0 % keine Veränderung zum Vorjahresmonat bedeutet.","… weil 0 % immer null Stück bedeutet.","… weil der Vergleich immer mit dem Vormonat ist."],
+ term:{w:"0 % Veränderung", d:"Genauso viel wie im Vorjahr – nicht „nichts verkauft“."},
+ ihk:"0 %: genauso viel wie im Vorjahr."},
+
+/* ---------- M4 Durchschnitt ---------- */
+{id:"s7v1", st:"durchschnitt", shop:"frischmarkt",
+ ask:"Wie hoch war unser Durchschnittsbon für die ganze Woche?",
+ chart:{type:"table", title:"Umsatz und Kunden in der 20. KW", sub:"Frischmarkt Nordstadt", head:["Tag","Umsatz in €","Kundenzahl"],
+   rows:[["Montag","4.200,00","300"],["Dienstag","3.900,00","260"],["Mittwoch","4.500,00","300"],["Donnerstag","5.100,00","340"],["Freitag","7.020,00","390"],["Samstag","9.360,00","520"]], foot:["Insgesamt","34.080,00","2.110"], src:"Kassensystem"},
+ opts:[
+  {t:"16,15 € (34.080 : 2.110)", q:2, c:3, why:"Für mehrere Tage: Summe durch Summe. Zeile „Insgesamt“: 34.080,00 € : 2.110 Kunden = 16,15 €."},
+  {t:"15,83 € (sechs Tagesbons gemittelt)", q:0, c:3, falle:"mitteln", why:"Tageswerte mitteln ist falsch: Am Samstag kaufen viel mehr Kunden ein als am Dienstag. Summe durch Summe!"},
+  {t:"18,00 € (Samstag)", q:0, c:2, bad:true, falle:"stelle", why:"Falsche Zeile: Das ist nur der Samstag."}],
+ weil:["… weil für die ganze Woche Summe Umsatz durch Summe Kunden gilt.","… weil man die Tagesbons immer zusammenzählt und durch 6 teilt.","… weil der Samstag der wichtigste Tag ist."],
+ term:{w:"der Durchschnittsbon", d:"Umsatz : Kundenzahl. Für mehrere Tage: Summe : Summe."},
+ ihk:"Beim Durchschnitt für mehrere Tage: Summe durch Summe – nie die Tageswerte mitteln."},
+{id:"s7v2", st:"durchschnitt", shop:"modehaus",
+ ask:"Wie viel hat ein Kunde am Freitag im Durchschnitt ausgegeben?",
+ chart:{type:"table", title:"Umsatz und Kunden in der 12. KW", sub:"Modehaus Kranz", head:["Tag","Umsatz in €","Kundenzahl"],
+   rows:[["Montag","6.300,00","210"],["Dienstag","5.880,00","196"],["Mittwoch","6.600,00","200"],["Donnerstag","7.700,00","220"],["Freitag","11.200,00","280"],["Samstag","15.120,00","360"]], foot:["Insgesamt","52.800,00","1.466"], src:"Kassensystem"},
+ opts:[
+  {t:"40,00 € (11.200 : 280)", q:2, c:3, why:"Zeile Freitag: 11.200,00 € : 280 Kunden = 40,00 €."},
+  {t:"36,02 € (Zeile Insgesamt)", q:0, c:3, bad:true, falle:"stelle", why:"Falsche Zeile: Gefragt war nur der Freitag, nicht die ganze Woche."},
+  {t:"0,03 € (280 : 11.200)", q:0, c:2, falle:"rechnen", why:"Vertauscht: Umsatz : Kunden, nicht Kunden : Umsatz."}],
+ weil:["… weil nur nach dem Freitag gefragt ist – also Zeile Freitag: Umsatz : Kunden.","… weil man immer die Zeile Insgesamt nimmt.","… weil am Freitag die meisten Kunden kommen."],
+ term:{w:"die Zeile", d:"Waagerecht. Die Vorspalte links sagt, was in der Zeile steht (z. B. Freitag)."},
+ ihk:"Durchschnitt je Kunde = Umsatz : Kunden. Richtige Zeile nehmen – z. B. nur Freitag."},
+{id:"s7v3", st:"durchschnitt", shop:"baumarkt",
+ ask:"Wie viele Kunden kamen am Samstag zwischen 10 und 14 Uhr durchschnittlich pro Stunde?",
+ chart:{type:"table", title:"Kunden am Samstag", sub:"Gartencenter Grünland, je zwei Stunden", head:["Uhrzeit","Kunden"],
+   rows:[["08–10 Uhr","64"],["10–12 Uhr","118"],["12–14 Uhr","102"],["14–16 Uhr","90"],["16–18 Uhr","76"]], foot:["Insgesamt","450"], src:"Kassensystem"},
+ opts:[
+  {t:"55 Kunden je Stunde ((118 + 102) : 4)", q:2, c:3, why:"10 bis 14 Uhr sind 4 Stunden: (118 + 102) : 4 = 55 Kunden je Stunde."},
+  {t:"110 Kunden ((118 + 102) : 2)", q:0, c:3, falle:"stunden", why:"Durch die Zeilen geteilt. Jede Zeile sind zwei Stunden – die Stunden genau abzählen."},
+  {t:"220 Kunden", q:0, c:2, bad:true, falle:"frage", why:"Das ist die Summe für vier Stunden, kein Durchschnitt je Stunde."}],
+ weil:["… weil von 10 bis 14 Uhr vier Stunden vergehen.","… weil zwei Zeilen immer zwei Stunden sind.","… weil man nur die größere Zahl nimmt."],
+ term:{w:"Durchschnitt je Stunde", d:"Summe : Anzahl der Stunden. Die Stunden genau abzählen (15–20 Uhr = 5 Stunden)."},
+ ihk:"Durchschnitt je Stunde = Summe : Anzahl der Stunden."},
+
+/* ---------- M4 Lücke / je m² ---------- */
+{id:"s8v1", st:"luecke", shop:"frischmarkt",
+ ask:"Welche Abteilung hat den höchsten Umsatz je m²? Sie soll mehr Fläche bekommen.",
+ chart:{type:"table", title:"Flächenauswertung 2026", sub:"Frischmarkt Nordstadt", head:["Abteilung","Fläche in m²","Umsatz in €","Umsatz je m² in €"],
+   rows:[["Obst und Gemüse","120","336.000","2.800"],["Molkereiprodukte","80","248.000","?"],["Getränke","150","270.000","1.800"],["Drogerie","60","132.000","2.200"]], foot:["Insgesamt","410","986.000","–"], src:"Controlling"},
+ opts:[
+  {t:"Molkereiprodukte: 248.000 : 80 = 3.100 € je m²", q:2, c:3, why:"Erst die Lücke füllen: Umsatz : Fläche = 3.100 €. Das ist der höchste Wert je m²."},
+  {t:"Obst und Gemüse – sie hat den höchsten Umsatz", q:0, c:2, bad:true, falle:"stelle", why:"Höchster Umsatz ist nicht höchster Umsatz je m². Obst und Gemüse braucht mehr Fläche."},
+  {t:"Getränke – sie hat die größte Fläche", q:0, c:2, falle:"stelle", why:"Die größte Fläche sagt nichts über den Umsatz je m². Getränke hat sogar den niedrigsten Wert (1.800 €)."}],
+ weil:["… weil Umsatz je m² = Umsatz : Fläche und die Molkerei so auf 3.100 € kommt.","… weil der höchste Umsatz immer auch je m² am höchsten ist.","… weil Molkereiprodukte gekühlt werden."],
+ term:{w:"Umsatz je m²", d:"Umsatz : Verkaufsfläche (Flächenproduktivität). Für jede Zeile rechnen, dann vergleichen."},
+ ihk:"Umsatz je m² = Umsatz : Verkaufsfläche."},
+{id:"s8v2", st:"luecke", shop:"baumarkt",
+ ask:"In der Kassenliste fehlt eine Zahl. Wie viele Kunden haben am Montag mit dem Smartphone bezahlt?",
+ chart:{type:"table", title:"Kassiervorgänge am Montag", sub:"Gartencenter Grünland", head:["Zahlungsart","Kassiervorgänge"],
+   rows:[["bar","212"],["girocard","305"],["Kreditkarte","48"],["Smartphone","?"]], foot:["Insgesamt","640"], src:"Kassensystem"},
+ opts:[
+  {t:"75 (640 − 212 − 305 − 48)", q:2, c:3, why:"Summe minus Teile: 640 − 212 − 305 − 48 = 75. Probe: 212 + 305 + 48 + 75 = 640."},
+  {t:"565 (212 + 305 + 48)", q:0, c:2, bad:true, falle:"rechnen", why:"Das ist die Summe der bekannten Teile, nicht der fehlende Wert."},
+  {t:"160 (640 : 4)", q:0, c:2, falle:"mitteln", why:"Ein Durchschnitt füllt keine Lücke. Fehlender Wert = Gesamt − alle anderen Werte."}],
+ weil:["… weil der fehlende Wert die Summe minus alle anderen Werte ist.","… weil jede Zahlungsart gleich oft vorkommt.","… weil Smartphone die neueste Zahlungsart ist."],
+ term:{w:"die Lücke", d:"Fehlender Wert = Gesamt – alle anderen Werte. Zur Probe: Passt die Summe wieder?"},
+ ihk:"Summe minus Teile: fehlender Wert = Gesamt – alle anderen Werte."},
+{id:"s8v3", st:"luecke", shop:"modehaus",
+ ask:"Wie hoch ist der durchschnittliche Artikelwert bei den Jacken?",
+ chart:{type:"table", title:"Verkäufe am Samstag", sub:"Modehaus Kranz", head:["Warengruppe","Menge","Ø Artikelwert in €","Umsatz in €"],
+   rows:[["Hosen","120","45,00","5.400"],["Shirts","300","15,00","4.500"],["Jacken","40","?","3.600"],["Schuhe","60","55,00","3.300"]], src:"Warenwirtschaftssystem"},
+ opts:[
+  {t:"90,00 € (3.600 : 40)", q:2, c:3, why:"Spaltenlogik: Ø Artikelwert = Umsatz : Menge = 3.600 : 40 = 90,00 €."},
+  {t:"144.000 € (3.600 · 40)", q:0, c:2, bad:true, falle:"rechnen", why:"Umsatz = Ø Artikelwert · Menge – also umgekehrt: Ø Artikelwert = Umsatz : Menge."},
+  {t:"0,01 € (40 : 3.600)", q:0, c:2, falle:"rechnen", why:"Vertauscht: Umsatz durch Menge, nicht Menge durch Umsatz."}],
+ weil:["… weil die Spalten zusammenhängen: Ø Artikelwert = Umsatz : Menge.","… weil Jacken teurer als Shirts sind.","… weil man Menge und Umsatz immer malnimmt."],
+ term:{w:"die Spaltenlogik", d:"Wie hängen die Spalten zusammen? Ø Artikelwert = Umsatz : Menge – also Umsatz = Ø Artikelwert · Menge."},
+ ihk:"Lücken füllen: erst die Spaltenlogik finden, dann rechnen, dann die Probe machen."},
+
+/* ---------- M5 Aussagen / Fazit ---------- */
+{id:"s9v1", st:"aussage", shop:null,
+ ask:"Welche Aussage darf so in den Bericht für die Belegschaft?",
+ chart:{type:"col", title:"Umsatz in der Filiale und im Onlineshop", sub:"2024 bis 2026", unit:"in Mio. €", xl:"Jahr", yl:"Umsatz",
+   x:["2024","2025","2026"], series:[{n:"Filiale",v:[8.2,7.9,7.5]},{n:"Onlineshop",v:[1.6,2.3,3.1]}], labels:true, ymax:10, step:2, src:"Controlling", dec:1},
+ opts:[
+  {t:"Der Onlineumsatz hat sich von 2024 bis 2026 fast verdoppelt.", q:2, c:3, why:"1,6 → 3,1 Mio. €: fast das Doppelte. Die Aussage passt genau zu den Zahlen."},
+  {t:"Der Filialumsatz ist dramatisch eingebrochen.", q:0, c:2, bad:true, falle:"uebertreibung", why:"Übertreibung: rund 9 % weniger in zwei Jahren ist kein dramatischer Einbruch."},
+  {t:"Die Kunden kaufen online, weil es dort billiger ist.", q:0, c:2, falle:"nichtdrin", why:"Gründe stehen nicht in der Grafik."}],
+ weil:["… weil die Aussage genau zu den Zahlen passt – nicht mehr und nicht weniger.","… weil Online immer wichtiger wird.","… weil man in Berichten gern starke Wörter benutzt."],
+ term:{w:"die vier Fallen", d:"Falsche Stelle · Richtung verdreht · steht nicht drin · Übertreibung."},
+ ihk:"Nur ankreuzen, was wirklich in der Grafik steht."},
+{id:"s9v2", st:"aussage", shop:"modehaus",
+ ask:"Welches Fazit passt zu unserer Kundenbefragung?",
+ chart:{type:"hbar", title:"Was ist Ihnen beim Einkaufen wichtig?", sub:"Befragung von 400 Kunden, Februar 2027, Mehrfachnennungen möglich", unit:"in %", xl:"", yl:"",
+   x:["günstige Preise","Beratung","schnell bezahlen","Parkplätze","online bestellen"], series:[{n:"unter 30 Jahre",v:[78,35,55,30,64]},{n:"über 60 Jahre",v:[54,81,40,58,12]}], labels:true, ymax:100, step:20, src:"Kundenbefragung Modehaus Kranz"},
+ opts:[
+  {t:"Jüngere und ältere Kunden erwarten Unterschiedliches: Ältere vor allem Beratung, Jüngere vor allem günstige Preise.", q:2, c:3, why:"81 % der über 60-Jährigen finden Beratung wichtig, 78 % der unter 30-Jährigen günstige Preise. Das Fazit passt genau."},
+  {t:"Für alle Kunden sind günstige Preise am wichtigsten.", q:0, c:2, bad:true, falle:"uebertreibung", why:"Übertreibung und falsch: Bei den über 60-Jährigen ist Beratung wichtiger (81 %)."},
+  {t:"Die meisten Kunden bestellen online.", q:0, c:2, falle:"nichtdrin", why:"Die Grafik zeigt, was den Kunden wichtig ist – nicht, was sie tun."}],
+ weil:["… weil das Fazit beide Gruppen vergleicht und die höchsten Werte richtig nennt.","… weil Preise immer am wichtigsten sind.","… weil Jüngere mehr Geld ausgeben."],
+ term:{w:"das Fazit", d:"Was bedeutet das? Was folgt für den Betrieb? Satzbaustein: „Insgesamt zeigt die Grafik, dass …“"},
+ ihk:"Eine gute Schlussfolgerung passt genau zu den Zahlen – nicht mehr und nicht weniger."},
+{id:"s9v3", st:"aussage", shop:"baumarkt",
+ ask:"Ich schreibe den Jahresrückblick. Welcher Satz beschreibt die Entwicklung richtig?",
+ chart:{type:"line", title:"Monatsumsatz des Gartencenters Grünland", sub:"2026", unit:"in Tausend €", xl:"Monat", yl:"Umsatz",
+   x:["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"], series:[{n:"Umsatz",v:[42,55,96,131,148,120,98,84,70,61,52,79]}], labels:false, ymin:0, ymax:160, step:20, src:"Warenwirtschaftssystem"},
+ opts:[
+  {t:"Von Januar bis Mai ist der Umsatz stark gestiegen, danach bis November deutlich gesunken. Im Dezember stieg er wieder.", q:2, c:3, why:"Beschreibung mit Trendwörtern: Höchststand im Mai (148.000 €), Tiefststand im Januar, im Dezember wieder ein Anstieg."},
+  {t:"Der Umsatz ist das ganze Jahr gestiegen.", q:0, c:2, bad:true, falle:"richtung", why:"Ab Juni sinkt der Umsatz bis November. Richtung verdreht."},
+  {t:"Im Mai war der Umsatz 148.", q:1, c:2, falle:"einheit", why:"Nur eine Zahl, ohne Einheit (148.000 €) und ohne die Entwicklung. Beschreibe die Veränderung, nicht nur einzelne Zahlen."}],
+ weil:["… weil der Satz die Entwicklung mit Trendwörtern beschreibt und Höchst- und Tiefstand trifft.","… weil im Sommer immer mehr verkauft wird.","… weil eine einzelne Zahl schon reicht."],
+ term:{w:"Trendwörter", d:"steigen, sinken, gleich bleiben, schwanken · leicht, deutlich, stark · Höchststand, Tiefststand."},
+ ihk:"Beim Beschreiben: Einleitung – Beschreibung – Fazit, und die Veränderung beschreiben, nicht nur einzelne Zahlen."},
+
+/* ---------- M6 Marktdiagramm ---------- */
+{id:"s10v1", st:"markt", shop:"frischmarkt",
+ ask:"Wir verkaufen Erdbeeren. Welche Kennziffer zeigt den Gleichgewichtspreis?",
+ chart:{type:"markt", title:"Der Markt für Erdbeeren", nums:{N:1,A:2,M:3,P:4}},
+ opts:[
+  {t:"4", q:2, c:3, why:"Der Gleichgewichtspreis steht auf der Preisachse – auf der Höhe des Schnittpunkts."},
+  {t:"3", q:0, c:2, falle:"stelle", why:"3 liegt auf der Mengenachse. Das ist die Gleichgewichtsmenge."},
+  {t:"2", q:0, c:2, bad:true, falle:"stelle", why:"2 ist die steigende Kurve – die Angebotskurve."}],
+ weil:["… weil der Gleichgewichtspreis auf der Preisachse auf Höhe des Schnittpunkts liegt.","… weil der Preis immer unten rechts steht.","… weil die Kennziffer immer gleich ist."],
+ term:{w:"der Gleichgewichtspreis", d:"Im Schnittpunkt passen Angebot und Nachfrage zusammen. Auf der Preisachse liest du den Gleichgewichtspreis ab."},
+ ihk:"Schnittpunkt = Gleichgewichtspreis (Preisachse) und Gleichgewichtsmenge (Mengenachse). Die Kennziffern wechseln von Prüfung zu Prüfung."},
+{id:"s10v2", st:"markt", shop:"baumarkt",
+ ask:"Welche Kurve ist die Nachfragekurve für Blumenerde?",
+ chart:{type:"markt", title:"Der Markt für Blumenerde", nums:{A:1,N:2,P:3,M:4}},
+ opts:[
+  {t:"2 – sie fällt: Je höher der Preis, desto weniger wollen die Kunden kaufen.", q:2, c:3, why:"Die Nachfragekurve fällt."},
+  {t:"1 – sie steigt: Je höher der Preis, desto mehr wollen die Kunden kaufen.", q:0, c:2, bad:true, falle:"richtung", why:"Die steigende Kurve ist das Angebot: Je höher der Preis, desto mehr wollen die Händler anbieten."},
+  {t:"3 – der Punkt auf der Preisachse", q:0, c:2, falle:"stelle", why:"3 ist der Gleichgewichtspreis, keine Kurve."}],
+ weil:["… weil die Nachfrage fällt: Je höher der Preis, desto weniger wollen die Käufer kaufen.","… weil die Nachfragekurve immer die obere ist.","… weil Kunden bei hohen Preisen mehr kaufen."],
+ term:{w:"die Nachfragekurve", d:"Fällt: Je höher der Preis, desto weniger wollen die Käufer kaufen. Die Angebotskurve steigt."},
+ ihk:"Angebot steigt, Nachfrage fällt."},
+{id:"s10v3", st:"markt", shop:"modehaus",
+ ask:"Wir verlangen für Winterjacken einen Preis über dem Gleichgewichtspreis. Was passiert?",
+ chart:{type:"markt", title:"Der Markt für Winterjacken", nums:{N:1,A:2,P:3,M:4}, hi:true},
+ opts:[
+  {t:"Wir bieten mehr an, die Kunden fragen weniger nach: Ware bleibt liegen, der Preis sinkt.", q:2, c:3, why:"Über dem Gleichgewichtspreis entsteht ein Angebotsüberhang. Die Händler senken den Preis, bis er wieder beim Gleichgewichtspreis liegt."},
+  {t:"Die Kunden kaufen mehr, weil teure Ware besser ist.", q:0, c:2, bad:true, falle:"richtung", why:"Die Nachfragekurve fällt: Bei höherem Preis wollen die Käufer weniger kaufen."},
+  {t:"Nichts – der Preis bleibt einfach oben.", q:0, c:2, falle:"nichtdrin", why:"Bleibt Ware liegen, senken die Händler den Preis."}],
+ weil:["… weil bei höherem Preis das Angebot steigt und die Nachfrage sinkt.","… weil hohe Preise immer mehr Kunden anlocken.","… weil der Preis vom Staat festgelegt wird."],
+ term:{w:"der Angebotsüberhang", d:"Preis über dem Gleichgewicht: mehr Angebot als Nachfrage. Ware bleibt liegen, der Preis sinkt."},
+ ihk:"Je höher der Preis, desto mehr wollen die Verkäufer anbieten und desto weniger wollen die Käufer kaufen."}
+];
+
+/* ===== Fragenpool (Blitzrunde, Wiederholen) ===== */
+const FRAGEN = [
+ {id:"q01",mod:"M1",t:"mc",q:"Wofür nimmt man ein Kreisdiagramm?",a:["Anteile an einem Ganzen zeigen","eine Entwicklung über die Zeit zeigen","eine Rangfolge mit langen Namen zeigen"],sol:"Kreisdiagramm: Anteile an einem Ganzen – alle Stücke zusammen = 100 %."},
+ {id:"q02",mod:"M1",t:"mc",q:"An der Achse steht „Umsatz in Mio. €“, an der Säule 0,85. Wie viel Euro sind das?",a:["850.000 €","85 Cent","85.000 €"],sol:"0,85 Mio. € = 850.000 €. Die Einheit an der Achse beachten."},
+ {id:"q03",mod:"M1",t:"mc",q:"Wofür steht das E im Grafik-Check T-A-E-L-Q?",a:["Einheit","Ergebnis","Entwicklung"],sol:"Titel, Achsen, Einheit, Legende, Quelle."},
+ {id:"q04",mod:"M1",t:"wf",q:"In der Prüfung sind die Säulen oft nur grau. Deshalb ist die Legende besonders wichtig.",a:["wahr","falsch"],sol:"Wahr. Über die Legende findest du die richtige Säule."},
+ {id:"q05",mod:"M1",t:"mc",q:"Die Kundenzahl über 12 Monate zeigt man am besten als …",a:["Liniendiagramm","Kreisdiagramm","Balkendiagramm"],sol:"Entwicklung über die Zeit → Liniendiagramm."},
+ {id:"q06",mod:"M1",t:"gap",q:"Waagerecht verläuft die ____.",a:["x-Achse","y-Achse","Legende"],sol:"x-Achse = waagerecht, y-Achse = senkrecht."},
+ {id:"q07",mod:"M1",t:"mc",q:"An der Säule steht kein Wert. Was tust du?",a:["Lineal waagerecht anlegen und an der Achse ablesen","den höchsten Wert der Achse nehmen","die Säule weglassen"],sol:"Lineal waagerecht an das Ende der Säule legen und an der Achse ablesen. Liegt das Ende zwischen zwei Linien: schätzen."},
+ {id:"q08",mod:"M1",t:"wf",q:"Die Quelle einer Grafik muss man beim Beschreiben nicht nennen.",a:["falsch","wahr"],sol:"Falsch. Die Quelle gehört in die Einleitung."},
+ {id:"q09",mod:"M2",t:"mc",q:"Wie rechnest du den Anteil in Prozent?",a:["Teil : Ganzes · 100","Ganzes : Teil · 100","Teil · Ganzes : 100"],sol:"Anteil in % = Teil : Ganzes · 100."},
+ {id:"q10",mod:"M2",t:"mc",q:"Wie viel sind 25 % von 1.200 Kunden?",a:["300 Kunden","48 Kunden","120 Kunden"],sol:"1.200 · 25 : 100 = 300."},
+ {id:"q11",mod:"M2",t:"mc",q:"30 von 60 Azubis haben einen Führerschein. Wie viel Prozent sind das?",a:["50 %","30 %","2 %"],sol:"30 : 60 · 100 = 50 %."},
+ {id:"q12",mod:"M2",t:"mc",q:"29 % haben einen Führerschein. Wie viel Prozent haben keinen?",a:["71 %","29 %","129 %"],sol:"„nicht“ / „kein“: 100 % – 29 % = 71 %."},
+ {id:"q13",mod:"M2",t:"mc",q:"Wo steht das Ganze (der Grundwert) oft?",a:["im Titel, im Aufgabentext oder in der Summenzeile","in der Quelle","in der Legende"],sol:"Titel, Aufgabentext, Summenzeile – oder selbst addieren."},
+ {id:"q14",mod:"M2",t:"mc",q:"126 Kunden zahlten mit Kreditkarte. Das sind 7 % aller Kunden. Wie viele Kunden waren es insgesamt?",a:["1.800","882","8,82"],sol:"Das Ganze = Teil : Prozentsatz · 100 = 126 : 7 · 100 = 1.800."},
+ {id:"q15",mod:"M2",t:"wf",q:"Bei einem Kreisdiagramm ergeben alle Stücke zusammen 100 %.",a:["wahr","falsch"],sol:"Wahr."},
+ {id:"q16",mod:"M2",t:"mc",q:"Gesamtumsatz 480.000 €, Anteil Getränke 21 %. Wie hoch ist der Umsatz mit Getränken?",a:["100.800 €","22.857 €","21.000 €"],sol:"480.000 · 21 : 100 = 100.800 €."},
+ {id:"q17",mod:"M2",t:"mc",q:"Ein Kreis hat 360°. Wie groß ist der Winkel für 45 %?",a:["162°","45°","135°"],sol:"1 % = 3,6° → 45 · 3,6° = 162°."},
+ {id:"q18",mod:"M3",t:"mc",q:"Wie rechnest du die Veränderung in Prozent?",a:["(neu – alt) : alt · 100","(neu – alt) : neu · 100","neu : alt"],sol:"Der alte Wert ist der Grundwert."},
+ {id:"q19",mod:"M3",t:"mc",q:"Letztes Jahr 200 Kunden am Tag, dieses Jahr 180. Um wie viel Prozent weniger?",a:["10 %","20 %","11,1 %"],sol:"20 : 200 · 100 = 10 %."},
+ {id:"q20",mod:"M3",t:"mc",q:"Ein Artikel kostete 2,00 €, jetzt 2,50 €. Um wie viel Prozent ist der Preis gestiegen?",a:["25 %","50 %","20 %"],sol:"0,50 : 2,00 · 100 = 25 %."},
+ {id:"q21",mod:"M3",t:"wf",q:"Im Veränderungsdiagramm heißt eine kleine Plus-Säule: weniger als im Vorjahr.",a:["falsch","wahr"],sol:"Falsch. Plus bleibt Plus – immer noch mehr als im Vorjahr."},
+ {id:"q22",mod:"M3",t:"mc",q:"Welches Trendwort passt zu einem Anstieg von über 20 %?",a:["stark gestiegen","leicht gestiegen","gleich geblieben"],sol:"leicht: bis ca. 5 % · stark: über 20 %."},
+ {id:"q23",mod:"M3",t:"gap",q:"Die Werte gehen auf und ab. Die Kundenzahl hat ____.",a:["geschwankt","stagniert","sich verdoppelt"],sol:"auf und ab → schwanken."},
+ {id:"q24",mod:"M3",t:"mc",q:"Ein Anteil steigt von 40 % auf 50 %. Wie nennt man die Differenz?",a:["10 Prozentpunkte","10 Prozent","25 Prozentpunkte"],sol:"Differenz zweier Prozentsätze = Prozentpunkte."},
+ {id:"q25",mod:"M3",t:"mc",q:"Ein Umsatz sinkt um 20 % und steigt danach um 20 %. Danach ist er …",a:["niedriger als vorher","genauso hoch wie vorher","höher als vorher"],sol:"100.000 € → 80.000 € → 96.000 €. Beim zweiten Mal ist der Grundwert kleiner."},
+ {id:"q26",mod:"M3",t:"wf",q:"Veränderungsraten verschiedener Wochen darf man einfach zusammenzählen.",a:["falsch","wahr"],sol:"Falsch. Die Werte verschiedener Wochen oder Monate darf man nicht addieren."},
+ {id:"q27",mod:"M3",t:"weil",q:"Bei der Veränderung in % ist der alte Wert der Grundwert, weil …",a:["… man vom früheren Wert ausgeht („von … auf …“).","… der alte Wert immer größer ist.","… der neue Wert noch nicht feststeht."],sol:"Der Grundwert steht hinter „von“: „von 2014 auf 2022“ → Grundwert ist 2014."},
+ {id:"q28",mod:"M4",t:"mc",q:"Wie rechnest du den Durchschnitt je Kunde für eine ganze Woche?",a:["Summe Umsatz : Summe Kunden","die Tagesbons zusammenzählen und durch 6 teilen","Umsatz Samstag : 6"],sol:"Summe durch Summe – nie die Tageswerte mitteln."},
+ {id:"q29",mod:"M4",t:"mc",q:"50 Kunden kaufen für 1.000 € ein. Wie viel gibt ein Kunde im Durchschnitt aus?",a:["20 €","50 €","0,05 €"],sol:"1.000 : 50 = 20 €."},
+ {id:"q30",mod:"M4",t:"mc",q:"Eine Abteilung hat 100 m² und 250.000 € Umsatz. Wie hoch ist der Umsatz je m²?",a:["2.500 €","25.000 €","250 €"],sol:"250.000 : 100 = 2.500 € je m²."},
+ {id:"q31",mod:"M4",t:"mc",q:"Wie heißt die Zeile oben, die sagt, was in den Spalten steht?",a:["Kopfzeile","Vorspalte","Summenzeile"],sol:"Kopfzeile oben, Vorspalte links, Summenzeile unten."},
+ {id:"q32",mod:"M4",t:"mc",q:"Insgesamt 500. Bekannt sind 180, 140 und 95. Wie groß ist der fehlende Wert?",a:["85","415","125"],sol:"500 – 180 – 140 – 95 = 85."},
+ {id:"q33",mod:"M4",t:"mc",q:"Von 16–18 Uhr kamen 126 Kunden, von 18–20 Uhr 160. Wie viele Kunden je Stunde sind das im Durchschnitt?",a:["71,5","143","286"],sol:"(126 + 160) : 4 Stunden = 71,5."},
+ {id:"q34",mod:"M4",t:"wf",q:"Die Abteilung mit dem höchsten Umsatz hat immer auch den höchsten Umsatz je m².",a:["falsch","wahr"],sol:"Falsch. Eine große Fläche kann den Wert je m² drücken."},
+ {id:"q35",mod:"M4",t:"weil",q:"Beim Durchschnittsbon für mehrere Tage mittelt man nicht die Tagesbons, weil …",a:["… Tage mit vielen Kunden mehr zählen.","… der Taschenrechner das nicht kann.","… der Samstag nicht zählt."],sol:"Summe durch Summe: Tage mit vielen Kunden zählen mehr."},
+ {id:"q36",mod:"M5",t:"mc",q:"„Alle Kunden finden Beratung wichtig.“ Laut Grafik sind es 81 % der Älteren. Welche Falle ist das?",a:["Übertreibung","Richtung verdreht","falsche Stelle"],sol:"Wörter wie alle, keine, nie, immer → Übertreibung."},
+ {id:"q37",mod:"M5",t:"mc",q:"Die Grafik zeigt nur Umsätze. Aussage: „Es kamen mehr Kunden.“ Was stimmt?",a:["Steht nicht drin","Stimmt","Richtung verdreht"],sol:"Umsatz ist nicht Kundenzahl."},
+ {id:"q38",mod:"M5",t:"mc",q:"Laut Grafik ist der Umsatz gestiegen. Aussage: „Der Umsatz ist gesunken.“ Welche Falle?",a:["Richtung verdreht","Übertreibung","Steht nicht drin"],sol:"gestiegen ↔ gesunken vertauscht."},
+ {id:"q39",mod:"M5",t:"mc",q:"Was gehört in die Einleitung einer Grafikbeschreibung?",a:["Titel, Quelle, Zeitraum, Einheit","das Fazit für den Betrieb","alle Zahlen aus der Grafik"],sol:"Einleitung: Titel, Quelle, Zeitraum, Einheit."},
+ {id:"q40",mod:"M5",t:"mc",q:"Mit welchem Satzbaustein beginnt das Fazit?",a:["Insgesamt zeigt die Grafik, dass …","Die Grafik „…“ zeigt …","Am höchsten ist …"],sol:"Fazit: „Insgesamt zeigt die Grafik, dass …“ · „Daraus folgt für unseren Betrieb …“"},
+ {id:"q41",mod:"M5",t:"wf",q:"Bei „Mehrfachnennungen möglich“ können die Werte zusammen mehr als 100 % ergeben.",a:["wahr","falsch"],sol:"Wahr. Jeder Befragte darf mehrere Antworten geben."},
+ {id:"q42",mod:"M5",t:"mc",q:"Die senkrechte Achse beginnt bei 7,5 statt bei 0. Was passiert?",a:["Die Unterschiede wirken viel größer.","Die Werte werden falsch.","Nichts."],sol:"Ein Trick mit Grafiken: Der Anstieg sieht riesig aus."},
+ {id:"q43",mod:"M5",t:"mc",q:"Aushang: „Umsatz im Mai 120.000 € – 10 % mehr als im April.“ Was weißt du sicher?",a:["Im April war der Umsatz niedriger.","Im Mai kamen mehr Kunden.","Im Mai wurde besser beraten."],sol:"Nur der Umsatz steht drin – Kunden und Beratung nicht."},
+ {id:"q44",mod:"M6",t:"mc",q:"Ein Azubi erhält seine Ausbildungsvergütung. Was fließt?",a:["Geldstrom: Unternehmen → Haushalt","Güterstrom: Haushalt → Unternehmen","Geldstrom: Haushalt → Unternehmen"],sol:"Lohn/Gehalt: Geld vom Unternehmen zum Haushalt."},
+ {id:"q45",mod:"M6",t:"mc",q:"Eine Verkäuferin arbeitet im Frischmarkt. Was fließt?",a:["Arbeitsleistung (Güterstrom): Haushalt → Unternehmen","Lohn (Geldstrom): Unternehmen → Haushalt","Konsumgüter: Unternehmen → Haushalt"],sol:"Arbeitsleistung: Güterstrom vom Haushalt zum Unternehmen."},
+ {id:"q46",mod:"M6",t:"mc",q:"Was liest du am Schnittpunkt im Marktdiagramm auf der Preisachse ab?",a:["den Gleichgewichtspreis","die Gleichgewichtsmenge","den Höchstpreis"],sol:"Preisachse: Gleichgewichtspreis · Mengenachse: Gleichgewichtsmenge."},
+ {id:"q47",mod:"M6",t:"gap",q:"Je höher der Preis, desto ____ wollen die Händler anbieten.",a:["mehr","weniger","gleich viel"],sol:"Die Angebotskurve steigt."},
+ {id:"q48",mod:"M6",t:"wf",q:"Im Wirtschaftskreislauf ist der Geldstrom immer gestrichelt.",a:["falsch","wahr"],sol:"Falsch. Lies die Legende – in einer Prüfung war der Güterstrom gestrichelt."},
+ {id:"q49",mod:"M6",t:"mc",q:"Zu jedem Güterstrom im Kreislauf gehört …",a:["ein Geldstrom in die andere Richtung","ein zweiter Güterstrom","kein weiterer Strom"],sol:"Geld fließt immer gegen die Ware oder die Arbeit."},
+ {id:"q50",mod:"M6",t:"mc",q:"Der Preis liegt über dem Gleichgewichtspreis. Was entsteht?",a:["ein Angebotsüberhang","ein Nachfrageüberhang","das Gleichgewicht"],sol:"Mehr Angebot als Nachfrage: Ware bleibt liegen, der Preis sinkt."},
+ {id:"q51",mod:"M6",t:"mc",q:"Du zeichnest ein Säulendiagramm. Wo beginnt die senkrechte Achse?",a:["bei 0","beim kleinsten Wert","egal"],sol:"Gleiche Abstände, bei 0 beginnen."},
+ {id:"q52",mod:"M1",t:"mc",q:"Welches Diagramm passt zum Umsatz von drei Filialen im Vergleich?",a:["Säulendiagramm","Kreisdiagramm","Liniendiagramm"],sol:"Werte vergleichen → Säulendiagramm."}
+];
+
+/* ===== Ampel-Sets (Mini-Spiel, M5) – c: g = stimmt, r = falsch, y = steht nicht drin ===== */
+const AMPEL = [
+ {id:"am1", chart:"s9v1", st:[
+  {t:"Der Filialumsatz ist von 2024 bis 2026 gesunken.",c:"g",w:"Stimmt: 8,2 → 7,9 → 7,5."},
+  {t:"Der Onlineumsatz hat sich von 2024 bis 2026 fast verdoppelt.",c:"g",w:"Stimmt: 1,6 → 3,1 Mio. €."},
+  {t:"2026 war der Onlineumsatz höher als der Filialumsatz.",c:"r",w:"Falle 1, falsche Säule: 3,1 ist kleiner als 7,5."},
+  {t:"Der Gesamtumsatz ist 2026 gesunken.",c:"r",w:"Falle 2, Richtung: 9,8 → 10,2 → 10,6 – gestiegen."},
+  {t:"Die Kunden kaufen online, weil es dort billiger ist.",c:"y",w:"Falle 3: Gründe stehen nicht in der Grafik."},
+  {t:"2025 kamen mehr Kunden in die Filiale als in den Onlineshop.",c:"y",w:"Falle 3: Umsatz ist nicht Kundenzahl."},
+  {t:"Der Filialumsatz ist dramatisch eingebrochen.",c:"r",w:"Falle 4, Übertreibung: rund 9 % weniger in zwei Jahren."},
+  {t:"2024 lag der Onlineumsatz bei 1,6 Mio. €.",c:"g",w:"Stimmt."}]},
+ {id:"am2", chart:"s9v2", st:[
+  {t:"Älteren Kunden ist Beratung wichtiger als jüngeren.",c:"g",w:"Stimmt: 81 % gegenüber 35 %."},
+  {t:"Die meisten Kunden bestellen online.",c:"y",w:"Falle 3: Die Grafik zeigt, was wichtig ist – nicht, was die Kunden tun."},
+  {t:"Für alle Kunden sind günstige Preise am wichtigsten.",c:"r",w:"Falle 4: Bei den über 60-Jährigen ist Beratung wichtiger."},
+  {t:"Die Werte ergeben zusammen mehr als 100 %.",c:"g",w:"Stimmt – im Untertitel: Mehrfachnennungen möglich."},
+  {t:"Online bestellen ist den Älteren wichtiger als den Jüngeren.",c:"r",w:"Falle 2, Richtung: 12 % gegenüber 64 %."},
+  {t:"Ältere Kunden kommen meistens mit dem Auto.",c:"y",w:"Falle 3: Parkplätze sind ihnen wichtig – wie sie kommen, steht nicht drin."},
+  {t:"58 % der über 60-Jährigen finden Parkplätze wichtig.",c:"g",w:"Stimmt."},
+  {t:"Jüngere Kunden geben mehr Geld aus als ältere.",c:"y",w:"Falle 3: Ausgaben stehen nicht in der Grafik."}]},
+ {id:"am3", chart:"s6v1", st:[
+  {t:"Im Juni kamen weniger Kunden als im Juni des Vorjahres.",c:"g",w:"Stimmt: −8 %."},
+  {t:"Von Januar bis März ist die Kundenzahl gesunken.",c:"r",w:"Falle 2: Plus bleibt Plus – jeden Monat mehr als im Vorjahr."},
+  {t:"Im April kamen genauso viele Kunden wie im April des Vorjahres.",c:"g",w:"Stimmt: 0 % = gleich viel."},
+  {t:"Im April kamen keine Kunden.",c:"r",w:"0 % heißt „gleich viel wie im Vorjahr“, nicht „keine Kunden“."},
+  {t:"Im Juni kamen weniger Kunden, weil es geregnet hat.",c:"y",w:"Falle 3: Gründe stehen nicht drin."},
+  {t:"Im Mai kamen weniger Kunden als im Mai des Vorjahres.",c:"g",w:"Stimmt: −2 %."},
+  {t:"Im ersten Halbjahr kamen zusammen 8 % mehr Kunden.",c:"r",w:"Werte verschiedener Monate darf man nicht addieren."},
+  {t:"Im Januar kamen 9 % mehr Kunden als im Januar des Vorjahres.",c:"g",w:"Stimmt."}]}
+];
+
+/* ===== Fehlerjagd: Präsentationen von Kollege Kevin ===== */
+const FALLEN = {stelle:"falsche Stelle", richtung:"Richtung verdreht", nichtdrin:"steht nicht drin", uebertreibung:"Übertreibung", rechnen:"Rechnung oder Einheit falsch"};
+const FEHLERJAGD = [
+ {id:"fj1", titel:"Kassenauswertung Samstag", chart:{type:"table", title:"Kunden an einem Samstag, je zwei Stunden", sub:"Frischmarkt Nordstadt", head:["Uhrzeit","Kasse 1","Kasse 2","Kasse 3","Kasse 4","gesamt"],
+   rows:[["08–10 Uhr","18","21","12","0","51"],["10–12 Uhr","26","29","20","14","89"],["12–14 Uhr","31","35","27","22","115"],["14–16 Uhr","14","17","9","0","40"],["16–18 Uhr","33","38","30","25","126"],["18–20 Uhr","41","46","39","34","160"]], foot:["je Kasse","163","186","137","95","581"], src:"Kassensystem"},
+  st:[
+   {t:"An Kasse 2 wurden insgesamt die meisten Kunden bedient (186).",ok:true},
+   {t:"Kasse 1 hatte in jedem Zeitraum die meisten Kunden.",ok:false,f:"stelle",w:"Kasse 2 liegt in jedem Zeitraum vorn."},
+   {t:"Zwischen 18 und 20 Uhr kamen die meisten Kunden (160).",ok:true},
+   {t:"An Kasse 4 waren die Wartezeiten am längsten.",ok:false,f:"nichtdrin",w:"Wartezeiten stehen nicht in der Tabelle – nur Kundenzahlen."},
+   {t:"Von 14 bis 16 Uhr kamen mehr Kunden als von 8 bis 10 Uhr.",ok:false,f:"richtung",w:"40 ist weniger als 51."},
+   {t:"Kasse 4 hatte von 8 bis 10 und von 14 bis 16 Uhr keine Kunden.",ok:true},
+   {t:"Am Nachmittag ist im Frischmarkt immer am meisten los.",ok:false,f:"uebertreibung",w:"Von 14 bis 16 Uhr ist am wenigsten los. „immer“ übertreibt."}]},
+ {id:"fj2", titel:"Retouren im Onlineshop", chart:{type:"col", title:"Retourenquote im Onlineshop", sub:"Modehaus Kranz, 2025 und 2026", unit:"in %", xl:"Warengruppe", yl:"Quote",
+   x:["Bekleidung","Schuhe","Accessoires","Sportartikel"], series:[{n:"2025",v:[34,21,12,6]},{n:"2026",v:[29,22,10,5]}], labels:true, ymax:40, step:10, src:"Warenwirtschaftssystem"},
+  st:[
+   {t:"Bekleidung hat in beiden Jahren die höchste Retourenquote.",ok:true},
+   {t:"Bei Schuhen ist die Quote gesunken.",ok:false,f:"richtung",w:"21 % → 22 %: gestiegen."},
+   {t:"Bei Bekleidung sank die Quote um 5 Prozentpunkte.",ok:true},
+   {t:"Kunden schicken Bekleidung zurück, weil die Größen falsch ausfallen.",ok:false,f:"nichtdrin",w:"Gründe stehen nicht in der Grafik."},
+   {t:"Sportartikel werden nie zurückgeschickt.",ok:false,f:"uebertreibung",w:"5 bis 6 % sind wenig, aber nicht „nie“."},
+   {t:"2026 lag die Quote bei Accessoires bei 10 %.",ok:true}]},
+ {id:"fj3", titel:"Jahresrückblick Gartencenter", chart:"s9v3",
+  st:[
+   {t:"Der Höchststand liegt im Mai mit 148.000 €.",ok:true},
+   {t:"Von Januar bis Mai ist der Umsatz stark gestiegen.",ok:true},
+   {t:"Im Juli war der Umsatz höher als im April.",ok:false,f:"stelle",w:"Juli 98, April 131 – falsche Stelle verglichen."},
+   {t:"Im Dezember ist der Umsatz wieder gestiegen.",ok:true},
+   {t:"Im Mai hatte das Gartencenter die meisten Kunden.",ok:false,f:"nichtdrin",w:"Die Grafik zeigt Umsatz, nicht Kunden."},
+   {t:"Im Januar lag der Umsatz bei 42 €.",ok:false,f:"rechnen",w:"Einheit „in Tausend €“: 42.000 €."},
+   {t:"Im Winter verkauft das Gartencenter gar nichts.",ok:false,f:"uebertreibung",w:"Auch im Winter gibt es Umsatz (z. B. Januar 42.000 €)."}]},
+ {id:"fj4", titel:"Absatz der vier Filialen", chart:{type:"table", title:"Absatz der vier Filialen in der 20. KW", sub:"in Stück (Bananen in kg)", head:["Artikel","Mitte","Lehe","Geestemünde","Leherheide"],
+   rows:[["Mineralwasser","412","388","295","501"],["Apfelsaft","156","171","98","203"],["Vollmilch","640","587","433","702"],["Butter","215","244","187","260"],["Bananen (kg)","380","312","276","415"],["Brötchen","1.210","980","845","1.340"]], src:"Warenwirtschaftssystem"},
+  st:[
+   {t:"Leherheide verkaufte am meisten Apfelsaft (203 Stück).",ok:true},
+   {t:"Geestemünde verkaufte am wenigsten Butter.",ok:true},
+   {t:"Lehe verkaufte mehr Vollmilch als Mitte.",ok:false,f:"richtung",w:"587 ist weniger als 640."},
+   {t:"Alle Filialen zusammen verkauften 4.375 Brötchen.",ok:true},
+   {t:"In Leherheide sind die Kunden am zufriedensten.",ok:false,f:"nichtdrin",w:"Zufriedenheit steht nicht in der Tabelle."},
+   {t:"Die Zahl 845 steht beim Apfelsaft in Geestemünde.",ok:false,f:"stelle",w:"845 steht bei Brötchen, Spalte Geestemünde."}]},
+ {id:"fj5", titel:"Sommerwochen im Vergleich", chart:"s6v2",
+  st:[
+   {t:"In KW 31 war der Rückgang am größten.",ok:true},
+   {t:"In KW 28 wurde weniger verkauft als in der Vorjahreswoche.",ok:false,f:"richtung",w:"+4 % ist ein Plus."},
+   {t:"Von KW 27 bis KW 32 liegt der Umsatz zusammen 9 % unter dem Vorjahr.",ok:false,f:"rechnen",w:"Veränderungsraten verschiedener Wochen darf man nicht addieren."},
+   {t:"In KW 30 lag der Umsatz über der Vorjahreswoche.",ok:true},
+   {t:"In KW 32 kamen 6 % weniger Kunden.",ok:false,f:"nichtdrin",w:"Die Grafik zeigt Umsatz, nicht Kunden."},
+   {t:"In KW 29 war der Umsatz niedriger als in der Vorjahreswoche.",ok:true}]}
+];
+
+/* ===== Diagramm bauen (Mini-Spiel, M1/M6) ===== */
+const DIAGRAMM = [
+ {id:"d1", lage:"Kundenzahlen einer Woche: Mo 620 · Di 540 · Mi 580 · Do 690 · Fr 910 · Sa 1.180. Die Tage sollen verglichen werden.", art:"col",
+  schritte:[
+   {f:"Welche Diagrammart?", a:["Säulendiagramm","Kreisdiagramm","Liniendiagramm"], w:"Vergleichen → Säulen."},
+   {f:"Welche senkrechte Achse passt?", a:["0 bis 1.200, in Schritten von 200","0 bis 1.000, in Schritten von 200","500 bis 1.200, in Schritten von 100"], w:"Der höchste Wert (1.180) muss passen. Gleiche Abstände, bei 0 beginnen."},
+   {f:"Was gehört noch dazu?", a:["Titel, Einheit an der Achse und Quelle","nur die Zahlen","eine bunte Überschrift ohne Quelle"], w:"Rahmen: Titel, Quelle, Einheit – bei mehreren Reihen eine Legende."}]},
+ {id:"d2", lage:"Zahlungsarten am Samstag: bar 35 % · girocard 45 % · Kreditkarte 7,5 % · Smartphone 12,5 %.", art:"pie",
+  schritte:[
+   {f:"Welche Diagrammart?", a:["Kreisdiagramm","Balkendiagramm","Liniendiagramm"], w:"Anteile an einem Ganzen → Kreis."},
+   {f:"Wie groß wird das Stück für girocard (45 %)?", a:["162° (45 · 3,6°)","45°","90°"], w:"1 % = 3,6° → 45 · 3,6° = 162°."},
+   {f:"Zur Probe: Alle Stücke zusammen ergeben …", a:["100 % bzw. 360°","so viel wie die größte Zahl","200 %"], w:"Beim Kreisdiagramm ergeben alle Stücke zusammen 100 %."}]},
+ {id:"d3", lage:"Monatsumsatz des Gartencenters von Januar bis Dezember. Gezeigt werden soll die Entwicklung.", art:"line",
+  schritte:[
+   {f:"Welche Diagrammart?", a:["Liniendiagramm","Kreisdiagramm","Balkendiagramm"], w:"Entwicklung über die Zeit → Linie."},
+   {f:"Was steht waagerecht?", a:["die Monate","der Umsatz","die Quelle"], w:"Waagerecht meist Zeit oder Gruppen, senkrecht die Werte."},
+   {f:"Was steht an der senkrechten Achse?", a:["Umsatz mit Einheit, z. B. in Tausend €","nur Zahlen ohne Einheit","die Monate"], w:"Senkrecht die Werte – mit Einheit."}]},
+ {id:"d4", lage:"Sechs Beschwerdegründe mit langen Namen. Gezeigt werden soll die Rangfolge.", art:"hbar",
+  schritte:[
+   {f:"Welche Diagrammart?", a:["Balkendiagramm","Liniendiagramm","Kreisdiagramm"], w:"Viele Gruppen mit langen Namen, Rangfolge → Balken."},
+   {f:"In welcher Reihenfolge zeichnest du die Balken?", a:["vom häufigsten zum seltensten","nach dem Alphabet","zufällig"], w:"So ist die Rangfolge sofort zu sehen."},
+   {f:"Alle Balken sind …", a:["gleich dick","so dick wie ihr Wert","verschieden bunt ohne Legende"], w:"Alle Säulen bzw. Balken gleich breit – nur die Länge zeigt den Wert."}]},
+ {id:"d5", lage:"Umsatz der drei Filialen Mitte, Lehe und Geestemünde im Jahr 2026.", art:"col",
+  schritte:[
+   {f:"Welche Diagrammart?", a:["Säulendiagramm","Liniendiagramm","Kreisdiagramm"], w:"Werte vergleichen → Säulen."},
+   {f:"Wie breit werden die Säulen?", a:["alle gleich breit","die größte Filiale am breitesten","egal"], w:"Alle Säulen gleich breit – mit Lineal."},
+   {f:"Wohin schreibst du die Werte?", a:["an die Säulen","nur in die Quelle","gar nicht"], w:"Werte an die Säulen schreiben."}]},
+ {id:"d6", lage:"Umsatz von vier Abteilungen in den Jahren 2025 und 2026 nebeneinander.", art:"col",
+  schritte:[
+   {f:"Welche Diagrammart?", a:["Säulendiagramm mit zwei Säulen je Abteilung","Kreisdiagramm","Liniendiagramm mit vier Linien"], w:"Vergleichen → Säulen. Zwei Jahre → zwei Säulen je Abteilung."},
+   {f:"Was brauchst du bei zwei Reihen unbedingt?", a:["eine Legende: welches Muster ist welches Jahr","eine zweite Quelle","einen zweiten Titel"], w:"Bei mehreren Reihen eine Legende."},
+   {f:"Wo beginnt die senkrechte Achse?", a:["bei 0","beim kleinsten Wert","beim größten Wert"], w:"Bei 0 beginnen – sonst wirken Unterschiede größer."}]},
+ {id:"d7", lage:"Reklamationen im April: Werkzeug 45 · Garten 27 · Farben 18 · Holz 12 · Sonstiges 18 – insgesamt 120. Gezeigt werden sollen die Anteile.", art:"pie",
+  schritte:[
+   {f:"Welche Diagrammart?", a:["Kreisdiagramm","Liniendiagramm","Säulendiagramm ohne Werte"], w:"Anteile → Kreis."},
+   {f:"Was musst du vorher rechnen?", a:["die Anteile: Teil : 120 · 100","den Durchschnitt: 120 : 5","nichts"], w:"Erst die Anteile berechnen, dann zeichnen."},
+   {f:"Wie viel Prozent hat Werkzeug?", a:["37,5 %","45 %","27 %"], w:"45 : 120 · 100 = 37,5 %."}]},
+ {id:"d8", lage:"Kundenzahl des Frischmarkts in den Jahren 2021 bis 2026.", art:"line",
+  schritte:[
+   {f:"Welche Diagrammart?", a:["Liniendiagramm","Kreisdiagramm","Balkendiagramm"], w:"Entwicklung über die Zeit → Linie."},
+   {f:"Wie verteilst du die Jahre waagerecht?", a:["in gleichen Abständen","eng am Anfang, weit am Ende","nach Gefühl"], w:"Gleiche Abstände."},
+   {f:"Was gehört unter das Diagramm?", a:["die Quelle","die Legende von gestern","der Name des Azubis"], w:"Rahmen: Titel und Quelle."}]}
+];
+
+/* ===== Kreislauf-Vorgänge (Mini-Spiel, M6) – s: arbeit | lohn | gueter | ausgaben ===== */
+const KREISLAUF = [
+ {t:"Frau Ochsner arbeitet als Verkäuferin im Frischmarkt.",s:"arbeit"},
+ {t:"Ein Aushilfsfahrer fährt für den Getränkemarkt Kisten aus.",s:"arbeit"},
+ {t:"Ein Azubi räumt im Gartencenter Regale ein.",s:"arbeit"},
+ {t:"Eine Kassiererin arbeitet im Modehaus an der Kasse.",s:"arbeit"},
+ {t:"Der Frischmarkt überweist Frau Ochsner ihr Gehalt.",s:"lohn"},
+ {t:"Ein Azubi erhält seine Ausbildungsvergütung.",s:"lohn"},
+ {t:"Das Modehaus zahlt der Aushilfe ihren Lohn.",s:"lohn"},
+ {t:"Herr Can kauft im Frischmarkt einen Wocheneinkauf.",s:"gueter"},
+ {t:"Der Elektromarkt liefert einer Kundin eine Waschmaschine.",s:"gueter"},
+ {t:"Eine Kundin nimmt im Gartencenter Blumenerde mit.",s:"gueter"},
+ {t:"Herr Can bezahlt an der Kasse mit girocard.",s:"ausgaben"},
+ {t:"Eine Kundin bezahlt ihre Online-Bestellung per PayPal.",s:"ausgaben"},
+ {t:"Ein Kunde bezahlt seine Jacke bar.",s:"ausgaben"}
+];
+const STROM = {
+ arbeit:{n:"Arbeitsleistung", von:"H", art:"gueter"},
+ lohn:{n:"Löhne und Gehälter", von:"U", art:"geld"},
+ gueter:{n:"Konsumgüter", von:"U", art:"gueter"},
+ ausgaben:{n:"Konsumausgaben", von:"H", art:"geld"}
+};
+
+/* ===== Tabellen für Schiffeversenken (M4) ===== */
+const TABELLEN = [
+ {id:"t1", ref:"fj4"},
+ {id:"t2", ref:"fj1"},
+ {id:"t3", chart:{type:"table", title:"Umsatz je Warengruppe im 1. Quartal", sub:"Modehaus Kranz, in €", head:["Warengruppe","Januar","Februar","März"],
+   rows:[["Damen","48.200","41.900","56.300"],["Herren","31.500","29.800","35.100"],["Kinder","12.700","11.400","15.900"],["Schuhe","18.300","16.200","22.800"],["Sport","9.600","10.100","13.400"]], src:"Warenwirtschaftssystem"}}
+];
+
+/* ===== Zufallsereignisse in der Monatsrunde ===== */
+const EREIGNISSE = [
+ {id:"ev01", t:"Die Geschäftsführung fragt nach der Quelle", txt:"„Woher stammen eigentlich eure Zahlen?“", chk:"strategie", gut:"Ihr habt immer den Grafik-Check gemacht und nennt sofort die Quelle.", schlecht:"Ihr wisst es nicht genau. Ohne Quelle glaubt euch niemand.", d:12},
+ {id:"ev02", t:"Der Steuerberater rechnet nach", txt:"Er prüft eure Prozentrechnung.", chk:"anteil", gut:"Teil = Ganzes · Prozentsatz : 100 – alles korrekt.", schlecht:"Er findet einen Rechenfehler beim Anteil.", d:10},
+ {id:"ev03", t:"Ein Bericht geht an die Zentrale", txt:"Die Zentrale vergleicht die Durchschnittsbons aller Häuser.", chk:"durchschnitt", gut:"Ihr habt Summe durch Summe gerechnet. Euer Wert stimmt.", schlecht:"Euer Durchschnitt passt nicht zu den anderen Häusern.", d:10},
+ {id:"ev04", t:"Personalplanung für Samstag", txt:"Die Dienstpläne werden nach euren Zahlen gemacht.", chk:"grafikcheck", gut:"Mit dem richtigen Wert ist genug Personal da.", schlecht:"Ein falscher Wert – am Samstag fehlt Personal an der Kasse.", d:10},
+ {id:"ev05", t:"Die Lokalzeitung will ein Zitat", txt:"Eine Reporterin fragt nach eurem Ergebnis.", chk:"aussage", gut:"Ihr sagt nur, was die Grafik zeigt. Der Artikel wird sachlich.", schlecht:"Eure Aussage stimmt nicht mit den Zahlen überein. Die Zeitung druckt es trotzdem …", d:12},
+ {id:"ev06", t:"Der Chef hat nur 10 Sekunden", txt:"Er schaut nur kurz auf euer Diagramm.", chk:"diagrammart", gut:"Die passende Diagrammart – er versteht es sofort.", schlecht:"Die Diagrammart passt nicht. Er versteht es nicht.", d:8},
+ {id:"ev07", t:"Ein Lieferant fragt nach der Entwicklung", txt:"„Um wie viel Prozent seid ihr gewachsen?“", chk:"veraenderung", gut:"Ihr nennt die richtige Veränderung mit dem alten Wert als Grundwert.", schlecht:"Eure Prozentzahl ist falsch. Der Lieferant wundert sich.", d:10},
+ {id:"ev08", t:"Panik im Meeting", txt:"Jemand ruft: „Die Säulen werden kleiner – wir verlieren Kunden!“", chk:"raten", gut:"Ihr erklärt ruhig: Plus bleibt Plus.", schlecht:"Ihr seid euch selbst nicht sicher. Die Panik bleibt.", d:10},
+ {id:"ev09", t:"Die Inventur steht an", txt:"Jede Zahl in den Tabellen muss stimmen.", chk:"luecke", gut:"Eure Lücke ist richtig gefüllt – die Probe passt.", schlecht:"In eurer Tabelle stimmt eine Zahl nicht.", d:10},
+ {id:"ev10", t:"Erdbeeren, Erde, Jacken: Der Preis ist zu hoch", txt:"Ware bleibt liegen. Was nun?", chk:"markt", gut:"Ihr kennt den Markt: Preis senken in Richtung Gleichgewichtspreis.", schlecht:"Ihr wisst nicht, warum die Ware liegen bleibt.", d:8},
+ {id:"ev11", t:"Der Betriebsrat fragt nach", txt:"„Wie viele waren es denn NICHT?“", chk:"grundwert", gut:"Ihr habt das Ganze richtig gefunden.", schlecht:"Ihr habt mit dem falschen Ganzen gerechnet.", d:10},
+ {id:"ev12", t:"Die Bank will ein Diagramm", txt:"Für einen Kredit braucht die Bank eine saubere Grafik.", chk:"mini_bau", gut:"Euer Diagramm hat Titel, Einheit und Quelle.", schlecht:"Eurem Diagramm fehlt etwas Wichtiges.", d:8},
+ {id:"ev13", t:"Azubi-Tag in der Berufsschule", txt:"Ihr erklärt den Wirtschaftskreislauf.", chk:"mini_kreis", gut:"Ihr folgt den Pfeilen und lest die Legende.", schlecht:"Geld- und Güterstrom geraten durcheinander.", d:8}
+];
+
+/* ===== Krisen (Krisenmodus) ===== */
+const KRISEN = [
+ {id:"kr1", t:"Die Legende fehlt!", txt:"Der Drucker hat die Legende abgeschnitten. Die Chefin will sofort eine Zahl.", opts:[
+  {t:"Die Originaldatei holen und die Legende prüfen.", q:2, why:"Ohne Legende weiß niemand, welche Säule welches Jahr ist."},
+  {t:"Raten: Die dunkle Säule ist bestimmt das neue Jahr.", q:0, why:"Raten ist gefährlich. Die Legende entscheidet."},
+  {t:"Eine Zahl nennen, aber sagen: Ohne Legende bin ich unsicher.", q:1, why:"Ehrlich, aber besser: Legende prüfen."}]},
+ {id:"kr2", t:"Achse bei 7,5", txt:"Ein Kollege will die Achse bei 7,5 beginnen lassen, damit der Anstieg größer aussieht.", opts:[
+  {t:"Bei 0 beginnen – sonst täuscht die Grafik.", q:2, why:"Beginnt die Achse nicht bei 0, wirken Unterschiede viel größer."},
+  {t:"Machen – sieht besser aus.", q:0, why:"Das ist ein Trick mit Grafiken."},
+  {t:"Machen, aber klein dazuschreiben.", q:1, why:"Besser ehrlich bei 0 beginnen."}]},
+ {id:"kr3", t:"„Umsatz explodiert?“", txt:"Die Zeitung fragt: Ist euer Umsatz explodiert? Er stieg von 7,6 auf 8,1 Mio. €.", opts:[
+  {t:"Nein. Rund 6,6 % mehr – ein leichter bis deutlicher Anstieg.", q:2, why:"(8,1 – 7,6) : 7,6 · 100 = 6,6 %. „Explodiert“ ist eine Übertreibung."},
+  {t:"Ja, der Umsatz ist explodiert!", q:0, why:"Übertreibung (Falle 4)."},
+  {t:"Er ist gestiegen. Zahlen nennen wir nicht.", q:1, why:"Richtig, aber eine Zahl macht es genauer."}]},
+ {id:"kr4", t:"Lücke kurz vor der Präsentation", txt:"In der Tabelle fehlt eine Zahl. Die Summe steht aber da.", opts:[
+  {t:"Aus der Summe und den anderen Werten berechnen und die Probe machen.", q:2, why:"Fehlender Wert = Gesamt – alle anderen Werte."},
+  {t:"Eine passende Zahl ausdenken.", q:0, why:"Erfundene Zahlen sind ein großes Risiko."},
+  {t:"Die Zelle leer lassen und es erklären.", q:1, why:"Ehrlich, aber die Zahl lässt sich berechnen."}]},
+ {id:"kr5", t:"„Wir verkaufen weniger!“", txt:"Der Chef sieht im Veränderungsdiagramm kleiner werdende Plus-Säulen und will sofort die Preise senken.", opts:[
+  {t:"Erklären: Plus bleibt Plus. Wir verkaufen mehr als im Vorjahr, nur der Zuwachs wird kleiner.", q:2, why:"Kleinere Plus-Säule = immer noch mehr als im Vorjahr."},
+  {t:"Zustimmen und die Preise senken.", q:0, why:"Falsch gelesen – Richtung verdreht."},
+  {t:"Abwarten und nächsten Monat prüfen.", q:1, why:"Vorsichtig, aber die Grafik lässt sich jetzt schon richtig lesen."}]},
+ {id:"kr6", t:"160 % in der Umfrage?", txt:"In der Kundenbefragung ergeben die Werte zusammen 160 %. Ein Kollege will alles löschen.", opts:[
+  {t:"Den Untertitel lesen: Mehrfachnennungen möglich – dann ist das richtig.", q:2, why:"Bei Mehrfachnennungen können die Werte mehr als 100 % ergeben."},
+  {t:"Alle Werte durch 1,6 teilen.", q:0, why:"Das verfälscht die Ergebnisse."},
+  {t:"Die Grafik weglassen.", q:1, why:"Schade – die Grafik ist richtig."}]},
+ {id:"kr7", t:"Schneller Durchschnitt", txt:"Ein Kollege rechnet den Wochen-Durchschnittsbon aus den sechs Tagesbons.", opts:[
+  {t:"Neu rechnen: Summe Umsatz durch Summe Kunden.", q:2, why:"Tage mit vielen Kunden zählen mehr."},
+  {t:"Passt schon, so ist es schneller.", q:0, why:"Tagesbons mitteln ist falsch."},
+  {t:"Nur den Samstag nehmen – da ist am meisten los.", q:0, why:"Falsche Zeile."}]},
+ {id:"kr8", t:"Plakat der Werbeabteilung", txt:"Auf ein Plakat soll: „Alle Kunden lieben unsere Beratung!“ Die Befragung sagt: 81 % der über 60-Jährigen finden Beratung wichtig.", opts:[
+  {t:"Nur schreiben, was stimmt: 81 % der über 60-Jährigen finden Beratung wichtig.", q:2, why:"Aussagen müssen genau zu den Zahlen passen."},
+  {t:"Klingt gut – drucken!", q:0, why:"„Alle“ ist eine Übertreibung."},
+  {t:"„Viele Kunden finden Beratung wichtig“ schreiben.", q:1, why:"Vorsichtiger, aber ungenau."}]}
+];
+
+/* ===== Für Profis (aus den Lösungsheften) ===== */
+const PROFIS = [
+ {id:"p01", mod:"M1", f:"Begründen Sie, warum sich für die Entwicklung der Kundenzahl über zwölf Monate ein Liniendiagramm besser eignet als ein Kreisdiagramm.", l:"Die Linie verbindet die Monate und zeigt den Verlauf (Anstieg, Rückgang). Ein Kreisdiagramm zeigt nur Anteile an einem Ganzen – zwölf Monate als Tortenstücke zeigen keine Entwicklung."},
+ {id:"p02", mod:"M1", f:"In einer Grafik steht „Umsatz in Mio. €“, an einer Säule 0,85. Ein Mitschüler sagt: „Das sind 85 Cent.“ Erklären Sie den Fehler und nennen Sie den richtigen Betrag.", l:"Die Einheit ist Millionen Euro: 0,85 Mio. € = 850.000 €. Er hat die Einheit auf der Achse nicht beachtet."},
+ {id:"p03", mod:"M2", f:"Ein Kreis hat 360°. Berechnen Sie den Winkel für „girocard 45 %“ im Kreisdiagramm.", l:"1 % = 3,6° → 45 · 3,6° = 162°."},
+ {id:"p04", mod:"M2", f:"126 Kunden zahlten mit Kreditkarte. Das sind 7 % aller Kunden. Berechnen Sie die Zahl aller Kunden.", l:"126 : 7 · 100 = 1.800 Kunden."},
+ {id:"p05", mod:"M3", f:"Der Anteil der Kartenzahlungen stieg von 40 % auf 50 %. Ein Kollege sagt: „Um 10 % gestiegen.“ Erklären Sie, warum das ungenau ist. Verwenden Sie das Wort „Prozentpunkte“.", l:"Der Anteil stieg um 10 Prozentpunkte (50 – 40). In Prozent gerechnet stieg er um 10 : 40 · 100 = 25 %."},
+ {id:"p06", mod:"M3", f:"Ein Umsatz sinkt um 20 % und steigt danach um 20 %. Ist er dann wieder so hoch wie vorher? Begründen Sie mit einem Zahlenbeispiel.", l:"Nein. 100.000 € → –20 % = 80.000 € → +20 % von 80.000 € = 96.000 €. Der Grundwert ist beim zweiten Mal kleiner."},
+ {id:"p07", mod:"M4", f:"Filiale Lehe: Durchschnittsbon 22,40 € bei 1.250 Kunden. Filiale Mitte: 18,60 € bei 2.000 Kunden. Berechnen Sie den Durchschnittsbon beider Filialen zusammen.", l:"1.250 · 22,40 = 28.000 € · 2.000 · 18,60 = 37.200 € → 65.200 € : 3.250 Kunden = 20,06 € (nicht 20,50 €!)."},
+ {id:"p08", mod:"M5", f:"Der Umsatz stieg von 7,6 auf 8,1 Mio. €. Eine Zeitung schreibt: „Umsatz explodiert!“ Berechnen Sie den Anstieg und beurteilen Sie die Aussage.", l:"(8,1 – 7,6) : 7,6 · 100 = 6,6 %. Ein leichter bis deutlicher Anstieg, keine Explosion – die Aussage übertreibt (Falle 4)."},
+ {id:"p09", mod:"M5", f:"Zwei Grafiken zeigen dieselben Zahlen. Bei Grafik A beginnt die y-Achse bei 7,5 statt bei 0. Beschreiben Sie den Eindruck und den Trick.", l:"Die Säulen wirken viel unterschiedlicher, der Anstieg sieht riesig aus. Der Trick: Die Achse beginnt nicht bei 0."},
+ {id:"p10", mod:"M6", f:"Ein Mitschüler hat gelernt: „Beim Kreislauf ist die Lösung immer 1; 4; 3; 2.“ Beurteilen Sie diese Strategie.", l:"Sie führt in die Irre: In den Prüfungen wechseln Nummern und Linienarten. Man muss die Grafik jedes Mal neu lesen – Pfeil verfolgen, Legende prüfen."},
+ {id:"p11", mod:"M6", f:"Im Marktdiagramm liegt der Preis über dem Punkt X. Erklären Sie, was dann auf dem Markt passiert.", l:"Bei einem höheren Preis bieten die Händler mehr an, die Kunden fragen weniger nach. Es entsteht ein Angebotsüberhang: Ware bleibt liegen, die Händler senken den Preis, bis er wieder beim Gleichgewichtspreis liegt."}
+];
+
+/* ===== Wortspeicher (aus den Lösungsheften) ===== */
+const WORTSPEICHER = [
+ {m:"M1 Grafiken lesen", w:["die Grafik","das Diagramm","der Titel","die x-Achse (waagerecht)","die y-Achse (senkrecht)","die Einheit","die Legende","die Quelle","ablesen","schätzen"]},
+ {m:"M2 Anteile", w:["der Anteil","das Ganze","der Teil","der Grundwert","der Prozentwert","der Prozentsatz","insgesamt","entfallen auf"]},
+ {m:"M3 Veränderungen", w:["steigen – ist gestiegen","sinken – ist gesunken","gleich bleiben (stagnieren)","schwanken","leicht · deutlich · stark","der Höchststand","der Tiefststand","im Vergleich zum Vorjahr"]},
+ {m:"M4 Tabellen", w:["die Zeile (waagerecht)","die Spalte (senkrecht)","die Kopfzeile","die Vorspalte","die Summenzeile","der Durchschnitt","je Kunde · je m²","die Lücke"]},
+ {m:"M5 Aussagen", w:["die Aussage","ableiten","die Schlussfolgerung","die Falle","übertreiben","die Ursache","die Einleitung","das Fazit"]},
+ {m:"M6 Schaubilder", w:["die Haushalte","die Unternehmen","der Geldstrom","der Güterstrom","die Konsumausgaben","das Angebot","die Nachfrage","der Gleichgewichtspreis"]}
+];
+const WERKZEUG = [
+ ["Anteil in %","Teil : Ganzes · 100"],["Teil (€, Stück)","Ganzes · Prozentsatz : 100"],["das Ganze","Teil : Prozentsatz · 100"],["„nicht“","100 % – Wert"],
+ ["Veränderung in %","(neu – alt) : alt · 100"],["Durchschnitt je Kunde","Umsatz : Kunden – mehrere Tage: Summe : Summe"],["Umsatz je m²","Umsatz : Verkaufsfläche"],["Prozentpunkte","Differenz zweier Prozentsätze"]
+];
+
+const ABZEICHEN = [
+ {id:"personas", n:"Alle Auftraggeber", d:"Mit allen fünf Auftraggebern gespielt."},
+ {id:"haeuser", n:"Drei Häuser", d:"In allen drei Häusern gespielt."},
+ {id:"fallenfrei", n:"Fallen-Fuchs", d:"Ein ganzes Spiel ohne eine einzige Falle."},
+ {id:"serie", n:"Blitzmerker", d:"8 richtige Antworten in Folge in der Blitzrunde."},
+ {id:"jaeger", n:"Fehlerjäger", d:"Alle Fehler in einer Präsentation gefunden – ohne Fehlalarm."},
+ {id:"ausgebuegelt", n:"Ausgebügelt", d:"5 alte Fehler im Wiederholen-Modus richtig gelöst."},
+ {id:"profi3", n:"Profi mit drei Sternen", d:"Drei Sterne im Profi-Modus."},
+ {id:"kreislauf", n:"Kreislauf-Kenner", d:"Den Kreislauf dreimal fehlerfrei gelöst."},
+ {id:"pruefung", n:"Prüfungsreif", d:"Im Prüfungsmodus mindestens 80 % der Punkte."},
+ {id:"krise", n:"Krisenfest", d:"Drei Sterne im Krisenmodus."}
+];
+const STUFEN = [{ab:0,n:"Praktikum"},{ab:5,n:"Zahlen-Azubi"},{ab:12,n:"Zahlen-Profi"},{ab:22,n:"Leitung Zahlen-Zentrale"}];
+
+/* ===== Die Zahlen-Zentrale – Grafiken (Inline-SVG) ===== */
+const NF = (v, d=0) => Number(v).toLocaleString("de-DE",{minimumFractionDigits:d,maximumFractionDigits:d});
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+let _uid = 0; const uid = p => p + (++_uid);
+
+/* ---------- Diagramme im IHK-Stil (Papier, Graustufen, Schraffur) ---------- */
+const INK = "#1f2226", G1 = "#3d4248", G2 = "#b9bec4", GRID = "#d9dcdf", PAPER = "#fdfdfb";
+function fills(id){
+  return `<defs><pattern id="${id}h" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fff"/><line x1="0" y1="0" x2="0" y2="6" stroke="${G1}" stroke-width="2.2"/></pattern>
+  <pattern id="${id}d" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#e9ebed"/><circle cx="2.5" cy="2.5" r="1.1" fill="${G1}"/></pattern></defs>`;
+}
+function seriesFill(s, i, id){
+  const k = s && s.s ? s.s : ["dark","light","hatch","dots"][i % 4];
+  return {dark:G1, light:G2, hatch:`url(#${id}h)`, dots:`url(#${id}d)`}[k];
+}
+function legendHTML(series, id){
+  if(!series || series.length < 2) return "";
+  return `<div class="lg">${series.map((s,i)=>`<span><svg width="16" height="12" aria-hidden="true">${fills(id+"l"+i)}<rect x=".5" y=".5" width="15" height="11" fill="${seriesFill(s,i,id+"l"+i)}" stroke="${INK}" stroke-width=".8"/></svg>${esc(s.n)}</span>`).join("")}</div>`;
+}
+function frame(spec, inner, legend){
+  return `<figure class="paper"><figcaption><b>${esc(spec.title)}</b>${spec.sub?`<span>${esc(spec.sub)}</span>`:""}</figcaption>
+  <div class="chartbox">${inner}</div>${legend||""}${spec.src?`<div class="src">Quelle: ${esc(spec.src)}</div>`:""}</figure>`;
+}
+function ticks(min,max,step){const t=[];for(let v=min;v<=max+1e-9;v+=step)t.push(+v.toFixed(4));return t;}
+
+function colChart(spec){
+  const id=uid("c"), W=360, H=230, L=46, R=8, T=22, B=40;
+  const ser=spec.series, n=spec.x.length, k=ser.length, ymin=spec.ymin||0, ymax=spec.ymax, dec=spec.dec||0;
+  const y=v=>T+(H-T-B)*(1-(v-ymin)/(ymax-ymin));
+  const gw=(W-L-R)/n, bw=Math.min(34,(gw*0.72)/k);
+  let g=fills(id);
+  ticks(ymin,ymax,spec.step).forEach(t=>{g+=`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="${GRID}"/><text x="${L-5}" y="${y(t)+3.5}" text-anchor="end" class="ax">${NF(t,spec.step<1?1:0)}</text>`;});
+  spec.x.forEach((c,i)=>{
+    const x0=L+gw*i+(gw-bw*k)/2;
+    ser.forEach((s,j)=>{const v=s.v[i], yy=y(v), h=y(ymin)-yy;
+      g+=`<rect x="${x0+j*bw}" y="${yy}" width="${bw-1.5}" height="${h}" fill="${seriesFill(s,j,id)}" stroke="${INK}" stroke-width=".8"/>`;
+      if(spec.labels) g+=`<text x="${x0+j*bw+(bw-1.5)/2}" y="${yy-4}" text-anchor="middle" class="vl">${NF(v,dec)}</text>`;});
+    g+=`<text x="${L+gw*i+gw/2}" y="${H-B+15}" text-anchor="middle" class="ax">${esc(c)}</text>`;
+  });
+  g+=`<line x1="${L}" x2="${W-R}" y1="${y(ymin)}" y2="${y(ymin)}" stroke="${INK}"/><line x1="${L}" x2="${L}" y1="${T-6}" y2="${y(ymin)}" stroke="${INK}"/>`;
+  g+=`<text x="${L-40}" y="${T-10}" class="ax u">${esc(spec.unit||"")}</text>`;
+  if(spec.xl) g+=`<text x="${(L+W-R)/2}" y="${H-6}" text-anchor="middle" class="ax u">${esc(spec.xl)}</text>`;
+  return frame(spec,`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(spec.title)}">${g}</svg>`,legendHTML(ser,id));
+}
+function hbarChart(spec){
+  const id=uid("h"), W=360, L=112, R=34, T=20, k=spec.series.length, row=k*15+12, n=spec.x.length, H=T+row*n+26;
+  const xmax=spec.ymax, dec=spec.dec||0, x=v=>L+(W-L-R)*v/xmax;
+  let g=fills(id);
+  ticks(0,xmax,spec.step).forEach(t=>{g+=`<line y1="${T-4}" y2="${T+row*n}" x1="${x(t)}" x2="${x(t)}" stroke="${GRID}"/><text y="${T+row*n+13}" x="${x(t)}" text-anchor="middle" class="ax">${NF(t)}</text>`;});
+  spec.x.forEach((c,i)=>{const y0=T+row*i+6;
+    const words=String(c).split(" "); let lines=[""]; words.forEach(w=>{if((lines[lines.length-1]+" "+w).trim().length>15)lines.push(w);else lines[lines.length-1]=(lines[lines.length-1]+" "+w).trim();});
+    lines.forEach((ln,li)=>g+=`<text x="${L-6}" y="${y0+k*7.5+4-(lines.length-1)*6+li*12}" text-anchor="end" class="ax">${esc(ln)}</text>`);
+    spec.series.forEach((s,j)=>{const v=s.v[i];
+      g+=`<rect x="${L}" y="${y0+j*15}" height="13" width="${x(v)-L}" fill="${seriesFill(s,j,id)}" stroke="${INK}" stroke-width=".8"/>`;
+      if(spec.labels) g+=`<text x="${x(v)+4}" y="${y0+j*15+10}" class="vl">${NF(v,dec)}</text>`;});
+  });
+  g+=`<line x1="${L}" x2="${L}" y1="${T-4}" y2="${T+row*n}" stroke="${INK}"/><text x="${W-R+30}" y="${T+row*n+13}" text-anchor="end" class="ax u">${esc(spec.unit||"")}</text>`;
+  return frame(spec,`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(spec.title)}">${g}</svg>`,legendHTML(spec.series,id));
+}
+function lineChart(spec){
+  const id=uid("l"), W=360, H=230, L=46, R=12, T=22, B=40, n=spec.x.length, ymin=spec.ymin||0, ymax=spec.ymax, dec=spec.dec||0;
+  const y=v=>T+(H-T-B)*(1-(v-ymin)/(ymax-ymin)), x=i=>L+12+(W-L-R-24)*i/(n-1);
+  let g="";
+  ticks(ymin,ymax,spec.step).forEach(t=>{g+=`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="${GRID}"/><text x="${L-5}" y="${y(t)+3.5}" text-anchor="end" class="ax">${NF(t,spec.step<1?1:0)}</text>`;});
+  spec.x.forEach((c,i)=>g+=`<text x="${x(i)}" y="${H-B+15}" text-anchor="middle" class="ax">${esc(c)}</text>`);
+  spec.series.forEach((s,j)=>{
+    g+=`<polyline fill="none" stroke="${INK}" stroke-width="2" ${j?'stroke-dasharray="5 3"':""} points="${s.v.map((v,i)=>x(i)+","+y(v)).join(" ")}"/>`;
+    s.v.forEach((v,i)=>{g+=`<circle cx="${x(i)}" cy="${y(v)}" r="3.2" fill="${j?"#fff":INK}" stroke="${INK}" stroke-width="1.2"/>`;
+      if(spec.labels) g+=`<text x="${x(i)}" y="${y(v)-8}" text-anchor="middle" class="vl">${NF(v,dec)}</text>`;});
+  });
+  g+=`<line x1="${L}" x2="${W-R}" y1="${y(ymin)}" y2="${y(ymin)}" stroke="${INK}"/><line x1="${L}" x2="${L}" y1="${T-6}" y2="${y(ymin)}" stroke="${INK}"/>`;
+  g+=`<text x="${L-40}" y="${T-10}" class="ax u">${esc(spec.unit||"")}</text>`;
+  if(spec.xl) g+=`<text x="${(L+W-R)/2}" y="${H-6}" text-anchor="middle" class="ax u">${esc(spec.xl)}</text>`;
+  return frame(spec,`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(spec.title)}">${g}</svg>`,legendHTML(spec.series.length>1?spec.series:null,id));
+}
+function chgChart(spec){
+  const id=uid("v"), W=360, H=230, L=40, R=8, T=22, B=40, n=spec.x.length, ymin=spec.ymin, ymax=spec.ymax;
+  const y=v=>T+(H-T-B)*(1-(v-ymin)/(ymax-ymin)), gw=(W-L-R)/n, bw=Math.min(30,gw*.55);
+  let g=fills(id);
+  ticks(ymin,ymax,spec.step).forEach(t=>{g+=`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="${GRID}"/><text x="${L-5}" y="${y(t)+3.5}" text-anchor="end" class="ax">${t>0?"+":""}${NF(t)}</text>`;});
+  spec.x.forEach((c,i)=>{const v=spec.v[i], x0=L+gw*i+(gw-bw)/2, y0=y(0), yy=y(v);
+    if(v!==0) g+=`<rect x="${x0}" y="${Math.min(y0,yy)}" width="${bw}" height="${Math.abs(yy-y0)}" fill="${v>0?G1:`url(#${id}h)`}" stroke="${INK}" stroke-width=".8"/>`;
+    g+=`<text x="${x0+bw/2}" y="${v>=0?yy-4:yy+12}" text-anchor="middle" class="vl">${v>0?"+":""}${NF(v)} %</text>`;
+    g+=`<text x="${L+gw*i+gw/2}" y="${H-B+15}" text-anchor="middle" class="ax">${esc(c)}</text>`;});
+  g+=`<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="${INK}" stroke-width="1.6"/><line x1="${L}" x2="${L}" y1="${T-6}" y2="${H-B}" stroke="${INK}"/>`;
+  g+=`<text x="${L-34}" y="${T-10}" class="ax u">${esc(spec.unit)}</text>`;
+  if(spec.xl) g+=`<text x="${(L+W-R)/2}" y="${H-6}" text-anchor="middle" class="ax u">${esc(spec.xl)}</text>`;
+  return frame(spec,`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(spec.title)}">${g}</svg>`);
+}
+function pieChart(spec){
+  const id=uid("p"), W=360, H=200, cx=100, cy=100, r=82, fl=[G1,`url(#${id}h)`,G2,`url(#${id}d)`,"#fff"];
+  let g=fills(id), a=-Math.PI/2;
+  spec.parts.forEach((p,i)=>{const a2=a+p.v/100*2*Math.PI, large=(a2-a)>Math.PI?1:0;
+    g+=`<path d="M${cx},${cy} L${cx+r*Math.cos(a)},${cy+r*Math.sin(a)} A${r},${r} 0 ${large} 1 ${cx+r*Math.cos(a2)},${cy+r*Math.sin(a2)} Z" fill="${fl[i%5]}" stroke="${INK}" stroke-width="1"/>`;
+    const m=(a+a2)/2; if(p.v>=9){const tx=cx+r*.62*Math.cos(m), ty=cy+r*.62*Math.sin(m), dark=fl[i%5]===G1;
+      const lab=NF(p.v,p.v%1?1:0)+" %", lw=lab.length*6.4+8; g+=`<rect x="${tx-lw/2}" y="${ty-9}" width="${lw}" height="15" rx="3" fill="#fff" stroke="${INK}" stroke-width=".6" opacity="${dark?1:.92}"/><text x="${tx}" y="${ty+2.5}" text-anchor="middle" class="vl">${NF(p.v,p.v%1?1:0)} %</text>`;}
+    a=a2;});
+  spec.parts.forEach((p,i)=>{const yy=40+i*30;
+    g+=`<rect x="206" y="${yy-10}" width="16" height="13" fill="${fl[i%5]}" stroke="${INK}" stroke-width=".8"/><text x="230" y="${yy+1}" class="ax big">${esc(p.n)}</text><text x="230" y="${yy+14}" class="vl">${NF(p.v,p.v%1?1:0)} %</text>`;});
+  return frame(spec,`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(spec.title)}">${g}</svg>`);
+}
+function tableChart(spec, opt={}){
+  const cls=(r,c)=>opt.mark&&opt.mark[0]===r&&opt.mark[1]===c?' class="mk"':"";
+  let h=`<div class="tblwrap"><table class="itbl"><thead><tr>${spec.head.map(x=>`<th>${esc(x)}</th>`).join("")}</tr></thead><tbody>`;
+  spec.rows.forEach((r,ri)=>h+=`<tr>${r.map((x,ci)=>ci===0?`<th scope="row">${esc(x)}</th>`:`<td${cls(ri,ci)}>${x==="?"?'<span class="gap">?</span>':esc(x)}</td>`).join("")}</tr>`);
+  h+=`</tbody>${spec.foot?`<tfoot><tr>${spec.foot.map((x,ci)=>ci===0?`<th scope="row">${esc(x)}</th>`:`<td>${esc(x)}</td>`).join("")}</tr></tfoot>`:""}</table></div>`;
+  return frame(spec,h);
+}
+function marktChart(spec){
+  const W=360, H=250, L=52, B=44, T=20, R=20, nm=spec.nums;
+  const X=L+(W-L-R)*0.5, Y=T+(H-T-B)*0.5;
+  const c=(k,x,y)=>`<circle cx="${x}" cy="${y}" r="11" fill="#fff" stroke="${INK}" stroke-width="1.4"/><text x="${x}" y="${y+4.5}" text-anchor="middle" class="kz">${k}</text>`;
+  let g=`<line x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}" stroke="${INK}" stroke-width="1.4"/><line x1="${L}" y1="${H-B}" x2="${L}" y2="${T-6}" stroke="${INK}" stroke-width="1.4"/>
+  <path d="M${W-R},${H-B} l-8,-4 v8z M${L},${T-6} l-4,8 h8z" fill="${INK}"/>
+  <text x="${L-8}" y="${T-10}" class="ax u" text-anchor="start">Preis</text><text x="${W-R}" y="${H-B+30}" text-anchor="end" class="ax u">Menge</text>
+  <line x1="${L+20}" y1="${H-B-14}" x2="${W-R-20}" y2="${T+10}" stroke="${INK}" stroke-width="2.4"/>
+  <line x1="${L+20}" y1="${T+10}" x2="${W-R-20}" y2="${H-B-14}" stroke="${INK}" stroke-width="2.4"/>
+  <line x1="${L}" y1="${Y}" x2="${X}" y2="${Y}" stroke="${INK}" stroke-dasharray="4 3"/><line x1="${X}" y1="${Y}" x2="${X}" y2="${H-B}" stroke="${INK}" stroke-dasharray="4 3"/>
+  <circle cx="${X}" cy="${Y}" r="4" fill="${INK}"/><text x="${X+8}" y="${Y-8}" class="ax">X</text>`;
+  if(spec.hi) g+=`<line x1="${L}" y1="${T+40}" x2="${W-R-10}" y2="${T+40}" stroke="${G1}" stroke-width="1.2" stroke-dasharray="1 3"/><text x="${X}" y="${T+34}" text-anchor="middle" class="ax">verlangter Preis</text>`;
+  /* Kennziffern: A an der steigenden Kurve oben rechts, N an der fallenden oben links */
+  g+=c(nm.A, W-R-36, T+22) + c(nm.N, L+36, T+22) + c(nm.P, L-22, Y) + c(nm.M, X, H-B+18);
+  return frame(spec,`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(spec.title)}">${g}</svg>`);
+}
+function chartHTML(spec, opt){
+  if(typeof spec==="string") spec = (SZENEN.find(s=>s.id===spec)||{}).chart;
+  return ({col:colChart,hbar:hbarChart,line:lineChart,chg:chgChart,pie:pieChart,table:tableChart,markt:marktChart})[spec.type](spec,opt);
+}
+function checkInfo(spec){
+  if(typeof spec==="string") spec=(SZENEN.find(s=>s.id===spec)||{}).chart;
+  if(spec.type==="markt") return [["T",spec.title],["A","senkrecht: Preis · waagerecht: Menge"],["E","keine Zahlen – nur Kennziffern"],["L","steigende Kurve = Angebot, fallende Kurve = Nachfrage"],["Q","Modell aus der Wirtschaftslehre"]];
+  if(spec.type==="table") return [["T",spec.title+(spec.sub?" – "+spec.sub:"")],["A","Kopfzeile: "+spec.head.slice(1).join(", ")+" · Vorspalte: "+spec.head[0]],["E",(spec.head.filter(h=>/in |€|m²|%/.test(h)).join(", ")||spec.sub||"Anzahl")],["L","Tabelle – keine Legende"],["Q",spec.src]];
+  if(spec.type==="pie") return [["T",spec.title+(spec.sub?" – "+spec.sub:"")],["A","Kreis: alle Stücke zusammen = 100 %"],["E","Prozent"],["L",spec.parts.map(p=>p.n).join(", ")],["Q",spec.src]];
+  const ser=spec.series||[];
+  return [["T",spec.title+(spec.sub?" – "+spec.sub:"")],["A",spec.type==="hbar"?"Balken: Gruppen links, Werte waagerecht":`waagerecht: ${spec.xl||"Gruppen"} · senkrecht: ${spec.yl||"Werte"}`],["E",spec.unit],
+    ["L",ser.length>1?ser.map((s,i)=>`${s.n} = ${({dark:"dunkel",light:"hell",hatch:"schraffiert",dots:"gepunktet"})[s.s||["dark","light","hatch","dots"][i]]}`).join(" · "):(spec.type==="chg"?"Plus = über der Nulllinie, Minus = darunter (schraffiert)":"nur eine Reihe – keine Legende nötig")],["Q",spec.src]];
+}
+
+/* ---------- Wirtschaftskreislauf (Mini-Spiel) ---------- */
+function kreislaufSVG(cfg){
+  /* cfg.uLeft: Unternehmen links? cfg.lanes: [{strom, num}] Reihenfolge oben außen, oben innen, unten innen, unten außen; cfg.geldDash */
+  const W=360,H=230, Lx=8, Bw=104, Rx=W-8-Bw, by=86, bh=58;
+  const left = cfg.uLeft ? "UNTERNEHMEN" : "HAUSHALTE", right = cfg.uLeft ? "HAUSHALTE" : "UNTERNEHMEN";
+  const ys=[22,52,178,208];
+  let g=`<rect x="${Lx}" y="${by}" width="${Bw}" height="${bh}" rx="6" fill="#fff" stroke="${INK}" stroke-width="1.6"/><text x="${Lx+Bw/2}" y="${by+bh/2+4}" text-anchor="middle" class="kb">${left}</text>
+  <rect x="${Rx}" y="${by}" width="${Bw}" height="${bh}" rx="6" fill="#fff" stroke="${INK}" stroke-width="1.6"/><text x="${Rx+Bw/2}" y="${by+bh/2+4}" text-anchor="middle" class="kb">${right}</text>`;
+  cfg.lanes.forEach((ln,i)=>{
+    const st=STROM[ln.strom], fromLeft = (st.von==="U")===cfg.uLeft;
+    const dash = (st.art==="geld")===cfg.geldDash ? 'stroke-dasharray="7 5"' : "";
+    const yy=ys[i], top=i<2, xL=Lx+Bw/2+(i===1||i===2?14:-14)*0+ (i%3===0?-18:18), xR=Rx+Bw/2+(i%3===0?18:-18);
+    const yBox = top? by : by+bh;
+    const d=`M${xL},${yBox} V${yy} H${xR} V${yBox}`;
+    g+=`<path d="${d}" fill="none" stroke="${INK}" stroke-width="2.2" ${dash}/>`;
+    /* Pfeilspitze in der Mitte der Waagerechten */
+    const mx=W/2, dir=fromLeft?1:-1;
+    g+=`<path d="M${mx+dir*9},${yy} l${-dir*13},-6 v12z" fill="${INK}"/>`;
+    g+=`<circle cx="${mx-dir*34}" cy="${yy}" r="10" fill="#fff" stroke="${INK}" stroke-width="1.3"/><text x="${mx-dir*34}" y="${yy+4.5}" text-anchor="middle" class="kz">${ln.num}</text>`;
+  });
+  return `<figure class="paper"><figcaption><b>Der einfache Wirtschaftskreislauf</b><span>Die Beschriftung fehlt – folge den Pfeilen.</span></figcaption><div class="chartbox"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Wirtschaftskreislauf">${g}</svg></div>
+  <div class="lg"><span><svg width="34" height="10" aria-hidden="true"><line x1="0" y1="5" x2="34" y2="5" stroke="${INK}" stroke-width="2.2"/></svg>${cfg.geldDash?"Güterstrom":"Geldstrom"}</span><span><svg width="34" height="10" aria-hidden="true"><line x1="0" y1="5" x2="34" y2="5" stroke="${INK}" stroke-width="2.2" stroke-dasharray="7 5"/></svg>${cfg.geldDash?"Geldstrom":"Güterstrom"}</span></div></figure>`;
+}
+
+/* ---------- Personas ---------- */
+function personaSVG(p, mood="neutral", size=88){
+  const L=p.look, id=uid("pp");
+  const hair={
+    bob:`<path d="M22,44 C20,18 68,14 66,44 L66,58 C60,52 58,40 44,34 C34,40 28,50 22,58Z" fill="${L.hair}"/>`,
+    short:`<path d="M24,40 C22,20 66,16 64,40 C60,30 52,26 44,26 C36,26 28,30 24,40Z" fill="${L.hair}"/>`,
+    long:`<path d="M20,46 C16,16 72,14 68,46 L70,78 L58,74 L60,44 C54,34 40,30 30,40 L28,74 L18,78Z" fill="${L.hair}"/>`,
+    bald:`<path d="M24,46 C22,40 24,36 26,36 M64,46 C66,40 64,36 62,36" stroke="${L.hair}" stroke-width="5" fill="none" stroke-linecap="round"/>`,
+    curl:`<g fill="${L.hair}">${[[30,26],[40,20],[50,20],[60,26],[24,36],[66,36],[26,48],[64,48]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="9"/>`).join("")}</g>`
+  }[L.style];
+  const mouth={good:`<path d="M36,58 Q44,67 52,58" stroke="#3a2418" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+    mid:`<path d="M37,60 H51" stroke="#3a2418" stroke-width="2.6" stroke-linecap="round"/>`,
+    bad:`<path d="M36,63 Q44,55 52,63" stroke="#3a2418" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+    neutral:`<path d="M37,59 Q44,63 51,59" stroke="#3a2418" stroke-width="2.6" fill="none" stroke-linecap="round"/>`}[mood];
+  const brows = mood==="bad" ? `<path d="M31,38 L39,41 M57,38 L49,41" stroke="#3a2418" stroke-width="2.2" stroke-linecap="round"/>` : mood==="good" ? `<path d="M31,39 Q35,36 39,39 M49,39 Q53,36 57,39" stroke="#3a2418" stroke-width="2" fill="none"/>` : "";
+  return `<svg class="face" viewBox="0 0 88 88" width="${size}" height="${size}" aria-hidden="true">
+  <circle cx="44" cy="44" r="43" fill="#eaf0ef"/><clipPath id="${id}"><circle cx="44" cy="44" r="43"/></clipPath><g clip-path="url(#${id})">
+  <path d="M10,92 C12,72 26,68 44,68 C62,68 76,72 78,92Z" fill="${L.top}"/><rect x="39" y="60" width="10" height="10" fill="${L.skin}"/>
+  ${L.style==="long"?hair:""}<ellipse cx="44" cy="46" rx="20" ry="23" fill="${L.skin}"/>${L.style!=="long"?hair:""}
+  ${L.beard?`<path d="M26,50 C28,70 60,70 62,50 C58,62 30,62 26,50Z" fill="${L.hair}" opacity=".9"/>`:""}
+  <circle cx="36" cy="46" r="2.6" fill="#22160f"/><circle cx="52" cy="46" r="2.6" fill="#22160f"/>${brows}
+  ${L.glasses?`<g fill="none" stroke="#22160f" stroke-width="1.6"><circle cx="36" cy="46" r="6.5"/><circle cx="52" cy="46" r="6.5"/><path d="M42.5,46 H45.5"/></g>`:""}
+  ${mouth}</g></svg>`;
+}
+
+/* ---------- Häuser (Blick aus dem Fenster) ---------- */
+function houseSVG(shop, w=120){
+  const sky=`<rect width="120" height="90" fill="#cfe6f2"/><circle cx="98" cy="18" r="9" fill="#ffd36e"/><rect y="74" width="120" height="16" fill="#9cc48a"/>`;
+  const art={
+    frischmarkt:`<rect x="14" y="30" width="92" height="46" fill="#f6efe3" stroke="#5a4636" stroke-width="1.5"/><path d="M10,30 h100 l-6,12 h-88z" fill="#2e8b57"/><path d="M16,42 h88" stroke="#fff" stroke-width="3" stroke-dasharray="8 6"/>
+      <rect x="22" y="50" width="30" height="26" fill="#9fd0e6" stroke="#5a4636"/><rect x="66" y="50" width="30" height="20" fill="#9fd0e6" stroke="#5a4636"/>
+      <g>${[[28,72,"#d63c2f"],[36,72,"#e8a21b"],[44,72,"#7cb342"],[32,66,"#d63c2f"],[40,66,"#7cb342"]].map(([x,y,c])=>`<circle cx="${x}" cy="${y}" r="3.6" fill="${c}"/>`).join("")}</g>
+      <text x="60" y="27" text-anchor="middle" font-size="8" font-weight="700" fill="#2b2b2b" font-family="sans-serif">FRISCHMARKT</text>`,
+    modehaus:`<rect x="18" y="20" width="84" height="56" fill="#efe7f1" stroke="#4a3a52" stroke-width="1.5"/><rect x="18" y="20" width="84" height="10" fill="#5b3f73"/>
+      <rect x="26" y="40" width="30" height="36" fill="#cfe3ee" stroke="#4a3a52"/><rect x="64" y="40" width="30" height="24" fill="#cfe3ee" stroke="#4a3a52"/>
+      <path d="M33,52 l8,-6 l8,6 v14 h-16z" fill="#c4532b"/><path d="M41,44 v2" stroke="#333"/><path d="M70,58 l9,-6 l9,6" fill="none" stroke="#333" stroke-width="1.5"/><path d="M71,58 h16 v4 h-16z" fill="#2f5d8a"/>
+      <text x="60" y="28" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff" font-family="sans-serif">MODEHAUS</text>`,
+    baumarkt:`<path d="M12,76 V40 L36,22 L60,40 V76z" fill="#e3efe0" stroke="#3b5e3a" stroke-width="1.5"/><path d="M12,40 L36,22 L60,40" fill="none" stroke="#3b5e3a" stroke-width="2"/>
+      <path d="M20,40 V76 M28,34 V76 M36,28 V76 M44,34 V76 M52,40 V76" stroke="#3b5e3a" stroke-width=".8" opacity=".6"/>
+      <rect x="62" y="36" width="48" height="40" fill="#f2e6cf" stroke="#6b5233" stroke-width="1.5"/><rect x="62" y="36" width="48" height="9" fill="#e07b25"/>
+      <rect x="74" y="54" width="22" height="22" fill="#9fd0e6" stroke="#6b5233"/>
+      ${[[18,72],[30,70],[44,72]].map(([x,y])=>`<path d="M${x},${y} q-4,-10 0,-14 q4,4 0,14" fill="#4c9a4a"/><rect x="${x-4}" y="${y}" width="8" height="5" fill="#b0623a"/>`).join("")}
+      <text x="86" y="43" text-anchor="middle" font-size="6.5" font-weight="700" fill="#fff" font-family="sans-serif">GRÜNLAND</text>`
+  }[shop];
+  return `<svg viewBox="0 0 120 90" width="${w}" aria-hidden="true">${sky}${art}</svg>`;
+}
+
+/* ---------- Szene: Zahlen-Zentrale (Pinnwand wächst mit jeder Entscheidung) ---------- */
+function sceneSVG(st){
+  /* st: {shop, slots:[q|-1|undefined], cur, clock, max} */
+  const W=380,H=160;
+  let g=`<rect width="${W}" height="${H}" fill="#e8edf3"/><rect y="128" width="${W}" height="32" fill="#c9b49a"/><rect y="126" width="${W}" height="4" fill="#a8916f"/>`;
+  /* Fenster */
+  g+=`<g transform="translate(14,16)"><rect x="-4" y="-4" width="108" height="86" rx="3" fill="#f8fafc" stroke="#7c8794" stroke-width="2"/><g transform="scale(.833)">${houseSVG(st.shop||"frischmarkt").replace(/^<svg[^>]*>|<\/svg>$/g,"")}</g><path d="M50,-4 V82 M-4,38 H104" stroke="#f8fafc" stroke-width="3"/></g>`;
+  /* Uhr */
+  const fr=Math.max(0,Math.min(1,st.clock/st.max)), a=fr*2*Math.PI;
+  g+=`<g transform="translate(150,40)"><circle r="24" fill="#fff" stroke="#3d4248" stroke-width="2.5"/><path d="M0,0 L0,-20 A20,20 0 ${a>Math.PI?1:0} 1 ${20*Math.sin(a)},${-20*Math.cos(a)} Z" fill="${fr>.3?"#2f6f9f":"#c4532b"}" opacity=".85"/><circle r="3" fill="#3d4248"/><text y="40" text-anchor="middle" font-size="10" font-weight="700" fill="#3d4248" font-family="sans-serif">${Math.max(0,Math.round(st.clock))} Min.</text></g>`;
+  /* Pinnwand */
+  g+=`<rect x="196" y="12" width="172" height="108" rx="4" fill="#c99a62" stroke="#8a6438" stroke-width="2"/><rect x="200" y="16" width="164" height="100" fill="#d9b07c"/>`;
+  for(let i=0;i<10;i++){const x=206+(i%5)*31.5, y=22+Math.floor(i/5)*47, q=st.slots[i];
+    if(q===undefined||q===null){g+=`<rect x="${x}" y="${y}" width="26" height="38" rx="2" fill="none" stroke="#8a6438" stroke-dasharray="3 3"${i===st.cur?' class="pulse"':''}/>`;
+      if(i===st.cur) g+=`<rect x="${x}" y="${y}" width="26" height="38" rx="2" fill="#fff8" stroke="#2f6f9f" stroke-width="2"/>`;}
+    else if(q===2){g+=`<g transform="rotate(${(i%3)-1} ${x+13} ${y+19})"><rect x="${x}" y="${y}" width="26" height="38" fill="#fff" stroke="#9aa"/><rect x="${x+5}" y="${y+22}" width="4" height="10" fill="#3d4248"/><rect x="${x+11}" y="${y+16}" width="4" height="16" fill="#3d4248"/><rect x="${x+17}" y="${y+10}" width="4" height="22" fill="#2e8b57"/><circle cx="${x+13}" cy="${y+3}" r="3" fill="#2e8b57"/></g>`;}
+    else if(q===1){g+=`<g transform="rotate(${2-(i%4)} ${x+13} ${y+19})"><rect x="${x+1}" y="${y+4}" width="24" height="26" fill="#ffd95e"/><path d="M${x+5},${y+12} h15 M${x+5},${y+18} h12 M${x+5},${y+24} h9" stroke="#8a6a00" stroke-width="1.5"/><circle cx="${x+13}" cy="${y+5}" r="3" fill="#c48a00"/></g>`;}
+    else {g+=`<g><path d="M${x+3},${y+8} l8,-3 l6,4 l7,-2 l-1,9 l3,7 l-6,8 l-8,-2 l-7,4 l-2,-9 l-3,-6z" fill="#f4d3cf" stroke="#c4532b" stroke-width="1.2"/><path d="M${x+8},${y+14} l10,10 M${x+18},${y+14} l-10,10" stroke="#c4532b" stroke-width="2"/></g>`;}
+  }
+  /* Schreibtisch mit Laptop */
+  g+=`<rect x="120" y="112" width="70" height="8" fill="#6b4f35"/><path d="M134,112 l6,-18 h34 l-4,18z" fill="#3d4248"/><rect x="144" y="98" width="22" height="10" fill="#9fd0e6"/>`;
+  return `<svg class="scene" viewBox="0 0 ${W} ${H}" role="img" aria-label="Die Zahlen-Zentrale: Pinnwand mit ${st.slots.filter(x=>x!=null).length} von 10 Ergebnissen">${g}</svg>`;
+}
+
+/* ---------- Symbole ---------- */
+const ICON = {
+  lupe:`<circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M15,15 L21,21" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>`,
+  diagramm:`<path d="M3,21 H21" stroke="currentColor" stroke-width="2"/><rect x="5" y="12" width="3.5" height="8" fill="currentColor"/><rect x="10.5" y="7" width="3.5" height="13" fill="currentColor"/><rect x="16" y="3" width="3.5" height="17" fill="currentColor"/>`,
+  kreis:`<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12,12 V3 A9,9 0 0 1 20.5,15 Z" fill="currentColor"/>`,
+  ganzes:`<rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3,15 H21" stroke="currentColor" stroke-width="2"/><text x="12" y="13" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor" font-family="sans-serif">100</text>`,
+  pfeil:`<path d="M3,18 L9,12 L13,15 L20,6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M15,5 H21 V11" fill="none" stroke="currentColor" stroke-width="2.4"/>`,
+  null:`<path d="M2,12 H22" stroke="currentColor" stroke-width="2"/><rect x="4" y="4" width="4" height="8" fill="currentColor"/><rect x="10" y="7" width="4" height="5" fill="currentColor"/><rect x="16" y="12" width="4" height="7" fill="none" stroke="currentColor" stroke-width="1.6"/>`,
+  tabelle:`<rect x="3" y="4" width="18" height="16" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3,9 H21 M3,14 H21 M10,4 V20" stroke="currentColor" stroke-width="1.6"/>`,
+  luecke:`<rect x="3" y="4" width="18" height="16" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3,12 H21 M12,4 V20" stroke="currentColor" stroke-width="1.6"/><text x="16.5" y="18.5" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor" font-family="sans-serif">?</text>`,
+  ampel:`<rect x="7" y="2" width="10" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor" opacity=".55"/><circle cx="12" cy="17" r="2.2" fill="currentColor" opacity=".3"/>`,
+  markt:`<path d="M3,3 V21 H21" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5,18 L19,5 M5,5 L19,18" stroke="currentColor" stroke-width="2"/>`,
+  klassik:`<rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="6" y="6" width="5" height="6" fill="currentColor"/><rect x="13" y="6" width="5" height="4" fill="currentColor" opacity=".6"/><rect x="6" y="14" width="5" height="4" fill="currentColor" opacity=".6"/><rect x="13" y="12" width="5" height="6" fill="currentColor"/>`,
+  blitz:`<path d="M13,2 L5,13 H11 L9,22 L19,9 H13 Z" fill="currentColor"/>`,
+  pruefung:`<rect x="5" y="2" width="14" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8,8 H16 M8,12 H16 M8,16 H12" stroke="currentColor" stroke-width="1.8"/>`,
+  krise:`<path d="M12,3 L22,20 H2 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12,9 V14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="17" r="1.4" fill="currentColor"/>`,
+  fehler:`<rect x="2" y="4" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8,22 H16 M12,18 V22" stroke="currentColor" stroke-width="2"/><path d="M9,8 L15,14 M15,8 L9,14" stroke="currentColor" stroke-width="2.2"/>`,
+  profi:`<path d="M12,2 L14.6,8.6 L21.5,9 L16.2,13.4 L18,20.2 L12,16.4 L6,20.2 L7.8,13.4 L2.5,9 L9.4,8.6 Z" fill="currentColor"/>`,
+  wieder:`<path d="M20,12 A8,8 0 1 1 17,5.8" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M14,2 L18,6 L14,9" fill="none" stroke="currentColor" stroke-width="2.4"/>`,
+  challenge:`<path d="M6,3 H18 V9 A6,6 0 0 1 6,9 Z" fill="currentColor"/><path d="M6,5 H3 A3,3 0 0 0 6,10 M18,5 H21 A3,3 0 0 1 18,10" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12,15 V19 M8,21 H16" stroke="currentColor" stroke-width="2.2"/>`,
+  ton:`<path d="M3,9 H7 L12,4 V20 L7,15 H3 Z" fill="currentColor"/><path d="M15,8 Q18,12 15,16 M17.5,5.5 Q22.5,12 17.5,18.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`,
+  tonaus:`<path d="M3,9 H7 L12,4 V20 L7,15 H3 Z" fill="currentColor"/><path d="M15,9 L21,15 M21,9 L15,15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>`,
+  buch:`<path d="M3,5 C7,3 10,4 12,6 C14,4 17,3 21,5 V19 C17,17 14,18 12,20 C10,18 7,17 3,19 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12,6 V20" stroke="currentColor" stroke-width="1.6"/>`,
+  werkzeug:`<path d="M14.5,3.5 a5,5 0 0 0 -5,6.3 L3.5,15.8 a2,2 0 0 0 2.8,2.8 L12.3,12.6 a5,5 0 0 0 6.3,-5 l-3,3 -2.8,-0.4 -0.4,-2.8 z" fill="currentColor"/>`,
+  stern:`<path d="M12,2 L14.6,8.6 L21.5,9 L16.2,13.4 L18,20.2 L12,16.4 L6,20.2 L7.8,13.4 L2.5,9 L9.4,8.6 Z"/>`
+};
+const icon = (k, s=22) => `<svg class="ic" viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true">${ICON[k]||""}</svg>`;
+function starsHTML(n){return `<span class="stars" aria-label="${n} von 3 Sternen">${[0,1,2].map(i=>`<svg viewBox="0 0 24 24" width="30" height="30" class="${i<n?"on":"off"}" aria-hidden="true">${ICON.stern}</svg>`).join("")}</span>`;}
+function badgeSVG(i, on){
+  const glyph=["personas","haeuser","fallenfrei","serie","jaeger","ausgebuegelt","profi3","kreislauf","pruefung","krise"][i];
+  const map={personas:"klassik",haeuser:"diagramm",fallenfrei:"ampel",serie:"blitz",jaeger:"fehler",ausgebuegelt:"wieder",profi3:"profi",kreislauf:"markt",pruefung:"pruefung",krise:"krise"};
+  return `<svg viewBox="0 0 48 56" width="44" height="52" aria-hidden="true" class="badge ${on?"on":"off"}"><path d="M14,34 L8,54 L18,48 L24,56 L28,36Z M34,34 L40,54 L30,48 L24,56 L20,36Z" class="rib"/><circle cx="24" cy="22" r="20" class="med"/><circle cx="24" cy="22" r="15" class="in"/><g transform="translate(13,11) scale(.92)" class="gl">${ICON[map[glyph]]}</g></svg>`;
+}
+
+/* ===== Die Zahlen-Zentrale – Spiellogik ===== */
+const APP = document.getElementById("app");
+const KEY = "zahlenzentrale_v1";
+let STORE_OK = true;
+function load(){ try{ const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : {}; }catch(e){ STORE_OK = false; return {}; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){ STORE_OK = false; } }
+const DB0 = {seen:{}, wrong:{sc:[], q:[]}, fixed:0, rec:{}, badges:[], stars:0, personas:[], houses:[], kreisOk:0, music:false, played:[], games:0};
+let DB = Object.assign({}, DB0, load());
+DB.wrong = Object.assign({sc:[], q:[]}, DB.wrong || {});
+try{ localStorage.setItem(KEY+"_t","1"); localStorage.removeItem(KEY+"_t"); }catch(e){ STORE_OK = false; }
+
+/* ---------- Zufall ---------- */
+function mulberry(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function hashStr(s){ let h=1779033703^s.length; for(let i=0;i<s.length;i++){ h=Math.imul(h^s.charCodeAt(i),3432918353); h=h<<13|h>>>19; } return h>>>0; }
+let RNG = Math.random;
+const rint = n => Math.floor(RNG()*n);
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rint(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const pickOne = a => a[rint(a.length)];
+
+/* Ziehen ohne Wiederholung (pro Gerät, pro Modus) */
+let NOTICE = null;
+function draw(key, ids, prefer, exclude=[]){
+  if(G && G.challenge){ const pool = ids.filter(i=>!exclude.includes(i)); return pool[rint(pool.length)]; }
+  let seen = (DB.seen[key]||[]).filter(i=>ids.includes(i));
+  let cand = ids.filter(i=>!seen.includes(i) && !exclude.includes(i));
+  if(!cand.length){ seen = []; cand = ids.filter(i=>!exclude.includes(i)); NOTICE = "Alle Aufgaben geschafft – jetzt geht es von vorn los, gemischt."; }
+  const pref = prefer ? cand.filter(prefer) : [];
+  const pool = pref.length ? pref : cand;
+  const p = pool[rint(pool.length)];
+  seen.push(p); DB.seen[key] = seen; save();
+  return p;
+}
+function drawN(key, ids, n){ const out=[]; for(let i=0;i<n;i++) out.push(draw(key, ids, null, out)); return out; }
+function unseen(key, ids){ const s = DB.seen[key]||[]; return ids.filter(i=>!s.includes(i)).length; }
+
+/* ---------- Musik (Web Audio, Standard aus) ---------- */
+const MUSIC = {
+  ctx:null, gain:null, timer:null, step:0, int:0,
+  ensure(){ if(!this.ctx){ const AC = window.AudioContext||window.webkitAudioContext; if(!AC) return false; try{ this.ctx=new AC(); }catch(e){ return false; } this.gain=this.ctx.createGain(); this.gain.gain.value=.3; this.gain.connect(this.ctx.destination); }
+    if(this.ctx.state==="suspended") this.ctx.resume(); return true; },
+  tone(f, t, d, type="sawtooth", v=.18, lp=900){ const c=this.ctx, o=c.createOscillator(), g=c.createGain(), fl=c.createBiquadFilter();
+    o.type=type; o.frequency.value=f; fl.type="lowpass"; fl.frequency.value=lp; g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.001,t+d);
+    o.connect(fl); fl.connect(g); g.connect(this.gain); o.start(t); o.stop(t+d+.02); },
+  kick(t){ const c=this.ctx, o=c.createOscillator(), g=c.createGain(); o.frequency.setValueAtTime(130,t); o.frequency.exponentialRampToValueAtTime(40,t+.14);
+    g.gain.setValueAtTime(.55,t); g.gain.exponentialRampToValueAtTime(.001,t+.18); o.connect(g); g.connect(this.gain); o.start(t); o.stop(t+.2); },
+  hat(t, v=.08){ const c=this.ctx, b=c.createBuffer(1, c.sampleRate*.04, c.sampleRate), d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    const s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain(); f.type="highpass"; f.frequency.value=7000; g.gain.value=v; s.buffer=b; s.connect(f); f.connect(g); g.connect(this.gain); s.start(t); },
+  play(int=0){ if(!DB.music) return; if(!this.ensure()) return; this.int=int; if(this.timer) return; this.step=0;
+    const roots=[110,87.31,130.81,98]; /* A – F – C – G als Grundtöne, frei kombiniert */
+    const tick=()=>{ const t=this.ctx.currentTime+.03, s=this.step%16, bar=Math.floor(this.step/16)%4, r=roots[bar];
+      if(s%4===0) this.kick(t);
+      if(s%2===1 || this.int>.5) this.hat(t, s%2?.07:.04);
+      if([0,3,6,8,11,14].includes(s)) this.tone(r*(s===6||s===14?1.5:1), t, .16, "sawtooth", .16, 700+this.int*900);
+      if(this.int>.4 && s%4===2) this.tone(r*4*(s===10?1.2:1), t, .08, "square", .05, 2400);
+      this.step++; };
+    this.timer = setInterval(tick, 60000/(118+Math.round(this.int*30))/4); },
+  setInt(i){ if(!this.timer){ return; } if(Math.abs(i-this.int)>.15){ this.stop(); this.play(i); } },
+  stop(){ if(this.timer){ clearInterval(this.timer); this.timer=null; } },
+  tusch(){ if(!DB.music || !this.ensure()) return; const t=this.ctx.currentTime+.05; [[220,0],[277.2,.12],[329.6,.24],[440,.36]].forEach(([f,d])=>this.tone(f,t+d,.5,"square",.08,3000)); this.kick(t); this.kick(t+.36); }
+};
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden) MUSIC.stop(); });
+function musicBtn(){ return `<button class="iconbtn" id="musicBtn" aria-pressed="${DB.music}" title="Musik an oder aus">${icon(DB.music?"ton":"tonaus",20)}<span class="lbl">Musik</span></button>`; }
+function bindMusic(onAgain){ const b=document.getElementById("musicBtn"); if(!b) return; b.onclick=()=>{ DB.music=!DB.music; save(); if(!DB.music) MUSIC.stop(); else { MUSIC.ensure(); toast("Musik an – leise stellen oder Kopfhörer nehmen."); if(onAgain) onAgain(); } b.outerHTML=musicBtn(); bindMusic(onAgain); }; }
+
+/* ---------- Hilfen ---------- */
+function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(), 3200); }
+function overlay(html){ const o=document.createElement("div"); o.className="overlay"; o.innerHTML=`<div class="card stack" role="dialog" aria-modal="true">${html}<button class="btn alt" data-close>Schließen</button></div>`; document.body.appendChild(o);
+  o.addEventListener("click", e=>{ if(e.target===o || e.target.closest("[data-close]")) o.remove(); }); o.querySelector("[data-close]").focus(); }
+function showWortspeicher(){ overlay(`<h2>Wortspeicher</h2>${WORTSPEICHER.map(g=>`<div class="stack" style="gap:6px"><div class="eyebrow">${g.m}</div><div class="wsp">${g.w.map(w=>`<span>${esc(w)}</span>`).join("")}</div></div>`).join("")}`); }
+function showWerkzeug(){ overlay(`<h2>Grafik-Werkzeugkarte</h2><div class="eyebrow">1. Erst lesen</div><p><b>T-A-E-L-Q:</b> Titel, Achsen, Einheit, Legende, Quelle</p><div class="eyebrow">2. Dann rechnen</div>
+  <div class="tblwrap"><table class="itbl" style="background:var(--surface);color:var(--ink)"><tbody>${WERKZEUG.map(r=>`<tr><th scope="row" style="background:var(--surface2)">${r[0]}</th><td style="text-align:left">${r[1]}</td></tr>`).join("")}</tbody></table></div>
+  <div class="eyebrow">3. Die vier Fallen</div><p>falsche Stelle · Richtung verdreht · steht nicht drin · Übertreibung</p>
+  <div class="eyebrow">4. Beschreiben</div><p>Einleitung – Beschreibung – Fazit</p><div class="eyebrow">5. Schaubilder</div><p>Kreislauf: Pfeil verfolgen, Legende prüfen. Markt: Angebot steigt, Nachfrage fällt.</p>`); }
+const TIPPS = {grafikcheck:"Schaut zuerst auf die Legende und die Einheit an der Achse.", diagrammart:"Anteile → Kreis · Entwicklung → Linie · vergleichen → Säulen · Rangfolge → Balken.",
+  anteil:"Was ist das Ganze? Teil = Ganzes · Prozentsatz : 100.", grundwert:"Sucht das Ganze im Titel, in der Summenzeile – oder addiert selbst. Achtet auf „nicht“.",
+  veraenderung:"(neu – alt) : alt · 100. Der alte Wert steht hinter „von“.", raten:"Über der Nulllinie heißt: mehr als im Vorjahr.",
+  durchschnitt:"Richtige Zeile? Für mehrere Tage: Summe durch Summe.", luecke:"Summe minus Teile – oder: Wie hängen die Spalten zusammen?",
+  aussage:"Passt die Aussage genau zu den Zahlen? Achtung bei alle, nie, immer und bei Gründen.", markt:"Preis nach oben, Menge nach rechts. Angebot steigt, Nachfrage fällt."};
+const MODES = [
+  {id:"klassik", n:"Klassik", d:"10 Aufträge, 3 Mini-Spiele, Monatsrunde.", ic:"klassik"},
+  {id:"blitz", n:"Blitzrunde", d:"10 Fragen, je 20 Sekunden. Für den Stundenanfang.", ic:"blitz"},
+  {id:"pruefung", n:"Prüfungsmodus", d:"Aufgaben wie in der Prüfung, mit Musterlösung.", ic:"pruefung"},
+  {id:"krise", n:"Krisenmodus", d:"Klassik mit drei Krisen mitten im Spiel.", ic:"krise"},
+  {id:"fehler", n:"Fehlerjagd", d:"Kollege Kevin präsentiert. Findet seine Fehler.", ic:"fehler"},
+  {id:"profi", n:"Profi-Modus", d:"Jede Entscheidung mit „weil“ begründen.", ic:"profi"},
+  {id:"wieder", n:"Wiederholen", d:"Nur Aufgaben, die ihr schon einmal falsch hattet.", ic:"wieder"},
+  {id:"challenge", n:"Klassen-Challenge", d:"Gleicher Code = gleiche Aufgaben für alle Teams.", ic:"challenge"}
+];
+const MODN = id => (MODES.find(m=>m.id===id)||{}).n;
+const SC = id => SZENEN.find(s=>s.id===id);
+const ST = id => STATIONEN.find(s=>s.id===id);
+const SCIDS = st => SZENEN.filter(s=>s.st===st).map(s=>s.id);
+const stufe = () => STUFEN.filter(s=>DB.stars>=s.ab).pop().n;
+const KEVIN = {n:"Kevin", look:{skin:"#f0c09a",hair:"#d9a441",style:"short",top:"#2e8b57"}};
+
+/* ---------- Spielzustand ---------- */
+let G = null;
+let UI = {mode:"klassik", shop:null, team:"", code:""};
+
+function progressFor(m){
+  const all=SZENEN.map(s=>s.id);
+  if(["klassik","profi","krise"].includes(m)){ const n=STATIONEN.reduce((a,s)=>a+unseen(m+":st:"+s.id, SCIDS(s.id)),0); return [n, all.length, "Aufträge"]; }
+  if(m==="blitz") return [unseen("blitz:q", FRAGEN.map(q=>q.id)), FRAGEN.length, "Fragen"];
+  if(m==="pruefung") return [unseen("pruefung:sc", all), all.length, "Aufgaben"];
+  if(m==="fehler") return [unseen("fehler:fj", FEHLERJAGD.map(f=>f.id)), FEHLERJAGD.length, "Präsentationen"];
+  if(m==="wieder"){ const n=DB.wrong.sc.length+DB.wrong.q.length; return [n, n, "offene Fehler"]; }
+  return null;
+}
+
+/* ================= START ================= */
+function renderStart(){
+  MUSIC.stop(); G=null; RNG=Math.random;
+  const wrongN = DB.wrong.sc.length + DB.wrong.q.length;
+  const modes = MODES.filter(m=>m.id!=="wieder" || wrongN>0);
+  if(UI.mode==="wieder" && !wrongN) UI.mode="klassik";
+  const needShop = ["klassik","krise","profi","challenge"].includes(UI.mode);
+  APP.innerHTML = `
+  <div class="bar"><button class="brand" id="home">${icon("diagramm",24)} <span class="bt">Zahlen-Zentrale</span></button><span class="pill">${esc(stufe())}</span>${musicBtn()}</div>
+  <div class="wrap stack" style="gap:18px">
+    <section class="hero">
+      <div class="eyebrow">WPF Grafiken, Schaubilder und Diagramme · Module 1–6</div>
+      <h1>Die Zahlen-Zentrale</h1>
+      <p class="lead">Ihr seid das Azubi-Team in der Zahlen-Zentrale. Jeden Tag kommt jemand mit einer Grafik und braucht eine Entscheidung. Lest genau, rechnet richtig – und tappt in keine Falle.</p>
+      ${sceneSVG({shop:UI.shop||"frischmarkt", slots:[2,2,1,2,0,2,null,null,null,null], cur:6, clock:31, max:45})}
+    </section>
+    <section class="card stack">
+      <h2>1. Euer Team</h2>
+      <label class="field" for="team">Teamname<input id="team" maxlength="24" autocomplete="off" placeholder="z. B. Die Säulenheiligen" value="${esc(UI.team)}"></label>
+      <div class="stack" style="gap:6px"><div class="field" id="houseLbl">Euer Haus${needShop?"":` <span class="muted small">(für diesen Modus nicht nötig)</span>`}</div>
+      <div class="houses" role="group" aria-labelledby="houseLbl">${Object.entries(HAEUSER).map(([k,h])=>`<button class="hcard" data-shop="${k}" aria-pressed="${UI.shop===k}">${houseSVG(k)}<b>${h.k}</b><span class="small muted">${h.d}</span></button>`).join("")}</div></div>
+    </section>
+    <section class="card stack">
+      <h2>2. Spielmodus</h2>
+      <div class="modes" role="group" aria-label="Spielmodus">${modes.map(m=>{ const p=progressFor(m.id), isNew=!(DB.played||[]).includes(m.id);
+        return `<button class="mcard" data-mode="${m.id}" aria-pressed="${UI.mode===m.id}">${icon(m.ic,26)}${isNew?`<span class="new">neu für euch</span>`:""}<b>${m.n}</b><span class="d">${m.d}</span>
+        ${p&&m.id!=="wieder"?`<span class="d">Neu für dich: ${p[0]} von ${p[1]} ${p[2]}</span><span class="prog" aria-hidden="true"><i style="width:${100*(1-p[0]/p[1])}%"></i></span>`:""}
+        ${m.id==="wieder"?`<span class="d">${wrongN} offene Fehler</span>`:""}
+        ${DB.rec[m.id]!=null?`<span class="d">Rekord: ${esc(DB.rec[m.id])}</span>`:""}</button>`;}).join("")}</div>
+      ${UI.mode==="challenge"?`<div class="stack" style="gap:8px"><label class="field" for="code">Code von der Tafel<input id="code" maxlength="12" autocomplete="off" placeholder="z. B. TAG-1610" value="${esc(UI.code)}" style="text-transform:uppercase"></label>
+        <button class="btn alt" id="daycode">Tagescode von heute nehmen</button><p class="small muted">Alle Teams mit demselben Code bekommen denselben Auftraggeber, dieselben Aufgaben und dasselbe Ereignis.</p></div>`:""}
+      <button class="btn sig wide" id="go">Spiel starten</button>
+      <p class="small muted" id="hint" aria-live="polite"></p>
+    </section>
+    <section class="card stack">
+      <h2>Abzeichen</h2>
+      <div class="badges">${ABZEICHEN.map((b,i)=>`<div class="bdg" title="${esc(b.d)}">${badgeSVG(i, DB.badges.includes(b.id))}<span>${esc(b.n)}</span></div>`).join("")}</div>
+      <p class="small muted">${DB.badges.length} von ${ABZEICHEN.length} Abzeichen · ${DB.stars} Sterne gesammelt · Stufe: ${esc(stufe())}</p>
+      <p class="small muted">${STORE_OK?"Euer Fortschritt wird nur auf diesem Gerät gespeichert.":"Hinweis: In diesem Fenster wird nichts gespeichert (privates Fenster). Das Spiel läuft trotzdem."}</p>
+      <div id="resetBox"><button class="btn alt" id="reset">Fortschritt zurücksetzen</button></div>
+    </section>
+  </div>`;
+  document.getElementById("home").onclick=renderStart;
+  bindMusic();
+  document.getElementById("team").oninput=e=>UI.team=e.target.value;
+  APP.querySelectorAll(".hcard").forEach(b=>b.onclick=()=>{ UI.shop=b.dataset.shop; renderStart(); });
+  APP.querySelectorAll(".mcard").forEach(b=>b.onclick=()=>{ UI.mode=b.dataset.mode; renderStart(); });
+  const code=document.getElementById("code"); if(code) code.oninput=e=>UI.code=e.target.value.toUpperCase();
+  const dc=document.getElementById("daycode"); if(dc) dc.onclick=()=>{ const d=new Date(); UI.code=`TAG-${String(d.getDate()).padStart(2,"0")}${String(d.getMonth()+1).padStart(2,"0")}`; renderStart(); };
+  document.getElementById("reset").onclick=()=>{ document.getElementById("resetBox").innerHTML=`<div class="confirm stack"><p><b>Wirklich alles zurücksetzen?</b> Gesehene Aufgaben, Fehler, Rekorde und Abzeichen werden auf diesem Gerät gelöscht.</p><div class="row"><button class="btn sig" id="resetYes">Ja, zurücksetzen</button><button class="btn alt" id="resetNo">Abbrechen</button></div></div>`;
+    document.getElementById("resetYes").onclick=()=>{ DB=JSON.parse(JSON.stringify(DB0)); save(); toast("Fortschritt zurückgesetzt."); renderStart(); };
+    document.getElementById("resetNo").onclick=renderStart; };
+  document.getElementById("go").onclick=()=>{
+    const hint=document.getElementById("hint");
+    if(needShop && !UI.shop){ hint.textContent="Bitte wählt zuerst euer Haus."; document.querySelector(".hcard").focus(); return; }
+    if(UI.mode==="challenge" && !UI.code.trim()){ hint.textContent="Bitte gebt den Code von der Tafel ein oder nehmt den Tagescode."; return; }
+    MUSIC.ensure && DB.music && MUSIC.ensure();
+    startMode(UI.mode);
+  };
+  if(NOTICE){ toast(NOTICE); NOTICE=null; }
+}
+
+function startMode(m){
+  if(!DB.played.includes(m)){ DB.played.push(m); save(); }
+  if(["klassik","krise","profi","challenge"].includes(m)) return newGame({mode:m});
+  if(m==="blitz") return startQuiz("blitz");
+  if(m==="pruefung") return startQuiz("pruefung");
+  if(m==="wieder") return startQuiz("wieder");
+  if(m==="fehler") return startFJ();
+}
+
+/* ================= KLASSIK / PROFI / KRISE / CHALLENGE ================= */
+function newGame(o){
+  const mode=o.mode, challenge = mode==="challenge" ? UI.code.trim().toUpperCase() : null;
+  RNG = challenge ? mulberry(hashStr("ZZ|"+challenge)) : Math.random;
+  G = {mode, challenge, team:(UI.team.trim()||"Team ohne Namen"), shop:UI.shop, clock:45, max:45, points:0, pmax:40, mood:50, results:[], slots:Array(10).fill(null), step:0, mini:{}};
+  G = Object.assign(G, {persona:null});
+  const S = o.setup ? JSON.parse(JSON.stringify(o.setup)) : buildSetup(mode, challenge);
+  G.setup = S; G.persona = PERSONAS.find(p=>p.id===S.persona);
+  G.seq = [{k:"strat"}];
+  STATIONEN.forEach((s,i)=>{ G.seq.push({k:"st", i});
+    if(i===3) G.seq.push({k:"mini", m:S.mini1});
+    if(mode==="krise" && [2,5,7].includes(i)) G.seq.push({k:"krise", id:S.krisen[[2,5,7].indexOf(i)]});
+    if(i===8) G.seq.push({k:"mini", m:"ampel"});
+    if(i===9) G.seq.push({k:"mini", m:"kreis"}); });
+  G.seq.push({k:"runde"},{k:"end"});
+  if(mode==="krise") G.pmax += 6;
+  renderPersonaDraw();
+}
+function buildSetup(mode, challenge){
+  const key = challenge ? "challenge" : mode, S = {};
+  S.persona = challenge ? pickOne(PERSONAS).id : draw(key+":persona", PERSONAS.map(p=>p.id));
+  S.scenes = STATIONEN.map(s=>draw(key+":st:"+s.id, SCIDS(s.id), challenge?null:(id=>SC(id).shop===UI.shop)));
+  S.order = {}; S.scenes.forEach(id=>{ S.order[id]=shuffle([0,1,2]); S.order[id+"w"]=shuffle([0,1,2]); });
+  S.order.strat = shuffle([0,1,2]);
+  S.mini1 = RNG()<.5 ? "bau" : "tab";
+  S.bau = draw(key+":bau", DIAGRAMM.map(d=>d.id));
+  S.bauOrd = [0,1,2].map(()=>shuffle([0,1,2]));
+  S.tab = buildTab(draw(key+":tab", TABELLEN.map(t=>t.id)));
+  S.ampel = draw(key+":ampel", AMPEL.map(a=>a.id));
+  S.kreis = buildKreis();
+  S.event = draw(key+":ev", EREIGNISSE.map(e=>e.id));
+  S.krisen = mode==="krise" ? drawN(key+":krise", KRISEN.map(k=>k.id), 3) : [];
+  S.krOrd = S.krisen.map(()=>shuffle([0,1,2]));
+  S.profi = draw(key+":profi", PROFIS.map(p=>p.id));
+  return S;
+}
+function tabChart(id){ const t=TABELLEN.find(x=>x.id===id); if(t.chart) return t.chart; const f=FEHLERJAGD.find(x=>x.id===t.ref); return typeof f.chart==="string"?SC(f.chart).chart:f.chart; }
+function buildTab(id){
+  const ch=tabChart(id), R=ch.rows.length, C=ch.head.length-1, qs=[];
+  const used=[];
+  for(let n=0;n<3;n++){ let r,c; do{ r=rint(R); c=1+rint(C); }while(used.includes(r+"-"+c)); used.push(r+"-"+c);
+    const r2=(r+1+rint(R-1))%R, c2=1+((c-1+1+rint(C-1))%C);
+    const vals=[ch.rows[r][c], ch.rows[r][c2], ch.rows[r2][c]];
+    if(new Set(vals).size<3) { n--; continue; }
+    qs.push({type:"wert", r, c, q:`Zeile „${ch.rows[r][0]}“, Spalte „${ch.head[c]}“: Welcher Wert steht dort?`, a:vals, ord:shuffle([0,1,2])}); }
+  /* Rückwärts: Wo steht der Wert? */
+  const all=[]; ch.rows.forEach((row,r)=>row.forEach((v,c)=>{ if(c>0) all.push([r,c,v]); }));
+  const uniq=all.filter(([r,c,v])=>all.filter(x=>x[2]===v).length===1 && !used.includes(r+"-"+c));
+  const [r,c,v]=uniq[rint(uniq.length)];
+  const r2=(r+1+rint(R-1))%R, c2=1+((c-1+1+rint(C-1))%C);
+  qs.push({type:"wo", r, c, q:`Wo steht die Zahl ${v}?`, a:[`${ch.rows[r][0]} – ${ch.head[c]}`,`${ch.rows[r2][0]} – ${ch.head[c]}`,`${ch.rows[r][0]} – ${ch.head[c2]}`], ord:shuffle([0,1,2])});
+  return {id, qs};
+}
+function buildKreis(){
+  const pairs=shuffle([["arbeit","lohn"],["gueter","ausgaben"]]);
+  const lanesStrom=[...shuffle(pairs[0]), ...shuffle(pairs[1])];
+  const nums=shuffle([1,2,3,4]);
+  const vg=shuffle(["arbeit","lohn","gueter","ausgaben"]).map(s=>{ const opts=KREISLAUF.filter(k=>k.s===s); return {s, t:opts[rint(opts.length)].t}; });
+  return {uLeft:RNG()<.5, geldDash:RNG()<.5, lanes:lanesStrom.map((s,i)=>({strom:s, num:nums[i]})), vg};
+}
+
+function gameBar(){
+  const low = G.clock<=8;
+  return `<div class="bar"><button class="brand" id="home">${icon("diagramm",24)} <span class="bt">Zahlen-Zentrale</span></button>
+   <span class="pill ${low?"warn":""}" title="Klausur-Uhr">${icon("pruefung",16)} <span class="num">${Math.max(0,G.clock)}</span>&nbsp;Min.</span>
+   <span class="pill" title="Fachpunkte"><span class="num">${G.points}</span>&nbsp;P.</span>
+   <button class="iconbtn" id="wsp" title="Wortspeicher">${icon("buch",20)}</button><button class="iconbtn" id="wzk" title="Werkzeugkarte">${icon("werkzeug",20)}</button>${musicBtn()}</div>`;
+}
+function bindBar(){
+  document.getElementById("home").onclick=()=>overlayLeave();
+  document.getElementById("wsp").onclick=showWortspeicher; document.getElementById("wzk").onclick=showWerkzeug; bindMusic();
+}
+function overlayLeave(){ overlay(`<h2>Spiel verlassen?</h2><p>Der Spielstand dieser Runde geht verloren.</p><button class="btn sig" id="leaveYes">Ja, zum Start</button>`);
+  document.getElementById("leaveYes").onclick=()=>{ document.querySelector(".overlay").remove(); renderStart(); }; }
+function sceneNow(cur){ return sceneSVG({shop:G.shop, slots:G.slots, cur, clock:G.clock, max:G.max}); }
+function next(){ G.step++; renderStep(); }
+function renderStep(){ window.scrollTo(0,0); const s=G.seq[G.step];
+  if(s.k==="strat") return renderStrat();
+  if(s.k==="st") return renderStation(s.i);
+  if(s.k==="mini") return ({bau:renderBau, tab:renderTab, ampel:renderAmpel, kreis:renderKreis})[s.m]();
+  if(s.k==="krise") return renderKrise(s.id);
+  if(s.k==="runde") return renderRunde();
+  if(s.k==="end") return renderEnd(); }
+
+function renderPersonaDraw(){
+  const p=G.persona;
+  APP.innerHTML = `${gameBar()}<div class="wrap stack" style="padding-top:18px">
+   <div class="eyebrow">${esc(MODN(G.mode))}${G.challenge?` · Code ${esc(G.challenge)}`:""} · ${esc(HAEUSER[G.shop].n)}</div>
+   <h2>Wer schickt euch heute die Aufträge?</h2>
+   <div class="flip" id="flip"><div class="flip-in">
+     <div class="flip-f">${icon("klassik",56)}<b style="font-family:var(--display);font-size:1.5rem">Auftraggeber-Karte</b><span>Tippt auf „Karte umdrehen“.</span></div>
+     <div class="flip-b">${personaSVG(p,"neutral",110)}<h2>${esc(p.n)}</h2><div class="eyebrow">${esc(p.r)}</div><p>„${esc(p.motto)}“</p>
+       <p class="small muted">Achtet besonders auf: ${p.focus.map(f=>esc(ST(f).n)).join(", ")}. Dort zählt ihre Laune doppelt.</p></div>
+   </div></div>
+   <button class="btn sig wide" id="flipBtn">Karte umdrehen</button>
+   <p class="small muted">So läuft es: Ihr habt 45 Minuten auf der Klausur-Uhr. Jede Entscheidung kostet Zeit. Am Ende stellt ihr eure Ergebnisse in der Monatsrunde vor.</p></div>`;
+  bindBar();
+  const b=document.getElementById("flipBtn");
+  b.onclick=()=>{ if(!document.getElementById("flip").classList.contains("on")){ document.getElementById("flip").classList.add("on"); b.textContent="Los geht's"; }
+    else { if(!DB.personas.includes(p.id)) DB.personas.push(p.id); if(!DB.houses.includes(G.shop)) DB.houses.push(G.shop); save(); renderStep(); } };
+}
+
+function optBtn(o, i, letter, dis){ return `<button class="opt" data-i="${i}" aria-pressed="false" ${dis?"disabled":""}><span class="k">${letter}</span><span class="t">${esc(o.t)}</span>${o.c!=null?`<span class="c">${o.c} Min.</span>`:""}</button>`; }
+
+function renderStrat(){
+  const ord=G.setup.order.strat;
+  APP.innerHTML = `${gameBar()}<div class="wrap stack" style="padding-top:14px">${sceneNow(-1)}
+   <section class="card stack"><div class="eyebrow">Vor dem ersten Auftrag · Arbeitsweise</div>
+    <div class="ask">${personaSVG(G.persona,"neutral",64)}<div class="bubble"><div class="who">${esc(G.persona.n)} · ${esc(G.persona.r)}</div>${esc(STRATEGIE.ask)}</div></div>
+    <div class="opts">${ord.map((oi,j)=>optBtn(STRATEGIE.opts[oi], oi, "ABC"[j])).join("")}</div>
+    <button class="btn wide" id="lock" disabled>Entscheidung festlegen</button><div id="after" class="stack"></div></section></div>`;
+  bindBar();
+  let sel=null;
+  APP.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ APP.querySelectorAll(".opt").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); sel=+b.dataset.i; document.getElementById("lock").disabled=false; });
+  document.getElementById("lock").onclick=()=>{
+    const o=STRATEGIE.opts[sel]; G.strategy=o.k; APP.querySelectorAll(".opt").forEach(x=>x.disabled=true);
+    document.getElementById("lock").remove();
+    G.results.push({kind:"strat", q:o.q, opt:sel});
+    const mood=o.q===2?"good":o.q===1?"mid":"bad";
+    G.mood=clamp(G.mood+(o.q===2?6:o.q===1?0:-6));
+    document.getElementById("after").innerHTML = reactHTML(mood) + termHTML(STRATEGIE.term, STRATEGIE.ihk) + `<button class="btn sig wide" id="nx">Weiter zum ersten Auftrag</button>`;
+    document.getElementById("nx").onclick=next; document.getElementById("nx").focus();
+  };
+}
+const clamp = v => Math.max(0, Math.min(100, v));
+function reactHTML(mood, extra=""){ const p=G.persona, line=pickOne(p[mood==="neutral"?"good":mood]);
+  return `<div class="ask react ${mood}">${personaSVG(p,mood,64)}<div class="bubble"><div class="who">${esc(p.n)}</div>${esc(line)}${extra?`<div class="small" style="margin-top:6px">${extra}</div>`:""}</div></div>`; }
+function termHTML(t, ihk){ return `<div class="term stack" style="gap:4px"><div class="eyebrow">Fachbegriff</div><h3>${esc(t.w)}</h3><p>${esc(t.d)}</p></div>${ihk?`<div class="ihk"><div class="eyebrow">So steht es in der Prüfung</div>${esc(ihk)}</div>`:""}`; }
+function checkHTML(chart){ return `<div class="hint stack" style="gap:6px"><div class="eyebrow">Grafik-Check</div><div class="check">${checkInfo(chart).map(([k,v])=>`<b>${k}</b><span>${esc(v)}</span>`).join("")}</div></div>`; }
+
+function renderStation(i){
+  const st=STATIONEN[i], sc=SC(G.setup.scenes[i]), ord=G.setup.order[sc.id], word=G.setup.order[sc.id+"w"], profi=G.mode==="profi";
+  const minC=Math.min(...sc.opts.map(o=>o.c)), focus=G.persona.focus.includes(st.id);
+  let checked=false;
+  if(G.strategy==="immer"){ G.clock-=1; checked=true; }
+  APP.innerHTML = `${gameBar()}<div class="wrap stack" style="padding-top:14px">${sceneNow(i)}
+   <section class="card stack">
+    <div class="eyebrow">Auftrag ${i+1} von 10 · ${st.mod} · ${esc(st.n)}${focus?` · <span style="color:var(--signal)">zählt doppelt</span>`:""}</div>
+    <div class="ask">${personaSVG(G.persona,"neutral",64)}<div class="bubble"><div class="who">${esc(G.persona.n)} · ${esc(G.persona.r)}</div>${esc(sc.ask)}</div></div>
+    ${chartHTML(sc.chart)}
+    <div id="checkBox">${checked?checkHTML(sc.chart)+`<p class="small muted">Grafik-Check gemacht: −1 Min.</p>`:G.strategy==="manchmal"?`<button class="btn alt wide" id="doCheck">${icon("lupe",20)} Grafik-Check machen (1 Min.)</button>`:`<p class="small muted">Ihr arbeitet im Tempo – ohne Grafik-Check.</p>`}</div>
+    ${!profi?`<div id="tipBox"><button class="iconbtn" id="tip">Tipp ansehen (2 Min.)</button></div>`:""}
+    <div class="opts" role="group" aria-label="Antworten">${ord.map((oi,j)=>{ const o=sc.opts[oi]; return optBtn(o, oi, "ABC"[j], o.c>G.clock && o.c!==minC); }).join("")}</div>
+    ${profi?`<div class="stack" style="gap:8px"><div class="eyebrow">Eure Begründung</div><div class="opts" id="weil">${word.map((wi,j)=>`<button class="opt" data-w="${wi}" aria-pressed="false"><span class="k">${j+1}</span><span class="t">${esc(sc.weil[wi])}</span></button>`).join("")}</div></div>`:""}
+    <button class="btn wide" id="lock" disabled>Entscheidung festlegen</button>
+    <div id="after" class="stack"></div></section></div>`;
+  bindBar();
+  const dc=document.getElementById("doCheck"); if(dc) dc.onclick=()=>{ G.clock-=1; checked=true; document.getElementById("checkBox").innerHTML=checkHTML(sc.chart)+`<p class="small muted">Grafik-Check gemacht: −1 Min.</p>`; refreshPills(); };
+  const tp=document.getElementById("tip"); if(tp) tp.onclick=()=>{ G.clock-=2; G.tipps=(G.tipps||0)+1; document.getElementById("tipBox").innerHTML=`<div class="hint"><b>Tipp:</b> ${esc(TIPPS[st.id])}</div>`; refreshPills(); };
+  let sel=null, w=null;
+  const upd=()=>{ document.getElementById("lock").disabled = sel==null || (profi && w==null); };
+  APP.querySelectorAll(".opts[role=group] .opt").forEach(b=>b.onclick=()=>{ APP.querySelectorAll(".opts[role=group] .opt").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); sel=+b.dataset.i; upd(); });
+  APP.querySelectorAll("#weil .opt").forEach(b=>b.onclick=()=>{ APP.querySelectorAll("#weil .opt").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); w=+b.dataset.w; upd(); });
+  document.getElementById("lock").onclick=()=>{
+    const o=sc.opts[sel]; G.clock-=o.c;
+    APP.querySelectorAll(".opt").forEach(x=>x.disabled=true); document.getElementById("lock").remove();
+    const tb=document.getElementById("tipBox"); if(tb && tb.querySelector("button")) tb.remove();
+    const dcb=document.getElementById("doCheck"); if(dcb) dcb.remove();
+    const weilOk = profi ? w===0 : null;
+    let pts = o.q===2?3:o.q===1?1:0;
+    if(profi) pts = o.q===2 ? (weilOk?3:1) : (o.q===1 && weilOk ? 1 : 0);
+    const conflict = G.strategy==="tempo" && o.q<2 && ["einheit","stelle","grundwert","nicht","nullprozent"].includes(o.falle);
+    const mult=focus?2:1;
+    let dm = o.q===2?8:o.q===1?2:-8; dm=Math.round(dm*mult); if(conflict) dm-=4; G.mood=clamp(G.mood+dm);
+    G.points+=pts; G.slots[i]=o.q;
+    G.results.push({kind:"st", i, st:st.id, sc:sc.id, opt:sel, q:o.q, pts, weilOk, conflict, checked, falle:o.falle});
+    if(o.q<2 && !G.challenge){ if(!DB.wrong.sc.includes(sc.id)) DB.wrong.sc.push(sc.id); save(); }
+    const mood=o.q===2?"good":o.q===1?"mid":"bad";
+    APP.querySelector(`.opt[data-i="${sel}"]`).classList.add(o.q===2?"r-good":o.q===1?"r-mid":"r-bad");
+    let extra = `+${pts} Fachpunkte${profi?` · Begründung ${weilOk?"richtig":"nicht richtig"}`:""}`;
+    if(conflict) extra += ` · Strategie-Konflikt: Ihr wolltet Zeit sparen – genau hier hätte der Grafik-Check geholfen.`;
+    document.getElementById("after").innerHTML = reactHTML(mood, extra) + termHTML(sc.term) + `<button class="btn sig wide" id="nx">Weiter</button>`;
+    refreshPills(); const pin=APP.querySelector(".scene"); if(pin) pin.outerHTML=sceneNow(-1);
+    document.getElementById("nx").onclick=next; document.getElementById("after").scrollIntoView({behavior:"smooth",block:"start"});
+  };
+}
+function refreshPills(){ const b=APP.querySelector(".bar"); if(!b) return; const tmp=document.createElement("div"); tmp.innerHTML=gameBar(); b.replaceWith(tmp.firstElementChild); bindBar(); }
+
+/* ---------- Mini-Spiel: Diagramm bauen ---------- */
+function renderBau(){
+  const d=DIAGRAMM.find(x=>x.id===G.setup.bau); let s=0, ok=0;
+  const draw1=()=>{ const sch=d.schritte[s], ord=G.setup.bauOrd[s];
+    APP.innerHTML = `${gameBar()}<div class="wrap stack" style="padding-top:14px"><section class="card stack">
+     <div class="eyebrow">Mini-Spiel · Diagramm bauen · Schritt ${s+1} von 3 · M1/M6</div><h2>Die Bank will ein Diagramm</h2>
+     <div class="hint">${esc(d.lage)}</div><h3>${esc(sch.f)}</h3>
+     <div class="opts">${ord.map((ai,j)=>`<button class="opt" data-a="${ai}" aria-pressed="false"><span class="k">${"ABC"[j]}</span><span class="t">${esc(sch.a[ai])}</span></button>`).join("")}</div><div id="fb" class="stack"></div></section></div>`;
+    bindBar();
+    APP.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ const a=+b.dataset.a; APP.querySelectorAll(".opt").forEach(x=>x.disabled=true);
+      b.classList.add(a===0?"r-good":"r-bad"); if(a===0) ok++; else APP.querySelector('.opt[data-a="0"]').classList.add("r-good");
+      document.getElementById("fb").innerHTML=`<div class="hint">${a===0?"<b>Richtig.</b> ":"<b>Nicht ganz.</b> "}${esc(sch.w)}</div><button class="btn sig wide" id="nx">${s<2?"Nächster Schritt":"Weiter"}</button>`;
+      document.getElementById("nx").onclick=()=>{ s++; if(s<3) draw1(); else { const pts=ok; G.points+=pts; G.mini.bau=ok; G.results.push({kind:"mini", m:"bau", ok, of:3, pts, mod:"M1"}); next(); } }; });
+  }; draw1();
+}
+/* ---------- Mini-Spiel: Tabellen-Schiffeversenken ---------- */
+function renderTab(){
+  const T=G.setup.tab, ch=tabChart(T.id); let s=0, ok=0;
+  const draw1=(mark)=>{ const q=T.qs[s];
+    APP.innerHTML = `${gameBar()}<div class="wrap stack" style="padding-top:14px"><section class="card stack">
+     <div class="eyebrow">Mini-Spiel · Tabellen-Schiffeversenken · Frage ${s+1} von 4 · M4</div><h2>Zeile und Spalte finden</h2>
+     <p class="small muted">Finger-Trick: Ein Finger fährt die Zeile entlang, einer die Spalte herunter.</p>
+     ${tableChart(ch, mark?{mark}:{})}<h3>${esc(q.q)}</h3>
+     <div class="opts">${q.ord.map((ai,j)=>`<button class="opt" data-a="${ai}" aria-pressed="false"><span class="k">${"ABC"[j]}</span><span class="t">${esc(q.a[ai])}</span></button>`).join("")}</div><div id="fb" class="stack"></div></section></div>`;
+    bindBar();
+    APP.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ const a=+b.dataset.a; if(a===0) ok++;
+      const ans=`${ch.rows[q.r][0]} – ${ch.head[q.c]}: ${ch.rows[q.r][q.c]}`;
+      draw1([q.r,q.c]);
+      APP.querySelectorAll(".opt").forEach(x=>{ x.disabled=true; const xa=+x.dataset.a; if(xa===0) x.classList.add("r-good"); else if(xa===a) x.classList.add("r-bad"); });
+      document.getElementById("fb").innerHTML=`<div class="hint">${a===0?"<b>Treffer!</b> ":"<b>Daneben.</b> "}Markiert: ${esc(ans)}</div><button class="btn sig wide" id="nx">${s<3?"Nächste Frage":"Weiter"}</button>`;
+      document.getElementById("nx").onclick=()=>{ s++; if(s<4) draw1(); else { const pts=ok>=4?3:ok===3?2:ok===2?1:0; G.points+=pts; G.mini.bau=pts; G.results.push({kind:"mini", m:"tab", ok, of:4, pts, mod:"M4"}); next(); } }; });
+  }; draw1();
+}
+/* ---------- Mini-Spiel: Ampelkarten ---------- */
+function renderAmpel(){
+  const A=AMPEL.find(a=>a.id===G.setup.ampel), ans={}; let left=90, timer=null, done=false;
+  const sts=A.st.map((s,i)=>({...s,i}));
+  APP.innerHTML = `${gameBar()}<div class="wrap stack" style="padding-top:14px"><section class="card stack">
+   <div class="eyebrow">Mini-Spiel · Ampelkarten · M5</div><h2>Stimmt das?</h2>
+   <p>Grün = stimmt · Gelb = steht nicht drin · Rot = falsch. Ihr habt 90 Sekunden.</p>
+   <div class="timer" aria-hidden="true"><i id="tbar" style="width:100%"></i></div><p class="small muted" id="tl" aria-live="off">90 Sekunden</p>
+   ${chartHTML(A.chart)}
+   <div class="stack" id="list">${sts.map(s=>`<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:10px"><p><b>${s.i+1}.</b> ${esc(s.t)}</p>
+     <div class="amp" data-i="${s.i}"><button class="g" data-c="g" aria-pressed="false">stimmt</button><button class="y" data-c="y" aria-pressed="false">steht nicht drin</button><button class="r" data-c="r" aria-pressed="false">falsch</button></div><div class="fb small"></div></div>`).join("")}</div>
+   <button class="btn sig wide" id="chk">Prüfen</button><div id="fb" class="stack"></div></section></div>`;
+  bindBar(); MUSIC.play(.5);
+  APP.querySelectorAll(".amp").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(done) return; g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); ans[g.dataset.i]=b.dataset.c; }));
+  const finish=()=>{ if(done) return; done=true; clearInterval(timer); MUSIC.stop();
+    let ok=0; sts.forEach(s=>{ const g=APP.querySelector(`.amp[data-i="${s.i}"]`), right=ans[s.i]===s.c; if(right) ok++;
+      g.querySelectorAll("button").forEach(b=>b.disabled=true);
+      g.nextElementSibling.innerHTML=`<span style="color:var(--${right?"good":"bad"});font-weight:700">${right?"✓ richtig":"✗ "+({g:"grün",y:"gelb",r:"rot"})[s.c]+" wäre richtig"}</span> – ${esc(s.w)}`; });
+    const pts=Math.floor(ok/2); G.points+=pts; G.results.push({kind:"mini", m:"ampel", ok, of:8, pts, mod:"M5"});
+    document.getElementById("chk").remove();
+    document.getElementById("fb").innerHTML=`<div class="hint"><b>${ok} von 8 richtig</b> · +${pts} Fachpunkte</div><button class="btn sig wide" id="nx">Weiter</button>`;
+    refreshPills(); document.getElementById("nx").onclick=next; };
+  document.getElementById("chk").onclick=finish;
+  timer=setInterval(()=>{ left--; const tb=document.getElementById("tbar"); if(!tb){ clearInterval(timer); return; } tb.style.width=(left/90*100)+"%"; document.getElementById("tl").textContent=left+" Sekunden";
+    if(left===30) MUSIC.setInt(.9); if(left<=0) finish(); },1000);
+}
+/* ---------- Mini-Spiel: Wirtschaftskreislauf ---------- */
+function renderKreis(){
+  const K=G.setup.kreis, ans={};
+  const sideName = who => who==="U"?"Unternehmen":"Haushalt";
+  APP.innerHTML = `${gameBar()}<div class="wrap stack" style="padding-top:14px"><section class="card stack">
+   <div class="eyebrow">Mini-Spiel · Wirtschaftskreislauf · M6</div><h2>Welche Nummer passt?</h2>
+   <p>Ordnet jedem Vorgang die Nummer im Kreislauf zu. Fragt euch: Was fließt? Von wem zu wem? Geld oder Güter?</p>
+   ${kreislaufSVG(K)}
+   <div id="tipK"><button class="iconbtn" id="tipKb">Tipp ansehen</button></div>
+   ${K.vg.map((v,i)=>`<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:10px"><p><b>${String.fromCharCode(65+i)}.</b> ${esc(v.t)}</p>
+     <div class="numgrid" data-i="${i}">${[1,2,3,4].map(n=>`<button data-n="${n}" aria-pressed="false" aria-label="Nummer ${n}">${n}</button>`).join("")}</div><div class="fb small"></div></div>`).join("")}
+   <button class="btn sig wide" id="chk" disabled>Prüfen</button><div id="fb" class="stack"></div></section></div>`;
+  bindBar();
+  document.getElementById("tipKb").onclick=()=>document.getElementById("tipK").innerHTML=`<div class="hint">Erst die Legende lesen: Welche Linie ist Geld? Zu jedem Güterstrom gehört ein Geldstrom in die andere Richtung. Nummern nie auswendig lernen – sie wechseln.</div>`;
+  APP.querySelectorAll(".numgrid").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{ g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); ans[g.dataset.i]=+b.dataset.n; document.getElementById("chk").disabled=Object.keys(ans).length<4; }));
+  document.getElementById("chk").onclick=()=>{ let ok=0;
+    K.vg.forEach((v,i)=>{ const lane=K.lanes.find(l=>l.strom===v.s), st=STROM[v.s], right=ans[i]===lane.num; if(right) ok++;
+      const g=APP.querySelector(`.numgrid[data-i="${i}"]`); g.querySelectorAll("button").forEach(b=>b.disabled=true);
+      g.nextElementSibling.innerHTML=`<span style="color:var(--${right?"good":"bad"});font-weight:700">${right?"✓":"✗ richtig: "+lane.num}</span> – ${st.n}: ${st.art==="geld"?"Geldstrom":"Güterstrom"} vom ${sideName(st.von)} zum ${sideName(st.von==="U"?"H":"U")}.`; });
+    const pts=ok>=4?3:ok===3?2:ok===2?1:0; G.points+=pts; G.mini.kreis=pts; G.results.push({kind:"mini", m:"kreis", ok, of:4, pts, mod:"M6"});
+    if(ok===4 && !G.challenge){ DB.kreisOk=(DB.kreisOk||0)+1; save(); }
+    document.getElementById("chk").remove(); refreshPills();
+    document.getElementById("fb").innerHTML=`<div class="hint"><b>${ok} von 4 richtig</b> · +${pts} Fachpunkte. Merke: Pfeil verfolgen, Linienart prüfen, dann erst zuordnen.</div><button class="btn sig wide" id="nx">Weiter</button>`;
+    document.getElementById("nx").onclick=next; };
+}
+/* ---------- Krise ---------- */
+function renderKrise(id){
+  const K=KRISEN.find(k=>k.id===id), idx=G.setup.krisen.indexOf(id), ord=G.setup.krOrd[idx];
+  APP.innerHTML = `${gameBar()}<div class="wrap stack" style="padding-top:14px"><section class="card stack" style="border:2px solid var(--signal)">
+   <div class="eyebrow" style="color:var(--signal)">${icon("krise",16)} Krise ${idx+1} von 3</div><h2>${esc(K.t)}</h2><p>${esc(K.txt)}</p>
+   <div class="opts">${ord.map((oi,j)=>optBtn(K.opts[oi], oi, "ABC"[j])).join("")}</div>
+   <button class="btn wide" id="lock" disabled>So reagieren wir</button><div id="after" class="stack"></div></section></div>`;
+  bindBar(); let sel=null;
+  APP.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ APP.querySelectorAll(".opt").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); sel=+b.dataset.i; document.getElementById("lock").disabled=false; });
+  document.getElementById("lock").onclick=()=>{ const o=K.opts[sel], pts=o.q; G.points+=pts; G.mood=clamp(G.mood+(o.q===2?6:o.q===1?0:-6));
+    G.results.push({kind:"krise", id, opt:sel, q:o.q, pts});
+    APP.querySelectorAll(".opt").forEach(x=>x.disabled=true); document.getElementById("lock").remove();
+    APP.querySelector(`.opt[data-i="${sel}"]`).classList.add(o.q===2?"r-good":o.q===1?"r-mid":"r-bad");
+    document.getElementById("after").innerHTML = reactHTML(o.q===2?"good":o.q===1?"mid":"bad", `+${pts} von 2 Krisenpunkten`) + `<button class="btn sig wide" id="nx">Weiter</button>`;
+    refreshPills(); document.getElementById("nx").onclick=next; };
+}
+/* ---------- Monatsrunde (Eröffnung) ---------- */
+function evalChk(chk){
+  if(chk==="strategie") return (G.results.find(r=>r.kind==="strat")||{}).q===2;
+  if(chk==="mini_bau"){ const r=G.results.find(r=>r.kind==="mini"&&(r.m==="bau"||r.m==="tab")); return r && r.pts>=2; }
+  if(chk==="mini_kreis"){ const r=G.results.find(r=>r.kind==="mini"&&r.m==="kreis"); return r && r.pts>=2; }
+  const r=G.results.find(r=>r.kind==="st"&&r.st===chk); return r && r.q===2;
+}
+function renderRunde(){
+  const E=EREIGNISSE.find(e=>e.id===G.setup.event), good=evalChk(E.chk);
+  G.trust=clamp(G.mood+(good?E.d:-E.d)); G.eventGood=good;
+  const cards=G.slots.map(q=>q===2?"good":q===1?"mid":"bad");
+  APP.innerHTML = `${gameBar()}<div class="wrap stack" style="padding-top:14px"><section class="card stack">
+   <div class="eyebrow">Die Monatsrunde</div><h2>Ihr stellt eure Ergebnisse vor</h2>
+   <svg viewBox="0 0 380 170" class="scene" role="img" aria-label="Die Geschäftsleitung geht an euren Ergebnissen entlang">
+    <rect width="380" height="170" fill="#e8edf3"/><rect y="140" width="380" height="30" fill="#c9b49a"/>
+    <rect x="10" y="12" width="360" height="86" rx="4" fill="#d9b07c" stroke="#8a6438" stroke-width="2"/>
+    ${cards.map((c,i)=>`<g class="rc" data-i="${i}" opacity=".35"><rect x="${18+i*35}" y="22" width="29" height="66" fill="${c==="good"?"#fff":c==="mid"?"#ffd95e":"#f4d3cf"}" stroke="#8a6438"/><text x="${32.5+i*35}" y="62" text-anchor="middle" font-size="16" font-weight="700" fill="${c==="good"?"#1d7a48":c==="mid"?"#8a6a00":"#b4321f"}" font-family="sans-serif">${c==="good"?"✓":c==="mid"?"~":"✗"}</text></g>`).join("")}
+    <g id="walker" class="walker" transform="translate(10,0)"><circle cx="20" cy="106" r="8" fill="#e8b896"/><rect x="12" y="114" width="16" height="22" rx="5" fill="#1f3a5c"/><rect x="13" y="135" width="5" height="8" fill="#333"/><rect x="22" y="135" width="5" height="8" fill="#333"/></g>
+   </svg>
+   <div class="kpis"><div class="kpi"><span class="small muted">Fachpunkte</span><b id="cP">0</b></div><div class="kpi"><span class="small muted">Restzeit</span><b>${Math.max(0,G.clock)} Min.</b></div><div class="kpi"><span class="small muted">Vertrauen</span><b id="cV">0 %</b></div><div class="kpi"><span class="small muted">Fallen</span><b>${G.results.filter(r=>r.kind==="st"&&r.q===0).length}</b></div></div>
+   <div id="ev" class="stack"></div></section></div>`;
+  bindBar(); MUSIC.play(.7);
+  const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches, W=document.getElementById("walker");
+  let i=0;
+  const stepW=()=>{ if(i<10){ const c=APP.querySelector(`.rc[data-i="${i}"]`); if(c) c.setAttribute("opacity","1"); if(W) W.setAttribute("transform",`translate(${10+i*35},0)`); i++; setTimeout(stepW, reduce?0:260); } else showEv(); };
+  const count=(el,to,suf="")=>{ const e=document.getElementById(el); if(reduce){ e.textContent=to+suf; return; } let v=0; const t=setInterval(()=>{ v=Math.min(to,v+Math.max(1,Math.round(to/25))); e.textContent=v+suf; if(v>=to) clearInterval(t); },60); };
+  count("cP", G.points); count("cV", G.mood, " %");
+  const showEv=()=>{ MUSIC.stop(); if(!document.getElementById("ev")) return;
+    document.getElementById("ev").innerHTML=`<div class="card tight stack" style="border:2px solid var(--${good?"good":"bad"})"><div class="eyebrow">Ereignis in der Monatsrunde</div><h3>${esc(E.t)}</h3><p>${esc(E.txt)}</p>
+      <p><b style="color:var(--${good?"good":"bad"})">${good?"Gut vorbereitet":"Das ging schief"}:</b> ${esc(good?E.gut:E.schlecht)}</p><p class="small muted">Vertrauen der Geschäftsleitung ${good?"+":"−"}${E.d} → ${G.trust} %</p></div>
+      <button class="btn sig wide" id="nx">Zur Auswertung</button>`;
+    document.getElementById("cV").textContent=G.trust+" %"; document.getElementById("nx").onclick=next; };
+  setTimeout(stepW, reduce?0:400);
+}
+/* ---------- Auswertung ---------- */
+function starsFor(p,max){ const r=p/max; return r>=.85?3:r>=.65?2:r>=.4?1:0; }
+function renderEnd(){
+  const stars=starsFor(G.points,G.pmax), traps=G.results.filter(r=>r.kind==="st"&&r.q===0);
+  if(!G.done){ G.done=true;
+    if(!G.challenge){ DB.stars+=stars; DB.games=(DB.games||0)+1; }
+    const recKey=G.mode, prev=DB.rec[recKey], cur=`${G.points} von ${G.pmax} P.`;
+    if(prev==null || parseInt(prev)<G.points) DB.rec[recKey]=cur;
+    const earn=b=>{ if(!DB.badges.includes(b)){ DB.badges.push(b); G.newBadges=(G.newBadges||[]).concat(b); } };
+    if(PERSONAS.every(p=>DB.personas.includes(p.id))) earn("personas");
+    if(Object.keys(HAEUSER).every(h=>DB.houses.includes(h))) earn("haeuser");
+    if(!traps.length) earn("fallenfrei");
+    if(G.mode==="profi" && stars===3) earn("profi3");
+    if(G.mode==="krise" && stars===3) earn("krise");
+    if((DB.kreisOk||0)>=3) earn("kreislauf");
+    save(); MUSIC.tusch();
+  }
+  /* Modul-Bilanz */
+  const mods={M1:[0,0],M2:[0,0],M3:[0,0],M4:[0,0],M5:[0,0],M6:[0,0]};
+  G.results.forEach(r=>{ if(r.kind==="st"){ const m=ST(r.st).mod; mods[m][0]+=r.pts; mods[m][1]+=3; } if(r.kind==="mini"){ mods[r.mod][0]+=r.pts; mods[r.mod][1]+=r.m==="ampel"?4:3; } });
+  const fallen={}; G.results.filter(r=>r.kind==="st"&&r.q<2).forEach(r=>{ const f=SC(r.sc).opts[r.opt].falle||"sonst"; fallen[f]=(fallen[f]||0)+1; });
+  const FN={einheit:"Einheit übersehen",stelle:"falsche Stelle",grundwert:"falsches Ganzes",nicht:"„nicht“ überlesen",rechnen:"Rechenweg falsch",frage:"Frage nicht beantwortet",richtung:"Richtung verdreht",nichtdrin:"steht nicht drin",uebertreibung:"Übertreibung",mitteln:"Tageswerte gemittelt",stunden:"Stunden falsch gezählt",pp:"Prozentpunkte verwechselt",nullprozent:"0 % falsch gedeutet",art:"falsche Diagrammart",schaetzen:"geschätzt statt abgelesen",sonst:"sonstiges"};
+  const P=PROFIS.find(p=>p.id===G.setup.profi);
+  const resRows = G.results.map(r=>{
+    if(r.kind==="strat"){ const o=STRATEGIE.opts[r.opt], cls=r.q===2?"good":r.q===1?"mid":"bad", best=STRATEGIE.opts.find(x=>x.q===2);
+      return `<div class="res ${cls} stack" style="gap:4px"><div><span class="sym">${r.q===2?"✓":r.q===1?"~":"✗"}</span> <b>Arbeitsweise:</b> ${esc(o.t)}</div><p class="small">${esc(o.why)}</p>${r.q<2?`<p class="better"><b>Besser:</b> ${esc(best.t)}</p>`:""}<p class="small muted">So steht es in der Prüfung: ${esc(STRATEGIE.ihk)}</p></div>`; }
+    if(r.kind==="st"){ const sc=SC(r.sc), o=sc.opts[r.opt], best=sc.opts.find(x=>x.q===2), cls=r.q===2?"good":r.q===1?"mid":"bad";
+      return `<div class="res ${cls} stack" style="gap:4px"><div><span class="sym">${r.q===2?"✓":r.q===1?"~":"✗"}</span> <b>${r.i+1}. ${esc(ST(r.st).n)}</b> <span class="small muted">(${ST(r.st).mod} · ${r.pts} P.)</span></div>
+        <p class="small muted">${esc(sc.ask)}</p><p>Eure Wahl: <b>${esc(o.t)}</b></p><p class="small">${esc(o.why)}</p>
+        ${r.q<2?`<p class="better"><b>Besser:</b> ${esc(best.t)} – ${esc(best.why)}</p>`:""}
+        ${r.weilOk===false?`<p class="better"><b>Begründung:</b> ${esc(sc.weil[0])}</p>`:""}
+        ${r.conflict?`<p class="small" style="color:var(--bad)">Strategie-Konflikt: Ohne Grafik-Check in die Falle getappt.</p>`:""}
+        <p class="small muted">So steht es in der Prüfung: ${esc(sc.ihk)}</p></div>`; }
+    if(r.kind==="krise"){ const K=KRISEN.find(k=>k.id===r.id), o=K.opts[r.opt], best=K.opts.find(x=>x.q===2), cls=r.q===2?"good":r.q===1?"mid":"bad";
+      return `<div class="res ${cls} stack" style="gap:4px"><div><span class="sym">${r.q===2?"✓":r.q===1?"~":"✗"}</span> <b>Krise: ${esc(K.t)}</b> <span class="small muted">(${r.pts} P.)</span></div><p>Eure Wahl: <b>${esc(o.t)}</b></p><p class="small">${esc(o.why)}</p>${r.q<2?`<p class="better"><b>Besser:</b> ${esc(best.t)}</p>`:""}</div>`; }
+    if(r.kind==="mini"){ const n={bau:"Diagramm bauen",tab:"Tabellen-Schiffeversenken",ampel:"Ampelkarten",kreis:"Wirtschaftskreislauf"}[r.m], cls=r.ok===r.of?"good":r.pts>0?"mid":"bad";
+      return `<div class="res ${cls}"><span class="sym">${r.ok===r.of?"✓":r.pts>0?"~":"✗"}</span> <b>Mini-Spiel: ${n}</b> – ${r.ok} von ${r.of} richtig · ${r.pts} P.</div>`; }
+    return "";
+  }).join("");
+  APP.innerHTML = `${gameBar()}<div class="wrap stack" style="padding-top:14px">
+   <section class="scorecard" aria-label="Punktekarte"><div class="eyebrow" style="color:inherit;opacity:.8">Punktekarte · zum Zeigen</div>${starsHTML(stars)}
+    <div class="big num">${G.points}<span style="font-size:1.4rem"> / ${G.pmax}</span></div><h2>${esc(G.team)}</h2>
+    <p>${esc(HAEUSER[G.shop].n)} · Auftraggeber: ${esc(G.persona.n)} (${esc(G.persona.r)}) · ${esc(MODN(G.mode))}${G.challenge?` · Code ${esc(G.challenge)}`:""}</p>
+    ${G.newBadges?`<p><b>Neues Abzeichen:</b> ${G.newBadges.map(b=>esc(ABZEICHEN.find(x=>x.id===b).n)).join(", ")}</p>`:""}</section>
+   <div class="kpis"><div class="kpi"><span class="small muted">Fachpunkte</span><b>${G.points}</b></div><div class="kpi"><span class="small muted">Restzeit</span><b>${Math.max(0,G.clock)} Min.</b></div><div class="kpi"><span class="small muted">Vertrauen</span><b>${G.trust} %</b></div><div class="kpi"><span class="small muted">Fallen</span><b>${traps.length}</b></div></div>
+   <section class="card stack"><h3>Zufriedenheit von ${esc(G.persona.n)}</h3><div class="meter" role="img" aria-label="${G.mood} Prozent"><i style="width:${G.mood}%"></i></div><p class="small muted">${G.mood} % · ${G.mood>=75?"sehr zufrieden":G.mood>=50?"zufrieden":G.mood>=30?"skeptisch":"unzufrieden"}</p></section>
+   <section class="card stack"><h3>Modul-Bilanz</h3>${Object.entries(mods).map(([m,[p,mx]])=>`<div class="modbar"><b>${m}</b><div class="meter"><i style="width:${mx?100*p/mx:0}%"></i></div><span class="num small">${p}/${mx}</span></div>`).join("")}
+    ${Object.keys(fallen).length?`<p class="small"><b>Eure Fallen:</b> ${Object.entries(fallen).map(([f,n])=>`${esc(FN[f]||f)} (${n})`).join(" · ")}</p>`:`<p class="small"><b>Keine einzige Falle.</b> Stark!</p>`}</section>
+   <section class="stack"><h2>Eure Entscheidungen</h2>${resRows}</section>
+   <section class="ihk stack"><div class="eyebrow">Prüfungskasten</div><p><b>Erst lesen, dann rechnen.</b> T-A-E-L-Q · Anteil = Teil : Ganzes · 100 · Veränderung = (neu – alt) : alt · 100 · mehrere Tage: Summe durch Summe · Plus bleibt Plus · nur ankreuzen, was wirklich drinsteht · Kreislauf: Pfeil und Legende.</p></section>
+   <section class="card stack"><div class="eyebrow">${icon("profi",16)} Für Profis · ${P.mod}</div><p>${esc(P.f)}</p><div id="pl"><button class="btn alt" id="plb">Lösung aufdecken</button></div></section>
+   <section class="card stack"><h3>Noch eine Runde?</h3>
+    <button class="btn sig wide" id="again1">Neuer Auftraggeber</button>
+    <button class="btn alt wide" id="again2">Gleicher Auftraggeber – besser machen</button>
+    <button class="btn alt wide" id="again3">Anderes Haus</button>
+    <button class="btn alt wide" id="again4">Anderer Modus</button></section></div>`;
+  bindBar();
+  document.getElementById("plb").onclick=()=>document.getElementById("pl").innerHTML=`<div class="hint">${esc(P.l)}</div>`;
+  document.getElementById("again1").onclick=()=>newGame({mode:G.mode==="challenge"?"klassik":G.mode});
+  document.getElementById("again2").onclick=()=>{ const S=G.setup; if(G.challenge) UI.code=G.challenge; newGame({mode:G.mode, setup:S}); };
+  document.getElementById("again3").onclick=()=>{ UI.shop=null; UI.mode=G.mode; renderStart(); };
+  document.getElementById("again4").onclick=()=>renderStart();
+  if(NOTICE){ toast(NOTICE); NOTICE=null; }
+}
+
+/* ================= QUIZ: Blitzrunde, Prüfungsmodus, Wiederholen ================= */
+let Q=null;
+function startQuiz(kind){
+  RNG=Math.random; G=null;
+  let items=[];
+  if(kind==="blitz") items=drawN("blitz:q", FRAGEN.map(q=>q.id), 10).map(id=>({t:"q", id}));
+  if(kind==="pruefung") items=drawN("pruefung:sc", SZENEN.map(s=>s.id), 8).map(id=>({t:"sc", id}));
+  if(kind==="wieder"){ items=shuffle([...DB.wrong.sc.map(id=>({t:"sc",id})), ...DB.wrong.q.map(id=>({t:"q",id}))]).slice(0,8); }
+  items.forEach(it=>it.ord=shuffle(it.t==="q"?FRAGEN.find(q=>q.id===it.id).a.map((_,i)=>i):[0,1,2]));
+  Q={kind, items, i:0, ok:0, pts:0, streak:0, best:0, fixed:0, log:[]};
+  renderQ();
+}
+function qBar(){ return `<div class="bar"><button class="brand" id="home">${icon("diagramm",24)} <span class="bt">Zahlen-Zentrale</span></button><span class="pill">${esc(MODN(Q.kind))}</span><span class="pill"><span class="num">${Q.kind==="blitz"?Q.pts:Q.ok}</span>&nbsp;${Q.kind==="blitz"?"Punkte":"richtig"}</span>${musicBtn()}</div>`; }
+function renderQ(){
+  window.scrollTo(0,0);
+  if(Q.i>=Q.items.length) return renderQEnd();
+  const it=Q.items[Q.i], blitz=Q.kind==="blitz"; let qt, ans, right, sol, ihk, chart=null, ask="";
+  if(it.t==="q"){ const f=FRAGEN.find(q=>q.id===it.id); qt=f.q; ans=f.a; right=0; sol=f.sol; }
+  else { const s=SC(it.id); chart=s.chart; ask=s.ask; ans=s.opts.map(o=>o.t); right=s.opts.findIndex(o=>o.q===2); sol=s.opts[right].why; ihk=s.ihk; qt=s.ask; }
+  APP.innerHTML = `${qBar()}<div class="wrap stack" style="padding-top:14px"><section class="card stack">
+   <div class="eyebrow">${esc(MODN(Q.kind))} · ${Q.i+1} von ${Q.items.length}${blitz&&Q.streak>1?` · Serie ${Q.streak}`:""}</div>
+   ${blitz?`<div class="timer" aria-hidden="true"><i id="tbar" style="width:100%"></i></div>`:""}
+   ${chart?chartHTML(chart):""}<h2 style="font-size:1.3rem">${esc(qt)}</h2>
+   <div class="opts">${it.ord.map((ai,j)=>`<button class="opt" data-a="${ai}" aria-pressed="false"><span class="k">${"ABCD"[j]}</span><span class="t">${esc(ans[ai])}</span></button>`).join("")}</div>
+   <div id="fb" class="stack"></div></section></div>`;
+  document.getElementById("home").onclick=()=>{ MUSIC.stop(); clearInterval(Q.timer); renderStart(); }; bindMusic(()=>{ if(blitz) MUSIC.play(.5); });
+  let left=20; const t0=Date.now();
+  const answer=a=>{ clearInterval(Q.timer); MUSIC.stop();
+    const ok=a===right; APP.querySelectorAll(".opt").forEach(x=>{ x.disabled=true; const xa=+x.dataset.a; if(xa===right) x.classList.add("r-good"); else if(xa===a) x.classList.add("r-bad"); });
+    let gain=0; if(ok){ Q.ok++; Q.streak++; Q.best=Math.max(Q.best,Q.streak); gain=blitz?10+Math.min(10,2*(Q.streak-1)):0; Q.pts+=gain; } else Q.streak=0;
+    const list=it.t==="q"?DB.wrong.q:DB.wrong.sc;
+    if(!ok && !list.includes(it.id)) list.push(it.id);
+    if(ok && Q.kind==="wieder"){ const k=list.indexOf(it.id); if(k>=0) list.splice(k,1); Q.fixed++; DB.fixed=(DB.fixed||0)+1; }
+    save(); Q.log.push({it, ok});
+    document.getElementById("fb").innerHTML = `<div class="${Q.kind==="pruefung"?"ihk":"hint"} stack" style="gap:6px">${a==null?"<b>Zeit abgelaufen.</b>":ok?`<b>Richtig!</b>${gain?` +${gain} Punkte`:""}`:"<b>Nicht richtig.</b>"}
+      ${Q.kind==="pruefung"?`<div class="eyebrow">Musterlösung</div><p><b>${esc(ans[right])}</b></p><p>${esc(sol)}</p><div class="eyebrow">Satzbaustein für die Prüfung</div><p>${esc(ihk||"")}</p>`:`<p>${esc(sol)}</p>`}</div>
+      <button class="btn sig wide" id="nx">${Q.i<Q.items.length-1?"Nächste Frage":"Zum Ergebnis"}</button>`;
+    const nx=document.getElementById("nx"); nx.onclick=()=>{ Q.i++; renderQ(); }; nx.focus({preventScroll:true}); };
+  APP.querySelectorAll(".opt").forEach(b=>b.onclick=()=>answer(+b.dataset.a));
+  if(blitz){ MUSIC.play(Math.min(1,.3+Q.i*.07)); Q.timer=setInterval(()=>{ left=20-(Date.now()-t0)/1000; const tb=document.getElementById("tbar"); if(!tb){ clearInterval(Q.timer); return; } tb.style.width=Math.max(0,left/20*100)+"%"; if(left<=0) answer(null); },200); }
+}
+function renderQEnd(){
+  const n=Q.items.length, pct=n?Q.ok/n:0, stars=pct>=.85?3:pct>=.65?2:pct>=.4?1:0;
+  MUSIC.tusch();
+  const earn=b=>{ if(!DB.badges.includes(b)){ DB.badges.push(b); Q.nb=(Q.nb||[]).concat(b); } };
+  if(Q.kind==="blitz"){ if(Q.best>=8) earn("serie"); const prev=parseInt(DB.rec.blitz)||0; if(Q.pts>prev) DB.rec.blitz=`${Q.pts} Punkte`; }
+  if(Q.kind==="pruefung"){ if(pct>=.8) earn("pruefung"); const prev=parseInt(DB.rec.pruefung)||0, est=Math.round(pct*40); if(est>prev) DB.rec.pruefung=`${est} von 40 P.`; }
+  if(Q.kind==="wieder" && (DB.fixed||0)>=5) earn("ausgebuegelt");
+  if(n) DB.stars+=stars; save();
+  APP.innerHTML = `${qBar()}<div class="wrap stack" style="padding-top:14px">
+   <section class="scorecard"><div class="eyebrow" style="color:inherit;opacity:.8">Punktekarte · ${esc(MODN(Q.kind))}</div>${starsHTML(stars)}
+    <div class="big num">${Q.kind==="blitz"?Q.pts:Q.ok}<span style="font-size:1.4rem">${Q.kind==="blitz"?" Punkte":" / "+n}</span></div>
+    <p>${Q.ok} von ${n} richtig${Q.kind==="blitz"?` · längste Serie: ${Q.best}`:""}${Q.kind==="pruefung"?` · hochgerechnet auf die Klausur: etwa ${Math.round(pct*40)} von 40 Punkten`:""}${Q.kind==="wieder"?` · ${Q.fixed} Fehler ausgebügelt`:""}</p>
+    ${Q.nb?`<p><b>Neues Abzeichen:</b> ${Q.nb.map(b=>esc(ABZEICHEN.find(x=>x.id===b).n)).join(", ")}</p>`:""}</section>
+   ${n?"":`<div class="card">Keine offenen Fehler mehr – stark!</div>`}
+   <section class="card stack"><h3>Was ihr nachlesen solltet</h3>${Q.log.filter(l=>!l.ok).map(l=>{ const t=l.it.t==="q"?FRAGEN.find(q=>q.id===l.it.id):SC(l.it.id); return `<div class="res bad"><b>${esc(t.q||t.ask)}</b><p class="small">${esc(t.sol||t.opts.find(o=>o.q===2).why)}</p></div>`; }).join("")||"<p>Alles richtig!</p>"}</section>
+   <div class="row"><button class="btn sig" id="ag">Noch eine Runde</button><button class="btn alt" id="hm">Zum Start</button></div></div>`;
+  document.getElementById("home").onclick=renderStart; bindMusic();
+  document.getElementById("ag").onclick=()=>startQuiz(Q.kind); document.getElementById("hm").onclick=renderStart;
+  if(NOTICE){ toast(NOTICE); NOTICE=null; }
+}
+
+/* ================= FEHLERJAGD ================= */
+let F=null;
+function startFJ(){ RNG=Math.random; G=null; F={cases:drawN("fehler:fj", FEHLERJAGD.map(f=>f.id), 2), i:0, pts:0, max:0, perfect:true}; renderFJ(); }
+function renderFJ(){
+  window.scrollTo(0,0);
+  if(F.i>=F.cases.length) return renderFJEnd();
+  const C=FEHLERJAGD.find(f=>f.id===F.cases[F.i]), flag={}, why={};
+  const errN=C.st.filter(s=>!s.ok).length;
+  APP.innerHTML = `<div class="bar"><button class="brand" id="home">${icon("diagramm",24)} <span class="bt">Zahlen-Zentrale</span></button><span class="pill">Fehlerjagd ${F.i+1}/${F.cases.length}</span><span class="pill"><span class="num">${F.pts}</span>&nbsp;P.</span>${musicBtn()}</div>
+   <div class="wrap stack" style="padding-top:14px"><section class="card stack">
+   <div class="ask">${personaSVG(KEVIN,"good",64)}<div class="bubble"><div class="who">Kollege Kevin</div>Hier ist meine Präsentation „${esc(C.titel)}“. Ich bin mir sicher: alles richtig!</div></div>
+   ${chartHTML(C.chart)}
+   <p><b>Kevin hat ${errN} Fehler eingebaut.</b> Tippt alle falschen Aussagen an.</p>
+   <div class="stack" id="sts">${C.st.map((s,i)=>`<button class="stmt" data-i="${i}" aria-pressed="false"><span class="mark" aria-hidden="true">!</span><span>${esc(s.t)}</span></button><div class="why" data-i="${i}"></div>`).join("")}</div>
+   <button class="btn sig wide" id="chk">Fehler markiert – weiter</button><div id="fb" class="stack"></div></section></div>`;
+  document.getElementById("home").onclick=renderStart; bindMusic();
+  APP.querySelectorAll(".stmt").forEach(b=>b.onclick=()=>{ const i=b.dataset.i; flag[i]=!flag[i]; b.setAttribute("aria-pressed", flag[i]?"true":"false"); });
+  document.getElementById("chk").onclick=()=>{
+    APP.querySelectorAll(".stmt").forEach(b=>b.disabled=true); document.getElementById("chk").remove();
+    const found=C.st.map((s,i)=>i).filter(i=>flag[i] && !C.st[i].ok);
+    found.forEach(i=>{ const box=APP.querySelector(`.why[data-i="${i}"]`); box.innerHTML=`<p class="small" style="margin:6px 0 4px"><b>Welche Falle ist das?</b></p><div class="chips">${Object.entries(FALLEN).map(([k,n])=>`<button class="chip" data-f="${k}" aria-pressed="false">${n}</button>`).join("")}</div>`;
+      box.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ box.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed","false")); c.setAttribute("aria-pressed","true"); why[i]=c.dataset.f; }); });
+    document.getElementById("fb").innerHTML=`${found.length?`<p class="small muted">Wählt für jeden gefundenen Fehler die Falle.</p>`:""}<button class="btn sig wide" id="ev">Auswerten</button>`;
+    document.getElementById("ev").onclick=()=>{ let p=0;
+      C.st.forEach((s,i)=>{ const b=APP.querySelector(`.stmt[data-i="${i}"]`), box=APP.querySelector(`.why[data-i="${i}"]`);
+        box.querySelectorAll(".chip").forEach(c=>c.disabled=true);
+        let msg="";
+        if(!s.ok && flag[i]){ p++; const r=why[i]===s.f; if(r) p++; else F.perfect=false; msg=`<span style="color:var(--good);font-weight:700">✓ Fehler gefunden.</span> ${r?"Falle richtig erkannt.":`Die Falle heißt: ${FALLEN[s.f]}.`} ${esc(s.w)}`; }
+        else if(!s.ok){ F.perfect=false; msg=`<span style="color:var(--bad);font-weight:700">✗ Übersehen.</span> ${FALLEN[s.f]}: ${esc(s.w)}`; }
+        else if(flag[i]){ p--; F.perfect=false; msg=`<span style="color:var(--bad);font-weight:700">✗ Fehlalarm.</span> Diese Aussage stimmt.`; }
+        if(msg) box.innerHTML=`<p class="small" style="margin:4px 0 6px">${msg}</p>`; });
+      p=Math.max(0,p); F.pts+=p; F.max+=2*errN;
+      document.getElementById("fb").innerHTML=`<div class="hint"><b>${p} von ${2*errN} Punkten</b> für diese Präsentation.</div><button class="btn sig wide" id="nx">${F.i<F.cases.length-1?"Nächste Präsentation":"Zum Ergebnis"}</button>`;
+      document.getElementById("nx").onclick=()=>{ F.i++; renderFJ(); }; };
+  };
+}
+function renderFJEnd(){
+  const pct=F.max?F.pts/F.max:0, stars=pct>=.85?3:pct>=.65?2:pct>=.4?1:0;
+  let nb=null; if(F.perfect && !DB.badges.includes("jaeger")){ DB.badges.push("jaeger"); nb="Fehlerjäger"; }
+  const prev=parseInt(DB.rec.fehler)||0; if(F.pts>prev) DB.rec.fehler=`${F.pts} von ${F.max} P.`;
+  DB.stars+=stars; save(); MUSIC.tusch();
+  APP.innerHTML = `<div class="bar"><button class="brand" id="home">${icon("diagramm",24)} <span class="bt">Zahlen-Zentrale</span></button>${musicBtn()}</div><div class="wrap stack" style="padding-top:14px">
+   <section class="scorecard"><div class="eyebrow" style="color:inherit;opacity:.8">Punktekarte · Fehlerjagd</div>${starsHTML(stars)}<div class="big num">${F.pts}<span style="font-size:1.4rem"> / ${F.max}</span></div>
+   <p>${F.perfect?"Alle Fehler gefunden, alle Fallen erkannt, kein Fehlalarm.":"Merkt euch die vier Fallen: falsche Stelle · Richtung verdreht · steht nicht drin · Übertreibung."}</p>${nb?`<p><b>Neues Abzeichen:</b> ${nb}</p>`:""}</section>
+   <div class="row"><button class="btn sig" id="ag">Noch eine Runde</button><button class="btn alt" id="hm">Zum Start</button></div></div>`;
+  document.getElementById("home").onclick=renderStart; bindMusic();
+  document.getElementById("ag").onclick=startFJ; document.getElementById("hm").onclick=renderStart;
+  if(NOTICE){ toast(NOTICE); NOTICE=null; }
+}
+
+window.__zz = { get G(){ return G; }, get DB(){ return DB; }, get Q(){ return Q; }, get F(){ return F; } };
+renderStart();
+
+</script>
+</body>
+</html>

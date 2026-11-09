@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Der Inventur-Krimi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+/* Layout: Ermittlungsakte mit vier Hinweis-Stationen nacheinander, rechts der Tresor mit drei Codefeldern. Serie LF 8: dunkel, Lampengelb, Karteikarten. */
+:root{
+  --nacht:#0f1b2b; --nacht2:#16263b; --linie:#2b4160; --text:#e8eef6; --leise:#9fb3cc;
+  --lampe:#f4d35e; --rot:#e5484d; --gruen:#4fbf8a; --papier:#f7f4ec; --tinte:#1c2530;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif; --body:"Barlow",Arial,Helvetica,sans-serif; --akte:"Courier Prime","Courier New",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{background:var(--nacht);color:var(--text)}
+body{margin:0;font-family:var(--body);font-size:17px;line-height:1.45}
+.wrap{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:18px 60px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--linie);padding-bottom:10px;margin-bottom:14px}
+.marke{font-family:var(--display);font-weight:800;font-size:40px;line-height:1;color:var(--lampe);text-transform:uppercase}
+.marke small{display:block;font-size:15px;letter-spacing:2px;color:var(--leise);font-weight:600}
+h2{font-family:var(--display);font-weight:800;font-size:26px;margin:0 0 8px}
+p{margin:0 0 10px;max-width:66ch}.leise{color:var(--leise)}
+.lage{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start}
+@media (max-width:760px){.lage{grid-template-columns:1fr}}
+.schritte{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.schritt{font-family:var(--display);font-weight:800;font-size:16px;padding:6px 10px;border-radius:999px;border:1px solid var(--linie);color:var(--leise)}
+.schritt.jetzt{background:var(--lampe);color:#1b1500;border-color:var(--lampe)}.schritt.fertig{border-color:var(--gruen);color:var(--gruen)}
+.akte{background:var(--papier);color:var(--tinte);border-radius:6px;padding:18px}
+.akte .nr{font-family:var(--akte);font-size:13px;color:#6b6457}
+.beweis{font-family:var(--akte);font-size:15px;background:#ebe5d6;padding:10px 12px;border-left:4px solid #b07a2a;margin:8px 0 12px}
+table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid #d8d1c0;padding:4px 6px;text-align:left}th{background:#e5b8b7}td.r,th.r{text-align:right}
+.tw{overflow-x:auto}
+.eing{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.eing label{flex:1 1 220px;min-width:0;font-weight:600}
+input[type=text]{font:inherit;font-size:20px;padding:8px 10px;border-radius:8px;border:2px solid #cfc7b5;background:#fff;color:var(--tinte);width:160px}
+.opts{display:grid;gap:8px;margin-top:6px}
+.opt{font:inherit;text-align:left;padding:10px 12px;border-radius:6px;border:2px solid #cfc7b5;background:#fff;color:var(--tinte);cursor:pointer;min-height:44px}
+.opt.sel{border-color:#1F4E79;background:#eaf1f8}
+.btn{font-family:var(--display);font-weight:800;font-size:20px;border:0;border-radius:8px;padding:10px 18px;cursor:pointer;min-height:46px;background:#1F4E79;color:#fff;margin-top:10px}
+.btn.gelb{background:var(--lampe);color:#1b1500}
+.btn:focus-visible,input:focus-visible,.opt:focus-visible{outline:3px solid #f4d35e;outline-offset:2px}
+.falle{margin-top:10px;padding:10px 12px;border-radius:6px;background:#fbe6e4;border-left:4px solid #c0392b;font-size:16px}
+.gut{margin-top:10px;padding:10px 12px;border-radius:6px;background:#e3f4ea;border-left:4px solid #2e8b57;font-size:16px}
+.tresor{background:var(--nacht2);border:2px solid var(--linie);border-radius:12px;padding:16px;text-align:center}
+.rad{display:flex;justify-content:center;gap:8px;margin:10px 0}
+.rad span{display:inline-block;min-width:54px;padding:8px 6px;border-radius:8px;background:#0a1320;border:2px solid var(--linie);font-family:var(--display);font-weight:800;font-size:30px;color:var(--lampe);font-variant-numeric:tabular-nums}
+.verd{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:8px}
+.code{font-family:var(--display);font-weight:800;font-size:34px;letter-spacing:3px;color:var(--lampe)}.akte .code{color:#1F4E79}.akte .leise{color:#6b6457}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="marke">Der Inventur-Krimi<small>LF 8 · Abschlussspiel · Sockenladen „Fußnote“</small></div><div class="leise" id="fallen">0 Fallen erwischt</div></header>
+<div class="schritte" id="schritte"></div>
+<div class="lage">
+  <div class="akte" id="akte"></div>
+  <aside class="tresor"><div class="leise">Tresor von Frau Petersen</div><div class="rad"><span id="c1">?</span><span id="c2">??</span><span id="c3">?</span></div>
+    <div class="leise" style="font-size:14px">Stück · Euro · Ziffer</div>
+    <p class="leise" style="font-size:14px;margin-top:12px">Jeder gelöste Hinweis dreht ein Rad. Mit dem vollen Code und dem richtigen Täter öffnet sich der Tresor.</p></aside>
+</div>
+</div>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+function zahl(s){s=String(s||"").replace(/[\s€%]/g,"");if(!s)return NaN;if(s.indexOf(",")>=0)s=s.replace(/\./g,"").replace(",",".");else if(/^-?\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,"");return Number(s);}
+const eq=(a,b,t)=>!isNaN(a)&&Math.abs(a-b)<=(t||0.01);
+let schritt=0,fallen=0;const NAMEN=["Fall","Hinweis 1","Hinweis 2","Hinweis 3","Hinweis 4","Täter"];
+function kopf(){$("schritte").innerHTML=NAMEN.map((n,i)=>'<span class="schritt'+(i===schritt?' jetzt':i<schritt?' fertig':'')+'">'+n+'</span>').join("");$("fallen").textContent=fallen+(fallen===1?" Falle":" Fallen")+" erwischt";}
+function falle(t){fallen++;kopf();$("rueck").innerHTML='<div class="falle"><b>Falle!</b> '+t+'</div>';}
+function weiter(t,next){$("rueck").innerHTML='<div class="gut"><b>Richtig.</b> '+t+'</div><button class="btn gelb" id="go">Weiter</button>';$("go").onclick=()=>{schritt=next;zeige();};$("go").focus();}
+const ST=[
+ ()=>`<div class="nr">AKTE „MÖWE DELUXE“ · 20. JANUAR</div><h2>Schon wieder fehlen Socken</h2>
+  <p>Nach der Inventurnacht hat Frau Petersen die teure Sorte <b>„Möwe Deluxe“</b> (Bezugspreis 7,50 €) noch einmal nachzählen lassen. Das Ergebnis passt nicht zum WWS. Malte schwört, er war es nicht. Dr. Korn will Zahlen sehen.</p>
+  <p>Löse die vier Hinweise. Jeder Hinweis dreht ein Rad am Tresor. Am Ende nennst du den Täter.</p>
+  <div class="beweis">Verdächtig: Malte (Azubi) · Jana (Kasse) · Strumpf &amp; Co. (Lieferant) · die Kundin mit dem Riesen-Shopper · Kater „Socke“</div>
+  <button class="btn gelb" id="start">Ermittlung starten</button>`,
+ ()=>`<div class="nr">HINWEIS 1 · DIE ZÄHLLISTE</div><h2>Wie viele Paar sind wirklich da?</h2>
+  <div class="beweis">Zählliste „Möwe Deluxe“, gezählt zu zweit (Malte und Jana)<br>Regal A: 12 Paar · Regal B: 9 Paar · Lager oben: 14 Paar · Lager unten: 7 Paar</div>
+  <div class="eing"><label for="e1">Istbestand in Paar</label><input type="text" id="e1" inputmode="decimal"></div><button class="btn" id="ok">Prüfen</button><div id="rueck"></div>`,
+ ()=>`<div class="nr">HINWEIS 2 · DAS WWS-PROTOKOLL</div><h2>Wie viele sollten da sein?</h2>
+  <div class="beweis">Bestand 01.12.: 60 Paar<br>Zugang 14.12. Strumpf &amp; Co. (laut Lieferschein): 24 Paar<br>Verkäufe Dezember (Kasse): 36 Paar</div>
+  <div class="eing"><label for="e2">Sollbestand in Paar</label><input type="text" id="e2" inputmode="decimal"></div><button class="btn" id="ok">Prüfen</button><div id="rueck"></div>`,
+ ()=>`<div class="nr">HINWEIS 3 · DIE INVENTURDIFFERENZ</div><h2>Wie groß ist der Schaden?</h2>
+  <div class="beweis">Sollbestand 48 Paar · Istbestand 42 Paar · Bezugspreis 7,50 € je Paar</div>
+  <div class="eing"><label for="e3a">Inventurdifferenz in Paar</label><input type="text" id="e3a" inputmode="decimal"></div>
+  <div class="eing"><label for="e3b">Inventurdifferenz in €</label><input type="text" id="e3b" inputmode="decimal"> €</div>
+  <div class="eing"><label for="e3c">Inventurdifferenz in % vom Sollbestand (eine Stelle)</label><input type="text" id="e3c" inputmode="decimal"> %</div>
+  <button class="btn" id="ok">Prüfen</button><div id="rueck"></div>`,
+ ()=>`<div class="nr">HINWEIS 4 · DIE FRAGE VON DR. KORN</div><h2>Wo zeigt sich der Schaden im Jahresabschluss?</h2>
+  <p>„Die fehlenden Socken kosten 45 €. Wo sieht man das?“</p>
+  <div class="opts" id="opts">${["In der Bilanz steigt das Fremdkapital um 45 €.","In der GuV steigen die Umsatzerlöse um 45 €.","Der Warenbestand (Aktiva) sinkt – und der Gewinn in der GuV sinkt um 45 €.","Das Anlagevermögen sinkt um 45 €.","Nirgends – das WWS korrigiert den Fehler selbst."].map((o,i)=>'<button class="opt" data-i="'+i+'">'+(i+1)+'  '+o+'</button>').join("")}</div>
+  <button class="btn" id="ok">Prüfen</button><div id="rueck"></div>`,
+ ()=>`<div class="nr">SCHLUSS · WER WAR ES?</div><h2>Lies die letzte Spur</h2>
+  <div class="beweis">Notiz auf dem Karton vom 14.12., Handschrift von Jana: „Nur 18 drin?!“<br>Malte im Verhör: „Ich hab einfach den Lieferschein abgetippt. 24 stand drauf.“<br>Kamera Dezember: keine Auffälligkeiten bei „Möwe Deluxe“.</div>
+  <p><b>Wer ist verantwortlich – und warum?</b></p>
+  <div class="opts" id="opts">${["Die Kundin mit dem Riesen-Shopper – Ladendiebstahl","Jana – sie hat an der Kasse falsch gescannt","Strumpf & Co. hat 6 Paar zu wenig geliefert, und Malte hat ohne Nachzählen 24 erfasst","Kater „Socke“ hat die Socken versteckt","Malte hat die Socken mitgenommen"].map((o,i)=>'<button class="opt" data-i="'+i+'">'+o+'</button>').join("")}</div>
+  <button class="btn" id="ok">Tresor öffnen</button><div id="rueck"></div>`
+];
+let wahl=null;
+function zeige(){kopf();$("akte").innerHTML=ST[schritt]();wahl=null;
+  document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{document.querySelectorAll(".opt").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");wahl=Number(b.dataset.i);});
+  if(schritt===0){$("start").onclick=()=>{schritt=1;zeige();};return;}
+  $("ok").onclick=PRUEF[schritt];document.querySelectorAll("input").forEach(x=>x.addEventListener("keydown",e=>{if(e.key==="Enter")PRUEF[schritt]();}));
+  const f=document.querySelector("input");if(f)f.focus();}
+const PRUEF={
+ 1(){const v=zahl($("e1").value);if(eq(v,42))return weiter("12 + 9 + 14 + 7 = 42 Paar. Das ist der Istbestand – gezählt, nicht aus dem Computer.",2);
+  if(eq(v,21))return falle("Nur die Regale gezählt. Das Lager gehört zum Bestand dazu!");if(eq(v,48))return falle("Das ist eine Zahl aus dem WWS. Die Zählliste zeigt den Istbestand.");falle("Zähle alle vier Plätze zusammen.");},
+ 2(){const v=zahl($("e2").value);if(eq(v,48)){$("c1").textContent="?";return weiter("60 + 24 − 36 = 48 Paar. So viel <b>sollte</b> laut WWS da sein.",3);}
+  if(eq(v,120))return falle("Verkäufe sind Abgänge – sie werden abgezogen, nicht addiert.");if(eq(v,36)||eq(v,72))return falle("Anfangsbestand + Zugang − Verkäufe. Prüfe die Rechenzeichen.");falle("Rechne: Anfangsbestand + Zugang − Verkäufe.");},
+ 3(){const a=zahl($("e3a").value),b=zahl($("e3b").value),c=zahl($("e3c").value);
+  if(eq(a,-6)||eq(b,-45))return falle("Differenz falsch herum: Inventurdifferenz = Soll − Ist.");
+  if(!eq(a,6))return falle("Stückdifferenz: Sollbestand − Istbestand.");
+  if(eq(b,315)||eq(b,360))return falle("Das ist ein Bestandswert. Gesucht ist die Differenz × Bezugspreis.");
+  if(!eq(b,45))return falle("Differenz in € = Differenz in Paar × Bezugspreis.");
+  if(eq(c,14.3,0.05))return falle("Prozent auf den falschen Grundwert: vom Istbestand gerechnet. Grundwert ist der Sollbestand (48 × 7,50 = 360 €).");
+  if(eq(c,0.1,0.06))return falle("× 100 vergessen.");
+  if(!eq(c,12.5,0.05))return falle("Differenz in € × 100 : Sollbestand in €.");
+  $("c1").textContent="6";$("c2").textContent="45";weiter("6 Paar · 6 × 7,50 = 45,00 € · 45 × 100 : 360 = 12,5 %. Zwei Räder drehen sich: <b>6</b> und <b>45</b>.",4);},
+ 4(){if(wahl===null)return falle("Wähle eine Antwort.");
+  if(wahl===2){$("c3").textContent="3";return weiter("Die Socken fehlen im Warenbestand (Umlaufvermögen, Aktiva). Verlorene Ware ist Aufwand – der Gewinn sinkt. Das letzte Rad zeigt <b>3</b>.",5);}
+  const t={0:"Bilanz und GuV verwechselt: Fremdkapital sind Schulden – es wurde nichts geliehen.",1:"Bilanz und GuV verwechselt: Fehlende Ware bringt keinen Ertrag, sie ist ein Aufwand.",3:"Socken sind Umlaufvermögen, nicht Anlagevermögen.",4:"Typischer IHK-Ablenker: Kein WWS korrigiert Fehler selbst."};falle(t[wahl]);},
+ 5(){if(wahl===null)return falle("Wähle einen Verdächtigen.");
+  if(wahl!==2){const t={0:"Die Kamera zeigt nichts – und genau 6 Paar fehlen im Karton.",1:"Die Kasse hat 36 Verkäufe richtig gebucht.",3:"Socke ist unschuldig. Wie immer.",4:"Malte hat nichts gestohlen – aber er hat etwas versäumt. Lies die Notiz auf dem Karton."};return falle(t[wahl]);}
+  ende();}
+};
+function ende(){schritt=6;kopf();document.querySelectorAll(".schritt").forEach(s=>s.className="schritt fertig");
+  $("akte").innerHTML='<div class="nr">FALL GELÖST</div><h2>Der Tresor ist offen: 6 – 45 – 3</h2><p><b>Täter:</b> Strumpf &amp; Co. hat 18 statt 24 Paar geliefert. Weil Malte den Wareneingang nicht nachgezählt hat, stand das Soll um 6 Paar zu hoch. Ursache: Lieferant – und ein organisatorischer Mangel im Laden.</p>'+
+   '<p><b>Was Frau Petersen jetzt tut:</b> Strumpf &amp; Co. reklamieren, den Sollbestand im WWS korrigieren und Malte zeigen, wie man den Wareneingang prüft.</p>'+
+   '<div class="eing"><label for="nm">Namen der Ermittler (für den Nachweis)</label><input type="text" id="nm" style="width:260px"></div><p>Fallen erwischt: <b>'+fallen+'</b> · Datum: <b>'+new Date().toLocaleDateString("de-DE")+'</b></p>'+
+   '<p>Nachweis-Code für das Punktekonto (5 EP): <span class="code" id="nc">KRIMI-6453</span></p><p class="leise">Zeigt diesen Bildschirm eurer Lehrkraft oder ladet einen Screenshot in itslearning hoch.</p><button class="btn" id="nochmal">Noch einmal spielen</button>';
+  $("nochmal").onclick=()=>{schritt=0;fallen=0;["c1","c3"].forEach(i=>$(i).textContent="?");$("c2").textContent="??";zeige();};}
+zeige();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulations-Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #eef2f7; --surface: #ffffff; --surface-2: #f3f6fa; --text: #17222e; --muted: #56657a;
+  --accent: #1F4E79; --accent-2: #2d6aa3; --accent-soft: #e1ebf5; --border: #d4dde8;
+  --ok: #1d6b3f; --ok-soft: #dcf0e3; --bad: #b3261e; --bad-soft: #fbe3e1; --hint: #8a5300; --hint-soft: #fdf0d8;
+  --shadow: 0 10px 28px -16px rgba(20, 45, 75, .35); --r: 14px;
+  --sans: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0e1620; --surface: #16212d; --surface-2: #1b2836; --text: #e6edf4; --muted: #9db0c3;
+    --accent: #7fb3e6; --accent-2: #a6cbf0; --accent-soft: #1e3347; --border: #2a3b4d;
+    --ok: #7fd1a0; --ok-soft: #173427; --bad: #f19a92; --bad-soft: #3a1d1b; --hint: #f0bf6c; --hint-soft: #3a2c14;
+    --shadow: 0 10px 28px -14px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e1620; --surface: #16212d; --surface-2: #1b2836; --text: #e6edf4; --muted: #9db0c3;
+  --accent: #7fb3e6; --accent-2: #a6cbf0; --accent-soft: #1e3347; --border: #2a3b4d;
+  --ok: #7fd1a0; --ok-soft: #173427; --bad: #f19a92; --bad-soft: #3a1d1b; --hint: #f0bf6c; --hint-soft: #3a2c14;
+  --shadow: 0 10px 28px -14px rgba(0,0,0,.6);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 17px; line-height: 1.55; }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: 18px; padding-block: 22px 60px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 20px; border-bottom: 3px solid var(--accent); padding-bottom: 14px; margin-bottom: 18px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+h1 { margin: 2px 0 0; font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem); line-height: 1.1; text-wrap: balance; }
+.sub { color: var(--muted); font-size: .95rem; margin-top: 4px; }
+.score { display: flex; gap: 8px; flex-wrap: wrap; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 6px 12px; text-align: center; min-width: 78px; }
+.stat b { display: block; font-family: var(--mono); font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.stat span { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.chip { font: inherit; font-size: .88rem; font-weight: 700; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] .chip[aria-pressed="true"] { color: #0e1620; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .chip[aria-pressed="true"] { color: #0e1620; } }
+.chip:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--shadow); padding: 22px 22px 20px; }
+.tag { display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 3px 9px; border-radius: 6px; }
+.situation { margin: 12px 0 6px; }
+.frage { font-weight: 700; margin: 10px 0 4px; }
+.rund { color: var(--muted); font-size: .9rem; margin: 0 0 14px; }
+table.daten { border-collapse: collapse; margin: 8px 0 10px; font-variant-numeric: tabular-nums; font-size: .95rem; }
+table.daten td { padding: 4px 14px 4px 0; border-bottom: 1px solid var(--border); }
+table.daten td.n { text-align: right; font-family: var(--mono); }
+.answer { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; }
+.answer label { font-weight: 700; }
+.inbox { display: flex; align-items: center; border: 2px solid var(--border); border-radius: 10px; background: var(--surface-2); overflow: hidden; }
+.inbox input { font: inherit; font-family: var(--mono); font-size: 1.15rem; border: 0; background: transparent; color: var(--text); padding: 8px 10px; width: 9.5em; text-align: right; }
+.inbox .unit { padding: 0 12px 0 2px; color: var(--muted); font-family: var(--mono); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+button.b { font: inherit; font-weight: 700; font-size: .95rem; border-radius: 10px; padding: 9px 16px; cursor: pointer; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+button.b.primary { background: var(--accent); color: #fff; }
+:root[data-theme="dark"] button.b.primary { color: #0e1620; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button.b.primary { color: #0e1620; } }
+button.b:hover { transform: translateY(-1px); }
+.fb { margin-top: 16px; border-radius: 10px; padding: 12px 16px; display: none; }
+.fb.show { display: block; }
+.fb.ok { background: var(--ok-soft); border: 1px solid var(--ok); }
+.fb.bad { background: var(--bad-soft); border: 1px solid var(--bad); }
+.fb.hint { background: var(--hint-soft); border: 1px solid var(--hint); }
+.fb h3 { margin: 0 0 6px; font-size: 1rem; }
+.fb.ok h3 { color: var(--ok); } .fb.bad h3 { color: var(--bad); } .fb.hint h3 { color: var(--hint); }
+.steps { margin: 6px 0 0; padding-left: 22px; }
+.steps li { margin: 3px 0; }
+.tr { font-family: var(--mono); font-size: .92rem; background: var(--surface); border: 1px dashed var(--border); border-radius: 8px; padding: 6px 10px; margin-top: 8px; display: inline-block; }
+details.tool { margin-top: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 18px; }
+details.tool summary { cursor: pointer; font-weight: 700; }
+.faktor { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; margin: 10px 0 4px; font-family: var(--mono); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.faktor div { background: var(--surface-2); border-radius: 8px; padding: 5px 8px; }
+.faktor b { color: var(--accent); }
+.foot { color: var(--muted); font-size: .85rem; margin-top: 22px; text-align: center; }
+@media (max-width: 520px) { .card { padding: 18px 16px; } .inbox input { width: 7.5em; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } button.b:hover { transform: none; } }
+
+.det-opt { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; margin:6px 0; background:var(--surface-2); }
+.det-opt .w { font-family:var(--mono); font-weight:700; min-width:7.5em; }
+.det-opt select { font:inherit; font-size:.9rem; padding:5px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); max-width:100%; }
+.det-opt.ok { border-color:var(--ok); background:var(--ok-soft); } .det-opt.bad { border-color:var(--bad); background:var(--bad-soft); }
+.det-nav { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
+.det-sol li { margin:6px 0; } .det-sol .ft { color:var(--bad); font-weight:700; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Lernfeld 9 · Preispolitische Maßnahmen</div>
+      <h1>Kalkulations-Trainer</h1>
+      <div class="sub">Aufgaben wie in der Abschlussprüfung – jedes Mal mit neuen Zahlen.</div>
+    </div>
+    <div class="score" aria-live="polite">
+      <div class="stat"><b id="sRichtig">0</b><span>richtig</span></div>
+      <div class="stat"><b id="sVersucht">0</b><span>Aufgaben</span></div>
+      <div class="stat"><b id="sSerie">0</b><span>Serie</span></div>
+    </div>
+  </header>
+
+  <div class="types" role="group" aria-label="Aufgabentyp wählen" id="types"></div>
+
+  <section class="card" aria-live="polite">
+    <span class="tag" id="tTag">Aufgabe</span>
+    <div class="situation" id="tSit"></div>
+    <div id="tDaten"></div>
+    <p class="frage" id="tFrage"></p>
+    <p class="rund" id="tRund"></p>
+    <form class="answer" id="form" autocomplete="off">
+      <label for="antwort">Dein Ergebnis:</label>
+      <div class="inbox"><input id="antwort" inputmode="decimal" aria-describedby="tRund"><span class="unit" id="tUnit">€</span></div>
+      <div class="btns">
+        <button class="b primary" type="submit">Prüfen</button>
+        <button class="b" type="button" id="bTipp">Tipp</button>
+        <button class="b" type="button" id="bLsg">Lösung</button>
+        <button class="b" type="button" id="bNeu">Neue Aufgabe</button>
+      </div>
+    </form>
+    <div class="fb" id="fb"></div>
+  </section>
+
+<!-- Ablenker-Detektiv -->
+  <section class="card" id="detektiv" hidden aria-live="polite">
+    <span class="tag">Ablenker-Detektiv · Aufgabe <span id="dNr">1</span> von 6</span>
+    <div class="situation" id="dText"></div>
+    <p class="frage" id="dFrage"></p>
+    <p class="rund">Welche Zahl ist richtig? Kreuze sie an. Ordne jeder falschen Zahl den Fehler zu, der zu ihr führt.</p>
+    <div id="dOpts"></div>
+    <div class="btns" style="margin-top:10px"><button class="b primary" type="button" id="dPruef">Prüfen</button></div>
+    <div class="fb" id="dFb"></div>
+    <div class="det-nav"><button class="b" type="button" id="dZur">← vorige</button><span class="sub" id="dStand"></span><button class="b" type="button" id="dVor">nächste →</button></div>
+  </section>
+
+  <details class="tool">
+    <summary>Werkzeug: Prozent als Faktor</summary>
+    <div class="faktor">
+      <div>+ 7 % → <b>· 1,07</b></div><div>+ 19 % → <b>· 1,19</b></div><div>+ 25 % → <b>· 1,25</b></div><div>+ 50 % → <b>· 1,5</b></div>
+      <div>+ 60 % → <b>· 1,6</b></div><div>– 2 % → <b>· 0,98</b></div><div>– 3 % → <b>· 0,97</b></div><div>– 10 % → <b>· 0,9</b></div>
+      <div>– 20 % → <b>· 0,8</b></div><div>– 25 % → <b>· 0,75</b></div>
+    </div>
+    <p style="margin:6px 0 0">Plus p % → mal (1 + p : 100). Minus p % → mal (1 – p : 100). Zurück → geteilt durch denselben Faktor.</p>
+  </details>
+
+  <p class="foot">Kaufmännische Lehranstalten Bremerhaven · Lernfeld 9 · Die Aufgabentypen stammen aus den Abschlussprüfungen Warenwirtschaft und Kalkulation 2017–2026.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // ---------- Hilfen ----------
+  function R(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function rd(x, n) { var f = Math.pow(10, n); return Math.round((x + 1e-9) * f) / f; }
+  function de(x, n) { return x.toLocaleString('de-DE', { minimumFractionDigits: n, maximumFractionDigits: n }); }
+  function eur(x) { return de(x, 2) + ' €'; }
+  function pct(p) { return de(p, (p % 1) ? 1 : 0) + ' %'; }
+  function fak(p, minus) { var f = rd(minus ? 1 - p / 100 : 1 + p / 100, 4); return f.toFixed(4).replace(/0+$/, '').replace(/\.$/, '').replace('.', ','); }
+  function parse(s) {
+    s = String(s).replace(/[€%\s]/g, '');
+    if (s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.');
+    var v = parseFloat(s); return isNaN(v) ? null : v;
+  }
+  function money(a, b) { return rd(a + Math.random() * (b - a), 2); }
+
+  var WARE19 = [['Herrenhemden', 'Hemd'], ['Rucksäcke', 'Rucksack'], ['Laufschuhe', 'Paar'], ['Tennisschläger', 'Schläger'], ['Sweatshirts', 'Sweatshirt'],
+    ['Deckenstrahler', 'Strahler'], ['Halstücher', 'Halstuch'], ['Kopfhörer', 'Stück'], ['Bettwäsche-Sets', 'Set'], ['Trinkflaschen', 'Flasche']];
+  var WARE7 = [['Bio-Joghurt', 'Becher'], ['Kaffee', 'Packung'], ['Schokolade', 'Tafel'], ['Honig', 'Glas']];
+
+  // ---------- Aufgabentypen ----------
+  // Jede Funktion liefert: tag, sit, daten (HTML), frage, rund, unit, loesung, tol, stellen, tipps[], weg[], fallen[{v, txt}]
+  var TYPES = [
+    { key: 'stueck', name: 'Bezugspreis je Stück', gen: function () {
+      var w = pick(WARE19), m = pick([80, 100, 120, 150, 180, 200, 240, 250]), lp = money(4, 40), r = pick([5, 10, 15, 20]), bk = R(8, 45) + pick([0, 0.5, 0.9]);
+      var ziel = m * lp * (1 - r / 100), ges = ziel + bk, loe = rd(ges / m, 2);
+      return { tag: 'Bezugskalkulation', sit: 'Die Kaufhaus Hansa GmbH erhält vom Lieferanten eine Rechnung über <b>' + m + ' ' + w[0] + '</b> zu je <b>' + eur(lp) + '</b> (netto). Der Lieferant gewährt <b>' + r + ' % Rabatt</b>. Für die Verpackung stellt er zusätzlich <b>' + eur(bk) + '</b> in Rechnung. Auf den Gesamtbetrag kommen 19 % Umsatzsteuer.',
+        daten: '', frage: 'Berechnen Sie den Bezugspreis in Euro (netto) für ein Stück!', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe, tol: 0.011, stellen: 2,
+        tipps: ['Der Bezugspreis ist immer netto – die Umsatzsteuer lässt du weg.', 'Erst den Rabatt abziehen: ' + m + ' · ' + de(lp, 2) + ' · ' + fak(r, true) + '. Dann die Verpackung dazu. Dann durch ' + m + ' teilen.'],
+        weg: [m + ' · ' + eur(lp) + ' = ' + eur(m * lp), '– ' + r + ' % Rabatt: · ' + fak(r, true) + ' = ' + eur(ziel), '+ Verpackung ' + eur(bk) + ' = ' + eur(ges), ': ' + m + ' Stück = <b>' + eur(loe) + '</b>'],
+        taste: m + ' × ' + de(lp, 2) + ' × ' + fak(r, true) + ' + ' + de(bk, 2) + ' = ÷ ' + m + ' =',
+        fallen: [{ v: rd(ges * 1.19 / m, 2), t: 'Du hast mit Umsatzsteuer gerechnet. Der Bezugspreis ist netto.' }, { v: rd(ges, 2), t: 'Das ist der Bezugspreis für die ganze Lieferung. Gefragt ist ein Stück – teile durch ' + m + '.' },
+          { v: rd(lp * (1 - r / 100), 2), t: 'Die Verpackungskosten fehlen noch.' }, { v: rd(lp + bk / m, 2), t: 'Der Rabatt fehlt: erst ' + r + ' % abziehen (· ' + fak(r, true) + ').' }] };
+    } },
+    { key: 'bezug', name: 'Bezugspreis mit Rabatt und Skonto', gen: function () {
+      var w = pick(WARE19), m = pick([50, 80, 100, 120, 150, 200]), lp = money(2.5, 30), r = pick([10, 15, 20, 25]), s = pick([2, 3]), bk = rd(R(5, 40) + pick([0, 0.4, 0.9]), 2);
+      var ziel = m * lp * (1 - r / 100), bar = ziel * (1 - s / 100), loe = rd(bar + bk, 2);
+      return { tag: 'Bezugskalkulation', sit: 'Ein Lieferant bietet der Kaufhaus Hansa GmbH <b>' + w[0] + '</b> an. Sie bestellen <b>' + m + ' Stück</b>.',
+        daten: '<table class="daten"><tr><td>Listeneinkaufspreis je Stück</td><td class="n">' + eur(lp) + '</td></tr><tr><td>Rabatt ab 50 Stück</td><td class="n">' + r + ' %</td></tr><tr><td>Skonto bei Zahlung innerhalb von 10 Tagen</td><td class="n">' + s + ' %</td></tr><tr><td>Bezugskosten gesamt</td><td class="n">' + eur(bk) + '</td></tr></table>',
+        frage: 'Berechnen Sie den Bezugspreis in Euro für die gesamte Lieferung, wenn Sie Skonto ausnutzen!', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe, tol: 0.011, stellen: 2,
+        tipps: ['Reihenfolge: erst Rabatt, dann Skonto, dann Bezugskosten.', m + ' · ' + de(lp, 2) + ' · ' + fak(r, true) + ' · ' + fak(s, true) + ' + ' + de(bk, 2)],
+        weg: ['Listeneinkaufspreis: ' + m + ' · ' + eur(lp) + ' = ' + eur(m * lp), '– ' + r + ' % Rabatt (· ' + fak(r, true) + ') = Zieleinkaufspreis ' + eur(ziel), '– ' + s + ' % Skonto (· ' + fak(s, true) + ') = Bareinkaufspreis ' + eur(bar), '+ Bezugskosten ' + eur(bk) + ' = <b>' + eur(loe) + '</b>'],
+        taste: m + ' × ' + de(lp, 2) + ' × ' + fak(r, true) + ' × ' + fak(s, true) + ' + ' + de(bk, 2) + ' =',
+        fallen: [{ v: rd(m * lp * (1 - (r + s) / 100) + bk, 2), t: 'Du hast Rabatt und Skonto zusammengezählt. Skonto wird vom Zieleinkaufspreis abgezogen – also nach dem Rabatt.' },
+          { v: rd((m * lp * (1 - r / 100) + bk) * (1 - s / 100), 2), t: 'Du hast Skonto auch von den Bezugskosten abgezogen. Die Bezugskosten kommen erst am Schluss dazu.' },
+          { v: rd(ziel + bk, 2), t: 'Der Skonto fehlt. Die Aufgabe sagt: Sie nutzen Skonto aus.' }, { v: rd(bar, 2), t: 'Die Bezugskosten fehlen noch.' }, { v: rd(loe / m, 2), t: 'Das ist der Preis für ein Stück. Gefragt ist die gesamte Lieferung.' }] };
+    } },
+    { key: 'vorwaerts', name: 'Vorwärtskalkulation', gen: function () {
+      var lebens = Math.random() < 0.2, w = lebens ? pick(WARE7) : pick(WARE19), bp = lebens ? money(0.3, 4) : money(3, 60), h = pick([30, 40, 50, 60, 70, 80]), g = pick([5, 6, 7, 8, 10, 12, 15, 20, 25]), u = lebens ? 7 : 19;
+      var sk = bp * (1 + h / 100), nvp = sk * (1 + g / 100), loe = rd(nvp * (1 + u / 100), 2);
+      return { tag: 'Verkaufskalkulation', sit: 'Der Bezugspreis für <b>' + w[0] + '</b> beträgt <b>' + eur(bp) + '</b> je ' + w[1] + '.',
+        daten: '', frage: 'Ermitteln Sie den Bruttoverkaufspreis in Euro, wenn Sie mit ' + h + ' % Handlungskostenzuschlag, ' + g + ' % Gewinn und ' + u + ' % Umsatzsteuer kalkulieren!', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe, tol: 0.011, stellen: 2,
+        tipps: ['Übersetze jede Prozentzahl in einen Faktor: + ' + h + ' % → · ' + fak(h) + ' · + ' + g + ' % → · ' + fak(g) + ' · + ' + u + ' % → · ' + fak(u) + '.', 'Rechenkette: ' + de(bp, 2) + ' · ' + fak(h) + ' · ' + fak(g) + ' · ' + fak(u)],
+        weg: ['Bezugspreis ' + eur(bp), '+ ' + h + ' % Handlungskosten (· ' + fak(h) + ') = Selbstkosten ' + eur(sk), '+ ' + g + ' % Gewinn (· ' + fak(g) + ') = Nettoverkaufspreis ' + eur(nvp), '+ ' + u + ' % Umsatzsteuer (· ' + fak(u) + ') = <b>' + eur(loe) + '</b>'],
+        taste: de(bp, 2) + ' × ' + fak(h) + ' × ' + fak(g) + ' × ' + fak(u) + ' =',
+        fallen: [{ v: rd(bp * (1 + (h + g + u) / 100), 2), t: 'Du hast die Prozentsätze zusammengezählt. Jeder Zuschlag wird auf das vorige Ergebnis gerechnet – also malnehmen: · ' + fak(h) + ' · ' + fak(g) + ' · ' + fak(u) + '.' },
+          { v: rd(nvp, 2), t: 'Das ist der Nettoverkaufspreis. Die Umsatzsteuer fehlt noch.' }, { v: rd(bp * (1 + h / 100 + g / 100) * (1 + u / 100), 2), t: 'Der Gewinn wird auf die Selbstkosten gerechnet, nicht auf den Bezugspreis.' },
+          { v: rd(nvp * (lebens ? 1.19 : 1.07), 2), t: 'Achte auf den Umsatzsteuersatz in der Aufgabe: ' + u + ' %.' }] };
+    } },
+    { key: 'faktor', name: 'Kalkulationsfaktor und -zuschlag', gen: function () {
+      var w = pick(WARE19.concat(WARE7)), bp = money(0.4, 45), f = money(1.45, 2.4), bvp = rd(bp * f, 2), zuschlag = Math.random() < 0.35;
+      var fx = rd(bvp / bp, 4), zs = rd((bvp - bp) / bp * 100, 2);
+      if (!zuschlag) {
+        return { tag: 'Kalkulationsfaktor', sit: 'Für ' + '<b>' + w[0] + '</b>' + ' beträgt der Bezugspreis <b>' + eur(bp) + '</b> je ' + w[1] + ', der Bruttoverkaufspreis <b>' + eur(bvp) + '</b>.',
+          daten: '', frage: 'Berechnen Sie den Kalkulationsfaktor!', rund: 'Ergebnis auf vier Nachkommastellen runden.', unit: '', loesung: fx, tol: 0.00011, stellen: 4,
+          tipps: ['Kalkulationsfaktor = Bruttoverkaufspreis : Bezugspreis.', de(bvp, 2) + ' : ' + de(bp, 2) + ' – und dann auf 4 Stellen runden.'],
+          weg: ['Bruttoverkaufspreis : Bezugspreis', de(bvp, 2) + ' : ' + de(bp, 2) + ' = ' + de(bvp / bp, 6), 'gerundet: <b>' + de(fx, 4) + '</b>'], taste: de(bvp, 2) + ' ÷ ' + de(bp, 2) + ' =',
+          fallen: [{ v: rd(bp / bvp, 4), t: 'Du hast umgekehrt geteilt. Der Faktor ist immer größer als 1: Verkaufspreis geteilt durch Bezugspreis.' }, { v: rd(bvp / 1.19 / bp, 4), t: 'Du hast mit dem Nettoverkaufspreis gerechnet. Die IHK rechnet den Faktor mit dem Bruttoverkaufspreis.' },
+            { v: rd(bvp / bp, 2), t: 'Richtig gerechnet – aber auf 4 Nachkommastellen runden!' }] };
+      }
+      return { tag: 'Kalkulationszuschlag', sit: 'Für ' + '<b>' + w[0] + '</b>' + ' beträgt der Bezugspreis <b>' + eur(bp) + '</b> je ' + w[1] + ', der Bruttoverkaufspreis <b>' + eur(bvp) + '</b>.',
+        daten: '', frage: 'Berechnen Sie den Kalkulationszuschlag in Prozent!', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '%', loesung: zs, tol: 0.011, stellen: 2,
+        tipps: ['Kalkulationszuschlag = (Bruttoverkaufspreis – Bezugspreis) : Bezugspreis · 100.', '(' + de(bvp, 2) + ' – ' + de(bp, 2) + ') : ' + de(bp, 2) + ' · 100'],
+        weg: ['Differenz: ' + eur(bvp) + ' – ' + eur(bp) + ' = ' + eur(bvp - bp), ': ' + de(bp, 2) + ' · 100 = <b>' + de(zs, 2) + ' %</b>', 'Probe: Faktor ' + de(fx, 4) + ' → Zuschlag = (Faktor – 1) · 100'],
+        taste: de(bvp, 2) + ' − ' + de(bp, 2) + ' = ÷ ' + de(bp, 2) + ' × 100 =',
+        fallen: [{ v: rd((bvp - bp) / bvp * 100, 2), t: 'Du hast durch den Verkaufspreis geteilt. Der Kalkulationszuschlag bezieht sich auf den Bezugspreis.' }, { v: rd(bvp / bp * 100, 2), t: 'Das ist der Faktor mal 100. Zieh zuerst den Bezugspreis ab – oder rechne (Faktor – 1) · 100.' },
+          { v: rd((bvp / 1.19 - bp) / bp * 100, 2), t: 'Die IHK rechnet den Kalkulationszuschlag vom Bruttoverkaufspreis (mit Umsatzsteuer).' }] };
+    } },
+    { key: 'mitfaktor', name: 'Rechnen mit dem Faktor', gen: function () {
+      var w = pick(WARE19), f = rd(money(1.5, 2.3), 4), rueck = Math.random() < 0.4;
+      if (!rueck) {
+        var bp = money(5, 60), loe = rd(bp * f, 2);
+        return { tag: 'Kalkulationsfaktor', sit: 'Ein Lieferant liefert <b>' + w[0] + '</b> zum Bezugspreis von <b>' + eur(bp) + '</b> je ' + w[1] + '. Die Kaufhaus Hansa GmbH kalkuliert in dieser Warengruppe mit dem Kalkulationsfaktor <b>' + de(f, 4) + '</b>.',
+          daten: '', frage: 'Berechnen Sie den Bruttoverkaufspreis in Euro!', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe, tol: 0.011, stellen: 2,
+          tipps: ['Bruttoverkaufspreis = Bezugspreis · Kalkulationsfaktor.'], weg: [de(bp, 2) + ' · ' + de(f, 4) + ' = <b>' + eur(loe) + '</b>'], taste: de(bp, 2) + ' × ' + de(f, 4) + ' =',
+          fallen: [{ v: rd(bp / f, 2), t: 'Nach oben (zum Verkaufspreis) wird malgenommen, nicht geteilt.' }, { v: rd(bp * f / 1.19, 2), t: 'Der Faktor enthält die Umsatzsteuer schon. Nicht noch einmal teilen.' }] };
+      }
+      var bvp = money(15, 150), loe2 = rd(bvp / f, 2);
+      return { tag: 'Rückwärtskalkulation', sit: 'Ein Mitbewerber verkauft <b>' + w[0] + '</b> für <b>' + eur(bvp) + '</b>. Die Kaufhaus Hansa GmbH möchte denselben Preis anbieten und kalkuliert mit dem Kalkulationsfaktor <b>' + de(f, 4) + '</b>.',
+        daten: '', frage: 'Wie hoch darf der Bezugspreis in Euro höchstens sein?', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe2, tol: 0.011, stellen: 2,
+        tipps: ['Von oben nach unten auf der Preistreppe: geteilt durch den Faktor.'], weg: [de(bvp, 2) + ' : ' + de(f, 4) + ' = <b>' + eur(loe2) + '</b>'], taste: de(bvp, 2) + ' ÷ ' + de(f, 4) + ' =',
+        fallen: [{ v: rd(bvp * f, 2), t: 'Du hast malgenommen. Zurück zum Bezugspreis wird geteilt.' }, { v: rd(bvp / 1.19 / f, 2), t: 'Die Umsatzsteuer steckt schon im Faktor. Nur durch den Faktor teilen.' }] };
+    } },
+    { key: 'senkung', name: 'Preissenkung in Prozent', gen: function () {
+      var w = pick(WARE19), alt = pick([19.99, 22, 24.95, 29.9, 34.95, 39.9, 49.99, 59.9, 79.99, 99.9]), p1 = pick([10, 15, 20]), neu1 = rd(alt * (1 - p1 / 100), 2), p2 = pick([10, 20, 25, 30]), neu2 = rd(neu1 * (1 - p2 / 100), 2);
+            var loe = rd((neu1 - neu2) / neu1 * 100, 2);
+      return { tag: 'Preisreduzierung', sit: 'Im Sommerschlussverkauf hat die Kaufhaus Hansa GmbH den Preis für <b>' + w[0] + '</b> von ' + eur(alt) + ' auf <b>' + eur(neu1) + '</b> gesenkt. Weil noch viele Stücke übrig sind, bieten Sie die restlichen jetzt zu je <b>' + eur(neu2) + '</b> an.',
+        daten: '', frage: 'Um wie viel Prozent haben Sie den Preis nochmals reduziert?', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '%', loesung: loe, tol: 0.011, stellen: 2,
+        tipps: ['Gefragt ist die zweite Senkung. Der „alte“ Preis ist jetzt ' + eur(neu1) + '.', '(alt – neu) : alt · 100 = (' + de(neu1, 2) + ' – ' + de(neu2, 2) + ') : ' + de(neu1, 2) + ' · 100'],
+        weg: ['Senkung in Euro: ' + eur(neu1) + ' – ' + eur(neu2) + ' = ' + eur(neu1 - neu2), ': ' + de(neu1, 2) + ' · 100 = <b>' + de(loe, 2) + ' %</b>'], taste: de(neu1, 2) + ' − ' + de(neu2, 2) + ' = ÷ ' + de(neu1, 2) + ' × 100 =',
+        fallen: [{ v: rd((alt - neu2) / alt * 100, 2), t: 'Du bist vom ursprünglichen Preis ausgegangen. Bei der zweiten Senkung ist der erste gesenkte Preis der Grundwert.' },
+          { v: rd((neu1 - neu2) / neu2 * 100, 2), t: 'Du hast durch den neuen Preis geteilt. Der Grundwert ist immer der Preis vorher.' }, { v: rd(neu1 - neu2, 2), t: 'Das ist die Senkung in Euro. Gefragt ist die Senkung in Prozent.' }, { v: rd(neu2 / neu1 * 100, 2), t: 'Das ist der Anteil, der übrig bleibt. Die Senkung ist 100 % minus diesen Wert.' }] };
+    } },
+    { key: 'netto', name: 'Umsatzsteuer herausrechnen', gen: function () {
+      var brutto = rd(R(2000, 25000) + Math.random(), 2), lebens = Math.random() < 0.25, u = lebens ? 7 : 19, fragUst = Math.random() < 0.3;
+      var netto = rd(brutto / (1 + u / 100), 2), ust = rd(brutto - netto, 2), loe = fragUst ? ust : netto;
+      return { tag: 'Umsatzsteuer', sit: 'Die Kassenabrechnung der ' + (lebens ? 'Lebensmittelabteilung' : 'Sportabteilung') + ' weist für die vergangene Woche einen Gesamtumsatz von <b>' + eur(brutto) + '</b> (brutto) aus. Alle Artikel unterliegen dem Umsatzsteuersatz von ' + u + ' %.',
+        daten: '', frage: fragUst ? 'Wie viel Euro Umsatzsteuer sind im Gesamtumsatz enthalten?' : 'Ermitteln Sie den Gesamtumsatz netto in Euro!', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe, tol: 0.011, stellen: 2,
+        tipps: ['Brutto sind 100 % + ' + u + ' % = ' + (100 + u) + ' %. Also: brutto : ' + fak(u) + ' = netto.', fragUst ? 'Umsatzsteuer = brutto – netto.' : de(brutto, 2) + ' : ' + fak(u)],
+        weg: ['netto: ' + de(brutto, 2) + ' : ' + fak(u) + ' = ' + eur(netto), 'Umsatzsteuer: ' + eur(brutto) + ' – ' + eur(netto) + ' = ' + eur(ust), 'Ergebnis: <b>' + eur(loe) + '</b>'], taste: de(brutto, 2) + ' ÷ ' + fak(u) + ' =' + (fragUst ? ' − (Ergebnis von oben)' : ''),
+        fallen: [{ v: rd(brutto * (1 - u / 100), 2), t: 'Du hast ' + u + ' % abgezogen. Die Umsatzsteuer wurde aber auf den Nettobetrag aufgeschlagen – deshalb teilen: : ' + fak(u) + '.' },
+          { v: rd(brutto * u / 100, 2), t: 'Du hast ' + u + ' % vom Bruttobetrag gerechnet. Rechne erst netto aus (: ' + fak(u) + ') und ziehe dann ab.' }, { v: fragUst ? netto : ust, t: fragUst ? 'Das ist der Nettobetrag. Gefragt ist die Umsatzsteuer.' : 'Das ist die Umsatzsteuer. Gefragt ist der Nettobetrag.' }] };
+    } },
+    { key: 'einheit', name: 'Einheitspreis für den Sondertisch', gen: function () {
+      var w = pick([['Socken (Paar)', 'Paar'], ['T-Shirts', 'Stück'], ['Mützen', 'Stück'], ['Schals', 'Stück']]);
+      var n = [R(10, 30), R(8, 20), R(5, 15)], p = [pick([4, 5, 6, 7]), pick([8, 9, 10]), pick([5.5, 6.5, 7.5])];
+      var sum = n[0] * p[0] + n[1] * p[1] + n[2] * p[2], ns = n[0] + n[1] + n[2], loe = rd(sum / ns, 2);
+      var rows = n.map(function (x, i) { return '<tr><td>' + x + ' ' + w[1] + '</td><td class="n">bisher ' + eur(p[i]) + '</td></tr>'; }).join('');
+      return { tag: 'Sonderaktion', sit: 'Restposten <b>' + w[0] + '</b> sollen auf einem Sondertisch zu einem einheitlichen Preis verkauft werden. Der bisherige Umsatz soll dabei gleich bleiben:',
+        daten: '<table class="daten">' + rows + '</table>', frage: 'Berechnen Sie den einheitlichen Bruttoverkaufspreis in Euro je ' + w[1] + '!', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe, tol: 0.011, stellen: 2,
+        tipps: ['Nicht die drei Preise mitteln! Erst den Gesamtwert aller Stücke berechnen.', 'Gesamtwert : Anzahl aller Stücke = (' + n[0] + ' · ' + de(p[0], 2) + ' + ' + n[1] + ' · ' + de(p[1], 2) + ' + ' + n[2] + ' · ' + de(p[2], 2) + ') : ' + ns],
+        weg: ['Gesamtwert: ' + n.map(function (x, i) { return x + ' · ' + de(p[i], 2); }).join(' + ') + ' = ' + eur(sum), 'Anzahl: ' + n.join(' + ') + ' = ' + ns, eur(sum) + ' : ' + ns + ' = <b>' + eur(loe) + '</b>'],
+        taste: n[0] + ' × ' + de(p[0], 2) + ' + ' + n[1] + ' × ' + de(p[1], 2) + ' + ' + n[2] + ' × ' + de(p[2], 2) + ' = ÷ ' + ns + ' =',
+        fallen: [{ v: rd((p[0] + p[1] + p[2]) / 3, 2), t: 'Du hast nur die drei Preise gemittelt. Es gibt aber unterschiedlich viele Stücke – rechne mit dem Gesamtwert.' }, { v: rd(sum, 2), t: 'Das ist der Gesamtwert. Teile noch durch die Anzahl aller Stücke (' + ns + ').' }] };
+    } }
+  ];
+
+  // ---------- Zustand ----------
+  var MIXED = { key: 'mix', name: 'Gemischt wie in der Prüfung' };
+  var cur = null, typKey = 'mix', tippStufe = 0, geloest = false, versuche = 0;
+  var st = { r: 0, v: 0, s: 0 };
+  try { var saved = JSON.parse(localStorage.getItem('lf9_trainer') || 'null'); if (saved) st = saved; } catch (e) {}
+  function saveSt() { try { localStorage.setItem('lf9_trainer', JSON.stringify(st)); } catch (e) {} }
+  function showSt() { document.getElementById('sRichtig').textContent = st.r; document.getElementById('sVersucht').textContent = st.v; document.getElementById('sSerie').textContent = st.s; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var typesBox = $('types');
+  [MIXED].concat(TYPES).forEach(function (t, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.id = 'chip-' + t.key;
+    b.textContent = (i ? i + ' · ' : '') + t.name; b.setAttribute('aria-pressed', t.key === typKey ? 'true' : 'false');
+    b.addEventListener('click', function () { typKey = t.key; document.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); }); neu(); });
+    typesBox.appendChild(b);
+  });
+
+  function neu() {
+    var t = typKey === 'mix' ? pick(TYPES) : TYPES.filter(function (x) { return x.key === typKey; })[0];
+    cur = t.gen(); tippStufe = 0; geloest = false; versuche = 0;
+    $('tTag').textContent = cur.tag; $('tSit').innerHTML = cur.sit; $('tDaten').innerHTML = cur.daten; $('tFrage').textContent = cur.frage; $('tRund').textContent = cur.rund;
+    $('tUnit').textContent = cur.unit; $('tUnit').style.display = cur.unit ? '' : 'none';
+    $('antwort').value = ''; fb('', '', ''); $('antwort').focus({ preventScroll: true });
+  }
+  function fb(cls, title, html) { var f = $('fb'); f.className = 'fb' + (cls ? ' show ' + cls : ''); f.innerHTML = title ? '<h3>' + title + '</h3>' + html : ''; }
+  function wegHtml() { return '<ol class="steps">' + cur.weg.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol><div class="tr">Taschenrechner: ' + cur.taste + '</div>'; }
+
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault(); if (!cur) return;
+    var v = parse($('antwort').value);
+    if (v === null) { fb('hint', 'Keine Zahl erkannt', '<p>Gib dein Ergebnis als Zahl ein, zum Beispiel 27,69.</p>'); return; }
+    versuche++;
+    if (Math.abs(v - cur.loesung) <= cur.tol) {
+      if (!geloest) { st.v++; if (versuche === 1 && tippStufe === 0) { st.r++; st.s++; } else { st.s = 0; } saveSt(); showSt(); }
+      geloest = true;
+      fb('ok', versuche === 1 && tippStufe === 0 ? 'Richtig!' : 'Jetzt stimmt es!', '<p>So sieht der Rechenweg aus:</p>' + wegHtml() + '<p style="margin:10px 0 0">Weiter mit <b>Neue Aufgabe</b>.</p>');
+      return;
+    }
+    var hit = null;
+    cur.fallen.forEach(function (f) { if (!hit && Math.abs(v - f.v) <= Math.max(cur.tol, 0.011)) hit = f; });
+    fb('bad', 'Noch nicht richtig', '<p>' + (hit ? hit.t : 'Dein Ergebnis passt nicht. Prüfe die Reihenfolge der Schritte – oder hol dir einen Tipp.') + '</p>');
+  });
+  $('bTipp').addEventListener('click', function () {
+    if (!cur) return;
+    var t = cur.tipps[Math.min(tippStufe, cur.tipps.length - 1)]; tippStufe++;
+    fb('hint', 'Tipp ' + Math.min(tippStufe, cur.tipps.length) + ' von ' + cur.tipps.length, '<p>' + t + '</p>');
+  });
+  $('bLsg').addEventListener('click', function () {
+    if (!cur) return;
+    if (!geloest) { st.v++; st.s = 0; saveSt(); showSt(); geloest = true; }
+    fb('hint', 'Lösung: ' + (cur.unit === '€' ? eur(cur.loesung) : cur.unit === '%' ? de(cur.loesung, cur.stellen) + ' %' : de(cur.loesung, cur.stellen)), wegHtml() + '<p style="margin:10px 0 0">Rechne die Aufgabe jetzt selbst nach – dann <b>Neue Aufgabe</b>.</p>');
+  });
+  $('bNeu').addEventListener('click', neu);
+
+  // ---------- Ablenker-Detektiv (zusätzlicher Modus) ----------
+  (function () {
+    var DET = [{"t": "Bezugspreis je Stück", "text": "Die Kaufhaus Hansa GmbH bestellt 180 Trinkflaschen zu je 9,20 € (Listeneinkaufspreis). Der Lieferant gewährt 10 % Rabatt und bei Zahlung innerhalb von 10 Tagen 2 % Skonto. Die Bezugskosten betragen insgesamt 54,00 €. Sie zahlen innerhalb der Skontofrist.", "frage": "Berechnen Sie den Bezugspreis in Euro für eine Trinkflasche!", "o": [{"w": "8,40 €", "ft": "zu früh gerundet", "erk": "Der Faktor 0,90 · 0,98 = 0,882 wurde zu früh auf 0,88 gerundet.", "weg": "1.656,00 € · 0,88 = 1.457,28 € + 54,00 € = 1.511,28 € : 180"}, {"w": "8,41 €", "ft": "", "erk": "Richtig.", "weg": "180 · 9,20 = 1.656,00 € · 0,90 = 1.490,40 € · 0,98 = 1.460,59 € + 54,00 € = 1.514,59 € : 180 = 8,41 €"}, {"w": "8,58 €", "ft": "Skonto vergessen", "erk": "Der Skonto von 2 % wurde nicht abgezogen.", "weg": "1.490,40 € + 54,00 € = 1.544,40 € : 180"}, {"w": "8,11 €", "ft": "Bezugskosten vergessen", "erk": "Die Bezugskosten fehlen.", "weg": "1.460,59 € : 180 (ohne 54,00 €)"}, {"w": "10,01 €", "ft": "Umsatzsteuer auf den Bezugspreis", "erk": "Auf den Bezugspreis wurde Umsatzsteuer gerechnet. Der Bezugspreis ist netto.", "weg": "8,41 € · 1,19"}], "r": 1}, {"t": "Bruttoverkaufspreis", "text": "Der Bezugspreis einer Daunenweste beträgt 36,40 €. Die Kaufhaus Hansa GmbH kalkuliert mit 45 % Handlungskostenzuschlag, 8 % Gewinn und 19 % Umsatzsteuer.", "frage": "Berechnen Sie den Bruttoverkaufspreis in Euro!", "o": [{"w": "63,92 €", "ft": "Umsatzsteuer auf den Bezugspreis", "erk": "Die Umsatzsteuer wurde nur vom Bezugspreis berechnet (19 % von 36,40 € = 6,92 €) und addiert.", "weg": "57,00 € + 6,92 €"}, {"w": "57,00 €", "ft": "Umsatzsteuer vergessen", "erk": "Das ist der Nettoverkaufspreis – die Umsatzsteuer fehlt.", "weg": "36,40 € · 1,45 · 1,08"}, {"w": "67,70 €", "ft": "zu früh gerundet", "erk": "Der Kalkulationsfaktor 1,45 · 1,08 · 1,19 = 1,86354 wurde zu früh auf 1,86 gerundet.", "weg": "36,40 € · 1,86"}, {"w": "67,83 €", "ft": "", "erk": "Richtig.", "weg": "36,40 € · 1,45 = 52,78 € (Selbstkosten) · 1,08 = 57,00 € (Nettoverkaufspreis) · 1,19 = 67,83 €"}, {"w": "66,27 €", "ft": "Gewinn auf den Bezugspreis statt auf die Selbstkosten", "erk": "Der Gewinn wurde auf den Bezugspreis gerechnet (45 % + 8 % = 53 %).", "weg": "36,40 € · 1,53 · 1,19"}], "r": 3}, {"t": "Vom Listenpreis zum Bruttoverkaufspreis", "text": "Ein Paar Wanderschuhe kostet beim Lieferanten 60,00 € (Listeneinkaufspreis). Sie erhalten 20 % Rabatt und 2 % Skonto. Die Bezugskosten betragen 1,96 € je Paar. Kalkuliert wird mit 40 % Handlungskosten, 10 % Gewinn und 19 % Umsatzsteuer.", "frage": "Berechnen Sie den Bruttoverkaufspreis in Euro für ein Paar!", "o": [{"w": "86,21 €", "ft": "Bezugskosten vergessen", "erk": "Die Bezugskosten von 1,96 € fehlen.", "weg": "47,04 · 1,4 · 1,1 · 1,19"}, {"w": "89,36 €", "ft": "Skonto vom Listenpreis statt vom Zieleinkaufspreis", "erk": "Rabatt und Skonto wurden zusammengezählt (22 %).", "weg": "(60,00 · 0,78 + 1,96) · 1,4 · 1,1 · 1,19 = 48,76 · 1,8326"}, {"w": "95,56 €", "ft": "Handlungskosten auf den Listenpreis", "erk": "Die 40 %% Handlungskosten wurden vom Listeneinkaufspreis berechnet (24,00 €) statt vom Bezugspreis (19,60 €).", "weg": "(49,00 + 24,00) · 1,1 · 1,19"}, {"w": "89,80 €", "ft": "", "erk": "Richtig.", "weg": "Bezugspreis: 60,00 · 0,8 · 0,98 = 47,04 + 1,96 = 49,00 €; 49,00 · 1,4 · 1,1 · 1,19 = 89,80 €"}, {"w": "75,46 €", "ft": "Umsatzsteuer vergessen", "erk": "Das ist der Nettoverkaufspreis – die Umsatzsteuer fehlt.", "weg": "49,00 · 1,4 · 1,1"}], "r": 3}, {"t": "Bezugspreis mit dem Kalkulationsfaktor", "text": "Ein Rucksack soll für 89,90 € verkauft werden. Die Kaufhaus Hansa GmbH kalkuliert bei Rucksäcken mit einem Kalkulationsfaktor von 1,85 (bezogen auf den Bruttoverkaufspreis).", "frage": "Welchen Bezugspreis in Euro darf der Rucksack höchstens haben?", "o": [{"w": "48,59 €", "ft": "", "erk": "Richtig.", "weg": "89,90 : 1,85 = 48,59 €"}, {"w": "47,32 €", "ft": "zu früh gerundet", "erk": "Der Faktor wurde zu früh auf 1,9 gerundet.", "weg": "89,90 : 1,9"}, {"w": "166,32 €", "ft": "Prozent vom falschen Grundwert", "erk": "Mal statt geteilt: Der Faktor wurde auf den Verkaufspreis statt auf den Bezugspreis angewendet.", "weg": "89,90 · 1,85"}, {"w": "40,84 €", "ft": "Kalkulationsfaktor auf den Nettopreis bezogen", "erk": "Die Umsatzsteuer wurde vorher herausgerechnet. Der Faktor bezieht sich aber auf den Bruttoverkaufspreis.", "weg": "89,90 : 1,19 : 1,85"}, {"w": "13,49 €", "ft": "Prozent vom falschen Grundwert", "erk": "Der Kalkulationszuschlag (85 %) wurde vom Verkaufspreis abgezogen – falscher Grundwert.", "weg": "89,90 · (1 – 0,85)"}], "r": 0}, {"t": "Zweite Preissenkung", "text": "Sweatshirts kosteten ursprünglich 29,99 €. In einer ersten Aktion wurde der Preis auf 23,99 € gesenkt. In einer zweiten Aktion bieten Sie die restlichen Sweatshirts für 17,99 € an.", "frage": "Um wie viel Prozent haben Sie den Preis in der zweiten Aktion noch einmal gesenkt? (2 Nachkommastellen)", "o": [{"w": "25,00 %", "ft": "zu früh gerundet", "erk": "17,99 : 23,99 = 0,7499… wurde zu früh auf 0,75 gerundet.", "weg": "(1 – 0,75) · 100"}, {"w": "40,01 %", "ft": "Prozent vom falschen Grundwert", "erk": "Grundwert ist der ursprüngliche Preis – gefragt ist aber die Senkung gegenüber der ersten Aktion.", "weg": "(29,99 – 17,99) : 29,99 · 100"}, {"w": "25,01 %", "ft": "", "erk": "Richtig.", "weg": "(23,99 – 17,99) : 23,99 · 100 = 6,00 : 23,99 · 100 = 25,01 %"}, {"w": "33,35 %", "ft": "Prozent vom falschen Grundwert", "erk": "Geteilt durch den neuen Preis. Grundwert ist der Preis vor der Senkung.", "weg": "6,00 : 17,99 · 100"}, {"w": "74,99 %", "ft": "Prozent vom falschen Grundwert", "erk": "Das ist der Anteil, der vom Preis übrig bleibt, nicht die Senkung.", "weg": "17,99 : 23,99 · 100"}], "r": 2}, {"t": "Nettoumsatz der Tageskasse", "text": "Die Kassenabrechnung der Spielwarenabteilung zeigt einen Tagesumsatz von 8.627,50 € brutto. Alle Artikel unterliegen 19 % Umsatzsteuer.", "frage": "Berechnen Sie den Nettoumsatz in Euro!", "o": [{"w": "6.988,28 €", "ft": "Prozent vom falschen Grundwert", "erk": "19 % wurden vom Bruttobetrag abgezogen. Die 19 % beziehen sich aber auf den Nettobetrag.", "weg": "8.627,50 · 0,81"}, {"w": "10.266,73 €", "ft": "Umsatzsteuer falsch behandelt", "erk": "Die Umsatzsteuer wurde noch einmal aufgeschlagen statt herausgerechnet.", "weg": "8.627,50 · 1,19"}, {"w": "7.189,58 €", "ft": "zu früh gerundet", "erk": "Der Faktor 1,19 wurde zu früh auf 1,2 gerundet.", "weg": "8.627,50 : 1,2"}, {"w": "8.063,08 €", "ft": "Umsatzsteuer falsch behandelt", "erk": "Mit 7 % statt 19 % Umsatzsteuer gerechnet – Spielwaren haben den Normalsatz.", "weg": "8.627,50 : 1,07"}, {"w": "7.250,00 €", "ft": "", "erk": "Richtig.", "weg": "8.627,50 : 1,19 = 7.250,00 €"}], "r": 4}];
+    var FTS = []; DET.forEach(function (a) { a.o.forEach(function (o) { if (o.ft && FTS.indexOf(o.ft) < 0) FTS.push(o.ft); }); });
+    FTS = FTS.concat(['Rabatt und Skonto vertauscht']);
+    var di = 0, punkte = {}, card = document.querySelector('section.card:not(#detektiv)'), det = $('detektiv');
+    var chip = document.createElement('button'); chip.type = 'button'; chip.className = 'chip'; chip.id = 'chip-detektiv';
+    chip.textContent = '🔍 Ablenker-Detektiv'; chip.setAttribute('aria-pressed', 'false'); typesBox.appendChild(chip);
+    typesBox.addEventListener('click', function (e) {
+      var b = e.target.closest('.chip'); if (!b) return;
+      var an = b === chip; det.hidden = !an; card.hidden = an;
+      if (an) { document.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'); }); zeige(); }
+    });
+    function esc(x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+    function zeige() {
+      var a = DET[di]; $('dNr').textContent = di + 1; $('dText').textContent = a.text; $('dFrage').textContent = a.frage;
+      var ftl = FTS.slice().sort();
+      $('dOpts').innerHTML = a.o.map(function (o, k) {
+        var sel = '<select id="dS' + k + '" aria-label="Fehler zu ' + esc(o.w) + '"><option value="">– welcher Fehler? –</option>' + ftl.map(function (f) { return '<option>' + esc(f) + '</option>'; }).join('') + '</select>';
+        return '<div class="det-opt" id="dO' + k + '"><label><input type="radio" name="dR" value="' + k + '"> <span class="w">' + (k + 1) + ') ' + esc(o.w) + '</span></label>' + sel + '</div>';
+      }).join('');
+      $('dFb').className = 'fb'; $('dFb').innerHTML = ''; stand();
+    }
+    function stand() { var s = 0; for (var k in punkte) s += punkte[k]; $('dStand').textContent = 'Punkte: ' + s + ' von 30'; }
+    $('dPruef').addEventListener('click', function () {
+      var a = DET[di], sel = document.querySelector('input[name="dR"]:checked'), p = 0, li = [];
+      if (sel && +sel.value === a.r) p++;
+      a.o.forEach(function (o, k) {
+        var el = $('dO' + k), v = $('dS' + k).value;
+        if (k === a.r) { el.className = 'det-opt ok'; li.push('<li><b>' + (k + 1) + ') ' + esc(o.w) + ' – richtig.</b><br>' + o.weg + '</li>'); return; }
+        var ok = v === o.ft; if (ok) p++; el.className = 'det-opt ' + (ok ? 'ok' : 'bad');
+        li.push('<li><b>' + (k + 1) + ') ' + esc(o.w) + '</b> – <span class="ft">Fehlertyp: ' + esc(o.ft) + '</span>' + (ok ? ' ✓' : (v ? ' (du: ' + esc(v) + ')' : '')) + '<br>' + esc(o.erk) + '<br>Rechenweg des Fehlers: ' + o.weg + '</li>');
+      });
+      punkte[di] = p; stand();
+      $('dFb').className = 'fb show ' + (p === 5 ? 'ok' : 'hint');
+      $('dFb').innerHTML = '<h3>' + p + ' von 5 Punkten</h3><ol class="steps det-sol" style="list-style:none;padding-left:0">' + li.join('') + '</ol>';
+    });
+    $('dVor').addEventListener('click', function () { di = (di + 1) % DET.length; zeige(); });
+    $('dZur').addEventListener('click', function () { di = (di + DET.length - 1) % DET.length; zeige(); });
+  })();
+  showSt(); neu();
+})();
+</script>
+
+</body>
+</html>

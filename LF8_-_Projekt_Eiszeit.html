@@ -1,0 +1,1065 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style></head><body>
+<title>Projekt Eiszeit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: eine Spalte wie ein Expeditions-Logbuch – Hafenszene oben, darunter Statusleiste und die jeweilige Entscheidung. */
+:root{
+  --bg:#EAF1F5; --surface:#FFFFFF; --surface2:#F3F7FA; --ink:#0E2233; --muted:#4D6273; --line:#C9D6DF;
+  --accent:#C8331F; --accent-ink:#FFFFFF; --ice:#2B7CA6; --ice-soft:#DCEEF7;
+  --ok:#23704A; --ok-soft:#DDF1E5; --bad:#B3261E; --bad-soft:#FBE3E0; --warn:#9A6212; --warn-soft:#FBEFD9;
+  --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#08141D; --surface:#102230; --surface2:#0C1B27; --ink:#E4EDF2; --muted:#9BB0BF; --line:#24394A;
+  --accent:#FF6A4D; --accent-ink:#1A0A06; --ice:#72C4EA; --ice-soft:#123246;
+  --ok:#5CC48C; --ok-soft:#123224; --bad:#FF8076; --bad-soft:#3A1715; --warn:#F2B35A; --warn-soft:#33240E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#08141D; --surface:#102230; --surface2:#0C1B27; --ink:#E4EDF2; --muted:#9BB0BF; --line:#24394A;
+  --accent:#FF6A4D; --accent-ink:#1A0A06; --ice:#72C4EA; --ice-soft:#123246;
+  --ok:#5CC48C; --ok-soft:#123224; --bad:#FF8076; --bad-soft:#3A1715; --warn:#F2B35A; --warn-soft:#33240E; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5}
+.wrap{max-width:660px;margin:0 auto;padding-inline:16px;padding-block:12px 40px;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:.01em;text-wrap:balance;margin:0;line-height:1.05}
+h1{font-size:2.6rem;text-transform:uppercase}
+h2{font-size:1.9rem;text-transform:uppercase}
+h3{font-size:1.3rem;text-transform:uppercase}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.scene{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#0b2236;line-height:0}
+.scene svg{width:100%;height:auto;display:block}
+.hud{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
+.meter{display:inline-flex;gap:3px}
+.meter i{width:12px;height:14px;border-radius:3px;background:var(--line);display:block}
+.meter i.on{background:var(--ice)}
+.core{display:inline-flex;gap:2px}
+.core i{width:16px;height:12px;border-radius:2px;background:var(--line);display:block}
+.core i.ok{background:var(--accent)}
+.core i.dmg{background:repeating-linear-gradient(45deg,var(--line) 0 3px,var(--muted) 3px 5px)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel.flat{background:transparent;border:none;padding:0}
+.talk{display:flex;gap:12px;align-items:flex-start}
+.talk .face{flex:0 0 72px;width:72px}
+.talk .face svg{width:72px;height:72px;display:block}
+.bubble{position:relative;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:0;flex:1}
+.bubble .who{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:2px}
+.bubble b{font-weight:700}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{font:inherit;color:var(--ink);text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:12px 14px;min-height:56px;cursor:pointer;display:flex;gap:10px;align-items:center;width:100%}
+.opt:hover:not(:disabled){border-color:var(--ice)}
+.opt:focus-visible,.btn:focus-visible,.card:focus-visible,.cell:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
+.opt .k{font-family:var(--f-mono);font-weight:600;flex:0 0 28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--surface2);border:1px solid var(--line);font-size:.85rem}
+.opt.sel{border-color:var(--accent)}
+.opt.sel .k{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.gone{opacity:.35;text-decoration:line-through}
+.opt:disabled{cursor:default}
+.opt>span:not(.k):not(.cost){min-width:0;overflow-wrap:anywhere}
+.opt .cost{margin-left:auto;font-family:var(--f-mono);font-size:.9rem;white-space:nowrap;padding-left:8px}
+.btn{font:inherit;font-weight:700;border-radius:12px;padding:12px 18px;min-height:52px;cursor:pointer;border:2px solid var(--ink);background:var(--ink);color:var(--bg)}
+.btn.alt{background:transparent;color:var(--ink)}
+.btn.red{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.small{min-height:40px;padding:6px 12px;font-size:.92rem}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.row>.btn{flex:1 1 180px}
+.term{border:2px dashed var(--ice);border-radius:12px;padding:12px 14px;background:var(--ice-soft);display:flex;flex-direction:column;gap:4px}
+.term .eyebrow{color:var(--ice)}
+.term.bad{border-color:var(--bad);background:var(--bad-soft)}
+.term.bad .eyebrow{color:var(--bad)}
+.term.ok{border-color:var(--ok);background:var(--ok-soft)}
+.term.ok .eyebrow{color:var(--ok)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+th{font-family:var(--f-mono);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--surface2)}
+tr:last-child td{border-bottom:none}
+td.sum{font-weight:700;border-top:2px solid var(--ink)}
+.tk{display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--ink);border-radius:6px;overflow:hidden;font-size:.9rem;font-variant-numeric:tabular-nums}
+.tk>div{min-width:0}
+.tk .hd{display:flex;justify-content:space-between;font-family:var(--f-mono);font-weight:600;padding:4px 8px;border-bottom:2px solid var(--ink);font-size:.8rem}
+.tk .l{border-right:2px solid var(--ink)}
+.tk .ln{display:flex;justify-content:space-between;gap:6px;padding:5px 8px;border-bottom:1px solid var(--line)}
+.tk .ln,.cell{flex-wrap:wrap}
+.tk .ln span:last-child,.cell span:last-child{white-space:nowrap;margin-left:auto}
+@media (max-width:480px){.tk{font-size:.82rem}}
+.cell{font:inherit;color:inherit;background:transparent;border:none;border-bottom:1px solid var(--line);width:100%;text-align:left;display:flex;justify-content:space-between;gap:6px;padding:8px;cursor:pointer;min-height:44px;align-items:center}
+.cell.mark{background:var(--warn-soft);outline:2px solid var(--warn);outline-offset:-2px}
+.cell.hit{background:var(--ok-soft)}
+.cell.miss{background:var(--bad-soft)}
+.cell.lost{background:var(--warn-soft)}
+.scaf{font-family:var(--f-mono);font-size:.92rem;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto}
+.numin{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.numin input{font:inherit;font-family:var(--f-mono);font-size:1.15rem;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:12ch;max-width:100%}
+.numin input:focus{border-color:var(--ice);outline:none}
+.words{font-size:.92rem;color:var(--muted);border-left:4px solid var(--ice);padding:6px 10px;background:var(--surface2);border-radius:0 8px 8px 0}
+.words b{color:var(--ink)}
+details summary{cursor:pointer;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:420px){.grid2.stack{grid-template-columns:1fr}}
+.card{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-width:0}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.card svg{width:56px;height:56px}
+.blist{display:grid;grid-template-columns:1fr;gap:10px}
+.blist .card{flex-direction:row;align-items:center;gap:14px}
+.blist .card>span{display:block}
+.blist .card .txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+@media (min-width:600px){.blist{grid-template-columns:repeat(3,1fr)}.blist .card{flex-direction:column;align-items:flex-start}}
+.card .t{font-family:var(--f-display);font-size:1.3rem;overflow-wrap:anywhere;text-transform:uppercase;line-height:1}
+.card .s{font-size:.9rem;color:var(--muted)}
+.tag{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:1px 6px;align-self:flex-start}
+.prog{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--ice)}
+.bigcard{border:2px solid var(--ink);border-radius:14px;padding:18px;text-align:center;font-size:1.15rem;font-weight:700;background:var(--surface2)}
+.cats{display:grid;grid-template-columns:1fr;gap:8px}
+.res{display:flex;flex-direction:column;gap:10px}
+.ri{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;background:var(--surface)}
+.ri .mk{font-family:var(--f-mono);font-weight:600}
+.ri .mk.ok{color:var(--ok)} .ri .mk.mid{color:var(--warn)} .ri .mk.no{color:var(--bad)}
+.ri .ihk{font-size:.9rem;border-top:1px dashed var(--line);padding-top:6px;margin-top:2px}
+.ri .ihk b{font-family:var(--f-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ice);display:block}
+.score{border:3px solid var(--ink);border-radius:16px;padding:18px;background:var(--surface);display:flex;flex-direction:column;gap:8px;text-align:center;align-items:center}
+.score .big{font-family:var(--f-display);font-size:3.6rem;line-height:1}
+.stars{display:flex;gap:6px;justify-content:center}
+.stars svg{width:38px;height:38px}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.badge{border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;font-size:.85rem;background:var(--surface)}
+.badge svg{width:44px;height:44px}
+.badge.off{opacity:.38}
+.note{font-size:.88rem;color:var(--muted)}
+.inp{font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%}
+.inp:focus{border-color:var(--ice);outline:none}
+label{font-weight:700;display:block;margin-bottom:4px}
+textarea.inp{min-height:90px;resize:vertical}
+.flip{animation:flip .5s ease}
+@keyframes flip{from{transform:rotateY(90deg);opacity:.3}to{transform:none;opacity:1}}
+.pop{animation:pop .35s ease}
+@keyframes pop{from{transform:scale(.96);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.flip,.pop{animation:none}.scene *{animation:none!important;transition:none!important}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+<div class="wrap" id="app"></div>
+<script>
+/* ===== Inhalte: alle Fakten aus LF8 Modul 1–4 (Lösungen) und „Antworten wie in der Prüfung“ ===== */
+const PERS = {
+  jannes:{name:'Jannes Bruns',role:'Lagermeister',skin:'#E3B08A',hair:'#6B4A2F',hat:'beanie',hatC:'#2E6F8E',beard:true,beardC:'#6B4A2F',coat:'#3A4A5A',
+    ok:['Moin! Genau so machen wir das.','Sauber. Das hätte ich nicht besser gekonnt.','Jo, passt. Weiter geht’s.'],
+    bad:['Hm. Da bin ich anders unterwegs.','Nee, so kriegen wir das nicht hin.','Das fällt uns spätestens beim Zoll auf die Füße.']},
+  ilka:{name:'Dr. Ilka Svensson',role:'Chef-Glaziologin',skin:'#F0CBAE',hair:'#D7B068',hat:'none',glasses:true,braid:true,coat:'#C8331F',
+    ok:['Präzise. So arbeiten wir auch im Eislabor.','Die Daten stimmen. Sehr gut.','Genau. Das passt zu meinen Fragmenten.'],
+    bad:['Das passt nicht zu den Daten aus dem Eiskern.','Messfehler! Bitte noch einmal genau hinsehen.','Damit würde jede Probe im Labor durchfallen.']},
+  okafor:{name:'Merle Okafor',role:'Zollinspektorin',skin:'#7A4E32',hair:'#1E1410',hat:'cap',hatC:'#1F3A5F',coat:'#1F3A5F',
+    ok:['Korrekt. Das nehme ich so ins Protokoll.','In Ordnung. Das Budget bleibt offen.','Einwandfrei.'],
+    bad:['Das kann ich so nicht abnehmen.','Falsch. Ich mache mir eine Notiz.','So friere ich das Budget lieber ein.']},
+  hansen:{name:'Brede Hansen',role:'Kapitän der Polarstern',skin:'#E8BE9C',hair:'#E4E4E4',hat:'captain',hatC:'#14243A',beard:true,beardC:'#EDEDED',coat:'#14243A',
+    ok:['Volle Kraft voraus!','Gut gerechnet. So halten wir Kurs.','Das gefällt dem alten Kapitän.'],
+    bad:['Mit diesem Kurs laufen wir auf Grund.','Hm. Das Eis wird dicker.','So kommen wir nicht aus dem Hafen.']},
+  ahrens:{name:'Wiebke Ahrens',role:'Inhaberin Polarproviant',skin:'#E6AE84',hair:'#7A2E1E',hat:'none',coat:'#2F7A6B',
+    ok:['Super, das spart uns Ärger.','Genau richtig entschieden.','Klasse. So läuft der Laden.'],
+    bad:['Oh nein, das kostet uns Geld.','Das war keine gute Idee.','Da müssen wir noch einmal ran.']},
+  funk:{name:'Hafenfunk',role:'Eilmeldung',radio:true,ok:['Lage im Griff. Das Eis taut ein Stück.'],bad:['Falsche Reaktion. Das Eis wächst.']}
+};
+
+const VERF = ['Stichtagsinventur','verlegte Inventur','permanente Inventur','Stichprobeninventur'];
+const VERF_IHK = {
+  'Stichtagsinventur':'Bestandsaufnahme am Bilanzstichtag oder innerhalb von 10 Tagen davor oder danach.',
+  'verlegte Inventur':'Bestandsaufnahme innerhalb von 3 Monaten vor oder 2 Monaten nach dem Bilanzstichtag; das Ergebnis wird auf den Stichtag vor- oder zurückgerechnet.',
+  'permanente Inventur':'Zählung zu beliebigen Zeitpunkten im Jahr; das WWS schreibt den Bestand laufend fort.',
+  'Stichprobeninventur':'Bestandsaufnahme eines Teils der Ware nach dem Zufallsverfahren; mathematische Hochrechnung auf den ganzen Bestand.'
+};
+const VERF_WEIL = {
+  'Stichtagsinventur':'… weil bis 10 Tage vor oder nach dem Stichtag gezählt wird.',
+  'verlegte Inventur':'… weil mehr als 10 Tage, aber höchstens 3 Monate vor oder 2 Monate nach dem Stichtag gezählt und auf den 31.12. gerechnet wird.',
+  'permanente Inventur':'… weil zu beliebigen Zeitpunkten gezählt und der Bestand im WWS laufend fortgeschrieben wird.',
+  'Stichprobeninventur':'… weil nur ein Teil nach dem Zufallsverfahren gezählt und hochgerechnet wird.'
+};
+function verfQ(id,situation,correct,why){
+  const w = VERF.filter(v=>v!==correct).concat(['Keine Inventur nötig – das WWS kennt den Bestand.']);
+  const wrongWeil = VERF.filter(v=>v!==correct).map(v=>VERF_WEIL[v]);
+  return {id,lvl:'ap',who:'jannes',q:'Lagermeister Jannes schlägt vor: „'+situation+'“ Welches Inventurverfahren ist das?',c:correct,w,
+    term:correct,ihk:VERF_IHK[correct],why,weil:[VERF_WEIL[correct],wrongWeil[0],wrongWeil[1]]};
+}
+const POOL = {};
+POOL.k1a = [
+  verfQ('k1a1','Wir zählen am 2. Januar alles, also zwei Tage nach dem 31.12.','Stichtagsinventur','2 Tage nach dem Stichtag liegen innerhalb von 10 Tagen.'),
+  verfQ('k1a2','Wir zählen am 20. Januar alles und rechnen auf den 31.12. zurück.','verlegte Inventur','20 Tage nach dem Stichtag sind mehr als 10 Tage, aber weniger als 2 Monate.'),
+  verfQ('k1a3','Wir zählen jede Woche ein anderes Regal. Das WWS schreibt den Bestand fort.','permanente Inventur','Gezählt wird verteilt über das Jahr, das WWS schreibt laufend fort.'),
+  verfQ('k1a4','Wir zählen nur zufällig ausgewählte Regalplätze und rechnen dann hoch.','Stichprobeninventur','Nur ein Teil wird nach dem Zufallsverfahren gezählt, dann wird hochgerechnet.'),
+  verfQ('k1a5','Im Dezember ist im Shop viel los. Wir zählen Mitte Oktober und rechnen auf den 31.12. hoch.','verlegte Inventur','Mitte Oktober ist etwa 2,5 Monate vor dem Stichtag – erlaubt sind bis 3 Monate vorher.'),
+  verfQ('k1a6','Wir zählen am 15. Februar und rechnen auf den 31.12. zurück.','verlegte Inventur','15. Februar ist 1,5 Monate nach dem Stichtag – erlaubt sind bis 2 Monate danach.')
+];
+POOL.k1b = [
+  {id:'k1b1',lvl:'ap',who:'jannes',q:'Ein Kollege mault: „Unser WWS zeigt doch jeden Bestand an. Wozu sollen wir noch zählen?“ Was antwortet ihr?',
+   c:'Das WWS zeigt den Sollbestand. Nur die körperliche Inventur zeigt den Istbestand.',
+   w:['Das WWS zeigt den Istbestand, deshalb ist die Inventur freiwillig.','Mit MDE-Geräten gibt es keine Inventurdifferenzen mehr.','Die Inventur ist nur bei Lebensmitteln Pflicht.','Das WWS korrigiert Zählfehler automatisch.'],
+   term:'Sollbestand und Istbestand',ihk:'Das WWS zeigt den Sollbestand; nur die körperliche Inventur zeigt den Istbestand.',
+   why:'Diebstahl, Bruch und Zählfehler sieht kein Computer. Die Inventur ist nach HGB Pflicht.',
+   weil:['… weil Diebstahl, Bruch und Zählfehler kein Computer sieht.','… weil das WWS den Istbestand jede Nacht selbst zählt.','… weil das HGB nur eine Buchinventur verlangt.']},
+  {id:'k1b2',lvl:'ap',who:'jannes',q:'Die Zählnacht beginnt. Wie organisiert ihr das Zählen?',
+   c:'Immer zu zweit: Eine Person zählt und sagt an, die andere schreibt.',
+   w:['Jeder zählt allein, dann geht es schneller.','Wir schreiben die Zahlen aus dem WWS ab.','Wir zählen nur die teuren Artikel.','Wir schätzen die Kartons nach Gefühl.'],
+   term:'Zählen zu zweit',ihk:'Beim Zählen immer zu zweit: Eine Person zählt und sagt an, die andere schreibt; Liste unterschreiben.',
+   why:'Zu zweit passieren weniger Zählfehler. Abschreiben aus dem WWS wäre gar keine Inventur.',
+   weil:['… weil so weniger Zählfehler passieren.','… weil das WWS dann nicht mehr gebraucht wird.','… weil nur so der Sollbestand gezählt werden kann.']},
+  {id:'k1b3',lvl:'ap',who:'jannes',q:'Das WWS zeigt 40 Kartons Thermobecher. Ihr zählt 37 Kartons. Welche Zahl ist der Istbestand?',
+   c:'37 Kartons – das ist wirklich da.',w:['40 Kartons – das sagt der Computer.','3 Kartons – das ist die Differenz.','77 Kartons – beides zusammen.','43 Kartons – Soll plus Differenz.'],
+   term:'Istbestand',ihk:'Sollbestand = Bestand laut WWS. Istbestand = Bestand, der wirklich da ist (gezählt).',
+   why:'Ist = ist wirklich da (sagt, wer zählt). Soll = sollte da sein (sagt der Computer).',
+   weil:['… weil der Istbestand gezählt wird.','… weil der Istbestand immer der größere Wert ist.','… weil der Istbestand im WWS steht.']},
+  {id:'k1b4',lvl:'ap',who:'jannes',q:'Welche Bestandsgröße zeigt das WWS für einen Artikel an, ohne dass jemand gezählt hat?',
+   c:'Sollbestand',w:['Istbestand','Mindestbestand','Meldebestand','Höchstbestand'],
+   term:'Sollbestand (Buchbestand)',ihk:'Das WWS rechnet: Anfangsbestand + Zugänge − Verkäufe = Sollbestand.',
+   why:'Mindest-, Melde- und Höchstbestand sind festgelegte Grenzwerte, kein aktueller Bestand.',
+   weil:['… weil das WWS rechnet: Anfangsbestand + Zugänge − Verkäufe.','… weil das WWS jede Nacht die Regale scannt.','… weil der Meldebestand immer angezeigt wird.']},
+  {id:'k1b5',lvl:'ap',who:'ahrens',q:'Wiebke Ahrens überlegt, im nächsten Jahr die permanente Inventur einzuführen. Welchen Vorteil hat sie gegenüber der Stichtagsinventur?',
+   c:'Gezählt wird in verkaufsschwachen Zeiten; der Shop muss nicht schließen.',
+   w:['Die Inventur ist an einem einzigen Tag erledigt.','Es müssen keine Waren mehr gezählt werden.','Inventurdifferenzen sind ausgeschlossen.','Es reicht, Stichproben zu zählen.'],
+   term:'permanente Inventur',ihk:'Welchen Vorteil bietet die permanente Inventur? Gezählt wird in verkaufsschwachen Zeiten; der Laden muss nicht schließen.',
+   why:'Die permanente Inventur verteilt das Zählen über das Jahr. Differenzen verhindert sie nicht.',
+   weil:['… weil Warengruppe für Warengruppe über das Jahr verteilt gezählt wird.','… weil dann keine Differenzen mehr entstehen.','… weil das WWS die Inventur ganz ersetzt.']},
+  {id:'k1b6',lvl:'ap',who:'ahrens',q:'Bei der Inventur wird nicht alles gezählt. Was nimmt man aus Kontoauszügen und Rechnungen auf?',
+   c:'Bankguthaben, Forderungen und Schulden (Buchinventur)',
+   w:['Die Kartons im Kühllager','Die Regale im Shop','Die Thermosocken im Lager','Die Kaffeesäcke im Keller'],
+   term:'Buchinventur',ihk:'Ware wird gezählt, gemessen oder gewogen (körperliche Inventur). Bankguthaben, Forderungen und Schulden stehen auf Kontoauszügen und Rechnungen (Buchinventur).',
+   why:'Geld auf dem Konto oder Schulden kann man nicht anfassen und zählen.',
+   weil:['… weil man Bankguthaben und Schulden nicht zählen kann.','… weil Waren nie gezählt werden müssen.','… weil Regale zum Umlaufvermögen gehören.']}
+];
+POOL.k2u = [
+  {id:'k2u1',lvl:'ap',who:'ilka',q:'Ihr zählt 18 Kisten Mineralwasser. Das WWS zeigt 24 Kisten. Was kann die Ursache sein?',
+   c:'Sechs beschädigte Kisten wurden entsorgt, aber nicht im WWS ausgebucht.',
+   w:['Sechs verkaufte Kisten wurden an der Kasse doppelt gescannt.','Eine Lieferung von sechs Kisten wurde nicht im WWS erfasst.','Der Meldebestand wurde erhöht.','Die Umschlagshäufigkeit ist gesunken.'],
+   term:'Minderbestand (Ist < Soll)',ihk:'Bruch/Verderb nicht ausgebucht → Soll zu hoch → Ist < Soll (Minderbestand).',
+   why:'Nicht ausgebucht heißt: Das Soll ist zu hoch. Doppelt scannen oder eine nicht erfasste Lieferung machen das Soll zu niedrig.',
+   weil:['… weil nicht ausgebuchte Ware das Soll zu hoch macht.','… weil doppeltes Scannen das Soll zu hoch macht.','… weil der Meldebestand den Istbestand senkt.']},
+  {id:'k2u2',lvl:'ap',who:'ilka',q:'Beim Einräumen fällt ein Karton Gläser herunter. Die Ware ist nicht mehr verkaufsfähig. Welche Angabe im WWS ändert ihr?',
+   c:'Sollbestand',w:['Meldebestand','Mindestbestand','Höchstbestand','Bestellmenge'],
+   term:'ausbuchen',ihk:'Wird Ware beschädigt oder zurückgeschickt, änderst du im WWS sofort den Sollbestand.',
+   why:'Die Ware ist weg. Bleibt sie im WWS stehen, ist das Soll zu hoch.',
+   weil:['… weil der Bestand laut WWS sonst zu hoch ist.','… weil dann mehr bestellt werden muss.','… weil der Höchstbestand sonst überschritten wird.']},
+  {id:'k2u3',lvl:'ap',who:'ilka',q:'Im WWS stehen 30 Kälteschutz-Brillen. Im Regal liegen nur 12. Welche Folge kann das haben?',
+   c:'Es kann zu Verkaufsstockungen kommen, weil das WWS zu spät nachbestellt.',
+   w:['Das WWS bestellt rechtzeitig nach.','Der Höchstbestand sinkt automatisch.','Das WWS korrigiert den Bestand selbst.','Die Lagerkosten steigen.'],
+   term:'Verkaufsstockung',ihk:'Ist das Soll zu hoch, bestellt das WWS zu spät nach → Verkaufsstockung (die Ware fehlt im Regal).',
+   why:'Das WWS rechnet mit 30 Stück und meint, es sei noch genug da.',
+   weil:['… weil das WWS mit dem zu hohen Soll rechnet.','… weil das WWS den Istbestand kennt.','… weil der Höchstbestand automatisch steigt.']},
+  {id:'k2u4',lvl:'ap',who:'ilka',q:'Bei den Fleecemützen zählt ihr 2 Stück mehr, als das WWS zeigt. Was kann die Ursache sein?',
+   c:'Eine Lieferung wurde nicht im WWS erfasst.',
+   w:['Mützen wurden gestohlen.','Beschädigte Mützen wurden nicht ausgebucht.','Eine Rücksendung an den Lieferanten wurde nicht erfasst.','Eine Lieferung wurde doppelt erfasst.'],
+   term:'Mehrbestand (Ist > Soll)',ihk:'Lieferung nicht erfasst oder Verkauf doppelt gescannt → Soll zu niedrig → Ist > Soll (Mehrbestand).',
+   why:'Ein Mehrbestand entsteht, wenn das Soll zu niedrig ist. Diebstahl und nicht ausgebuchte Ware führen zu einem Minderbestand.',
+   weil:['… weil das Soll dann zu niedrig ist.','… weil Diebstahl den Istbestand erhöht.','… weil das Soll dann zu hoch ist.']},
+  {id:'k2u5',lvl:'ap',who:'ilka',q:'Ein Lieferant bringt 50 Kartons. Auf dem Lieferschein stehen 60. Ihr erfasst 60 im WWS. Was passiert bei der Inventur?',
+   c:'Es entsteht ein Minderbestand, weil das Soll zu hoch ist.',
+   w:['Es entsteht ein Mehrbestand.','Soll und Ist sind gleich.','Das WWS merkt den Fehler sofort.','Nur der Meldebestand ändert sich.'],
+   term:'Ursache Lieferant',ihk:'Lieferanten: weniger geliefert als auf dem Lieferschein, aber voll erfasst → Soll zu hoch → Ist < Soll.',
+   why:'Im WWS stehen 10 Kartons, die nie angekommen sind.',
+   weil:['… weil 10 Kartons im WWS stehen, die nie da waren.','… weil der Lieferant zu viel geliefert hat.','… weil das WWS den Lieferschein prüft.']},
+  {id:'k2u6',lvl:'ap',who:'ilka',q:'Welche Aussage über Inventurdifferenzen ist richtig?',
+   c:'Ein WWS zeigt nur den Sollbestand. Diebstahl, Bruch und Zählfehler sieht es nicht.',
+   w:['Ein Warenwirtschaftssystem verhindert Inventurdifferenzen.','Die permanente Inventur schließt Inventurdifferenzen aus.','Mit MDE-Geräten sind Inventuren nicht mehr nötig.','Die Inventurdifferenz in % rechnet man vom Istbestand.'],
+   term:'typische Ablenker',ihk:'„Ein WWS / MDE-Gerät verhindert Inventurdifferenzen“ ist falsch – diese Antwort steht in fast jeder Prüfung zur Auswahl.',
+   why:'Wörter wie „verhindert“, „nie“, „ausgeschlossen“ sind fast immer falsch.',
+   weil:['… weil Diebstahl, Bruch und Zählfehler weiter passieren.','… weil das WWS den Istbestand zählt.','… weil der Grundwert immer der Istbestand ist.']}
+];
+POOL.k3b = [
+  {id:'k3b1',lvl:'ap',who:'okafor',q:'Zollinspektorin Okafor prüft euer Wissen: Welche Bilanzgleichung ist richtig?',
+   c:'Eigenkapital = Vermögen − Schulden',w:['Aktiva = Anlagevermögen − Umlaufvermögen','Passiva = Eigenkapital + Anlagevermögen','Vermögen = Eigenkapital − Fremdkapital','Aktiva = Passiva + Eigenkapital'],
+   term:'Bilanzgleichung',ihk:'Aktiva = Passiva · AV + UV = EK + FK · Eigenkapital = Vermögen − Schulden.',
+   why:'Was dem Betrieb wirklich gehört, ist das Vermögen ohne die Schulden.',
+   weil:['… weil vom Vermögen die Schulden abgehen.','… weil Schulden zum Vermögen dazukommen.','… weil Eigenkapital auf der Aktivseite steht.']},
+  {id:'k3b2',lvl:'ap',who:'okafor',q:'Welche Information kann der Zoll eurer Bilanz entnehmen?',
+   c:'Die Summe des Vermögens und die Summe des Kapitals am Stichtag',
+   w:['Die Aufwendungen und Erträge des vergangenen Jahres','Die Herkunft der Erträge im Vorjahr','Die Namen aller Gläubiger','Das Alter der Warenbestände'],
+   term:'Bilanz = Foto',ihk:'Die Bilanz zeigt Vermögen und Kapital an einem Stichtag. Aufwand und Ertrag stehen in der GuV.',
+   why:'Die Bilanz ist ein Foto an einem Tag. Was im Jahr passiert ist, zeigt die GuV.',
+   weil:['… weil die Bilanz ein Foto an einem Stichtag ist.','… weil die Bilanz alle Ausgaben des Jahres zeigt.','… weil in der Bilanz jede Rechnung steht.']},
+  {id:'k3b3',lvl:'ap',who:'okafor',q:'Wo steht der Warenbestand aus eurer Inventur in der Bilanz?',
+   c:'Aktiva – Umlaufvermögen',w:['Aktiva – Anlagevermögen','Passiva – Eigenkapital','Passiva – Fremdkapital','Er steht nicht in der Bilanz, sondern in der GuV.'],
+   term:'Umlaufvermögen',ihk:'Umlaufvermögen: Vermögensteile, die sich ständig verändern, z. B. Waren, Kasse, Bank.',
+   why:'Waren werden verkauft und neu gekauft – sie „laufen um“.',
+   weil:['… weil Waren sich ständig verändern.','… weil Waren lange im Betrieb bleiben.','… weil Waren Schulden sind.']},
+  {id:'k3b4',lvl:'ap',who:'okafor',q:'Was steht auf der Passivseite der Bilanz?',
+   c:'Woher das Geld kommt: Eigenkapital und Fremdkapital',
+   w:['Was der Betrieb hat: Anlage- und Umlaufvermögen','Die Aufwendungen und Erträge','Nur die Waren aus der Inventur','Die Inventurdifferenzen des Jahres'],
+   term:'Passiva',ihk:'Aktiva (links): Was hat der Laden? = Vermögen. Passiva (rechts): Woher kommt das Geld? = Kapital.',
+   why:'Links steht, wofür das Geld steckt. Rechts steht, woher es kommt.',
+   weil:['… weil die Passiva die Herkunft des Kapitals zeigen.','… weil die Passiva das Vermögen zeigen.','… weil auf der Passivseite der Gewinn des Jahres steht.']},
+  {id:'k3b5',lvl:'ap',who:'okafor',q:'Laden A hat 40 % Eigenkapital, Laden B nur 15 %. Welchem Laden gibt die Hafenbank lieber einen Kredit?',
+   c:'Laden A – er ist unabhängiger von fremdem Geld.',
+   w:['Laden B – er hat mehr Erfahrung mit Schulden.','Beiden gleich – der Eigenkapitalanteil sagt nichts.','Laden B – er hat weniger eigenes Geld zu verlieren.','Keinem – Banken sehen nur auf den Umsatz.'],
+   term:'Eigenkapitalanteil',ihk:'Je höher der Eigenkapitalanteil, desto unabhängiger ist der Laden von Bank und Lieferanten.',
+   why:'Mit viel eigenem Geld kann ein Laden Verluste besser auffangen.',
+   weil:['… weil er mehr mit eigenem Geld finanziert und Verluste besser auffangen kann.','… weil er mehr Fremdkapital hat.','… weil er mehr Umsatz macht.']},
+  {id:'k3b6',lvl:'p',who:'okafor',q:'Eure Inventurdifferenz betrug 1.404 €. Welche Bilanzposten werden dadurch kleiner?',
+   c:'Waren (Aktiva, Umlaufvermögen) und Eigenkapital (Passiva)',
+   w:['Darlehen und Kasse','Nur das Fremdkapital','Anlagevermögen und Fremdkapital','Keine – das steht nur in der GuV'],
+   term:'Bilanz als Waage',ihk:'Auf der Aktivseite sinken die Waren. Damit die Waage im Gleichgewicht bleibt, sinkt auf der Passivseite das Eigenkapital – der Verlust trifft die Inhaberin.',
+   why:'Die Schulden ändern sich nicht. Der Verlust trifft das eigene Geld.',
+   weil:['… weil der Verlust das eigene Geld trifft, die Schulden bleiben gleich.','… weil die Bank den Verlust bezahlt.','… weil die Aktivseite größer werden muss.']},
+  {id:'k3b7',lvl:'p',who:'okafor',q:'Warum sind Aktiva und Passiva immer gleich groß?',
+   c:'Jeder Euro Vermögen stammt entweder aus eigenem Geld oder aus Schulden.',
+   w:['Weil der Zoll das so vorschreibt.','Weil Gewinne immer auf beiden Seiten stehen.','Weil das Anlagevermögen gleich dem Eigenkapital ist.','Weil Waren doppelt gezählt werden.'],
+   term:'Aktiva = Passiva',ihk:'Die Bilanz zeigt dasselbe Geld zweimal – einmal, wofür es steckt, einmal, woher es kommt.',
+   why:'Vermögen und Kapital sind zwei Blicke auf dieselbe Summe.',
+   weil:['… weil die Bilanz dasselbe Geld zweimal zeigt.','… weil Eigenkapital und Anlagevermögen gleich sind.','… weil Aufwand und Ertrag gleich sind.']}
+];
+POOL.k4g = [
+  {id:'k4g1',lvl:'ap',who:'hansen',q:'Der Kapitän fragt: Was versteht man im Handel unter dem Rohgewinn?',
+   c:'Umsatzerlöse netto minus Wareneinsatz',w:['Umsatzerlöse netto minus Personalkosten','Umsatzerlöse netto minus Selbstkosten','Umsatzerlöse brutto minus Umsatzsteuer','Umsatzerlöse netto minus Bezugskosten'],
+   term:'Rohgewinn',ihk:'Rohgewinn = Umsatzerlöse (netto) − Wareneinsatz.',
+   why:'Der Rohgewinn ist das, was die Ware „verdient“ hat, bevor Miete und Gehälter bezahlt sind.',
+   weil:['… weil nur die verkaufte Ware zum Bezugspreis abgezogen wird.','… weil alle Aufwendungen abgezogen werden.','… weil die Umsatzsteuer abgezogen wird.']},
+  {id:'k4g2',lvl:'ap',who:'hansen',q:'Unter welcher Voraussetzung arbeitet der Bordshop mit Gewinn?',
+   c:'Die Erträge sind höher als die Aufwendungen.',w:['Das Fremdkapital ist höher als das Eigenkapital.','Umsatz und Absatz sind gleich groß.','Sortimentslücken werden rechtzeitig geschlossen.','Das Einkaufslimit wird eingehalten.'],
+   term:'Gewinn',ihk:'Gewinn = Erträge − Aufwendungen; positiv = Gewinn, negativ = Verlust.',
+   why:'Nur wenn mehr hereinkommt als verbraucht wird, bleibt etwas übrig.',
+   weil:['… weil Gewinn = Erträge − Aufwendungen ist.','… weil Gewinn aus Schulden entsteht.','… weil Umsatz und Gewinn dasselbe sind.']},
+  {id:'k4g3',lvl:'ap',who:'hansen',q:'Bilanz oder GuV? Was zeigt die Gewinn- und Verlustrechnung?',
+   c:'Aufwendungen und Erträge in einem Zeitraum – wie ein Film',
+   w:['Vermögen und Kapital an einem Stichtag – wie ein Foto','Nur die Schulden bei der Bank','Die Zählliste aus der Inventur','Den Sollbestand aller Artikel'],
+   term:'GuV = Film',ihk:'Bilanz = Foto am 31.12. GuV = Film des ganzen Jahres: Aufwendungen und Erträge in einem Zeitraum.',
+   why:'Die GuV zeigt, was im Jahr passiert ist. Ganz unten steht Gewinn oder Verlust.',
+   weil:['… weil die GuV das ganze Jahr zeigt.','… weil die GuV nur den 31.12. zeigt.','… weil die GuV das Vermögen zeigt.']},
+  {id:'k4g4',lvl:'ap',who:'hansen',q:'Der Kapitän strahlt: „Der Bordshop hat 250.000 Euro Umsatz gemacht – wir sind reich!“ Was sagt ihr?',
+   c:'Umsatz ist nicht Gewinn. Erst müssen alle Aufwendungen abgezogen werden.',
+   w:['Stimmt, der Umsatz ist der Gewinn.','Gewinn = Umsatz minus Eigenkapital.','Gewinn = Umsatz minus Fremdkapital.','Der Gewinn steht in der Bilanz bei den Aktiva.'],
+   term:'Umsatz ≠ Gewinn',ihk:'Gewinn = Erträge − alle Aufwendungen. Umsatz ist nie gleich Gewinn.',
+   why:'Vom Umsatz gehen Wareneinsatz, Personal, Miete, Energie und mehr ab.',
+   weil:['… weil vom Umsatz noch Wareneinsatz, Personal und Miete abgehen.','… weil der Umsatz in der Bilanz steht.','… weil Umsatz und Rohgewinn gleich sind.']},
+  {id:'k4g5',lvl:'ap',who:'hansen',q:'Wo stehen im GuV-Konto die Aufwendungen?',
+   c:'Links im Soll',w:['Rechts im Haben','In der Bilanz bei den Aktiva','In der Bilanz bei den Passiva','Unten unter dem Gewinn'],
+   term:'Soll und Haben',ihk:'Links (S = Soll) stehen die Aufwendungen, rechts (H = Haben) die Erträge. Der Gewinn steht links als Ausgleich.',
+   why:'Merke: Aufwand links, Ertrag rechts.',
+   weil:['… weil im GuV-Konto links (Soll) die Aufwendungen stehen.','… weil Aufwendungen Vermögen sind.','… weil rechts immer der Gewinn steht.']},
+  {id:'k4g6',lvl:'ap',who:'hansen',q:'Welche Position gehört NICHT in die GuV?',
+   c:'Kassenbestand',w:['Mietaufwand','Personalaufwand','Umsatzerlöse','Werbeaufwand'],
+   term:'GuV oder Bilanz?',ihk:'Nicht in die GuV gehören Vermögen und Schulden wie Forderungen, Kasse oder Darlehen – die stehen in der Bilanz.',
+   why:'Die Kasse ist Vermögen (Umlaufvermögen) und steht in der Bilanz.',
+   weil:['… weil die Kasse Vermögen ist und in die Bilanz gehört.','… weil die Kasse ein Ertrag ist.','… weil die Kasse ein Aufwand ist.']},
+  {id:'k4g7',lvl:'p',who:'hansen',q:'Was macht eine Inventurdifferenz von 1.404 € mit dem Gewinn?',
+   c:'Der Gewinn sinkt um 1.404 €, weil die fehlende Ware Aufwand ist.',
+   w:['Der Gewinn steigt, weil weniger Ware im Lager ist.','Nichts – Inventurdifferenzen stehen nur in der Bilanz.','Der Umsatz sinkt, der Gewinn bleibt gleich.','Das Fremdkapital steigt um 1.404 €.'],
+   term:'Inventurdifferenz und Gewinn',ihk:'Die fehlenden Waren sind verbrauchter Wert (Aufwand). Die Aufwendungen steigen, der Gewinn sinkt.',
+   why:'Ohne Diebstahl und Fehler wäre der Gewinn um 1.404 € höher.',
+   weil:['… weil die fehlende Ware die Aufwendungen erhöht.','… weil fehlende Ware ein Ertrag ist.','… weil die Bank den Verlust übernimmt.']}
+];
+POOL.ev = [
+  {id:'ev01',who:'funk',title:'Sturmflut am Handelshafen',q:'Wasser läuft ins Außenlager. 4 Säcke Mehl sind nass und nicht mehr verkaufsfähig. Was macht ihr im WWS?',
+   c:'Die 4 Säcke sofort ausbuchen – der Sollbestand wird geändert.',w:['Nichts – bei der Inventur fällt es schon auf.','Den Meldebestand um 4 erhöhen.'],
+   term:'ausbuchen',ihk:'Bruch und Verderb sofort ausbuchen – sonst ist das Soll zu hoch.'},
+  {id:'ev02',who:'funk',title:'Lieferwagen am Tor',q:'Der Fahrer von „Nordsee-Frost“ hat es eilig. Auf dem Lieferschein stehen 60 Kartons Fischkonserven. Was tut ihr?',
+   c:'Sofort nachzählen, solange der Fahrer noch da ist.',w:['Unterschreiben und später zählen.','Den Lieferschein ungeprüft ins WWS übernehmen.'],
+   term:'Wareneingang prüfen',ihk:'Gegen Fehler: Wareneingang genau prüfen – in Anwesenheit des Fahrers.'},
+  {id:'ev03',who:'funk',title:'Anruf vom IT-Notdienst',q:'„Mit unserem neuen MDE-Gerät gibt es nie wieder Inventurdifferenzen!“ Stimmt das?',
+   c:'Nein. Das Gerät hilft beim Erfassen, aber Diebstahl und Bruch passieren weiter.',w:['Ja, dann braucht ihr keine Inventur mehr.','Ja, aber nur bei Lebensmitteln.'],
+   term:'Ablenker MDE-Gerät',ihk:'Ein WWS, ein MDE-Gerät oder eine Scannerkasse verhindern keine Inventurdifferenzen.'},
+  {id:'ev04',who:'funk',title:'Rückgabe im Shop',q:'Eine Forscherin bringt 3 Fleecemützen zurück. Ein Kollege legt sie ins Regal, ohne die Rückgabe zu erfassen. Was zeigt später die Inventur?',
+   c:'Einen Mehrbestand: Es ist mehr da, als das WWS zeigt.',w:['Einen Minderbestand.','Keine Differenz.'],
+   term:'Mehrbestand',ihk:'Ware zurückgebracht, aber nicht erfasst → Soll zu niedrig → Ist > Soll.'},
+  {id:'ev05',who:'funk',title:'Hektik an der Kasse',q:'An der Shopkasse wurde ein Artikel aus Versehen doppelt gescannt. Was passiert mit dem Sollbestand?',
+   c:'Das Soll ist zu niedrig – bei der Inventur gibt es einen Mehrbestand.',w:['Das Soll ist zu hoch – es gibt einen Minderbestand.','Nichts – Kasse und WWS haben nichts miteinander zu tun.'],
+   term:'Erfassungsfehler',ihk:'Verkauf doppelt gescannt → Soll zu niedrig → Ist > Soll (Mehrbestand).'},
+  {id:'ev06',who:'funk',title:'Möwen-Alarm',q:'Eine Möwe ist durch die offene Tür ins Lager geflogen und hat 5 Tüten Brötchen aufgerissen. Was tut ihr?',
+   c:'Die 5 Tüten ausbuchen – sie sind nicht mehr verkaufsfähig.',w:['Wieder einräumen – das merkt keiner.','Die Tüten als Mehrbestand erfassen.'],
+   term:'Verderb ausbuchen',ihk:'Wird Ware beschädigt, änderst du im WWS sofort den Sollbestand.'},
+  {id:'ev07',who:'funk',title:'Anruf der Hafenbank',q:'„Ihre Bilanz zeigt doch, wie viel Miete Sie im Jahr zahlen, oder?“',
+   c:'Nein. Miete ist Aufwand – das steht in der GuV.',w:['Ja, die Miete steht auf der Aktivseite.','Ja, die Miete steht beim Eigenkapital.'],
+   term:'Bilanz oder GuV?',ihk:'Die Bilanz zeigt keine Aufwendungen und Erträge – das ist die GuV.'},
+  {id:'ev08',who:'funk',title:'Zählnacht abgesagt?',q:'Wegen Sturm soll die Zählung auf den 15. März verschoben und auf den 31.12. zurückgerechnet werden. Geht das?',
+   c:'Nein. Die verlegte Inventur geht nur bis 2 Monate nach dem Stichtag.',w:['Ja, das geht bis Ende Juni.','Ja, das ist dann eine Stichtagsinventur.'],
+   term:'verlegte Inventur',ihk:'Verlegte Inventur: bis 3 Monate vor oder 2 Monate nach dem Bilanzstichtag.'},
+  {id:'ev09',who:'funk',title:'Lange Finger am Souvenir-Regal',q:'Am Regal direkt neben dem Ausgang fehlen immer wieder kleine Artikel. Was hilft?',
+   c:'Kleine Artikel übersichtlich in Sichtweite der Kasse platzieren und Spiegel anbringen.',w:['Noch mehr kleine Artikel direkt an den Ausgang stellen.','Das WWS öfter ausdrucken.'],
+   term:'Maßnahmen gegen Diebstahl',ihk:'Gegen Diebstahl: Kameras, Spiegel, Warensicherungsetiketten, Ladendetektiv, geschultes Personal, abgeschlossene Vitrinen, übersichtliche Platzierung.'},
+  {id:'ev10',who:'funk',title:'Ende der Zählnacht',q:'Es ist 3 Uhr morgens. Die Zähllisten liegen auf dem Tisch. Was kommt jetzt?',
+   c:'Listen unterschreiben, Istbestand ins WWS eingeben und mit dem Soll vergleichen.',w:['Listen wegwerfen – das WWS weiß es ja.','Die Zahlen aus dem WWS in die Listen übertragen.'],
+   term:'Ablauf der Inventur',ihk:'Danach: Istbestand ins WWS, mit dem Sollbestand vergleichen, Differenzen klären, Sollbestand korrigieren.'},
+  {id:'ev11',who:'funk',title:'Frage vom Zoll',q:'„Gehören Forderungen an Kunden in die GuV?“',
+   c:'Nein. Forderungen sind Vermögen und stehen in der Bilanz (Umlaufvermögen).',w:['Ja, als Ertrag.','Ja, als Aufwand.'],
+   term:'Forderungen',ihk:'Forderungen sind Vermögen → Bilanz, nicht GuV.'},
+  {id:'ev12',who:'funk',title:'Funkspruch von der Brücke',q:'„Ist der Rohgewinn schon unser Gewinn?“',
+   c:'Nein. Vom Rohgewinn gehen noch Personal, Miete und andere Aufwendungen ab.',w:['Ja, Rohgewinn und Gewinn sind dasselbe.','Nein, Rohgewinn ist Umsatz minus Steuern.'],
+   term:'Rohgewinn',ihk:'Rohgewinn = Umsatzerlöse − Wareneinsatz. Gewinn = Erträge − alle Aufwendungen.'}
+];
+/* Ursachen-Radar (Modul 2, Tabelle „Fehler im WWS“ und Ursachen) */
+const RADAR_CATS = [
+  {k:'hoch',t:'Soll zu hoch',s:'Fehler im Computer → Minderbestand'},
+  {k:'tief',t:'Soll zu niedrig',s:'Fehler im Computer → Mehrbestand'},
+  {k:'weg',t:'Ware wirklich weg',s:'Ist sinkt → Minderbestand'}
+];
+const RADAR = [
+  {id:'r1',t:'Bruch wird nicht ausgebucht',k:'hoch'},{id:'r2',t:'Verdorbene Ware wird nicht ausgebucht',k:'hoch'},
+  {id:'r3',t:'Rücksendung an den Lieferanten wird nicht erfasst',k:'hoch'},{id:'r4',t:'Eine Lieferung wird doppelt erfasst',k:'hoch'},
+  {id:'r5',t:'Lieferant liefert weniger, der volle Lieferschein wird erfasst',k:'hoch'},
+  {id:'r6',t:'Eine Lieferung wird nicht im WWS erfasst',k:'tief'},{id:'r7',t:'Ein Verkauf wird an der Kasse doppelt gescannt',k:'tief'},
+  {id:'r8',t:'Kunde bringt Ware zurück, die Rückgabe wird nicht erfasst',k:'tief'},
+  {id:'r9',t:'Ladendiebstahl durch Kunden',k:'weg'},{id:'r10',t:'Diebstahl durch Personal',k:'weg'},{id:'r11',t:'Ware wird „geliehen“ und nicht zurückgebracht',k:'weg'}
+];
+/* Bilanz-Waage (Modul 3, Aufgabe 3) */
+const WAAGE_CATS = [
+  {k:'av',t:'Anlagevermögen',s:'Aktiva · bleibt lange'},{k:'uv',t:'Umlaufvermögen',s:'Aktiva · ändert sich ständig'},
+  {k:'ek',t:'Eigenkapital',s:'Passiva · eigenes Geld'},{k:'fk',t:'Fremdkapital',s:'Passiva · Schulden'}
+];
+const WAAGE = [
+  {id:'w1',t:'Lagerhalle (Gebäude)',k:'av'},{id:'w2',t:'Regale und Tresen',k:'av'},{id:'w3',t:'Gabelstapler',k:'av'},{id:'w4',t:'Lieferwagen',k:'av'},{id:'w5',t:'Kassensystem',k:'av'},
+  {id:'w6',t:'Waren im Lager',k:'uv'},{id:'w7',t:'Forderungen an Kunden',k:'uv'},{id:'w8',t:'Bankguthaben',k:'uv'},{id:'w9',t:'Bargeld in der Kasse',k:'uv'},
+  {id:'w10',t:'Geld, das Wiebke Ahrens selbst eingebracht hat',k:'ek'},{id:'w11',t:'Eigenkapital der Inhaberin',k:'ek'},
+  {id:'w12',t:'Darlehen der Hafenbank',k:'fk'},{id:'w13',t:'Verbindlichkeiten beim Lieferanten',k:'fk'},{id:'w14',t:'Kredit für den Kühlcontainer',k:'fk'}
+];
+/* Maßnahmen gegen Diebstahl (Modul 2) – zwei Ablenker aus „Antworten wie in der Prüfung“ */
+const MASS = [
+  {t:'Kameras / Videoüberwachung',cost:900,good:true},{t:'Spiegel an unübersichtlichen Ecken',cost:150,good:true},
+  {t:'Warensicherungsetiketten',cost:400,good:true},{t:'Abgeschlossene Vitrine für teure Artikel',cost:500,good:true},
+  {t:'Personal schulen',cost:300,good:true},{t:'Übersichtliche Warenplatzierung',cost:100,good:true},
+  {t:'WWS-Update „Null Differenz“ – verhindert Inventurdifferenzen',cost:600,good:false,why:'Ein WWS zeigt nur den Sollbestand und verhindert keine Differenzen.'},
+  {t:'MDE-Gerät – damit ist keine Inventur mehr nötig',cost:700,good:false,why:'Die körperliche Inventur ist Pflicht nach HGB. Ein MDE-Gerät verhindert keine Differenzen.'}
+];
+/* Fehlerjagd (Modul 3/4: falsche Positionen in GuV oder Bilanz) */
+const R_BIL='Vermögen und Schulden gehören in die Bilanz, nicht in die GuV.';
+const R_AUF='Aufwendungen stehen im Soll (links).';
+const R_ERT='Erträge stehen im Haben (rechts).';
+const R_PAS='Schulden stehen auf der Passivseite (Fremdkapital).';
+const R_AKT='Vermögen steht auf der Aktivseite.';
+POOL.fj = [
+  {id:'fj1',lvl:'ap',kind:'GuV',L:'S Aufwendungen',R:'H Erträge',
+   l:[['Aufwendungen für Waren',96000],['Personalaufwand',48000],['Werbeaufwand',4200],['Kassenbestand',3400,R_BIL]],
+   r:[['Umsatzerlöse',198000],['Mietaufwand',18000,R_AUF]],reasons:[R_BIL,R_AUF,R_ERT]},
+  {id:'fj2',lvl:'ap',kind:'GuV',L:'S Aufwendungen',R:'H Erträge',
+   l:[['Aufwendungen für Waren',412000],['Personalaufwand',140000],['Mietaufwand',62000],['Forderungen an Kunden',9600,R_BIL]],
+   r:[['Umsatzerlöse',688000],['Aufwendungen für Energie',8700,R_AUF]],reasons:[R_BIL,R_AUF,R_ERT]},
+  {id:'fj3',lvl:'ap',kind:'GuV',L:'S Aufwendungen',R:'H Erträge',
+   l:[['Aufwendungen für Waren',640000],['Umsatzerlöse',1105000,R_ERT],['Mietaufwand',96000],['Darlehen der Hafenbank',150000,R_BIL]],
+   r:[['Personalaufwand',210000,R_AUF]],reasons:[R_BIL,R_AUF,R_ERT],three:true},
+  {id:'fj4',lvl:'ap',kind:'Bilanz',L:'Aktiva',R:'Passiva',
+   l:[['Lagerhalle',48000],['Gabelstapler',10000],['Darlehen der Hafenbank',30000,R_PAS],['Bankguthaben',7400]],
+   r:[['Eigenkapital',36400],['Verbindlichkeiten beim Lieferanten',9600],['Waren im Lager',24600,R_AKT]],reasons:[R_PAS,R_AKT,R_BIL]},
+  {id:'fj5',lvl:'ap',kind:'GuV',L:'S Aufwendungen',R:'H Erträge',
+   l:[['Aufwendungen für Waren',96000],['Mietaufwand',18000],['Aufwendungen für Energie',3600],['Bankguthaben',7400,R_BIL]],
+   r:[['Umsatzerlöse',198000],['Werbeaufwand',4200,R_AUF]],reasons:[R_BIL,R_AUF,R_ERT]},
+  {id:'fj6',lvl:'ap',kind:'Bilanz',L:'Aktiva',R:'Passiva',
+   l:[['Regale und Tresen',22000],['Lieferwagen',26000],['Verbindlichkeiten beim Lieferanten',9600,R_PAS],['Forderungen',4000]],
+   r:[['Eigenkapital',36400],['Darlehen der Hafenbank',45000],['Bargeld in der Kasse',1200,R_AKT]],reasons:[R_PAS,R_AKT,R_BIL]}
+];
+/* Für Profis (Modul 1–4, Aufgabe 5) */
+const PROFI = [
+  {id:'pf1',q:'Warum passt die verlegte Inventur gut zu einem Shop mit starkem Dezember?',a:'Im Dezember ist das Weihnachtsgeschäft. Mit der verlegten Inventur zählt man im Oktober/November oder im Januar/Februar, wenn wenig los ist, und rechnet auf den 31.12. vor oder zurück.'},
+  {id:'pf2',q:'„Durch die permanente Inventur werden Inventurdifferenzen ausgeschlossen.“ Begründe, warum das falsch ist.',a:'Diebstahl, Bruch und Erfassungsfehler passieren weiter. Die permanente Inventur verteilt nur das Zählen über das Jahr; Differenzen fallen eher auf, werden aber nicht verhindert.'},
+  {id:'pf3',q:'Stichprobe heißt: Man zählt nicht alles. Warum erlaubt das HGB sie trotzdem?',a:'Weil ein anerkanntes mathematisch-statistisches Verfahren genutzt wird, dessen Ergebnis so aussagekräftig ist wie eine vollständige Zählung. Das spart in großen Lagern viel Zeit.'},
+  {id:'pf4',q:'Ein Artikel hat einen Mehrbestand von 2 Stück. Nenne zwei mögliche Ursachen und erkläre, was der Mehrbestand mit der Gesamtdifferenz macht.',a:'Ursachen: Wareneingang nicht erfasst; Verkauf doppelt gescannt; Rückgabe nicht erfasst. Der Mehrbestand wird abgezogen – die Gesamtdifferenz wird kleiner und kann echte Verluste verdecken.'},
+  {id:'pf5',q:'Warum rechnet man die Inventurdifferenz in % vom Sollbestand und nicht vom Istbestand?',a:'Der Sollbestand ist das, was laut Buchführung da sein müsste. Man fragt: Welcher Teil des erwarteten Bestands fehlt? Vom Ist gerechnet wäre der Prozentsatz zu hoch.'},
+  {id:'pf6',q:'Kaufhaus Hansa: Inventurdifferenz 2022 = 95.000 €, 2023 = 92.500 €, 2024 = 112.800 €. Beschreibe zwei Entwicklungen und berechne die Veränderung von 2023 auf 2024 in %.',a:'2022 → 2023 leicht gesunken (−2.500 €); 2023 → 2024 stark gestiegen (+20.300 €). 20.300 × 100 : 92.500 = 21,9 % (Grundwert = alter Wert 2023).'},
+  {id:'pf7',q:'Warum sind Aktiva und Passiva immer gleich groß? Erkläre mit eigenen Worten.',a:'Jeder Euro Vermögen (Aktiva) muss irgendwoher kommen: aus eigenem Geld oder aus Schulden (Passiva). Die Bilanz zeigt dasselbe Geld zweimal – wofür es steckt und woher es kommt.'},
+  {id:'pf8',q:'Laden A hat 40 % Eigenkapital, Laden B 15 %. Welchem Laden gibt die Bank lieber einen Kredit? Begründe.',a:'Laden A: Er finanziert mehr mit eigenem Geld, ist unabhängiger von Banken und Lieferanten und kann Verluste besser auffangen. Laden B hängt stark von fremdem Geld ab.'},
+  {id:'pf9',q:'Jemand sagt: „250.000 Euro Umsatz – wir sind reich!“ Erkläre den Unterschied zwischen Umsatz, Rohgewinn und Gewinn.',a:'Umsatz ist alles, was eingenommen wurde. Davon gehen die verkauften Waren zum Bezugspreis ab → Rohgewinn. Erst wenn alle anderen Aufwendungen (Personal, Miete …) abgezogen sind, bleibt der Gewinn.'},
+  {id:'pf10',q:'Warum steht der Gewinn im GuV-Konto auf der Soll-Seite bei den Aufwendungen?',a:'Der Gewinn ist der Ausgleich: Die Erträge (Haben) sind größer als die Aufwendungen (Soll). Damit beide Seiten gleich groß sind, wird der Gewinn auf der kleineren Seite ergänzt.'},
+  {id:'pf11',q:'Laden A macht 5.000 € Umsatz je m², Laden B 3.000 €. Was sagt die Kennzahl – und was nicht?',a:'Laden A nutzt seine Fläche besser (mehr Umsatz pro m²). Über den Gewinn sagt die Kennzahl nichts: Laden A kann höhere Miete und Personalkosten haben.'},
+  {id:'pf12',q:'Eine Inventurdifferenz von 1.404 €: Welche Bilanzposten werden kleiner, und was passiert mit dem Gewinn?',a:'Aktiva: Die Waren (Umlaufvermögen) sinken um 1.404 €. Passiva: Das Eigenkapital sinkt um 1.404 €. In der GuV steigen die Aufwendungen, der Gewinn sinkt um 1.404 €.'}
+];
+/* Lagerbereiche: Artikel und Bezugspreise (erfunden, nur für die Rechenaufgaben) */
+const BEREICHE = {
+  proviant:{t:'Proviant',s:'Lebensmittel für 100 Tage auf See',items:[
+    {n:'Knäckebrot',u:'Karton',p:[18.5,24.9]},{n:'Thunfisch-Dosen',u:'Karton',p:[32,44]},{n:'Kaffeebohnen',u:'Sack',p:[46,62]},
+    {n:'Schokoriegel',u:'Karton',p:[12.4,19.8]},{n:'Haferflocken',u:'Sack',p:[9.6,14.5]}]},
+  kleidung:{t:'Polarkleidung',s:'Warm bleiben bei −30 °C',items:[
+    {n:'Thermosocken',u:'Paar',p:[4.2,6.8]},{n:'Fleecemützen',u:'Stück',p:[7.9,11.5]},{n:'Polarhandschuhe',u:'Paar',p:[14.9,22.5]},
+    {n:'Thermo-Unterhemden',u:'Stück',p:[12.6,18.9]},{n:'Schals',u:'Stück',p:[6.4,9.9]}]},
+  souvenir:{t:'Souvenir-Shop',s:'Erinnerungen für Gäste',items:[
+    {n:'Eisbär-Plüsch',u:'Stück',p:[6.9,9.8]},{n:'Schiffsmodelle',u:'Stück',p:[21.5,29.9]},{n:'Postkarten-Sets',u:'Set',p:[1.9,3.4]},
+    {n:'Tassen „Bremerhaven“',u:'Stück',p:[3.6,5.2]},{n:'Leuchtturm-Magnete',u:'Stück',p:[1.2,2.5]}]}
+};
+const WORDS = {
+  1:'die Inventur · der Bilanzstichtag (31.12.) · zählen, messen, wiegen · die Buchinventur · der Sollbestand · der Istbestand · die Stichtagsinventur · die verlegte Inventur · die permanente Inventur · die Stichprobeninventur · das WWS · die Zählliste',
+  2:'die Inventurdifferenz · der Minderbestand · der Mehrbestand · der Bezugspreis · der Grundwert · der Diebstahl · der Bruch · der Verderb · der Erfassungsfehler · ausbuchen · die Verkaufsstockung',
+  3:'die Bilanz · die Aktiva · die Passiva · das Anlagevermögen · das Umlaufvermögen · das Eigenkapital · das Fremdkapital · das Darlehen · die Verbindlichkeiten · die Forderungen · die Bilanzsumme',
+  4:'die GuV · der Ertrag · die Umsatzerlöse · der Aufwand · der Wareneinsatz · der Rohgewinn · der Gewinn · der Verlust · das Soll (links) · das Haben (rechts) · die Kennzahl',
+  5:'die GuV · die Bilanz · das Soll (links) · das Haben (rechts) · die Aktiva · die Passiva · der Aufwand · der Ertrag'
+};
+const CHAPTERS = [
+  {n:1,day:2,date:'30. Dezember, 18 Uhr',t:'Zählnacht im Technikum',who:'jannes',
+   story:'Ohne Computer weiß niemand, was wirklich im Lager ist. Lagermeister Jannes Bruns rollt die Zähllisten aus. „Heute Nacht wird gezählt. Jede Kiste.“'},
+  {n:2,day:3,date:'31. Dezember, 9 Uhr',t:'Das Loch im Proviant',who:'ilka',
+   story:'Die Zähllisten sind fertig. Doch die Zahlen passen nicht zum alten Ausdruck aus dem WWS. Dr. Ilka Svensson legt ein Datenfragment aus dem Eiskern daneben. „Da fehlt Ware. Ich will wissen, wie viel – in Euro und in Prozent.“'},
+  {n:3,day:4,date:'2. Januar, 8 Uhr',t:'Der Zoll will die Bilanz sehen',who:'okafor',
+   story:'Zollinspektorin Merle Okafor steht im Büro. „Bevor die Polarstern ausläuft, will ich die Bilanz sehen. Stimmt sie nicht, friere ich das Budget ein.“'},
+  {n:4,day:4,date:'2. Januar, 16 Uhr',t:'Hat sich die Saison gelohnt?',who:'hansen',
+   story:'Kapitän Brede Hansen kommt von der Brücke. „Lohnt sich der Bordshop überhaupt? Bevor wir 100 Tage ins Eis fahren, will ich Zahlen sehen.“'},
+  {n:5,day:5,date:'3. Januar, 5 Uhr',t:'Die geheimen Konten',who:'ilka',
+   story:'Das letzte Datenfragment ist entschlüsselt. Jetzt seht ihr, was die Hacker getan haben: Sie haben Posten an falsche Stellen geschoben, damit das Budget verdächtig aussieht. Findet die Fehler – dann gibt der Zoll das Geld frei.'}
+];
+/* ===== Hilfen ===== */
+const KEY='lf8-eiszeit-v1';
+let NOSTORE=false;
+function defState(){return {seen:{a:{},p:{}},rec:{a:0,p:0},plays:{a:0,p:0},ber:{},badges:{},team:''};}
+function loadS(){try{const raw=localStorage.getItem(KEY);if(!raw)return defState();const s=JSON.parse(raw);return Object.assign(defState(),s);}catch(e){NOSTORE=true;return defState();}}
+function saveS(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){NOSTORE=true;}}
+let S=loadS();
+const app=document.getElementById('app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function shuffle(a,r=Math.random){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function rng(str){let h=2166136261>>>0;for(const ch of str){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0;}return function(){h=(h+0x6D2B79F5)>>>0;let t=h;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};}
+const pickR=(a,r)=>a[Math.floor(r()*a.length)];
+const r1=x=>Math.round(x*10+1e-9)/10;
+const r2=x=>Math.round(x*100+1e-9)/100;
+const fmtE=v=>v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+const fmtP=v=>v.toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})+' %';
+const fmtI=v=>v.toLocaleString('de-DE');
+const fmtV=(f,v)=>f==='pct'?fmtP(v):fmtE(v);
+function parseNum(s){s=String(s).trim().replace(/[€%\s]/g,'');if(!s)return NaN;
+  if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');
+  return parseFloat(s);}
+const LETTERS='ABCDE';
+
+/* ===== Rechenaufgaben (Zahlen werden je Variante und Lagerbereich fest erzeugt) ===== */
+POOL.inv=[1,2,3,4,5].map(n=>({id:'inv'+n}));
+POOL.ek=[1,2,3,4,5].map(n=>({id:'ek'+n}));
+POOL.guv=[1,2,3,4,5].map(n=>({id:'guv'+n}));
+POOL.um=[1,2,3,4,5].map(n=>({id:'um'+n,lvl:'p'}));
+POOL.kz=['m2','ku','mo','ve'].flatMap(k=>[1,2].map(n=>({id:'kz-'+k+'-'+n,k})));
+POOL.ev=POOL.ev.map(e=>Object.assign({lvl:'ap'},e));
+POOL.pf=PROFI.map(p=>Object.assign({lvl:'ap'},p));
+const nOf=id=>parseInt(id.replace(/\D/g,''),10)||1;
+
+function genInv(it,mode,ber){
+  const r=rng(it.id+mode+ber);const A=mode==='a';
+  const its=shuffle(BEREICHE[ber].items,r).slice(0,A?3:4);
+  let rows=its.map((x,i)=>{const pc=A?Math.round((x.p[0]+r()*(x.p[1]-x.p[0]))*10)*10:Math.round((x.p[0]+r()*(x.p[1]-x.p[0]))*20)*5;
+    const soll=20+Math.floor(r()*100);let d;
+    if(A)d=i===1?0:2+Math.floor(r()*6);else d=i===1?-(1+Math.floor(r()*2)):(i===3?0:2+Math.floor(r()*7));
+    return {n:x.n,u:x.u,pc,soll,ist:soll-d};});
+  const sum=k=>rows.reduce((a,x)=>a+x[k]*x.pc,0);
+  let sollC=sum('soll'),istC=sum('ist');
+  if(sollC-istC<=0){rows[0].ist-=5;istC=sum('ist');}
+  const diffC=sollC-istC,exact=diffC*100/sollC,ansP=r1(exact);
+  const dSt=rows.reduce((a,x)=>a+(x.soll-x.ist),0),sSt=rows.reduce((a,x)=>a+x.soll,0);
+  const absC=rows.reduce((a,x)=>a+Math.abs(x.soll-x.ist)*x.pc,0);
+  const forgot=(diffC-(rows[0].soll-rows[0].ist)*rows[0].pc)/100;
+  let head,body;
+  if(A){head='<tr><th>Artikel</th><th>Soll €</th><th>Ist €</th></tr>';
+    body=rows.map(x=>`<tr><td>${esc(x.n)}<br><span class="note">Soll ${x.soll} · Ist ${x.ist} · je ${fmtE(x.pc/100)}</span></td><td>${fmtE(x.soll*x.pc/100)}</td><td>${fmtE(x.ist*x.pc/100)}</td></tr>`).join('')+
+      `<tr><td class="sum">Summe</td><td class="sum">${fmtE(sollC/100)}</td><td class="sum">${fmtE(istC/100)}</td></tr>`;}
+  else{head='<tr><th>Artikel</th><th>Bezugspreis</th><th>Soll</th><th>Ist</th></tr>';
+    body=rows.map(x=>`<tr><td>${esc(x.n)} <span class="note">(${x.u})</span></td><td>${fmtE(x.pc/100)}</td><td>${x.soll}</td><td>${x.ist}</td></tr>`).join('');}
+  const ctx=`<p class="eyebrow">Inventurliste vom 30.12. · ${esc(BEREICHE[ber].t)}</p><div class="tbl"><table>${head}${body}</table></div>`+(A?'<p class="note">je = Bezugspreis je Einheit. Soll = laut WWS, Ist = gezählt. Soll € = Stück × Bezugspreis.</p>':'<p class="note">Soll = laut WWS, Ist = gezählt. Achtung: Ein Artikel hat einen Mehrbestand.</p>');
+  const eAlts=A?[{v:dSt,msg:'Das ist die Differenz in Stück. Gefragt ist Euro.'},{v:forgot,msg:'Da fehlt ein Artikel. Rechne Summe Soll € − Summe Ist €.'}]
+               :[{v:absC/100,msg:'Den Mehrbestand musst du abziehen, nicht dazuzählen.'},{v:dSt,msg:'Das ist die Differenz in Stück. Gefragt ist Euro: Stück × Bezugspreis.'}];
+  const pAlts=[{v:r1(diffC*100/istC),msg:'Der Grundwert ist der Sollbestand, nicht der Istbestand.'},{v:r1(dSt*100/sSt),msg:'Rechne mit den Euro-Werten, nicht mit den Stückzahlen.'}];
+  return {t:'calc',who:'ilka',ctx,subs:[
+    {kind:'num',q:'Wie hoch ist die Inventurdifferenz in Euro?',ans:diffC/100,fmt:'eur',alts:eAlts,
+     scaf:A?'Summe Soll € − Summe Ist € = ?':'Soll € − Ist € · je Artikel: Stück × Bezugspreis',
+     term:'Inventurdifferenz in €',ihk:'Differenz in € = Summe Soll (€) − Summe Ist (€). Immer mit dem Bezugspreis rechnen. Ein Mehrbestand wird abgezogen.',
+     why:`${fmtE(sollC/100)} − ${fmtE(istC/100)} = ${fmtE(diffC/100)}`},
+    {kind:'num',q:'Wie viel Prozent vom Sollbestand sind das? (eine Stelle nach dem Komma)',ans:ansP,exact,fmt:'pct',alts:pAlts,
+     scaf:'Differenz € × 100 : Sollbestand € = ?',term:'Inventurdifferenz in %',
+     ihk:'Differenz in % = Differenz in € × 100 : Sollbestand in €. Der Grundwert ist immer das Soll – nie das Ist!',
+     why:`${fmtE(diffC/100)} × 100 : ${fmtE(sollC/100)} = ${fmtP(ansP)}`}]};
+}
+function genUm(it){
+  const k=nOf(it.id)-1;const U=[380000,1250000,2600000,640000,4200000][k],p=[0.8,0.6,0.7,1.2,0.5][k];const ans=r2(U*p/100);
+  return {t:'calc',who:'ilka',ctx:`<div class="scaf">Umsatz des Bordshops im Jahr: <b>${fmtE(U)}</b><br>Inventurdifferenz: <b>${String(p).replace('.',',')} % vom Umsatz</b></div>`,
+    subs:[{kind:'num',q:'Wie hoch ist die Inventurdifferenz in Euro?',ans,fmt:'eur',alts:[{v:U*p,msg:'Du hast das „: 100“ vergessen.'},{v:r2(U/p),msg:'Rechne Umsatz × Prozentsatz : 100.'}],
+      scaf:'Umsatz × Prozentsatz : 100 = ?',term:'Inventurdifferenz aus % vom Umsatz',
+      ihk:'Steht „% vom Umsatz“ in der Aufgabe, ist der Umsatz der Grundwert: Inventurdifferenz € = Umsatz × Prozentsatz : 100.',
+      why:`${fmtE(U)} × ${String(p).replace('.',',')} : 100 = ${fmtE(ans)}`}]};
+}
+function bilanzHTML(rows,withSum,BS){
+  const L=rows.filter(x=>x.s==='A'),R=rows.filter(x=>x.s==='P');
+  const ln=x=>`<div class="ln"><span>${esc(x.n)}</span><span>${fmtE(x.v)}</span></div>`;
+  const sum=withSum?`<div class="ln" style="font-weight:700"><span>Summe</span><span>${fmtE(BS)}</span></div>`:'';
+  return `<div class="tk"><div class="l"><div class="hd"><span>Aktiva</span><span>€</span></div>${L.map(ln).join('')}${sum}</div><div><div class="hd"><span>Passiva</span><span>€</span></div>${R.map(ln).join('')}${sum}</div></div>`;
+}
+function genEK(it,mode,ber){
+  const r=rng(it.id+mode+ber);const A=mode==='a';const k=nOf(it.id)-1;
+  const BS=[91000,120000,160000,200000,250000][k],pct=shuffle([40,30,32.5,34.5,42.5],r)[0];
+  const EK=BS*pct/100,FK=BS-EK;const AV=Math.round(BS*(0.5+r()*0.18)/100)*100,UV=BS-AV;
+  const a1=Math.round(AV*0.62/100)*100,u1=Math.round(UV*0.7/100)*100,u2=Math.round(UV*0.12/100)*100,f1=Math.round(FK*0.65/100)*100;
+  const rows=[{s:'A',n:'Lager- und Shopeinrichtung',v:a1},{s:'A',n:'Lieferwagen',v:AV-a1},{s:'A',n:'Waren',v:u1},{s:'A',n:'Forderungen',v:u2},{s:'A',n:'Bank und Kasse',v:UV-u1-u2},
+    {s:'P',n:'Eigenkapital',v:EK},{s:'P',n:'Darlehen der Hafenbank',v:f1},{s:'P',n:'Verbindlichkeiten aus Lief. u. Leist.',v:FK-f1}];
+  const ctx=`<p class="eyebrow">Bilanz Polarproviant zum 31.12.</p>`+bilanzHTML(rows,A,BS);
+  const pSub={kind:'num',q:'Wie hoch ist der Anteil des Eigenkapitals am Gesamtkapital? (eine Stelle nach dem Komma)',ans:r1(pct),exact:pct,fmt:'pct',
+    alts:[{v:r1(100-pct),msg:'Das ist der Anteil des Fremdkapitals.'},{v:r1(EK*100/FK),msg:'Der Grundwert ist das Gesamtkapital (Bilanzsumme), nicht das Fremdkapital.'}],
+    scaf:'Eigenkapital × 100 : Gesamtkapital (Bilanzsumme) = ?',term:'Eigenkapitalanteil',
+    ihk:'Eigenkapitalanteil in % = Eigenkapital × 100 : Gesamtkapital. Das Gesamtkapital ist die Bilanzsumme (= EK + FK).',
+    why:`${fmtE(EK)} × 100 : ${fmtE(BS)} = ${fmtP(pct)}`};
+  const subs=A?[pSub]:[{kind:'num',q:'Wie hoch ist das Gesamtkapital (die Bilanzsumme)?',ans:BS,fmt:'eur',
+    alts:[{v:FK,msg:'Das ist nur das Fremdkapital. Gesamtkapital = Eigenkapital + Fremdkapital.'},{v:AV,msg:'Das ist nur das Anlagevermögen.'}],
+    scaf:'Eigenkapital + Fremdkapital = Aktiva-Summe = ?',term:'Bilanzsumme (Gesamtkapital)',ihk:'Aktiva = Passiva. Prüfe vorher: Aktiva-Summe = Passiva-Summe.',
+    why:`${fmtE(EK)} + ${fmtE(FK)} = ${fmtE(BS)}`},pSub];
+  return {t:'calc',who:'okafor',ctx,subs};
+}
+function guvHTML(L,R){
+  const ln=x=>`<div class="ln"><span>${esc(x[0])}</span><span>${fmtE(x[1])}</span></div>`;
+  return `<div class="tk"><div class="l"><div class="hd"><span>S · Aufwendungen</span><span>€</span></div>${L.map(ln).join('')}</div><div><div class="hd"><span>H · Erträge</span><span>€</span></div>${R.map(ln).join('')}</div></div>`;
+}
+function genGuV(it,mode,ber){
+  const r=rng(it.id+mode+ber);const A=mode==='a';const k=nOf(it.id)-1;const U=[198000,240000,310000,186000,275000][k];
+  const rd=x=>Math.round(x/100)*100;
+  const WE=rd(U*(0.46+r()*0.08)),P=rd(U*(0.2+r()*0.04)),M=rd(U*(0.07+r()*0.03)),So=rd(U*(0.03+r()*0.02));
+  const L=[['Aufwendungen für Waren',WE],['Personalaufwand',P],['Mietaufwand',M]];
+  if(!A){L.push(['Werbeaufwand',rd(U*0.02)],['Aufwendungen für Energie',rd(U*0.018)]);}
+  L.push(['Sonstige Aufwendungen',So]);
+  const tot=L.reduce((a,x)=>a+x[1],0),G=U-tot,RG=U-WE;
+  const ctx=`<p class="eyebrow">GuV des Bordshops (Auszug, ohne Gewinnzeile)</p>`+guvHTML(L,[['Umsatzerlöse',U]]);
+  const gAlts=[{v:RG,msg:'Das ist der Rohgewinn. Für den Gewinn ziehst du alle Aufwendungen ab.'},{v:U-(tot-WE),msg:'Der Wareneinsatz fehlt – er ist der größte Aufwand.'}];
+  if(!A)gAlts.push({v:tot,msg:'Das ist die Summe der Aufwendungen. Gewinn = Erträge − Aufwendungen.'});
+  return {t:'calc',who:'hansen',ctx,subs:[
+    {kind:'num',q:'Wie hoch ist der Gewinn des Bordshops?',ans:G,fmt:'eur',alts:gAlts,scaf:'Erträge − alle Aufwendungen = ?',term:'Gewinn',
+     ihk:'Gewinn = Erträge (Umsatzerlöse) − alle Aufwendungen.',why:`${fmtE(U)} − ${fmtE(tot)} = ${fmtE(G)}`},
+    {kind:'num',q:'Wie hoch ist der Rohgewinn?',ans:RG,fmt:'eur',alts:[{v:G,msg:'Das ist der Gewinn. Rohgewinn = Umsatzerlöse − Wareneinsatz.'},{v:U-P,msg:'Rohgewinn = Umsatzerlöse − Wareneinsatz, nicht − Personal.'}],
+     scaf:'Umsatzerlöse − Wareneinsatz = ?',term:'Rohgewinn',ihk:'Rohgewinn = Umsatzerlöse (netto) − Wareneinsatz.',why:`${fmtE(U)} − ${fmtE(WE)} = ${fmtE(RG)}`}]};
+}
+function genKZ(it,mode,ber){
+  const r=rng(it.id+mode+ber);let ctx,sub;
+  if(it.k==='m2'||it.k==='ku'){
+    let area,U,kunden;
+    if(it.k==='m2'){area=pickR([60,80,120,150,200],r);const per=pickR([2500,3300,3800,4200,4700],r);U=area*per;kunden=Math.round(U/(18+r()*10)/10)*10;
+      sub={kind:'num',q:'Wie hoch ist der Umsatz je m² Verkaufsfläche?',ans:per,fmt:'eur',alts:[{v:r2(U/kunden),msg:'Du hast durch die Kundenzahl geteilt. Je m²: Umsatz : Verkaufsfläche.'},{v:r2(U/12),msg:'Das ist der Umsatz je Monat.'}],
+        scaf:'Umsatz : Verkaufsfläche = ?',term:'Umsatz je m²',ihk:'Umsatz je m² = Umsatz : Verkaufsfläche.',why:`${fmtE(U)} : ${area} m² = ${fmtE(per)}`};}
+    else{kunden=pickR([8800,9900,12500,15000,20000],r);const perK=pickR([20,22.5,24,28,18.5],r);U=kunden*perK;area=pickR([60,80,120,150],r);
+      sub={kind:'num',q:'Wie hoch ist der durchschnittliche Umsatz je Kunde?',ans:perK,fmt:'eur',alts:[{v:r2(U/area),msg:'Du hast durch die Fläche geteilt. Je Kunde: Umsatz : Anzahl der Kunden.'},{v:r2(U/12),msg:'Das ist der Umsatz je Monat.'}],
+        scaf:'Umsatz : Anzahl der Kunden = ?',term:'Umsatz je Kunde',ihk:'Umsatz je Kunde = Umsatz : Anzahl der Kunden.',why:`${fmtE(U)} : ${fmtI(kunden)} = ${fmtE(perK)}`};}
+    ctx=`<div class="scaf">Umsatz im Jahr: <b>${fmtE(U)}</b><br>Verkaufsfläche: <b>${area} m²</b><br>Kunden im Jahr: <b>${fmtI(kunden)}</b></div>`;
+  }else if(it.k==='mo'){
+    const m=pickR([1525,2400,3850,4000,1750],r);const lab=m>=3000?'Personalaufwand':'Aufwendungen für Energie';const Y=m*12;
+    ctx=`<div class="scaf">${lab} im ganzen Jahr: <b>${fmtE(Y)}</b></div>`;
+    sub={kind:'num',q:'Wie viel Euro sind das im Monatsdurchschnitt?',ans:m,fmt:'eur',alts:[{v:r2(Y/52),msg:'Das wäre je Woche. Ein Jahr hat 12 Monate.'},{v:r2(Y/4),msg:'Das wäre je Quartal (3 Monate).'}],
+      scaf:'Summe des Jahres : 12 = ?',term:'Durchschnitt je Monat',ihk:'Ø je Monat = Summe des Zeitraums : Anzahl der Monate.',why:`${fmtE(Y)} : 12 = ${fmtE(m)}`};
+  }else{
+    const old=pickR([180000,200000,250000,320000,240000],r),p=pickR([10,5,8,12.5,4],r);const nw=old+old*p/100;
+    ctx=`<div class="scaf">Umsatz im Vorjahr: <b>${fmtE(old)}</b><br>Umsatz in diesem Jahr: <b>${fmtE(nw)}</b></div>`;
+    sub={kind:'num',q:'Um wie viel Prozent ist der Umsatz gestiegen? (eine Stelle nach dem Komma)',ans:r1(p),exact:p,fmt:'pct',
+      alts:[{v:r1((nw-old)*100/nw),msg:'Der Grundwert ist der alte Wert (Vorjahr), nicht der neue.'},{v:r1(nw*100/old),msg:'Das ist der neue Wert in % vom alten. Die Veränderung ist nur der Teil über 100 %.'}],
+      scaf:'(neuer Wert − alter Wert) × 100 : alter Wert = ?',term:'Veränderung in %',ihk:'Veränderung in % = (neu − alt) × 100 : alt. Grundwert ist der alte Wert (Vorjahr).',
+      why:`${fmtE(nw-old)} × 100 : ${fmtE(old)} = ${fmtP(p)}`};
+  }
+  return {t:'calc',who:'hansen',ctx,subs:[sub]};
+}
+
+/* ===== Ziehen ohne Wiederholung ===== */
+let G=null;
+function inMode(x,m){return !x.lvl||x.lvl.includes(m);}
+function draw(pool){
+  const m=G.mode,seen=S.seen[m];const all=POOL[pool].filter(x=>inMode(x,m));
+  let fresh=all.filter(x=>!seen[x.id]);
+  if(!fresh.length){all.forEach(x=>delete seen[x.id]);fresh=all;G.resetHint=true;}
+  const x=fresh[Math.floor(Math.random()*fresh.length)];seen[x.id]=1;return x;
+}
+function poolStats(m){
+  let tot=0,seen=0;for(const k of ['k1a','k1b','k2u','k3b','k4g','ev','inv','ek','guv','um','kz','fj','pf']){
+    for(const x of POOL[k]){if(!inMode(x,m))continue;tot++;if(S.seen[m][x.id])seen++;}}
+  return {tot,fresh:tot-seen};
+}
+function mcStep(item){return {t:'calc',who:item.who,ctx:item.ctx||'',subs:[Object.assign({kind:'mc'},item)]};}
+function buildGame(mode,ber,team){
+  G={mode,ber,team,i:0,pts:0,max:0,ice:0,cargo:0,frags:[],res:[],resetHint:false,cur:{},huntClean:true};
+  const st=[];
+  st.push({t:'prolog'});
+  st.push({t:'chapter',ch:1},mcStep(draw('k1a')),mcStep(draw('k1b')),{t:'chend',ch:1});
+  st.push({t:'event',q:draw('ev')});
+  st.push({t:'chapter',ch:2},genInv(draw('inv'),mode,ber),mcStep(draw('k2u')),{t:'budget'},{t:'sort',kind:'radar',cards:shuffle(RADAR_CATS.flatMap(c=>shuffle(RADAR.filter(x=>x.k===c.k)).slice(0,2)))});
+  if(mode==='p')st.push(genUm(draw('um')));
+  st.push({t:'chend',ch:2});
+  st.push({t:'chapter',ch:3},{t:'sort',kind:'waage',cards:shuffle(WAAGE_CATS.flatMap(c=>shuffle(WAAGE.filter(x=>x.k===c.k)).slice(0,2)))},genEK(draw('ek'),mode,ber),mcStep(draw('k3b')),{t:'chend',ch:3});
+  st.push({t:'event',q:draw('ev')});
+  st.push({t:'chapter',ch:4},genGuV(draw('guv'),mode,ber),mcStep(draw('k4g')),genKZ(draw('kz'),mode,ber),{t:'chend',ch:4});
+  st.push({t:'chapter',ch:5},{t:'hunt',fj:draw('fj')},{t:'chend',ch:5});
+  st.push({t:'end',pf:draw('pf')});
+  let ch=0;st.forEach(s=>{if(s.t==='chapter')ch=s.ch;s.ch=s.ch||ch;});
+  G.steps=st;saveS();
+}
+
+/* ===== Grafik ===== */
+function face(key,mood){
+  const p=PERS[key];
+  if(p.radio)return `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="31" fill="#183650"/><rect x="22" y="18" width="20" height="34" rx="4" fill="#E9EEF2"/><rect x="36" y="6" width="4" height="14" rx="2" fill="#E9EEF2"/><rect x="25" y="22" width="14" height="10" rx="2" fill="${mood==='bad'?'#E0533F':mood==='ok'?'#4FC48A':'#7FC6E8'}"/><circle cx="28" cy="40" r="2" fill="#183650"/><circle cx="36" cy="40" r="2" fill="#183650"/><circle cx="28" cy="46" r="2" fill="#183650"/><circle cx="36" cy="46" r="2" fill="#183650"/><path d="M46 20 q6 6 0 12 M50 16 q10 10 0 20" stroke="#7FC6E8" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
+  const m=mood==='ok'?'happy':mood==='bad'?'worried':'neutral';
+  const brows=m==='happy'?'<path d="M22 25 q4 -3 8 0 M34 25 q4 -3 8 0" stroke="#2A1D14" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+    :m==='worried'?'<path d="M22 24 l8 2.5 M42 24 l-8 2.5" stroke="#2A1D14" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+    :'<path d="M22 25 h8 M34 25 h8" stroke="#2A1D14" stroke-width="1.6" fill="none" stroke-linecap="round"/>';
+  const mouth=m==='happy'?'<path d="M26 39 q6 6 12 0" stroke="#5A2A1E" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    :m==='worried'?'<path d="M26 42 q6 -5 12 0" stroke="#5A2A1E" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    :'<path d="M27 40.5 h10" stroke="#5A2A1E" stroke-width="2" stroke-linecap="round"/>';
+  let s=`<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="31" fill="#CFE3EE"/>`;
+  if(p.braid)s+=`<path d="M44 26 q6 10 2 26" stroke="${p.hair}" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+  s+=`<path d="M8 64 Q10 47 32 47 Q54 47 56 64 Z" fill="${p.coat}"/><rect x="28" y="40" width="8" height="8" fill="${p.skin}"/>`;
+  if(key==='ilka')s+=`<path d="M14 60 Q16 50 26 48 L32 56 L38 48 Q48 50 50 60" fill="none" stroke="#F1F1F1" stroke-width="3"/>`;
+  s+=`<circle cx="32" cy="29" r="15" fill="${p.skin}"/>`;
+  if(p.hat==='none'||p.hat==='cap')s+=`<path d="M17 28 Q17 13 32 13 Q47 13 47 28 Q41 19 32 19 Q23 19 17 28Z" fill="${p.hair}"/>`;
+  if(p.beard)s+=`<path d="M18 32 Q19 47 32 47 Q45 47 46 32 Q41 41 32 41 Q23 41 18 32Z" fill="${p.beardC}"/>`;
+  s+=`<circle cx="26" cy="30" r="1.9" fill="#1B1B1B"/><circle cx="38" cy="30" r="1.9" fill="#1B1B1B"/>`+brows+mouth;
+  if(p.glasses)s+=`<circle cx="26" cy="30" r="5" fill="none" stroke="#1B1B1B" stroke-width="1.4"/><circle cx="38" cy="30" r="5" fill="none" stroke="#1B1B1B" stroke-width="1.4"/><path d="M31 30 h2" stroke="#1B1B1B" stroke-width="1.4"/>`;
+  if(p.hat==='beanie')s+=`<path d="M16 26 Q16 10 32 10 Q48 10 48 26 Z" fill="${p.hatC}"/><rect x="15" y="22" width="34" height="6" rx="3" fill="#1F4F66"/><circle cx="32" cy="9" r="3.5" fill="#E9EEF2"/>`;
+  if(p.hat==='cap')s+=`<path d="M17 21 Q18 11 32 11 Q46 11 47 21 Z" fill="${p.hatC}"/><path d="M15 21 L49 21 L47 25 L17 25Z" fill="#0D1B2A"/><circle cx="32" cy="16" r="2.3" fill="#E7C25A"/>`;
+  if(p.hat==='captain')s+=`<path d="M14 18 Q16 9 32 8 Q48 9 50 18 Z" fill="#F4F4F4"/><rect x="17" y="17" width="30" height="5" fill="${p.hatC}"/><path d="M16 22 L48 22 L45 26 L19 26Z" fill="#0B0B0B"/><circle cx="32" cy="19.5" r="2" fill="#E7C25A"/>`;
+  return s+'</svg>';
+}
+const FLOES=[[150,141,14],[372,139,12],[190,148,18],[330,150,16],[120,152,12],[260,153,22],[365,160,14],[215,160,12],[300,166,18],[160,168,14],[395,150,10],[240,144,10]];
+function scene(){
+  const st=G?G.steps[G.i]:null;const ch=st?st.ch:0;const end=st&&st.t==='end';const ice=G?G.ice:0;const cargo=G?Math.min(G.cargo,10):0;
+  const win=end&&ice<=3;
+  const skies={0:['#2A3A6B','#E58C6A'],1:['#081830','#21406A'],2:['#F2B08C','#A8CFE8'],3:['#6FB0DD','#D7ECF7'],4:['#2A3A6B','#E89A6E'],5:['#0C1C38','#3B5A80'],6:['#061424','#123A5E']};
+  const ph=end?6:ch;const night=[1,5,6].includes(ph);const sk=skies[ph];
+  let s=`<svg viewBox="0 0 400 180" role="img" aria-label="Die Polarstern am Handelshafen in Bremerhaven, Eis: ${ice} von 6"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sk[0]}"/><stop offset="1" stop-color="${sk[1]}"/></linearGradient><linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${night?'#123552':'#2A6A92'}"/><stop offset="1" stop-color="${night?'#06182A':'#123E5E'}"/></linearGradient></defs>`;
+  s+=`<rect width="400" height="180" fill="url(#sky)"/>`;
+  if(night){const r=rng('stars');for(let i=0;i<40;i++)s+=`<circle cx="${(r()*400).toFixed(1)}" cy="${(r()*80).toFixed(1)}" r="${(0.4+r()*0.9).toFixed(2)}" fill="#fff" opacity="${(0.4+r()*0.6).toFixed(2)}"/>`;}
+  if(win)s+=`<g opacity=".75"><path d="M0 60 C80 10 160 70 240 25 S360 40 400 15 L400 45 C340 70 260 50 200 75 S60 50 0 90Z" fill="#3FE0A6" opacity=".45"><animate attributeName="opacity" values=".3;.6;.3" dur="6s" repeatCount="indefinite"/></path><path d="M0 40 C90 0 170 50 260 15 S370 30 400 5 L400 25 C330 50 250 35 190 55 S70 40 0 65Z" fill="#7AF0D0" opacity=".3"/></g>`;
+  if(ph===2||ph===4)s+=`<circle cx="${ph===2?60:340}" cy="${ph===2?70:78}" r="14" fill="#FFD9A0" opacity=".85"/>`;
+  // Technikum
+  s+=`<g><rect x="8" y="76" width="142" height="54" fill="#2E3A46"/><rect x="8" y="72" width="142" height="5" fill="#1E2832"/>`;
+  for(let i=0;i<12;i++){const lit=night&&((i*7)%3!==0);s+=`<rect x="${14+i*11.5}" y="82" width="6" height="40" fill="${lit?'#FFD27A':'#8FB6CC'}" opacity="${lit?.85:.55}"/>`;}
+  s+=`<text x="79" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7" fill="#fff" opacity=".8" letter-spacing="2">TECHNIKUM · HANDELSHAFEN</text></g>`;
+  s+=`<g stroke="#E7B93C" stroke-width="2.2" fill="none"><path d="M156 130 V56 M156 58 L196 58 M156 70 L170 58 M190 58 V74"/></g><rect x="186" y="74" width="8" height="5" fill="#E7B93C"/>`;
+  s+=`<rect x="0" y="128" width="175" height="9" fill="#5B6670"/><rect x="0" y="128" width="175" height="2" fill="#7E8A94"/>`;
+  s+=`<rect x="0" y="136" width="400" height="44" fill="url(#sea)"/>`;
+  s+=`<g stroke="#ffffff" stroke-opacity=".18" stroke-width="1" fill="none"><path d="M10 150 q10 -3 20 0 t20 0 M90 165 q10 -3 20 0 t20 0 M300 172 q10 -3 20 0 t20 0"/></g>`;
+  const sx=win?28:0;
+  s+=`<g transform="translate(${sx} 0)">`;
+  s+=`<path d="M168 116 L356 116 L376 99 L362 142 L182 142 Z" fill="#C8331F"/><path d="M181 136 L364 136 L362 142 L182 142Z" fill="#6E1A12"/>`;
+  s+=`<text x="318" y="131" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7" font-weight="600" fill="#fff" letter-spacing="1">POLARSTERN</text>`;
+  s+=`<rect x="268" y="84" width="58" height="32" fill="#F2F4F5"/><rect x="274" y="70" width="48" height="15" fill="#F2F4F5"/><rect x="276" y="74" width="44" height="5" fill="${night?'#FFD27A':'#21384D'}"/>`;
+  for(let i=0;i<5;i++)s+=`<rect x="${273+i*10}" y="92" width="6" height="4" fill="${night?'#FFD27A':'#21384D'}" opacity=".8"/>`;
+  s+=`<rect x="298" y="46" width="2.5" height="25" fill="#F2F4F5"/><path d="M293 60 l12 -6" stroke="#F2F4F5" stroke-width="1.6"/><circle cx="299.2" cy="44" r="4.2" fill="#F2F4F5"/><circle cx="306" cy="53" r="1.6" fill="${night?'#FF5A4A':'#C8331F'}"/>`;
+  s+=`<rect x="246" y="88" width="16" height="28" fill="#F2F4F5"/><rect x="246" y="88" width="16" height="6" fill="#C8331F"/>`;
+  s+=`<path d="M206 116 L222 80 L240 96" stroke="#E7B93C" stroke-width="2.4" fill="none"/>`;
+  const cc=['#2B7CA6','#E7B93C','#3F8F5E','#9AA7B1','#C8331F'];
+  for(let i=0;i<cargo;i++){const col=i%5,row=Math.floor(i/5);s+=`<rect x="${180+col*13}" y="${106-row*10}" width="12" height="9.5" fill="${cc[i%5]}" stroke="#13212D" stroke-width=".6"/>`;}
+  s+=`</g>`;
+  // Eis
+  const nf=Math.min(FLOES.length,ice*2);
+  for(let i=0;i<nf;i++){const [x,y,w]=FLOES[i];s+=`<path d="M${x-w/2} ${y} l${w*0.2} -${w*0.18} l${w*0.5} -${w*0.05} l${w*0.3} ${w*0.2} l-${w*0.15} ${w*0.12} l-${w*0.65} ${w*0.02}Z" fill="#EAF6FC" stroke="#A9D6EA" stroke-width=".8"/>`;}
+  if(ice>0)s+=`<rect x="${176+sx}" y="132" width="${190}" height="${Math.min(10,ice*1.8)}" fill="#DFF2FB" opacity=".85"/><rect width="400" height="180" fill="#E6F6FF" opacity="${(ice*0.05).toFixed(2)}"/>`;
+  if(G&&st&&st.t!=='end'){s+=`<g font-family="IBM Plex Mono,monospace" font-size="8" fill="#fff"><rect x="306" y="6" width="88" height="16" rx="4" fill="#000" opacity=".35"/><text x="350" y="17" text-anchor="middle">${5-dayOf(st)>0?"NOCH "+(5-dayOf(st))+(5-dayOf(st)===1?" TAG":" TAGE"):"HEUTE AUSLAUFEN"}</text></g>`;}
+  return s+'</svg>';
+}
+function dayOf(st){const c=CHAPTERS.find(c=>c.n===st.ch);return c?c.day:1;}
+function hud(){
+  if(!G)return '';
+  const ice=[...Array(6)].map((_,i)=>`<i class="${i<G.ice?'on':''}"></i>`).join('');
+  const core=[...Array(5)].map((_,i)=>`<i class="${G.frags[i]==='ok'?'ok':G.frags[i]==='dmg'?'dmg':''}"></i>`).join('');
+  const st=G.steps[G.i];
+  return `<div class="hud"><span class="chip">${G.mode==='a'?'Anfänger':'Profi'}</span><span class="chip">Punkte <b>${G.pts}</b></span><span class="chip" title="Eis um das Schiff">Eis <span class="meter">${ice}</span></span><span class="chip" title="Datenfragmente">Fragmente <span class="core">${core}</span></span></div>`;
+}
+function words(ch,open){return `<details class="words" ${open?'open':''}><summary>Wortspeicher</summary><p>${WORDS[ch]}</p></details>`;}
+const ICON={
+  proviant:'<svg viewBox="0 0 56 56" aria-hidden="true"><rect x="6" y="18" width="44" height="30" rx="3" fill="#B7864B"/><rect x="6" y="18" width="44" height="7" fill="#8E6533"/><path d="M14 30 h28 M14 38 h28" stroke="#8E6533" stroke-width="2"/><rect x="20" y="6" width="16" height="12" rx="2" fill="#2B7CA6"/></svg>',
+  kleidung:'<svg viewBox="0 0 56 56" aria-hidden="true"><path d="M10 40 Q10 12 28 12 Q46 12 46 40Z" fill="#C8331F"/><rect x="8" y="36" width="40" height="9" rx="4" fill="#8F2416"/><circle cx="28" cy="10" r="5" fill="#EAF1F5" stroke="#A9C2D1"/><path d="M16 40 v5 M22 40 v5 M28 40 v5 M34 40 v5 M40 40 v5" stroke="#EAF1F5" stroke-width="1.5"/></svg>',
+  souvenir:'<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="16" cy="16" r="6" fill="#EEF3F6" stroke="#A9C2D1"/><circle cx="40" cy="16" r="6" fill="#EEF3F6" stroke="#A9C2D1"/><circle cx="28" cy="30" r="17" fill="#F4F7F9" stroke="#A9C2D1"/><circle cx="22" cy="27" r="2" fill="#13212D"/><circle cx="34" cy="27" r="2" fill="#13212D"/><ellipse cx="28" cy="36" rx="6" ry="4.5" fill="#E2E9EE"/><circle cx="28" cy="34.5" r="2.2" fill="#13212D"/></svg>',
+  a:'<svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="22" fill="none" stroke="#C8331F" stroke-width="9"/><circle cx="28" cy="28" r="22" fill="none" stroke="#F4F4F4" stroke-width="9" stroke-dasharray="17.3 17.3"/></svg>',
+  p:'<svg viewBox="0 0 56 56" aria-hidden="true"><path d="M28 4 L33 21 L51 21 L36.5 31.5 L42 49 L28 38.5 L14 49 L19.5 31.5 L5 21 L23 21Z" fill="#2B7CA6"/><path d="M28 14 v28 M16 22 l24 14 M40 22 l-24 14" stroke="#EAF6FC" stroke-width="2"/></svg>'
+};
+function starSVG(on){return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 16.5 5.5 21l2-7.5L2 9h7z" fill="${on?'#E7B93C':'none'}" stroke="#E7B93C" stroke-width="1.5"/></svg>`;}
+const BADGES=[
+  {k:'first',t:'Erste Fahrt',s:'Ein Spiel bis zum Ende gespielt'},
+  {k:'icefree',t:'Eisfrei',s:'Spiel ohne ein einziges Eisstück beendet'},
+  {k:'allber',t:'Alle drei Lager',s:'Proviant, Polarkleidung und Souvenirs gespielt'},
+  {k:'pro3',t:'Profi mit 3 Sternen',s:'3 Sterne im Profi-Modus'},
+  {k:'hunter',t:'Fehlerjäger',s:'Alle Fehler im Finale ohne Fehlklick gefunden'},
+  {k:'frags',t:'Eiskern komplett',s:'Alle 5 Datenfragmente geborgen'}
+];
+function badgeSVG(i){const c=['#2B7CA6','#72C4EA','#3F8F5E','#E7B93C','#C8331F','#8C6BC8'][i];
+  return `<svg viewBox="0 0 44 44" aria-hidden="true"><path d="M22 2 L40 12 L40 32 L22 42 L4 32 L4 12Z" fill="${c}"/><path d="M22 12 v20 M13 17 l18 10 M31 17 l-18 10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>`;}
+
+/* ===== Bildschirme ===== */
+let startSel={ber:null,mode:null,confirmReset:false};
+function renderStart(){
+  G=null;
+  const a=poolStats('a'),p=poolStats('p');
+  const mc=(m,ic,t,s,st)=>`<button class="card ${startSel.mode===m?'sel':''}" data-mode="${m}" aria-pressed="${startSel.mode===m}">${ICON[ic]}<span class="t">${t}</span><span class="s">${s}</span><span class="note">Neu für euch: ${st.fresh} von ${st.tot} Aufgaben</span><span class="prog"><i style="width:${Math.round(100*(st.tot-st.fresh)/st.tot)}%"></i></span>${S.plays[m]?`<span class="note">Rekord: ${S.rec[m]} %</span>`:'<span class="tag">neu</span>'}</button>`;
+  const bc=k=>`<button class="card ${startSel.ber===k?'sel':''}" data-ber="${k}" aria-pressed="${startSel.ber===k}">${ICON[k]}<span class="txt"><span class="t">${BEREICHE[k].t}</span><span class="s">${BEREICHE[k].s}</span></span></button>`;
+  app.innerHTML=`<div class="scene">${scene()}</div>
+  <div class="panel flat"><p class="eyebrow">Lernfeld 8 · Geschäftsprozesse erfassen und kontrollieren</p><h1>Projekt Eiszeit</h1><h3 style="color:var(--accent)">Die geheimen Konten der Polarstern</h3></div>
+  <div class="panel"><p>Bremerhaven, Handelshafen. In fünf Tagen läuft die Polarstern zur Arktis aus. Ihr leitet den Shop und das Proviant-Zentrum im Technikum. Doch Hacker haben das Rechnungswesen lahmgelegt. Jetzt müsst ihr zählen, rechnen und prüfen – von Hand.</p><p class="note">Die Geschichte ist erfunden. Alle Zahlen sind Übungszahlen.</p></div>
+  <div class="panel"><label for="team">Euer Teamname</label><input class="inp" id="team" maxlength="30" placeholder="z. B. Team Eisbrecher" value="${esc(S.team||'')}"></div>
+  <div class="panel flat"><h3>1 · Welches Lager übernehmt ihr?</h3></div>
+  <div class="blist">${bc('proviant')}${bc('kleidung')}${bc('souvenir')}</div>
+  <div class="panel flat"><h3>2 · Wählt euren Modus</h3></div>
+  <div class="grid2">${mc('a','a','Anfänger','3 Antworten, Rechenweg halb vorgegeben, Tipp-Knopf.',a)}${mc('p','p','Profi','5 Antworten, selbst rechnen und mit „weil“ begründen.',p)}</div>
+  <button class="btn red" id="go" ${startSel.ber&&startSel.mode?'':'disabled'}>Expedition starten</button>
+  ${NOSTORE?'<p class="note">Hinweis: Dieser Browser speichert nichts. Das Spiel läuft, merkt sich aber keinen Fortschritt.</p>':''}
+  <div class="panel"><h3>Abzeichen</h3><div class="badges">${BADGES.map((b,i)=>`<div class="badge ${S.badges[b.k]?'':'off'}">${badgeSVG(i)}<b>${b.t}</b><span class="note">${b.s}</span></div>`).join('')}</div>
+  <p class="note">Fortschritt, Rekorde und Abzeichen werden nur auf diesem Gerät gespeichert.</p>
+  <div class="row">${startSel.confirmReset?'<span>Wirklich alles löschen?</span><button class="btn small red" id="rsYes">Ja, löschen</button><button class="btn small alt" id="rsNo">Abbrechen</button>':'<button class="btn small alt" id="rs">Fortschritt zurücksetzen</button>'}</div></div>`;
+  app.querySelectorAll('[data-ber]').forEach(b=>b.onclick=()=>{startSel.ber=b.dataset.ber;keepTeam();renderStart();});
+  app.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{startSel.mode=b.dataset.mode;keepTeam();renderStart();});
+  const rs=document.getElementById('rs');if(rs)rs.onclick=()=>{startSel.confirmReset=true;keepTeam();renderStart();};
+  const y=document.getElementById('rsYes');if(y)y.onclick=()=>{S=defState();saveS();startSel.confirmReset=false;renderStart();};
+  const n=document.getElementById('rsNo');if(n)n.onclick=()=>{startSel.confirmReset=false;renderStart();};
+  document.getElementById('go').onclick=()=>{keepTeam();buildGame(startSel.mode,startSel.ber,(S.team||'').trim()||'Team Polarstern');render();};
+}
+function keepTeam(){const t=document.getElementById('team');if(t){S.team=t.value;saveS();}}
+function next(){G.i++;G.cur={};render();window.scrollTo({top:0,behavior:'smooth'});}
+function render(){
+  const st=G.steps[G.i];
+  const top=`<div class="scene">${scene()}</div>${st.t==='end'?'':hud()}`;
+  const fn={prolog:rProlog,chapter:rChapter,calc:rCalc,chend:rChend,event:rEvent,budget:rBudget,sort:rSort,hunt:rHunt,end:rEnd}[st.t];
+  app.innerHTML=top+fn(st);
+  bind[st.t]&&bind[st.t](st);
+}
+const bind={};
+function talk(who,html,mood){const p=PERS[who];return `<div class="talk pop"><div class="face">${face(who,mood)}</div><div class="bubble"><span class="who">${esc(p.name)} · ${esc(p.role)}</span>${html}</div></div>`;}
+function rProlog(){
+  return `<div class="panel"><p class="eyebrow">Tag 1 von 5 · 29. Dezember, 17 Uhr</p><h2>Alarm im Technikum</h2>
+  ${talk('ilka','<p>„Gerade ist das ganze Rechnungswesen ausgefallen. Hacker! Das WWS zeigt nur noch Unsinn.“</p>','bad')}
+  <p>Dr. Ilka Svensson hat bei Probebohrungen im Eis einen alten Datenlogger gefunden. Darauf: Fragmente einer Sicherung. Und Hinweise auf <b>geheime Konten</b> – Geld für ein Projekt, das in keinem Plan steht.</p>
+  ${talk('okafor','<p>„Stimmen eure Zahlen nicht, friere ich das Budget ein. Dann bleibt die Polarstern im Hafen.“</p>','neutral')}
+  <div class="term"><span class="eyebrow">So funktioniert es</span><p>Jede richtige Entscheidung bringt Ladung an Bord. Jede falsche lässt <b>Eis</b> um das Schiff wachsen. Nach jedem Kapitel bergt ihr ein <b>Datenfragment</b>. Jedes geborgene Fragment lässt ein Stück Eis tauen. Sind am Ende 4 Eisstücke oder mehr da, bleibt das Budget eingefroren.</p></div>
+  <button class="btn red" id="nx">Los geht’s</button></div>`;
+}
+bind.prolog=()=>{document.getElementById('nx').onclick=next;};
+function rChapter(st){
+  const c=CHAPTERS[st.ch-1];
+  return `<div class="panel flip"><p class="eyebrow">Kapitel ${c.n} von 5 · Tag ${c.day} von 5 · ${c.date}</p><h2>${c.t}</h2>${talk(c.who,'<p>'+esc(c.story)+'</p>','neutral')}
+  ${words(c.n,G.mode==='a')}
+  ${G.resetHint&&st.ch===1?'<p class="note">Alle Aufgaben in einem Bereich geschafft – jetzt geht es dort von vorn los, gemischt.</p>':''}
+  <button class="btn red" id="nx">Weiter</button></div>`;
+}
+bind.chapter=()=>{document.getElementById('nx').onclick=next;};
+
+/* --- Entscheidung / Rechnung --- */
+function curSub(st){const c=G.cur;if(c.k==null){c.k=0;c.s={};}return st.subs[c.k];}
+function prepOpts(sub){
+  const s=G.cur.s;if(s.opts)return s.opts;
+  if(sub.kind==='mc'){const w=G.mode==='a'?shuffle(sub.w).slice(0,2):sub.w.slice();s.opts=shuffle([{t:sub.c,ok:true}].concat(w.map(t=>({t,ok:false}))));}
+  else{const seen=new Set([fmtV(sub.fmt,sub.ans)]);const alts=[];for(const a of sub.alts){const f=fmtV(sub.fmt,a.v);if(!seen.has(f)&&a.v>0){seen.add(f);alts.push({t:f,ok:false,msg:a.msg});}if(alts.length===2)break;}
+    let bump=1.1;while(alts.length<2){const v=sub.ans*bump;const f=fmtV(sub.fmt,v);if(!seen.has(f)){seen.add(f);alts.push({t:f,ok:false,msg:'Rechne noch einmal Schritt für Schritt.'});}bump+=0.13;}
+    s.opts=shuffle([{t:fmtV(sub.fmt,sub.ans),ok:true}].concat(alts));}
+  return s.opts;
+}
+function rCalc(st){
+  const sub=curSub(st),s=G.cur.s,A=G.mode==='a';
+  const asNum=sub.kind==='num'&&!A;
+  let h=`<div class="panel">`;
+  if(st.subs.length>1)h+=`<p class="eyebrow">Schritt ${G.cur.k+1} von ${st.subs.length}</p>`;
+  const fin=s.done&&!(s.weilPhase&&!s.wdone);
+  const mood=fin?(s.score>=10?'ok':'bad'):(s.weilPhase?'ok':'neutral');
+  const line=fin?(s.score>=10?pickLine(st.who,'ok'):pickLine(st.who,'bad')):'';
+  h+=talk(st.who,`<p>${esc(sub.q)}</p>`+(line?`<p><b>${esc(line)}</b></p>`:''),mood);
+  if(st.ctx)h+=st.ctx;
+  if(sub.scaf&&(A||sub.kind==='num'))h+=`<div class="scaf">${esc(sub.scaf)}</div>`;
+  if(asNum){
+    h+=`<div class="numin"><input id="numIn" inputmode="decimal" autocomplete="off" aria-label="Ergebnis" placeholder="Ergebnis" ${s.done?'disabled':''} value="${esc(s.val||'')}"><span>${sub.fmt==='pct'?'%':'€'}</span></div>`;
+    if(!s.done)h+=`<button class="btn red" id="lock">Ergebnis festlegen</button>`;
+  }else{
+    const opts=prepOpts(sub);
+    h+=`<div class="opts" role="group">`+opts.map((o,i)=>{let cl='opt';if(s.sel===i)cl+=' sel';if(s.done){if(o.ok)cl+=' right';else if(s.sel===i)cl+=' wrong';}if(s.gone&&s.gone.includes(i))cl+=' gone';
+      return `<button class="${cl}" data-i="${i}" ${s.done||(s.gone&&s.gone.includes(i))?'disabled':''}><span class="k">${LETTERS[i]}</span><span>${esc(o.t)}</span></button>`;}).join('')+`</div>`;
+    if(!s.done){h+=`<div class="row"><button class="btn red" id="lock" ${s.sel==null?'disabled':''}>Entscheidung festlegen</button>${A&&!s.gone?'<button class="btn alt" id="tip">Tipp: eine falsche Antwort streichen (−3)</button>':''}</div>`;}
+  }
+  // Profi: Begründung
+  if(s.weilPhase){
+    h+=`<div class="term"><span class="eyebrow">Profi · Begründung</span><p>Richtig entschieden! Jetzt die Begründung: Welcher „weil“-Satz passt?</p></div><div class="opts">`+
+      s.weilOpts.map((o,i)=>{let cl='opt';if(s.wsel===i)cl+=' sel';if(s.wdone){if(o.ok)cl+=' right';else if(s.wsel===i)cl+=' wrong';}return `<button class="${cl}" data-w="${i}" ${s.wdone?'disabled':''}><span class="k">${i+1}</span><span>${esc(o.t)}</span></button>`;}).join('')+`</div>`;
+    if(!s.wdone)h+=`<button class="btn red" id="wlock" ${s.wsel==null?'disabled':''}>Begründung festlegen</button>`;
+  }
+  if(s.done&&!(s.weilPhase&&!s.wdone)){
+    const ok=s.score>=10;
+    h+=`<div class="term ${ok?'ok':'bad'} pop"><span class="eyebrow">Fachbegriff · ${esc(sub.term)}</span>`;
+    if(s.msg)h+=`<p><b>${esc(s.msg)}</b></p>`;
+    if(!s.right)h+=`<p>Richtig ist: <b>${esc(sub.kind==='mc'?sub.c:fmtV(sub.fmt,sub.ans))}</b></p>`;
+    if(s.right&&s.weilWrong)h+=`<p>Entscheidung richtig, Begründung nicht. Richtig wäre: <b>${esc(sub.weil[0])}</b> Ohne passende Begründung gibt es keine Punkte.</p>`;
+    if(sub.kind==='num')h+=`<p class="note">Rechenweg: ${esc(sub.why)}</p>`;
+    h+=`<p class="note">+${s.score} Punkte</p></div><button class="btn red" id="nx">Weiter</button>`;
+  }
+  return h+'</div>';
+}
+function pickLine(who,k){const a=PERS[who][k];return a[(G.i+(G.cur.k||0))%a.length];}
+bind.calc=(st)=>{
+  const sub=st.subs[G.cur.k],s=G.cur.s;
+  app.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{s.sel=+b.dataset.i;render();});
+  const tip=document.getElementById('tip');
+  if(tip)tip.onclick=()=>{const opts=prepOpts(sub);const wrong=opts.map((o,i)=>o.ok?-1:i).filter(i=>i>=0&&i!==s.sel);s.gone=[wrong[0]];s.tip=true;render();};
+  const lock=document.getElementById('lock');
+  if(lock)lock.onclick=()=>{
+    if(sub.kind==='num'&&G.mode==='p'){
+      const inp=document.getElementById('numIn');const v=parseNum(inp.value);s.val=inp.value;
+      if(isNaN(v)){inp.focus();inp.placeholder='Bitte eine Zahl eingeben';inp.value='';return;}
+      const tol=sub.fmt==='pct'?0.001:0.006;
+      const right=Math.abs(v-sub.ans)<tol||(sub.exact!=null&&Math.abs(v-sub.exact)<0.01);
+      s.right=right;if(!right){const hit=sub.alts.find(a=>Math.abs(a.v-v)<(sub.fmt==='pct'?0.06:0.01));s.msg=hit?hit.msg:(sub.fmt==='pct'&&Math.abs(v-sub.exact)<0.2?'Fast! Achte auf das Runden: eine Stelle nach dem Komma.':'');}
+      finishSub(st,sub,right?10:0);return;}
+    const o=prepOpts(sub)[s.sel];s.right=o.ok;s.msg=o.ok?'':(o.msg||'');
+    if(o.ok&&G.mode==='p'&&sub.kind==='mc'&&sub.weil){s.weilPhase=true;s.weilOpts=shuffle([{t:sub.weil[0],ok:true},{t:sub.weil[1],ok:false},{t:sub.weil[2],ok:false}]);s.done=true;s.score=0;render();return;}
+    finishSub(st,sub,o.ok?(s.tip?7:10):0);
+  };
+  app.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{s.wsel=+b.dataset.w;render();});
+  const wl=document.getElementById('wlock');
+  if(wl)wl.onclick=()=>{s.wdone=true;const ok=s.weilOpts[s.wsel].ok;s.weilWrong=!ok;s.done=false;finishSub(st,sub,ok?10:0,true);};
+  const nx=document.getElementById('nx');
+  if(nx)nx.onclick=()=>{if(G.cur.k<st.subs.length-1){G.cur.k++;G.cur.s={};render();}else next();};
+  const inp=document.getElementById('numIn');if(inp&&!s.done){inp.addEventListener('keydown',e=>{if(e.key==='Enter')lock.click();});}
+};
+function finishSub(st,sub,score){
+  const s=G.cur.s;s.done=true;s.score=score;G.pts+=score;G.max+=10;
+  if(score>=10)G.cargo++;else if(!s.right)G.ice=Math.min(6,G.ice+1);
+  const chosen=sub.kind==='num'&&G.mode==='p'?(s.val||'')+(sub.fmt==='pct'?' %':' €'):(prepOpts(sub)[s.sel]||{}).t;
+  G.res.push({ch:st.ch,q:sub.q,mk:score>=10?'ok':(s.right?'mid':'no'),chosen,correct:sub.kind==='mc'?sub.c:fmtV(sub.fmt,sub.ans),
+    why:sub.kind==='num'?('Rechenweg: '+sub.why):sub.why,ihk:sub.ihk,score,max:10,extra:s.weilWrong?'Begründung passte nicht.':(s.tip?'Mit Tipp.':'')});
+  render();
+}
+
+/* --- Kapitel-Ende --- */
+function rChend(st){
+  const rs=G.res.filter(r=>r.ch===st.ch);const p=rs.reduce((a,r)=>a+r.score,0),m=rs.reduce((a,r)=>a+r.max,0);
+  if(G.frags[st.ch-1]==null){G.frags[st.ch-1]=(m&&p/m>=0.5)?'ok':'dmg';G.cur.melt=G.frags[st.ch-1]==='ok'&&G.ice>0;if(G.cur.melt)G.ice--;}
+  const ok=G.frags[st.ch-1]==='ok';
+  const core=`<svg viewBox="0 0 220 60" style="width:100%;max-width:320px" aria-hidden="true"><rect x="10" y="18" width="200" height="24" rx="12" fill="#DCEEF7" stroke="#8EC3DD"/>${[0,1,2,3,4].map(i=>`<rect x="${16+i*38}" y="22" width="34" height="16" rx="6" fill="${G.frags[i]==='ok'?'#C8331F':G.frags[i]==='dmg'?'#9AA7B1':'#F4FAFD'}" stroke="#8EC3DD"/>`).join('')}</svg>`;
+  return `<div class="panel pop"><p class="eyebrow">Kapitel ${st.ch} geschafft · ${p} von ${m} Punkten</p><h2>${ok?'Datenfragment geborgen':'Fragment beschädigt'}</h2>${core}
+  <p>${ok?'Die Glaziologin liest das Fragment aus. Ein Stück der Sicherung ist zurück.'+(G.cur.melt?' Das Eis taut ein Stück.':''):'Das Fragment ist nur halb lesbar. Nicht schlimm – im nächsten Kapitel holt ihr Punkte zurück.'}</p>
+  ${st.ch===5?'':'<p class="note">Eis um das Schiff: '+G.ice+' von 6</p>'}<button class="btn red" id="nx">${st.ch===5?'Zur Auswertung':'Weiter'}</button></div>`;
+}
+bind.chend=()=>{document.getElementById('nx').onclick=next;};
+
+/* --- Zufallsereignis --- */
+function rEvent(st){
+  const q=st.q,c=G.cur;if(!c.opts)c.opts=shuffle([{t:q.c,ok:true}].concat(q.w.map(t=>({t,ok:false}))));
+  let h=`<div class="panel flip"><p class="eyebrow">Zufallsereignis</p><h2>${esc(q.title)}</h2>${talk('funk','<p>'+esc(q.q)+'</p>',c.done?(c.right?'ok':'bad'):'neutral')}<div class="opts">`+
+   c.opts.map((o,i)=>{let cl='opt';if(c.sel===i)cl+=' sel';if(c.done){if(o.ok)cl+=' right';else if(c.sel===i)cl+=' wrong';}return `<button class="${cl}" data-i="${i}" ${c.done?'disabled':''}><span class="k">${LETTERS[i]}</span><span>${esc(o.t)}</span></button>`;}).join('')+'</div>';
+  if(!c.done)h+=`<button class="btn red" id="lock" ${c.sel==null?'disabled':''}>Entscheidung festlegen</button>`;
+  else h+=`<div class="term ${c.right?'ok':'bad'}"><span class="eyebrow">${c.right?'Das Eis taut ein Stück':'Das Eis wächst'} · ${esc(q.term)}</span><p>${esc(q.ihk)}</p><p class="note">+${c.right?5:0} Punkte</p></div><button class="btn red" id="nx">Weiter</button>`;
+  return h+'</div>';
+}
+bind.event=(st)=>{const c=G.cur;
+  app.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{c.sel=+b.dataset.i;render();});
+  const l=document.getElementById('lock');if(l)l.onclick=()=>{c.done=true;c.right=c.opts[c.sel].ok;G.max+=5;
+    if(c.right){G.pts+=5;G.ice=Math.max(0,G.ice-1);G.cargo++;}else G.ice=Math.min(6,G.ice+1);
+    G.res.push({ch:st.ch,q:st.q.title+': '+st.q.q,mk:c.right?'ok':'no',chosen:c.opts[c.sel].t,correct:st.q.c,why:'',ihk:st.q.ihk,score:c.right?5:0,max:5,ev:true});render();};
+  const n=document.getElementById('nx');if(n)n.onclick=next;};
+
+/* --- Budget: Maßnahmen gegen Diebstahl --- */
+const BUDGET=1500;
+function rBudget(st){
+  const c=G.cur;if(!c.list){c.list=shuffle(MASS);c.sel=[];}
+  const cost=c.sel.reduce((a,i)=>a+c.list[i].cost,0);
+  let h=`<div class="panel">${talk('ahrens',`<p>„Im Shop verschwinden Sachen. Ihr habt <b>${fmtE(BUDGET)}</b>. Wählt bis zu <b>drei</b> Maßnahmen gegen Ladendiebstahl.“</p>`+(c.done?`<p><b>${esc(c.good===c.sel.length&&c.good>0?pickLine('ahrens','ok'):pickLine('ahrens','bad'))}</b></p>`:''),c.done?(c.bad?'bad':'ok'):'neutral')}
+  <div class="prog" aria-label="Budget"><i style="width:${Math.min(100,cost/BUDGET*100)}%"></i></div><p class="note">Ausgegeben: ${fmtE(cost)} von ${fmtE(BUDGET)} · gewählt: ${c.sel.length} von 3</p><div class="opts">`;
+  h+=c.list.map((m,i)=>{const on=c.sel.includes(i);const dis=c.done||(!on&&(c.sel.length>=3||cost+m.cost>BUDGET));let cl='opt'+(on?' sel':'');if(c.done&&on)cl+=m.good?' right':' wrong';
+    return `<button class="${cl}" data-i="${i}" ${dis?'disabled':''} aria-pressed="${on}"><span class="k">${on?'✓':''}</span><span>${esc(m.t)}</span><span class="cost">${fmtI(m.cost)} €</span></button>`;}).join('')+'</div>';
+  if(!c.done)h+=`<button class="btn red" id="lock" ${c.sel.length?'':'disabled'}>Entscheidung festlegen</button>`;
+  else{h+=`<div class="term ${c.bad?'bad':'ok'}"><span class="eyebrow">Fachbegriff · Maßnahmen gegen Diebstahl</span>`+
+    c.sel.filter(i=>!c.list[i].good).map(i=>`<p><b>${esc(c.list[i].t)}:</b> ${esc(c.list[i].why)}</p>`).join('')+
+    `<p>Wirksam sind: Kameras, Spiegel, Warensicherungsetiketten, Ladendetektiv, geschultes Personal, abgeschlossene Vitrinen, übersichtliche Platzierung.</p><p class="note">+${c.score} Punkte</p></div><button class="btn red" id="nx">Weiter</button>`;}
+  return h+'</div>';
+}
+bind.budget=(st)=>{const c=G.cur;
+  app.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;c.sel=c.sel.includes(i)?c.sel.filter(x=>x!==i):c.sel.concat(i);render();});
+  const l=document.getElementById('lock');if(l)l.onclick=()=>{c.done=true;c.good=c.sel.filter(i=>c.list[i].good).length;c.bad=c.sel.length-c.good;
+    c.score=Math.max(0,Math.round(c.good*10/3)-c.bad*3);G.pts+=c.score;G.max+=10;if(c.score>=7)G.cargo++;else G.ice=Math.min(6,G.ice+1);
+    G.res.push({ch:st.ch,q:'Drei Maßnahmen gegen Ladendiebstahl wählen',mk:c.score>=10?'ok':c.score>=5?'mid':'no',chosen:c.sel.map(i=>c.list[i].t).join(' · '),
+      correct:'drei echte Maßnahmen, z. B. Spiegel, Etiketten, Personal schulen',why:'Ein WWS oder MDE-Gerät verhindert keine Differenzen – das sind die typischen Ablenker.',ihk:'Nenne vier Maßnahmen gegen Ladendiebstahl: Kameras, Spiegel/übersichtliche Platzierung, Warensicherungsetiketten/Vitrinen, Ladendetektiv/geschultes Personal.',score:c.score,max:10});render();};
+  const n=document.getElementById('nx');if(n)n.onclick=next;};
+
+/* --- Mini-Spiele: Ursachen-Radar und Bilanz-Waage --- */
+function rSort(st){
+  const c=G.cur;if(c.idx==null){c.idx=0;c.ans=[];}
+  const radar=st.kind==='radar';const cats=radar?RADAR_CATS:WAAGE_CATS;const who=radar?'ilka':'okafor';
+  const title=radar?'Mini-Spiel: Ursachen-Radar':'Mini-Spiel: Die Bilanz-Waage';
+  const ask=radar?'Was passiert bei diesem Fehler? Ordnet zu.':'Wohin gehört dieser Posten in der Bilanz?';
+  let h=`<div class="panel"><p class="eyebrow">${title} · Karte ${Math.min(c.idx+1,st.cards.length)} von ${st.cards.length}</p>`;
+  if(c.idx<st.cards.length){
+    const card=st.cards[c.idx];const a=c.ans[c.idx];
+    h+=talk(who,'<p>'+ask+'</p>',a?(a.ok?'ok':'bad'):'neutral')+`<div class="bigcard pop">${esc(card.t)}</div><div class="cats">`+
+      cats.map(k=>{let cl='opt';if(a){if(k.k===card.k)cl+=' right';else if(a.pick===k.k)cl+=' wrong';}return `<button class="${cl}" data-c="${k.k}" ${a?'disabled':''}><span><b>${esc(k.t)}</b><br><span class="note">${esc(k.s)}</span></span></button>`;}).join('')+'</div>';
+    if(a)h+=`<div class="term ${a.ok?'ok':'bad'}"><span class="eyebrow">${a.ok?'Richtig':'Nicht ganz'}</span><p>${esc(card.t)} → <b>${esc(cats.find(k=>k.k===card.k).t)}</b></p>${radar?'<p class="note">Eselsbrücke: Ein Fehler im Computer verschiebt das Soll. Ein Fehler im Regal verschiebt das Ist.</p>':'<p class="note">Anlagevermögen bleibt auf Dauer. Umlaufvermögen ist unterwegs. Eigenkapital = eigenes Geld. Fremdkapital = fremdes Geld.</p>'}</div><button class="btn red" id="nc">${c.idx<st.cards.length-1?'Nächste Karte':'Auswertung'}</button>`;
+  }else{
+    const ok=c.ans.filter(a=>a.ok).length;
+    h+=talk(who,`<p>${ok} von ${st.cards.length} richtig zugeordnet.</p>`,ok*2>=st.cards.length?'ok':'bad')+`<p class="note">+${c.score} Punkte</p><button class="btn red" id="nx">Weiter</button>`;
+  }
+  return h+'</div>';
+}
+bind.sort=(st)=>{const c=G.cur;
+  app.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const card=st.cards[c.idx];c.ans[c.idx]={pick:b.dataset.c,ok:b.dataset.c===card.k};render();});
+  const nc=document.getElementById('nc');if(nc)nc.onclick=()=>{c.idx++;if(c.idx>=st.cards.length){const ok=c.ans.filter(a=>a.ok).length;c.score=Math.round(10*ok/st.cards.length);G.pts+=c.score;G.max+=10;
+      if(c.score>=7)G.cargo++;else if(c.score<5)G.ice=Math.min(6,G.ice+1);
+      const cats=st.kind==='radar'?RADAR_CATS:WAAGE_CATS;const wrong=st.cards.filter((x,i)=>!c.ans[i].ok);
+      G.res.push({ch:st.ch,q:st.kind==='radar'?'Ursachen-Radar: Fehler zuordnen':'Bilanz-Waage: Posten zuordnen',mk:c.score>=10?'ok':c.score>=5?'mid':'no',chosen:ok+' von '+st.cards.length+' richtig',
+        correct:wrong.length?wrong.map(x=>x.t+' → '+cats.find(k=>k.k===x.k).t).join(' · '):'alles richtig',
+        why:st.kind==='radar'?'Ein Fehler im Computer verschiebt das Soll. Ein Fehler im Regal (Diebstahl) verschiebt das Ist.':'Aktiva: Anlagevermögen (bleibt lange) und Umlaufvermögen (ändert sich ständig). Passiva: Eigenkapital und Fremdkapital.',
+        ihk:st.kind==='radar'?'Bruch/Verderb nicht ausgebucht, Rücksendung nicht erfasst, Lieferung doppelt erfasst → Soll zu hoch → Ist < Soll. Lieferung nicht erfasst, Verkauf doppelt gescannt → Soll zu niedrig → Ist > Soll.':'Anlagevermögen: Vermögensteile, die dem Betrieb lange dienen. Umlaufvermögen: Vermögensteile, die sich ständig verändern. Fremdkapital: Schulden des Betriebs.',score:c.score,max:10});}
+    render();};
+  const n=document.getElementById('nx');if(n)n.onclick=next;};
+
+/* --- Finale: Fehlerjagd --- */
+function rHunt(st){
+  const f=st.fj,c=G.cur,P=G.mode==='p';if(!c.marks){c.marks={};c.reasons={};}
+  const errs=f.l.concat(f.r).filter(x=>x[2]).length;
+  const cell=(x,side,i)=>{const id=side+i;const isErr=!!x[2];let cl='cell';
+    if(c.checked){if(isErr&&c.marks[id])cl+=' hit';else if(isErr)cl+=' lost';else if(c.marks[id])cl+=' miss';}else if(c.marks[id])cl+=' mark';
+    return `<button class="${cl}" data-id="${id}" ${c.checked?'disabled':''}><span>${esc(x[0])}</span><span>${fmtE(x[1])}</span></button>`;};
+  let h=`<div class="panel">${talk('ilka',`<p>„Das ist die ${f.kind} aus dem gehackten System. <b>${errs} Posten</b> stehen an der falschen Stelle. Tippt sie an.“</p>`,c.checked?(c.score>=7?'ok':'bad'):'neutral')}
+  <div class="tk"><div class="l"><div class="hd"><span>${f.L}</span><span>€</span></div>${f.l.map((x,i)=>cell(x,'l',i)).join('')}</div><div><div class="hd"><span>${f.R}</span><span>€</span></div>${f.r.map((x,i)=>cell(x,'r',i)).join('')}</div></div>`;
+  const nm=Object.values(c.marks).filter(Boolean).length;
+  if(!c.checked)h+=`<p class="note">Markiert: ${nm} von ${errs}</p><button class="btn red" id="chk" ${nm?'':'disabled'}>Prüfen</button>`;
+  else{
+    const items=[];f.l.forEach((x,i)=>x[2]&&items.push(['l'+i,x]));f.r.forEach((x,i)=>x[2]&&items.push(['r'+i,x]));
+    if(P&&!c.rdone){
+      const found=items.filter(([id])=>c.marks[id]);
+      h+=`<div class="term"><span class="eyebrow">Profi · Begründung</span><p>Warum ist der Posten falsch?</p></div>`;
+      found.forEach(([id,x])=>{h+=`<p><b>${esc(x[0])}</b></p><div class="opts">`+f.reasons.map((r,ri)=>{let cl='opt'+(c.reasons[id]===ri?' sel':'');return `<button class="${cl}" data-r="${id}|${ri}"><span class="k">${ri+1}</span><span>${esc(r)}</span></button>`;}).join('')+'</div>';});
+      const all=found.every(([id])=>c.reasons[id]!=null);
+      h+=`<button class="btn red" id="rlock" ${all?'':'disabled'}>Begründungen festlegen</button>`;
+    }else{
+      h+=`<div class="term ${c.score>=7?'ok':'bad'}"><span class="eyebrow">Auflösung</span>`+items.map(([id,x])=>{const r=P&&c.marks[id]?(f.reasons[c.reasons[id]]===x[2]?' ✓ Begründung richtig':' ✗ Begründung falsch'):'';return `<p><b>${esc(x[0])}</b>${c.marks[id]?' (gefunden)':' (übersehen)'}: ${esc(x[2])}${r}</p>`;}).join('')+
+        (c.falseMarks?`<p>${c.falseMarks} Posten stand richtig, wurde aber markiert (−3 je Fehlklick).</p>`:'')+`<p class="note">+${c.score} Punkte</p></div><button class="btn red" id="nx">Weiter</button>`;
+    }
+  }
+  return h+'</div>';
+}
+function scoreHunt(st){const f=st.fj,c=G.cur,P=G.mode==='p';
+  const items=[];f.l.forEach((x,i)=>x[2]&&items.push(['l'+i,x]));f.r.forEach((x,i)=>x[2]&&items.push(['r'+i,x]));
+  const hits=items.filter(([id])=>c.marks[id]);const good=P?hits.filter(([id,x])=>f.reasons[c.reasons[id]]===x[2]).length:hits.length;
+  const fm=Object.keys(c.marks).filter(id=>c.marks[id]&&!items.find(([i])=>i===id)).length;c.falseMarks=fm;
+  c.score=Math.max(0,Math.round(10*good/items.length)-3*fm);G.pts+=c.score;G.max+=10;
+  G.huntClean=hits.length===items.length&&fm===0;
+  if(c.score>=7)G.cargo++;else G.ice=Math.min(6,G.ice+1);
+  G.res.push({ch:st.ch,q:'Fehlerjagd: falsche Posten in der '+f.kind,mk:c.score>=10?'ok':c.score>=5?'mid':'no',chosen:hits.length+' von '+items.length+' gefunden'+(fm?', '+fm+' Fehlklick(s)':''),
+    correct:items.map(([,x])=>x[0]).join(' · '),why:items.map(([,x])=>x[0]+': '+x[2]).join(' '),ihk:f.kind==='GuV'?'Links (Soll) stehen die Aufwendungen, rechts (Haben) die Erträge. Forderungen, Kasse oder Darlehen gehören nicht in die GuV, sondern in die Bilanz.':'Aktiva = Vermögen (Anlage- und Umlaufvermögen). Passiva = Kapital (Eigen- und Fremdkapital).',score:c.score,max:10});
+}
+bind.hunt=(st)=>{const c=G.cur;
+  app.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{c.marks[b.dataset.id]=!c.marks[b.dataset.id];render();});
+  const k=document.getElementById('chk');if(k)k.onclick=()=>{c.checked=true;if(G.mode==='a'){c.rdone=true;scoreHunt(st);}else{      const items=[];st.fj.l.forEach((x,i)=>x[2]&&items.push('l'+i));st.fj.r.forEach((x,i)=>x[2]&&items.push('r'+i));if(!items.some(id=>c.marks[id])){c.rdone=true;scoreHunt(st);}}render();};
+  app.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const [id,ri]=b.dataset.r.split('|');c.reasons[id]=+ri;render();});
+  const rl=document.getElementById('rlock');if(rl)rl.onclick=()=>{c.rdone=true;scoreHunt(st);render();};
+  const n=document.getElementById('nx');if(n)n.onclick=next;};
+
+/* --- Auswertung --- */
+function rEnd(st){
+  const c=G.cur;const pct=G.max?Math.round(100*G.pts/G.max):0;const stars=pct>=85?3:pct>=65?2:pct>=40?1:0;
+  const win=G.ice<=3;
+  if(!c.saved){c.saved=true;const m=G.mode;S.plays[m]=(S.plays[m]||0)+1;c.newRec=pct>S.rec[m];if(c.newRec)S.rec[m]=pct;S.ber[G.ber]=1;
+    const nb=[];const give=k=>{if(!S.badges[k]){S.badges[k]=1;nb.push(k);}};
+    give('first');if(G.ice===0)give('icefree');if(S.ber.proviant&&S.ber.kleidung&&S.ber.souvenir)give('allber');if(m==='p'&&stars===3)give('pro3');if(G.huntClean)give('hunter');if(G.frags.filter(f=>f==='ok').length===5)give('frags');
+    c.nb=nb;saveS();}
+  const story=G.ice<=1?'Die Polarstern legt pünktlich ab. Über dem Eis leuchtet ein Polarlicht.':win?'Die Polarstern legt ab – mit ein paar Stunden Verspätung, aber das Budget ist frei.':'Das Budget bleibt eingefroren. Die Polarstern liegt im Eis fest. Versucht es noch einmal!';
+  const nfr=G.frags.filter(f=>f==='ok').length;
+  let h=`<div class="score pop"><p class="eyebrow">Expeditionsbericht · ${esc(G.team)}</p><div class="stars">${[0,1,2].map(i=>starSVG(i<stars)).join('')}</div>
+  <div class="big">${G.pts} / ${G.max}</div><p><b>${pct} %</b> · ${G.mode==='a'?'Anfänger':'Profi'} · ${esc(BEREICHE[G.ber].t)}</p>
+  <p>Eis: ${G.ice} von 6 · Datenfragmente: ${nfr} von 5${c.newRec?' · <b>Neuer Rekord!</b>':''}</p></div>
+  <div class="panel">${talk(win?'hansen':'okafor','<p>'+esc(story)+'</p>',win?'ok':'bad')}
+  ${win?'<p>Und die geheimen Konten? Das „geheime Projekt“ war kein Betrug: ein Messgerät für Schulklassen, bezahlt aus Spenden. Die Hacker hatten es aus den Listen gelöscht und Posten verschoben, damit alles verdächtig aussieht. Ihr habt die Zahlen gerettet.</p>':'<p>Die Fragmente reichen noch nicht, um die geheimen Konten aufzuklären. Lest unten nach, wo es gehakt hat.</p>'}</div>`;
+  if(c.nb&&c.nb.length)h+=`<div class="panel"><h3>Neues Abzeichen</h3><div class="badges">${c.nb.map(k=>{const i=BADGES.findIndex(b=>b.k===k);return `<div class="badge">${badgeSVG(i)}<b>${BADGES[i].t}</b><span class="note">${BADGES[i].s}</span></div>`;}).join('')}</div></div>`;
+  h+=`<div class="panel"><h3>Eure Entscheidungen</h3><div class="res">`+G.res.map(r=>`<div class="ri"><span class="mk ${r.mk}">${r.mk==='ok'?'✓ richtig':r.mk==='mid'?'~ teilweise':'✗ falsch'} · Kapitel ${r.ch} · ${r.score}/${r.max}</span><b>${esc(r.q)}</b>
+    <span>Eure Wahl: ${esc(r.chosen||'–')}</span>${r.mk!=='ok'?`<span>Besser: <b>${esc(r.correct)}</b></span>`:''}${r.extra?`<span class="note">${esc(r.extra)}</span>`:''}${r.why?`<span class="note">${esc(r.why)}</span>`:''}
+    <div class="ihk"><b>So steht es in der Prüfung</b>${esc(r.ihk)}</div></div>`).join('')+`</div></div>`;
+  h+=`<div class="panel"><h3>Prüfungskasten: die Formeln</h3><div class="scaf">Prozentsatz = Prozentwert × 100 : Grundwert<br>Inventurdifferenz % = Differenz € × 100 : Soll €<br>Eigenkapitalanteil = EK × 100 : Bilanzsumme<br>Gewinn = Erträge − alle Aufwendungen<br>Rohgewinn = Umsatzerlöse − Wareneinsatz<br>Veränderung % = (neu − alt) × 100 : alt</div><p class="note">Typische Ablenker: „WWS verhindert Differenzen“, „vom Ist gerechnet“, „Bilanz zeigt Aufwand und Ertrag“, „Forderungen in der GuV“.</p></div>`;
+  const pf=st.pf;
+  h+=`<div class="panel"><h3>Für Profis${G.mode==='a'?' (freiwillig)':''}</h3><p><b>${esc(pf.q)}</b></p><label for="pfIn" class="sr">Eure Antwort</label><textarea class="inp" id="pfIn" placeholder="Eure Antwort – erst schreiben, dann vergleichen">${esc(c.pfText||'')}</textarea>
+   ${c.pfShow?`<div class="term"><span class="eyebrow">Musterlösung</span><p>${esc(pf.a)}</p></div>`:'<button class="btn alt" id="pfBtn">Musterlösung zeigen</button>'}</div>`;
+  h+=`<div class="row"><button class="btn red" id="again">Noch einmal (gleicher Modus)</button><button class="btn alt" id="ober">Anderes Lager</button><button class="btn alt" id="omode">Anderer Modus</button></div>`;
+  return h;
+}
+bind.end=()=>{const c=G.cur;
+  const pb=document.getElementById('pfBtn');if(pb)pb.onclick=()=>{c.pfText=document.getElementById('pfIn').value;c.pfShow=true;render();};
+  const m=G.mode,b=G.ber,t=G.team;
+  document.getElementById('again').onclick=()=>{buildGame(m,b,t);render();window.scrollTo(0,0);};
+  document.getElementById('ober').onclick=()=>{startSel={ber:null,mode:m,confirmReset:false};renderStart();window.scrollTo(0,0);};
+  document.getElementById('omode').onclick=()=>{startSel={ber:b,mode:m==='a'?'p':'a',confirmReset:false};renderStart();window.scrollTo(0,0);};
+};
+renderStart();
+</script></body></html>

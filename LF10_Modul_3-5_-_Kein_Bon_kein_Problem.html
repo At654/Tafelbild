@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kein Bon, kein Problem?</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: eine schmale Handy-Spalte; Kunde oben als Sprechblase, Antworten als Kassenbon-Zettel darunter */
+:root{
+  --bg:#E9EEF2; --paper:#FFFFFF; --paper2:#F6F8FA; --ink:#1B2631; --muted:#5A6977;
+  --line:#CBD5DD; --accent:#0E7C6B; --accent-ink:#FFFFFF; --accent-soft:#D5EFEA;
+  --bad:#B4321F; --bad-soft:#F8DDD8; --mid:#B7791F; --mid-soft:#F6EBD3; --good:#1F7A3A; --good-soft:#D8F0DF;
+  --shadow:0 1px 2px rgba(27,38,49,.08),0 6px 18px rgba(27,38,49,.07);
+  --display:"Bricolage Grotesque",ui-rounded,system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11181F; --paper:#1A232C; --paper2:#212C36; --ink:#E6EDF2; --muted:#9AAAB7;
+  --line:#33424F; --accent:#3CC2AA; --accent-ink:#06211C; --accent-soft:#163C36;
+  --bad:#F08A78; --bad-soft:#3E211C; --mid:#E5B45E; --mid-soft:#3A2E17; --good:#6FD08E; --good-soft:#18361F;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11181F; --paper:#1A232C; --paper2:#212C36; --ink:#E6EDF2; --muted:#9AAAB7;
+  --line:#33424F; --accent:#3CC2AA; --accent-ink:#06211C; --accent-soft:#163C36;
+  --bad:#F08A78; --bad-soft:#3E211C; --mid:#E5B45E; --mid-soft:#3A2E17; --good:#6FD08E; --good-soft:#18361F;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:2.1rem;font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.4rem;font-weight:800}
+h3{font-size:1.08rem;font-weight:600}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{border:0;border-radius:12px;padding:14px 18px;font-weight:700;background:var(--accent);color:var(--accent-ink);font-size:1rem}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row > .btn{flex:1 1 200px}
+
+/* Kassenbon-Optik */
+.bon{background:var(--paper);box-shadow:var(--shadow);padding:20px 20px 26px;position:relative;
+  --zz:radial-gradient(circle at 8px 0,transparent 7px,var(--paper) 7.5px);}
+.bon::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:8px;background:var(--zz);background-size:16px 8px;background-repeat:repeat-x}
+.bon .mono{font-family:var(--mono);font-size:.86rem}
+.dash{border:0;border-top:2px dashed var(--line);margin:12px 0}
+.bonline{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.9rem}
+.stamp{display:inline-block;font-family:var(--mono);font-weight:600;font-size:.8rem;letter-spacing:.08em;border:2px solid var(--bad);color:var(--bad);padding:2px 8px;border-radius:4px;transform:rotate(-4deg)}
+
+.card{background:var(--paper);border-radius:16px;box-shadow:var(--shadow);padding:18px}
+.modes{display:grid;gap:12px}
+.mode{display:flex;flex-direction:column;gap:8px;text-align:left;border:2px solid var(--line);background:var(--paper);border-radius:16px;padding:16px}
+.mode:hover:not(:disabled){border-color:var(--accent)}
+.mode:disabled{opacity:.6;cursor:default}
+.mode .tag{font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.mode .t{font-family:var(--display);font-size:1.25rem;font-weight:800}
+.cases{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.case{display:flex;flex-direction:column;gap:2px;text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.case:hover{border-color:var(--accent)}
+.case[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.case .num{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;color:var(--accent)}
+.case .ct{font-family:var(--display);font-weight:800;font-size:1.05rem;line-height:1.2}
+.case .cw{font-size:.86rem;color:var(--muted)}
+.case.dice{border-style:dashed}
+.chip{border:2px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--paper);font-size:.92rem}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+
+/* Kunde + Laune */
+.hud{display:flex;align-items:center;gap:14px}
+.face{width:64px;height:64px;flex:0 0 64px}
+.meter{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.meter .bar{height:12px;border-radius:999px;background:var(--paper2);border:1px solid var(--line);overflow:hidden}
+.meter .fill{height:100%;width:20%;border-radius:999px;transition:width .5s ease,background-color .5s}
+.meter .lbl{display:flex;justify-content:space-between;font-size:.86rem;color:var(--muted)}
+.meter .lbl b{color:var(--ink)}
+.progress{font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+.bubble{background:var(--paper);border-radius:18px 18px 18px 4px;box-shadow:var(--shadow);padding:16px 18px;font-size:1.12rem;font-weight:700}
+.bubble .who{display:block;font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400;margin-bottom:4px}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:14px 16px;font-size:1rem;display:flex;gap:12px;align-items:flex-start}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt .k{font-family:var(--mono);font-weight:600;color:var(--accent);flex:0 0 auto}
+.opt.picked.good{border-color:var(--good);background:var(--good-soft)}
+.opt.picked.mid{border-color:var(--mid);background:var(--mid-soft)}
+.opt.picked.bad{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled:not(.picked){opacity:.45}
+.fb{border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;border-left:6px solid}
+.fb.good{background:var(--good-soft);border-color:var(--good)}
+.fb.mid{background:var(--mid-soft);border-color:var(--mid)}
+.fb.bad{background:var(--bad-soft);border-color:var(--bad)}
+.fb .head{font-family:var(--display);font-weight:800;font-size:1.1rem}
+.fb .re{font-style:italic}
+
+/* Ergebnis */
+.score{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.score .n{font-family:var(--display);font-size:3.2rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.check{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.check li{display:flex;gap:10px;align-items:flex-start}
+.check .ic{flex:0 0 26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.check .ok{background:var(--good-soft);color:var(--good)}
+.check .no{background:var(--bad-soft);color:var(--bad)}
+.facts{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.facts li{background:var(--paper2);border-radius:12px;padding:12px 14px}
+.facts b{font-family:var(--display)}
+.pair{display:grid;gap:4px;background:var(--paper2);border-radius:12px;padding:12px 14px}
+.pair .du{color:var(--bad)}
+.pair .bs{color:var(--good);font-weight:700}
+
+/* Chat */
+.chat{display:flex;flex-direction:column;gap:10px;min-height:120px}
+.msg{max-width:86%;padding:12px 14px;border-radius:16px;box-shadow:var(--shadow);white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.k{background:var(--paper);align-self:flex-start;border-bottom-left-radius:4px;font-weight:700}
+.msg.a{background:var(--accent);color:var(--accent-ink);align-self:flex-end;border-bottom-right-radius:4px}
+.msg.sys{align-self:center;background:transparent;box-shadow:none;color:var(--muted);font-size:.9rem;text-align:center}
+.compose{display:flex;flex-direction:column;gap:8px;position:sticky;bottom:0;background:var(--bg);padding-block:10px calc(10px + env(safe-area-inset-bottom,0px))}
+textarea{width:100%;min-height:80px;resize:vertical;border:2px solid var(--line);border-radius:14px;padding:12px;font:inherit;background:var(--paper);color:var(--ink)}
+.hint{font-size:.9rem;color:var(--muted)}
+.starter{display:flex;gap:8px;flex-wrap:wrap}
+.starter button{border:1px dashed var(--line);background:var(--paper2);border-radius:10px;padding:6px 10px;font-size:.88rem;text-align:left}
+.dots::after{content:"…";animation:dots 1.2s steps(3) infinite}
+@keyframes dots{0%{content:"."}33%{content:".."}66%{content:"..."}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap" id="app"></div>
+
+<script>
+(() => {
+"use strict";
+const $app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const clamp = v => Math.max(0, Math.min(100, v));
+
+/* ---------- Fälle ---------- */
+const O = (t, m, p, fb, re, c) => ({ t, m, p, fb, re, c });
+const CASES = [
+/* ===== Fall 1: Smartphone ohne Bon ===== */
+{ id:"bon", title:"Kein Bon", who:"Herr Brandt", acc:"Herrn Brandt", role:"Kunde", product:"Smartphone Novaphone X5", price:"349,00 €", bought:"„im Sommer“", problem:"Akku, Neustarts", stamp:"KEIN KASSENBON",
+  short:"Smartphone vor 3 Monaten gekauft, Akku schwach, Kassenbon weggeworfen.",
+  open:"Guten Tag, ich will das Ding hier zurückgeben, das ist Schrott!",
+  leave:"Wissen Sie was? Ich gehe! Und ich erzähle allen, wie Sie hier mit Kunden umgehen!",
+  check:{
+    gefuehl:"Ärger ernst genommen und freundlich geblieben",
+    fehler:"Nach dem Fehler gefragt",
+    datum:"Nach dem Kaufdatum gefragt",
+    ursache:"Nach Sturz oder Wasser gefragt, ohne etwas zu unterstellen",
+    nachweis:"Erkannt: Ohne Kassenbon geht es trotzdem",
+    beleg:"Anderen Kaufnachweis genannt (Kontoauszug, Banking-App, Seriennummer)",
+    reihenfolge:"Richtige Reihenfolge: erst Reparatur oder neues Gerät, dann Geld",
+    loesung:"Schnelle Lösung angeboten, die zum Kunden passt" },
+  rounds:[
+   { say:"Guten Tag, ich will das Ding hier zurückgeben, das ist Schrott!", opts:[
+     O("Guten Tag! Das klingt ärgerlich. Erzählen Sie mir bitte, was mit dem Handy los ist?", +20, 2, "Sehr gut. Du nimmst den Ärger ernst und lädst den Kunden ein, zu erzählen.", "Na endlich hört mal jemand zu.", "gefuehl"),
+     O("Schrott verkaufen wir hier nicht. Was ist denn kaputt?", -15, 0, "Du verteidigst den Laden. Der Kunde fühlt sich angegriffen und wird lauter.", "Ach so? Dann gucken Sie sich das mal an!"),
+     O("Moment bitte, ich räume gerade das Regal ein. Da müssen Sie kurz warten.", -25, 0, "Ein wütender Kunde geht immer vor. Wer warten muss, wird noch wütender.", "Wie bitte? Ich steh doch schon hier!") ]},
+   { say:"Der Akku ist nach zwei Stunden leer, und dauernd startet das Ding neu. Für 349 Euro! Ich will mein Geld zurück, und zwar sofort!", opts:[
+     O("Das darf bei einem neuen Gerät nicht passieren. Ich schaue mir das mit Ihnen an. Seit wann haben Sie das Problem?", +15, 2, "Gut. Du zeigst Verständnis und fragst gezielt nach dem Fehler.", "Hm. Okay.", "fehler"),
+     O("Geld zurück gibt es bei uns grundsätzlich nicht.", -20, 0, "Das stimmt so nicht. Bei einem Mangel kann der Kunde am Ende auch Geld zurückbekommen. Außerdem provoziert der Satz.", "Das werden wir ja sehen!"),
+     O("Okay, kein Problem, dann bekommen Sie sofort Ihr Geld.", +10, 0, "Der Kunde freut sich. Aber du hast noch nichts geprüft und etwas versprochen, das du als Azubi nicht entscheiden solltest. Laut Gesetz kommt zuerst Reparatur oder ein neues Gerät.", "Na also, geht doch.") ]},
+   { say:"Seit letzter Woche. Ist doch egal, es ist kaputt!", opts:[
+     O("Ich frage, weil es wichtig ist: Wann haben Sie das Handy denn gekauft?", +5, 2, "Richtig. Das Kaufdatum entscheidet: Die Gewährleistung gilt 2 Jahre. Im 1. Jahr muss das Geschäft beweisen, dass der Fehler nicht schon beim Kauf da war.", "Hmpf. Warten Sie …", "datum"),
+     O("Na ja, Akkus halten halt nicht ewig.", -15, 0, "Nach wenigen Monaten darf ein Akku nicht so schwach sein. Du nimmst den Kunden nicht ernst.", "Nach ein paar Monaten? Wollen Sie mich veräppeln?"),
+     O("Haben Sie es vielleicht falsch aufgeladen?", -10, 0, "Das klingt wie ein Vorwurf. Frag lieber neutral nach Daten und Fakten.", "Ich bin doch nicht blöd!") ]},
+   { say:"Im Sommer irgendwann. Hier bei Ihnen!", opts:[
+     O("Danke. Eine Frage stelle ich bei jeder Reklamation: Ist das Handy einmal heruntergefallen oder nass geworden?", +5, 2, "Gut. Die Frage muss sein, denn bei einem Sturzschaden gibt es keine Gewährleistung. Mit „bei jeder Reklamation“ klingt sie nicht wie ein Vorwurf.", "Nein! Wollen Sie mir jetzt was unterstellen?", "ursache"),
+     O("Sie haben das bestimmt mal fallen lassen, oder?", -25, 0, "Das ist eine Unterstellung. Der Kunde fühlt sich beschuldigt.", "Unverschämt! Ich lass doch nichts fallen!"),
+     O("Im Sommer? Dann ist das ein Fall für die Garantie. Da müssen Sie sich an den Hersteller wenden.", -10, 0, "Falsch. Die Gewährleistung ist Sache des Geschäfts. Du darfst den Kunden nicht einfach zum Hersteller schicken.", "Ich hab's doch bei Ihnen gekauft, nicht beim Hersteller!") ]},
+   { say:"Nein! Wollen Sie mir jetzt was unterstellen?", opts:[
+     O("Nein, gar nicht. Das frage ich jeden Kunden, damit ich die Reklamation richtig aufnehmen kann.", +10, 2, "Sehr gut. Du bleibst ruhig und erklärst, warum du fragst.", "Na gut. Nein, ist nie runtergefallen."),
+     O("Ich muss das halt fragen. Regen Sie sich doch nicht so auf.", -15, 0, "„Regen Sie sich nicht auf“ macht Kunden fast immer wütender.", "Ich reg mich auf, so viel ich will!"),
+     O("Haben Sie den Kassenbon dabei?", -5, 1, "Die Frage ist wichtig, aber du gehst über den Ärger hinweg. Erst kurz beruhigen, dann weiterfragen.", "Sie hören mir gar nicht zu, oder?") ]},
+   { say:"Und den Kassenbon hab ich übrigens nicht mehr. Wer hebt so was auf? Heißt das jetzt, Sie machen gar nichts?", opts:[
+     O("Doch. Der Kassenbon ist nur ein möglicher Nachweis. Wie haben Sie denn bezahlt?", +20, 2, "Genau richtig. Für die Gewährleistung braucht man keinen Kassenbon. Jeder andere Kaufnachweis zählt auch.", "Ach so? Mit Karte, glaube ich.", "nachweis"),
+     O("Ohne Kassenbon kann ich leider gar nichts für Sie tun.", -30, 0, "Falsch! Das ist eine häufige Prüfungsfalle. Der Bon ist keine Bedingung. Der Kunde kann den Kauf auch anders nachweisen.", "Das ist ja wohl das Letzte!"),
+     O("Kein Problem, dann tauschen wir es einfach so um.", +10, 0, "Nett, aber du weißt noch gar nicht, ob das Handy bei euch gekauft wurde. Erst den Kauf nachweisen lassen.", "Na, das ist ja mal was.") ]},
+   { say:"Mit Karte, glaub ich. Und jetzt?", opts:[
+     O("Dann reicht die Abbuchung in Ihrer Banking-App oder ein Kontoauszug. Ich kann außerdem die Seriennummer in unserem System prüfen.", +15, 2, "Perfekt. Du nennst gleich zwei Wege. Mit der Seriennummer findest du den Verkauf oft auch ohne Beleg.", "Moment, ich guck mal in die App …", "beleg"),
+     O("Dann bringen Sie bitte einen Kontoauszug vorbei, dann sehen wir weiter.", 0, 1, "Richtig, aber umständlich. Der Kunde muss wiederkommen. Die Banking-App oder die Seriennummer geht sofort.", "Ich soll extra noch mal herkommen?"),
+     O("Eine Kartenzahlung zählt leider nicht. Wir brauchen den Bon.", -25, 0, "Falsch. Eine Kartenzahlung ist ein guter Kaufnachweis.", "So ein Quatsch!") ]},
+   { say:"Hier, die Abbuchung, 349 Euro, Juli. Krieg ich jetzt mein Geld?", opts:[
+     O("Bei einem Mangel wird zuerst repariert oder Sie bekommen ein neues Gerät. Sie dürfen wählen. Klappt das nicht, gibt es Geld zurück oder einen Preisnachlass.", +15, 2, "Fachlich genau richtig: Erst Nacherfüllung (Reparatur oder neue Ware), der Kunde wählt. Rücktritt oder Minderung kommen erst danach.", "Hm. Reparatur dauert doch ewig.", "reihenfolge"),
+     O("Ja klar, hier sind Ihre 349 Euro.", +10, 0, "Das kann der Chef als Kulanz entscheiden. Laut Gesetz kommt aber zuerst die Nacherfüllung. Als Azubi versprichst du das nicht einfach.", "Na bitte."),
+     O("Nein. Wir schicken es zum Hersteller, das dauert vier bis sechs Wochen.", -20, 0, "Der Kunde darf zwischen Reparatur und neuem Gerät wählen. Wer einfach bestimmt, macht Ärger.", "Sechs Wochen ohne Handy? Niemals!") ]},
+   { say:"Reparatur dauert doch ewig. Ich brauch mein Handy für die Arbeit!", opts:[
+     O("Dann nehmen wir den Austausch. Ich schaue kurz nach, ob das Gerät auf Lager ist, dann haben Sie es heute noch.", +20, 2, "Super. Du nutzt das Wahlrecht des Kunden und bietest eine schnelle Lösung an.", "Heute noch? Okay …", "loesung"),
+     O("Da kann ich nichts machen, so ist nun mal das Gesetz.", -20, 0, "Du versteckst dich hinter dem Gesetz. Dabei erlaubt es gerade den Austausch.", "Toll. Ganz toll."),
+     O("Na gut, dann schicken wir es trotzdem zur Reparatur ein.", -15, 0, "Der Kunde will keine Reparatur. Er darf wählen, also nimm seinen Wunsch auf.", "Haben Sie mir überhaupt zugehört?") ]},
+   { say:"… Na gut. Hätten Sie ja gleich sagen können.", opts:[
+     O("Danke für Ihre Geduld. Ich nehme die Reklamation jetzt auf, gleich haben Sie Ihr neues Gerät.", +10, 2, "Ein freundlicher Abschluss. Der Kunde geht zufrieden und kommt wieder.", "Danke. War dann doch nett hier."),
+     O("Hab ich doch.", -10, 0, "Recht haben ist hier unwichtig. Der letzte Eindruck bleibt hängen.", "Ja, ja."),
+     O("So. Unterschreiben Sie hier.", 0, 1, "Korrekt, aber kühl. Ein Dank zum Schluss kostet nichts.", "Mhm.") ]}
+  ],
+  facts:[
+    ["Gewährleistung: 2 Jahre", "Das Geschäft haftet 2 Jahre lang für Mängel, die beim Kauf schon da waren (§ 437 BGB)."],
+    ["Kein Bon? Kein Problem!", "Der Kassenbon ist keine Bedingung. Kontoauszug, Kartenbeleg, Banking-App, Seriennummer oder Zeugen gehen auch."],
+    ["Beweislastumkehr: 1. Jahr", "Zeigt sich der Mangel im 1. Jahr, gilt: Er war schon beim Kauf da. Das Geschäft müsste das Gegenteil beweisen (§ 477 BGB)."],
+    ["Erst reparieren oder neu liefern", "Zuerst kommt die Nacherfüllung, der Kunde wählt (§ 439 BGB). Erst wenn das scheitert: Geld zurück (Rücktritt) oder Preisnachlass (Minderung)."] ],
+  ai:{
+    facts:`Du bist Herr Brandt, etwa 45 Jahre alt. Vor ungefähr drei Monaten (im Juli) hast du in diesem Elektronikmarkt das Smartphone "Novaphone X5" für 349 Euro gekauft. Seit letzter Woche ist der Akku nach etwa zwei Stunden leer und das Handy startet manchmal von selbst neu. Es ist nie heruntergefallen und nie nass geworden. Den Kassenbon hast du weggeworfen. Bezahlt hast du mit EC-Karte; die Abbuchung siehst du in deiner Banking-App, das sagst du aber nur, wenn man nach der Zahlungsart oder einem anderen Nachweis fragt. Am Anfang willst du sofort dein Geld zurück. Wenn man dir freundlich erklärt, dass zuerst repariert oder ein neues Gerät geliefert wird und du wählen darfst, nimmst du am liebsten ein neues Gerät, weil du das Handy für die Arbeit brauchst.`,
+    checks:["Ärger ernst genommen und freundlich geblieben","Nach Fehler und Kaufdatum gefragt","Nach Sturz oder Wasser gefragt, ohne etwas zu unterstellen","Erkannt, dass es ohne Kassenbon geht, und einen anderen Kaufnachweis genannt","Richtige Reihenfolge erklärt: erst Reparatur oder neues Gerät (Kunde wählt), dann Geld oder Preisnachlass","Passende Lösung angeboten und freundlich abgeschlossen"],
+    legal:`Richtig wäre: Gewährleistung 2 Jahre; Kassenbon nicht nötig, Kartenzahlung/Banking-App/Seriennummer reichen als Kaufnachweis; der Mangel zeigt sich im ersten Jahr, deshalb wird vermutet, dass er schon beim Kauf da war; zuerst Nacherfüllung (Reparatur oder neues Gerät, Kunde wählt), erst danach Rücktritt oder Minderung.` } },
+
+/* ===== Fall 2: Kaffeevollautomat zum dritten Mal kaputt ===== */
+{ id:"kaffee", title:"Schon wieder kaputt", who:"Frau Yilmaz", acc:"Frau Yilmaz", role:"Kundin", product:"Kaffeevollautomat Barista Pro 3", price:"499,00 €", bought:"vor 5 Monaten", problem:"läuft aus, 3. Mal", stamp:"2× REPARIERT",
+  short:"Kaffeevollautomat zweimal repariert, jetzt läuft er zum dritten Mal aus. Bon und Reparaturscheine sind da.",
+  open:"Schon wieder! Das ist jetzt das dritte Mal, dass diese Maschine ausläuft. Ich hab die Nase voll!",
+  leave:"Wissen Sie was? Das klärt jetzt mein Anwalt. Auf Wiedersehen!",
+  check:{
+    gefuehl:"Ärger ernst genommen und freundlich geblieben",
+    sachverhalt:"Unterlagen geprüft und den Fall kurz zusammengefasst",
+    ursache:"Neutral nach der Bedienung gefragt (Entkalken), ohne Vorwurf",
+    gescheitert:"Erkannt: Nach zwei erfolglosen Reparaturen ist die Nachbesserung gescheitert",
+    rechte:"Die Rechte genannt: Geld zurück (Rücktritt), Preisnachlass (Minderung) oder neues Gerät",
+    loesung:"Die Kundin entscheiden lassen und eine passende Alternative gezeigt" },
+  rounds:[
+   { say:"Schon wieder! Das ist jetzt das dritte Mal, dass diese Maschine ausläuft. Ich hab die Nase voll!", opts:[
+     O("Das verstehe ich. Dreimal ist wirklich ärgerlich. Darf ich mir die Maschine und Ihre Unterlagen ansehen?", +20, 2, "Sehr gut. Du nimmst den Ärger ernst und gehst gleich zur Sache.", "Bitte. Ich hab alles dabei.", "gefuehl"),
+     O("Das kann bei Kaffeemaschinen schon mal passieren.", -20, 0, "Damit spielst du das Problem herunter. Die Kundin fühlt sich nicht ernst genommen.", "Dreimal? Das passiert nicht „schon mal“!"),
+     O("Haben Sie die Maschine denn auch regelmäßig entkalkt?", -15, 0, "Die Frage ist berechtigt, aber nicht als erster Satz. So klingt sie wie ein Vorwurf. Erst den Ärger aufnehmen.", "Ach, jetzt bin ich wohl schuld?") ]},
+   { say:"Hier: Kassenbon und zwei Reparaturscheine. Jedes Mal hieß es, jetzt ist alles gut.", opts:[
+     O("Danke. Ich sehe: gekauft vor fünf Monaten, zweimal repariert, weil sie undicht war. Und jetzt läuft wieder Wasser aus, richtig?", +10, 2, "Gut. Du prüfst die Unterlagen und fasst den Fall zusammen. So merkt die Kundin, dass du zuhörst.", "Ja! Jeden Morgen eine Pfütze.", "sachverhalt"),
+     O("Dann schicken wir sie eben noch einmal ein.", -20, 0, "Nach zwei erfolglosen Reparaturen muss die Kundin keine dritte hinnehmen. Und „eben“ klingt genervt.", "Ein drittes Mal? Ganz sicher nicht!"),
+     O("Wie oft benutzen Sie die Maschine denn?", -5, 1, "Die Frage bringt dich nicht weiter. Wichtiger ist, was in den Unterlagen steht.", "Jeden Tag, wofür kauft man sie sonst?") ]},
+   { say:"Ja! Jeden Morgen eine Pfütze auf der Arbeitsplatte. Ich will die Maschine nicht mehr sehen.", opts:[
+     O("Eine Frage muss ich fürs Protokoll stellen: Benutzen Sie die Maschine ganz normal und entkalken nach Anleitung?", +5, 2, "Richtig. Ein Bedienungsfehler wäre kein Mangel. Mit „fürs Protokoll“ klingt die Frage nicht wie ein Vorwurf.", "Natürlich, steht ja in der Anleitung.", "ursache"),
+     O("Sie entkalken bestimmt nicht richtig.", -25, 0, "Das ist eine Unterstellung, und nach zwei Reparaturen sehr unwahrscheinlich.", "Unverschämtheit!"),
+     O("Okay.", -5, 0, "Zu knapp. Die Kundin weiß nicht, ob du ihr zugehört hast. Und eine wichtige Frage fehlt noch.", "Okay? Mehr haben Sie nicht zu sagen?") ]},
+   { say:"Und jetzt? Wieder vier Wochen ohne Kaffee?", opts:[
+     O("Nein. Nach zwei erfolglosen Reparaturen gilt die Nachbesserung als gescheitert. Eine dritte Reparatur müssen Sie nicht hinnehmen.", +20, 2, "Genau richtig. Nach dem zweiten erfolglosen Versuch ist die Nachbesserung gescheitert (§ 440 BGB). Jetzt hat die Kundin weitere Rechte.", "Ach so? Das wusste ich nicht.", "gescheitert"),
+     O("Leider ja. Das entscheidet der Hersteller.", -20, 0, "Falsch. Die Kundin hat ihren Vertrag mit euch, nicht mit dem Hersteller. Und eine dritte Reparatur muss sie nicht hinnehmen.", "Das kann doch nicht wahr sein!"),
+     O("Ich frage meine Chefin, ob wir noch einmal reparieren dürfen.", 0, 1, "Die Chefin zu fragen ist okay, aber dein Ziel ist falsch: Eine dritte Reparatur muss die Kundin nicht hinnehmen.", "Noch mal reparieren? Nein danke.") ]},
+   { say:"Und was heißt das jetzt für mich?", opts:[
+     O("Sie können vom Kauf zurücktreten und bekommen Ihr Geld zurück. Oder Sie behalten die Maschine mit Preisnachlass. Oder Sie nehmen ein neues Gerät.", +15, 2, "Vollständig und richtig: Rücktritt, Minderung oder ein neues Gerät, wenn die Kundin das möchte.", "Geld zurück klingt gut …", "rechte"),
+     O("Sie bekommen einen Gutschein.", -15, 0, "Einen Gutschein muss die Kundin nicht nehmen. Beim Rücktritt bekommt sie ihr Geld zurück.", "Einen Gutschein? Für noch so eine Maschine?"),
+     O("Sie bekommen Ihr Geld zurück.", +10, 1, "Richtig, aber nicht vollständig. Die Kundin darf auch einen Preisnachlass oder ein neues Gerät wählen.", "Na, wenigstens das.") ]},
+   { say:"Geld zurück klingt gut. Aber ehrlich gesagt mochte ich die Maschine, als sie noch lief …", opts:[
+     O("Dann zeige ich Ihnen gern ein anderes Modell. Ihr Geld können Sie dafür nehmen oder einfach mitnehmen, ganz wie Sie möchten.", +15, 2, "Super. Du bietest eine Alternative an und lässt die Kundin entscheiden.", "Na gut, zeigen Sie mal.", "loesung"),
+     O("Entscheiden Sie sich bitte, ich habe noch andere Kunden.", -20, 0, "Druck machen ärgert. Die Kundin braucht einen Moment.", "So eine Frechheit!"),
+     O("Dann nehmen Sie doch einfach wieder dieselbe.", -5, 1, "Möglich, aber das Modell ist schon dreimal ausgelaufen. Die Kundin hat Angst vor dem gleichen Problem.", "Damit ich in zwei Monaten wieder hier stehe?") ]},
+   { say:"Na gut. Zeigen Sie mal, was Sie haben. Aber bitte keine, die auch ausläuft!", opts:[
+     O("Verstehe ich gut. Ich zeige Ihnen zwei Modelle mit einem anderen Wassersystem, die bei uns kaum zurückkommen.", +15, 2, "Gut. Du nimmst die Sorge auf und berätst passend dazu.", "Das klingt schon besser."),
+     O("Alle Maschinen laufen irgendwann mal aus.", -20, 0, "Damit machst du dem eigenen Sortiment schlechte Werbung und der Kundin Angst.", "Dann kauf ich hier gar nichts mehr!"),
+     O("Versprechen kann ich gar nichts.", -5, 1, "Ehrlich, aber zu negativ. Sag lieber, was für das neue Modell spricht.", "Na toll.") ]},
+   { say:"Okay, die zweite gefällt mir. Hätte ich das gleich gewusst …", opts:[
+     O("Danke für Ihre Geduld, Frau Yilmaz. Und entschuldigen Sie den Ärger mit der alten Maschine.", +10, 2, "Ein freundlicher Abschluss mit Entschuldigung. So kommt die Kundin wieder.", "Danke, Sie waren sehr nett."),
+     O("Dann hoffen wir mal, dass die hier länger hält.", -10, 0, "Das klingt, als würdest du selbst nicht an das Gerät glauben.", "Das hoffe ich auch!"),
+     O("So, hier unterschreiben.", 0, 1, "Korrekt, aber kühl. Nach so viel Ärger ist ein Dank wichtig.", "Mhm.") ]}
+  ],
+  facts:[
+    ["Zwei Versuche reichen", "Nach dem zweiten erfolglosen Reparaturversuch gilt die Nachbesserung als gescheitert (§ 440 BGB)."],
+    ["Dann gibt es mehr Rechte", "Die Kundin kann vom Kauf zurücktreten (Geld zurück gegen die Ware) oder den Preis mindern. Wenn sie möchte, geht auch ein neues Gerät."],
+    ["Gutschein? Nur freiwillig", "Beim Rücktritt gibt es Geld. Einen Gutschein muss die Kundin nicht annehmen."],
+    ["Bedienungsfehler ist kein Mangel", "Deshalb fragt man neutral nach, zum Beispiel nach dem Entkalken, aber nie mit einem Vorwurf."] ],
+  ai:{
+    facts:`Du bist Frau Yilmaz, etwa 50 Jahre alt. Vor fünf Monaten hast du in diesem Elektronikmarkt den Kaffeevollautomaten "Barista Pro 3" für 499 Euro gekauft. Er war schon zweimal in Reparatur, beide Male weil er unten Wasser verloren hat. Jetzt läuft er zum dritten Mal aus, jeden Morgen ist eine Pfütze auf der Arbeitsplatte. Kassenbon und beide Reparaturscheine hast du dabei. Du entkalkst die Maschine nach Anleitung (das sagst du nur, wenn man fragt; wenn man dir unterstellt, du machst etwas falsch, wirst du richtig sauer). Du willst auf keinen Fall eine dritte Reparatur. Eigentlich mochtest du die Maschine. Wenn man dir deine Rechte erklärt, überlegst du zwischen Geld zurück und einem anderen Modell, das nicht ausläuft. Einen Gutschein lehnst du ab.`,
+    checks:["Ärger ernst genommen und freundlich geblieben","Bon und Reparaturscheine geprüft und den Fall zusammengefasst","Neutral nach der Bedienung gefragt, ohne Vorwurf","Erkannt: Nach zwei erfolglosen Reparaturen ist die Nachbesserung gescheitert","Rechte genannt: Rücktritt (Geld zurück), Minderung oder neues Gerät","Kundin entscheiden lassen und eine passende Alternative angeboten"],
+    legal:`Richtig wäre: Nach dem zweiten erfolglosen Nachbesserungsversuch gilt die Nachbesserung als fehlgeschlagen (§ 440 BGB). Die Kundin muss keine dritte Reparatur hinnehmen. Sie kann vom Vertrag zurücktreten (Kaufpreis zurück gegen Rückgabe), den Preis mindern oder freiwillig ein anderes Gerät nehmen. Einen Gutschein muss sie nicht akzeptieren.` } },
+
+/* ===== Fall 3: Kopfhörer gefallen nicht ===== */
+{ id:"umtausch", title:"Gefällt mir nicht", who:"Jonas Petersen", acc:"Jonas Petersen", role:"Kunde", product:"Over-Ear-Kopfhörer SoundWave Air", price:"89,99 €", bought:"vor 10 Tagen", problem:"drücken, zu viel Bass", stamp:"NICHT KAPUTT",
+  short:"Kopfhörer vor 10 Tagen gekauft, funktionieren, gefallen aber nicht. Der Kunde glaubt, er hat 14 Tage Rückgaberecht.",
+  open:"Hi. Ich will die Kopfhörer zurückgeben. Ich krieg mein Geld, das ist mein Recht. 14 Tage!",
+  leave:"Boah, vergessen Sie's. Ich bestell nächstes Mal einfach online.",
+  check:{
+    gefuehl:"Freundlich begrüßt und nach dem Problem gefragt",
+    unterscheiden:"Erkannt: kein Mangel, also Umtausch und keine Reklamation",
+    widerruf:"Erklärt: 14 Tage Widerrufsrecht gibt es nur beim Online-Kauf",
+    kulanz:"Die Umtausch-Regel des Geschäfts als Kulanz erklärt",
+    regel:"Die Regel eingehalten (Gutschein oder andere Ware, kein Bargeld)",
+    beratung:"Nach den Wünschen gefragt (Bedarf ermittelt)",
+    loesung:"Passende Kopfhörer im Budget angeboten" },
+  rounds:[
+   { say:"Hi. Ich will die Kopfhörer zurückgeben. Ich krieg mein Geld, das ist mein Recht. 14 Tage!", opts:[
+     O("Hallo! Ich schaue mir das gern an. Was ist denn mit den Kopfhörern?", +15, 2, "Gut. Freundlich bleiben und erst mal herausfinden, worum es geht.", "Na ja, kaputt sind die nicht …", "gefuehl"),
+     O("So ein Recht gibt es nicht.", -15, 0, "Fachlich fast richtig, aber so direkt wirkt es wie eine Abfuhr. Der Kunde macht dicht.", "Klar gibt's das! Wollen Sie mich verarschen?"),
+     O("Klar, kein Problem, Sie kriegen sofort Ihr Geld.", +10, 0, "Zu schnell. Du weißt noch nicht, was los ist, und versprichst etwas, das es so nicht gibt.", "Na also.") ]},
+   { say:"Die sind nicht kaputt. Die drücken nach einer Stunde, und der Bass ist mir zu viel.", opts:[
+     O("Danke. Dann sind sie nicht defekt, sie gefallen Ihnen nur nicht. Das ist ein Umtausch, keine Reklamation.", +5, 2, "Richtig. Reklamation gibt es nur bei einem Mangel. Wenn etwas nicht gefällt, ist das ein Umtausch.", "Ist doch egal, wie das heißt!", "unterscheiden"),
+     O("Dann nehme ich das als Reklamation auf.", 0, 0, "Falsch. Die Kopfhörer funktionieren. Ohne Mangel gibt es keine Reklamation.", "Okay …"),
+     O("Pech gehabt. Die funktionieren doch.", -25, 0, "Unhöflich, und es gibt eine Umtausch-Regel, die du nicht erwähnst.", "Ernsthaft?!") ]},
+   { say:"Ist doch egal, wie das heißt. 14 Tage Rückgaberecht hat man doch immer!", opts:[
+     O("Die 14 Tage gibt es beim Online-Kauf. Das heißt Widerrufsrecht. Im Laden gilt das nicht, aber wir haben eine eigene Umtausch-Regel.", +10, 2, "Genau. Das Widerrufsrecht gilt nur beim Kauf im Internet oder am Telefon (§ 312g BGB). Im Laden ist ein Umtausch freiwillig.", "Echt jetzt? Und was ist das für eine Regel?", "widerruf"),
+     O("Stimmt, das ist Gesetz.", +5, 0, "Falsch. Im Laden gibt es kein gesetzliches Rückgaberecht, wenn die Ware in Ordnung ist.", "Sag ich doch."),
+     O("Nein. Gekauft ist gekauft.", -25, 0, "Rechtlich stimmt das, aber es ist kundenfeindlich. Und du verschweigst die Umtausch-Regel deines Geschäfts.", "Dann kauf ich hier nie wieder was!") ]},
+   { say:"Echt jetzt? Und was ist das für eine Regel?", opts:[
+     O("Mit Kassenbon und vollständiger Verpackung können Sie innerhalb von 14 Tagen umtauschen. Das machen wir freiwillig, das nennt man Kulanz.", +10, 2, "Sehr gut. Du nennst die Bedingungen und sagst, dass es freiwillig ist.", "Bon hab ich. Und alles ist drin.", "kulanz"),
+     O("Weiß ich nicht genau, steht irgendwo an der Kasse.", -10, 0, "Die Regeln deines Geschäfts musst du kennen. So wirkst du unsicher.", "Toll. Sehr hilfreich."),
+     O("Sie können umtauschen.", +5, 1, "Stimmt, aber zu ungenau. Der Kunde weiß nicht, unter welchen Bedingungen.", "Und wie genau?") ]},
+   { say:"Hier, der Bon, ist alles drin. Also krieg ich jetzt mein Geld?", opts:[
+     O("Bei einem Umtausch bekommen Sie bei uns einen Gutschein, oder Sie suchen sich gleich andere Kopfhörer aus. Bargeld gibt es dabei nicht.", +5, 2, "Richtig. Bei Kulanz legt das Geschäft die Bedingungen fest, und du hältst dich daran.", "Gutschein? Boah …", "regel"),
+     O("Ja klar, hier sind 89,99 Euro.", +10, 0, "Der Kunde freut sich, aber die Regel des Geschäfts sieht Gutschein oder andere Ware vor. Als Azubi änderst du die Regel nicht.", "Cool."),
+     O("Nein, gar nichts. Die sind ja nicht kaputt.", -25, 0, "Falsch. Ihr habt eine Umtausch-Regel, und die gilt hier.", "Was? Sie haben doch gerade gesagt …") ]},
+   { say:"Gutschein? Na ja … Was hätten Sie denn, was nicht so drückt?", opts:[
+     O("Was ist Ihnen wichtig? Bequem für lange Zeit und eher klarer Klang statt viel Bass? Dann zeige ich Ihnen zwei Modelle.", +20, 2, "Super. Du ermittelst den Bedarf und machst aus dem Umtausch ein neues Verkaufsgespräch.", "Ja, genau. Aber bitte nicht teurer als 90 Euro.", "beratung"),
+     O("Nehmen Sie einfach die teuersten, die sind immer gut.", -10, 0, "Du fragst nicht nach den Wünschen. Teuer heißt nicht passend.", "Ich hab nicht so viel Geld."),
+     O("Da hinten im Regal, schauen Sie mal.", -5, 0, "Hier verschenkst du eine Verkaufschance. Der Kunde braucht Beratung.", "Super Service …") ]},
+   { say:"Ja, genau. Aber bitte nicht teurer als 90 Euro.", opts:[
+     O("Diese hier haben weiche, breite Polster und einen ausgewogenen Klang. Sie kosten 79,99 Euro. Den Rest bekommen Sie als Gutschein.", +15, 2, "Perfekt. Passend zu den Wünschen, im Budget, und du nennst den Vorteil für den Kunden.", "Die sehen gut aus.", "loesung"),
+     O("Unter 90 Euro gibt es nichts Gutes.", -15, 0, "So machst du das eigene Sortiment schlecht und ärgerst den Kunden.", "Na dann tschüss."),
+     O("Die hier kosten 119 Euro, die sind viel besser.", -5, 1, "Das Budget des Kunden hast du nicht beachtet.", "Hab ich nicht gerade 90 gesagt?") ]},
+   { say:"Okay, die probier ich mal.", opts:[
+     O("Setzen Sie sie gern hier auf. Wenn sie passen, buche ich den Umtausch gleich um.", +10, 2, "Ein guter Abschluss. Der Kunde kann testen, und du machst es ihm leicht.", "Die sind echt bequem. Nehm ich!"),
+     O("Nächstes Mal vorher besser überlegen.", -15, 0, "Belehren am Ende verdirbt das ganze Gespräch.", "Ja, ja, schon klar."),
+     O("Okay, an die Kasse bitte.", 0, 1, "Geht, aber du verschenkst den Test. Wenn sie wieder drücken, steht der Kunde wieder da.", "Mhm.") ]}
+  ],
+  facts:[
+    ["Umtausch oder Reklamation?", "Reklamation: Die Ware hat einen Mangel. Umtausch: Die Ware ist in Ordnung, gefällt aber nicht."],
+    ["Umtausch ist Kulanz", "Im Laden gibt es kein gesetzliches Recht auf Umtausch. Das Geschäft macht es freiwillig und legt die Bedingungen fest (Frist, Bon, Gutschein)."],
+    ["Widerrufsrecht: nur online", "Die 14 Tage Widerruf gelten beim Kauf im Internet oder am Telefon (§ 312g BGB), nicht im Laden."],
+    ["Umtausch ist eine Chance", "Wer gut berät, macht aus dem Umtausch ein neues Verkaufsgespräch und einen zufriedenen Kunden."] ],
+  ai:{
+    facts:`Du bist Jonas Petersen, 19 Jahre alt. Du sprichst locker und duzt fast. Vor zehn Tagen hast du in diesem Elektronikmarkt die Over-Ear-Kopfhörer "SoundWave Air" für 89,99 Euro gekauft. Sie funktionieren einwandfrei, aber sie drücken nach einer Stunde an den Ohren und haben dir zu viel Bass. Kassenbon hast du, die Verpackung ist geöffnet, aber alles ist vollständig drin. Du bist fest überzeugt: "14 Tage Rückgaberecht hat man immer, das ist Gesetz!" und willst Bargeld zurück. Das Geschäft hat diese Regel: Umtausch innerhalb von 14 Tagen nur mit Bon und vollständiger Verpackung, gegen Gutschein oder andere Ware, kein Bargeld. Diese Regel kennst du nicht. Erst bist du enttäuscht über den Gutschein. Wenn man dich gut berät, nimmst du gern andere Kopfhörer, die bequemer sind und klarer klingen, aber höchstens 90 Euro kosten.`,
+    checks:["Freundlich geblieben und nach dem Problem gefragt","Erkannt: kein Mangel, also Umtausch statt Reklamation","Erklärt: 14 Tage Widerrufsrecht gibt es nur beim Online-Kauf","Umtausch-Regel des Geschäfts als freiwillige Kulanz erklärt","Regel eingehalten (Gutschein oder andere Ware, kein Bargeld)","Bedarf ermittelt und passende Ware im Budget angeboten"],
+    legal:`Richtig wäre: Die Kopfhörer haben keinen Mangel, also gibt es keine Reklamation und kein gesetzliches Rückgaberecht. Das 14-tägige Widerrufsrecht gilt nur bei Fernabsatz (online, Telefon) und außerhalb von Geschäftsräumen (§ 312g BGB). Der Umtausch ist Kulanz; das Geschäft legt die Bedingungen fest (hier: 14 Tage, Bon, vollständig, Gutschein oder andere Ware). Gute Verkäufer machen aus dem Umtausch eine neue Beratung.` } },
+
+/* ===== Fall 4: Akkuschrauber nach 26 Monaten ===== */
+{ id:"garantie", title:"Zu spät?", who:"Herr Okafor", acc:"Herrn Okafor", role:"Kunde", product:"Akkuschrauber Kraftwerk 18V", price:"149,00 €", bought:"vor 26 Monaten", problem:"stottert, geht aus", stamp:"ÜBER 2 JAHRE",
+  short:"Akkuschrauber vor 26 Monaten gekauft, jetzt defekt. Die Gewährleistung ist vorbei, aber der Hersteller gibt 3 Jahre Garantie.",
+  open:"Tag. Der Akkuschrauber hier ist hinüber. Den haben Sie mir verkauft, also reparieren Sie den auch!",
+  leave:"Unglaublich. Dann gehe ich eben in den Baumarkt nebenan, da hilft man einem wenigstens.",
+  check:{
+    gefuehl:"Freundlich geblieben und nach dem Fehler gefragt",
+    datum:"Das Kaufdatum auf dem Bon geprüft",
+    gewaehr:"Erklärt: Die Gewährleistung (2 Jahre) ist abgelaufen",
+    unterschied:"Den Unterschied zwischen Gewährleistung und Garantie erklärt",
+    bedingungen:"Nach den Garantiebedingungen gefragt (Karte, Karton, Bon)",
+    service:"Angeboten, das Gerät für den Kunden einzuschicken",
+    loesung:"Ehrlich über die Dauer informiert und eine Überbrückung angeboten" },
+  rounds:[
+   { say:"Tag. Der Akkuschrauber hier ist hinüber. Den haben Sie mir verkauft, also reparieren Sie den auch!", opts:[
+     O("Guten Tag! Das ist ärgerlich, gerade wenn man ihn braucht. Was macht er denn?", +15, 2, "Gut. Verständnis zeigen und gleich nach dem Fehler fragen.", "Er stottert und geht dann aus.", "gefuehl"),
+     O("Wir sind hier keine Werkstatt.", -20, 0, "Abweisend. Du weißt noch gar nicht, worum es geht.", "Dann eben nicht, oder was?"),
+     O("Zeigen Sie mir zuerst den Bon.", -5, 1, "Den Bon brauchst du, aber nicht als ersten Satz. Erst den Kunden abholen.", "Erst mal ein Hallo wäre nett.") ]},
+   { say:"Er stottert und geht dann ganz aus. Der Akku ist voll. Und hier ist der Bon, ich heb alles auf!", opts:[
+     O("Super, dass Sie den Bon haben. Ich sehe: gekauft vor 26 Monaten, also vor gut zwei Jahren.", +5, 2, "Richtig. Das Kaufdatum entscheidet, welche Rechte der Kunde noch hat.", "Ja, und? Der ist doch fast neu!", "datum"),
+     O("Bestimmt ist der Akku kaputt, das ist Verschleiß.", -10, 0, "Raten hilft nicht. Der Kunde sagt, der Akku ist voll. Schau lieber auf den Bon.", "Hab ich doch gerade gesagt: Der Akku ist voll!"),
+     O("Danke.", 0, 1, "Okay, aber du wertest den Bon nicht aus. Das Kaufdatum ist hier entscheidend.", "Und?") ]},
+   { say:"Ja, und? Der ist doch fast neu!", opts:[
+     O("Die gesetzliche Gewährleistung gilt zwei Jahre, die ist leider seit zwei Monaten vorbei. Aber vielleicht hilft uns die Herstellergarantie.", +10, 2, "Genau. Du sagst ehrlich, was nicht mehr geht, und zeigst gleich einen Weg.", "Herstellergarantie? Was ist da der Unterschied?", "gewaehr"),
+     O("Pech, die Gewährleistung ist abgelaufen. Da kann ich nichts machen.", -25, 0, "Fachlich halb richtig, aber du übersiehst die Herstellergarantie und lässt den Kunden stehen.", "Das ist ja wohl ein Witz!"),
+     O("Wir reparieren ihn natürlich kostenlos.", +10, 0, "Dazu ist das Geschäft nicht mehr verpflichtet. Das kann höchstens der Chef als Kulanz entscheiden.", "Na also, geht doch.") ]},
+   { say:"Herstellergarantie? Was ist da der Unterschied?", opts:[
+     O("Die Gewährleistung ist Pflicht für uns als Händler, zwei Jahre lang. Die Garantie ist ein freiwilliges Versprechen vom Hersteller. Bei diesem Modell sind es drei Jahre.", +10, 2, "Sehr gut erklärt. Gewährleistung = Gesetz, Händler. Garantie = freiwillig, meist Hersteller.", "Drei Jahre? Und wie komm ich da ran?", "unterschied"),
+     O("Das ist eigentlich dasselbe.", -10, 0, "Falsch. Das verwechseln viele, auch in der Prüfung.", "Warum sagen Sie dann zwei Wörter?"),
+     O("Das ist so eine Hersteller-Sache.", -5, 0, "Zu ungenau. Der Kunde versteht nicht, was er jetzt tun kann.", "Aha. Und weiter?") ]},
+   { say:"Drei Jahre? Und wie komm ich da ran?", opts:[
+     O("Haben Sie noch die Garantiekarte oder den Karton? Da stehen die Bedingungen drauf. Meist reichen der Bon und das Gerät.", +10, 2, "Richtig. Die Garantie-Bedingungen legt der Hersteller fest. Darum fragst du danach.", "Den Karton hab ich weggeworfen. Bon und Gerät hab ich hier.", "bedingungen"),
+     O("Da müssen Sie selbst beim Hersteller anrufen. Die Nummer finden Sie im Internet.", -10, 1, "Erlaubt, aber kein guter Service. Der Kunde ist zu euch gekommen.", "Und dafür komme ich extra her?"),
+     O("Ohne Garantiekarte geht gar nichts.", -15, 0, "Das weißt du nicht. Oft reicht der Bon. Schau in die Bedingungen.", "Na super.") ]},
+   { say:"Den Karton hab ich weggeworfen. Bon und Gerät hab ich hier.", opts:[
+     O("Das reicht in der Regel. Ich kann den Schrauber für Sie an den Hersteller-Service schicken. Sie müssen sich um nichts kümmern.", +20, 2, "Super Service. Das Geschäft muss nicht, kann aber helfen. So bindest du den Kunden.", "Das wäre klasse. Wie lange dauert das?", "service"),
+     O("Dann wird das wohl nichts.", -20, 0, "Du gibst zu früh auf. Bon und Gerät reichen meistens.", "Na danke auch."),
+     O("Dann schicken Sie ihn am besten selbst ein.", -5, 1, "Geht, aber der Kunde muss alles allein machen. Biete Hilfe an.", "Und wohin?") ]},
+   { say:"Und wie lange dauert das? Ich renoviere gerade das Kinderzimmer.", opts:[
+     O("Etwa zwei bis drei Wochen. Ich schreibe Ihnen das auf den Auftrag. Wenn es eilt, zeige ich Ihnen gern unseren Leihservice.", +15, 2, "Ehrlich und hilfreich. Du nennst die Dauer und bietest eine Überbrückung an.", "Leihservice? Das ist gut.", "loesung"),
+     O("Keine Ahnung, so lange es eben dauert.", -15, 0, "Zu gleichgültig. Der Kunde braucht eine Zeitangabe.", "Sehr hilfreich …"),
+     O("Ein paar Tage bestimmt.", +5, 0, "Das kannst du nicht versprechen. Wenn es länger dauert, ist der Kunde doppelt sauer.", "Na, hoffentlich.") ]},
+   { say:"Na gut. Dann machen wir das so.", opts:[
+     O("Hier ist Ihr Auftragsschein. Wir rufen Sie an, sobald der Schrauber zurück ist. Danke für Ihre Geduld, Herr Okafor.", +10, 2, "Ein klarer und freundlicher Abschluss. Der Kunde weiß, wie es weitergeht.", "Danke, das war wirklich gut."),
+     O("Nächstes Mal kaufen Sie lieber ein Markengerät.", -15, 0, "Ihr verkauft das Gerät doch selbst. Und Belehren am Ende verdirbt alles.", "Wie bitte?"),
+     O("Fertig.", 0, 1, "Zu knapp. Der Kunde weiß nicht, wie es weitergeht.", "Und jetzt?") ]}
+  ],
+  facts:[
+    ["Gewährleistung: Pflicht, 2 Jahre", "Der Händler haftet per Gesetz 2 Jahre ab Kauf für Mängel (§ 437, § 438 BGB)."],
+    ["Garantie: freiwillig", "Ein Versprechen, meist vom Hersteller. Dauer und Bedingungen stehen in der Garantiekarte (§ 443 BGB)."],
+    ["Garantie kommt dazu", "Die Garantie gilt zusätzlich. Sie ersetzt nie die Gewährleistung."],
+    ["Service bindet Kunden", "Auch wenn das Geschäft nicht muss: Hilfe beim Einschicken macht aus einem Ärger einen Stammkunden."] ],
+  ai:{
+    facts:`Du bist Herr Okafor, etwa 40 Jahre alt, handwerklich begabt und eigentlich freundlich, aber gerade gestresst. Vor 26 Monaten hast du in diesem Elektromarkt den Akkuschrauber "Kraftwerk 18V" für 149 Euro gekauft. Seit ein paar Tagen stottert er und geht dann ganz aus, obwohl der Akku voll ist. Du hast den Kassenbon dabei und bist stolz darauf, dass du alles aufhebst. Den Karton mit der Garantiekarte hast du weggeworfen. Du findest, das Geschäft muss ihn kostenlos reparieren. Du weißt nicht, dass der Hersteller 3 Jahre Garantie gibt (dafür reichen Bon und Gerät). Du renovierst gerade das Kinderzimmer und brauchst einen Schrauber. Wenn man dir den Unterschied zwischen Gewährleistung und Garantie verständlich erklärt und anbietet, das Gerät einzuschicken, wirst du freundlich.`,
+    checks:["Freundlich geblieben und nach dem Fehler gefragt","Kaufdatum auf dem Bon geprüft","Erklärt: Gewährleistung (2 Jahre) ist abgelaufen","Unterschied Gewährleistung und Garantie verständlich erklärt","Nach Garantiebedingungen gefragt und angeboten, das Gerät einzuschicken","Ehrlich über die Dauer informiert und eine Überbrückung angeboten"],
+    legal:`Richtig wäre: Die gesetzliche Gewährleistung des Händlers (2 Jahre ab Übergabe) ist abgelaufen. Die Herstellergarantie ist ein freiwilliges Versprechen des Herstellers (hier 3 Jahre); Bedingungen stehen in der Garantieerklärung, meist reichen Kaufbeleg und Gerät. Die Garantie gilt zusätzlich zur Gewährleistung. Der Händler muss nicht reparieren, kann aber als Service das Gerät an den Hersteller schicken; eine kostenlose Reparatur wäre nur Kulanz.` } },
+
+/* ===== Plus-Fall: nur KI-Kunde ===== */
+{ id:"plus", title:"Plus-Fall: Sprung im Display", who:"Frau Albers", acc:"Frau Albers", role:"Kundin", product:"Smartphone Novaphone X5", price:"349,00 €", bought:"vor 14 Monaten", problem:"Akku + Displaysprung", stamp:"SCHWER",
+  short:"Handy vor 14 Monaten gekauft, Akku schwach und ein kleiner Sprung im Display. Die Kundin sagt, der war schon immer da.",
+  open:"Guten Tag, ich will das Ding hier zurückgeben, das ist Schrott!", aiOnly:true,
+  ai:{
+    facts:`Du bist Frau Albers, etwa 35 Jahre alt. Vor 14 Monaten (im August letzten Jahres) hast du in diesem Elektronikmarkt das Smartphone "Novaphone X5" für 349 Euro gekauft. Seit ein paar Wochen ist der Akku nach etwa zwei Stunden leer. Außerdem hat das Display unten links einen kleinen Sprung. Du behauptest, der Sprung sei "schon immer da gewesen" (in Wahrheit ist dir das Handy im Frühjahr einmal aus der Jackentasche gefallen; das gibst du nur zu, wenn man sehr freundlich und geschickt nachfragt, und dann nur zögernd). Den Kassenbon hast du nicht mehr. Bezahlt hast du mit EC-Karte; das sagst du nur auf Nachfrage. Du willst dein Geld zurück und findest, dass man nach 14 Monaten doch nicht so ein kaputtes Handy haben darf. Du bist schwieriger als eine normale Kundin. Wenn man dir die Rechtslage freundlich und verständlich erklärt und dir Alternativen anbietet (zum Beispiel Herstellergarantie prüfen, Kulanzanfrage beim Chef, Kostenvoranschlag für eine Reparatur), lässt du dich nach und nach beruhigen.`,
+    checks:["Ruhig und freundlich geblieben, auch bei Druck","Kaufdatum, Fehler und Schadensursache geklärt, ohne zu unterstellen","Erkannt, dass es ohne Kassenbon geht, und einen anderen Kaufnachweis genannt","Erklärt: Nach 12 Monaten gilt die Beweislastumkehr nicht mehr, die Kundin muss beweisen, dass der Mangel schon beim Kauf da war","Erkannt, dass der Displaysprung auf einen Sturz hindeutet (kein Gewährleistungsfall)","Alternativen angeboten: Herstellergarantie, Kulanz, Kostenvoranschlag/Reparatur"],
+    legal:`Richtig wäre: Die Gewährleistung (2 Jahre) läuft noch, aber nach 12 Monaten gilt die Beweislastumkehr nicht mehr: Die Kundin muss beweisen, dass der Mangel schon beim Kauf da war. Der Displaysprung deutet auf einen Sturz hin; Sturzschäden sind keine Mängel. Kassenbon ist trotzdem nicht nötig, Kartenzahlung reicht als Kaufnachweis. Gute Alternativen: Herstellergarantie prüfen, Kulanz beim Chef anfragen, Kostenvoranschlag für Reparatur oder Akkutausch anbieten.` } }
+];
+const byId = id => CASES.find(c => c.id === id) || CASES[0];
+const cur = () => byId(S.cid);
+const MAXTURNS = 14;
+
+/* ---------- Zustand ---------- */
+let S = { screen:"start", cid:"bon" };
+let sample = null; let sampleChecked = false;
+let played = new Set();
+
+function startGame(id){
+  if (id) S.cid = id;
+  const c = cur(); if (c.aiOnly) return;
+  S = { ...S, screen:"game", r:0, mood:25, pts:0, got:new Set(), picked:null, order:shuffle(c.rounds[0].opts), left:false };
+  render(); window.scrollTo(0,0);
+}
+function pick(i){
+  if (S.picked !== null) return;
+  const o = S.order[i];
+  S.picked = i; S.mood = clamp(S.mood + o.m); S.pts += o.p; if (o.c && o.p === 2) S.got.add(o.c);
+  if (S.mood <= 0) { if (S.r >= 2) S.left = true; else S.mood = 5; }
+  render();
+  const fb = document.getElementById("fb"); if (fb) fb.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+function next(){
+  const c = cur();
+  if (S.left || S.r + 1 >= c.rounds.length){ played.add(c.id); S.screen = "end"; render(); window.scrollTo(0,0); return; }
+  S.r++; S.picked = null; S.order = shuffle(c.rounds[S.r].opts); render(); window.scrollTo(0,0);
+}
+function nextCaseId(){
+  const game = CASES.filter(c => !c.aiOnly);
+  const rest = game.filter(c => !played.has(c.id) && c.id !== S.cid);
+  const pool = rest.length ? rest : game.filter(c => c.id !== S.cid);
+  return pool[Math.floor(Math.random() * pool.length)].id;
+}
+
+/* ---------- Bausteine ---------- */
+function moodColor(m){ return m < 35 ? "var(--bad)" : m < 65 ? "var(--mid)" : "var(--good)"; }
+function moodWord(m){ return m < 15 ? "kocht vor Wut" : m < 35 ? "sauer" : m < 55 ? "genervt" : m < 75 ? "beruhigt sich" : "zufrieden"; }
+function face(m){
+  const c = moodColor(m); const curve = Math.round((m - 50) / 50 * 9);
+  const brow = Math.round((50 - m) / 50 * 5);
+  return `<svg class="face" viewBox="0 0 64 64" role="img" aria-label="Gesicht: ${moodWord(m)}">
+    <circle cx="32" cy="32" r="29" fill="var(--paper)" stroke="${c}" stroke-width="4"/>
+    <line x1="17" y1="${22 - brow}" x2="27" y2="${22 + brow}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="47" y1="${22 - brow}" x2="37" y2="${22 + brow}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="23" cy="29" r="3" fill="var(--ink)"/><circle cx="41" cy="29" r="3" fill="var(--ink)"/>
+    <path d="M20 ${44 - curve / 2} Q32 ${44 + curve} 44 ${44 - curve / 2}" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+  </svg>`;
+}
+function hud(m, extra){
+  return `<div class="hud">${face(m)}<div class="meter">
+    <div class="lbl"><span>Laune: <b>${moodWord(m)}</b></span><span>${extra || ""}</span></div>
+    <div class="bar"><div class="fill" style="width:${Math.max(3, m)}%;background:${moodColor(m)}"></div></div></div></div>`;
+}
+function bon(c){
+  return `<section class="bon" aria-label="Die Situation">
+    <div class="bonline"><span>ELEKTRO-HAFEN</span><span>INFO-THEKE</span></div>
+    <hr class="dash">
+    <div class="bonline"><span>${esc(c.product)}</span><span>${esc(c.price)}</span></div>
+    <div class="bonline"><span>Gekauft</span><span>${esc(c.bought)}</span></div>
+    <div class="bonline"><span>Problem</span><span>${esc(c.problem)}</span></div>
+    <hr class="dash">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <span class="mono">${esc(c.role)}: ${esc(c.who)}</span><span class="stamp">${esc(c.stamp)}</span>
+    </div>
+    <p style="margin-top:12px">${esc(c.short)}</p>
+  </section>`;
+}
+
+/* ---------- Bildschirme ---------- */
+function vStart(){
+  const c = cur(); const aiOk = !!sample;
+  return `
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <span class="eyebrow">LF 10 · Reklamation und Umtausch · Rollenspiel-Trainer</span>
+    <h1>Kein Bon, kein Problem?</h1>
+    <p class="muted">An der Info-Theke wartet ein verärgerter Kunde. Bleib ruhig, stell die richtigen Fragen und finde eine Lösung. Such dir einen Fall aus.</p>
+  </header>
+  <div class="cases" role="group" aria-label="Fall wählen">
+    ${CASES.map((x, i) => `<button class="case" data-case="${x.id}" aria-pressed="${x.id === c.id}">
+      <span class="num">${x.aiOnly ? "PLUS" : "FALL " + (i + 1)}</span>
+      <span class="ct">${esc(x.title)}</span>
+      <span class="cw">${esc(x.who)}${played.has(x.id) ? " · gespielt ✓" : ""}</span>
+    </button>`).join("")}
+    <button class="case dice" data-act="random"><span class="num">ZUFALL</span><span class="ct">Überrasch mich</span><span class="cw">ein Fall für Spiel 1</span></button>
+  </div>
+  ${bon(c)}
+  <div class="modes">
+    <button class="mode" data-act="game" ${c.aiOnly ? "disabled" : ""}>
+      <span class="tag">Spiel 1 · ${c.aiOnly ? "nicht für den Plus-Fall" : c.rounds.length + " Runden · ca. 8 Min."}</span>
+      <span class="t">Antworten wählen</span>
+      <span class="muted">${c.aiOnly ? "Den Plus-Fall gibt es nur mit dem KI-Kunden." : `${esc(c.who)} spricht, du wählst eine von drei Antworten. Pass auf die Laune auf. Am Ende siehst du deine Punkte und was du noch üben kannst.`}</span>
+    </button>
+    <div class="mode" style="cursor:default">
+      <span class="tag">Spiel 2 · frei sprechen</span>
+      <span class="t">Der KI-Kunde</span>
+      <span class="muted">Du schreibst deine Antworten selbst. Eine KI spielt ${esc(c.acc)} und reagiert auf dich. Danach bekommst du eine Rückmeldung.</span>
+      <button class="btn" data-act="chat" ${aiOk ? "" : "disabled"}>Gespräch mit ${esc(c.acc)} starten</button>
+      ${aiOk ? `<span class="hint">Beim ersten Start fragt claude.ai, ob die App die KI nutzen darf.</span>`
+             : `<span class="hint">${sampleChecked ? "Spiel 2 geht nur, wenn die App über claude.ai geöffnet wird. Spiel 1 läuft überall." : "Prüfe, ob die KI hier verfügbar ist …"}</span>`}
+    </div>
+  </div>`;
+}
+
+function vGame(){
+  const c = cur(); const R = c.rounds[S.r]; const done = S.picked !== null; const o = done ? S.order[S.picked] : null;
+  const cls = o ? (o.p === 2 ? "good" : o.p === 1 ? "mid" : "bad") : "";
+  const head = o ? (o.p === 2 ? "Stark!" : o.p === 1 ? "Geht so" : "Lieber nicht") : "";
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+    <button class="chip" data-act="home">← Start</button>
+    <span class="progress">${esc(c.title)} · Runde ${S.r + 1}/${c.rounds.length} · ${S.pts} P.</span>
+  </div>
+  ${hud(S.mood)}
+  <div class="bubble"><span class="who">${esc(c.who)}</span>${esc(R.say)}</div>
+  <p class="eyebrow">Was sagst du?</p>
+  <div class="opts">${S.order.map((x, i) => `
+    <button class="opt ${done && i === S.picked ? "picked " + cls : ""}" data-pick="${i}" ${done ? "disabled" : ""}>
+      <span class="k">${"ABC"[i]}</span><span>${esc(x.t)}</span></button>`).join("")}
+  </div>
+  ${done ? `<div class="fb ${cls}" id="fb" role="status">
+      <span class="head">${head} ${o.p ? `+${o.p} Punkt${o.p > 1 ? "e" : ""}` : "0 Punkte"}</span>
+      <p>${esc(o.fb)}</p>
+      <p class="re">${esc(c.who)}: „${esc(S.left ? c.leave : o.re)}“</p>
+    </div>
+    <button class="btn" data-act="next">${S.left ? "Gespräch geplatzt … zur Auswertung" : S.r + 1 >= c.rounds.length ? "Zur Auswertung" : "Weiter"}</button>` : ""}`;
+}
+
+function vEnd(){
+  const c = cur(); const max = c.rounds.length * 2; const p = S.pts; const pct = p / max;
+  const verdict = S.left ? ["Kunde verloren", `${c.who} ist verärgert gegangen. Probier es noch einmal und bleib ruhiger.`]
+    : pct >= .9 ? ["Profi an der Info-Theke", "Du hast beruhigt und fachlich alles richtig gemacht."]
+    : pct >= .7 ? ["Gut gemacht", "Fast alles richtig. Schau dir die roten Punkte unten an."]
+    : pct >= .5 ? ["Auf dem Weg", "Ein paar Antworten haben geärgert oder waren fachlich falsch."]
+    : ["Noch mal üben", "Lies die Merksätze und spiel noch eine Runde."];
+  const left = CASES.filter(x => !x.aiOnly && !played.has(x.id)).length;
+  return `
+  <header style="display:flex;flex-direction:column;gap:6px">
+    <span class="eyebrow">Auswertung · ${esc(c.title)} · zeig das deiner Lehrkraft</span>
+    <h2>${verdict[0]}</h2>
+  </header>
+  <section class="card" style="display:flex;flex-direction:column;gap:14px">
+    <div class="score"><span class="n">${p}</span><span class="muted">von ${max} Punkten${S.left ? ` · nach Runde ${S.r + 1}` : ""}</span></div>
+    ${hud(S.mood, "am Ende")}
+    <p>${esc(verdict[1])}</p>
+  </section>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px">
+    <h3>Deine Checkliste</h3>
+    <ul class="check">${Object.entries(c.check).map(([k, t]) => {
+      const ok = S.got.has(k);
+      return `<li><span class="ic ${ok ? "ok" : "no"}" aria-hidden="true">${ok ? "✓" : "✗"}</span><span>${esc(t)}<span style="position:absolute;left:-9999px">${ok ? " erledigt" : " fehlt"}</span></span></li>`;
+    }).join("")}</ul>
+  </section>
+  <section class="card" style="display:flex;flex-direction:column;gap:12px">
+    <h3>Das musst du wissen</h3>
+    <ul class="facts">${c.facts.map(f => `<li><b>${esc(f[0])}</b><br>${esc(f[1])}</li>`).join("")}</ul>
+  </section>
+  <div class="row">
+    <button class="btn" data-act="nextcase">Nächster Fall${left ? ` (noch ${left} neu)` : ""}</button>
+    <button class="btn ghost" data-act="again">Diesen Fall noch einmal</button>
+    <button class="btn ghost" data-act="home">Zum Start${sample ? " · KI-Kunde" : ""}</button>
+  </div>`;
+}
+/* ---------- KI-Kunde ---------- */
+function customerRules(c){
+  return `Du spielst in einem Rollenspiel für Auszubildende im Einzelhandel (Berufsschule, Deutschland) eine Kundin oder einen Kunden an der Info-Theke eines Elektromarkts. Die Person, die dir schreibt, ist ein Azubi und spielt die Verkäuferin oder den Verkäufer.
+
+DEINE ROLLE:
+${c.ai.facts}
+
+SO SPIELST DU:
+- Bleib immer in der Rolle. Gib nie Tipps, erkläre nie die Rechtslage und sag nie, was der Azubi besser machen soll.
+- Du bist ungeduldig und leicht unhöflich, aber nie beleidigend, nie vulgär, nie diskriminierend.
+- Antworte kurz: 1 bis 3 Sätze, gesprochene Alltagssprache, einfaches Deutsch (Niveau B1). Keine Emojis, keine Regieanweisungen in Sternchen.
+- Du bist am Anfang verärgert. Deine Laune (0 = kocht vor Wut, 100 = zufrieden) startet bei 15. Freundlichkeit, Verständnis, gute Fragen und richtige, klare Lösungen heben sie. Unterstellungen, Ausreden, falsche Aussagen ("ohne Bon geht nichts"), Unterbrechen oder Belehren senken sie deutlich.
+- Verrate Informationen nur, wenn danach gefragt wird.
+- Sinkt die Laune auf 5 oder weniger, gehst du verärgert weg. Ist das Problem gelöst und du bist zufrieden, verabschiedest du dich.
+- Schreibt der Azubi etwas, das nicht zum Verkaufsgespräch passt, reagierst du verwirrt als Kunde ("Hä? Was soll das jetzt?").
+
+ANTWORTFORMAT: Antworte nur mit einem JSON-Objekt, ohne weiteren Text:
+{"antwort": "was du als Kundin oder Kunde sagst", "laune": Zahl von 0 bis 100, "ende": true oder false}
+"ende" ist true, wenn du weggehst oder dich zufrieden verabschiedest.
+
+Das Gespräch beginnt. Du hast als Erstes gesagt: "${c.open}"`;
+}
+function startChat(){
+  S = { ...S, screen:"chat", mood:15, turns:[], busy:false, ended:false, err:"", fb:null, fbBusy:false };
+  S.turns.push({ role:"assistant", content:cur().open });
+  render();
+}
+let ctl = null;
+async function send(text){
+  text = text.trim(); if (!text || S.busy || S.ended) return;
+  S.turns.push({ role:"user", content:text }); S.busy = true; S.err = ""; render(); scrollChat();
+  const c = cur();
+  const input = [{ role:"user", content: customerRules(c) + "\n\nVerstanden? Dann warte auf den Azubi." },
+                 { role:"assistant", content: JSON.stringify({antwort:c.open, laune:15, ende:false}) },
+                 ...S.turns.slice(1).map(t => t.role === "assistant" ? { role:"assistant", content: JSON.stringify({antwort:t.content, laune:t.mood ?? S.mood, ende:false}) } : t)];
+  ctl = new AbortController();
+  try {
+    const r = await sample.json(input, { modelTier:"quick", cache:false, signal:ctl.signal });
+    const ans = String(r && r.antwort || "").trim() || "…";
+    const m = clamp(Number(r && r.laune)); S.mood = Number.isFinite(m) ? m : S.mood;
+    S.turns.push({ role:"assistant", content:ans, mood:S.mood });
+    if (r && r.ende === true) S.ended = true;
+    const asked = S.turns.filter(t => t.role === "user").length;
+    if (!S.ended && asked >= MAXTURNS) { S.ended = true; S.limit = true; }
+  } catch (e) {
+    S.turns.pop();
+    S.err = errText(e);
+    if (e && (e.code === "not_granted" || e.code === "sampling_disabled")) sample = null;
+  } finally { S.busy = false; render(); scrollChat(); if (!S.err) { const ta = document.getElementById("say"); if (ta && !S.ended) ta.focus(); } else { const ta = document.getElementById("say"); if (ta) ta.value = text; } }
+}
+function errText(e){
+  const c = e && e.code;
+  if (c === "cancelled") return "";
+  if (c === "not_granted") return "Die KI wurde für diese App nicht erlaubt. Spiel 1 funktioniert trotzdem.";
+  if (c === "sampling_disabled") return "Die KI ist für dieses Konto nicht verfügbar.";
+  if (c === "rate_limited") return "Zu viele Nachrichten auf einmal. Warte kurz und schick deine Antwort noch einmal.";
+  if (c === "session_expired") return "Bitte melde dich bei claude.ai neu an.";
+  if (c === "invalid_json") return "Die Antwort kam durcheinander an. Schick deine Antwort bitte noch einmal.";
+  return "Verbindung hat nicht geklappt. Schick deine Antwort bitte noch einmal.";
+}
+async function getFeedback(){
+  if (S.fbBusy) return;
+  const c = cur();
+  const tr = S.turns.map(t => (t.role === "user" ? "AZUBI: " : "KUNDE: ") + t.content).join("\n");
+  if (!S.turns.some(t => t.role === "user")) return;
+  S.fbBusy = true; S.err = ""; render(); window.scrollTo(0, document.body.scrollHeight);
+  const prompt = `Du bist eine freundliche, ehrliche Berufsschul-Lehrkraft für Verkäufer-Azubis. Bewerte das folgende Reklamations-Rollenspiel. Der Azubi spielt den Verkäufer, der Kunde ist eine KI-Figur.
+
+FALL: ${c.short}
+${c.ai.legal}
+
+CHECKLISTE (bewerte jeden Punkt):
+${c.ai.checks.map((x, i) => (i + 1) + ". " + x).join("\n")}
+
+GESPRÄCH:
+${tr}
+
+Schreibe in einfachem Deutsch (Niveau B1), in der Du-Form, kurze Sätze. Sei ermutigend, aber ehrlich. Bewerte nur, was der AZUBI geschrieben hat.
+Antworte nur mit JSON in genau dieser Form:
+{"punkte": Zahl 0 bis 12 (2 Punkte je Checklistenpunkt, 1 Punkt wenn teilweise), "urteil": "ein Satz Gesamturteil", "checkliste": [{"punkt": "Text aus der Checkliste", "erfuellt": "ja" oder "teilweise" oder "nein", "hinweis": "ein kurzer Satz dazu"}], "gut": ["bis zu 2 Dinge, die gut waren, mit kurzem Zitat"], "besser": [{"du": "wörtliches Zitat des Azubis", "besser": "bessere Formulierung in wörtlicher Rede"}] (höchstens 3; leer, wenn alles gut war)}`;
+  try {
+    const r = await sample.json(prompt, { modelTier:"default", cache:false });
+    S.fb = r;
+  } catch (e) { S.err = errText(e) || "Abgebrochen."; }
+  finally { S.fbBusy = false; render(); const f = document.getElementById("fbbox"); if (f) f.scrollIntoView({behavior:"smooth", block:"start"}); }
+}
+function scrollChat(){ requestAnimationFrame(() => window.scrollTo(0, document.body.scrollHeight)); }
+
+function vChat(){
+  const c = cur();
+  const asked = S.turns.filter(t => t.role === "user").length;
+  const starters = asked === 0 ? ["Guten Tag! Das klingt ärgerlich. Was ist denn los?", "Oh, das tut mir leid. Erzählen Sie mal."] : [];
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+    <button class="chip" data-act="home">← Start</button>
+    <span class="progress">${esc(c.who)} · ${asked}/${MAXTURNS} Antworten</span>
+  </div>
+  ${hud(S.mood)}
+  <div class="chat" aria-live="polite">
+    ${S.turns.map(t => `<div class="msg ${t.role === "user" ? "a" : "k"}">${esc(t.content)}</div>`).join("")}
+    ${S.busy ? `<div class="msg k"><span class="dots">${esc(c.who)} überlegt</span></div>` : ""}
+    ${S.ended ? `<div class="msg sys">${S.limit ? "Die Zeit ist um." : S.mood <= 10 ? esc(c.who) + " ist gegangen." : "Das Gespräch ist zu Ende."} Hol dir jetzt deine Rückmeldung.</div>` : ""}
+  </div>
+  ${S.err ? `<div class="fb bad" role="alert"><p>${esc(S.err)}</p></div>` : ""}
+  ${S.fb ? vFeedback() : S.fbBusy ? `<div class="card"><p class="dots">Deine Rückmeldung wird geschrieben. Das dauert bis zu einer Minute</p></div>` : ""}
+  ${!S.ended && !S.fb ? `<div class="compose">
+      ${starters.length ? `<div class="starter">${starters.map(s => `<button data-start="${esc(s)}">${esc(s)}</button>`).join("")}</div>` : ""}
+      <label for="say" class="eyebrow">Deine Antwort als Verkäufer/in</label>
+      <textarea id="say" placeholder="Schreib, was du sagst …" ${S.busy ? "disabled" : ""}></textarea>
+      <div class="row">
+        <button class="btn" data-act="send" ${S.busy ? "disabled" : ""}>Sagen</button>
+        <button class="btn ghost" data-act="finish" ${S.busy || asked === 0 ? "disabled" : ""}>Gespräch beenden</button>
+      </div>
+    </div>` : ""}
+  ${S.ended && !S.fb && !S.fbBusy ? `<button class="btn" data-act="feedback">Rückmeldung holen</button>` : ""}
+  ${S.fb ? `<div class="row"><button class="btn" data-act="chat">Neues Gespräch</button><button class="btn ghost" data-act="home">Zum Start</button></div>` : ""}`;
+}
+function vFeedback(){
+  const f = S.fb || {}; const list = Array.isArray(f.checkliste) ? f.checkliste : [];
+  const n = Math.max(0, Math.min(12, Math.round(Number(f.punkte) || 0)));
+  const ic = v => v === "ja" ? ["ok", "✓"] : v === "teilweise" ? ["", "~"] : ["no", "✗"];
+  return `<section class="card" id="fbbox" style="display:flex;flex-direction:column;gap:14px">
+    <span class="eyebrow">Rückmeldung · zeig das deiner Lehrkraft</span>
+    <div class="score"><span class="n">${n}</span><span class="muted">von 12 Punkten · ${esc(cur().title)}</span></div>
+    ${f.urteil ? `<p><b>${esc(f.urteil)}</b></p>` : ""}
+    <ul class="check">${list.map(x => { const [k, s] = ic(String(x.erfuellt)); return `<li><span class="ic ${k}" style="${k ? "" : "background:var(--mid-soft);color:var(--mid)"}" aria-hidden="true">${s}</span><span><b>${esc(x.punkt || "")}</b><br><span class="muted">${esc(x.hinweis || "")}</span></span></li>`; }).join("")}</ul>
+    ${Array.isArray(f.gut) && f.gut.length ? `<h3>Das war gut</h3><ul class="facts">${f.gut.map(g => `<li>${esc(g)}</li>`).join("")}</ul>` : ""}
+    ${Array.isArray(f.besser) && f.besser.length ? `<h3>So klingt es noch besser</h3>${f.besser.map(b => `<div class="pair"><span class="du">Du: „${esc(b.du || "")}“</span><span class="bs">Besser: „${esc(b.besser || "")}“</span></div>`).join("")}` : ""}
+    <p class="hint">Die Rückmeldung schreibt eine KI. Sie kann sich irren. Sprich mit deiner Lehrkraft darüber.</p>
+  </section>`;
+}
+
+/* ---------- Render + Events ---------- */
+function render(){
+  const draft = document.getElementById("say")?.value || "";
+  $app.innerHTML = S.screen === "game" ? vGame() : S.screen === "end" ? vEnd() : S.screen === "chat" ? vChat() : vStart();
+  const ta = document.getElementById("say"); if (ta && draft) ta.value = draft;
+}
+$app.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b || b.disabled) return;
+  if (b.dataset.pick !== undefined) return pick(+b.dataset.pick);
+  if (b.dataset.case) { S.cid = b.dataset.case; return render(); }
+  if (b.dataset.start) { const ta = document.getElementById("say"); if (ta) { ta.value = b.dataset.start; ta.focus(); } return; }
+  const a = b.dataset.act;
+  if (a === "game") startGame();
+  else if (a === "random") startGame(nextCaseId());
+  else if (a === "nextcase") startGame(nextCaseId());
+  else if (a === "again") startGame();
+  else if (a === "next") next();
+  else if (a === "home") { ctl?.abort(); S = { screen:"start", cid:S.cid }; render(); window.scrollTo(0,0); }
+  else if (a === "chat") { if (sample) startChat(); }
+  else if (a === "send") { const ta = document.getElementById("say"); const v = ta ? ta.value : ""; if (ta) ta.value = ""; send(v); }
+  else if (a === "finish") { S.ended = true; render(); }
+  else if (a === "feedback") getFeedback();
+});
+$app.addEventListener("keydown", e => {
+  if (e.target.id === "say" && e.key === "Enter" && !e.shiftKey) { e.preventDefault(); const v = e.target.value; e.target.value = ""; send(v); }
+});
+
+render();
+(async () => {
+  try { sample = window.claude && window.claude.use ? await window.claude.use("sample") : null; } catch { sample = null; }
+  sampleChecked = true; if (S.screen === "start") render();
+})();
+})();
+</script>
+
+</body>
+</html>

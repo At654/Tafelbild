@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nebel über Bremerhaven</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&family=IM+Fell+DW+Pica:ital@0;1&display=swap">
+<style>
+/* Layout: eine Spalte wie ein Schichtbuch – oben das Fenster in die Nebelnacht, darunter die Entscheidung. */
+:root{
+  --bg:#0d171d; --panel:#15232b; --panel2:#1b2c35; --ink:#e6ecea; --muted:#9fb0b3; --line:#2a3b44;
+  --lamp:#f0b84a; --lamp-ink:#1a1206; --brick:#c86a4e; --ok:#63c39c; --bad:#ec7d69; --paper:#efe6cf; --paper-ink:#2b2418;
+  --f-display:"IM Fell DW Pica", "Iowan Old Style", Georgia, serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"Courier Prime", "Courier New", ui-monospace, monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#e7ecec; --panel:#f7f9f8; --panel2:#eef2f1; --ink:#14232a; --muted:#4c5e65; --line:#c5d0d1;
+  --lamp:#9c5f05; --lamp-ink:#fff8ea; --brick:#a4412b; --ok:#1d7552; --bad:#b0392a; --paper:#f4ecd6; --paper-ink:#2b2418; color-scheme:light } }
+:root[data-theme="light"]{
+  --bg:#e7ecec; --panel:#f7f9f8; --panel2:#eef2f1; --ink:#14232a; --muted:#4c5e65; --line:#c5d0d1;
+  --lamp:#9c5f05; --lamp-ink:#fff8ea; --brick:#a4412b; --ok:#1d7552; --bad:#b0392a; --paper:#f4ecd6; --paper-ink:#2b2418; color-scheme:light }
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;padding-inline:16px;padding-block:12px 40px}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:2.1rem} h2{font-size:1.6rem} h3{font-size:1.2rem}
+p{margin:0}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.muted{color:var(--muted)}
+.scene{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0a1318;position:relative}
+.scene svg{display:block;width:100%;height:auto}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.story{font-size:1.02rem}
+.story em{font-style:italic;color:var(--lamp)}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{border:0;border-radius:12px;padding:14px 18px;min-height:52px;font-weight:700;background:var(--lamp);color:var(--lamp-ink);font-size:1.05rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{min-height:40px;padding:8px 12px;font-size:.92rem}
+.btn:focus-visible,.opt:focus-visible,.chip:focus-visible,.mode:focus-visible,input:focus-visible{outline:3px solid var(--lamp);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+.grow{flex:1 1 auto}
+label.lab{font-weight:700;font-size:.95rem}
+input[type=text],input[type=number],input.num{width:100%;font:inherit;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);min-height:50px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{border:2px solid var(--line);background:var(--panel2);border-radius:14px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:6px;min-width:0}
+.mode svg{width:42px;height:42px}
+.mode b{font-family:var(--f-display);font-weight:400;font-size:1.35rem}
+.mode small{color:var(--muted);font-size:.88rem;line-height:1.35}
+.mode[aria-pressed="true"]{border-color:var(--lamp);box-shadow:0 0 0 3px color-mix(in srgb,var(--lamp) 25%,transparent)}
+.bar{height:6px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--lamp)}
+.chips{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.chip{border:1px solid var(--line);background:var(--panel2);border-radius:10px;min-height:46px;font-weight:700;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--lamp);color:var(--lamp-ink);border-color:var(--lamp)}
+.hud{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;font-size:.9rem}
+.fog{height:10px;border-radius:6px;background:var(--line);overflow:hidden;position:relative}
+.fog i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#8fa3a8,#d9e2e3);transition:width .6s}
+.letters{display:flex;gap:4px;font-family:var(--f-mono);font-weight:700;font-size:1.05rem;flex-wrap:wrap}
+.letters span{width:24px;height:30px;display:grid;place-items:center;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+.letters span.clear{background:var(--paper);color:var(--paper-ink);border-color:var(--lamp)}
+.letters span.misty{color:var(--muted);font-style:italic;opacity:.75}
+.who{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:start}
+.who svg{width:92px;height:auto}
+.bubble{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;position:relative;min-width:0}
+.bubble:before{content:"";position:absolute;left:-8px;top:22px;border:8px solid transparent;border-left:0;border-right-color:var(--line)}
+.bubble .name{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.q{font-weight:700;font-size:1.08rem}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:start;text-align:left;background:var(--panel2);border:2px solid var(--line);border-radius:12px;padding:12px;min-height:52px}
+.opt .k{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--line);font-weight:700;font-size:.9rem}
+.opt[aria-pressed="true"]{border-color:var(--lamp)}
+.opt[aria-pressed="true"] .k{background:var(--lamp);color:var(--lamp-ink)}
+.opt.right{border-color:var(--ok)} .opt.right .k{background:var(--ok);color:#06150f}
+.opt.wrong{border-color:var(--bad)} .opt.wrong .k{background:var(--bad);color:#1d0703}
+.opt.gone{opacity:.25;text-decoration:line-through}
+.opt:disabled{cursor:default}
+.feedback{border-radius:14px;padding:14px;border:2px solid var(--line);display:flex;flex-direction:column;gap:10px;background:var(--panel)}
+.feedback.good{border-color:var(--ok)} .feedback.badf{border-color:var(--bad)}
+.verdict{font-family:var(--f-display);font-size:1.4rem}
+.verdict.good{color:var(--ok)} .verdict.badf{color:var(--bad)}
+.react{font-style:italic;color:var(--muted)}
+.term{background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:12px;font-size:.95rem;display:flex;flex-direction:column;gap:4px}
+.term .t{font-family:var(--f-mono);font-weight:700;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase}
+.ledger{background:var(--paper);color:var(--paper-ink);border-radius:6px;padding:18px 16px;font-family:var(--f-display);font-size:1.15rem;position:relative;box-shadow:inset 0 0 40px rgba(120,90,40,.25)}
+.ledger .big{font-family:var(--f-mono);font-size:3rem;font-weight:700;line-height:1;color:#7a2e1c}
+.ledger .date{font-family:var(--f-mono);font-size:.8rem;opacity:.7}
+.word{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.word span{width:30px;height:40px;display:grid;place-items:center;font-family:var(--f-mono);font-weight:700;font-size:1.4rem;border-bottom:3px solid var(--lamp)}
+.word span.misty{opacity:.4}
+.card{background:linear-gradient(160deg,var(--panel2),var(--panel));border:2px solid var(--lamp);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;text-align:center}
+.stars{display:flex;justify-content:center;gap:6px}
+.stars svg{width:34px;height:34px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-variant-numeric:tabular-nums}
+.kpis div{background:var(--panel2);border-radius:10px;padding:8px}
+.kpis b{display:block;font-size:1.3rem}
+.review{display:flex;flex-direction:column;gap:10px}
+.rv{border-left:4px solid var(--line);padding:6px 0 6px 12px;display:flex;flex-direction:column;gap:4px;font-size:.95rem}
+.rv.ok{border-color:var(--ok)} .rv.half{border-color:var(--lamp)} .rv.no{border-color:var(--bad)}
+.rv .mk{font-weight:700}
+.rv .ihk{font-size:.9rem;background:var(--panel2);border-radius:8px;padding:8px}
+details{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+summary{cursor:pointer;font-weight:700}
+.notice{font-size:.9rem;background:var(--panel2);border:1px dashed var(--line);border-radius:10px;padding:10px 12px}
+.topbtns{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.icon-btn{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);background:transparent;border-radius:10px;padding:8px 10px;min-height:40px;font-size:.88rem}
+.icon-btn svg{width:18px;height:18px}
+.rechen{font-family:var(--f-mono);font-size:.95rem}
+@keyframes drift{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
+@keyframes beam{0%{opacity:.0}10%{opacity:.9}40%{opacity:.0}100%{opacity:0}}
+@keyframes flick{0%,100%{opacity:1}45%{opacity:1}47%{opacity:.35}49%{opacity:1}72%{opacity:.6}74%{opacity:1}}
+@keyframes rise{from{transform:translateY(8px);opacity:.0}to{transform:none;opacity:1}}
+.fogl{animation:drift 14s ease-in-out infinite alternate}
+.fogl.b{animation-duration:19s;animation-direction:alternate-reverse}
+.beam{animation:beam 5s linear infinite;transform-origin:96px 70px}
+.flick{animation:flick 6s infinite}
+.appear{animation:rise .45s ease-out}
+@media (prefers-reduced-motion: reduce){.fogl,.beam,.flick,.appear{animation:none}}
+@media (max-width:420px){ .word{gap:3px} .word span{width:25px;font-size:1.2rem} h1{font-size:1.8rem} .who{grid-template-columns:70px 1fr} .who svg{width:70px} .chips{grid-template-columns:repeat(5,1fr)} }
+</style>
+</head>
+<body>
+
+
+<div class="wrap" id="app" aria-live="polite"></div>
+
+<script>
+// Nebel über Bremerhaven – Daten. Quellen: LF10 Modul 1–10 Lösungen + Prüfungs-Checks (Stand 02.10.2026)
+const LETTERS = "LEUCHTTURM";
+
+const CHAPTERS = [
+ {n:1, modul:"Jugendschutz", title:"Das Mädchen im Matrosenkleid", fig:{hat:"schleife",coat:"#3d5a80",hair:"#6b4a2b",age:"kind"},
+  who:"Das blasse Mädchen",
+  intro:"Die Tür klingelt. Ein Mädchen in einem altmodischen Matrosenkleid kommt herein. Ihre Schuhe sind nass, obwohl es nicht regnet. Sie legt etwas auf das Band und schaut euch mit großen Augen an.",
+  good:["Das Mädchen nickt. „Du bist freundlich. Das war damals nicht jeder.“","Sie lächelt kurz. Dann ist sie fort. Nur ein nasser Fußabdruck bleibt."],
+  bad:["Das Licht über Kasse 3 flackert. Das Mädchen schaut dich lange an, ohne zu blinzeln.","Draußen tutet ein Schiffshorn. Ganz nah. Viel zu nah."],
+  page:"12. November 1926. Sturmwarnung. Die Kasse ist voll vom Monatsende.",
+  words:"das Kind (unter 14) · der/die Jugendliche (14 bis unter 18) · das Jugendschutzgesetz (JuSchG) · die Altersgrenze · branntweinhaltig · der Ausweis · USK/FSK · die Ordnungswidrigkeit · beschränkt geschäftsfähig · der Taschengeldparagraf"},
+ {n:2, modul:"Kasse mit besonderen Situationen", title:"Der Seemann mit den alten Münzen", fig:{hat:"muetze",coat:"#2f3e46",hair:"#8a8a8a",age:"alt",beard:1},
+  who:"Der Seemann",
+  intro:"Ein Seemann in dicker Wolljacke stellt seinen Einkauf auf das Band. Er riecht nach Salz und Teer. Als du alles eingescannt hast, legt er ein paar rostige Münzen hin. Darauf steht: „Reichsmark 1925“.",
+  good:["Der Seemann brummt zufrieden. „Ruhig und anständig. So soll es sein.“","Er tippt an seine Mütze. Seine Münzen zerfallen zu Sand."],
+  bad:["Die Kasse piept dreimal. Auf dem Display steht kurz: 1926.","Der Seemann knurrt. Aus seinem Ärmel tropft Hafenwasser auf das Band."],
+  page:"Ich bringe das Geld heute nicht zur Bank. Die Fähre fährt nicht bei dem Sturm.",
+  words:"der Kaufvertrag · die Willenserklärung · der Antrag · die Annahme · stornieren · den Vorgang parken · zurücklegen · die Girocard · personengebunden · die Preisauszeichnung · kulant"},
+ {n:3, modul:"Beschwerden", title:"Der Kapitän an der Info", fig:{hat:"kapitaen",coat:"#1d3557",hair:"#ddd",age:"alt",beard:1},
+  who:"Der Kapitän",
+  intro:"An der Information steht ein Kapitän. Sein Mantel ist triefnass, Seetang hängt am Kragen. Er schlägt mit der Faust auf den Tresen. „Das ist doch eine Frechheit hier!“ Andere Kunden drehen sich um.",
+  good:["Der Kapitän atmet tief durch. „Na also. Man kann ja vernünftig mit euch reden.“","Das Wasser hört auf zu tropfen. Der Kapitän nickt euch zu."],
+  bad:["Der Kapitän wird noch lauter. Die Lampen schwanken wie bei Seegang.","Eine Welle Nebel rollt durch den Gang. Es riecht nach Sturm."],
+  page:"Reeder Lührs war heute wieder laut. Er schreit immer, wenn ihm etwas nicht passt.",
+  words:"die Beschwerde · die Reklamation · aufgebracht · eskalieren · beruhigen · sachlich bleiben · Verständnis zeigen · sich entschuldigen · die Unterstellung · die ruhige Zone · eine Lösung in Aussicht stellen"},
+ {n:4, modul:"Umtausch oder Reklamation", title:"Das Kleid von 1926", fig:{hat:"glocke",coat:"#6d597a",hair:"#2b2b2b",age:"frau"},
+  who:"Die Dame mit dem Glockenhut",
+  intro:"Eine Dame mit Glockenhut legt ein Kleid und einen vergilbten Kassenbon auf den Tresen. Darauf steht: „Kolonialwaren Behrens, 12.11.1926“. „Ich möchte das zurückgeben“, sagt sie leise.",
+  good:["Die Dame lächelt. „Sie kennen sich aus. Herr Behrens wäre stolz.“","Der Kassenbon in ihrer Hand wird durchsichtig wie Nebel."],
+  bad:["Die Dame seufzt. Der Kassenbon wird nass und schwer.","Hinter euch fällt eine Schaufensterpuppe um. Niemand hat sie berührt."],
+  page:"Abends. Ich wickle die Geldkassette in Wachstuch. Sicher ist sicher.",
+  words:"der Umtausch · die Reklamation · der Mangel · mangelhaft · fehlerfrei · die Kulanz · freiwillig · der Rechtsanspruch · der Kaufnachweis · die Gutschrift · das Widerrufsrecht (nur online)"},
+ {n:5, modul:"Rechte bei Mängeln", title:"Die Sturmlaterne", fig:{hat:"suedwester",coat:"#e9c46a",hair:"#5a3e2b",age:"mann"},
+  who:"Der Fischer im Ölzeug",
+  intro:"Ein Fischer in gelbem Ölzeug hält eine Sturmlaterne hoch. „Vor drei Monaten bei euch gekauft. Jetzt geht sie nicht mehr. Und ich brauche Licht da draußen. Der Nebel kommt.“",
+  good:["Der Fischer nickt. „Gut. Dann weiß ich, woran ich bin.“","Die Laterne in seiner Hand glimmt kurz auf. Ein warmes Licht."],
+  bad:["Die Laterne geht ganz aus. Für einen Moment ist es stockdunkel.","Der Fischer schüttelt den Kopf. Draußen heult der Wind."],
+  page:"„Hinrich, im Leuchtturm ist dein Geld sicherer als im Laden“, sagt Wärter Jansen.",
+  words:"die Gewährleistung · der Sachmangel · die Nacherfüllung · die Nachbesserung (Reparatur) · die Ersatzlieferung · vorrangig · nachrangig · der Rücktritt · die Minderung · der Schadensersatz · die Beweislastumkehr · die Garantie"},
+ {n:6, modul:"Ladendiebstahl", title:"Schatten zwischen den Regalen", fig:{hat:"schiebermuetze",coat:"#3a3a3a",hair:"#222",age:"mann"},
+  who:"Der Schatten",
+  intro:"Zwischen den Regalen bewegt sich etwas. Ein Mann mit Schiebermütze, sein Gesicht im Dunkeln. Plötzlich hört ihr eine laute Stimme, wie aus einem alten Radio: „Behrens, du Dieb!“ Dann ist es still.",
+  good:["Die alte Stimme verstummt. Jemand flüstert: „So hätte man es damals machen müssen.“","Der Schatten bleibt stehen und nimmt die Mütze ab."],
+  bad:["Die Stimme wird lauter: „Dieb! Dieb!“ Die Regale zittern.","Alle Lichter gehen aus. Nur die Notbeleuchtung glimmt grün."],
+  page:"13. November. Lührs schreit vor allen Kunden: „Behrens, du Dieb! Wo ist das Geld?“ Niemand fragt nach.",
+  words:"der Ladendiebstahl · die Inventurdifferenz · die Ablenkung · die Warensicherung · die Videoüberwachung · der Ladendetektiv · die Vitrine · der Verdacht · diskret · der Zeuge · die Strafanzeige · das Hausverbot"},
+ {n:7, modul:"Kundengruppen und Kundentypen", title:"Drei Gäste aus dem Nebel", fig:{hat:"lotse",coat:"#264653",hair:"#eee",age:"alt"},
+  who:"Der alte Lotse",
+  intro:"Jetzt kommen gleich mehrere Kunden aus dem Nebel: ein alter Lotse mit Stock, ein misstrauischer Fischhändler und eine Frau, die sich nicht entscheiden kann. Alle sehen ein bisschen durchsichtig aus.",
+  good:["Der Lotse klopft mit dem Stock auf den Boden. „Ihr wisst, wie man mit Leuten redet.“","Die Gäste werden etwas weniger durchsichtig. Sie scheinen zufrieden."],
+  bad:["Der Lotse runzelt die Stirn. „So redet man nicht mit einem Kunden.“","Der Fischhändler verschwindet einfach im Nebel. Er kommt nicht wieder."],
+  page:"Ich wollte alles erklären. Aber keiner hat mir zugehört.",
+  words:"die Kundengruppe · der Kundentyp · der demografische Wandel · barrierefrei · die Sitzgelegenheit · die Packungsgröße · der Lieferservice · sachverständig · misstrauisch · unentschlossen · sparsam · umweltbewusst · das Gütesiegel"},
+ {n:8, modul:"Hochbetrieb, Ladenschluss, Begleitung, Geschenk", title:"Fünf vor acht", fig:{hat:"zylinder",coat:"#432818",hair:"#333",age:"mann"},
+  who:"Der Herr mit dem Zylinder",
+  intro:"Plötzlich ist der Laden voll. Menschen in Mänteln aus einer anderen Zeit drängen sich an der Kasse. Die Uhr zeigt immer noch 19:55 – fünf vor acht. Ein Herr mit Zylinder sucht ein Geschenk.",
+  good:["Der Herr tippt an seinen Zylinder. „Sehr aufmerksam, junge Leute.“","Die Schlange wird ruhiger. Einige Gäste lösen sich lächelnd in Nebel auf."],
+  bad:["Die Leute in der Schlange murmeln. Das Murmeln klingt wie Wellen.","Die Uhr tickt einmal laut – und springt zurück auf 19:55."],
+  page:"Ich gehe zu Jansen in den Leuchtturm. Ich hole die Quittung. Der Nebel ist so dicht.",
+  words:"der Hochbetrieb · die Mehrfachbedienung · die Reihenfolge · der Ladenschluss · die Begleitperson · einbeziehen · der Geschenkkauf · die Geschenkverpackung · der Gutschein · der Besorgungskauf · das Muster"},
+ {n:9, modul:"Ratenkauf", title:"Auf Raten bis in alle Ewigkeit", fig:{hat:"melone",coat:"#2b2d42",hair:"#111",age:"mann",pale:1},
+  who:"Der Mann mit der Melone",
+  intro:"Ein sehr blasser Mann mit Melone zeigt auf den teuersten Fernseher. „Den nehme ich. Ich zahle in Raten. Bis in alle Ewigkeit.“ Er lacht. Seine Hand ist eiskalt.",
+  good:["Der Mann hört auf zu lachen. „Ehrlich und klar. Das gefällt mir.“","Der Vertrag in seiner Hand leuchtet kurz auf."],
+  bad:["Der Mann lacht lauter. Der Fernseher geht von selbst an: nur Rauschen.","Eiskalte Luft weht durch den Laden. Eure Finger werden steif."],
+  page:"Wenn ich nicht zurückkomme: Die Quittung liegt bei Jansen im …",
+  words:"das Teilzahlungsgeschäft · der Ratenkauf · der Finanzkauf · die Rate · die Anzahlung · der Barzahlungspreis · der Teilzahlungspreis · der effektive Jahreszins · das Widerrufsrecht · der Eigentumsvorbehalt · das Ausfallrisiko"},
+ {n:10, modul:"Situationstraining und Fachgespräch", title:"Der Nebelkaufmann", fig:{hat:"melone",coat:"#4a5759",hair:"#ccc",age:"geist",beard:1},
+  who:"Der Nebelkaufmann",
+  intro:"Der Nebel sammelt sich hinter der Kasse. Eine Gestalt wird sichtbar: ein Mann im Gehrock, mit Melone und Laterne. Hinrich Behrens. „Ich stand hinter dieser Theke, so wie ihr heute. Jetzt prüfe ich euch – wie im Fachgespräch.“",
+  good:["Behrens nickt langsam. „Genau so. Ihr sagt, was ihr tut – und warum.“","Seine Laterne leuchtet heller."],
+  bad:["Behrens schüttelt den Kopf. „Denkt noch einmal nach. Erst der Mensch, dann die Sache.“","Seine Laterne flackert schwach."],
+  page:"… Leuchtturm. In der Kammer unter der Laterne.",
+  words:"der Aspekt · die Situation · die wörtliche Rede · der Lösungsweg · die Vorbereitungszeit · der Stichwortzettel · begründen · beurteilen · kundenorientiert · rechtlich · die Nachfrage"}
+];
+
+// k: mc | rede | mcb (Entscheidung + Begründung) | num
+const POOL = [
+// ===== Kapitel 1 – Jugendschutz =====
+{id:"a1-1",ch:1,m:"a",k:"rede",s:"Das Mädchen (etwa 12) legt Likörpralinen aufs Band. „Die sind für meinen Papa. Der hat Geburtstag.“",q:"Was sagst du?",
+ o:[["„Es tut mir leid, in diesen Pralinen ist Likör. Die darf ich dir erst verkaufen, wenn du 18 bist. Schau mal, hier sind Nougatpralinen ohne Alkohol.“",1],["„Na gut. Wenn sie für deinen Papa sind, ist das in Ordnung.“",0],["„Nein. Das geht nicht. Der Nächste, bitte.“",0]],
+ why:"Likörpralinen enthalten Branntwein. Sie dürfen erst ab 18 verkauft werden – egal, für wen sie sind. Freundlich ablehnen in vier Schritten: Bedauern – Grund – Alternative – Abschluss.",
+ term:"Jugendschutz (branntweinhaltige Lebensmittel)",ihk:"Jugendschutz: Branntweinhaltige Lebensmittel dürfen nicht an Kinder und Jugendliche unter 18 Jahren abgegeben werden."},
+{id:"a1-2",ch:1,m:"a",k:"mc",s:"Eine 16-Jährige legt eine Flasche Sekt aufs Band und zeigt ihren Ausweis.",q:"Darfst du verkaufen?",
+ o:[["Ja. Sekt ist ab 16 erlaubt.",1],["Nein. Alkohol gibt es erst ab 18.",0],["Nur, wenn die Eltern dabei sind.",0]],
+ why:"Bier, Wein und Sekt dürfen ab 16 Jahren verkauft werden. Der Ausweis zeigt: Sie ist 16. Also ist der Verkauf erlaubt.",
+ term:"Altersgrenze 16 (Bier, Wein, Sekt)",ihk:"Bier, Wein und Sekt dürfen erst ab 16 Jahren abgegeben werden; Branntwein erst ab 18 Jahren."},
+{id:"a1-3",ch:1,m:"a",k:"mc",s:"Ein Jugendlicher (etwa 16) will Bier und Wodka. Er sagt: „Ich bin 18.“ Einen Ausweis hat er nicht dabei.",q:"Was machst du?",
+ o:[["Ich verkaufe gar nichts – auch das Bier nicht. Ohne Ausweis kann ich das Alter nicht prüfen.",1],["Das Bier verkaufe ich, den Wodka nicht.",0],["Ich verkaufe alles. Er hat ja gesagt, dass er 18 ist.",0]],
+ why:"Im Zweifel wird der Ausweis verlangt. Ohne Nachweis wird nicht verkauft. Auch Bier nicht, denn vielleicht ist er jünger als 16.",
+ term:"Alterskontrolle",ihk:"Im Zweifel ist eine Alterskontrolle durchzuführen; ohne Nachweis erfolgt kein Verkauf."},
+{id:"a1-4",ch:1,m:"a",k:"mc",s:"Ein Junge (etwa 14) möchte E-Zigaretten kaufen. „Die sind ohne Nikotin!“, sagt er.",q:"Darfst du verkaufen?",
+ o:[["Nein. E-Zigaretten gibt es erst ab 18 – auch ohne Nikotin.",1],["Ja. Ohne Nikotin ist das erlaubt.",0],["Ja, ab 14 ist das erlaubt.",0]],
+ why:"Tabakwaren, E-Zigaretten und E-Shishas dürfen erst ab 18 verkauft werden. Das gilt auch für E-Zigaretten ohne Nikotin.",
+ term:"Jugendschutz (Tabak, E-Zigaretten)",ihk:"Jugendschutz: E-Zigaretten – auch nikotinfrei – dürfen erst ab 18 Jahren abgegeben werden."},
+{id:"a1-5",ch:1,m:"a",k:"rede",s:"Ein 13-Jähriger möchte ein Videospiel mit dem Zeichen „USK ab 16“ kaufen.",q:"Was sagst du?",
+ o:[["„Tut mir leid, das Spiel ist erst ab 16 freigegeben. Ich kann es gern für deine Eltern zurücklegen.“",1],["„Kein Problem, Spiele haben keine Altersgrenze.“",0],["„Wenn du bar bezahlst, ist das okay.“",0]],
+ why:"Filme und Spiele dürfen nur an Personen verkauft werden, die so alt sind wie auf dem FSK- oder USK-Zeichen steht.",
+ term:"Alterskennzeichnung (USK/FSK)",ihk:"Alterskennzeichnung beachten: Abgabe erst ab dem angegebenen Alter (hier 16 Jahre)."},
+{id:"a1-6",ch:1,m:"a",k:"mc",s:"Das Mädchen sagt: „Die Pralinen sind doch gar nicht für mich!“",q:"Was stimmt?",
+ o:[["Das ist egal. Das Gesetz gilt für jeden Verkauf an Kinder.",1],["Dann darf ich verkaufen, wenn sie es mir verspricht.",0],["Dann darf ich verkaufen, wenn sie einen Zettel von den Eltern hat.",0]],
+ why:"„Für die Eltern“ ist keine Ausnahme. Das Jugendschutzgesetz verbietet die Abgabe an Kinder und Jugendliche – egal, für wen die Ware ist.",
+ term:"Jugendschutzgesetz (JuSchG)",ihk:"Das Jugendschutzgesetz verbietet die Abgabe von Branntwein an Kinder und Jugendliche unter 18 – egal, für wen die Ware bestimmt ist."},
+{id:"p1-1",ch:1,m:"p",k:"mcb",s:"Ein 15-Jähriger kauft von seinem Taschengeld ein Handyspiel für 9,99 € und bezahlt sofort.",q:"Ist der Kaufvertrag wirksam?",
+ o:[["Ja, er ist wirksam.",1],["Nein, er ist unwirksam.",0],["Nur mit Unterschrift der Eltern.",0]],
+ b:{q:"Warum?",o:[["Er ist beschränkt geschäftsfähig, zahlt aber mit Mitteln zur freien Verfügung (Taschengeld) sofort vollständig (§ 110 BGB).",1],["Ab 14 Jahren ist man voll geschäftsfähig.",0],["Jugendliche dürfen alles kaufen, solange es kein Alkohol ist.",0]]},
+ why:"7 bis 17 Jahre: beschränkt geschäftsfähig (§ 106 BGB). Nach § 110 BGB („Taschengeldparagraf“) ist der Vertrag wirksam, weil er sofort vollständig mit Taschengeld bezahlt.",
+ term:"Taschengeldparagraf (§ 110 BGB)",ihk:"Der Kaufvertrag ist wirksam, da der beschränkt Geschäftsfähige die Leistung mit Mitteln bewirkt, die ihm zur freien Verfügung überlassen wurden."},
+{id:"p1-2",ch:1,m:"p",k:"mcb",s:"Ein 16-jähriger Azubi kauft ohne Wissen der Eltern ein Smartphone für 1.000 €. Er zahlt 10 % an, den Rest in Raten.",q:"Ist der Kaufvertrag rechtswirksam?",
+ o:[["Nein, er ist (schwebend) unwirksam.",1],["Ja, er ist wirksam.",0],["Ja, weil er eine Ausbildungsvergütung hat.",0]],
+ b:{q:"Warum?",o:[["Der Taschengeldparagraf greift nicht, weil nicht sofort vollständig bezahlt wird. Ohne Zustimmung der Eltern ist der Vertrag nicht wirksam.",1],["Azubis dürfen grundsätzlich keine Teilzahlungsgeschäfte abschließen.",0],["Smartphones fallen nicht unter das Jugendschutzgesetz.",0]]},
+ why:"Ein Ratenkauf fällt nie unter § 110 BGB, weil nicht sofort voll bezahlt wird. Er bringt Zahlungspflichten (§ 107), also ist er ohne Einwilligung schwebend unwirksam (§ 108). Gefragt in WiSo S 2022 und S 2026.",
+ term:"schwebend unwirksam (§§ 107, 108 BGB)",ihk:"Der Kaufvertrag ist schwebend unwirksam; der Taschengeldparagraf greift nicht, da nicht sofort vollständig bezahlt wird."},
+{id:"p1-3",ch:1,m:"p",k:"mcb",s:"Eine 15-Jährige will eine Tafel Schokolade mit Rum-Aroma kaufen. Daneben liegen Likörpralinen.",q:"Darfst du ihr die Schokolade mit Rum-Aroma verkaufen?",
+ o:[["Ja.",1],["Nein, erst ab 16.",0],["Nein, erst ab 18.",0]],
+ b:{q:"Warum?",o:[["§ 9 JuSchG verbietet nur Lebensmittel, die Branntwein in nicht nur geringfügiger Menge enthalten. Aroma ist kein Branntwein.",1],["Schokolade ist immer erlaubt, auch mit Likör.",0],["Rum ist kein Alkohol.",0]]},
+ why:"Likörpralinen enthalten echten Likör (Branntwein) → ab 18. Rum-Aroma ist kein Branntwein bzw. nur geringfügig enthalten → keine Altersgrenze.",
+ term:"§ 9 Abs. 1 JuSchG",ihk:"Lebensmittel, die Branntwein in nicht nur geringfügiger Menge enthalten, dürfen nicht an Kinder und Jugendliche abgegeben werden."},
+{id:"p1-4",ch:1,m:"p",k:"rede",s:"Eine 14-Jährige möchte für ihre Mutter Eierlikör kaufen (20 % Alkohol, Branntwein). „Die hat mich doch geschickt!“",q:"Welche Antwort bringt im Fachgespräch die meisten Punkte?",
+ o:[["„Es tut mir leid, Eierlikör darf ich dir erst verkaufen, wenn du 18 bist – auch wenn er für deine Mutter ist. Vielleicht kann deine Mutter kurz selbst vorbeikommen? Dir noch einen schönen Tag!“",1],["„Ich will das nicht verkaufen. Ich habe keine Lust auf Ärger.“",0],["„Du weißt doch genau, dass das verboten ist. Das solltest du in deinem Alter wissen.“",0],["„Es tut mir leid, das geht nicht.“",0]],
+ why:"Volle Punkte: Bedauern, Grund (Gesetz, nicht „ich will nicht“), Alternative und freundlicher Abschluss. Nicht belehren. Nur „das geht nicht“ nennt keinen Grund.",
+ term:"Vier Schritte beim Ablehnen",ihk:"Bedauern zeigen – Grund nennen (Gesetz) – Alternative anbieten – freundlich abschließen."},
+{id:"p1-5",ch:1,m:"p",k:"mcb",s:"Prüferin: „Was riskiert Ihr Betrieb, wenn Sie trotzdem Branntwein an eine 14-Jährige verkaufen?“",q:"Was antwortest du?",
+ o:[["Es ist eine Ordnungswidrigkeit mit Bußgeld.",1],["Nichts, wenn die Kundin gelogen hat.",0],["Der Kaufvertrag wird automatisch zur Straftat.",0]],
+ b:{q:"Was gehört noch zur vollständigen Antwort?",o:[["Das Bußgeld kann mich und den Betrieb treffen, und das Image leidet.",1],["Nur die Kundin muss zahlen.",0],["Der Betrieb muss den Laden einen Monat schließen.",0]]},
+ why:"Wer gegen das Jugendschutzgesetz verstößt, begeht eine Ordnungswidrigkeit. Das Bußgeld kann hoch sein und trifft auch das Unternehmen.",
+ term:"Ordnungswidrigkeit",ihk:"Ein Verstoß gegen das Jugendschutzgesetz ist eine Ordnungswidrigkeit; es droht ein Bußgeld für Mitarbeiter und Betrieb."},
+{id:"p1-6",ch:1,m:"p",k:"mcb",s:"Ein 12-Jähriger möchte Wunderkerzen kaufen (Feuerwerk Kategorie F1). Ein 17-Jähriger will Silvesterraketen (Kategorie F2).",q:"Wem darfst du verkaufen?",
+ o:[["Nur dem 12-Jährigen.",1],["Beiden.",0],["Keinem von beiden.",0]],
+ b:{q:"Warum?",o:[["F1 (Kleinstfeuerwerk) ab 12 Jahren, F2 (Silvesterfeuerwerk) erst ab 18 Jahren.",1],["Feuerwerk ist immer ab 16 erlaubt.",0],["Feuerwerk darf man nur an Erwachsene verkaufen.",0]]},
+ why:"Kategorie F1 (Wunderkerzen, Knallerbsen) ab 12 Jahren. Kategorie F2 (Raketen, Böller) ab 18 Jahren.",
+ term:"Feuerwerk F1 / F2",ihk:"Feuerwerk der Kategorie F1 ab 12 Jahren, Kategorie F2 erst ab 18 Jahren."},
+
+// ===== Kapitel 2 – Kasse =====
+{id:"a2-1",ch:2,m:"a",k:"mc",s:"Der Seemann hat seine Ware aufs Band gelegt. Du hast alles eingescannt. Jetzt merkt er: Er hat kein gültiges Geld.",q:"Ist schon ein Kaufvertrag zustande gekommen?",
+ o:[["Ja. Ware aufs Band legen ist der Antrag, Einscannen ist die Annahme.",1],["Nein. Erst wenn bezahlt ist.",0],["Nein. Erst wenn der Kassenbon gedruckt ist.",0]],
+ why:"Nach der IHK-Lösung: Zwei übereinstimmende Willenserklärungen (Antrag und Annahme) = Kaufvertrag. Das ist mit dem Einscannen erfüllt.",
+ term:"Kaufvertrag (Antrag + Annahme)",ihk:"Ja, weil zwei übereinstimmende Willenserklärungen vorliegen."},
+{id:"a2-2",ch:2,m:"a",k:"rede",s:"Herr Brandt hat für 63,40 € eingekauft. Er hat seinen Geldbeutel vergessen. Hinter ihm warten vier Kunden.",q:"Was sagst du?",
+ o:[["„Das kann jedem passieren. Ich parke Ihren Einkauf und lege die Sachen zurück. Wann können Sie wieder hier sein?“",1],["„Pech gehabt. Ohne Geld kein Einkauf.“",0],["„Sie haben einen Kaufvertrag! Sie müssen jetzt sofort bezahlen.“",0]],
+ why:"Rechtlich gilt der Kaufvertrag. Kundenorientiert drängst du trotzdem nicht: anderes Zahlungsmittel anbieten, Ware zurücklegen oder Vorgang parken, Zeitpunkt klären.",
+ term:"Vorgang parken / Ware zurücklegen",ihk:"Kundenorientiert wird die Ware zurückgelegt bzw. der Vorgang geparkt oder ein anderes Zahlungsmittel angeboten."},
+{id:"a2-3",ch:2,m:"a",k:"mc",s:"Am Regal steht 2,30 €. Die Kasse zeigt 3,20 €. Der Seemann sagt: „Ich zahle nur, was am Regal steht!“",q:"Hat er einen Rechtsanspruch auf 2,30 €?",
+ o:[["Nein. Das Preisschild ist nur eine Aufforderung, ein Angebot zu machen.",1],["Ja. Der Preis am Regal gilt immer.",0],["Ja, aber nur bei Preisen unter 5 €.",0]],
+ why:"Die Preisauszeichnung ist kein verbindliches Angebot. Der Kunde hat keinen Rechtsanspruch. Kundenorientiert: entschuldigen, oft aus Kulanz den niedrigeren Preis geben, Schild korrigieren.",
+ term:"Preisauszeichnung",ihk:"Der Kunde hat keinen Rechtsanspruch, die Ware zum Auszeichnungspreis zu erhalten."},
+{id:"a2-4",ch:2,m:"a",k:"rede",s:"Eine Kundin möchte mit der Girocard ihres Mannes bezahlen.",q:"Was sagst du?",
+ o:[["„Die Karte ist leider an Ihren Mann gebunden. Haben Sie eine eigene Karte oder Bargeld dabei? Sonst lege ich Ihnen die Ware gern zurück.“",1],["„Kein Problem. Sie kennen ja die PIN.“",0],["„Das ist Betrug! Ich rufe sofort die Polizei.“",0]],
+ why:"Die Girocard ist personengebunden und nicht übertragbar. Freundlich erklären und eine andere Zahlungsmöglichkeit anbieten.",
+ term:"Girocard (personengebunden)",ihk:"Die Girocard ist personenbezogen und nicht übertragbar; alternative Zahlungsmöglichkeiten anbieten."},
+{id:"a2-5",ch:2,m:"a",k:"mc",s:"Ein älterer Herr sucht verzweifelt in seiner Geldbörse nach den richtigen Münzen.",q:"Worauf achtest du – und was sagst du?",
+ o:[["Hilfestellung: „Lassen Sie sich ruhig Zeit. Darf ich Ihnen helfen, das Kleingeld abzuzählen?“",1],["Zeit sparen: „Bitte etwas schneller, hinter Ihnen warten Leute.“",0],["Diebstahl: „Zeigen Sie mir bitte Ihre Geldbörse.“",0]],
+ why:"Der Aspekt ist Hilfestellung bzw. Service: Geduld zeigen und Hilfe anbieten.",
+ term:"Hilfestellung / Service",ihk:"Hilfestellung, Service: Geduld zeigen, Hilfe anbieten – „Darf ich Ihnen behilflich sein?“"},
+{id:"a2-6",ch:2,m:"a",k:"mc",s:"Ein gut gelaunter Kunde erzählt viel. Eine Kiste Wasser bleibt unten im Wagen stehen.",q:"Was machst du?",
+ o:[["Ich frage freundlich: „Unten im Wagen steht eine Kiste Wasser – soll die mit?“",1],["Ich sage nichts. Er ist ja nett.",0],["Ich sage laut: „Sie wollten die Kiste wohl nicht bezahlen!“",0]],
+ why:"Diebstahlprävention ohne Vorwurf. Ein sehr gesprächiger Kunde kann ablenken – absichtlich oder nicht. Trotzdem den Wagen ansehen.",
+ term:"Diebstahlprävention an der Kasse",ihk:"Diebstahlprävention: Ware im Wagen könnte vergessen oder verdeckt sein; höflich bitten, sie aufs Band zu legen."},
+{id:"p2-1",ch:2,m:"p",k:"mcb",s:"Alles ist eingescannt: 63,40 €. Der Kunde kann nicht bezahlen.",q:"Ist ein Kaufvertrag zustande gekommen?",
+ o:[["Ja.",1],["Nein.",0],["Erst mit dem Kassenbon.",0]],
+ b:{q:"Begründung (wie in der IHK-Lösung W 2024/25):",o:[["Der Kunde gibt mit dem Auflegen der Ware einen Antrag ab, der Verkäufer nimmt mit dem Einscannen an: zwei übereinstimmende Willenserklärungen.",1],["Das Preisschild am Regal ist der Antrag, das Nehmen der Ware ist die Annahme.",0],["Ein Kaufvertrag entsteht erst, wenn das Geld in der Kasse liegt.",0]]},
+ why:"Antrag (Ware aufs Band) + Annahme (Einscannen) = Kaufvertrag. Der Kunde ist zur Zahlung verpflichtet (§ 433 Abs. 2 BGB).",
+ term:"§ 433 Abs. 2 BGB",ihk:"Ja, weil zwei übereinstimmende Willenserklärungen vorliegen."},
+{id:"p2-2",ch:2,m:"p",k:"mcb",s:"Am Regal steht für Duschgel 1,60 €. Die Kasse zeigt 6,10 €. Es ist ein Zahlendreher am Regal.",q:"Müssen Sie die Ware für 1,60 € abgeben?",
+ o:[["Nein.",1],["Ja.",0],["Ja, wenn der Kunde den Bon fotografiert.",0]],
+ b:{q:"Warum? (§§ 145 ff. BGB)",o:[["Die Preisauszeichnung richtet sich an alle und ist nur eine Aufforderung zur Abgabe eines Angebots. Ein Antrag richtet sich an eine bestimmte Person.",1],["Die Preisangabenverordnung erlaubt Fehler bis 10 %.",0],["Ein Kaufvertrag entsteht nur schriftlich.",0]]},
+ why:"Preisschild = invitatio ad offerendum. Der Händler will sich nicht an jeden binden (Fehler, ausverkauft). Kundenorientiert: entschuldigen, ggf. Kulanz, Schild korrigieren.",
+ term:"Aufforderung zur Abgabe eines Angebots",ihk:"Die Preisauszeichnung ist nur eine Aufforderung, ein Angebot zu machen; kein Rechtsanspruch auf den ausgezeichneten Preis."},
+{id:"p2-3",ch:2,m:"p",k:"mcb",s:"Der Kunde hat sein Geld vergessen. Er verlangt: „Stornieren Sie das! Ich muss gar nichts.“",q:"Wie ist die Lage?",
+ o:[["Rechtlich gilt der Vertrag – praktisch storniert oder parkt man oft aus Kulanz.",1],["Er hat recht: Ohne Geld gibt es keinen Vertrag.",0],["Er muss sofort bezahlen, sonst rufe ich die Polizei.",0]],
+ b:{q:"Warum handelt man kulant?",o:[["Ein Streit an der Kasse schadet mehr als er nützt; die wartenden Kunden und der Kunde selbst sollen zufrieden bleiben.",1],["Weil das Gesetz Stornieren vorschreibt.",0],["Weil der Kassenbon noch nicht gedruckt ist.",0]]},
+ why:"Rechtlich nein – der Vertrag gilt. Praktisch storniert man oder parkt den Vorgang aus Kulanz.",
+ term:"Kulanz",ihk:"Der Kaufvertrag ist zustande gekommen; kundenorientiert werden Waren zurückgelegt, der Vorgang geparkt oder storniert."},
+{id:"p2-4",ch:2,m:"p",k:"rede",s:"Eine Kundin hat ihren Korb im Einkaufswagen so platziert, dass du den Wagen nicht ganz sehen kannst.",q:"Welche Ansprache ist am besten?",
+ o:[["„Könnten Sie bitte Ihren Korb einmal anheben, damit ich in Ihren Einkaufswagen schauen kann? Das mache ich bei allen Kunden so.“",1],["„Ich glaube, Sie verstecken da etwas!“",0],["„Korb hoch!“",0],["„Darf ich mal in Ihre Handtasche schauen?“",0]],
+ why:"Höflich bitten statt beschuldigen. „Das mache ich bei allen so“ – damit sich niemand verdächtigt fühlt. Taschen kontrolliert die Verkäuferin nicht selbst.",
+ term:"Diebstahlprävention",ihk:"Diebstahlprävention: Die Ware könnte verdeckt sein; der Einkaufswagen wird kontrolliert, ohne die Kundin zu verdächtigen."},
+{id:"p2-5",ch:2,m:"p",k:"mcb",s:"Prüfer: „Und was tun Sie, damit der falsche Regalpreis nicht wieder passiert?“",q:"Was antwortest du?",
+ o:[["Ich korrigiere sofort das Regaletikett bzw. gebe es weiter und prüfe die Nachbarartikel.",1],["Nichts. Das ist Aufgabe der Zentrale.",0],["Ich nehme das Schild ab. Ohne Preis gibt es keinen Fehler.",0]],
+ b:{q:"Warum ist das wichtig?",o:[["Falsche Preise verstoßen gegen die Preisangabenverordnung.",1],["Weil der Kunde sonst den Laden verklagen kann.",0],["Weil ohne Schild mehr verkauft wird.",0]]},
+ why:"Die Preisangabenverordnung verlangt richtige Preise (Gesamtpreis inkl. USt, ggf. Grundpreis). Ein Schild ohne Preis wäre ebenfalls ein Verstoß.",
+ term:"Preisangabenverordnung (PAngV)",ihk:"Ich korrigiere das Regaletikett und prüfe die Nachbarartikel – falsche Preise verstoßen gegen die Preisangabenverordnung."},
+{id:"p2-6",ch:2,m:"p",k:"rede",s:"Eine Kundin, etwa 30, hat nicht genug Bargeld dabei.",q:"Welche Ansprache bringt volle Punkte?",
+ o:[["„Haben Sie eine Karte, mit der Sie Ihren Einkauf bezahlen können? Wir nehmen Girocard und Kreditkarten.“",1],["„Dann müssen Sie leider etwas zurücklegen.“",0],["„Wie viel haben Sie denn? Zeigen Sie mal.“",0],["„Dann gehen Sie bitte zum Geldautomaten. Der Nächste!“",0]],
+ why:"Erst ein anderes Zahlungsmittel anbieten. Das ist kundenorientiert und schließt den Kauf ab.",
+ term:"andere Zahlungsmöglichkeit",ihk:"Zahlung: andere Zahlungsmöglichkeit anbieten – „Haben Sie eine Karte …? Wir nehmen Girocard und Kreditkarten.“"},
+
+// ===== Kapitel 3 – Beschwerden =====
+{id:"a3-1",ch:3,m:"a",k:"mc",s:"Der Kapitän schimpft laut: „So ein Schrott! Und das bei dem Preis!“",q:"Was tust du zuerst?",
+ o:[["Ruhig bleiben und ihn aussprechen lassen. Blickkontakt, nicken, nicht unterbrechen.",1],["Laut zurück: „Schreien Sie hier nicht so rum!“",0],["Sagen: „Nun beruhigen Sie sich doch erst mal!“",0]],
+ why:"Erst der Mensch, dann die Sache: Ruhe bewahren, sachlich bleiben, aussprechen lassen. „Nun beruhigen Sie sich doch erst mal!“ kann den Konflikt verschärfen.",
+ term:"aktiv zuhören",ihk:"In Ruhe zuhören und den Kunden aussprechen lassen; Ruhe bewahren, sachlich bleiben."},
+{id:"a3-2",ch:3,m:"a",k:"mc",s:"Deine Kollegin sagt zum Kapitän: „Oh, da sind Sie aber der Erste, der das beanstandet.“",q:"Ist dieser Satz geeignet?",
+ o:[["Nein. Er klingt wie ein Vorwurf. Der Kunde fühlt sich nicht ernst genommen.",1],["Ja. So weiß der Kunde, dass die Ware gut ist.",0],["Ja. Das beruhigt den Kunden.",0]],
+ why:"Der Satz klingt so, als ob das Anliegen nicht ernst genommen wird. Das kann den Konflikt verschärfen.",
+ term:"Unterstellung vermeiden",ihk:"Die Aussage klingt wie ein Vorwurf, als ob das Anliegen des Kunden nicht ernst genommen würde – ungeeignet."},
+{id:"a3-3",ch:3,m:"a",k:"mc",s:"Die Kollegin sagt jetzt: „Wir werden gemeinsam eine Lösung finden.“",q:"Ist dieser Satz geeignet?",
+ o:[["Ja. Der Kunde merkt, dass man sich kümmert, und wird einbezogen.",1],["Nein. Man darf nichts versprechen.",0],["Nein. Das klingt zu freundlich.",0]],
+ why:"Eine Lösung in Aussicht stellen und Zuversicht zeigen beruhigt. Der Kunde wird einbezogen.",
+ term:"Lösung in Aussicht stellen",ihk:"Geeignet: Der Kunde fühlt, dass man sich kümmert, und wird einbezogen."},
+{id:"a3-4",ch:3,m:"a",k:"rede",s:"Andere Kunden schauen schon zum Kapitän herüber.",q:"Was sagst du?",
+ o:[["„Kommen Sie doch bitte mit zur Information, dort können wir in Ruhe schauen.“",1],["„Alle schauen schon. Das ist Ihnen doch peinlich, oder?“",0],["„Dann gehen Sie bitte. So können wir nicht reden.“",0]],
+ why:"Den Kunden in eine ruhige Zone bitten: Er steht nicht vor anderen, und die Situation beruhigt sich. Eine Kollegin übernimmt die Kasse.",
+ term:"ruhige Zone",ihk:"Den Kunden in eine ruhige Verkaufszone bitten; eine Kollegin übernimmt die Kasse."},
+{id:"a3-5",ch:3,m:"a",k:"mc",s:"Du fragst dich: Warum soll ich die Beschwerde überhaupt so ernst nehmen?",q:"Welcher Grund stimmt?",
+ o:[["Enttäuschte Kunden gehen zum Mitbewerber und erzählen ihre schlechte Erfahrung weiter.",1],["Weil das Gesetz es bei jeder Beschwerde vorschreibt.",0],["Damit der Kunde schneller wieder geht.",0]],
+ why:"Wer Beschwerden nicht ernst nimmt, verliert Kunden. Kunden-, Umsatz- und Gewinnrückgang sind die Folge.",
+ term:"Beschwerde als Chance",ihk:"Enttäuschte Kunden gehen künftig zum Mitbewerber; sie erzählen schlechte Erfahrungen weiter – Kunden-, Umsatz- und Gewinnrückgang."},
+{id:"a3-6",ch:3,m:"a",k:"rede",s:"Ein Kunde wollte einen Akkuschrauber aus dem Prospekt. Der ist ausverkauft. „Wozu machen Sie überhaupt Werbung?“",q:"Was sagst du?",
+ o:[["„Es tut mir leid, dass er ausverkauft ist. Gern notiere ich Ihre Telefonnummer und melde mich, sobald er da ist.“",1],["„Da hätten Sie eben früher kommen müssen.“",0],["„Für die Werbung ist die Zentrale zuständig, nicht ich.“",0]],
+ why:"Bedauern zeigen, Verständnis zeigen, eine Lösung anbieten: benachrichtigen oder ein Alternativangebot zeigen.",
+ term:"Beschwerde: Werbeware ausverkauft",ihk:"Verständnis zeigen und sich entschuldigen; eine Lösung anbieten (Benachrichtigung bei Nachlieferung oder Alternativangebot)."},
+{id:"p3-1",ch:3,m:"p",k:"mcb",s:"Eine Kundin beschwert sich: Ein Verkäufer war unfreundlich und hat sie lange warten lassen.",q:"Ist das eine Reklamation?",
+ o:[["Nein, es ist eine Beschwerde.",1],["Ja, es ist eine Reklamation.",0],["Es ist ein Umtausch.",0]],
+ b:{q:"Warum?",o:[["Eine Reklamation ist eine Beschwerde über mangelhafte Ware mit gesetzlichen Rechten. Hier geht es um das Personal.",1],["Reklamationen gibt es nur schriftlich.",0],["Eine Beschwerde ist immer lauter als eine Reklamation.",0]]},
+ why:"Beschwerde = jede Unzufriedenheit (Personal, Wartezeit, Sauberkeit …). Reklamation = Beschwerde über mangelhafte Ware, mit gesetzlichen Rechten.",
+ term:"Beschwerde ↔ Reklamation",ihk:"Beschwerde: allgemeine Unzufriedenheit, z. B. über unfreundliches Personal. Reklamation: Beschwerde über mangelhafte Ware mit gesetzlichen Rechten."},
+{id:"p3-2",ch:3,m:"p",k:"mc",s:"„Beschreiben Sie 4 Möglichkeiten, wie Sie angemessen reagieren!“ Ein Mitschüler hat aufgeschrieben:",q:"Welche Antwort bringt KEINEN Punkt?",
+ o:[["„Dem Kunden erklären, dass er die Ware sicher falsch benutzt hat.“",1],["„Sich beim Kunden entschuldigen, Verständnis zeigen.“",0],["„Sachlage prüfen, Zuversicht zur gemeinsamen Lösung zeigen.“",0],["„In Ruhe zuhören und den Kunden aussprechen lassen.“",0]],
+ why:"Nicht belehren, nicht kritisieren, keine Unterstellungen. Alle anderen Antworten stehen so in der IHK-Lösung.",
+ term:"nicht belehren",ihk:"Den Kunden nicht belehren oder kritisieren; sachlich bleiben."},
+{id:"p3-3",ch:3,m:"p",k:"mcb",s:"Prüferin: „Sie haben den Kunden an einen Tisch gebeten. War das richtig?“",q:"Was antwortest du?",
+ o:[["Ja, das war richtig.",1],["Nein, man sollte an der Kasse bleiben.",0],["Nur, wenn der Kunde es möchte.",0]],
+ b:{q:"Welche Begründung gibst du?",o:[["Damit wir in Ruhe sprechen können, der Kunde nicht vor anderen Kunden steht und sich die Situation beruhigt.",1],["Damit die anderen Kunden nicht merken, dass unsere Ware schlecht ist.",0],["Weil dort die Kamera hängt.",0]]},
+ why:"Ruhige Zone: weg vom Blick der anderen Kunden, in Ruhe sprechen, Situation beruhigen.",
+ term:"ruhige Zone",ihk:"Den Kunden in eine ruhige Zone bitten, damit in Ruhe gesprochen werden kann und sich die Situation beruhigt."},
+{id:"p3-4",ch:3,m:"p",k:"mc",s:"Die Geschäftsleitung will ein Beschwerdemanagement einführen.",q:"Welche Aufgabe gehört dazu?",
+ o:[["Beschwerden auswerten und Abläufe verbessern.",1],["Beschwerden möglichst schnell löschen.",0],["Nur schriftliche Beschwerden annehmen.",0]],
+ why:"Beschwerdemanagement: Beschwerden annehmen, bearbeiten, Lösungen finden, Kundenzufriedenheit wiederherstellen, Beschwerden auswerten und Abläufe verbessern.",
+ term:"Beschwerdemanagement",ihk:"Beschwerden annehmen, bearbeiten und auswerten; Abläufe verbessern (auch durch Kundenbefragungen)."},
+{id:"p3-5",ch:3,m:"p",k:"mc",s:"Ein Brief: „Ich musste an der Kasse ewig warten!“ (nach IHK S 2019)",q:"Welche Maßnahme passt zu diesem Kritikpunkt?",
+ o:[["Personaleinsatz in Stoßzeiten anpassen, ein Rufsystem für eine zweite Kasse.",1],["Mitarbeitergespräch über Freundlichkeit.",0],["Die Öffnungszeiten verkürzen.",0]],
+ why:"Wartezeit → Personaleinsatz in Stoßzeiten anpassen, Mehrfachbedienung, Rufsystem. Unfreundlichkeit → Mitarbeitergespräch, Schulung.",
+ term:"Maßnahmen aus Beschwerden",ihk:"Wartezeit: Personaleinsatz in Stoßzeiten anpassen, Mehrfachbedienung, Rufsystem."},
+{id:"p3-6",ch:3,m:"p",k:"rede",s:"Der Kapitän: „Die Halskette ist nach zehn Tagen kaputt. So ein Schrott!“",q:"Welche Antwort ist am besten?",
+ o:[["„Das ist wirklich ärgerlich, das verstehe ich. Entschuldigen Sie bitte. Kommen Sie doch mit an den Tisch – was genau ist passiert?“",1],["„Haben Sie die Kette vielleicht beim Duschen getragen?“",0],["„Das kann eigentlich nicht sein. Die Ketten sind sehr gut.“",0],["„Beruhigen Sie sich, sonst kann ich Ihnen nicht helfen.“",0]],
+ why:"Verständnis + Entschuldigung + ruhige Zone + Grund klären. Keine Unterstellungen („beim Duschen“), nicht abstreiten.",
+ term:"Verständnis zeigen",ihk:"Verständnis zeigen und sich entschuldigen; Grund für die Aufregung feststellen."},
+
+// ===== Kapitel 4 – Umtausch / Reklamation =====
+{id:"a4-1",ch:4,m:"a",k:"mc",s:"Die Dame bringt einen Pullover. Er ist ganz in Ordnung. „Die Farbe gefällt mir nicht“, sagt sie.",q:"Was liegt vor?",
+ o:[["Ein Umtauschwunsch. Die Ware ist fehlerfrei, es gibt keinen Rechtsanspruch.",1],["Eine Reklamation. Sie hat ein Recht auf ihr Geld.",0],["Sie hat 14 Tage Umtauschrecht, das gilt immer.",0]],
+ why:"Fehlerfreie Ware: Umtausch nur freiwillig (Kulanz). Im Laden gibt es kein gesetzliches Umtauschrecht.",
+ term:"Umtausch (fehlerfreie Ware)",ihk:"Kein Rechtsanspruch auf Umtausch, da die Ware fehlerfrei ist (kein Mangel)."},
+{id:"a4-2",ch:4,m:"a",k:"mc",s:"Ein Kunde bringt nach zwei Wochen eine Halskette. Der Verschluss ist kaputt. Du siehst einen Verarbeitungsfehler.",q:"Umtausch oder Reklamation?",
+ o:[["Reklamation, da ein Mangel vorliegt.",1],["Umtausch, weil die Kette nicht mehr gefällt.",0],["Kulanz.",0]],
+ why:"Das Wort „Mangel“ muss in der Begründung stehen. Nur „Kulanz“ zu schreiben, gibt 0 Punkte.",
+ term:"Reklamation",ihk:"Da ein Mangel vorliegt, handelt es sich um eine Reklamation."},
+{id:"a4-3",ch:4,m:"a",k:"mc",s:"Du sollst prüfen, ob eine Reklamation berechtigt ist.",q:"Welche drei Fragen stellst du?",
+ o:[["Wo wurde die Ware gekauft? Wann wurde sie gekauft? Liegt ein Mangel vor?",1],["Wer hat verkauft? Warum? Wie teuer war es?",0],["Gefällt die Ware? Ist die Verpackung noch da? Ist der Kunde Stammkunde?",0]],
+ why:"Drei Prüfkriterien – immer dieselben: Wo (Kaufnachweis), wann (2 Jahre Gewährleistung), Mangel (oder falsch behandelt?).",
+ term:"Prüfkriterien",ihk:"Wo wurde der Artikel gekauft? Wann wurde der Artikel gekauft? Liegt ein (berechtigter) Mangel vor?"},
+{id:"a4-4",ch:4,m:"a",k:"mc",s:"Die Dame mit dem Glockenhut zeigt ihren Kassenbon: gekauft am 12.11.1926.",q:"Welches Prüfkriterium hilft dir hier am meisten?",
+ o:[["Wann gekauft? Die Gewährleistung gilt 2 Jahre ab Übergabe – sie ist längst vorbei.",1],["Gefällt das Kleid noch? Dann muss sie es behalten.",0],["Wie alt ist die Kundin?",0]],
+ why:"Die Gewährleistung gilt 2 Jahre ab Übergabe der Ware. Danach gibt es keinen gesetzlichen Anspruch mehr.",
+ term:"Gewährleistungsfrist (2 Jahre)",ihk:"Gewährleistung gilt 2 Jahre ab Übergabe."},
+{id:"a4-5",ch:4,m:"a",k:"mc",s:"Die Chefin sagt: „Bei Umtauschwünschen sind wir großzügig.“",q:"Warum lohnt sich das?",
+ o:[["Kundenzufriedenheit, Vertrauen und Stammkunden – und ein gutes Image.",1],["Weil das Gesetz es so vorschreibt.",0],["Weil die Ware dann teurer verkauft werden kann.",0]],
+ why:"Großzügiger Umtausch: zufriedene Kunden, Vertrauen, Kundenbindung, positives Image, schnellerer Kaufabschluss, Abgrenzung von Mitbewerbern.",
+ term:"Kulanz lohnt sich",ihk:"Steigerung der Kundenzufriedenheit, positive Imagebildung, Stärkung der Kundenbindung, Schaffung von Vertrauen."},
+{id:"a4-6",ch:4,m:"a",k:"mc",s:"Eine Kundin hat im Laden eine fehlerfreie Jacke gekauft. Sie sagt: „Ich habe 14 Tage Widerrufsrecht!“",q:"Stimmt das?",
+ o:[["Nein. Das Widerrufsrecht gilt nur bei Käufen im Internet, am Telefon oder außerhalb des Geschäfts.",1],["Ja. 14 Tage gelten für jeden Kauf.",0],["Ja, aber nur mit Originalverpackung.",0]],
+ why:"Im Laden gibt es kein Recht, fehlerfreie Ware zurückzugeben. „14 Tage Umtausch“ im Laden ist freiwillig.",
+ term:"Widerrufsrecht (nur Fernabsatz)",ihk:"Das 14-tägige Widerrufsrecht gilt nur im Fernabsatz (Internet, Telefon) und außerhalb von Geschäftsräumen."},
+{id:"p4-1",ch:4,m:"p",k:"mcb",s:"Eine Kundin möchte einen Artikel umtauschen, weil ihr die Farbe nicht gefällt.",q:"Beurteile die Situation nach der gesetzlichen Regelung.",
+ o:[["Kein Rechtsanspruch auf Umtausch.",1],["Rechtsanspruch auf Umtausch.",0],["Rechtsanspruch auf Geld zurück.",0]],
+ b:{q:"Begründung für volle Punkte:",o:[["Die Ware ist fehlerfrei; es liegt kein Mangel vor.",1],["Weil der Betrieb das aus Kulanz entscheidet.",0],["Weil das Widerrufsrecht nach 14 Tagen abgelaufen ist.",0]]},
+ why:"IHK W 2019/20: „Kulanz“ allein ohne Rechtslage = 0 Punkte. Das Wort Mangel muss in der Begründung stehen.",
+ term:"kein Mangel → kein Anspruch",ihk:"Kein Rechtsanspruch auf Umtausch, da die Ware fehlerfrei ist (kein Mangel)."},
+{id:"p4-2",ch:4,m:"p",k:"mcb",s:"Im Laden hängt ein Schild: „Reduzierte Ware ist vom Umtausch ausgeschlossen.“ Eine reduzierte Jacke hat eine kaputte Naht.",q:"Sind damit auch Reklamationen ausgeschlossen?",
+ o:[["Nein.",1],["Ja.",0],["Nur in den ersten 14 Tagen.",0]],
+ b:{q:"Warum?",o:[["Ausschließen kann man nur den freiwilligen Umtausch. Die Gewährleistung gilt auch für reduzierte Ware und kann gegenüber Verbrauchern nicht ausgeschlossen werden.",1],["Weil das Schild nicht groß genug ist.",0],["Weil reduzierte Ware immer umgetauscht werden muss.",0]]},
+ why:"Gewährleistung kann gegenüber Verbrauchern nicht ausgeschlossen werden (§ 476 BGB) – außer für den Fehler, wegen dem reduziert wurde und den der Kunde kannte (§ 442 BGB).",
+ term:"Gewährleistung bei reduzierter Ware",ihk:"Die gesetzliche Gewährleistung gilt auch für reduzierte Ware; ausgeschlossen werden kann nur der freiwillige Umtausch."},
+{id:"p4-3",ch:4,m:"p",k:"mcb",s:"Ein Online-Kunde schickt eine fehlerfreie Jacke nach 10 Tagen zurück. Eine Laden-Kundin will das auch.",q:"Wer hat ein Recht auf Rückgabe?",
+ o:[["Nur der Online-Kunde.",1],["Beide.",0],["Nur die Laden-Kundin.",0]],
+ b:{q:"Warum? (§ 312g BGB)",o:[["Das Widerrufsrecht gilt nur für Fernabsatzverträge und Verträge außerhalb von Geschäftsräumen. Im Laden konnte die Kundin die Ware vorher prüfen.",1],["Online-Kunden zahlen mehr und haben deshalb mehr Rechte.",0],["Im Laden gilt das Widerrufsrecht nur 7 Tage.",0]]},
+ why:"§ 312g BGB: Widerrufsrecht im Fernabsatz. Im Laden ist ein Rückgaberecht für fehlerfreie Ware nur freiwillig (Kulanz).",
+ term:"§ 312g BGB",ihk:"Das Widerrufsrecht gilt nur für Fernabsatzverträge; im Laden besteht kein Rechtsanspruch auf Rückgabe fehlerfreier Ware."},
+{id:"p4-4",ch:4,m:"p",k:"mc",s:"Die Chefin fragt: „Wie vermeiden wir Umtauschwünsche schon im Verkaufsgespräch?“",q:"Welche Antwort passt?",
+ o:[["Genaue Bedarfsermittlung, Ware anprobieren lassen, Pflege erklären, beim Geschenk nach Größe und Geschmack fragen.",1],["Keine Kassenbons mehr ausgeben.",0],["Nur noch reduzierte Ware verkaufen.",0]],
+ why:"Wer den Bedarf genau ermittelt und ausprobieren lässt, verkauft passende Ware – dann gibt es weniger Umtausch.",
+ term:"Umtausch vermeiden",ihk:"Genaue Bedarfsermittlung, Ware aus- oder anprobieren lassen, Gebrauch und Pflege erklären."},
+{id:"p4-5",ch:4,m:"p",k:"mcb",s:"Ein T-Shirt war reduziert – „wegen Fleck“. Die Kundin wusste das. Jetzt will sie den Fleck reklamieren.",q:"Ist das eine berechtigte Reklamation?",
+ o:[["Nein.",1],["Ja.",0],["Ja, aber nur mit Kassenbon.",0]],
+ b:{q:"Warum?",o:[["Die Gewährleistung gilt nicht für einen Fehler, den die Kundin beim Kauf kannte.",1],["Reduzierte Ware hat nie Gewährleistung.",0],["Flecken sind kein Mangel.",0]]},
+ why:"Für den bekannten Fehler (Grund der Reduzierung) gibt es keine Gewährleistung (§ 442 BGB). Für andere Mängel schon.",
+ term:"bekannter Mangel",ihk:"Die Gewährleistung gilt auch für reduzierte Ware – nur nicht für einen Fehler, den der Kunde beim Kauf kannte."},
+{id:"p4-6",ch:4,m:"p",k:"rede",s:"Eine Kundin bringt einen fehlerfreien Pullover. Er ist ihr zu klein.",q:"Welche Antwort ist kundenorientiert?",
+ o:[["„Den Pullover tauschen wir Ihnen gern um. Möchten Sie eine andere Größe oder lieber einen Gutschein?“",1],["„Dazu sind wir nicht verpflichtet.“",0],["„Hätten Sie ihn mal anprobiert.“",0],["„Umtausch nur mit Originalverpackung und innerhalb von 3 Tagen.“",0]],
+ why:"Kulanz kundenorientiert: Alternativartikel im gleichen Preisniveau, Gutschein oder Geld zurück anbieten.",
+ term:"Kulanz kundenorientiert",ihk:"Alternativartikel im gleichen Preisniveau anbieten, Gutschein anbieten, Geld auszahlen."},
+
+// ===== Kapitel 5 – Rechte bei Mängeln =====
+{id:"a5-1",ch:5,m:"a",k:"mc",s:"Die Sturmlaterne ist nach drei Monaten kaputt. Es ist ein Mangel.",q:"Was darf der Fischer zuerst verlangen?",
+ o:[["Nacherfüllung: Reparatur oder eine neue Laterne.",1],["Sofort sein Geld zurück.",0],["Nichts. Nur der Hersteller hilft.",0]],
+ why:"Stufe 1 der Kundenrechte (vorrangig): Nacherfüllung – Nachbesserung (Reparatur) oder Ersatzlieferung (neue Ware).",
+ term:"Nacherfüllung (vorrangig)",ihk:"Im Rahmen der Nacherfüllung kann der Kunde vorrangig Nachbesserung oder Ersatzlieferung verlangen."},
+{id:"a5-2",ch:5,m:"a",k:"mc",s:"Der Fischer fragt: „Wie lange habe ich eigentlich Gewährleistung?“",q:"Was ist richtig?",
+ o:[["2 Jahre ab Übergabe der Ware.",1],["6 Monate.",0],["So lange, wie der Händler möchte.",0]],
+ why:"Die gesetzliche Gewährleistungsfrist beträgt 2 Jahre ab Übergabe (bei gebrauchter Ware kann sie auf 1 Jahr verkürzt werden).",
+ term:"Gewährleistungsfrist",ihk:"Die gesetzlich vorgeschriebene Gewährleistungsfrist beträgt zwei Jahre ab Übergabe der Ware."},
+{id:"a5-3",ch:5,m:"a",k:"mc",s:"Auf der neuen Laterne steht: „3 Jahre Herstellergarantie“.",q:"Was ist eine Garantie?",
+ o:[["Eine freiwillige Leistung von Hersteller oder Händler. Sie geht über die Gewährleistung hinaus.",1],["Ein anderes Wort für Gewährleistung.",0],["Eine Pflicht, die im Gesetz steht.",0]],
+ why:"Gewährleistung = Gesetz, Händler. Garantie = freiwillig, Hersteller oder Händler, was in der Garantieerklärung steht.",
+ term:"Garantie",ihk:"Garantie ist eine freiwillige Leistung eines Einzelhändlers oder Herstellers und geht über die gesetzliche Gewährleistung hinaus."},
+{id:"a5-4",ch:5,m:"a",k:"rede",s:"Der Fischer möchte wissen, wie es jetzt weitergeht.",q:"Was sagst du?",
+ o:[["„Sie haben die Wahl: Wir reparieren die Laterne oder Sie bekommen eine neue.“",1],["„Wir entscheiden, was gemacht wird. Sie warten einfach.“",0],["„Geld zurück gibt es sofort, Reparaturen machen wir nicht.“",0]],
+ why:"Bei der Nacherfüllung wählt der Kunde: Reparatur oder neue, mangelfreie Ware.",
+ term:"Wahl des Kunden",ihk:"Der Kunde wählt: Nachbesserung (Reparatur) oder Ersatzlieferung (Neulieferung)."},
+{id:"a5-5",ch:5,m:"a",k:"mc",s:"Die Laterne wurde zweimal repariert. Beide Male hat es nicht geklappt.",q:"Was kann der Fischer jetzt verlangen?",
+ o:[["Rücktritt vom Kaufvertrag (Geld zurück) oder Minderung (er zahlt weniger).",1],["Nur eine dritte und vierte Reparatur.",0],["Gar nichts mehr.",0]],
+ why:"Nachrangige Rechte, wenn die Nacherfüllung fehlschlägt: Rücktritt, Minderung, Schadensersatz.",
+ term:"nachrangige Rechte",ihk:"Nachrangige Rechte: Rücktritt vom Kaufvertrag oder Minderung des Kaufpreises (auch Schadensersatz)."},
+{id:"a5-6",ch:5,m:"a",k:"mc",s:"Der Fischer sagt: „Ich behalte die Laterne, aber ich will weniger bezahlen.“",q:"Wie heißt dieses Recht?",
+ o:[["Minderung",1],["Rücktritt",0],["Garantie",0]],
+ why:"Minderung (Preisminderung): Der Kunde behält die Ware und zahlt weniger.",
+ term:"Minderung",ihk:"Minderung: Der Kunde behält die Ware und zahlt einen geringeren Kaufpreis."},
+{id:"p5-1",ch:5,m:"p",k:"num",s:"Du einigst dich mit dem Kunden auf eine Kaufpreisminderung von 25 %. Der Kaufpreis betrug 198,00 €.",q:"Wie viel Euro beträgt die Minderung?",
+ ans:49.5,unit:"€",rw:"198,00 € × 25 : 100 = 49,50 €",
+ why:"Kaufpreis × Minderungssatz : 100 = Minderung in €. Der Kunde zahlt 148,50 € bzw. bekommt 49,50 € zurück.",
+ term:"Minderung berechnen",ihk:"198,00 € × 25 : 100 = 49,50 € (IHK W 2022/23)"},
+{id:"p5-2",ch:5,m:"p",k:"num",s:"Die Sturmlaterne hat 84,00 € gekostet. Ihr einigt euch auf 15 % Minderung.",q:"Wie viel Euro bekommt der Fischer zurück?",
+ ans:12.6,unit:"€",rw:"84,00 € × 15 : 100 = 12,60 €",
+ why:"Minderung = Kaufpreis × Minderungssatz : 100. Der Fischer zahlt am Ende 71,40 €.",
+ term:"Minderung berechnen",ihk:"Kaufpreis × Minderungssatz : 100 = Minderung in €."},
+{id:"p5-3",ch:5,m:"p",k:"mcb",s:"Eine Kundin will sofort vom Kauf zurücktreten. Ihr Toaster ist nach 3 Monaten kaputt.",q:"Darf der Händler zuerst nachbessern?",
+ o:[["Ja.",1],["Nein, sie bekommt sofort ihr Geld.",0],["Nein, der Hersteller ist zuständig.",0]],
+ b:{q:"Warum? (§§ 323, 440 BGB)",o:[["Der Rücktritt setzt grundsätzlich voraus, dass eine Frist zur Nacherfüllung erfolglos war. Die Nachbesserung gilt nach dem zweiten erfolglosen Versuch als fehlgeschlagen.",1],["Weil Toaster unter die Garantie fallen.",0],["Weil der Rücktritt nur in den ersten 14 Tagen möglich ist.",0]]},
+ why:"Nacherfüllung ist vorrangig. Sofort zurücktreten geht nur ausnahmsweise (Nacherfüllung verweigert oder unzumutbar).",
+ term:"Vorrang der Nacherfüllung",ihk:"Vorrangig hat der Kunde das Recht auf Nacherfüllung; Rücktritt erst, wenn die Nacherfüllung fehlschlägt."},
+{id:"p5-4",ch:5,m:"p",k:"mcb",s:"Ein Mangel zeigt sich 8 Monate nach dem Kauf. Der Händler sagt: „Beweisen Sie erst mal, dass der Fehler schon beim Kauf da war.“",q:"Hat der Händler recht?",
+ o:[["Nein.",1],["Ja.",0],["Ja, nach 6 Monaten muss immer der Kunde beweisen.",0]],
+ b:{q:"Warum?",o:[["Beweislastumkehr: Zeigt sich der Mangel im 1. Jahr, wird vermutet, dass er schon beim Kauf da war (seit 1.1.2022).",1],["Der Kunde muss nie etwas beweisen.",0],["Weil die Garantie 3 Jahre gilt.",0]]},
+ why:"§ 477 BGB: 1 Jahr Beweislastumkehr beim Verbrauchsgüterkauf. Achtung: Ältere IHK-Lösungen nennen noch 6 Monate.",
+ term:"Beweislastumkehr (§ 477 BGB)",ihk:"Zeigt sich der Mangel im ersten Jahr, wird vermutet, dass er schon bei Übergabe vorhanden war."},
+{id:"p5-5",ch:5,m:"p",k:"mcb",s:"Ein E-Bike-Akku explodiert und beschädigt die Garage des Kunden.",q:"Wer haftet für die beschädigte Garage?",
+ o:[["Der Hersteller.",1],["Nur der Händler.",0],["Niemand, das ist Pech.",0]],
+ b:{q:"Nach welcher Regel?",o:[["Produkthaftung: Der Hersteller haftet für Schäden an Personen und anderen Sachen durch ein fehlerhaftes Produkt.",1],["Gewährleistung: Der Händler muss die Garage reparieren.",0],["Garantie: Sie deckt alle Schäden ab.",0]]},
+ why:"Produkthaftungsgesetz: Hersteller haftet verschuldensunabhängig. Die Gewährleistung gegenüber dem Händler betrifft nur den Akku selbst.",
+ term:"Produkthaftung",ihk:"Produkthaftung: Der Hersteller haftet gesetzlich für Schäden an Personen oder anderen Sachen durch ein fehlerhaftes Produkt."},
+{id:"p5-6",ch:5,m:"p",k:"mc",s:"„Nennen Sie 3 nachrangige Rechte!“ (IHK S 2023)",q:"Welche Liste bringt volle Punkte?",
+ o:[["Schadensersatz · Preisminderung · Rücktritt vom Kaufvertrag",1],["Nachbesserung · Ersatzlieferung · Minderung",0],["Garantie · Umtausch · Gutschein",0]],
+ why:"Vorrangig: Nachbesserung, Ersatzlieferung. Nachrangig: Rücktritt, Minderung, Schadensersatz (Ersatz vergeblicher Aufwendungen).",
+ term:"Treppe der Kundenrechte",ihk:"Nachrangig: Schadensersatz, Preisminderung, Rücktritt vom Kaufvertrag."},
+
+// ===== Kapitel 6 – Ladendiebstahl =====
+{id:"a6-1",ch:6,m:"a",k:"mc",s:"Du siehst, wie ein Mann einen Lippenstift in seine Jackentasche steckt.",q:"Was tust du?",
+ o:[["Ruhe bewahren, ihn unauffällig beobachten und die Vorgesetzte oder den Ladendetektiv informieren.",1],["Laut rufen: „Haltet den Dieb!“",0],["Ihm hinterherlaufen und seine Taschen durchsuchen.",0]],
+ why:"Nie laut beschuldigen, nicht allein und nicht körperlich eingreifen. Eigenschutz geht vor. Taschen nicht selbst durchsuchen.",
+ term:"Verhalten bei Verdacht",ihk:"Ruhe bewahren, Vorgesetzten/Ladendetektiv informieren, diskret und höflich ansprechen – möglichst mit Zeugen."},
+{id:"a6-2",ch:6,m:"a",k:"mc",s:"Ein Kunde an der Kasse redet und redet. Eine zweite Person steht dicht neben ihm.",q:"Welche Gefahr steckt darin?",
+ o:[["Ablenkung: Eine Person lenkt ab, die andere steckt etwas ein. Ich bleibe konzentriert.",1],["Keine. Gesprächige Kunden sind immer ehrlich.",0],["Die Kasse könnte überhitzen.",0]],
+ why:"Ablenkung ist eine typische Diebstahlmethode. Trotzdem freundlich bleiben – aber den Wagen und die Ware im Blick behalten.",
+ term:"Diebstahlmethode Ablenkung",ihk:"Ablenkung: sehr gesprächiger Kunde, zwei Personen – eine fragt, die andere steckt ein."},
+{id:"a6-3",ch:6,m:"a",k:"mc",s:"Nach der Inventur fehlt viel Ware. Eine Ursache ist Diebstahl.",q:"Welche Maßnahme beugt Diebstahl vor?",
+ o:[["Abgeschlossene Vitrinen, Warensicherung und Videoüberwachung.",1],["Das Licht dimmen, damit es gemütlich ist.",0],["Sehr hohe Regale, damit mehr Ware hineinpasst.",0]],
+ why:"Vorbeugung: Kameras, Spiegel, Warensicherung, Vitrinen, Ladendetektiv, Mitarbeiter schulen, übersichtliche niedrige Regale.",
+ term:"Diebstahlprävention",ihk:"Kameras, Mitarbeiter schulen, Ladendetektiv/Warensicherung, abgeschlossene Vitrinen, Spiegel im Kassenbereich."},
+{id:"a6-4",ch:6,m:"a",k:"mc",s:"Teure Markenparfums werden oft gestohlen.",q:"Wo platzierst du sie?",
+ o:[["In der Kassenzone, in einer Vitrine oder in Bedienungsnähe – Personal ist immer in der Nähe.",1],["Ganz hinten in der dunklen Ecke.",0],["Draußen vor der Tür.",0]],
+ why:"Diebstahlgefährdete Artikel dorthin, wo Personal immer aufmerksam sein kann.",
+ term:"Platzierung gefährdeter Ware",ihk:"Diebstahlgefährdete Artikel in Kassenzone, Vitrine oder lagernahe Beratungszone – Personal ist immer in der Nähe."},
+{id:"a6-5",ch:6,m:"a",k:"mc",s:"Ein Kollege sagt: „Diebstahl ist mir egal. Das Geld bekommt der Laden ja von der Versicherung.“",q:"Was antwortest du?",
+ o:[["Diebstahl führt zu Inventurdifferenzen. Der Schaden fehlt im Gewinn – am Ende zahlen alle Kunden über höhere Preise.",1],["Stimmt, Diebstahl kostet nichts.",0],["Nur Kunden stehlen, Mitarbeiter nie.",0]],
+ why:"Diebstahl ist eine Hauptursache für Inventurdifferenzen (Soll ≠ Ist). Es stehlen Kunden, aber auch Mitarbeiter und Lieferanten.",
+ term:"Inventurdifferenz",ihk:"Diebstahl ist eine Hauptursache für Inventurdifferenzen; der Schaden mindert den Gewinn."},
+{id:"a6-6",ch:6,m:"a",k:"mc",s:"1926 schrie der Reeder Lührs vor allen Kunden: „Behrens, du Dieb!“ Niemand fragte nach.",q:"Wie hätte man bei einem Verdacht richtig gehandelt?",
+ o:[["Diskret und höflich ansprechen, in einen Nebenraum bitten, Zeugen und Polizei hinzuziehen.",1],["Genau so: laut, damit alle es hören.",0],["Ihn sofort festhalten und durchsuchen.",0]],
+ why:"Niemals laut beschuldigen oder vor anderen bloßstellen. Nicht auf bloßen Verdacht hin festhalten.",
+ term:"diskret handeln",ihk:"Diskret und höflich ansprechen, in einen Nebenraum bitten, Vorgesetzten/Polizei hinzuziehen."},
+{id:"p6-1",ch:6,m:"p",k:"mcb",s:"Ein Mann steckt vor deinen Augen eine Uhr ein und rennt zum Ausgang.",q:"Darfst du ihn festhalten?",
+ o:[["Ja, unter bestimmten Bedingungen.",1],["Ja, auch bei bloßem Verdacht.",0],["Nein, niemals.",0]],
+ b:{q:"Unter welchen Bedingungen? (§ 127 Abs. 1 StPO)",o:[["Auf frischer Tat betroffen und fluchtverdächtig oder Identität nicht feststellbar – verhältnismäßig. Eigenschutz geht trotzdem vor.",1],["Immer dann, wenn der Laden es erlaubt.",0],["Nur wenn die Ware mehr als 100 € kostet.",0]]},
+ why:"Jedermann darf vorläufig festnehmen (§ 127 StPO). Bei Gegenwehr lieber eine Personenbeschreibung an die Polizei geben.",
+ term:"vorläufige Festnahme (§ 127 StPO)",ihk:"Festhalten nur auf frischer Tat bei Fluchtverdacht oder unklarer Identität; Eigenschutz geht vor."},
+{id:"p6-2",ch:6,m:"p",k:"mc",s:"Ladendiebstahl ist eine Straftat nach § 242 StGB.",q:"Welche Folgen kann er für den Täter haben?",
+ o:[["Strafanzeige (Geld- oder Freiheitsstrafe), Hausverbot, Schadensersatz bzw. Bearbeitungsgebühr.",1],["Nur eine Verwarnung, sonst nichts.",0],["Ein Bußgeld wie beim Falschparken, mehr nicht.",0]],
+ why:"Strafanzeige, Hausverbot, Schadensersatz/Bearbeitungsgebühr an den Händler.",
+ term:"Folgen für den Täter",ihk:"Strafanzeige (Geld- oder Freiheitsstrafe), Hausverbot; Schadensersatz an den Händler."},
+{id:"p6-3",ch:6,m:"p",k:"mc",s:"An der Kasse liegt eine teure Kopfhörer-Packung. Darin stecken aber billige Kopfhörer. Der Preis passt nicht.",q:"Welche Diebstahlmethode ist das?",
+ o:[["Verpackung oder Etiketten tauschen.",1],["Ablenkung.",0],["Ware im Kinderwagen verstecken.",0]],
+ why:"Etiketten tauschen, Verpackung austauschen: teure Ware in billiger Verpackung oder umgekehrt, der Preis passt nicht.",
+ term:"Etiketten/Verpackung tauschen",ihk:"Etiketten tauschen, Verpackung austauschen – Preis passt nicht zur Ware."},
+{id:"p6-4",ch:6,m:"p",k:"rede",s:"Du hast beobachtet, wie eine Kundin eine Mütze in ihre Jacke steckt. Sie geht zur Kasse und bezahlt nur die anderen Artikel. Die Filialleiterin ist dabei.",q:"Wie sprichst du sie an?",
+ o:[["„Entschuldigen Sie, ich glaube, Sie haben noch etwas in Ihrer Jacke, das Sie nicht bezahlt haben. Kommen Sie bitte kurz mit ins Büro.“",1],["„Ich hab genau gesehen, dass Sie geklaut haben! Alle mal herschauen!“",0],["„Ausziehen, Jacke her!“",0],["„Ach, ist ja nicht so schlimm. Gehen Sie ruhig.“",0]],
+ why:"Diskret und höflich, mit Zeugin, in einen Nebenraum bitten. Nicht bloßstellen, nicht selbst durchsuchen, aber auch nicht wegsehen.",
+ term:"diskret ansprechen",ihk:"Diskret und höflich ansprechen, in einen Nebenraum bitten, Vorgesetzten/Polizei hinzuziehen."},
+{id:"p6-5",ch:6,m:"p",k:"mcb",s:"Die Kundin ist im Büro. Ein Kollege will sofort ihre Tasche ausleeren.",q:"Darf er das?",
+ o:[["Nein.",1],["Ja, im Büro ist das erlaubt.",0],["Ja, wenn zwei Mitarbeiter dabei sind.",0]],
+ b:{q:"Was ist richtig?",o:[["Taschen nicht selbst durchsuchen – die Polizei rufen lassen.",1],["Die Kundin so lange festhalten, bis sie gesteht.",0],["Die Tasche einfach behalten.",0]]},
+ why:"Taschen nicht selbst durchsuchen. Nicht allein handeln, Zeugen bzw. Vorgesetzte und Polizei hinzuziehen.",
+ term:"Taschen nicht durchsuchen",ihk:"Person in einen Nebenraum bitten, Polizei rufen lassen; Taschen nicht selbst durchsuchen."},
+{id:"p6-6",ch:6,m:"p",k:"mcb",s:"„Behrens, du Dieb!“ – Reeder Lührs hat damals laut vor allen Kunden beschuldigt.",q:"Wie beurteilst du sein Verhalten?",
+ o:[["Falsch.",1],["Richtig, so schreckt man Diebe ab.",0],["Richtig, wenn man sich ganz sicher ist.",0]],
+ b:{q:"Warum?",o:[["Bei Verdacht niemals laut beschuldigen oder vor anderen bloßstellen – erst diskret klären, Zeugen und Polizei hinzuziehen.",1],["Weil Lührs kein Mitarbeiter war.",0],["Weil Diebstahl damals erlaubt war.",0]]},
+ why:"Auch bei einem echten Verdacht: diskret, höflich, mit Zeugen, im Nebenraum. Wer laut beschuldigt, kann einen Unschuldigen bloßstellen.",
+ term:"niemanden bloßstellen",ihk:"Niemals laut beschuldigen oder vor anderen bloßstellen; diskret und höflich ansprechen."},
+
+// ===== Kapitel 7 – Kundentypen =====
+{id:"a7-1",ch:7,m:"a",k:"mc",s:"Der misstrauische Fischhändler fragt: „Stimmt das wirklich, was Sie da erzählen?“",q:"Womit überzeugst du ihn?",
+ o:[["Mit Beweisen: Testergebnis, Gütesiegel, ausprobieren lassen.",1],["Mit einem lauten „Doch, glauben Sie mir einfach!“",0],["Mit dem teuersten Produkt.",0]],
+ why:"Der misstrauische Kunde braucht objektive Belege: Testergebnisse, Gütesiegel, ausprobieren, Umtausch/Garantie.",
+ term:"misstrauischer Kunde",ihk:"Der misstrauische Kunde wird mit objektiven Belegen (Testergebnisse, Gütesiegel) überzeugt."},
+{id:"a7-2",ch:7,m:"a",k:"mc",s:"Die Frau kann sich zwischen fünf Schals nicht entscheiden.",q:"Wie hilfst du ihr?",
+ o:[["Auswahl einengen und eine klare Empfehlung geben.",1],["Noch zehn weitere Schals zeigen.",0],["Sagen: „Nehmen Sie doch einfach irgendeinen.“",0]],
+ why:"Unentschlossener Kunde: Auswahl einengen, klare Empfehlung, Nutzen wiederholen, Mut machen.",
+ term:"unentschlossener Kunde",ihk:"Unentschlossener Kunde: Auswahl einengen, klare Empfehlung geben, Nutzen wiederholen."},
+{id:"a7-3",ch:7,m:"a",k:"mc",s:"Der alte Lotse geht am Stock. Die Chefin will mehr ältere Kunden gewinnen.",q:"Welche Maßnahme passt?",
+ o:[["Sitzmöglichkeiten, breitere Gänge und große Preisschilder.",1],["Lautere Musik und dunkleres Licht.",0],["Höhere Regale, damit mehr Ware passt.",0]],
+ why:"Für Senioren: breitere Gänge, keine zu hohen Regale, Sitzmöglichkeiten, gute Beleuchtung, große Preisschilder, kleinere Packungen, Lieferservice.",
+ term:"Senioren als Kunden",ihk:"Breitere Gänge, keine hohen Regale, Sitzmöglichkeiten, Lieferservice, kleinere Packungsgrößen."},
+{id:"a7-4",ch:7,m:"a",k:"mc",s:"Eine ältere Kundin steht im Gang.",q:"Woran erkennst du, dass sie Hilfe braucht?",
+ o:[["Sie schaut sich suchend nach Personal um und macht ein ratloses Gesicht.",1],["Sie geht zügig zur Kasse.",0],["Sie telefoniert und lacht.",0]],
+ why:"Hilfe erkennen an Gestik und Mimik: suchender Blick, ratloses Gesicht, wendet sich hin und her, zuckt mit den Schultern.",
+ term:"Hilfe erkennen",ihk:"Kundin schaut sich suchend nach Verkaufspersonal um / macht ein ratloses Gesicht."},
+{id:"a7-5",ch:7,m:"a",k:"rede",s:"Eine Kundin fragt nach Herkunft und Bio. Sie ist umweltbewusst.",q:"Was sagst du?",
+ o:[["„Das T-Shirt ist aus Bio-Baumwolle und fair hergestellt – hier sehen Sie das Siegel.“",1],["„Das ist heute im Angebot, 30 % billiger.“",0],["„Das ist die teuerste Marke im Laden.“",0]],
+ why:"Umweltbewusster Kunde: Nachhaltigkeit, Recycling, Herkunft, Energieeffizienz, Biolabel, Fair Trade.",
+ term:"umweltbewusster Kunde",ihk:"Auf Nachhaltigkeit, Herkunftsland, Biolabel und Fair Trade hinweisen."},
+{id:"a7-6",ch:7,m:"a",k:"mc",s:"Ein Kunde achtet sehr auf den Preis. Er ist sparsam.",q:"Womit überzeugst du ihn?",
+ o:[["Mit Angeboten, Staffelpreisen und einem guten Preis-Leistungs-Verhältnis.",1],["Mit dem teuersten Markenartikel.",0],["Mit einer langen Erklärung zur Herkunft.",0]],
+ why:"Sparsamer Kunde: auf Angebote hinweisen, Preis-Leistungs-Verhältnis herausstellen, Staffelpreise, Haltbarkeit.",
+ term:"sparsamer Kunde",ihk:"Auf Angebote hinweisen, Preis-Leistungs-Verhältnis herausstellen, Staffelpreise."},
+{id:"p7-1",ch:7,m:"p",k:"mcb",s:"Ein Kunde kennt alle Fachbegriffe und hat sich vorher genau informiert.",q:"Wie berätst du ihn?",
+ o:[["Fachgespräch auf Augenhöhe, mit Details und Neuigkeiten.",1],["Alles ganz einfach erklären, von Anfang an.",0],["Ihn gar nicht beraten.",0]],
+ b:{q:"Worauf achtest du besonders?",o:[["Ihn nicht belehren – er ist sachverständig.",1],["Ihm zeigen, dass ich mehr weiß.",0],["Nur über den Preis sprechen.",0]]},
+ why:"Sachverständiger Kunde: Fachgespräch auf Augenhöhe, Details, Neuigkeiten – nicht belehren.",
+ term:"sachverständiger Kunde",ihk:"Sachverständiger Kunde: Fachgespräch auf Augenhöhe, Details, Neuigkeiten; nicht belehren."},
+{id:"p7-2",ch:7,m:"p",k:"mc",s:"Ein Kunde zeigt dir auf dem Handy einen günstigeren Internetpreis („Smartshopper“).",q:"Womit überzeugst du ihn am ehesten?",
+ o:[["Service, Beratung, sofort mitnehmen – ggf. Preis angleichen.",1],["Ihm sagen, dass Internetpreise immer falsch sind.",0],["Den Preis ignorieren und weiterreden.",0]],
+ why:"Preisorientierter Kunde: Vorteile des Ladens zeigen (Service, Beratung, sofort mitnehmen), ggf. Preis angleichen.",
+ term:"preisorientierter Kunde",ihk:"Preisorientierter Kunde: Service, Beratung, sofortige Verfügbarkeit, ggf. Preisangleichung."},
+{id:"p7-3",ch:7,m:"p",k:"mcb",s:"Prüfer (IHK S 2023, 2.2): „Warum brauchen Senioren eine andere Beratung als junge Kunden?“",q:"Was ist die Kernaussage?",
+ o:[["Unterschiedliche Kundengruppen haben verschiedene Bedürfnisse.",1],["Senioren kaufen weniger, also braucht man weniger Zeit.",0],["Senioren wollen immer das Billigste.",0]],
+ b:{q:"Was folgt daraus?",o:[["Sie brauchen unterschiedliche Servicearten und Beratungsintensität, z. B. mehr Zeit, deutliche Sprache, Lieferservice.",1],["Man sollte sie wie Kinder behandeln.",0],["Man sollte sie an Kollegen weiterschicken.",0]]},
+ why:"Verschiedene Bedürfnisse → unterschiedliche Servicearten und Beratungsintensität. Und: Niemand möchte als „alt“ behandelt werden.",
+ term:"kundengruppengerechte Beratung",ihk:"Unterschiedliche Kundengruppen haben verschiedene Bedürfnisse und fordern unterschiedliche Beratungsarten und -intensitäten."},
+{id:"p7-4",ch:7,m:"p",k:"mc",s:"Die Chefin möchte den Laden „barrierefrei“ machen.",q:"Was bedeutet das?",
+ o:[["Alle Menschen – auch mit Rollstuhl, Rollator, Seh- oder Höreinschränkung – können den Laden ohne fremde Hilfe nutzen.",1],["Es gibt keine Kassen mehr.",0],["Der Laden hat keine Türen.",0]],
+ why:"Beispiele: Rampen, automatische Türen, breite Gänge, kontrastreiche Beschriftung, barrierefreie Toiletten.",
+ term:"Barrierefreiheit",ihk:"Barrierefreiheit: Rampen, automatische Türen, breite Gänge, kontrastreiche Beschriftung, barrierefreie Toiletten."},
+{id:"p7-5",ch:7,m:"p",k:"rede",s:"Der alte Lotse sucht einen Wasserkocher. Er ist müde vom Laufen.",q:"Welche Ansprache ist am besten?",
+ o:[["„Lassen Sie sich ruhig Zeit. Hier vorne steht ein Stuhl, wenn Sie sich setzen möchten. Ich zeige Ihnen gern zwei Modelle.“",1],["„Na, Opa, soll ich Ihnen das ganz langsam erklären?“",0],["„Die Wasserkocher sind da hinten. Viel Glück!“",0],["„Am besten schicken Sie Ihre Kinder zum Einkaufen.“",0]],
+ why:"Zeit nehmen, Sitzmöglichkeit, Hilfe anbieten, ohne aufzudrängen – und mit Respekt. Niemand möchte als „alt“ behandelt werden.",
+ term:"Service für Senioren",ihk:"Kundenbezogene Serviceleistung für Senioren: Sitzmöglichkeiten, Geduld, Hilfestellung."},
+{id:"p7-6",ch:7,m:"p",k:"mc",s:"IHK S 2023, 2.1: „Mit welchen Argumenten überzeugen Sie den Qualitätsbewussten?“",q:"Welche Antwort bringt volle Punkte?",
+ o:[["Auf Gütesiegel und Testergebnisse hinweisen, hochwertige Markenartikel vorlegen.",1],["Auf Angebote und Staffelpreise hinweisen.",0],["Auf Herkunft und Biolabel hinweisen.",0]],
+ why:"Qualitätsbewusst → Gütesiegel, Testergebnisse, Markenartikel. Sparsam → Angebote. Umweltbewusst → Herkunft, Bio.",
+ term:"qualitätsbewusster Kunde",ihk:"Qualitätsbewusster: auf Gütesiegel und Testergebnisse hinweisen, hochwertige Markenartikel vorlegen."},
+
+// ===== Kapitel 8 – Hochbetrieb, Ladenschluss, Begleitung, Geschenk =====
+{id:"a8-1",ch:8,m:"a",k:"rede",s:"Es ist 19:55. Um 20 Uhr ist Ladenschluss. Eine Kundin kommt und möchte eine Jacke anprobieren.",q:"Was sagst du?",
+ o:[["„Guten Abend! Probieren Sie die Jacke gern in Ruhe an.“",1],["„Wir machen gleich zu. Kommen Sie morgen wieder.“",0],["Nichts sagen und schon mal das Licht ausmachen.",0]],
+ why:"Der Kunde hat das Recht, bis zum Ladenschluss in Ruhe einzukaufen. Nicht drängen, nicht schon aufräumen.",
+ term:"kurz vor Ladenschluss",ihk:"Auch kurz vor Ladenschluss vollständig und ohne Zeitdruck beraten."},
+{id:"a8-2",ch:8,m:"a",k:"mc",s:"Hochbetrieb: Du berätst eine Kundin. Ein Herr hat eine kurze Frage. Eine Mutter mit Kind wartet.",q:"Was tust du?",
+ o:[["Kurze Frage sofort beantworten, Wartende mit Blickkontakt wahrnehmen: „Ich bin gleich für Sie da.“",1],["Nur die erste Kundin bedienen und die anderen nicht beachten.",0],["Alle stehen lassen und eine Pause machen.",0]],
+ why:"Hochbetrieb: Reihenfolge, Wartende wahrnehmen, Mehrfachbedienung, kurze Fragen sofort, Hilfe holen, Dank fürs Warten.",
+ term:"Mehrfachbedienung",ihk:"Wartende Kunden durch Blickkontakt und kurze Ansprache wahrnehmen (Hochbetrieb)."},
+{id:"a8-3",ch:8,m:"a",k:"rede",s:"Der Herr mit dem Zylinder sucht ein Geschenk.",q:"Welche Frage stellst du?",
+ o:[["„Für wen soll das Geschenk sein?“",1],["„Soll es ein Buch sein?“",0],["„Wollen Sie etwas Teures?“",0]],
+ why:"Offene Fragen (W-Fragen) bringen Infos und in der Prüfung Punkte. Geschlossene Fragen („Soll es …?“) bringen keine Punkte.",
+ term:"offene Frage beim Geschenkkauf",ihk:"Für wen soll das Geschenk sein? Für welchen Anlass? Welches Hobby hat die Person?"},
+{id:"a8-4",ch:8,m:"a",k:"rede",s:"Der Herr hat sich für ein Geschenk entschieden und bezahlt.",q:"Wie verabschiedest du ihn?",
+ o:[["„Vielen Dank für Ihren Einkauf und viel Freude beim Schenken!“",1],["„Tschüss.“",0],["„Der Nächste, bitte!“",0]],
+ why:"Kaufbestätigung mit Bezug zum Geschenk. „Auf Wiedersehen“ allein gibt nur 1 Punkt.",
+ term:"Kaufbestätigung",ihk:"„Vielen Dank für Ihren Einkauf und viel Freude beim Schenken.“"},
+{id:"a8-5",ch:8,m:"a",k:"mc",s:"Eine Kundin kommt mit ihrem Freund. Er kennt sich mit Laufschuhen sehr gut aus.",q:"Wie gehst du mit ihm um?",
+ o:[["Ihn einbeziehen und ernst nehmen. Die Entscheidung trifft aber die Kundin.",1],["Ihn ignorieren, er kauft ja nicht.",0],["Gegen ihn argumentieren, damit die Kundin mir glaubt.",0]],
+ why:"Begleitpersonen beeinflussen die Entscheidung. Mit Fachwissen: als Partner ernst nehmen. Entscheiden tut der Käufer.",
+ term:"Kunden in Begleitung",ihk:"Begleitpersonen einbeziehen und ernst nehmen; die Entscheidung trifft der Käufer."},
+{id:"a8-6",ch:8,m:"a",k:"rede",s:"Ein Kunde soll für seine Frau „die Creme von letzter Woche“ mitbringen. Den Namen weiß er nicht.",q:"Was sagst du?",
+ o:[["„Haben Sie vielleicht die leere Dose oder ein Foto dabei? Sonst gebe ich Ihnen den Bon mit, dann kann Ihre Frau umtauschen.“",1],["„Ohne Namen kann ich nichts machen.“",0],["„Nehmen Sie einfach die teuerste, die ist bestimmt richtig.“",0]],
+ why:"Besorgungskauf: nach Muster, Foto oder genauer Angabe fragen, Umtausch anbieten, Kassenbon mitgeben.",
+ term:"Besorgungskauf",ihk:"Besorgungskauf: nach Muster/genauer Angabe fragen, Umtausch anbieten, Kassenbon mitgeben."},
+{id:"p8-1",ch:8,m:"p",k:"mcb",s:"Eine Mitschülerin schreibt in der Prüfung als Frage beim Geschenkkauf: „Soll es ein Buch sein?“",q:"Bekommt sie dafür Punkte?",
+ o:[["Nein.",1],["Ja, volle Punkte.",0],["Ja, einen halben Punkt.",0]],
+ b:{q:"Warum?",o:[["Es ist eine geschlossene Frage: Antwort nur ja oder nein, man erfährt nichts über die Wünsche.",1],["Bücher sind keine guten Geschenke.",0],["Fragen darf man in der Prüfung nicht stellen.",0]]},
+ why:"Bewertung IHK: Für geschlossene Fragen gibt es keine Punkte. Offene Fragen oder Alternativfragen in wörtlicher Rede!",
+ term:"geschlossene Frage",ihk:"Für geschlossene Fragen gibt es keine Punkte."},
+{id:"p8-2",ch:8,m:"p",k:"rede",s:"Lange Schlange. Ein Kunde will einen Einkauf von 450 € mit Dollarnoten bezahlen.",q:"Was sagst du?",
+ o:[["„Es tut mir leid, wir können nur Euro annehmen. Möchten Sie mit Karte zahlen? Sonst lege ich Ihnen die Ware gern zurück.“",1],["„Dollar? Das geht natürlich, ich rechne kurz um.“",0],["„Was soll das denn? Hier ist Deutschland!“",0],["„Dann gehen Sie doch zur Bank, ich habe keine Zeit.“",0]],
+ why:"Freundlich erklären, dass nur Euro angenommen werden, und Alternativen nennen: Karte, Geldautomat, Ware zurücklegen.",
+ term:"Zahlung in fremder Währung",ihk:"Freundlich erklären, dass nur Euro angenommen werden; Kartenzahlung oder Zurücklegen anbieten."},
+{id:"p8-3",ch:8,m:"p",k:"mc",s:"Unruhe in der Warteschlange. „Beschreiben Sie 4 Möglichkeiten, wie Sie mit der gereizten Stimmung umgehen!“",q:"Welche Antwort ist FALSCH?",
+ o:[["Die Kasse kurz offen lassen, um schneller in der Schlange zu helfen.",1],["Ruhe bewahren, keine Hektik zeigen.",0],["Für die Wartezeit entschuldigen, Blickkontakt.",0],["Kollegin rufen, zweite Kasse öffnen lassen.",0]],
+ why:"Die Kasse bleibt nie offen – in Hektik passiert leicht Diebstahl. Die anderen drei stehen in der Lösung.",
+ term:"Kundenandrang",ihk:"Ruhe bewahren, Wartende wahrnehmen und entschuldigen, zweite Kasse öffnen lassen, freundlich und sorgfältig kassieren."},
+{id:"p8-4",ch:8,m:"p",k:"mcb",s:"Beim Geschenkkauf sagst du: „Falls es nicht passt, kann es gern umgetauscht werden.“",q:"Ist der Umtausch hier rechtlich Pflicht?",
+ o:[["Nein, er ist freiwillig (Kulanz).",1],["Ja, bei Geschenken immer.",0],["Ja, 14 Tage lang.",0]],
+ b:{q:"Warum bietet man ihn trotzdem an?",o:[["Er nimmt dem Kunden das Risiko, dass das Geschenk nicht gefällt, und beschleunigt die Kaufentscheidung.",1],["Weil das Widerrufsrecht für Geschenke gilt.",0],["Weil Geschenke meist kaputt sind.",0]]},
+ why:"Bei fehlerfreier Ware gibt es im Laden kein gesetzliches Umtauschrecht. Das Angebot ist trotzdem verkaufsfördernd.",
+ term:"Umtauschangebot beim Geschenk",ihk:"Umtausch fehlerfreier Ware ist freiwillig (Kulanz); er nimmt dem Kunden das Risiko und beschleunigt den Kauf."},
+{id:"p8-5",ch:8,m:"p",k:"mcb",s:"Du berätst Frau Kühn beim Schuhe-Anprobieren. Ein Herr fragt nur kurz nach Schuhcreme.",q:"Was machst du?",
+ o:[["Frau Kühn kurz Bescheid geben, die kurze Frage beantworten, dann zurück zu Frau Kühn.",1],["Den Herrn warten lassen, bis Frau Kühn fertig ist – egal wie lange.",0],["Frau Kühn stehen lassen und mit dem Herrn mitgehen.",0]],
+ b:{q:"Wie heißt das und worauf achtest du?",o:[["Mehrfachbedienung – Kundin A nicht vergessen und für das Warten danken.",1],["Selbstbedienung – jeder sucht selbst.",0],["Vorwahl – die Kundin bedient sich allein.",0]]},
+ why:"Mehrfachbedienung: Während Kunde A anprobiert, kurz Kunde B helfen – A aber nicht vergessen. Dank fürs Warten.",
+ term:"Mehrfachbedienung",ihk:"Mehrfachbedienung: Kunde A informieren, kurze Frage sofort beantworten, Dank fürs Warten."},
+{id:"p8-6",ch:8,m:"p",k:"rede",s:"Ein Kunde in der Schlange wird laut: „Hier dauert alles ewig!“",q:"Welche Antwort ist am besten?",
+ o:[["„Entschuldigen Sie bitte die Wartezeit. Ich rufe sofort eine Kollegin, damit eine zweite Kasse öffnet.“",1],["„Das ist nicht meine Schuld.“",0],["„Andere warten auch. Stellen Sie sich nicht so an.“",0],["„Dann gehen Sie doch woanders hin.“",0]],
+ why:"Für die Wartezeit entschuldigen und handeln: Hilfe holen, zweite Kasse öffnen lassen.",
+ term:"Wartezeit überbrücken",ihk:"Für die Wartezeit entschuldigen; eine Kollegin rufen, eine zweite Kasse öffnen lassen."},
+
+// ===== Kapitel 9 – Ratenkauf =====
+{id:"a9-1",ch:9,m:"a",k:"mc",s:"Der Mann mit der Melone will den Fernseher über die Partnerbank in Raten bezahlen.",q:"Wer gibt beim Finanzkauf den Kredit?",
+ o:[["Eine Bank (Partnerbank des Händlers).",1],["Der Händler selbst.",0],["Der Hersteller des Fernsehers.",0]],
+ why:"Finanzkauf: Die Bank gibt den Kredit, der Händler bekommt den ganzen Betrag sofort. Ratenkauf: Der Händler gibt den Kredit selbst.",
+ term:"Finanzkauf",ihk:"Beim Finanzkauf zahlt eine Bank den Kaufpreis sofort an den Händler."},
+{id:"a9-2",ch:9,m:"a",k:"mc",s:"„Und wenn ich es mir anders überlege?“, fragt der Mann.",q:"Wie lange kann er den Teilzahlungsvertrag widerrufen?",
+ o:[["14 Tage.",1],["Gar nicht.",0],["Bis in alle Ewigkeit.",0]],
+ why:"Bei Teilzahlungsgeschäften hat der Verbraucher ein Widerrufsrecht von 14 Tagen. Darüber muss er belehrt werden.",
+ term:"Widerrufsrecht (14 Tage)",ihk:"Der Verbraucher hat ein Widerrufsrecht von 14 Tagen; darüber ist er zu belehren."},
+{id:"a9-3",ch:9,m:"a",k:"mc",s:"Du schreibst den Teilzahlungsvertrag.",q:"Was muss im Vertrag stehen?",
+ o:[["Barzahlungspreis, Teilzahlungspreis, Raten, effektiver Jahreszins und die Belehrung über das Widerrufsrecht.",1],["Nur der Name und die Unterschrift.",0],["Nur der Preis des Fernsehers.",0]],
+ why:"Pflichtangaben: schriftlich mit Unterschrift, Barzahlungs- und Teilzahlungspreis, Höhe/Anzahl/Fälligkeit der Raten, effektiver Jahreszins, Widerrufsbelehrung.",
+ term:"Pflichtangaben im Teilzahlungsvertrag",ihk:"Barzahlungspreis, Teilzahlungspreis, Raten und effektiver Jahreszins sind anzugeben."},
+{id:"a9-4",ch:9,m:"a",k:"mc",s:"Die Chefin überlegt, Ratenzahlung anzubieten.",q:"Was ist ein Vorteil für den Betrieb?",
+ o:[["Spontankäufe sind möglich, der Umsatz steigt.",1],["Das Geld kommt später.",0],["Es gibt mehr Verwaltungsaufwand.",0]],
+ why:"Vorteile: Spontankäufe, höherer Umsatz, Kundengewinnung und -bindung, Anpassung an Mitbewerber.",
+ term:"Vorteile der Ratenzahlung",ihk:"Spontankäufe sind möglich; Umsatzsteigerung; Kundengewinnung/-bindung; Anpassung an die Mitbewerber."},
+{id:"a9-5",ch:9,m:"a",k:"mc",s:"Der Händler gibt den Kredit selbst (Ratenkauf).",q:"Was ist der Nachteil für den Händler?",
+ o:[["Er trägt das Ausfallrisiko und bekommt das Geld erst später.",1],["Er muss der Bank Provision zahlen.",0],["Es gibt gar keinen Nachteil.",0]],
+ why:"Ratenkauf: späterer Zahlungseingang und Ausfallrisiko. Finanzkauf: kein Ausfallrisiko, aber Provision an die Bank.",
+ term:"Ausfallrisiko",ihk:"Beim Ratenkauf trägt der Händler das Ausfallrisiko und bekommt das Geld erst später."},
+{id:"a9-6",ch:9,m:"a",k:"mc",s:"Ein 16-Jähriger will ohne seine Eltern ein Handy auf Raten kaufen.",q:"Ist der Vertrag wirksam?",
+ o:[["Nein. Ohne Zustimmung der Eltern ist er nicht wirksam.",1],["Ja, wenn er die erste Rate bar zahlt.",0],["Ja, ab 16 darf man alles.",0]],
+ why:"Ratenkauf mit Minderjährigen ohne Zustimmung der Eltern: unwirksam. Der Taschengeldparagraf greift nicht (WiSo S 2022, S 2026).",
+ term:"Ratenkauf und Minderjährige",ihk:"Teilzahlungsverträge mit Minderjährigen sind ohne Zustimmung der Eltern nicht wirksam."},
+{id:"p9-1",ch:9,m:"p",k:"num",s:"Der Fernseher kostet bar 899,00 €. Über die Partnerbank zahlt der Kunde 24 Raten zu je 39,90 €.",q:"Wie viel Euro zahlt er mehr als bei Barzahlung?",
+ ans:58.6,unit:"€",rw:"24 × 39,90 € = 957,60 € (Teilzahlungspreis) · 957,60 € – 899,00 € = 58,60 €",
+ why:"Teilzahlungspreis = Anzahl der Raten × Rate. Mehrkosten = Teilzahlungspreis – Barzahlungspreis.",
+ term:"Teilzahlungspreis",ihk:"Bei einem Teilzahlungsgeschäft sind Barzahlungspreis und Teilzahlungspreis anzugeben."},
+{id:"p9-2",ch:9,m:"p",k:"num",s:"Eine Waschmaschine kostet bar 599,00 €. Der Kunde zahlt 12 Raten zu je 54,50 €.",q:"Wie hoch ist der Teilzahlungspreis in Euro?",
+ ans:654,unit:"€",rw:"12 × 54,50 € = 654,00 € (also 55,00 € mehr als bar)",
+ why:"Teilzahlungspreis = Anzahl der Raten × Ratenhöhe (ohne Anzahlung).",
+ term:"Teilzahlungspreis",ihk:"Barzahlungspreis, Teilzahlungspreis, Raten und effektiver Jahreszins sind anzugeben."},
+{id:"p9-3",ch:9,m:"p",k:"mcb",s:"Der Händler verkauft auf Raten. Der Kunde hat erst die Hälfte bezahlt.",q:"Wem gehört der Fernseher jetzt?",
+ o:[["Noch dem Händler.",1],["Schon dem Kunden.",0],["Der Bank.",0]],
+ b:{q:"Warum? (§ 449 BGB)",o:[["Eigentumsvorbehalt: Der Händler bleibt Eigentümer, bis vollständig bezahlt ist.",1],["Weil der Kunde den Fernseher noch nicht benutzt hat.",0],["Weil Fernseher nie dem Kunden gehören.",0]]},
+ why:"Beim Ratenkauf behält der Händler meist das Eigentum bis zur letzten Rate (Eigentumsvorbehalt, § 449 BGB). Besitzer ist der Kunde schon.",
+ term:"Eigentumsvorbehalt",ihk:"Der Händler bleibt Eigentümer, bis vollständig bezahlt ist (§ 449 BGB)."},
+{id:"p9-4",ch:9,m:"p",k:"mc",s:"WiSo S 2018: Was müssen Sie beim Abschluss von Teilzahlungsverträgen mit Privatpersonen beachten?",q:"Welche Aussage ist richtig?",
+ o:[["Sie müssen eine vom Käufer unterschriebene Belehrung über das Widerrufsrecht enthalten.",1],["Sie dürfen nicht mehr als 12 Raten haben.",0],["Sie müssen immer die gleiche Ratenhöhe haben.",0],["Sie dürfen auch mit Jugendlichen abgeschlossen werden.",0]],
+ why:"Teilzahlungsverträge müssen eine Belehrung über das Widerrufsrecht enthalten. Mit Jugendlichen ohne Zustimmung der Eltern: unwirksam.",
+ term:"Widerrufsbelehrung",ihk:"Teilzahlungsverträge müssen eine vom Käufer unterschriebene Belehrung über das Widerrufsrecht enthalten."},
+{id:"p9-5",ch:9,m:"p",k:"mcb",s:"Die Chefin vergleicht Ratenkauf und Finanzkauf.",q:"Was ist der Nachteil des Finanzkaufs für den Händler?",
+ o:[["Er zahlt Provision bzw. Gebühren an die Bank.",1],["Er trägt das Ausfallrisiko.",0],["Er bekommt das Geld erst nach zwei Jahren.",0]],
+ b:{q:"Und sein Vorteil gegenüber dem Ratenkauf?",o:[["Er bekommt den ganzen Betrag sofort und hat kein Ausfallrisiko.",1],["Er muss keinen Vertrag schreiben.",0],["Der Kunde hat kein Widerrufsrecht.",0]]},
+ why:"Finanzkauf: Bank zahlt sofort, kein Ausfallrisiko – aber Provision. Das Widerrufsrecht gilt in beiden Fällen.",
+ term:"Finanzkauf ↔ Ratenkauf",ihk:"Finanzkauf: kein Ausfallrisiko, aber Provision/Gebühren an die Bank."},
+{id:"p9-6",ch:9,m:"p",k:"mc",s:"Ordne zu: Welcher Paragraf regelt das 14-tägige Widerrufsrecht beim Verbraucherkredit?",q:"Wähle den Paragrafen.",
+ o:[["§ 495 BGB",1],["§ 449 BGB",0],["§ 110 BGB",0]],
+ why:"§ 495 Widerrufsrecht · §§ 506/507 Teilzahlungsgeschäfte · § 449 Eigentumsvorbehalt · § 110 Taschengeldparagraf.",
+ term:"§ 495 BGB",ihk:"Der Verbraucher kann 14 Tage widerrufen (§ 495 BGB)."},
+
+// ===== Kapitel 10 – Finale / Fachgespräch =====
+{id:"a10-1",ch:10,m:"a",k:"mc",s:"Behrens: „Eine Kundin bringt zwei T-Shirts. Sie waren 40 % reduziert. Nach zweimal Tragen sind die Nähte gerissen. Gekauft vor drei Wochen, Bon liegt vor.“",q:"Was liegt vor?",
+ o:[["Eine Reklamation. Dass die Ware reduziert war, spielt keine Rolle.",1],["Kein Anspruch, weil die Ware reduziert war.",0],["Ein Umtausch aus Kulanz.",0]],
+ why:"Die T-Shirts waren nicht wegen der Nähte reduziert. Also gilt die Gewährleistung: Es ist eine Reklamation.",
+ term:"Reklamation bei reduzierter Ware",ihk:"Es liegt ein Sachmangel vor; die Gewährleistung gilt auch für reduzierte Ware."},
+{id:"a10-2",ch:10,m:"a",k:"mc",s:"Behrens: „Ihr stellt euren Lösungsweg vor. Womit fangt ihr an?“",q:"Was tust du zuerst?",
+ o:[["Den Menschen: freundlich begrüßen, zuhören, entschuldigen.",1],["Sofort die Rechtslage erklären.",0],["Sofort den Kassenbon verlangen.",0]],
+ why:"Erst der Mensch, dann die Sache. Danach prüfen, Rechtslage, Lösung.",
+ term:"Erst der Mensch, dann die Sache",ihk:"Zuerst würde ich die Kundin freundlich begrüßen, ihr zuhören und mich entschuldigen."},
+{id:"a10-3",ch:10,m:"a",k:"mc",s:"Behrens: „In welcher Reihenfolge stellt ihr einen Fall im Fachgespräch dar?“",q:"Welche Reihenfolge stimmt?",
+ o:[["Fall nennen → Mensch beruhigen → prüfen → Rechtslage → Lösung → Ausblick",1],["Lösung → Rechtslage → Fall nennen → Mensch beruhigen",0],["Rechtslage → Ausblick → Mensch beruhigen → prüfen",0]],
+ why:"Aufbau: Fall nennen → Mensch → prüfen (wo, wann, Mangel) → Rechtslage → Lösung (Recht + Kulanz) → Betrieb/Ausblick.",
+ term:"Lösungsweg im Fachgespräch",ihk:"Ich stelle meinen Lösungsweg in der Ich-Form und in der richtigen Reihenfolge dar."},
+{id:"a10-4",ch:10,m:"a",k:"mc",s:"Behrens: „Ein 14-jähriges Mädchen will alkoholhaltige Pralinen zum Muttertag kaufen.“",q:"Welcher Aspekt ist zu beachten?",
+ o:[["Jugendschutz: branntweinhaltige Lebensmittel erst ab 18.",1],["Diebstahlprävention.",0],["Hilfestellung, Service.",0]],
+ why:"Kassen-Tabelle (IHK S 2023): Situation erkennen → Aspekt → Ansprache in wörtlicher Rede.",
+ term:"Kassen-Tabelle",ihk:"Jugendschutz, branntweinhaltige Lebensmittel erst ab 18 Jahren."},
+{id:"a10-5",ch:10,m:"a",k:"mc",s:"Behrens: „Ein Kunde fragt: ‚Kann ich den Fernseher auch abstottern?‘“",q:"Was musst du jetzt beachten?",
+ o:[["Teilzahlung: Pflichtangaben im Vertrag und 14 Tage Widerrufsrecht.",1],["Jugendschutz.",0],["Umtausch aus Kulanz.",0]],
+ why:"„Abstottern“ = in Raten zahlen. Entscheidungsweg Modul 9: Ratenkauf/Finanzkauf, Pflichtangaben, 14 Tage Widerruf.",
+ term:"Entscheidungsweg",ihk:"Bei einem Teilzahlungsgeschäft sind Barzahlungspreis, Teilzahlungspreis, Raten und effektiver Jahreszins anzugeben."},
+{id:"a10-6",ch:10,m:"a",k:"mc",s:"Behrens: „Was zählt im Fachgespräch am meisten?“",q:"Was stimmt?",
+ o:[["Sagen, was ich tue, und warum („…, weil …“). Beispiele aus meinem Betrieb machen die Antwort stark.",1],["Möglichst schnell und leise antworten.",0],["Nur Paragrafen aufsagen.",0]],
+ why:"Im Fachgespräch zählt Handeln und Begründen – in ganzen Sätzen, mit Fachbegriffen und Beispielen aus dem Betrieb.",
+ term:"Fachgespräch",ihk:"Ich sage, was ich tue, und warum – mit Beispielen aus meinem Ausbildungsbetrieb."},
+{id:"a10-7",ch:10,m:"a",k:"mc",s:"Behrens: „Ein Kunde beschwert sich lautstark. Ihr stellt fest: Die Ware hat einen Mangel. Was darf der Kunde zuerst verlangen?“",q:"Wähle.",
+ o:[["Nachbesserung oder Ersatzlieferung.",1],["Sofort Rücktritt und Schadensersatz.",0],["Nur einen Gutschein.",0]],
+ why:"Reklamationskette (IHK S 2023, Aufgabe 5): reagieren – prüfen – vorrangige Rechte (Nachbesserung, Ersatzlieferung) – nachrangige Rechte.",
+ term:"Reklamationskette",ihk:"Vorrangig: Nachbesserung, Ersatzlieferung · nachrangig: Schadensersatz, Preisminderung, Rücktritt."},
+{id:"p10-1",ch:10,m:"p",k:"mcb",s:"Behrens: „Die Kundin mit den gerissenen T-Shirts will ihr Geld zurück. Wie ist die Rechtslage?“",q:"Was steht ihr zuerst zu?",
+ o:[["Nacherfüllung: neue T-Shirts oder Reparatur.",1],["Sofort Geld zurück.",0],["Nichts, weil reduziert.",0]],
+ b:{q:"Warum?",o:[["Nacherfüllung ist vorrangig; Rücktritt erst, wenn sie nicht klappt. Die Reduzierung war nicht wegen der Nähte.",1],["Weil reduzierte Ware nur repariert werden darf.",0],["Weil das Geld schon in der Kasse ist.",0]]},
+ why:"Lösungsweg Leonie (M10): Prüfkriterien erfüllt → Reklamation → Nacherfüllung vorrangig. Aus Kulanz kann der Betrieb trotzdem sofort das Geld anbieten.",
+ term:"Sachmangel → Nacherfüllung",ihk:"Es liegt ein Sachmangel vor; vorrangig hat die Kundin das Recht auf Nacherfüllung und kann zwischen Nachbesserung und Ersatzlieferung wählen."},
+{id:"p10-2",ch:10,m:"p",k:"mc",s:"Behrens (IHK S 2023, 11 Punkte): „Kunde beschwert sich laut. a) 3 Reaktionen, b) 3 Prüfkriterien, c) 2 vorrangige und 3 nachrangige Rechte.“",q:"Welche Antwort ist vollständig richtig?",
+ o:[["a) zuhören, Verständnis/Entschuldigung, nachfragen · b) wo, wann, Mangel? · c) Nachbesserung, Ersatzlieferung · Schadensersatz, Minderung, Rücktritt",1],["a) belehren, Kollegin rufen, Bon verlangen · b) wo, wann, Mangel? · c) Rücktritt, Minderung · Nachbesserung, Ersatz, Garantie",0],["a) zuhören, entschuldigen, nachfragen · b) Preis, Farbe, Größe · c) Nachbesserung, Ersatzlieferung · Schadensersatz, Minderung, Rücktritt",0]],
+ why:"Achtet auf jeden Teil: Belehren ist falsch, Prüfkriterien sind wo/wann/Mangel, vorrangig = Nacherfüllung.",
+ term:"Reklamationskette",ihk:"Aussprechen lassen, Verständnis zeigen · wo, wann, Mangel? · Nachbesserung, Ersatzlieferung · Schadensersatz, Preisminderung, Rücktritt."},
+{id:"p10-3",ch:10,m:"p",k:"mcb",s:"Behrens: „Kundenandrang, Unruhe, ein Kunde mit Dollarnoten. Ihr seid ganz allein an der Kasse.“",q:"Was tust du auf keinen Fall?",
+ o:[["Die Kasse offen lassen, um zur Info zu laufen.",1],["Mich für die Wartezeit entschuldigen.",0],["Eine Kollegin über die Durchsage rufen.",0]],
+ b:{q:"Warum nicht?",o:[["In solchen Situationen passiert leicht Diebstahl – die Kasse bleibt nie offen, Wagen trotzdem kontrollieren.",1],["Weil man nicht laufen darf.",0],["Weil die Info zu weit weg ist.",0]]},
+ why:"Lösungsweg „Kasse“: ruhig bleiben, entschuldigen, zweite Kasse rufen, nur Euro + Alternativen, Kasse nie offen lassen.",
+ term:"Pflichten an der Kasse",ihk:"Trotz der Hektik lasse ich die Kasse nie offen und kontrolliere die Wagen, weil in solchen Situationen leicht Diebstahl passiert."},
+{id:"p10-4",ch:10,m:"p",k:"mc",s:"Behrens: „Ihr habt 15 Minuten Vorbereitung. Wie baut ihr euren Stichwortzettel auf?“",q:"Welche Reihenfolge ist richtig?",
+ o:[["Was ist passiert? → Was tue ich zuerst (Mensch)? → Rechtslage (Sache)? → Lösung? → Was lerne ich daraus?",1],["Rechtslage → Lösung → Was ist passiert? → Mensch",0],["Lösung → Was lerne ich daraus? → Mensch → Rechtslage",0]],
+ why:"Stichwortzettel in fünf Fragen – dann 3–5 Minuten frei sprechen, in ganzen Sätzen mit Fachbegriffen.",
+ term:"Stichwortzettel",ihk:"1. Was ist passiert? 2. Was tue ich zuerst? 3. Rechtslage? 4. Lösung? 5. Was lerne ich daraus?"},
+{id:"p10-5",ch:10,m:"p",k:"rede",s:"Behrens: „Sagt mir einen Satz aus eurem Lösungsweg zur Kundin mit den T-Shirts.“",q:"Welcher Satz zeigt Handeln und Begründen?",
+ o:[["„In meinem Betrieb würden wir ihr aus Kulanz trotzdem sofort das Geld anbieten, weil die Kundin dann zufrieden ist und wiederkommt.“",1],["„Geld zurück.“",0],["„Das steht in § 437.“",0],["„Das würde ich halt irgendwie machen.“",0]],
+ why:"Jeder Schritt mit „weil“. Bezug zum Ausbildungsbetrieb macht die Antwort stark.",
+ term:"Handeln + Begründen",ihk:"Sag, was du tust, und warum („…, weil …“, „…, damit der Kunde …“)."},
+{id:"p10-6",ch:10,m:"p",k:"mcb",s:"Behrens: „Zum Schluss schickt ihr die T-Shirts an den Lieferanten zurück. Warum?“",q:"Was antwortest du?",
+ o:[["Damit wir unsere Rechte beim Lieferanten geltend machen.",1],["Damit wir sie dort neu verkaufen.",0],["Weil wir sie nicht wegwerfen dürfen.",0]],
+ b:{q:"Zu welchem Schritt im Lösungsweg gehört das?",o:[["Ausblick – den Prozess zu Ende denken.",1],["Mensch beruhigen.",0],["Prüfkriterien.",0]]},
+ why:"Aufbau: … → Lösung → Betrieb/Ausblick. Der Prozess endet nicht beim Kunden.",
+ term:"Ausblick im Lösungsweg",ihk:"Zum Schluss würde ich die Ware an den Lieferanten zurückschicken, damit wir unsere Rechte dort geltend machen."}
+];
+
+</script>
+<script>
+(function(){
+"use strict";
+// ---------- Speicher (nur dieses Gerät) ----------
+const KEY="nebel-lf10-v1";
+let storeOK=true;
+function load(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):{}}catch(e){storeOK=false;return {}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){storeOK=false}}
+let DB=load(); DB.seen=DB.seen||{a:[],p:[]}; DB.best=DB.best||{a:0,p:0}; DB.nights=DB.nights||0; if(typeof DB.sound!=="boolean")DB.sound=false;
+DB.wrong=DB.wrong||{a:[],p:[]}; DB.fixed=DB.fixed||0;
+
+const $=s=>document.querySelector(s);
+const app=$("#app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// Zufall: normal Math.random, mit Klassen-Code ein fester Startwert (alle Teams gleiche Ziehung)
+let RNG=Math.random;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(RNG()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const PER={a:2,p:3};
+const FOLLOW={
+ 1:"Das blasse Mädchen steht wieder an Kasse 3. Hinter ihr wartet die Filialleiterin und schaut genau zu.",
+ 2:"Der Seemann kommt zurück. Er hat sich bei der Filialleiterin beschwert. Jetzt will sie wissen, wie ihr es richtig macht.",
+ 3:"Der Kapitän ist noch nicht fertig. Er stellt sich wieder an die Info – und das Wasser tropft schon wieder.",
+ 4:"Die Dame mit dem Glockenhut kehrt um. „Ich frage noch einmal“, sagt sie leise.",
+ 5:"Die Laterne des Fischers flackert. „Erklärt es mir noch einmal. Ich brauche Licht da draußen.“",
+ 6:"Die alte Stimme ruft wieder: „Dieb!“ Diesmal schaut die Filialleiterin euch an: „Was tun wir?“",
+ 7:"Der alte Lotse klopft mit dem Stock auf den Boden. „Noch ein Versuch, junge Leute.“",
+ 8:"Die Uhr springt zurück auf 19:55. Alles beginnt von vorn – fast alles.",
+ 9:"Der Mann mit der Melone legt den Vertrag noch einmal hin. „Lest genau“, sagt er.",
+ 10:"Behrens hebt die Laterne. „Eine letzte Frage. Denkt nach, bevor ihr antwortet.“"
+};
+
+// ---------- Zustand ----------
+let S={mode:DB.lastMode||"a",team:DB.lastTeam||"",chs:[1,2,3,4,5,6,7,8,9,10],confirmReset:false,code:""};
+let G=null; // laufendes Spiel
+
+// ---------- Klang (Web Audio, Standard aus) ----------
+let AC=null,master=null,nodes=[],beatT=null;
+function soundStart(){
+  try{
+    if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();}
+    if(AC.state==="suspended")AC.resume();
+    soundStop(true);
+    master=AC.createGain();master.gain.value=0.0001;master.connect(AC.destination);
+    master.gain.exponentialRampToValueAtTime(0.10,AC.currentTime+2);
+    const lp=AC.createBiquadFilter();lp.type="lowpass";lp.frequency.value=380;lp.connect(master);
+    [55,55.6,82.4].forEach((f,i)=>{const o=AC.createOscillator();o.type=i==2?"triangle":"sawtooth";o.frequency.value=f;const g=AC.createGain();g.gain.value=i==2?0.25:0.5;o.connect(g);g.connect(lp);o.start();nodes.push(o)});
+    const lfo=AC.createOscillator();lfo.frequency.value=0.07;const lg=AC.createGain();lg.gain.value=160;lfo.connect(lg);lg.connect(lp.frequency);lfo.start();nodes.push(lfo);
+    beatT=setInterval(()=>{ if(!G||!AC||!master)return; const lvl=G.fog; if(lvl<55)return;
+      [0,0.28].forEach(d=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=48;g.gain.setValueAtTime(0.0001,AC.currentTime+d);g.gain.exponentialRampToValueAtTime(0.5,AC.currentTime+d+0.03);g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+d+0.25);o.connect(g);g.connect(master);o.start(AC.currentTime+d);o.stop(AC.currentTime+d+0.3)});
+    },lvlInterval());
+  }catch(e){}
+}
+function lvlInterval(){return 1300}
+function soundStop(quick){try{clearInterval(beatT);nodes.forEach(n=>{try{n.stop()}catch(e){}});nodes=[];if(master){master.disconnect();master=null}}catch(e){}}
+function chime(good){ if(!DB.sound||!AC||!master)return; try{const t=AC.currentTime;(good?[523,659,784]:[311,277]).forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=f;g.gain.setValueAtTime(0.0001,t+i*0.12);g.gain.exponentialRampToValueAtTime(0.25,t+i*0.12+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.12+0.6);o.connect(g);g.connect(master);o.start(t+i*0.12);o.stop(t+i*0.12+0.7)})}catch(e){} }
+function toggleSound(){DB.sound=!DB.sound;save();if(DB.sound)soundStart();else soundStop();render()}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)soundStop();else if(DB.sound&&AC)soundStart()});
+
+// ---------- Grafik ----------
+function scene(fog,opts){
+  opts=opts||{}; const f=Math.max(0,Math.min(100,fog))/100; const ghost=opts.ghost!=null?opts.ghost:f*0.7;
+  const dawn=opts.dawn;
+  const sky1=dawn?"#3c5a6b":"#0b1720", sky2=dawn?"#e7b98a":"#1c3341";
+  return `<svg viewBox="0 0 640 300" role="img" aria-label="Bremerhaven bei Nacht: Leuchtturm, Hafenkräne und der Laden Nordstadt-Kauf im Nebel">
+  <defs>
+    <linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky1}"/><stop offset="1" stop-color="${sky2}"/></linearGradient>
+    <linearGradient id="wa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#11232c"/><stop offset="1" stop-color="#07111a"/></linearGradient>
+    <radialGradient id="lampg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe7a6" stop-opacity=".95"/><stop offset="1" stop-color="#ffcc5c" stop-opacity="0"/></radialGradient>
+    <linearGradient id="bm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff2c4" stop-opacity=".55"/><stop offset="1" stop-color="#fff2c4" stop-opacity="0"/></linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="14"/></filter>
+    <linearGradient id="gh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe9ea" stop-opacity=".95"/><stop offset="1" stop-color="#dfe9ea" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect width="640" height="300" fill="url(#sk)"/>
+  ${dawn?"":[[40,30],[120,18],[210,42],[300,22],[420,34],[520,16],[590,48],[470,60],[160,64]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.2" fill="#cfe0e6" opacity="${(0.8-f*0.7).toFixed(2)}"/>`).join("")}
+  <circle cx="560" cy="52" r="20" fill="${dawn?"#fff0d0":"#e9eef0"}" opacity="${(0.85-f*0.55).toFixed(2)}"/>
+  <!-- Kräne -->
+  <g fill="#0d1d25" opacity=".95">
+    <path d="M470 205 L470 120 L476 120 L476 205 Z M440 120 L560 120 L560 126 L440 126 Z M476 126 L520 160 L516 164 L474 132 Z"/>
+    <path d="M560 205 L560 108 L566 108 L566 205 Z M530 108 L640 108 L640 114 L530 114 Z M566 114 L606 148 L602 152 L564 120 Z"/>
+    <rect x="430" y="188" width="210" height="18"/>
+  </g>
+  <!-- Leuchtturm (Backstein) -->
+  <g>
+    <path class="beam" d="M96 70 L330 40 L330 100 Z" fill="url(#bm)"/>
+    <path d="M80 210 L86 92 L106 92 L112 210 Z" fill="#7b3424"/>
+    <path d="M83 150 L109 150 L109.6 162 L82.4 162 Z M85 112 L107 112 L107.4 122 L84.6 122 Z" fill="#a0503a"/>
+    <rect x="82" y="84" width="28" height="10" fill="#4a2018"/>
+    <rect x="86" y="62" width="20" height="22" fill="#2a1712"/>
+    <circle cx="96" cy="72" r="16" fill="url(#lampg)"/>
+    <rect x="89" y="66" width="14" height="12" fill="#ffd77a"/>
+    <path d="M84 62 L96 48 L108 62 Z" fill="#3d1d16"/>
+    <rect x="90" y="176" width="12" height="18" fill="#2a1712"/>
+  </g>
+  <!-- Laden Nordstadt-Kauf -->
+  <g>
+    <rect x="200" y="112" width="220" height="98" fill="#1a2a33"/>
+    <rect x="200" y="104" width="220" height="14" fill="#24363f"/>
+    <rect x="232" y="116" width="156" height="20" rx="3" fill="#0e1a20"/>
+    <text x="310" y="131" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="13" fill="#f0b84a" class="flick" letter-spacing="2">NORDSTADT-KAUF</text>
+    <g class="flick">
+      <rect x="212" y="146" width="56" height="44" fill="#f3c86a" opacity=".85"/>
+      <rect x="352" y="146" width="56" height="44" fill="#f3c86a" opacity=".85"/>
+    </g>
+    <rect x="286" y="150" width="48" height="60" fill="#0d171c"/>
+    <rect x="290" y="154" width="40" height="52" fill="#f6d68c" opacity=".55"/>
+    <circle cx="310" cy="96" r="9" fill="#e9e2cf" stroke="#3a2a1a" stroke-width="2"/>
+    <path d="M310 96 L310 89 M310 96 L306 98" stroke="#3a2a1a" stroke-width="1.6"/>
+    <!-- Geist im Fenster -->
+    <g opacity="${ghost.toFixed(2)}">
+      <path d="M362 190 C362 166 366 158 380 158 C394 158 398 166 398 190 Z" fill="url(#gh)"/>
+      <circle cx="380" cy="152" r="8" fill="#e5eef0"/>
+      <rect x="371" y="141" width="18" height="5" fill="#4a5759"/><rect x="374" y="134" width="12" height="8" rx="3" fill="#4a5759"/>
+      <circle cx="377" cy="152" r="1.2" fill="#1a2a33"/><circle cx="383" cy="152" r="1.2" fill="#1a2a33"/>
+    </g>
+  </g>
+  <!-- Kaimauer und Wasser -->
+  <rect x="0" y="206" width="640" height="10" fill="#1d2d35"/>
+  <rect x="0" y="216" width="640" height="84" fill="url(#wa)"/>
+  <g opacity=".5"><rect x="88" y="222" width="16" height="40" fill="#ffd77a" opacity=".25"/><rect x="216" y="222" width="48" height="26" fill="#f3c86a" opacity=".12"/><rect x="356" y="222" width="48" height="26" fill="#f3c86a" opacity=".12"/></g>
+  <g stroke="#2b4652" stroke-width="2" opacity=".6"><path d="M20 240 h60 M150 252 h80 M300 236 h50 M420 258 h90 M540 244 h70"/></g>
+  <!-- Nebel -->
+  <g filter="url(#blur)">
+    <g class="fogl"><ellipse cx="200" cy="210" rx="260" ry="${30+f*40}" fill="#c9d6d8" opacity="${(0.12+f*0.55).toFixed(2)}"/></g>
+    <g class="fogl b"><ellipse cx="470" cy="190" rx="240" ry="${24+f*50}" fill="#d4dfe1" opacity="${(0.08+f*0.5).toFixed(2)}"/></g>
+    <g class="fogl"><ellipse cx="320" cy="270" rx="360" ry="${30+f*30}" fill="#b9c8cb" opacity="${(0.15+f*0.45).toFixed(2)}"/></g>
+  </g>
+  <rect width="640" height="300" fill="#c9d6d8" opacity="${(f*0.18).toFixed(2)}"/>
+</svg>`;
+}
+
+function persona(fig,mood){
+  const skin=fig.pale||fig.age==="geist"?"#e4ecee":"#efe2d4";
+  const op=fig.age==="geist"?.8:1;
+  const mouth=mood==="good"?`<path d="M44 66 Q50 71 56 66" stroke="#4a3328" stroke-width="2.4" fill="none" stroke-linecap="round"/>`:mood==="bad"?`<ellipse cx="50" cy="67" rx="4" ry="5" fill="#3a1f18"/>`:`<path d="M44 67 L56 67" stroke="#4a3328" stroke-width="2.4" stroke-linecap="round"/>`;
+  const brow=mood==="bad"?`<path d="M37 47 L45 50 M63 47 L55 50" stroke="#3a2a22" stroke-width="2.2" stroke-linecap="round"/>`:"";
+  const hairs={kind:`<path d="M30 52 C28 30 72 30 70 52 C70 40 30 40 30 52 Z" fill="${fig.hair}"/><path d="M28 50 C26 74 34 80 32 86 M72 50 C74 74 66 80 68 86" stroke="${fig.hair}" stroke-width="6" fill="none" stroke-linecap="round"/>`,
+    frau:`<path d="M30 54 C26 34 74 34 70 54 C66 46 34 46 30 54 Z" fill="${fig.hair}"/>`,
+    alt:`<path d="M31 52 C30 40 70 40 69 52" stroke="${fig.hair}" stroke-width="5" fill="none"/>`,
+    mann:`<path d="M31 50 C30 36 70 36 69 50 C64 44 36 44 31 50 Z" fill="${fig.hair}"/>`,
+    geist:`<path d="M31 52 C30 40 70 40 69 52" stroke="${fig.hair}" stroke-width="5" fill="none"/>`};
+  const hats={
+    schleife:`<path d="M58 34 L70 28 L70 42 Z M58 34 L66 44 L56 40 Z" fill="#c8553d"/><circle cx="58" cy="36" r="3" fill="#a33e2b"/>`,
+    muetze:`<path d="M30 42 C30 22 70 22 70 42 Z" fill="#2c4a63"/><rect x="28" y="38" width="44" height="7" rx="3" fill="#1f3446"/>`,
+    kapitaen:`<path d="M27 40 C27 26 73 26 73 40 Z" fill="#f2f2f2"/><rect x="26" y="38" width="48" height="7" fill="#1b263b"/><path d="M28 45 L72 45 L66 50 L34 50 Z" fill="#111"/><circle cx="50" cy="35" r="3.5" fill="#e0b53a"/>`,
+    glocke:`<path d="M26 48 C24 22 76 22 74 48 C66 42 34 42 26 48 Z" fill="#8a6f9e"/><rect x="28" y="40" width="44" height="4" fill="#5e4a70"/>`,
+    suedwester:`<path d="M30 40 C30 22 70 22 70 40 Z" fill="#e9c46a"/><path d="M20 42 Q50 34 80 42 L84 50 Q50 42 16 50 Z" fill="#d4a93d"/>`,
+    schiebermuetze:`<path d="M28 42 C28 26 72 24 72 40 Z" fill="#555"/><path d="M28 42 Q48 46 74 40 L78 44 Q50 52 26 46 Z" fill="#3e3e3e"/>`,
+    lotse:`<path d="M29 41 C29 26 71 26 71 41 Z" fill="#26323a"/><rect x="28" y="38" width="44" height="6" fill="#1a2329"/><path d="M30 44 L70 44 L64 49 L36 49 Z" fill="#0f151a"/>`,
+    zylinder:`<rect x="35" y="12" width="30" height="28" fill="#1e1e1e"/><rect x="27" y="38" width="46" height="6" rx="2" fill="#151515"/><rect x="35" y="32" width="30" height="4" fill="#7a1f1f"/>`,
+    melone:`<path d="M33 40 C33 20 67 20 67 40 Z" fill="#2a2d33"/><rect x="26" y="38" width="48" height="6" rx="3" fill="#1d1f24"/>`
+  };
+  const beard=fig.beard?`<path d="M36 62 C38 84 62 84 64 62 C60 72 40 72 36 62 Z" fill="${fig.hair}" opacity=".9"/>`:"";
+  return `<svg viewBox="0 0 100 130" aria-hidden="true" style="opacity:${op}">
+    <defs><linearGradient id="fade${fig.hat}" x1="0" y1="0" x2="0" y2="1"><stop offset=".55" stop-color="${fig.coat}"/><stop offset="1" stop-color="${fig.coat}" stop-opacity="0"/></linearGradient></defs>
+    <path d="M16 130 C16 96 30 84 50 84 C70 84 84 96 84 130 Z" fill="url(#fade${fig.hat})"/>
+    <path d="M44 84 L50 98 L56 84" fill="#e8e2d6" opacity=".9"/>
+    <ellipse cx="50" cy="56" rx="20" ry="23" fill="${skin}"/>
+    ${hairs[fig.age]||hairs.mann}
+    ${hats[fig.hat]||""}
+    <circle cx="42" cy="55" r="${mood==="bad"?3.2:2.6}" fill="#1c2a30"/><circle cx="58" cy="55" r="${mood==="bad"?3.2:2.6}" fill="#1c2a30"/>
+    ${brow}${beard}${mouth}
+    <ellipse cx="38" cy="63" rx="4" ry="2.4" fill="#d9a0a0" opacity="${fig.age==="geist"||fig.pale?0:.35}"/><ellipse cx="62" cy="63" rx="4" ry="2.4" fill="#d9a0a0" opacity="${fig.age==="geist"||fig.pale?0:.35}"/>
+  </svg>`;
+}
+const ICON={
+  lantern:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 8 h12 v4 h-12z" fill="currentColor"/><path d="M24 2 a4 4 0 0 1 4 4 h-8 a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="12" width="20" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M24 18 c4 6 4 10 0 14 c-4 -4 -4 -8 0 -14z" fill="#f0b84a"/><rect x="12" y="38" width="24" height="5" rx="2" fill="currentColor"/></svg>`,
+  compass:`<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M24 8 L29 24 L24 40 L19 24 Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M24 8 L29 24 L19 24 Z" fill="#c86a4e"/><circle cx="24" cy="24" r="2.5" fill="currentColor"/></svg>`,
+  sound:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8c1.5 1.2 1.5 6.8 0 8M18.5 5.5c3 3 3 10 0 13" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`,
+  mute:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  book:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-4a2 2 0 0 0-2 2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>`,
+  star:(on)=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${on?"var(--lamp)":"none"}" stroke="var(--lamp)" stroke-width="1.5"/></svg>`
+};
+
+// ---------- Pool ----------
+function poolFor(m){return POOL.filter(q=>q.m===m)}
+function newCount(m){const seen=new Set(DB.seen[m]);return poolFor(m).filter(q=>!seen.has(q.id)).length}
+function draw(m,chs,code){
+  const notes=[]; const seen=new Set(code?[]:DB.seen[m]); const out=[];
+  chs.forEach(c=>{
+    const items=POOL.filter(q=>q.m===m&&q.ch===c); const n=Math.min(PER[m],items.length);
+    let fresh=shuffle(items.filter(q=>!seen.has(q.id)));
+    if(!code&&fresh.length<n){
+      notes.push(c);
+      const rest=shuffle(items.filter(q=>seen.has(q.id)));
+      DB.seen[m]=DB.seen[m].filter(id=>!items.some(q=>q.id===id));
+      fresh=fresh.concat(rest);
+    }
+    fresh.slice(0,n).forEach(q=>out.push(prep(q)));
+  });
+  save();
+  return {qs:out,notes};
+}
+function prep(q){
+  const o=shuffle(q.o?q.o.map((x,i)=>({t:x[0],ok:!!x[1],i})):[]);
+  const b=q.b?{q:q.b.q,o:shuffle(q.b.o.map((x,i)=>({t:x[0],ok:!!x[1],i})))}:null;
+  return {q,o,b,sel:null,bsel:null,num:"",phase:q.k==="rede"?"write":"choose",gone:[],res:null,own:"",chk:[]};
+}
+function drawWrong(m){
+  const ids=new Set(DB.wrong[m]);
+  const items=POOL.filter(q=>q.m===m&&ids.has(q.id));
+  const sel=shuffle(items).slice(0,20).sort((a,b)=>a.ch-b.ch);
+  return sel.map(prep);
+}
+
+// ---------- Ablauf ----------
+function startGame(kind){
+  kind=kind||"normal";
+  const m=S.mode; let chs=S.chs.slice().sort((a,b)=>a-b);
+  const code=kind==="normal"?S.code.trim().toUpperCase():"";
+  RNG=code?mulberry32(hashStr(code+"|"+m+"|"+chs.join(","))):Math.random;
+  let d;
+  if(kind==="fehler"){const qs=drawWrong(m); if(!qs.length)return; chs=[...new Set(qs.map(x=>x.q.ch))]; d={qs,notes:[]};}
+  else { if(!chs.length)return; d=draw(m,chs,code); }
+  G={mode:m,kind,code,team:S.team.trim()||"Team Nebel",chs,qs:d.qs,notes:d.notes,i:0,step:"prolog",lanterns:m==="a"?3:0,used:0,fog:15,score:0,max:0,chRes:{},second:{},fixedNow:0};
+  G.max=G.qs.reduce((s,x)=>s+maxPts(x),0);
+  DB.lastMode=m;DB.lastTeam=S.team;save();
+  render(); window.scrollTo(0,0);
+}
+function maxPts(x){return x.q.k==="mcb"?15:10}
+function cur(){return G.qs[G.i]}
+function chOf(n){return CHAPTERS[n-1]}
+function wrongCount(){return G.qs.filter(x=>x.res&&x.res!=="ok").length}
+function updFog(){const total=G.qs.length;const w=G.qs.reduce((s,x)=>s+(x.res==="no"?1:x.res==="half"?0.5:0),0);G.fog=Math.min(100,Math.round(15+w*(85/(total*0.5))))}
+
+function render(){
+  if(!G){renderStart();return}
+  if(G.step==="prolog")return renderProlog();
+  if(G.step==="intro")return renderIntro();
+  if(G.step==="q")return renderQ();
+  if(G.step==="page")return renderPage();
+  if(G.step==="follow")return renderFollow();
+  if(G.step==="end")return renderEnd();
+}
+
+function topBar(){
+  return `<div class="topbtns"><span class="eyebrow">LF 10 · Nebel über Bremerhaven</span>
+  <button class="icon-btn" id="snd" aria-pressed="${DB.sound}">${DB.sound?ICON.sound:ICON.mute}<span>Klang ${DB.sound?"an":"aus"}</span></button></div>`;
+}
+function bindTop(){const b=$("#snd");if(b)b.onclick=toggleSound}
+
+function renderStart(){
+  const na=newCount("a"),pa=poolFor("a").length,np=newCount("p"),pp=poolFor("p").length;
+  app.innerHTML=`${topBar()}
+  <div class="scene">${scene(35,{ghost:.35})}</div>
+  <div class="panel appear">
+    <h1>Nebel über Bremerhaven</h1>
+    <p class="story">Spätschicht bei der Nordstadt-Kauf GmbH. Von der Weser zieht Nebel herein. Hier stand 1926 der Laden von Kaufmann <em>Hinrich Behrens</em> – bis man ihn vor allen Kunden als Dieb beschimpfte. Heute Nacht kommt er zurück. Nur wer in besonderen Verkaufssituationen richtig handelt, lichtet den Nebel.</p>
+    <p class="muted">Lernfeld 10 · Module 1–10 · Spielt zu zweit an einem Handy.</p>
+  </div>
+  <div class="panel">
+    <label class="lab" for="team">Euer Teamname</label>
+    <input id="team" type="text" maxlength="28" placeholder="z. B. Die Leuchtturmwärter" value="${esc(S.team)}">
+    <div class="lab">Wie mutig seid ihr?</div>
+    <div class="modes">
+      <button class="mode" data-m="a" aria-pressed="${S.mode==="a"}">${ICON.lantern}<b>Anfänger</b><small>2 Fragen pro Kapitel, Wortspeicher, 3 Laternen als Joker. Etwa 25–30 Minuten.</small>
+        <span class="bar" title="neu"><i style="width:${Math.round(na/pa*100)}%"></i></span><small>Neu für euch: ${na} von ${pa} Fragen</small></button>
+      <button class="mode" data-m="p" aria-pressed="${S.mode==="p"}">${ICON.compass}<b>Profi</b><small>3 Fragen pro Kapitel. Entscheidung <i>und</i> Begründung, Paragrafen, Rechnen. Etwa 40 Minuten.</small>
+        <span class="bar"><i style="width:${Math.round(np/pp*100)}%"></i></span><small>Neu für euch: ${np} von ${pp} Fragen</small></button>
+    </div>
+    <div class="lab">Welche Module hattet ihr schon? <span class="muted" style="font-weight:400">(Kapitel = Modul)</span></div>
+    <div class="chips">${CHAPTERS.map(c=>`<button class="chip" data-c="${c.n}" aria-pressed="${S.chs.includes(c.n)}" title="${esc(c.modul)}">${c.n}</button>`).join("")}</div>
+    <div class="row"><button class="btn ghost small" id="all">Alle</button><button class="btn ghost small" id="none">Keine</button><span class="muted grow" style="font-size:.9rem">${S.chs.length} Kapitel gewählt</span></div>
+    <details ${S.code?"open":""}><summary>Klassen-Code (für einen fairen Vergleich)</summary>
+      <p style="margin-top:6px;font-size:.92rem">Alle Teams geben denselben Code ein, wählen denselben Modus und dieselben Kapitel – dann bekommen alle dieselben Fragen. Ohne Code zieht das Spiel Fragen, die ihr noch nicht hattet.</p>
+      <div class="row" style="margin-top:8px"><input id="code" type="text" maxlength="16" placeholder="z. B. NEBEL1010" value="${esc(S.code)}" style="flex:1 1 160px;text-transform:uppercase"><button class="btn ghost small" id="today">Tagescode</button>${S.code?`<button class="btn ghost small" id="nocode">Ohne Code</button>`:""}</div>
+    </details>
+    <button class="btn" id="go" ${S.chs.length?"":"disabled"}>Schicht beginnen${S.code.trim()?" · Code "+esc(S.code.trim().toUpperCase()):""}</button>
+    ${DB.wrong[S.mode].length?`<button class="btn ghost" id="fehler">Fehler-Nacht: ${Math.min(20,DB.wrong[S.mode].length)} Fragen, die ihr falsch hattet (${S.mode==="a"?"Anfänger":"Profi"})</button>`:""}
+    ${DB.best.a||DB.best.p?`<p class="muted" style="font-size:.9rem">Rekord auf diesem Gerät: Anfänger ${DB.best.a} % · Profi ${DB.best.p} %</p>`:""}
+  </div>
+  <details><summary>Fortschritt und Speichern</summary>
+    <p style="margin-top:8px;font-size:.92rem">Welche Fragen ihr schon hattet, merkt sich nur dieses Gerät. Erst wenn alle Fragen eines Kapitels dran waren, kommen sie gemischt wieder.</p>
+    ${storeOK?"":`<p class="notice">Dieser Browser speichert gerade nichts (z. B. privates Fenster). Das Spiel läuft trotzdem, nur ohne Gedächtnis.</p>`}
+    <div class="row" style="margin-top:8px">${S.confirmReset?`<span>Wirklich alles zurücksetzen?</span><button class="btn small" id="resY">Ja, zurücksetzen</button><button class="btn ghost small" id="resN">Abbrechen</button>`:`<button class="btn ghost small" id="res">Fortschritt zurücksetzen</button>`}</div>
+  </details>`;
+  bindTop();
+  $("#team").oninput=e=>{S.team=e.target.value};
+  app.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;render()});
+  app.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{const n=+b.dataset.c;S.chs=S.chs.includes(n)?S.chs.filter(x=>x!==n):S.chs.concat(n);render()});
+  $("#all").onclick=()=>{S.chs=[1,2,3,4,5,6,7,8,9,10];render()};
+  $("#none").onclick=()=>{S.chs=[];render()};
+  $("#go").onclick=()=>startGame("normal");
+  $("#code").oninput=e=>{S.code=e.target.value;const g=$("#go");g.textContent="Schicht beginnen"+(S.code.trim()?" · Code "+S.code.trim().toUpperCase():"")};
+  $("#today").onclick=()=>{const t=new Date();S.code="NEBEL"+String(t.getDate()).padStart(2,"0")+String(t.getMonth()+1).padStart(2,"0");render()};
+  const nc=$("#nocode");if(nc)nc.onclick=()=>{S.code="";render()};
+  const fe=$("#fehler");if(fe)fe.onclick=()=>startGame("fehler");
+  const r=$("#res");if(r)r.onclick=()=>{S.confirmReset=true;render()};
+  const y=$("#resY");if(y)y.onclick=()=>{DB.seen={a:[],p:[]};DB.best={a:0,p:0};save();S.confirmReset=false;render()};
+  const n=$("#resN");if(n)n.onclick=()=>{S.confirmReset=false;render()};
+}
+
+function hud(){
+  const ch=chOf(cur()?cur().q.ch:G.chs[G.chs.length-1]);
+  return `<div class="panel" style="gap:8px">
+   <div class="hud"><span><b>Kapitel ${ch.n}</b> · ${esc(ch.modul)}</span><span class="muted" style="font-variant-numeric:tabular-nums">Frage ${Math.min(G.i+1,G.qs.length)}/${G.qs.length}</span>
+   <div class="fog" title="Nebel"><i style="width:${G.fog}%"></i></div><span class="muted">Nebel ${G.fog} %</span></div>
+   <div class="letters" aria-label="Gefundene Buchstaben">${letterSpans()}</div>
+  </div>`;
+}
+function letterSpans(){
+  return CHAPTERS.map(c=>{const r=G.chRes[c.n]; if(!G.chs.includes(c.n))return `<span title="nicht gespielt">·</span>`;
+    if(!r)return `<span>?</span>`; return `<span class="${r==="clear"?"clear":"misty"}">${LETTERS[c.n-1]}</span>`}).join("");
+}
+
+function renderProlog(){
+  app.innerHTML=`${topBar()}<div class="scene">${scene(30,{ghost:.2})}</div>
+  <div class="panel appear"><span class="eyebrow">Prolog · Donnerstag im November, 19:41 Uhr</span>
+  <h2>Die Geschichte von Hinrich Behrens</h2>
+  <p class="story">Ihr habt Spätschicht bei der Nordstadt-Kauf GmbH in Bremerhaven. Draußen frisst der Nebel die Straßenlaternen. Beim Kaffee erzählt Kollegin Frau Ehlers:</p>
+  <p class="story">„Hier stand früher der Kolonialwarenladen von Hinrich Behrens. Im November 1926 fehlte Geld aus der Kasse. Reeder Lührs hat Behrens vor allen Kunden als Dieb beschimpft. Keiner hat nachgefragt. In derselben Nacht ist Behrens im Hafennebel verschwunden. Die Alten sagen: Wenn hier jemand Kunden falsch behandelt, kommt der <em>Nebelkaufmann</em> zurück.“</p>
+  <p class="story">Ihr lacht. Dann flackert das Licht. Die Uhr über der Kasse bleibt stehen: <b>19:55</b>. Und die Tür geht auf.</p>
+  ${G.notes.length?`<p class="notice">Alle Fragen aus Kapitel ${G.notes.join(", ")} hattet ihr schon. Jetzt geht es dort von vorn los, gemischt.</p>`:""}
+  ${G.kind==="fehler"?`<p class="notice">Fehler-Nacht: Heute kommen nur Fragen, die ihr auf diesem Handy schon einmal falsch hattet. Jede richtige Antwort streicht die Frage von eurer Fehlerliste.</p>`:""}
+  ${G.code?`<p class="notice">Klassen-Code <b>${esc(G.code)}</b>: Alle Teams mit diesem Code bekommen dieselben Fragen.</p>`:""}
+  ${G.kind!=="fehler"?`<p class="muted" style="font-size:.92rem">Achtung: Wer in einem Kapitel danebenliegt, dem folgt die Figur aus dem Nebel. Dann gibt es eine zweite Chance.</p>`:""}
+  <p class="muted" style="font-size:.92rem">So geht es: Lest die Situation, wählt eine Antwort, dann „Entscheidung festlegen“. Für jedes Kapitel gibt es einen Buchstaben aus Behrens’ altem Kassenbuch. Jeder Fehler lässt den Nebel steigen.${G.mode==="a"?" Die Laterne blendet eine falsche Antwort aus, kostet aber 3 Punkte.":" Im Profi-Modus zählt eine Entscheidung erst ganz, wenn auch die Begründung stimmt."}</p>
+  <button class="btn" id="nx">In die Nacht</button></div>`;
+  bindTop(); $("#nx").onclick=()=>{G.step="intro";render();window.scrollTo(0,0)};
+}
+
+function renderIntro(){
+  const ch=chOf(cur().q.ch);
+  app.innerHTML=`${topBar()}<div class="scene">${scene(G.fog)}</div>${hud()}
+  <div class="panel appear"><span class="eyebrow">Kapitel ${ch.n} · Modul ${ch.n}: ${esc(ch.modul)}</span>
+  <h2>${esc(ch.title)}</h2>
+  <div class="who">${persona(ch.fig,"neutral")}<p class="story">${esc(ch.intro)}</p></div>
+  <button class="btn" id="nx">Weiter</button></div>`;
+  bindTop(); $("#nx").onclick=()=>{G.step="q";render();window.scrollTo(0,0)};
+}
+
+function optHTML(list,sel,phase,gone,which){
+  const L="ABCD";
+  return `<div class="opts" role="group">${list.map((o,j)=>{
+    let cls=""; const locked=phase!=="choose";
+    if(locked){ if(o.ok)cls="right"; else if(sel===j)cls="wrong"; }
+    if(gone.includes(j))cls+=" gone";
+    return `<button class="opt ${cls}" data-w="${which}" data-j="${j}" aria-pressed="${sel===j}" ${locked||gone.includes(j)?"disabled":""}><span class="k">${L[j]}</span><span>${esc(o.t)}</span></button>`}).join("")}</div>`;
+}
+
+function renderQ(){
+  const x=cur(), q=x.q, ch=chOf(q.ch); const A=G.mode==="a";
+  const mood=x.phase==="done"?(x.res==="ok"?"good":"bad"):"neutral";
+  let body="";
+  const kindLabel=q.k==="rede"?"Wörtliche Rede":q.k==="mcb"?"Entscheidung + Begründung":q.k==="num"?"Rechnen":"Entscheidung";
+  body+=`<div class="who">${persona(ch.fig,mood)}<div class="bubble"><div class="name">Die Situation</div><p>${esc(q.s)}</p></div></div>`;
+  body=(x.follow?`<span class="eyebrow" style="color:var(--brick)">Folge eurer Entscheidung · zweite Chance</span>`:"")+body;
+  body+=`<span class="eyebrow">${kindLabel}</span><p class="q">${x.phase==="write"?"Was sagt ihr?":esc(q.q)}</p>`;
+  if(x.phase==="write"){
+    body+=`<label class="lab" for="own">Schreibt zuerst eure eigene Antwort – so, wie ihr es sagen würdet. Danach wählt ihr aus vier Mustern.</label>
+    <textarea id="own" rows="4" style="width:100%;font:inherit;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink)" placeholder="„…“">${esc(x.own)}</textarea>
+    <p class="muted" style="font-size:.88rem">${A?"Tipp: Wortspeicher unten. Ihr könnt auch ohne Schreiben weitermachen.":"Im Profi-Modus mindestens ein ganzer Satz."}</p>`;
+  } else if(q.k==="num"){
+    const locked=x.phase!=="choose";
+    body+=`<label class="lab" for="numin">Ergebnis in ${esc(q.unit)}</label><input id="numin" class="num" inputmode="decimal" autocomplete="off" placeholder="z. B. 12,34" value="${esc(x.num)}" ${locked?"disabled":""}>`;
+  } else {
+    body+=optHTML(x.o,x.sel,x.phase==="choose"?"choose":"locked",x.gone,"o");
+    if(q.k==="mcb"&&x.phase!=="choose"){
+      body+=`<p class="q" style="margin-top:4px">${esc(x.b.q)}</p>`+optHTML(x.b.o,x.bsel,x.phase==="reason"?"choose":"locked",[],"b");
+    }
+  }
+  let actions="";
+  if(x.phase==="write"){
+    actions=`<div class="row">${A?`<button class="btn ghost small" id="skipw">Ohne Schreiben weiter</button>`:""}<span class="grow"></span><button class="btn" id="donew" ${!A&&x.own.trim().length<15?"disabled":""}>Weiter zur Auswahl</button></div>`;
+  } else if(x.phase==="choose"){
+    actions=`<div class="row">${A&&q.k!=="num"?`<button class="btn ghost small" id="lan" ${G.lanterns<1||x.gone.length?"disabled":""}>${ICON.lantern.replace('<svg','<svg style="width:20px;height:20px;vertical-align:-4px"')} Laterne (${G.lanterns})</button>`:""}<span class="grow"></span>
+      <button class="btn" id="lock" ${(q.k==="num"?x.num.trim()==="":x.sel===null)?"disabled":""}>Entscheidung festlegen</button></div>`;
+  } else if(x.phase==="reason"){
+    actions=`<div class="row end"><button class="btn" id="lockb" ${x.bsel===null?"disabled":""}>Begründung festlegen</button></div>`;
+  }
+  let fb="";
+  if(x.phase==="done"){
+    const good=x.res==="ok", half=x.res==="half";
+    const line=pick(good?ch.good:ch.bad);
+    const right=q.k==="num"?`${q.rw}`:x.o.find(o=>o.ok).t;
+    fb=`<div class="feedback ${good?"good":"badf"} appear">
+      <div class="verdict ${good?"good":"badf"}">${good?"Richtig.":half?"Halb richtig.":"Nicht ganz."}</div>
+      <p class="react">${esc(line)}</p>
+      ${!good?`<p><b>${q.k==="num"?"Rechenweg":"Richtig ist"}:</b> <span class="${q.k==="num"?"rechen":""}">${esc(right)}</span></p>`:""}
+      ${good&&q.k==="num"?`<p class="rechen">${esc(q.rw)}</p>`:""}
+      ${q.k==="mcb"&&x.res!=="ok"?`<p><b>Begründung:</b> ${esc(x.b.o.find(o=>o.ok).t)}</p>`:""}
+      ${x.follow?`<p><b>${good?`Zweite Chance genutzt: Der Buchstabe ${LETTERS[q.ch-1]} ist jetzt klar.`:`Der Buchstabe ${LETTERS[q.ch-1]} bleibt im Nebel.`}</b></p>`:""}
+      <div class="term"><span class="t">Fachbegriff · ${esc(q.term)}</span><span><b>So steht es in der Prüfung:</b> ${esc(q.ihk)}</span></div>
+      ${x.own.trim()?`<div class="bubble" style="margin-left:0"><div class="name">Eure eigene Antwort</div><p>${esc(x.own)}</p>
+        <p style="margin-top:8px;font-size:.92rem"><b>Vergleicht mit dem Muster oben. Habt ihr …</b></p>
+        ${["in wörtlicher Rede geschrieben (so, wie man es sagt)?","einen Grund genannt oder eine Lösung angeboten?","freundlich formuliert – ohne Vorwurf und ohne Belehrung?"].map((t,k)=>`<label style="display:flex;gap:8px;align-items:flex-start;margin-top:6px"><input type="checkbox" class="chk" data-k="${k}" ${x.chk.includes(k)?"checked":""} style="width:22px;height:22px;flex:none">${t}</label>`).join("")}</div>`:""}
+      <button class="btn" id="nx">Weiter</button></div>`;
+  }
+  const words=A?`<details><summary>${ICON.book.replace('<svg','<svg style="width:18px;height:18px;vertical-align:-3px"')} Wortspeicher</summary><p style="margin-top:6px;font-size:.95rem">${esc(ch.words)}</p></details>`:"";
+  app.innerHTML=`${topBar()}<div class="scene">${scene(G.fog)}</div>${hud()}
+   <div class="panel">${body}${actions}</div>${fb}${words}
+   <div class="row">${G.confirmQuit?`<span class="muted">Schicht wirklich abbrechen?</span><button class="btn small" id="qy">Ja</button><button class="btn ghost small" id="qn">Nein</button>`:`<button class="btn ghost small" id="quit">Schicht abbrechen</button>`}</div>`;
+  bindTop();
+  app.querySelectorAll('.opt[data-w="o"]').forEach(b=>b.onclick=()=>{x.sel=+b.dataset.j;render()});
+  app.querySelectorAll('.opt[data-w="b"]').forEach(b=>b.onclick=()=>{x.bsel=+b.dataset.j;render()});
+  const ni=$("#numin"); if(ni){ni.oninput=e=>{x.num=e.target.value;const l=$("#lock");if(l)l.disabled=x.num.trim()===""}; ni.onkeydown=e=>{if(e.key==="Enter"&&x.num.trim())lockMain()}}
+  const lan=$("#lan"); if(lan)lan.onclick=()=>{const wrong=x.o.map((o,j)=>o.ok?-1:j).filter(j=>j>=0&&j!==x.sel);if(!wrong.length)return;x.gone=[pick(wrong)];G.lanterns--;G.used++;render()};
+  const ow=$("#own"); if(ow)ow.oninput=e=>{x.own=e.target.value;const d=$("#donew");if(d&&!A)d.disabled=x.own.trim().length<15};
+  const dw=$("#donew"); if(dw)dw.onclick=()=>{x.phase="choose";render()};
+  const sw=$("#skipw"); if(sw)sw.onclick=()=>{x.own="";x.phase="choose";render()};
+  app.querySelectorAll(".chk").forEach(c=>c.onchange=()=>{const k=+c.dataset.k;x.chk=c.checked?[...new Set(x.chk.concat(k))]:x.chk.filter(v=>v!==k)});
+  const lk=$("#lock"); if(lk)lk.onclick=lockMain;
+  const lb=$("#lockb"); if(lb)lb.onclick=()=>{x.phase="done";finish(x)};
+  const nx=$("#nx"); if(nx){nx.onclick=next; setTimeout(()=>nx.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"}),60)}
+  const qu=$("#quit"); if(qu)qu.onclick=()=>{G.confirmQuit=true;render()};
+  const qy=$("#qy"); if(qy)qy.onclick=()=>{G=null;render();window.scrollTo(0,0)};
+  const qn=$("#qn"); if(qn)qn.onclick=()=>{G.confirmQuit=false;render()};
+}
+function parseNum(s){s=String(s).replace(/€|\s/g,"");if(/,/.test(s)){s=s.replace(/\./g,"").replace(",",".")}const v=parseFloat(s);return isNaN(v)?null:v}
+function lockMain(){
+  const x=cur();
+  if(x.q.k==="mcb"){x.phase="reason";render();return}
+  x.phase="done";finish(x);
+}
+function finish(x){
+  const q=x.q; let pts=0;
+  if(q.k==="num"){const v=parseNum(x.num);x.res=(v!==null&&Math.abs(v-q.ans)<0.011)?"ok":"no";pts=x.res==="ok"?10:0}
+  else if(q.k==="mcb"){const a=x.o[x.sel].ok,b=x.b.o[x.bsel].ok;x.res=a&&b?"ok":a?"half":"no";pts=a&&b?15:a?5:0}
+  else{x.res=x.o[x.sel].ok?"ok":"no";pts=x.res==="ok"?10:0}
+  if(x.gone.length)pts=Math.max(0,pts-3);
+  x.pts=pts;G.score+=pts;
+  if(!G.code&&!DB.seen[G.mode].includes(q.id))DB.seen[G.mode].push(q.id);
+  const wl=DB.wrong[G.mode];
+  if(x.res==="ok"){ if(wl.includes(q.id)){DB.wrong[G.mode]=wl.filter(id=>id!==q.id);DB.fixed++;G.fixedNow++;} }
+  else if(!wl.includes(q.id)) wl.push(q.id);
+  if(x.follow&&x.res==="ok")G.chRes[q.ch]="clear";
+  save();
+  updFog(); chime(x.res==="ok"); render();
+}
+function next(){
+  G.confirmQuit=false;
+  const x=cur(); const c=x.q.ch; const nextQ=G.qs[G.i+1];
+  if(x.follow){advance();return}
+  if(!nextQ||nextQ.q.ch!==c){
+    const items=G.qs.filter(y=>y.q.ch===c&&!y.follow); G.chRes[c]=items.every(y=>y.res==="ok")?"clear":"misty";
+    G.step="page"; render(); window.scrollTo(0,0); return;
+  }
+  G.i++; render(); window.scrollTo(0,0);
+}
+function renderPage(){
+  const x=cur(); const ch=chOf(x.q.ch); const clear=G.chRes[ch.n]==="clear";
+  app.innerHTML=`${topBar()}<div class="scene">${scene(G.fog)}</div>${hud()}
+  <div class="panel appear"><span class="eyebrow">Spur gefunden · Kapitel ${ch.n}</span>
+   <div class="ledger"><div class="date">Kassenbuch H. Behrens · Seite ${ch.n}</div>
+    <div class="row" style="align-items:flex-start;gap:14px;flex-wrap:nowrap"><span class="big" style="${clear?"":"opacity:.35;filter:blur(1px)"}">${LETTERS[ch.n-1]}</span><p style="min-width:0">${esc(ch.page)}</p></div></div>
+   <p>${clear?"Alle Entscheidungen in diesem Kapitel waren richtig. Der Buchstabe ist klar zu lesen.":"Einige Entscheidungen waren nicht richtig. Der Buchstabe ist im Nebel nur schwach zu erkennen."}</p>
+   <button class="btn" id="nx">${!clear&&G.kind!=="fehler"&&!G.second[ch.n]?"Weiter":G.i+1<G.qs.length?"Nächstes Kapitel":"Zum Ende der Nacht"}</button></div>`;
+  bindTop();
+  $("#nx").onclick=()=>{
+    const c=ch.n;
+    if(!clear&&G.kind!=="fehler"&&!G.second[c]){
+      G.second[c]=1;
+      const used=new Set(G.qs.map(y=>y.q.id)); const seen=new Set(G.code?[]:DB.seen[G.mode]);
+      const cand=POOL.filter(q=>q.m===G.mode&&q.ch===c&&!used.has(q.id));
+      const fresh=cand.filter(q=>!seen.has(q.id));
+      const list=shuffle(fresh.length?fresh:cand);
+      if(list.length){const f=prep(list[0]);f.follow=c;G.qs.splice(G.i+1,0,f);G.max+=maxPts(f);G.i++;G.step="follow";render();window.scrollTo(0,0);return}
+    }
+    advance();
+  };
+}
+function advance(){
+  if(G.i+1<G.qs.length){G.i++;G.step="intro"}
+  else{G.step="end";const pct=Math.round(G.score/G.max*100);if(G.kind==="normal"&&!G.code&&pct>(DB.best[G.mode]||0))DB.best[G.mode]=pct;DB.nights++;save()}
+  render();window.scrollTo(0,0);
+}
+function renderFollow(){
+  const x=cur(); const ch=chOf(x.q.ch);
+  app.innerHTML=`${topBar()}<div class="scene">${scene(G.fog)}</div>${hud()}
+  <div class="panel appear"><span class="eyebrow" style="color:var(--brick)">Folge eurer Entscheidung</span>
+  <h2>${esc(ch.who)} kommt zurück</h2>
+  <div class="who">${persona(ch.fig,"bad")}<p class="story">${esc(FOLLOW[ch.n])} Wenn ihr jetzt richtig entscheidet, wird der Buchstabe <b>${LETTERS[ch.n-1]}</b> klar.</p></div>
+  <button class="btn" id="nx">Zweite Chance</button></div>`;
+  bindTop(); $("#nx").onclick=()=>{G.step="q";render();window.scrollTo(0,0)};
+}
+
+function renderEnd(){
+  const pct=Math.round(G.score/G.max*100);
+  const ok=G.qs.filter(x=>x.res==="ok").length, tot=G.qs.length;
+  const ratio=ok/tot; const full=G.chs.length===10;
+  const stars=pct>=85?3:pct>=60?2:pct>=35?1:0;
+  const clears=G.chs.filter(c=>G.chRes[c]==="clear").length;
+  let title,story,dawn=false,fogEnd=G.fog;
+  if(ratio>=0.8){dawn=true;fogEnd=5;title="Der Nebel lichtet sich";
+    story=full?`Die Uhr springt auf 20:00. Der Nebel zieht sich zur Weser zurück. Ihr lest die Buchstaben: <b>LEUCHTTURM</b>. Am Simon-Loschen-Leuchtturm, in der Kammer unter der Laterne, liegt ein vergilbter Zettel: <em>„Quittung. Eine Geldkassette, verwahrt für H. Behrens, 12.11.1926. Jansen, Leuchtturmwärter.“</em> Behrens hat nie etwas gestohlen. Er hat das Geld nur vor dem Sturm in Sicherheit gebracht. Hinter euch steht er, die Laterne in der Hand. „Ihr habt heute getan, was damals niemand für mich getan hat: zuhören, ruhig bleiben, nachfragen, niemanden bloßstellen. Jetzt kann ich gehen.“ Dann ist er fort. Frau Ehlers schaut euch an: „Ihr seht aus, als hättet ihr ein Gespenst gesehen.“`
+    :`Der Nebel wird dünner. Behrens nickt euch zu. „Gut gemacht. Aber mein Kassenbuch hat noch mehr Seiten. Kommt wieder, wenn ihr die anderen Kapitel gelernt habt.“`;}
+  else if(ratio>=0.5){title="Der Nebel wird dünner";fogEnd=Math.min(G.fog,50);
+    story=`Die Uhr tickt – einmal, zweimal – und bleibt dann wieder stehen. Ein paar Buchstaben sind klar, andere verschwimmen. Behrens steht im Nebel an der Kasse. „Fast. Ihr seid auf dem richtigen Weg. Aber einige Seiten meines Kassenbuchs sind noch nass vom Nebel.“ Er tippt an seine Melone. „Morgen Nacht bin ich wieder hier.“`;}
+  else {title="Der Nebel bleibt";
+    story=`Die Uhr zeigt immer noch 19:55. Draußen ist nichts mehr zu sehen, nicht einmal der Leuchtturm. Aus dem Nebel flüstert eine Stimme: „Erst der Mensch, dann die Sache. Ruhig bleiben, nachfragen, nicht bloßstellen …“ Die Tür klingelt. Der Nebelkaufmann wartet auf euch. Traut ihr euch noch einmal?`;}
+  const word=CHAPTERS.map(c=>{const r=G.chRes[c.n];return `<span class="${r==="clear"?"":"misty"}">${G.chs.includes(c.n)?LETTERS[c.n-1]:"_"}</span>`}).join("");
+  const review=G.qs.map((x,k)=>{const q=x.q;const mk=x.res==="ok"?"✓":x.res==="half"?"~":"✗";
+    const your=q.k==="num"?(x.num+" "+q.unit):x.o[x.sel].t;
+    const right=q.k==="num"?q.rw:x.o.find(o=>o.ok).t;
+    return `<div class="rv ${x.res==="ok"?"ok":x.res==="half"?"half":"no"}"><span class="mk">${mk} Kapitel ${q.ch}${x.follow?" · zweite Chance":""} · ${esc(q.q)}</span>
+      <span class="muted">${esc(q.s)}</span>
+      <span><b>Eure Antwort:</b> ${esc(your)}${q.k==="mcb"?` – <i>${esc(x.b.o[x.bsel].t)}</i>`:""}</span>
+      ${x.res!=="ok"?`<span><b>Besser:</b> ${esc(right)}${q.k==="mcb"?` – <i>${esc(x.b.o.find(o=>o.ok).t)}</i>`:""}</span>`:""}
+      ${x.own.trim()?`<span><b>Selbst formuliert:</b> ${esc(x.own)}</span>`:""}
+      <span><b>Warum:</b> ${esc(q.why)}</span>
+      <span class="ihk"><b>So steht es in der Prüfung:</b> ${esc(q.ihk)}</span></div>`}).join("");
+  app.innerHTML=`${topBar()}<div class="scene">${scene(fogEnd,{dawn,ghost:dawn?0:.6})}</div>
+  <div class="panel appear"><span class="eyebrow">Ende der Nacht</span><h2>${title}</h2><p class="story">${story}</p>
+   <div class="word" aria-label="Lösungswort">${word}</div></div>
+  <div class="card"><span class="eyebrow">Punktekarte · zum Vorzeigen</span>
+   <h3>${esc(G.team)}</h3><span class="muted">${G.mode==="a"?"Anfänger":"Profi"}${G.kind==="fehler"?" · Fehler-Nacht":""}${G.code?" · Code "+esc(G.code):""} · Kapitel ${G.chs.join(", ")}</span>
+   <div class="stars">${[0,1,2].map(i=>ICON.star(i<stars)).join("")}</div>
+   <div class="kpis"><div><b>${G.score}/${G.max}</b>Punkte</div><div><b>${ok}/${tot}</b>ganz richtig</div><div><b>${clears}/${G.chs.length}</b>klare Buchstaben</div></div>
+   ${G.used?`<span class="muted" style="font-size:.9rem">Laternen benutzt: ${G.used}</span>`:""}
+   ${G.fixedNow?`<span style="font-size:.95rem"><b>${G.fixedNow}</b> alte Fehler ausgebügelt. Auf der Fehlerliste stehen noch ${DB.wrong[G.mode].length}.</span>`:""}
+   <span class="muted" style="font-size:.9rem">${pct} %${G.kind==="normal"&&!G.code?" · Rekord auf diesem Gerät: "+DB.best[G.mode]+" %":""}</span></div>
+  <div class="panel"><h3>Eure Entscheidungen</h3><div class="review">${review}</div></div>
+  <div class="panel"><h3>Noch eine Nacht?</h3>
+   <p class="muted" style="font-size:.95rem">${G.code?"Mit demselben Code kommen dieselben Fragen. ":"Beim nächsten Mal kommen zuerst Fragen, die ihr noch nicht hattet. "}Falsche Antworten landen auf eurer Fehlerliste – dafür gibt es auf der Startseite die Fehler-Nacht.</p>
+   <div class="row"><button class="btn" id="again">Noch eine Nacht (${G.mode==="a"?"Anfänger":"Profi"})</button><button class="btn ghost" id="other">${G.mode==="a"?"Jetzt als Profi":"Jetzt als Anfänger"}</button><button class="btn ghost" id="home">Startseite</button></div></div>`;
+  bindTop();
+  $("#again").onclick=()=>{S.mode=G.mode;if(G.kind==="normal")S.chs=G.chs;startGame(G.kind==="fehler"&&DB.wrong[G.mode].length?"fehler":"normal")};
+  $("#other").onclick=()=>{S.mode=G.mode==="a"?"p":"a";if(G.kind==="normal")S.chs=G.chs;startGame("normal")};
+  $("#home").onclick=()=>{G=null;render();window.scrollTo(0,0)};
+}
+
+// Test-Hilfe (nur für automatische Prüfung)
+window.__nebel={get G(){return G},get DB(){return DB},POOL,CHAPTERS};
+render();
+})();
+</script>
+
+</body>
+</html>

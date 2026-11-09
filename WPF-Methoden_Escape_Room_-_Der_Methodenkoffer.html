@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escape Room – Der Methodenkoffer</title>
+<style>
+:root{--blau:#1F4E79;--hell:#EAF1F8;--rosa:#E5B8B7;--gruen:#2E6B45;--rot:#C00000;--grau:#F2F2F2}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}
+header{background:var(--blau);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header h1{font-size:20px;margin:0}#uhr{font-size:22px;font-weight:bold;font-variant-numeric:tabular-nums}
+main{max-width:980px;margin:0 auto;padding:16px}
+.story{background:var(--hell);border-left:5px solid var(--blau);padding:12px 16px;border-radius:4px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin:18px 0}
+.tile{border:2px solid var(--blau);border-radius:8px;padding:14px;cursor:pointer;background:#fff;min-height:110px;position:relative}
+.tile:hover{background:var(--hell)}.tile h3{margin:0 0 4px;color:var(--blau)}.tile small{color:#595959}
+.tile.done{border-color:var(--gruen);background:#E2EFDA}.badge{position:absolute;right:12px;top:10px;font-size:30px;font-weight:bold;color:var(--gruen)}
+.station{display:none;border:2px solid var(--blau);border-radius:8px;padding:16px;margin-top:10px}
+.q{margin:12px 0;padding:10px;border-radius:6px;background:var(--grau)}.q.ok{background:#E2EFDA}.q.bad{background:#F8D7D7}
+.q p{margin:0 0 6px;font-weight:bold}label{display:block;padding:3px 0;cursor:pointer}
+input[type=number],input[type=text]{font-size:18px;padding:6px;width:140px}
+button{background:var(--blau);color:#fff;border:0;border-radius:5px;padding:9px 16px;font-size:15px;cursor:pointer;margin:6px 6px 0 0}
+button.sec{background:#fff;color:var(--blau);border:1px solid var(--blau)}
+.msg{margin-top:10px;font-weight:bold}.tipp{display:none;margin-top:8px;padding:8px;background:#FFF2CC;border-radius:5px}
+#tresor{border:3px dashed #595959;border-radius:10px;padding:16px;text-align:center;margin-top:20px}
+#code{font-size:28px;letter-spacing:8px;width:220px;text-align:center}
+#code-slots{font-size:26px;letter-spacing:10px;margin:6px 0;color:var(--gruen);font-weight:bold}
+#ende{display:none;background:#E2EFDA;border:3px solid var(--gruen);border-radius:10px;padding:18px;margin-top:16px;text-align:center}
+@media print{header{background:#fff;color:#000}}
+</style></head><body>
+<header><h1>Escape Room · Der Methodenkoffer</h1><div>⏱ <span id="uhr">45:00</span></div></header>
+<main>
+<div class="story"><b>Morgen ist Azubi-Messe im Einkaufszentrum.</b> Eure Klasse soll dort zeigen, wie man clever lernt und arbeitet. Alles, was ihr braucht – Moderationskarten, Stifte, Präsentationsmappe –, liegt im Methodenkoffer. Doch der Koffer hat ein Zahlenschloss, und niemand kennt den Code. Auf dem Koffer klebt ein Zettel mit sechs Aufgaben: Jede gelöste Station verrät eine Ziffer. Ihr habt <b>45 Minuten</b>. Tipps gibt es – aber jeder Tipp kostet <b>2 Minuten</b>.</div>
+<div class="grid" id="grid"></div>
+<div class="station" id="station"></div>
+<div id="tresor"><h2>🔒 Der Methodenkoffer</h2><div>Eure Ziffern (Station 1 bis 6):</div><div id="code-slots">_ _ _ _ _ _</div>
+<input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="······"> <button onclick="oeffnen()">Koffer öffnen</button><div class="msg" id="tmsg"></div></div>
+<div id="ende"><h2>🎉 Der Koffer ist offen!</h2><p>Die Azubi-Messe kann kommen. Eure Zeit: <b id="zeit"></b> · Genutzte Tipps: <b id="ntipps"></b></p>
+<p>Zeigt diesen Bildschirm eurer Lehrkraft.</p></div>
+</main>
+<script>
+const ST=[{"t": "Lernen lernen", "m": "Modul 1", "z": 5, "h": "Abrufen schlägt Durchlesen. Die Lernkartei: neue Karten in Fach 1, gewusst → ein Fach weiter, nicht gewusst → zurück in Fach 1.", "f": [["Welche Lernmethode hilft am meisten, damit Wissen im Langzeitgedächtnis bleibt?", ["den Text mehrmals durchlesen", "sich selbst abfragen", "alles bunt markieren", "den Hefter abschreiben"], 1], ["Du weißt die Antwort auf einer Karte aus Fach 3 nicht. Wohin kommt die Karte?", ["zurück in Fach 1", "in Fach 4", "sie bleibt in Fach 3", "in den Müll"], 0], ["„Verteilt lernen“ bedeutet …", ["alles am Abend vor der Klausur lernen", "mehrere kurze Lerneinheiten über mehrere Tage", "nur am Wochenende lernen", "fünf Stunden am Stück lernen"], 1], ["Wie viele Fächer hat die Lernkartei? (Zahl)", null, 5]]}, {"t": "Texte knacken", "m": "Modul 2", "z": 4, "h": "Die fünf Gänge: 1 überfliegen – 2 Fragen stellen – 3 gründlich lesen – 4 Schlüsselwörter markieren und zusammenfassen – 5 wiederholen. „Nennen“ heißt aufzählen ohne Erklärung.", "f": [["Was tust du im ersten Gang der 5-Gang-Lesetechnik?", ["den Text überfliegen", "Schlüsselwörter markieren", "den Text zusammenfassen", "W-Fragen beantworten"], 0], ["Schlüsselwörter sind …", ["alle Fremdwörter im Text", "die wenigen Wörter, die den Sinn eines Absatzes tragen", "alle Überschriften", "alle Zahlen im Text"], 1], ["In der Aufgabe steht „Nennen Sie drei Pflichten“. Was musst du tun?", ["drei Pflichten aufzählen, ohne sie zu erklären", "drei Pflichten ausführlich begründen", "drei Pflichten bewerten", "drei Pflichten vergleichen"], 0], ["In welchem Gang markierst du Schlüsselwörter? (Zahl)", null, 4]]}, {"t": "Ordnen und prüfen", "m": "Module 3 und 4", "z": 8, "h": "Nach dem Brainstorming: Cluster bilden und Oberbegriffe finden. Die vier Prüffragen: Wer liefert die Information? Welches Interesse steckt dahinter? Wie zuverlässig ist die Quelle? Wer ist die Zielgruppe?", "f": [["Was steht bei einer Mindmap in der Mitte?", ["das Thema", "ein Unterbegriff", "das Fazit", "die Quelle"], 0], ["Nach einem Brainstorming liegen 30 Zettel durcheinander. Was tut ihr zuerst?", ["Cluster bilden und Oberbegriffe finden", "sofort präsentieren", "die Hälfte wegwerfen", "alphabetisch sortieren"], 0], ["Ein Online-Shop nennt sein eigenes Handy „Testsieger“. Welche Prüffrage deckt den Haken am schnellsten auf?", ["Wie lang ist der Text?", "Welches Interesse steckt dahinter?", "Hat der Text Bilder?", "Wie viele Likes hat der Beitrag?"], 1], ["Wie viele Prüffragen für Informationen habt ihr gelernt? (Zahl)", null, 4]]}, {"t": "Zeit und Ziele", "m": "Modul 5", "z": 1, "h": "Eisenhower: A = wichtig und dringend (sofort), B = wichtig, nicht dringend (planen), C = dringend, nicht wichtig (abgeben), D = weder noch (weglassen). Zielkreislauf: setzen – planen – umsetzen – überprüfen.", "f": [["Deine Chefin braucht in zehn Minuten die Kassenabrechnung. Die Aufgabe ist wichtig und dringend. Was machst du?", ["sofort selbst erledigen", "einen Termin nächste Woche einplanen", "an jemand anderen abgeben", "weglassen"], 0], ["Wie behandelst du eine Aufgabe, die wichtig, aber nicht dringend ist – z. B. für die Prüfung lernen?", ["sofort alles liegen lassen", "einen festen Termin dafür einplanen", "an andere abgeben", "weglassen"], 1], ["Welches Ziel ist SMART?", ["Ich will besser in WiSo werden.", "Ich lerne mehr.", "Bis zum 28.01. schaffe ich im Selbsttest mindestens 13 von 16 Punkten.", "Irgendwann mache ich die Lernkartei."], 2], ["Wie viele Schritte hat der Zielkreislauf? (Zahl)", null, 4]]}, {"t": "Kommunikation und Team", "m": "Module 6 und 7", "z": 7, "h": "Eine Ich-Botschaft hat drei Teile: Beobachtung, Gefühl, Wunsch. Feedback nehmen: zuhören, nicht rechtfertigen, nachfragen, bedanken.", "f": [["Welcher Satz ist eine Ich-Botschaft?", ["Du kommst immer zu spät!", "Wenn du zu spät kommst, muss ich die Kasse allein machen. Das stresst mich. Ich wünsche mir, dass du pünktlich bist.", "Du bist total unzuverlässig.", "Man kommt nicht zu spät."], 1], ["Du bekommst Feedback zu deiner Präsentation. Wie verhältst du dich richtig?", ["sofort widersprechen", "zuhören, nicht rechtfertigen, nachfragen und bedanken", "das Feedback ignorieren", "gleich zurück kritisieren"], 1], ["Was ist die Aufgabe des Zeitwächters im Team?", ["Er baut allein die Kugelbahn.", "Er achtet auf die Uhr und sagt rechtzeitig Bescheid.", "Er schreibt das Protokoll.", "Er bestimmt, wer im Team mitmachen darf."], 1], ["Aus wie vielen Teilen besteht eine vollständige Ich-Botschaft? (Zahl)", null, 3]]}, {"t": "Präsentieren", "m": "Modul 8", "z": 3, "h": "SIE = Situation, Interessen, Einstellungen der Zuhörer. Aufbau: Einstieg – Hauptteil – Schluss. 10-20-30-Regel: höchstens 10 Folien, höchstens 20 Minuten, mindestens 30 pt Schrift.", "f": [["Wofür steht das „I“ in der SIE-Analyse?", ["Information", "Interessen der Zuhörer", "Inhalt der Folien", "Idee des Vortragenden"], 1], ["Welcher Einstieg weckt am ehesten Interesse?", ["„Ich präsentiere jetzt mein Thema.“", "eine überraschende Frage oder ein Gegenstand aus dem Laden", "erst einmal die Gliederung vorlesen", "sich für die Folien entschuldigen"], 1], ["Was macht eine gute Folie aus?", ["viele ganze Sätze", "wenige Stichwörter, große Schrift, ein Bild", "möglichst viele Farben und Effekte", "den ganzen Vortragstext zum Ablesen"], 1], ["Wie groß soll die Schrift auf Folien nach der 10-20-30-Regel mindestens sein? (Zahl in pt)", null, 30]]}];
+let t0=Date.now(),strafe=0,tipps=0,fertig=false;const gel=ST.map(()=>false);
+function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function rest(){return 45*60-Math.floor((Date.now()-t0)/1000)-strafe}
+setInterval(()=>{if(!fertig){document.getElementById('uhr').textContent=fmt(rest())}},500);
+const ORD={};function ord(i,j,n){const key=i+'_'+j;if(!ORD[key]){const a=[...Array(n).keys()];for(let x=n-1;x>0;x--){const y=Math.floor(Math.random()*(x+1));[a[x],a[y]]=[a[y],a[x]]}ORD[key]=a}return ORD[key]}
+function grid(){const g=document.getElementById('grid');g.innerHTML='';ST.forEach((s,i)=>{const d=document.createElement('div');d.className='tile'+(gel[i]?' done':'');
+ d.innerHTML='<h3>Station '+(i+1)+': '+s.t+'</h3><small>'+s.m+'</small>'+(gel[i]?'<div class="badge">'+s.z+'</div>':'');d.onclick=()=>zeige(i);g.appendChild(d)});
+ document.getElementById('code-slots').textContent=ST.map((s,i)=>gel[i]?s.z:'_').join(' ')}
+function zeige(i){const s=ST[i],box=document.getElementById('station');let h='<h2>Station '+(i+1)+': '+s.t+'</h2>';
+ s.f.forEach((q,j)=>{h+='<div class="q" id="q'+i+'_'+j+'"><p>'+(j+1)+'. '+q[0]+'</p>';
+  if(q[1]){ord(i,j,q[1].length).forEach(k=>{h+='<label><input type="radio" name="r'+i+'_'+j+'" value="'+k+'"> '+q[1][k]+'</label>'})}
+  else{h+='<input type="number" id="n'+i+'_'+j+'">'}h+='</div>'});
+ h+='<button onclick="pruefe('+i+')">Prüfen</button><button class="sec" onclick="tipp('+i+')">Tipp (+2 Min.)</button><button class="sec" onclick="zu()">Zurück zur Übersicht</button>';
+ h+='<div class="tipp" id="tipp'+i+'">💡 '+s.h+'</div><div class="msg" id="msg'+i+'"></div>';box.innerHTML=h;box.style.display='block';box.scrollIntoView({behavior:'smooth'})}
+function zu(){document.getElementById('station').style.display='none';window.scrollTo({top:0,behavior:'smooth'})}
+function tipp(i){const e=document.getElementById('tipp'+i);if(e.style.display!=='block'){e.style.display='block';strafe+=120;tipps++}}
+function pruefe(i){const s=ST[i];let ok=0;s.f.forEach((q,j)=>{let a;if(q[1]){const r=document.querySelector('input[name="r'+i+'_'+j+'"]:checked');a=r?parseInt(r.value):-1}
+ else{a=parseFloat((document.getElementById('n'+i+'_'+j).value||'').replace(',','.'))}
+ const r=(a===q[2]);document.getElementById('q'+i+'_'+j).className='q '+(r?'ok':'bad');if(r)ok++});
+ const m=document.getElementById('msg'+i);
+ if(ok===s.f.length){gel[i]=true;m.innerHTML='✅ Alles richtig! Eure Ziffer für das Zahlenschloss: <span style="font-size:28px;color:#2E6B45">'+s.z+'</span>';grid()}
+ else{m.textContent=ok+' von '+s.f.length+' richtig. Die roten Aufgaben noch einmal prüfen – schaut in euren Unterlagen nach.'}}
+function oeffnen(){const c=document.getElementById('code').value.trim();const m=document.getElementById('tmsg');
+ if(c==='548173'){fertig=true;const used=45*60-rest();document.getElementById('zeit').textContent=fmt(used)+' Min. (inkl. Tipps)';document.getElementById('ntipps').textContent=tipps;
+  document.getElementById('ende').style.display='block';m.textContent='';document.getElementById('ende').scrollIntoView({behavior:'smooth'})}
+ else{m.textContent='❌ Der Koffer bleibt zu. Prüft eure Ziffern!';strafe+=30}}
+grid();
+</script></body></html>

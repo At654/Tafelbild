@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Die Verdächtigen-Galerie</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+/* Layout: Ermittlungswand – oben der Fall und der Aufklärungsbalken, darunter die Karteikarten der Verdächtigen, Akte als Overlay. Bewusst dunkel wie Kapitel 1. */
+:root{
+  --nacht:#0f1b2b; --nacht2:#16263b; --linie:#2b4160; --text:#e8eef6; --leise:#9fb3cc;
+  --lampe:#f4d35e; --rot:#e5484d; --gruen:#4fbf8a; --karte:#f7f4ec; --tinte:#1c2530;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif; --body:"Barlow",Arial,Helvetica,sans-serif; --akte:"Courier Prime","Courier New",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{background:var(--nacht);color:var(--text)}
+body{margin:0;font-family:var(--body);font-size:17px;line-height:1.45}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:18px 60px}
+header{border-bottom:1px solid var(--linie);padding-bottom:10px;margin-bottom:16px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.marke{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;color:var(--lampe);text-transform:uppercase}
+.marke small{display:block;font-size:15px;letter-spacing:2px;color:var(--leise);font-weight:600}
+h1,h2{font-family:var(--display);font-weight:800;margin:0 0 8px;text-wrap:balance}
+h1{font-size:32px}h2{font-size:24px}
+p{margin:0 0 10px;max-width:66ch}
+.leise{color:var(--leise)}
+.fall{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end;margin-bottom:14px}
+@media (max-width:640px){.fall{grid-template-columns:1fr}}
+.zahlen{font-family:var(--display);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.zahlen b{color:var(--lampe);font-size:40px}
+.balken{height:26px;background:var(--nacht2);border:1px solid var(--linie);border-radius:6px;overflow:hidden;display:flex;margin:6px 0 18px}
+.balken i{display:block;height:100%;transition:width .5s}
+.wand{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.k{background:var(--karte);color:var(--tinte);border-radius:4px;padding:14px 14px 12px;position:relative;cursor:pointer;border:0;text-align:left;font:inherit;box-shadow:0 3px 0 rgba(0,0,0,.35);min-height:170px;display:flex;flex-direction:column;gap:6px}
+.k:nth-child(odd){transform:rotate(-1.2deg)}.k:nth-child(even){transform:rotate(1deg)}
+.k:focus-visible{outline:3px solid var(--lampe);outline-offset:3px}
+.k .kurz{padding-right:20px}.k .nr{font-family:var(--akte);font-size:13px;color:#6b6457}
+.k .name{font-family:var(--display);font-weight:800;font-size:24px;line-height:1.05;padding-right:58px}
+.k .kurz{font-size:15px}
+.k svg{position:absolute;right:10px;top:10px}
+.stempel{align-self:flex-end;margin-top:auto;font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:1px;text-transform:uppercase;border:3px solid currentColor;padding:2px 8px;transform:rotate(-8deg)}
+.overlay{position:fixed;inset:0;background:rgba(5,10,18,.78);display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}
+.akte{background:var(--karte);color:var(--tinte);max-width:620px;width:100%;border-radius:6px;padding:20px;max-height:92vh;overflow:auto}
+.akte .tipp{font-family:var(--akte);font-size:16px;background:#ebe5d6;padding:10px 12px;border-left:4px solid #b07a2a;margin:8px 0 14px}
+.opts{display:grid;gap:8px}
+.opt{font:inherit;text-align:left;padding:10px 12px;border-radius:6px;border:2px solid #cfc7b5;background:#fff;color:var(--tinte);cursor:pointer;min-height:44px}
+.opt:hover{border-color:#1F4E79}
+.opt.richtig{border-color:#2e8b57;background:#e3f4ea}.opt.falsch{border-color:#c0392b;background:#fbe6e4}
+.rueck{margin-top:12px;font-size:16px}
+.btn{font-family:var(--display);font-weight:800;font-size:20px;background:var(--lampe);color:#1b1500;border:0;border-radius:8px;padding:10px 20px;cursor:pointer;min-height:46px;margin-top:12px}
+.btn.z{background:transparent;color:inherit;border:2px solid currentColor}
+.ende{margin-top:22px}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td,th{border-bottom:1px solid var(--linie);padding:6px 8px;text-align:left;vertical-align:top}
+th{color:var(--leise);font-weight:600}
+.tabwrap{overflow-x:auto}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:14px;color:var(--leise)}
+.leg span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+@media (prefers-reduced-motion:reduce){.balken i{transition:none}.k{transform:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="marke">Die Verdächtigen-Galerie<small>LF 8 · Kapitel 2 · 312 Paar Socken sind weg</small></div><div class="leise" id="fehlerTxt">0 Fehlversuche</div></header>
+<div class="fall">
+  <div><h1>Wer hat die 312 Paar?</h1><p>Soll laut WWS 5.124 Paar, gezählt 4.812 Paar. Öffne jede Akte, lies das Indiz und entscheide, <b>was passiert ist</b>. Jede richtige Lösung klärt einen Teil der 312 Paar auf.</p></div>
+  <div class="zahlen">aufgeklärt <b id="aufgeklaert">0</b> / 312 Paar</div>
+</div>
+<div class="balken" id="balken" aria-label="Aufklärungsbalken"></div>
+<div class="leg"><span style="--c:#e5484d">Kunden</span><span style="--c:#b98ad8">Mitarbeiter</span><span style="--c:#7fb3d5">Lieferanten / Servicekräfte</span><span style="--c:#f4d35e">organisatorische Mängel</span></div>
+<div class="wand" id="wand" style="margin-top:16px"></div>
+<div class="ende" id="ende" hidden></div>
+</div>
+<div class="overlay" id="ov" hidden><div class="akte" role="dialog" aria-modal="true" id="akte"></div></div>
+<script>
+"use strict";
+const GRUPPEN={kunden:["Kunden","#e5484d"],mitarbeiter:["Mitarbeiter","#b98ad8"],lieferanten:["Lieferanten / Servicekräfte","#7fb3d5"],orga:["organisatorische Mängel","#f4d35e"],keine:["unschuldig","#4fbf8a"]};
+const FAELLE=[
+ {id:1,name:"Die Kundin mit dem Riesen-Shopper",kurz:"kommt jeden Samstag, kauft fast nie etwas",ikon:"tasche",paar:140,loes:"kunden",
+  indiz:"Die Kamera zeigt: Dreimal schiebt sie Socken in ihren Shopper und geht ohne zu bezahlen. Frau Petersen schätzt den Ladendiebstahl im ganzen Jahr auf 140 Paar.",
+  erkl:"Ladendiebstahl durch Kunden. Die Ware ist weg, das WWS weiß nichts davon → der Istbestand ist niedriger als der Sollbestand."},
+ {id:2,name:"Malte, der Azubi",kurz:"chaotisch, aber ehrlich",ikon:"azubi",paar:48,loes:"orga",
+  indiz:"Im März hat Malte 48 Paar „Kuschel“ mit Webfehlern an den Hersteller zurückgeschickt. Der Paketschein liegt in der Schublade. Im WWS gibt es keinen Eintrag.",
+  erkl:"Organisatorischer Mangel: Die Rücksendung wurde nicht erfasst. Das Soll ist um 48 Paar zu hoch. Malte hat nichts gestohlen!"},
+ {id:3,name:"Strumpf & Co. – der Lieferant",kurz:"liefert seit Jahren, immer pünktlich",ikon:"karton",paar:40,loes:"lieferanten",
+  indiz:"Lieferschein vom Mai: 200 Paar. Im Karton waren nur 160 Paar. Malte hat ohne Nachzählen 200 Paar ins WWS eingegeben.",
+  erkl:"Der Lieferant hat zu wenig geliefert (Lieferanten / Servicekräfte). Weil niemand nachgezählt hat, ist das Soll um 40 Paar zu hoch. Darum prüft man den Wareneingang genau."},
+ {id:4,name:"Das alte Wasserrohr im Lager",kurz:"tropft seit dem Sommer",ikon:"rohr",paar:60,loes:"orga",
+  indiz:"Im Juli platzt das Rohr. 60 Paar Socken sind nass und schimmlig. Frau Petersen wirft sie weg – ausgebucht hat sie niemand.",
+  erkl:"Verderb, der nicht ausgebucht wurde: ein organisatorischer Mangel. Das Soll ist um 60 Paar zu hoch. Richtig wäre: sofort den Sollbestand im WWS ändern."},
+ {id:5,name:"Jana an der Kasse",kurz:"schnellste Kassiererin der Hafenstraße",ikon:"kasse",paar:24,loes:"orga",
+  indiz:"Der 3er-Pack „Wanderprofi“ hat einen eigenen Strichcode. Jana hat ihn zwölfmal als einzelnes Paar gescannt. Die Kundinnen haben richtig bezahlt.",
+  erkl:"Kein Diebstahl, sondern ein Erfassungsfehler an der Kasse (organisatorischer Mangel). Pro Verkauf wurden 2 Paar zu wenig abgebucht: 12 × 2 = 24 Paar. Das Soll ist zu hoch."},
+ {id:6,name:"Kater „Socke“",kurz:"schläft im Sockenkorb, verliert Haare",ikon:"kater",paar:0,loes:"keine",
+  indiz:"Socke liegt jeden Tag im Korb mit den Kuschelsocken. Malte hat ihn im Verdacht. Bei der Inventur lagen alle Kuschelsocken aus dem Korb vollständig im Regal.",
+  erkl:"Unschuldig! Haare auf den Socken sind ärgerlich, aber es fehlt kein Paar. Nicht jeder Verdacht ist eine Ursache."}
+];
+const IKON={
+ tasche:'<path d="M8 20h40l-4 30H12z" fill="#1F4E79"/><path d="M18 20c0-10 20-10 20 0" stroke="#1F4E79" stroke-width="4" fill="none"/>',
+ azubi:'<circle cx="28" cy="20" r="11" fill="#1F4E79"/><path d="M8 52c2-16 38-16 40 0z" fill="#1F4E79"/><path d="M18 12l5-6 4 6 5-6 5 7" stroke="#f4d35e" stroke-width="3" fill="none"/>',
+ karton:'<rect x="8" y="18" width="40" height="30" fill="#b07a2a"/><path d="M8 18l20-10 20 10" fill="#d39b4c"/><rect x="22" y="26" width="12" height="8" fill="#f7f4ec"/>',
+ rohr:'<rect x="4" y="18" width="48" height="12" fill="#6b7a8a"/><rect x="26" y="14" width="8" height="20" fill="#4a5866"/><path d="M30 34q-4 8 0 12q4-4 0-12" fill="#3a8fd8"/><path d="M40 38q-3 6 0 9q3-3 0-9" fill="#3a8fd8"/>',
+ kasse:'<rect x="8" y="24" width="40" height="24" fill="#1F4E79"/><rect x="14" y="10" width="28" height="14" fill="#9DC3E6"/><rect x="14" y="30" width="6" height="4" fill="#f7f4ec"/><rect x="24" y="30" width="6" height="4" fill="#f7f4ec"/><rect x="34" y="30" width="6" height="4" fill="#f7f4ec"/>',
+ kater:'<path d="M12 18l6-10 6 8h8l6-8 6 10v14c0 10-8 16-16 16s-18-6-18-16z" fill="#4a4a4a"/><circle cx="22" cy="28" r="3" fill="#f4d35e"/><circle cx="34" cy="28" r="3" fill="#f4d35e"/>'
+};
+const S={geloest:{},fehler:0};
+const KURZ={kunden:"Kunden",mitarbeiter:"Mitarbeiter",lieferanten:"Lieferant",orga:"Organisation",keine:"unschuldig"};
+const $=id=>document.getElementById(id);
+function karteHTML(f){const g=S.geloest[f.id];
+  return '<span class="nr">AKTE 0'+f.id+'</span><svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">'+IKON[f.ikon]+'</svg><span class="name">'+f.name+'</span><span class="kurz">'+f.kurz+'</span>'+
+   (g?'<span class="stempel" style="color:'+(f.loes==="keine"?"#2e8b57":"#c0392b")+'">'+(KURZ[f.loes]+(f.paar?" · "+f.paar+" P.":""))+'</span>':"");}
+function zeichne(){
+  const w=$("wand");w.innerHTML="";
+  FAELLE.forEach(f=>{const b=document.createElement("button");b.className="k";b.innerHTML=karteHTML(f);b.setAttribute("aria-label","Akte "+f.name+" öffnen");b.onclick=()=>oeffne(f);w.appendChild(b);});
+  let sum=0;const bal=$("balken");bal.innerHTML="";
+  FAELLE.forEach(f=>{if(S.geloest[f.id]&&f.paar){sum+=f.paar;const i=document.createElement("i");i.style.width=(f.paar/312*100)+"%";i.style.background=GRUPPEN[f.loes][1];i.title=f.name+": "+f.paar+" Paar";bal.appendChild(i);}});
+  $("aufgeklaert").textContent=sum;$("fehlerTxt").textContent=S.fehler+(S.fehler===1?" Fehlversuch":" Fehlversuche");
+  if(Object.keys(S.geloest).length===FAELLE.length)ende();
+}
+function oeffne(f){
+  const a=$("akte");const g=S.geloest[f.id];
+  let h='<div class="nr" style="font-family:var(--akte);font-size:13px;color:#6b6457">AKTE 0'+f.id+'</div><h2>'+f.name+'</h2><div class="tipp">'+f.indiz+'</div>';
+  if(g){h+='<p><b>Gelöst:</b> '+f.erkl+'</p><button class="btn" id="zu">Akte schließen</button>';}
+  else{h+='<p><b>Was ist passiert? Zu welcher Gruppe gehört die Ursache?</b></p><div class="opts">';
+    Object.keys(GRUPPEN).forEach(k=>{h+='<button class="opt" data-k="'+k+'">'+GRUPPEN[k][0]+(k==="kunden"||k==="mitarbeiter"?" (Diebstahl)":k==="orga"?" (Fehler im Betrieb: Erfassung, Bruch, Verderb …)":k==="lieferanten"?" (Fehler beim Liefern)":"")+'</button>';});
+    h+='</div><div class="rueck" id="rueck" aria-live="polite"></div><button class="btn z" id="zu">Zurück zur Wand</button>';}
+  a.innerHTML=h;$("ov").hidden=false;
+  a.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{const k=b.dataset.k;
+    if(k===f.loes){b.classList.add("richtig");S.geloest[f.id]=true;$("rueck").innerHTML="<b>Richtig.</b> "+f.erkl+(f.paar?" <b>+"+f.paar+" Paar aufgeklärt.</b>":"");a.querySelectorAll(".opt").forEach(x=>x.disabled=true);$("zu").textContent="Weiter";zeichne();}
+    else{b.classList.add("falsch");b.disabled=true;S.fehler++;$("rueck").textContent=tipp(f,k);zeichne();}});
+  $("zu").onclick=schliesse;$("zu").focus();
+}
+function tipp(f,k){
+  if(f.loes==="orga"&&k==="mitarbeiter")return "Nicht so schnell: Hat hier jemand etwas mitgenommen? Lies das Indiz noch einmal – es geht um einen Fehler, nicht um Diebstahl.";
+  if(f.loes==="keine")return "Prüfe das Indiz: Fehlt überhaupt ein Paar?";
+  if(k==="keine")return "Hier fehlen wirklich Socken. Wer oder was ist schuld?";
+  if(f.loes==="lieferanten")return "Wer hat den Fehler zuerst gemacht – im Laden oder vor der Tür?";
+  return "Noch nicht. Frag dich: Wurde etwas gestohlen – oder stimmt nur die Zahl im Computer nicht?";
+}
+function schliesse(){$("ov").hidden=true;}
+$("ov").addEventListener("click",e=>{if(e.target.id==="ov")schliesse();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")schliesse();});
+function ende(){
+  const e=$("ende");if(!e.hidden)return;e.hidden=false;
+  let rows="";FAELLE.forEach(f=>{rows+='<tr><td>'+f.name+'</td><td>'+GRUPPEN[f.loes][0]+'</td><td style="text-align:right;font-variant-numeric:tabular-nums">'+f.paar+'</td><td>'+(f.loes==="kunden"?"Ist zu niedrig":f.loes==="keine"?"–":"Soll zu hoch")+'</td></tr>';});
+  e.innerHTML='<h2>Fall gelöst: 312 Paar aufgeklärt mit '+S.fehler+(S.fehler===1?' Fehlversuch':' Fehlversuchen')+'</h2><div class="tabwrap"><table><thead><tr><th>Verdächtige/r</th><th>Gruppe</th><th style="text-align:right">Paar</th><th>Was ist falsch?</th></tr></thead><tbody>'+rows+
+   '<tr><td><b>Summe</b></td><td></td><td style="text-align:right"><b>312</b></td><td></td></tr></tbody></table></div>'+
+   '<p style="margin-top:14px"><b>Nur 140 Paar wurden gestohlen.</b> 172 Paar fehlen, weil im Betrieb etwas falsch erfasst oder nicht ausgebucht wurde. Ein WWS hätte keinen dieser Fälle verhindert – es zeigt nur, was eingegeben wurde.</p>'+
+   '<p class="leise">Für das Gespräch: Welche Maßnahme hilft gegen welchen Fall? (Kameras · Wareneingang nachzählen · Rücksendungen und Bruch sofort ausbuchen · Mitarbeiter schulen)</p>'+
+   '<button class="btn z" id="neu">Noch einmal spielen</button>';
+  $("neu").onclick=()=>{S.geloest={};S.fehler=0;e.hidden=true;zeichne();window.scrollTo(0,0);};
+}
+zeichne();
+</script>
+
+</body>
+</html>
