@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>IHK-Notenrechner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Notenrechner für die IHK-Abschlussprüfung im Einzelhandel (Verkäufer/in und Kaufmann/-frau)">
+<meta name="theme-color" content="#142033">
+<meta name="color-scheme" content="light">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IHK-Rechner">
+<link rel="apple-touch-icon" id="appleIcon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23142033'/%3E%3Ctext x='90' y='100' font-size='56' font-weight='800' text-anchor='middle' fill='white' font-family='Arial'%3EIHK%3C/text%3E%3C/svg%3E">
+<link rel="icon" id="favIcon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23142033'/%3E%3Ctext x='32' y='41' font-size='24' font-weight='800' text-anchor='middle' fill='white' font-family='Arial'%3EIHK%3C/text%3E%3C/svg%3E">
+<link rel="manifest" id="manifestLink">
+<style>
+:root{
+  --ink:#142033; --bg:#eef1f6; --card:#ffffff; --line:#d5dbe6; --muted:#566176;
+  --blue:#2347c8; --ok:#0f7a55; --okbg:#e4f5ee; --warn:#d9650a; --warnbg:#fff1e2;
+  --bad:#c0262d; --badbg:#fdeaea;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+header{background:var(--ink);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px;
+  padding-left:calc(16px + env(safe-area-inset-left));padding-right:calc(16px + env(safe-area-inset-right))}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:560px;margin:0 auto 12px}
+h1{font-size:20px;line-height:1.2;margin:0;font-weight:750;letter-spacing:-.01em}
+.sub{margin:2px 0 0;font-size:13px;color:#b9c4d8}
+.infobtn{flex:none;width:40px;height:40px;border-radius:50%;border:1.5px solid #51607d;background:transparent;color:#fff;font-size:18px;font-weight:700;cursor:pointer}
+.tabs{display:flex;gap:4px;background:#0d1626;border-radius:12px;padding:4px;max-width:560px;margin:0 auto}
+.tab{flex:1;border:0;border-radius:9px;background:transparent;color:#b9c4d8;font:inherit;font-size:15px;font-weight:650;padding:10px 6px;cursor:pointer;line-height:1.2}
+.tab small{display:block;font-weight:500;font-size:12px;opacity:.85}
+.tab[aria-selected="true"]{background:#fff;color:var(--ink)}
+main{max-width:560px;margin:0 auto;padding:14px 12px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 14px}
+h2{font-size:17px;margin:0 0 4px;line-height:1.25}
+.hint{margin:0 0 12px;font-size:14px;color:var(--muted)}
+.area{padding:12px 0;border-top:1px solid var(--line)}
+.area:first-of-type{border-top:0;padding-top:4px}
+.area label{display:block;font-weight:650;font-size:15px;line-height:1.3;margin-bottom:6px}
+.line2{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-block;font-size:12.5px;line-height:1;padding:6px 9px;border-radius:999px;background:#e8ecf4;color:#33405a;font-weight:600;white-space:nowrap}
+.chip.n1,.chip.n2,.chip.n3{background:var(--okbg);color:var(--ok)}
+.chip.n4{background:var(--warnbg);color:#a84c05}
+.chip.n5,.chip.n6{background:var(--badbg);color:var(--bad)}
+.num{display:flex;align-items:baseline;gap:6px;font-size:14px;color:var(--muted)}
+.num input,.big-in{font:inherit;font-weight:700;font-size:20px;color:var(--ink);text-align:center;width:72px;padding:6px 4px;border:1.5px solid var(--line);border-radius:10px;background:#fff;-moz-appearance:textfield}
+.num input::-webkit-outer-spin-button,.num input::-webkit-inner-spin-button,.big-in::-webkit-outer-spin-button,.big-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #7b9bff;outline-offset:2px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:32px;background:transparent;margin:6px 0 0;display:block}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(to right,var(--blue) var(--p,50%),#cfd6e4 var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid var(--blue);margin-top:-10px;box-shadow:0 1px 3px rgba(20,32,51,.35)}
+input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:#cfd6e4}
+input[type=range]::-moz-range-progress{height:8px;border-radius:4px;background:var(--blue)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--blue)}
+.scale{position:relative;height:26px}
+.scale span{position:absolute;top:0;left:calc(14px + (100% - 28px) * var(--x) / 100);transform:translateX(-50%);font-size:11px;color:var(--muted);padding-top:7px;font-variant-numeric:tabular-nums}
+.scale span::before{content:"";position:absolute;top:0;left:50%;width:1px;height:5px;background:#9aa5ba}
+.scale span.pass{color:var(--warn);font-weight:700}
+.scale span.pass::before{background:var(--warn)}
+.legend{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.oralrow{display:flex;align-items:center;gap:10px;margin-top:8px}
+.oralrow span{color:var(--muted);font-size:14px}
+.big-in{width:96px;font-size:24px;padding:8px 4px}
+.box{border-radius:12px;padding:12px 14px;margin:0 0 14px;border:1px solid}
+.box h3{margin:0 0 4px;font-size:15.5px;line-height:1.3}
+.box p{margin:6px 0 0;font-size:14px}
+.box ul{margin:6px 0 0;padding-left:18px;font-size:14px}
+.box.ok{background:var(--okbg);border-color:#a9dcc6;color:#0a5a3f}
+.box.warn{background:var(--warnbg);border-color:#f3c590;color:#8a3f02}
+.box.bad{background:var(--badbg);border-color:#f0b4b7;color:#8d1b21}
+table{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums}
+th,td{padding:10px 6px;border-top:1px solid var(--line);text-align:left;vertical-align:middle}
+tr:first-child th,tr:first-child td{border-top:0}
+th{font-weight:600}
+th small{display:block;font-weight:400;font-size:12.5px;color:var(--muted)}
+td{text-align:right;font-weight:700;white-space:nowrap}
+td.na{color:var(--bad);font-weight:650;white-space:normal}
+tr.min td:not(.na){color:var(--warn)}
+tr.min{background:var(--warnbg)}
+tr.min td,tr.min th{border-top-color:#f3c590}
+tr.min .tag{display:inline-block;margin-left:6px;font-size:11.5px;font-weight:700;color:#fff;background:var(--warn);border-radius:6px;padding:3px 6px;vertical-align:middle}
+.breakdown td,.breakdown th{font-size:14px;padding:8px 4px}
+.breakdown thead th{font-size:12.5px;color:var(--muted);font-weight:600;border-top:0}
+.breakdown thead th:not(:first-child){text-align:right}
+.score{font-size:34px;font-weight:800;line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.score small{font-size:16px;font-weight:600;margin-left:4px}
+.verdict{margin:2px 0 10px}
+.opts{list-style:none;margin:8px 0 0;padding:0}
+.opts li{padding:8px 0;border-top:1px solid #f3c590;font-size:14.5px}
+.opts li:first-child{border-top:0}
+.calc{display:block;font-size:13px;color:#6b5a48;font-variant-numeric:tabular-nums}
+.formula{margin:10px 0 0;font-size:14px;font-weight:650}
+select{width:100%;font:inherit;font-size:15px;padding:10px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);margin:4px 0 12px}
+.mep label{font-weight:650;font-size:14.5px;display:block}
+.foot{margin:0 0 14px;font-size:13px;color:var(--muted)}
+.reset{width:100%;font:inherit;font-weight:650;font-size:15px;padding:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;cursor:pointer}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:14px 12px 0;padding:0 16px;max-width:536px}
+@media(min-width:584px){details{margin-left:auto;margin-right:auto}}
+summary{cursor:pointer;font-weight:700;padding:14px 0;font-size:15.5px}
+details[open] summary{border-bottom:1px solid var(--line);margin-bottom:10px}
+details h4{margin:14px 0 4px;font-size:14.5px}
+details ol,details ul{margin:4px 0 10px;padding-left:20px;font-size:14.5px}
+details p{margin:4px 0 12px;font-size:14px;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div>
+      <h1>IHK-Notenrechner</h1>
+      <p class="sub">Abschlussprüfung im Einzelhandel</p>
+    </div>
+    <button class="infobtn" id="infoBtn" type="button" aria-label="Anleitung und Regeln anzeigen">i</button>
+  </div>
+  <div class="tabs" role="tablist" aria-label="Ausbildungsberuf">
+    <button class="tab" role="tab" id="tab-vk" aria-controls="panel-vk" aria-selected="true" type="button">Verkäufer/in<small>2-jährig</small></button>
+    <button class="tab" role="tab" id="tab-ke" aria-controls="panel-ke" aria-selected="false" type="button">Kaufmann/-frau<small>3-jährig (GAP)</small></button>
+  </div>
+</header>
+
+<main id="app"></main>
+<noscript><p style="padding:16px">Für den Notenrechner muss JavaScript aktiviert sein.</p></noscript>
+
+<details id="help">
+  <summary>Anleitung &amp; Regeln</summary>
+
+  <h4>App aufs Handy holen</h4>
+  <p style="margin-top:0">Danach startet der Rechner wie eine normale App im Vollbild.</p>
+  <ul>
+    <li><b>iPhone:</b> Seite in <b>Safari</b> öffnen → <b>Teilen</b> (Quadrat mit Pfeil) → <b>Zum Home-Bildschirm</b> → <b>Hinzufügen</b>.</li>
+    <li><b>Android:</b> Seite in <b>Chrome</b> öffnen → <b>Drei Punkte</b> oben rechts → <b>Zum Startbildschirm hinzufügen</b> (oder „App installieren“).</li>
+  </ul>
+
+  <h4>So benutzt du den Rechner</h4>
+  <ol>
+    <li>Stelle die Regler auf deine schriftlichen Ergebnisse (in Punkten, 0–100). Du kannst die Zahl auch direkt eintippen.</li>
+    <li>Vor dem Fachgespräch: Feld „Mündliche Prüfung“ leer lassen. Du siehst, wie viele Punkte du für Note 1 bis 4 brauchst.</li>
+    <li>Nach dem Fachgespräch: Punkte eintragen. Du siehst dein Gesamtergebnis.</li>
+    <li>Wenn eine mündliche Ergänzungsprüfung (MEP) nötig oder möglich ist, erscheint ein eigener Block. Trage dort das MEP-Ergebnis ein, um das Endergebnis zu sehen.</li>
+  </ol>
+
+  <h4>Diese Regeln rechnet die App</h4>
+  <p style="margin-bottom:2px"><b>Beide Berufe</b></p>
+  <ul>
+    <li>Gesamtergebnis: mindestens 50 Punkte.</li>
+    <li>Das Fachgespräch ist Sperrfach: mindestens 50 Punkte, sonst nicht bestanden.</li>
+    <li>MEP: höchstens in einem Bereich, nur bei weniger als 50 Punkten. Rechnung: <b>(Schriftlich × 2 + MEP) ÷ 3</b>.</li>
+    <li>Notengrenzen: Note 1 ab 92, Note 2 ab 81, Note 3 ab 67, Note 4 ab 50, Note 5 ab 30 Punkten.</li>
+  </ul>
+  <p style="margin-bottom:2px"><b>Verkäufer/in</b></p>
+  <ul>
+    <li>Kein Bereich darf unter 30 Punkten (Note 6) bleiben.</li>
+    <li>Höchstens ein schriftlicher Bereich darf unter 50 Punkten (Note 5 oder 6) bleiben.</li>
+    <li>Die MEP ist in jedem der drei schriftlichen Bereiche möglich.</li>
+  </ul>
+  <p style="margin-bottom:2px"><b>Kaufmann/-frau</b></p>
+  <ul>
+    <li>Die drei Prüfungen aus Teil 1 haben keine eigene Mindestgrenze. Sie können auch 0 Punkte haben, wenn das Gesamtergebnis trotzdem mindestens 50 Punkte erreicht.</li>
+    <li>„Geschäftsprozesse im Einzelhandel“ ist Sperrfach: mindestens 50 Punkte.</li>
+    <li>Eine MEP gibt es nur in „Geschäftsprozesse im Einzelhandel“, nicht in den Prüfungen aus Teil 1.</li>
+  </ul>
+  <p>Der Rechner ist eine Orientierungshilfe. Verbindlich sind die Prüfungsordnung und die Entscheidung des Prüfungsausschusses (dort auch Rundungsregeln).</p>
+</details>
+
+<script>
+(function(){
+'use strict';
+
+/*LOGIC-START*/
+const EPS = 1e-9;
+const NOTEN = {1:'sehr gut',2:'gut',3:'befriedigend',4:'ausreichend',5:'mangelhaft',6:'ungenügend'};
+
+const CFG = {
+  vk: {
+    written: [
+      {n:'Verkauf und Werbemaßnahmen', wt:25},
+      {n:'Warenwirtschaft und Kalkulation', wt:15},
+      {n:'Wirtschafts- und Sozialkunde', wt:10}
+    ],
+    oral: {n:'Fachgespräch im Warensortiment', wt:50},
+    generic: true,          /* keine Note 6, höchstens ein Bereich unter 50 */
+    mepAreas: [0, 1, 2],
+    sperrW: []
+  },
+  ke: {
+    written: [
+      {n:'Verkauf und Werbemaßnahmen', wt:15, part:'Teil 1'},
+      {n:'Warenwirtschaft und Kalkulation', wt:10, part:'Teil 1'},
+      {n:'Wirtschafts- und Sozialkunde', wt:10, part:'Teil 1'},
+      {n:'Geschäftsprozesse im Einzelhandel', wt:25, part:'Teil 2'}
+    ],
+    oral: {n:'Fachgespräch in der Wahlqualifikation', wt:40, part:'Teil 2'},
+    generic: false,         /* Teil 1: keine Einzelgrenzen, nur Gesamtergebnis zählt */
+    mepAreas: [3],          /* MEP nur in Geschäftsprozessen (Teil 2) */
+    sperrW: [3]
+  }
+};
+
+const f = x => Number(x).toLocaleString('de-DE', {maximumFractionDigits: 2});
+
+function sumW(cfg, w){ return w.reduce((s, v, i) => s + v * cfg.written[i].wt / 100, 0); }
+function total(cfg, w, o){ return sumW(cfg, w) + o * cfg.oral.wt / 100; }
+function noteOf(p){
+  if (p >= 92 - EPS) return 1;
+  if (p >= 81 - EPS) return 2;
+  if (p >= 67 - EPS) return 3;
+  if (p >= 50 - EPS) return 4;
+  if (p >= 30 - EPS) return 5;
+  return 6;
+}
+
+/* Regeln für die schriftlichen Bereiche (ohne Gesamtergebnis und Fachgespräch) */
+function writtenOK(cfg, w){
+  if (cfg.generic){
+    if (w.some(v => v < 30 - EPS)) return false;
+    if (w.filter(v => v < 50 - EPS).length > 1) return false;
+  }
+  return cfg.sperrW.every(i => w[i] >= 50 - EPS);
+}
+function ruleReasons(cfg, w){
+  const r = [];
+  if (cfg.generic){
+    w.forEach((v, i) => {
+      if (v < 30 - EPS) r.push(cfg.written[i].n + ': ' + f(v) + ' Punkte = Note 6 (unter 30 Punkte)');
+    });
+    const low = w.filter(v => v < 50 - EPS).length;
+    if (low > 1) r.push(low + ' schriftliche Bereiche liegen unter 50 Punkten – höchstens einer darf unter 50 bleiben');
+  }
+  cfg.sperrW.forEach(i => {
+    if (w[i] < 50 - EPS) r.push(cfg.written[i].n + ' ist Sperrfach: mindestens 50 Punkte nötig');
+  });
+  return r;
+}
+
+/* Vollständige Prüfung inklusive Fachgespräch und Gesamtergebnis */
+function evalFull(cfg, w, o){
+  const g = total(cfg, w, o);
+  const reasons = ruleReasons(cfg, w);
+  if (o < 30 - EPS && cfg.generic) reasons.push('Fachgespräch: ' + f(o) + ' Punkte = Note 6 (unter 30 Punkte)');
+  else if (o < 50 - EPS) reasons.push('Das Fachgespräch ist Sperrfach: mindestens 50 Punkte nötig (erreicht: ' + f(o) + ')');
+  if (g < 50 - EPS) reasons.push('Gesamtergebnis ' + f(g) + ' Punkte – mindestens 50 Punkte nötig');
+  return {g: g, note: noteOf(g), reasons: reasons, ok: reasons.length === 0};
+}
+
+/* MEP: (Schriftlich × 2 + MEP) ÷ 3 */
+function mepScore(w, m){ return (2 * w + m) / 3; }
+function replaced(w, i, m){ const c = w.slice(); c[i] = mepScore(w[i], m); return c; }
+function mepOptions(cfg, w, okFn){
+  const out = [];
+  w.forEach((v, i) => {
+    if (!cfg.mepAreas.includes(i)) return;   /* MEP nur in zugelassenen Bereichen */
+    if (v >= 50 - EPS) return;               /* und nur bei Bereichen unter 50 Punkten */
+    for (let m = 0; m <= 100; m++){
+      if (okFn(replaced(w, i, m))){ out.push({i: i, m: m}); break; }
+    }
+  });
+  return out.sort((a, b) => a.m - b.m || a.i - b.i);
+}
+
+/* Prognose: nötige Punkte im Fachgespräch je Zielnote */
+function prognose(cfg, wPred){
+  const S = sumW(cfg, wPred), ow = cfg.oral.wt / 100;
+  return [[1, 92], [2, 81], [3, 67], [4, 50]].map(([n, t]) => {
+    let req = Math.ceil((t - S) / ow - 1e-9);
+    let floor = false;
+    if (req < 50){ req = 50; floor = true; }   /* Sperrfach */
+    return {n: n, t: t, req: req, floor: floor, possible: req <= 100};
+  });
+}
+/*LOGIC-END*/
+
+/* ---------- Zustand & Speicher ---------- */
+const STORE = 'ihk-notenrechner-v2';
+function defaults(key){
+  return {w: CFG[key].written.map(() => 50), oral: '', mepArea: null, mep: ''};
+}
+const state = {vk: defaults('vk'), ke: defaults('ke')};
+let activeTab = 'vk';
+
+function clampInt(v){ v = Math.round(Number(v)); if (!isFinite(v)) return 0; return Math.min(100, Math.max(0, v)); }
+
+function load(){
+  try {
+    const raw = localStorage.getItem(STORE);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    ['vk', 'ke'].forEach(k => {
+      const s = d && d[k]; if (!s) return;
+      if (Array.isArray(s.w) && s.w.length === CFG[k].written.length) state[k].w = s.w.map(clampInt);
+      if (s.oral !== '' && s.oral != null) state[k].oral = clampInt(s.oral);
+      if (s.mep !== '' && s.mep != null) state[k].mep = clampInt(s.mep);
+      if (Number.isInteger(s.mepArea)) state[k].mepArea = s.mepArea;
+    });
+    if (d && (d.tab === 'vk' || d.tab === 'ke')) activeTab = d.tab;
+  } catch (e) { /* Speicher nicht verfügbar – kein Problem */ }
+}
+function save(){
+  try { localStorage.setItem(STORE, JSON.stringify({vk: state.vk, ke: state.ke, tab: activeTab})); } catch (e) {}
+}
+
+/* ---------- Aufbau ---------- */
+const TICKS = [0, 30, 50, 67, 81, 92, 100];
+
+function buildPanel(key){
+  const cfg = CFG[key];
+  const sec = document.createElement('section');
+  sec.id = 'panel-' + key;
+  sec.setAttribute('role', 'tabpanel');
+  sec.setAttribute('aria-labelledby', 'tab-' + key);
+
+  const areas = cfg.written.map((a, i) => `
+    <div class="area">
+      <label for="s-${key}-${i}">${a.n}</label>
+      <div class="line2">
+        <div class="chips">
+          <span class="chip">${a.part ? a.part + ' · ' : ''}Gewichtung ${a.wt} %</span>
+          <span class="chip" id="n-${key}-${i}"></span>
+        </div>
+        <div class="num">
+          <input type="number" id="v-${key}-${i}" min="0" max="100" step="1" inputmode="numeric" aria-label="${a.n}: Punkte">
+          <span>Punkte</span>
+        </div>
+      </div>
+      <input type="range" id="s-${key}-${i}" min="0" max="100" step="1">
+      <div class="scale" aria-hidden="true">
+        ${TICKS.map(t => `<span style="--x:${t}"${t === 50 ? ' class="pass"' : ''}>${t}</span>`).join('')}
+      </div>
+    </div>`).join('');
+
+  sec.innerHTML = `
+    <div class="card">
+      <h2>Schriftliche Prüfung</h2>
+      <p class="hint">Stelle jeden Regler auf dein Ergebnis oder tippe die Punkte ein.</p>
+      ${areas}
+      <p class="legend">Die Zahlen unter dem Regler sind Punkte (0–100). Bei 30, 50, 67, 81 und 92 Punkten beginnt eine neue Note; 50 (orange) ist die Bestehensgrenze.</p>
+    </div>
+
+    <div id="wstat-${key}" aria-live="polite"></div>
+
+    <div class="card">
+      <h2>Mündliche Prüfung</h2>
+      <label for="oral-${key}" style="font-weight:650;font-size:15px">${cfg.oral.n}</label>
+      <div class="chips" style="margin-top:6px"><span class="chip">${cfg.oral.part ? cfg.oral.part + ' · ' : ''}Gewichtung ${cfg.oral.wt} %</span><span class="chip" id="on-${key}" hidden></span></div>
+      <div class="oralrow">
+        <input class="big-in" type="number" id="oral-${key}" min="0" max="100" step="1" inputmode="numeric" placeholder="–">
+        <span>von 100 Punkten</span>
+      </div>
+      <p class="hint" style="margin:10px 0 0">Noch nicht geprüft? Feld leer lassen, dann siehst du, wie viele Punkte du brauchst. Nach dem Fachgespräch trägst du hier deine Punkte ein.</p>
+    </div>
+
+    <div class="card mep" id="mepcard-${key}" hidden>
+      <h2>Mündliche Ergänzungsprüfung (MEP)</h2>
+      <div id="mepinfo-${key}"></div>
+      <label for="mepsel-${key}" style="margin-top:14px">Bereich der MEP</label>
+      <select id="mepsel-${key}"></select>
+      <label for="mepin-${key}">MEP-Ergebnis eintragen (0–100 Punkte)</label>
+      <div class="oralrow" style="margin-top:6px">
+        <input class="big-in" type="number" id="mepin-${key}" min="0" max="100" step="1" inputmode="numeric" placeholder="–">
+        <span>Punkte</span>
+      </div>
+      <div id="mepout-${key}" style="margin-top:10px"></div>
+    </div>
+
+    <div id="out-${key}" aria-live="polite"></div>
+
+    <p class="foot">Alle Angaben ohne Gewähr. Verbindlich ist die Entscheidung des Prüfungsausschusses.</p>
+    <button type="button" class="reset" id="reset-${key}">Eingaben zurücksetzen</button>
+  `;
+  return sec;
+}
+
+function syncInputs(key){
+  const st = state[key];
+  st.w.forEach((v, i) => {
+    document.getElementById(`s-${key}-${i}`).value = v;
+    document.getElementById(`v-${key}-${i}`).value = v;
+  });
+  document.getElementById('oral-' + key).value = st.oral;
+  document.getElementById('mepin-' + key).value = st.mep;
+}
+
+function wire(key){
+  const st = state[key];
+  const cfg = CFG[key];
+  cfg.written.forEach((a, i) => {
+    const s = document.getElementById(`s-${key}-${i}`);
+    const v = document.getElementById(`v-${key}-${i}`);
+    s.addEventListener('input', () => { st.w[i] = clampInt(s.value); v.value = st.w[i]; update(key); save(); });
+    v.addEventListener('input', () => {
+      if (v.value === '') return;
+      st.w[i] = clampInt(v.value);
+      if (String(st.w[i]) !== v.value) v.value = st.w[i];
+      s.value = st.w[i]; update(key); save();
+    });
+    v.addEventListener('blur', () => { v.value = st.w[i]; });
+  });
+  const oral = document.getElementById('oral-' + key);
+  oral.addEventListener('input', () => {
+    if (oral.value === '') st.oral = '';
+    else { st.oral = clampInt(oral.value); if (String(st.oral) !== oral.value) oral.value = st.oral; }
+    update(key); save();
+  });
+  const sel = document.getElementById('mepsel-' + key);
+  sel.addEventListener('change', () => { st.mepArea = Number(sel.value); update(key); save(); });
+  const mep = document.getElementById('mepin-' + key);
+  mep.addEventListener('input', () => {
+    if (mep.value === '') st.mep = '';
+    else { st.mep = clampInt(mep.value); if (String(st.mep) !== mep.value) mep.value = st.mep; }
+    update(key); save();
+  });
+  document.getElementById('reset-' + key).addEventListener('click', () => {
+    state[key] = defaults(key);
+    const s = document.getElementById('mepsel-' + key); s.dataset.sig = '';
+    syncInputs(key); update(key); save();
+  });
+}
+
+/* ---------- Anzeige ---------- */
+const box = (cls, title, inner) => `<div class="box ${cls}"><h3>${title}</h3>${inner || ''}</div>`;
+const ul = items => '<ul>' + items.map(t => `<li>${t}</li>`).join('') + '</ul>';
+
+function update(key){
+  const cfg = CFG[key];
+  const st = state[key];
+  const w = st.w;
+  const o = (st.oral === '' || st.oral == null) ? null : st.oral;
+
+  /* Regler-Füllung und Notenchips */
+  w.forEach((v, i) => {
+    document.getElementById(`s-${key}-${i}`).style.setProperty('--p', v + '%');
+    const n = noteOf(v);
+    const c = document.getElementById(`n-${key}-${i}`);
+    c.textContent = 'Note ' + n + ' · ' + NOTEN[n];
+    c.className = 'chip n' + n;
+  });
+  const onChip = document.getElementById('on-' + key);
+  if (o === null) onChip.hidden = true;
+  else { const n = noteOf(o); onChip.hidden = false; onChip.textContent = 'Note ' + n + ' · ' + NOTEN[n]; onChip.className = 'chip n' + n; }
+
+  /* MEP-Möglichkeiten ermitteln (immer auf Basis der ursprünglichen schriftlichen Ergebnisse) */
+  const ruleOK = writtenOK(cfg, w);
+  let opts = [], mode = null;
+  if (o === null){
+    if (!ruleOK){ mode = 'must'; opts = mepOptions(cfg, w, x => writtenOK(cfg, x)); }
+  } else if (o >= 50 - EPS){
+    if (!evalFull(cfg, w, o).ok){
+      mode = ruleOK ? 'optional' : 'must';
+      opts = mepOptions(cfg, w, x => evalFull(cfg, x, o).ok);
+    }
+  }
+  const mepVisible = opts.length > 0;
+
+  const sel = document.getElementById('mepsel-' + key);
+  if (mepVisible){
+    if (!opts.some(x => x.i === st.mepArea)) st.mepArea = opts[0].i;
+    const sig = opts.map(x => x.i + ':' + x.m).join('|');
+    if (sel.dataset.sig !== sig){
+      sel.innerHTML = opts.map(x => `<option value="${x.i}">${cfg.written[x.i].n} (mind. ${x.m} Punkte)</option>`).join('');
+      sel.dataset.sig = sig;
+    }
+    sel.value = String(st.mepArea);
+  }
+  document.getElementById('mepcard-' + key).hidden = !mepVisible;
+
+  const applied = mepVisible && st.mep !== '' && st.mep != null && st.mepArea != null;
+  const effW = applied ? replaced(w, st.mepArea, st.mep) : w;
+
+  /* Hinweisbox zur schriftlichen Prüfung */
+  let ws = '';
+  if (!ruleOK){
+    const reasons = ruleReasons(cfg, w);
+    if (mepVisible && mode === 'must'){
+      ws = box('warn', 'Bestehen gefährdet: MEP nötig',
+        ul(reasons) + '<p>Unten siehst du, wie viele Punkte du in der mündlichen Ergänzungsprüfung brauchst.</p>');
+    } else if (!mepVisible){
+      ws = box('bad', 'Nicht bestanden: auch mit MEP nicht mehr zu retten', ul(reasons));
+    }
+  }
+  document.getElementById('wstat-' + key).innerHTML = ws;
+
+  /* MEP-Block */
+  if (mepVisible){
+    const intro = mode === 'must'
+      ? (cfg.mepAreas.length === 1
+          ? 'Ohne MEP kannst du die Prüfung nicht bestehen. Die MEP ist im Bereich <b>' + cfg.written[cfg.mepAreas[0]].n + '</b> möglich:'
+          : 'Ohne MEP kannst du die Prüfung nicht bestehen. Eine MEP ist in <b>einem</b> schriftlichen Bereich möglich:')
+      : 'Dein Gesamtergebnis liegt unter 50 Punkten. Mit einer MEP in <b>einem</b> schriftlichen Bereich kannst du es noch retten:';
+    const items = opts.map(x => `<li><b>${cfg.written[x.i].n}</b><br>mindestens <b style="color:var(--warn)">${x.m} Punkte</b> in der MEP
+      <span class="calc">(2 × ${f(w[x.i])} + ${x.m}) ÷ 3 = ${f(mepScore(w[x.i], x.m))} Punkte im Bereich</span></li>`).join('');
+    const extra = o === null ? '<p style="margin:8px 0 0;font-size:13px;color:#6b5a48">Der Wert gilt für die Bestehensregeln der schriftlichen Bereiche. Je nach Fachgespräch kann das Gesamtergebnis mehr verlangen; das zeigt der Rechner, sobald du die mündlichen Punkte einträgst.</p>' : '';
+    document.getElementById('mepinfo-' + key).innerHTML =
+      `<div class="box warn" style="margin:8px 0 0"><p style="margin:0">${intro}</p><ul class="opts">${items}</ul>${extra}<p class="formula">Formel: (Schriftlich × 2 + MEP) ÷ 3</p></div>`;
+    let mo = '';
+    if (applied){
+      const a = st.mepArea, nw = mepScore(w[a], st.mep);
+      mo = `<p style="margin:0;font-size:14.5px"><b>${cfg.written[a].n}</b>: (2 × ${f(w[a])} + ${st.mep}) ÷ 3 = <b>${f(nw)} Punkte</b> (Note ${noteOf(nw)})</p>`;
+    }
+    document.getElementById('mepout-' + key).innerHTML = mo;
+  }
+
+  /* Ausgabe: Prognose oder Gesamtergebnis */
+  let out = '';
+  if (o === null){
+    let wPred = w;
+    if (applied) wPred = effW;
+    else if (mode === 'must' && mepVisible) wPred = replaced(w, opts[0].i, opts[0].m);
+    const hopeless = !writtenOK(cfg, wPred);
+    const rows = prognose(cfg, wPred).map(r => {
+      let cell;
+      if (hopeless || !r.possible) cell = '<td class="na">Nicht mehr möglich</td>';
+      else cell = `<td>${r.req} Punkte</td>`;
+      const tag = (r.n === 4 && !hopeless && r.possible) ? '<span class="tag">Minimum zum Bestehen</span>' : '';
+      return `<tr class="${r.n === 4 ? 'min' : ''}"><th scope="row">Note ${r.n} <small>ab ${r.t} Gesamtpunkten</small>${tag}</th>${cell}</tr>`;
+    }).join('');
+    let notes = '<p class="hint" style="margin:10px 0 0">Das Fachgespräch ist Sperrfach: Du brauchst dort immer mindestens 50 Punkte, auch wenn die Rechnung weniger ergäbe.</p>';
+    if (applied && !hopeless) notes += '<p class="hint" style="margin:6px 0 0">Berechnet mit deinem eingetragenen MEP-Ergebnis.</p>';
+    else if (mode === 'must' && mepVisible && !hopeless) notes += `<p class="hint" style="margin:6px 0 0">Berechnet mit dem MEP-Mindestergebnis (${cfg.written[opts[0].i].n}: ${f(mepScore(w[opts[0].i], opts[0].m))} Punkte statt ${f(w[opts[0].i])}).</p>`;
+    out = `<div class="card"><h2>Das brauchst du im Fachgespräch</h2>
+      <p class="hint">Mündlich nötige Punkte für das jeweilige Gesamtergebnis</p>
+      <table><tbody>${rows}</tbody></table>${notes}</div>`;
+  } else {
+    const res = evalFull(cfg, effW, o);
+    const pending = !res.ok && mepVisible && !applied;
+    let vcls, vtitle;
+    if (res.ok){ vcls = 'ok'; vtitle = 'Bestanden'; }
+    else if (pending){ vcls = 'warn'; vtitle = 'Noch offen: MEP nötig'; }
+    else { vcls = 'bad'; vtitle = 'Nicht bestanden'; }
+    const rowsB = cfg.written.map((a, i) => {
+      const val = effW[i];
+      const mark = (applied && st.mepArea === i) ? ' <small>(mit MEP)</small>' : '';
+      return `<tr><th scope="row">${a.n}${mark}</th><td>${f(val)}</td><td>${a.wt} %</td><td>${f(val * a.wt / 100)}</td></tr>`;
+    }).join('') + `<tr><th scope="row">${cfg.oral.n}</th><td>${f(o)}</td><td>${cfg.oral.wt} %</td><td>${f(o * cfg.oral.wt / 100)}</td></tr>`;
+    const noteLine = res.ok ? `Note ${res.note} · ${NOTEN[res.note]}` : `rechnerisch Note ${res.note} · ${NOTEN[res.note]}`;
+    let reasonsHtml = '';
+    if (!res.ok){
+      reasonsHtml = pending
+        ? '<p>Mit einer MEP kannst du das Ergebnis noch retten (siehe Block oben).</p>' + ul(res.reasons)
+        : ul(res.reasons);
+      if (applied && !res.ok) reasonsHtml = '<p>Auch mit dem eingetragenen MEP-Ergebnis reicht es nicht:</p>' + ul(res.reasons);
+    }
+    out = `<div class="card">
+      <h2>Gesamtergebnis</h2>
+      <div class="score">${f(res.g)}<small>Punkte</small></div>
+      <p class="hint verdict" style="font-weight:650;color:var(--ink)">${noteLine}</p>
+      ${box(vcls, vtitle, reasonsHtml)}
+      <table class="breakdown"><thead><tr><th>Bereich</th><th>Punkte</th><th>Gewicht</th><th>Anteil</th></tr></thead><tbody>${rowsB}</tbody></table>
+    </div>`;
+  }
+  document.getElementById('out-' + key).innerHTML = out;
+}
+
+/* ---------- Tabs ---------- */
+function showTab(key){
+  activeTab = key;
+  ['vk', 'ke'].forEach(k => {
+    const on = k === key;
+    document.getElementById('panel-' + k).hidden = !on;
+    const t = document.getElementById('tab-' + k);
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+    t.tabIndex = on ? 0 : -1;
+  });
+  window.scrollTo(0, 0);
+  save();
+}
+
+function init(){
+  load();
+  const app = document.getElementById('app');
+  ['vk', 'ke'].forEach(k => {
+    app.appendChild(buildPanel(k));
+    syncInputs(k);
+    wire(k);
+    update(k);
+  });
+  ['vk', 'ke'].forEach(k => {
+    const t = document.getElementById('tab-' + k);
+    t.addEventListener('click', () => showTab(k));
+    t.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+        const other = k === 'vk' ? 'ke' : 'vk';
+        showTab(other); document.getElementById('tab-' + other).focus();
+      }
+    });
+  });
+  showTab(activeTab);
+  document.getElementById('infoBtn').addEventListener('click', () => {
+    const d = document.getElementById('help');
+    d.open = true;
+    d.scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
+}
+
+/* ---------- PWA: Icons und Manifest ---------- */
+function makeIcon(size){
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const x = c.getContext('2d');
+  x.fillStyle = '#142033'; x.fillRect(0, 0, size, size);
+  x.fillStyle = '#ffffff'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.font = '800 ' + Math.round(size * 0.30) + 'px Arial, Helvetica, sans-serif';
+  x.fillText('IHK', size / 2, size * 0.42);
+  x.fillStyle = '#d9650a'; x.fillRect(size * 0.28, size * 0.60, size * 0.44, size * 0.05);
+  x.fillStyle = '#ffffff';
+  x.font = '600 ' + Math.round(size * 0.11) + 'px Arial, Helvetica, sans-serif';
+  x.fillText('Notenrechner', size / 2, size * 0.74);
+  return c.toDataURL('image/png');
+}
+function setupPWA(){
+  try {
+    const i180 = makeIcon(180), i192 = makeIcon(192), i512 = makeIcon(512);
+    document.getElementById('appleIcon').href = i180;
+    document.getElementById('favIcon').href = i192;
+    const base = location.href.split('#')[0].split('?')[0];
+    const manifest = {
+      name: 'IHK-Notenrechner',
+      short_name: 'IHK-Rechner',
+      description: 'Notenrechner für die IHK-Abschlussprüfung im Einzelhandel',
+      lang: 'de',
+      start_url: base,
+      scope: base.replace(/[^\/]*$/, ''),
+      display: 'standalone',
+      orientation: 'portrait',
+      background_color: '#142033',
+      theme_color: '#142033',
+      icons: [
+        {src: i192, sizes: '192x192', type: 'image/png', purpose: 'any maskable'},
+        {src: i512, sizes: '512x512', type: 'image/png', purpose: 'any maskable'}
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+    document.getElementById('manifestLink').href = URL.createObjectURL(blob);
+  } catch (e) { /* Die App funktioniert auch ohne Manifest */ }
+}
+
+init();
+setupPWA();
+})();
+</script>
+</body>
+</html>

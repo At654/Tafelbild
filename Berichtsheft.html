@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="de" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16263A">
+<title>Berichtsheft digital</title>
+<style>
+:root{--ink:#16263A;--paper:#EEF2F6;--card:#fff;--line:#C6D0DB;--blue:#2B5C91;--blue2:#1F4770;--mark:#FFE066;--ok:#1B7A53;--bad:#B3362E;--r:10px}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 "Segoe UI",system-ui,-apple-system,"Noto Sans","Noto Sans Arabic","Noto Sans Ethiopic",sans-serif;padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+header.top{background:var(--ink);color:#fff;padding:calc(16px + env(safe-area-inset-top)) 16px 12px}
+.wrap{max-width:780px;margin:0 auto}
+h1{font:700 27px/1.1 Georgia,"Noto Serif",serif;margin:0}
+.sub{margin:4px 0 12px;opacity:.85;font-size:15px}
+.langs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.langs button{flex:0 0 auto;min-height:40px;padding:0 14px;border-radius:20px;border:1.5px solid #7E93AB;background:transparent;color:#fff;font:inherit;font-size:15px;cursor:pointer}
+.langs button[aria-pressed=true]{background:var(--mark);color:var(--ink);border-color:var(--mark);font-weight:700}
+main.wrap{padding:14px 12px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:0 0 14px}
+.card h2{font:700 19px/1.2 Georgia,"Noto Serif",serif;margin:0 0 10px}
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
+input,select,textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:10px 11px;min-height:44px}
+textarea{resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+.row2{display:grid;grid-template-columns:1fr 1.4fr;gap:10px}
+.seg{display:flex;gap:8px}
+.seg button{flex:1}
+.btn{min-height:44px;padding:0 14px;border-radius:8px;border:1.5px solid var(--blue);background:#fff;color:var(--blue2);font:inherit;font-weight:600;cursor:pointer}
+.btn:hover{background:#EAF1F8}
+.btn.pri{background:var(--blue);color:#fff}
+.btn.pri:hover{background:var(--blue2)}
+.btn[aria-pressed=true]{background:var(--blue);color:#fff}
+.btn:disabled{background:#D5DBE2;border-color:#D5DBE2;color:#7A8794;cursor:not-allowed}
+.btn.sm{min-height:40px;font-size:14px;padding:0 11px}
+.weekline{margin:10px 0 0;padding:9px 12px;background:#EAF1F8;border-inline-start:5px solid var(--blue);border-radius:6px;font-weight:600}
+.warn{margin:8px 0 0;padding:9px 12px;background:var(--mark);border-radius:6px;font-size:14px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.day{display:grid;grid-template-columns:38px 1fr;padding:0;overflow:hidden}
+.strip{background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font:700 15px Georgia,"Noto Serif",serif;letter-spacing:.5px}
+.strip span{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap}
+.day.done .strip{background:var(--ok)}
+.day .body{padding:12px 12px 14px}
+.day h3{margin:0 0 8px;font:700 18px Georgia,"Noto Serif",serif}
+.day h3 small{font:400 14px "Segoe UI",system-ui,sans-serif;opacity:.75;margin-inline-start:6px}
+.quick{display:flex;flex-wrap:wrap;gap:8px}
+.ruled{line-height:28px;padding-top:4px;padding-bottom:4px;background-image:repeating-linear-gradient(transparent,transparent 27px,#DCE4EC 27px,#DCE4EC 28px);background-attachment:local}
+.meta{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin-top:8px}
+.meta .hrs{width:92px}
+.meta .hrs label{margin-top:0}
+.cnt{font-size:13px;opacity:.7;margin-inline-start:auto}
+details.ai{margin-top:12px;border:1.5px dashed var(--blue);border-radius:8px;padding:8px 10px;background:#F6FAFE}
+details.ai summary{cursor:pointer;font-weight:600;color:var(--blue2);min-height:32px;display:flex;align-items:center}
+.prompt{font-size:14px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;margin:8px 0;white-space:pre-wrap;word-break:break-word}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hint{font-size:14px;opacity:.8;margin:2px 0 6px}
+.err{font-size:14px;color:var(--bad)}
+#missL{list-style:none;margin:0;padding:0}
+#missL li{margin:0 0 6px}
+#missL button{width:100%;text-align:start;min-height:44px;padding:8px 12px;border:1.5px solid var(--mark);background:#FFF9D6;border-radius:8px;font:inherit;cursor:pointer}
+.okline{color:var(--ok);font-weight:700}
+#bar{position:fixed;inset-inline:0;bottom:0;background:#fff;border-top:2px solid var(--ink);padding:10px 12px calc(10px + env(safe-area-inset-bottom));z-index:20}
+#bar .in{max-width:780px;margin:0 auto;display:flex;gap:10px;align-items:center}
+#barTxt{flex:1;font-size:14px;line-height:1.3;min-width:0;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#barTxt.ok{color:var(--ok);font-weight:700}
+#bar .btn{flex:0 0 auto;min-width:130px}
+dialog{width:min(640px,94vw);max-height:88vh;border:none;border-radius:14px;padding:0;color:var(--ink)}
+dialog::backdrop{background:rgba(22,38,58,.55)}
+.dh{position:sticky;top:0;background:#fff;padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;z-index:1}
+.dh h2{margin:0;flex:1;font:700 18px Georgia,"Noto Serif",serif}
+.dbody{padding:10px 14px 18px;overflow:auto;max-height:calc(88vh - 70px)}
+dialog details{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:0 10px}
+dialog summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+.chips{display:flex;flex-direction:column;gap:6px;padding:0 0 10px}
+.chip{display:flex;gap:6px}
+.chip .p{flex:1;text-align:start;min-height:44px;padding:8px 10px;border:1.5px solid var(--blue);background:#fff;border-radius:8px;font:inherit;font-size:15px;cursor:pointer;color:var(--ink)}
+.chip .p.ok{background:#D7F0E2;border-color:var(--ok)}
+.chip .q{flex:0 0 44px;border:1.5px solid var(--line);background:#fff;border-radius:8px;font:inherit;font-weight:700;color:var(--blue2);cursor:pointer}
+#toast{position:fixed;inset-inline:12px;bottom:calc(88px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;background:var(--ink);color:#fff;padding:11px 14px;border-radius:8px;z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+.lk{display:grid;gap:8px;margin-top:8px}
+@media (max-width:420px){.row2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="bar"><div class="in"><div id="barTxt" aria-live="polite"></div><button class="btn pri" id="pdfBtn" data-act="pdf" disabled></button></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<dialog id="dlg" aria-labelledby="dlgT">
+  <div class="dh"><h2 id="dlgT"></h2><button class="btn pri sm" data-act="close" id="dlgX"></button></div>
+  <div class="dbody">
+    <label for="dlgB" id="dlgBL"></label><select id="dlgB"></select>
+    <p class="hint" id="dlgH"></p>
+    <div id="dlgL"></div>
+  </div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+if(!window.jspdf){document.write('<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"><\/script>');}
+</script>
+<script>
+/* ============ Einstellungen ============ */
+// Optional: Logo der Handelskammer Bremen als PNG-Data-URL ("data:image/png;base64,....") hier einfügen.
+// Leer = es wird eine einfache Textmarke gedruckt. Für Niedersachsen wird nie ein Logo gedruckt.
+const LOGO = '';
+const YEAR_MIN = '2026-08-01', YEAR_MAX = '2027-07-31';
+const LS_KEY = 'berichtsheft_v2';
+const MAXLEN = {d:400, i:500, s:900};
+const DAYS = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+const DAYS_PDF = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+const LANGS = [['de','Deutsch'],['ar','العربية'],['es','Español'],['pt','Português'],['ti','ትግርኛ'],['uk','Українська'],['vi','Tiếng Việt']];
+const QT = {
+  sick:'Betriebliche Freistellung wegen Krankheit / Arbeitsunfähigkeit.',
+  vac:'Keine gesetzliche/betriebliche Ausbildung wegen Erholungsurlaub.',
+  sch:'Theoretische Ausbildung in der Berufsschule laut Stundenplan.',
+  hol:'Gesetzlicher Feiertag - keine betriebliche Ausbildung.'
+};
+const NONE_TXT = 'Keine in dieser Woche.';
+const AI_PROMPT = "Formuliere folgenden Text in stichpunktartiges, professionelles IHK-Berichtsheft-Deutsch (Nominalstil, z.B. 'Verräumen der Ware' statt 'Ich habe Ware verräumt') für den Beruf Verkäufer um: [TEXT]\nAntworte nur mit dem fertigen deutschen Text.";
+
+/* ============ Oberflächen-Texte ============ */
+const I18N = {
+de:{addDay:'Auch {d} als Arbeitstag eintragen',rmDay:'Tag entfernen',title:'Berichtsheft',sub:'Ausbildungsnachweis – wöchentlich',saved:'Alles wird automatisch auf diesem Gerät gespeichert.',s1:'Deine Angaben',region:'Bundesland',hb:'Bremen',ni:'Niedersachsen',name:'Name der/des Auszubildenden',year:'Ausbildungsjahr',yearOpt:'{n}. Jahr',area:'Ausbildungsbereich',date:'Wähle ein Datum in der Woche',week:'KW {w}: {a} bis {b}',out:'Dieses Datum liegt außerhalb des Schuljahres 2026/27.',prev:'Letzte Woche übernehmen',clear:'Woche leeren',clearQ:'Alle Einträge dieser Woche löschen?',noPrev:'Keine frühere Woche gespeichert.',prevDone:'Einträge der letzten Woche übernommen.',replaceT:'Vorhandenen Text ersetzen?',note:'Was habe ich heute gemacht? (Muttersprache oder Deutsch)',trans:'In Deutsch übersetzen',needNote:'Schreibe zuerst etwas in das Notizfeld.',final:'Text für das Berichtsheft (Deutsch)',hours:'Stunden',sick:'Krank',vac:'Urlaub',sch:'Berufsschule',hol:'Feiertag',phr:'Fachphrasen',ai:'KI-Hilfe (ChatGPT / Claude)',aiCopy:'Prompt kopieren',copied:'Kopiert!',inst:'Unterweisungen, betrieblicher Unterricht, sonstige Schulungen',school:'Themen des Berufsschulunterrichts',schHint:'Kopiere die Themen aus Untis und füge sie hier ein.',none:'Keine in dieser Woche',branch:'Branche',general:'Allgemein (alle Branchen)',phrFor:'Fachphrasen: {d}',tap:'Tippe auf eine Phrase, um sie in den Text einzufügen.',close:'Fertig',tr:'Übersetzen',tooLong:'Text zu lang (höchstens {n} Zeichen).',miss:'Das fehlt noch',ready:'Alles ausgefüllt. Du kannst das PDF erstellen.',pdf:'PDF erstellen',pdfErr:'Die PDF-Bibliothek konnte nicht geladen werden. Prüfe das Internet und lade die Seite neu.',mName:'Name fehlt',mYear:'Ausbildungsjahr fehlt',mArea:'Ausbildungsbereich fehlt',mDate:'Datum fehlt',mText:'{d}: Text fehlt',mHours:'{d}: Stunden fehlen oder sind ungültig',mLatin:'{d}: Bitte nur deutschen Text (keine Fremdschrift)',mInst:'Unterweisungen: Eintrag fehlt',mSch:'Berufsschule: Themen fehlen',teacher:'Für Lehrkräfte: Klassenlink erzeugen',teacherHint:'Wähle Bundesland, Sprache, Jahr und Branche. Wer den Link öffnet, hat alles schon eingestellt.',linkCopy:'Link kopieren',lang:'Sprache'},
+ar:{addDay:'إضافة {d} كيوم عمل',rmDay:'إزالة اليوم',title:'دفتر التقارير',sub:'سجل التدريب – أسبوعي',saved:'يتم الحفظ تلقائياً على هذا الجهاز.',s1:'بياناتك',region:'الولاية',hb:'بريمن',ni:'ساكسونيا السفلى',name:'اسم المتدرب/ة',year:'سنة التدريب',yearOpt:'السنة {n}',area:'مجال التدريب',date:'اختر تاريخاً داخل الأسبوع',week:'الأسبوع {w}: من {a} إلى {b}',out:'هذا التاريخ خارج السنة الدراسية 2026/27.',prev:'نسخ الأسبوع الماضي',clear:'مسح الأسبوع',clearQ:'حذف كل مدخلات هذا الأسبوع؟',noPrev:'لا يوجد أسبوع سابق محفوظ.',prevDone:'تم نسخ مدخلات الأسبوع الماضي.',replaceT:'استبدال النص الموجود؟',note:'ماذا فعلتُ اليوم؟ (لغتك الأم أو الألمانية)',trans:'ترجمة إلى الألمانية',needNote:'اكتب شيئاً في حقل الملاحظات أولاً.',final:'نص دفتر التقارير (بالألمانية)',hours:'الساعات',sick:'مريض',vac:'إجازة',sch:'مدرسة مهنية',hol:'عطلة رسمية',phr:'عبارات مهنية',ai:'مساعدة الذكاء الاصطناعي (ChatGPT / Claude)',aiCopy:'نسخ الطلب',copied:'تم النسخ!',inst:'التوجيهات والدروس في الشركة والدورات الأخرى',school:'مواضيع دروس المدرسة المهنية',schHint:'انسخ المواضيع من Untis والصقها هنا.',none:'لا شيء هذا الأسبوع',branch:'القطاع',general:'عام (كل القطاعات)',phrFor:'عبارات مهنية: {d}',tap:'اضغط على العبارة لإضافتها إلى النص.',close:'تم',tr:'ترجمة',tooLong:'النص طويل جداً (الحد {n} حرفاً).',miss:'ما زال ناقصاً',ready:'كل شيء مكتمل. يمكنك إنشاء ملف PDF.',pdf:'إنشاء PDF',pdfErr:'تعذّر تحميل مكتبة PDF. تحقق من الإنترنت وأعد تحميل الصفحة.',mName:'الاسم ناقص',mYear:'سنة التدريب ناقصة',mArea:'مجال التدريب ناقص',mDate:'التاريخ ناقص',mText:'{d}: النص ناقص',mHours:'{d}: الساعات ناقصة أو غير صحيحة',mLatin:'{d}: يرجى كتابة نص ألماني فقط (بدون حروف غير لاتينية)',mInst:'التوجيهات: المدخل ناقص',mSch:'المدرسة المهنية: المواضيع ناقصة',teacher:'للمعلمين: رابط الصف',teacherHint:'اختر الولاية واللغة والسنة والقطاع. من يفتح الرابط يجد الإعدادات جاهزة.',linkCopy:'نسخ الرابط',lang:'اللغة'},
+es:{addDay:'Añadir {d} como día de trabajo',rmDay:'Quitar día',title:'Cuaderno de informes',sub:'Informe de formación – semanal',saved:'Todo se guarda automáticamente en este dispositivo.',s1:'Tus datos',region:'Estado federado',hb:'Bremen',ni:'Baja Sajonia',name:'Nombre del/de la aprendiz',year:'Año de formación',yearOpt:'{n}.º año',area:'Ámbito de formación',date:'Elige una fecha de la semana',week:'Semana {w}: del {a} al {b}',out:'Esta fecha está fuera del curso escolar 2026/27.',prev:'Copiar la semana anterior',clear:'Vaciar la semana',clearQ:'¿Borrar todas las entradas de esta semana?',noPrev:'No hay ninguna semana anterior guardada.',prevDone:'Entradas de la semana anterior copiadas.',replaceT:'¿Reemplazar el texto existente?',note:'¿Qué he hecho hoy? (lengua materna o alemán)',trans:'Traducir al alemán',needNote:'Escribe primero algo en el campo de notas.',final:'Texto para el cuaderno (alemán)',hours:'Horas',sick:'Enfermo/a',vac:'Vacaciones',sch:'Escuela profesional',hol:'Festivo',phr:'Frases técnicas',ai:'Ayuda de IA (ChatGPT / Claude)',aiCopy:'Copiar prompt',copied:'¡Copiado!',inst:'Instrucciones, formación en la empresa y otros cursos',school:'Temas de la escuela profesional',schHint:'Copia los temas de Untis y pégalos aquí.',none:'Ninguno esta semana',branch:'Sector',general:'General (todos los sectores)',phrFor:'Frases técnicas: {d}',tap:'Pulsa una frase para añadirla al texto.',close:'Listo',tr:'Traducir',tooLong:'Texto demasiado largo (máx. {n} caracteres).',miss:'Todavía falta',ready:'Todo completo. Ya puedes crear el PDF.',pdf:'Crear PDF',pdfErr:'No se pudo cargar la biblioteca PDF. Comprueba internet y recarga la página.',mName:'Falta el nombre',mYear:'Falta el año de formación',mArea:'Falta el ámbito de formación',mDate:'Falta la fecha',mText:'{d}: falta el texto',mHours:'{d}: faltan las horas o no son válidas',mLatin:'{d}: escribe solo texto en alemán (sin otros alfabetos)',mInst:'Instrucciones: falta la entrada',mSch:'Escuela profesional: faltan los temas',teacher:'Para docentes: enlace de clase',teacherHint:'Elige estado federado, idioma, año y sector. Quien abra el enlace lo tendrá ya configurado.',linkCopy:'Copiar enlace',lang:'Idioma'},
+pt:{addDay:'Adicionar {d} como dia de trabalho',rmDay:'Remover dia',title:'Caderno de relatórios',sub:'Relatório de formação – semanal',saved:'Tudo é guardado automaticamente neste aparelho.',s1:'Os teus dados',region:'Estado federado',hb:'Bremen',ni:'Baixa Saxónia',name:'Nome do/da aprendiz',year:'Ano de formação',yearOpt:'{n}.º ano',area:'Área de formação',date:'Escolhe uma data da semana',week:'Semana {w}: de {a} a {b}',out:'Esta data está fora do ano letivo 2026/27.',prev:'Copiar a semana anterior',clear:'Limpar a semana',clearQ:'Apagar todas as entradas desta semana?',noPrev:'Nenhuma semana anterior guardada.',prevDone:'Entradas da semana anterior copiadas.',replaceT:'Substituir o texto existente?',note:'O que fiz hoje? (língua materna ou alemão)',trans:'Traduzir para alemão',needNote:'Escreve primeiro algo no campo de notas.',final:'Texto para o caderno (alemão)',hours:'Horas',sick:'Doente',vac:'Férias',sch:'Escola profissional',hol:'Feriado',phr:'Frases técnicas',ai:'Ajuda de IA (ChatGPT / Claude)',aiCopy:'Copiar prompt',copied:'Copiado!',inst:'Instruções, formação na empresa e outros cursos',school:'Temas da escola profissional',schHint:'Copia os temas do Untis e cola-os aqui.',none:'Nenhum nesta semana',branch:'Setor',general:'Geral (todos os setores)',phrFor:'Frases técnicas: {d}',tap:'Toca numa frase para a juntar ao texto.',close:'Pronto',tr:'Traduzir',tooLong:'Texto demasiado longo (máx. {n} caracteres).',miss:'Ainda falta',ready:'Tudo preenchido. Já podes criar o PDF.',pdf:'Criar PDF',pdfErr:'Não foi possível carregar a biblioteca PDF. Verifica a internet e recarrega a página.',mName:'Falta o nome',mYear:'Falta o ano de formação',mArea:'Falta a área de formação',mDate:'Falta a data',mText:'{d}: falta o texto',mHours:'{d}: faltam as horas ou são inválidas',mLatin:'{d}: escreve apenas texto em alemão (sem outros alfabetos)',mInst:'Instruções: falta a entrada',mSch:'Escola profissional: faltam os temas',teacher:'Para professores: link da turma',teacherHint:'Escolhe estado federado, idioma, ano e setor. Quem abrir o link já tem tudo configurado.',linkCopy:'Copiar link',lang:'Idioma'},
+ti:{addDay:'ን{d} ከም መዓልቲ ስራሕ ወስኽ',rmDay:'መዓልቲ ኣልግስ',title:'መዝገብ ናይ ስራሕ ጸብጻብ',sub:'ሰሙናዊ መዝገብ ስልጠና',saved:'ኩሉ ኣብዚ መሳርሒ ባዕሉ ይዕቀብ።',s1:'ሓበሬታኻ',region:'ክልል',hb:'ብሬመን',ni:'ትሕቲ ሳክሶኒ',name:'ስም ተለማዒ',year:'ዓመት ስልጠና',yearOpt:'ዓመት {n}',area:'ዓውዲ ስልጠና',date:'ኣብ ሰሙን ዝኾነ ዕለት ምረጽ',week:'ሰሙን {w}: ካብ {a} ክሳብ {b}',out:'እዛ ዕለት ካብ ትምህርቲ ዓመት 2026/27 ወጻኢ እያ።',prev:'ዝሓለፈ ሰሙን ቅዳሕ',clear:'ሰሙን ኣጽሪ',clearQ:'ኩሉ ናይዚ ሰሙን ጽሑፍ ይጥፍእ?',noPrev:'ዝተዓቀበ ዝሓለፈ ሰሙን የለን።',prevDone:'ጽሑፍ ዝሓለፈ ሰሙን ተቐዲሑ።',replaceT:'ዘሎ ጽሑፍ ይተካእ?',note:'ሎሚ እንታይ ሰሪሐ? (ቋንቋ ኣደ ወይ ጀርመንኛ)',trans:'ናብ ጀርመንኛ ተርጉም',needNote:'ቅድም ኣብ ናይ መዘኻኸሪ ቦታ ገለ ጽሓፍ።',final:'ጽሑፍ ንመዝገብ (ጀርመንኛ)',hours:'ሰዓታት',sick:'ሕሙም',vac:'ዕረፍቲ',sch:'ሙያዊ ቤት ትምህርቲ',hol:'መዓልቲ በዓል',phr:'ሙያዊ ሓረጋት',ai:'ሓገዝ AI (ChatGPT / Claude)',aiCopy:'ትእዛዝ ቅዳሕ',copied:'ተቐዲሑ!',inst:'መምርሒታት፡ ኣብ ትካል ትምህርቲ፡ ካልኦት ስልጠናታት',school:'ኣርእስትታት ሙያዊ ቤት ትምህርቲ',schHint:'ኣርእስትታት ካብ Untis ቅዳሕ ኣብዚ ለጥፍ።',none:'ኣብዚ ሰሙን የለን',branch:'ዓይነት ንግዲ',general:'ሓፈሻዊ (ኩሉ ዓይነት)',phrFor:'ሙያዊ ሓረጋት: {d}',tap:'ሓረግ ጠውቕ ናብ ጽሑፍ ክውሰኽ።',close:'ወዲኡ',tr:'ተርጉም',tooLong:'ጽሑፍ ነዊሕ እዩ (ዝለዓለ {n} ፊደላት)።',miss:'ገና ይጎድል',ready:'ኩሉ ተመሊኡ። PDF ክትሰርሕ ትኽእል ኢኻ።',pdf:'PDF ስራሕ',pdfErr:'ናይ PDF ቤተ-መጽሓፍቲ ኣይተጻዕነን። ኢንተርኔት ፈትሽ ገጹ እንደገና ጽዓን።',mName:'ስም ይጎድል',mYear:'ዓመት ስልጠና ይጎድል',mArea:'ዓውዲ ስልጠና ይጎድል',mDate:'ዕለት ይጎድል',mText:'{d}: ጽሑፍ ይጎድል',mHours:'{d}: ሰዓታት ይጎድሉ ወይ ጌጋ እዮም',mLatin:'{d}: ጀርመንኛ ጽሑፍ ጥራይ ጽሓፍ',mInst:'መምርሒታት: ጽሑፍ ይጎድል',mSch:'ሙያዊ ቤት ትምህርቲ: ኣርእስትታት ይጎድሉ',teacher:'ንመምህራን: ናይ ክላስ ሊንክ',teacherHint:'ክልል፡ ቋንቋ፡ ዓመትን ዓይነት ንግድን ምረጽ። እቲ ሊንክ ዝኸፍት ድሮ ዝተዳለወ ይረክብ።',linkCopy:'ሊንክ ቅዳሕ',lang:'ቋንቋ'},
+uk:{addDay:'Додати {d} як робочий день',rmDay:'Прибрати день',title:'Щоденник практики',sub:'Звіт про навчання – щотижневий',saved:'Усе автоматично зберігається на цьому пристрої.',s1:'Твої дані',region:'Федеральна земля',hb:'Бремен',ni:'Нижня Саксонія',name:'Ім’я учня/учениці',year:'Рік навчання',yearOpt:'{n}-й рік',area:'Напрям навчання',date:'Обери дату в тижні',week:'Тиждень {w}: з {a} по {b}',out:'Ця дата поза навчальним роком 2026/27.',prev:'Скопіювати минулий тиждень',clear:'Очистити тиждень',clearQ:'Видалити всі записи цього тижня?',noPrev:'Немає збереженого попереднього тижня.',prevDone:'Записи минулого тижня скопійовано.',replaceT:'Замінити наявний текст?',note:'Що я сьогодні робив(ла)? (рідна мова або німецька)',trans:'Перекласти німецькою',needNote:'Спочатку напиши щось у полі нотаток.',final:'Текст для щоденника (німецька)',hours:'Години',sick:'Хворію',vac:'Відпустка',sch:'Професійна школа',hol:'Святковий день',phr:'Фахові фрази',ai:'Допомога ШІ (ChatGPT / Claude)',aiCopy:'Копіювати запит',copied:'Скопійовано!',inst:'Інструктажі, навчання на підприємстві, інші курси',school:'Теми занять у професійній школі',schHint:'Скопіюй теми з Untis і встав сюди.',none:'Цього тижня немає',branch:'Галузь',general:'Загальні (усі галузі)',phrFor:'Фахові фрази: {d}',tap:'Натисни фразу, щоб додати її до тексту.',close:'Готово',tr:'Перекласти',tooLong:'Текст задовгий (макс. {n} символів).',miss:'Ще бракує',ready:'Усе заповнено. Можна створити PDF.',pdf:'Створити PDF',pdfErr:'Не вдалося завантажити бібліотеку PDF. Перевір інтернет і онови сторінку.',mName:'Бракує імені',mYear:'Бракує року навчання',mArea:'Бракує напряму навчання',mDate:'Бракує дати',mText:'{d}: бракує тексту',mHours:'{d}: бракує годин або вони неправильні',mLatin:'{d}: пиши лише німецький текст (без інших алфавітів)',mInst:'Інструктажі: бракує запису',mSch:'Професійна школа: бракує тем',teacher:'Для вчителів: посилання для класу',teacherHint:'Обери землю, мову, рік і галузь. Хто відкриє посилання, матиме все налаштоване.',linkCopy:'Копіювати посилання',lang:'Мова'},
+vi:{addDay:'Thêm {d} là ngày làm việc',rmDay:'Xóa ngày',title:'Sổ báo cáo',sub:'Báo cáo đào tạo – hằng tuần',saved:'Mọi thứ được lưu tự động trên thiết bị này.',s1:'Thông tin của bạn',region:'Bang',hb:'Bremen',ni:'Niedersachsen (Hạ Saxony)',name:'Họ tên học viên',year:'Năm đào tạo',yearOpt:'Năm {n}',area:'Lĩnh vực đào tạo',date:'Chọn một ngày trong tuần',week:'Tuần {w}: từ {a} đến {b}',out:'Ngày này nằm ngoài năm học 2026/27.',prev:'Sao chép tuần trước',clear:'Xóa tuần này',clearQ:'Xóa tất cả mục của tuần này?',noPrev:'Chưa có tuần trước nào được lưu.',prevDone:'Đã sao chép nội dung tuần trước.',replaceT:'Thay thế văn bản hiện có?',note:'Hôm nay tôi đã làm gì? (tiếng mẹ đẻ hoặc tiếng Đức)',trans:'Dịch sang tiếng Đức',needNote:'Hãy viết gì đó vào ô ghi chú trước.',final:'Nội dung cho sổ báo cáo (tiếng Đức)',hours:'Giờ',sick:'Ốm',vac:'Nghỉ phép',sch:'Trường nghề',hol:'Ngày lễ',phr:'Cụm từ chuyên ngành',ai:'Trợ giúp AI (ChatGPT / Claude)',aiCopy:'Sao chép câu lệnh',copied:'Đã sao chép!',inst:'Hướng dẫn, đào tạo tại công ty, khóa học khác',school:'Chủ đề học ở trường nghề',schHint:'Sao chép chủ đề từ Untis và dán vào đây.',none:'Tuần này không có',branch:'Ngành',general:'Chung (mọi ngành)',phrFor:'Cụm từ chuyên ngành: {d}',tap:'Chạm vào cụm từ để thêm vào văn bản.',close:'Xong',tr:'Dịch',tooLong:'Văn bản quá dài (tối đa {n} ký tự).',miss:'Còn thiếu',ready:'Đã điền đủ. Bạn có thể tạo PDF.',pdf:'Tạo PDF',pdfErr:'Không tải được thư viện PDF. Kiểm tra internet và tải lại trang.',mName:'Thiếu họ tên',mYear:'Thiếu năm đào tạo',mArea:'Thiếu lĩnh vực đào tạo',mDate:'Thiếu ngày',mText:'{d}: thiếu nội dung',mHours:'{d}: thiếu giờ hoặc không hợp lệ',mLatin:'{d}: chỉ viết tiếng Đức (không dùng chữ cái khác)',mInst:'Hướng dẫn: thiếu mục',mSch:'Trường nghề: thiếu chủ đề',teacher:'Dành cho giáo viên: liên kết lớp',teacherHint:'Chọn bang, ngôn ngữ, năm và ngành. Ai mở liên kết sẽ có sẵn cài đặt.',linkCopy:'Sao chép liên kết',lang:'Ngôn ngữ'}
+};
+
+/* ============ Fachphrasen (Kategorien nach Ausbildungsrahmenplan Verkäufer/in) ============ */
+const CAT = {
+  c1:'Waren- und Dienstleistungsangebot',
+  c2:'Warenpräsentation und Werbung',
+  c3:'Preisauszeichnung und Kalkulation',
+  c4:'Warenbestandskontrolle',
+  c5:'Warenannahme und Lagerung',
+  c6:'Verkauf und Kundenberatung',
+  c7:'Kasse und Service',
+  c8:'Betrieb, Team, Sicherheit und Umwelt'
+};
+const BR = {tabak:'Tabakwaren',food:'Lebensmittel',textil:'Textil',drogerie:'Drogerie',elektro:'Elektro',pflanzen:'Pflanzen / Gartencenter'};
+const PH = {
+all:{
+ c1:["Beratung der Kunden über das Warensortiment und die Warenstandorte","Nutzung von Produktinformationen zum Erwerb von Warenkenntnissen","Information der Kunden über Serviceleistungen des Betriebes","Anwendung von Warenkennzeichnungen und Fachbegriffen"],
+ c2:["Auffüllen und Verräumen der Ware im Verkaufsraum","Platzierung der Ware nach Regalzonen und Warenkennzeichnung","Information der Kunden über laufende Werbeaktionen","Konkurrenzbeobachtung und Vorschläge zur Warenpräsentation"],
+ c3:["Auszeichnung der Ware mit Preisen nach Preisangabenverordnung","Durchführung von Preisänderungen laut Anweisung","Kontrolle der Preisschilder auf Richtigkeit"],
+ c4:["Kontrolle der Warenbestände auf Menge und Qualität","Erfassung von Warenbewegungen im Warenwirtschaftssystem","Mitarbeit bei der Inventur","Einleitung betriebsüblicher Maßnahmen bei Bruch, Verderb, Schwund und Diebstahl"],
+ c5:["Annahme der Ware und Kontrolle von Lieferschein und Menge","Prüfung der Verpackung auf Transportschäden","Sachgerechte Lagerung und Pflege der Ware","Einsatz von Hilfsmitteln zur Warenbewegung (z.B. Hubwagen)"],
+ c6:["Bedarfsermittlung durch aktives Zuhören und Fragetechniken","Durchführung von Verkaufs- und Beratungsgesprächen","Angebot von Ergänzungs- und Zusatzartikeln","Bearbeitung von Kundeneinwänden, Beschwerden und Umtauschwünschen"],
+ c7:["Vorbereitung und Bedienung der Kasse nach Kassieranweisung","Abwicklung von Bar- und Kartenzahlungen","Erstellung von Kaufbelegen","Mitarbeit bei der Kassenabrechnung"],
+ c8:["Zusammenarbeit im Team","Beachtung der Arbeitsschutz- und Unfallverhütungsvorschriften","Beachtung der Brandschutzvorschriften","Mülltrennung und umweltgerechte Entsorgung von Verpackungsmaterial","Teilnahme an Betriebsbesprechungen und Mitarbeiterschulungen"]
+},
+tabak:{
+ c1:["Beratung der Kunden über Zigarren-, Zigaretten- und Tabaksorten","Information über das Sortiment an Feinschnitt, Pfeifentabak und Zubehör","Information über Zusatzleistungen (z.B. Lotto, Paketannahme, Guthabenkarten)","Beratung zu Feuerzeugen und Raucherzubehör"],
+ c2:["Platzierung hochpreisiger Tabakwaren in diebstahlsicheren Warenträgern","Gestaltung der Tabakwarenwand nach Marken und Preislagen","Platzierung von Impulsartikeln im Kassenbereich","Beachtung der gesetzlichen Werbebeschränkungen für Tabakerzeugnisse am Verkaufsort"],
+ c3:["Beachtung der Kleinverkaufspreise laut Steuerzeichen der Tabakwaren","Preisauszeichnung von Zeitschriften und Zubehör","Preisänderungen im System nach Preiserhöhungen der Hersteller","Berechnung der Handelsspanne bei Tabakwaren"],
+ c4:["Bestandskontrolle bei Zigaretten und Zigarren nach dem FIFO-Prinzip","Kontrolle von Steuerzeichen und Haltbarkeit der Tabakwaren","Erfassung von Bestandsdifferenzen und Diebstahl im Warenwirtschaftssystem","Inventur der Tabakwarenbestände mit dem Handscanner"],
+ c5:["Annahme der Tabakwarenlieferung und Prüfung auf Vollständigkeit","Kontrolle der Steuerzeichen bei der Wareneingangsprüfung","Lagerung von Zigarren im Humidor bei richtiger Luftfeuchtigkeit","Verräumen der Tabakwaren nach dem FIFO-Prinzip","Bearbeitung von Retouren an den Lieferanten (z.B. beschädigte Ware)"],
+ c6:["Alterskontrolle nach Jugendschutzgesetz (Abgabeverbot von Tabakwaren unter 18 Jahren)","Sortenberatung bei Zigarren, Pfeifentabak und Feinschnitt","Ablehnung des Verkaufs bei fehlendem Altersnachweis","Beratung zu Zubehör und Ergänzungsartikeln (z.B. Feuerzeuge, Filter)"],
+ c7:["Kassieren mit Altersabfrage bei Tabakwaren und E-Zigaretten","Abwicklung von Lottoannahme und Verkauf von Guthabenkarten an der Kasse","Kassenabrechnung mit Prüfung der Tagesumsätze","Bearbeitung von Umtausch und Retouren nach betrieblichen Vorgaben"],
+ c8:["Beachtung des Jugendschutzgesetzes im Verkaufsalltag","Beachtung der Vorschriften zur Lagerung von Feuerzeuggas (Brandschutz)","Verhalten bei Diebstahlverdacht nach betrieblicher Anweisung","Mülltrennung bei Kartonagen und Verpackungen"]
+},
+food:{
+ c1:["Beratung der Kunden zu Frischeprodukten, Herkunft und Inhaltsstoffen","Information über Allergene und Kennzeichnung nach Lebensmittelinformationsverordnung","Information über Bio-, Regional- und Eigenmarkenprodukte","Beratung zu den Warengruppen Obst, Gemüse, Molkereiprodukte und Backwaren"],
+ c2:["Saisonale Platzierung von Aktionsware im Eingangsbereich und am POS","Gestaltung der Obst- und Gemüseabteilung (Frischepräsentation)","Zweitplatzierung von Aktionsartikeln an Kopfregalen und in der Kassenzone","Pflege und Auffüllen der Kühlregale nach Platzierungsplan"],
+ c3:["Auszeichnung der Ware mit Preis und Grundpreis nach Preisangabenverordnung","Auszeichnung loser Ware mit Preis je Kilogramm","Preisreduzierung bei kurzem Mindesthaltbarkeitsdatum","Austausch der Regalpreisschilder bei Aktionswechsel"],
+ c4:["Frischekontrolle bei Obst und Gemüse (Aussortieren verdorbener Ware)","MHD-Kontrolle bei Molkereiprodukten","Kontrolle der Kühltemperaturen und Dokumentation der Kühlkette","Erfassung von Schwund, Bruch und Verderb im Warenwirtschaftssystem"],
+ c5:["Temperaturkontrolle bei Annahme gekühlter Ware (Kühlkette)","Einlagerung der Ware nach FIFO- und FEFO-Prinzip","Beachtung der HACCP-Richtlinien bei Annahme und Lagerung","Verräumen von Kühl- und Tiefkühlware ohne Unterbrechung der Kühlkette","Sachgerechte Lagerung von Obst, Gemüse und Trockensortiment"],
+ c6:["Beratung zu Zubereitung und Verwendung von Lebensmitteln","Empfehlung von Ergänzungsartikeln (z.B. Wein zum Käse)","Information der Kunden über Mindesthaltbarkeit und Lagerung","Bearbeitung von Reklamationen bei verdorbener Ware"],
+ c7:["Abwicklung der Pfandrückgabe (Leergutautomat und Leergutannahme)","Bonieren von Obst und Gemüse nach Gewicht","Bearbeitung von Pfandbons und Gutscheinen an der Kasse","Kassenabrechnung am Tagesende"],
+ c8:["Einhaltung des Hygieneplans und der persönlichen Hygiene (Händewaschen, Schutzkleidung)","Reinigung und Desinfektion nach Reinigungsplan","Wartung und Kontrolle der Pfandautomaten","Vermeidung von Lebensmittelverschwendung und Mülltrennung"]
+},
+textil:{
+ c1:["Beratung der Kunden über Marken, Materialien und Passformen","Information über Textilkennzeichnung und Pflegehinweise","Information über die Saisonkollektion (Frühjahr/Sommer, Herbst/Winter)","Information über Dienstleistungen (z.B. Änderungsservice, Geschenkgutschein)"],
+ c2:["Visual Merchandising: Gestaltung von Schaufenster und Warenträgern","Dekorieren von Figuren und Warentischen nach Farbgruppen","Platzierung der Ware nach Konfektionsgrößen und Passform","Aufbau von Themenwelten und Werbeaktionen im Verkaufsraum"],
+ c3:["Auszeichnung der Ware mit Preisetiketten","Durchführung von Preisreduzierungen bei Saisonware","Kontrolle der Preisschilder an Hängeware","Auszeichnung von Sonderangeboten mit Streichpreisen"],
+ c4:["Bestandskontrolle der Konfektionsgrößen und Farben","Erfassung von Zugängen und Abgängen im Warenwirtschaftssystem","Durchführung der Inventur mit dem Handscanner","Kontrolle auf Diebstahl und Bestandsdifferenzen"],
+ c5:["Warenannahme mit Kontrolle von Lieferschein und Stückzahl","Anbringen von Sicherungsetiketten (Warensicherung)","Auszeichnen und Dämpfen der Ware vor der Verkaufsfreigabe","Lagerung von Hänge- und Legeware nach Größen"],
+ c6:["Bedarfsanalyse und Beratung bei der Anprobe","Cross-Selling (z.B. Gürtel, Schal und Accessoires zum Outfit)","Beratung zu Größen, Passform und Stilrichtung","Bearbeitung von Reklamationen unter Beachtung der Gewährleistung"],
+ c7:["Entfernen der Sicherungsetiketten an der Kasse","Kassieren und Verpacken der Ware (Falten, Tragetasche)","Abwicklung von Umtausch und Gutscheinen an der Kasse","Kassenabrechnung am Tagesende"],
+ c8:["Kabinenräumung und Rückführung der Ware auf die Verkaufsfläche","Mitarbeit im Team bei Aktionstagen und Inventur","Ergonomisches Heben und Tragen von Kartons","Mülltrennung bei Kartonagen und Folien"]
+},
+drogerie:{
+ c1:["Beratung der Kunden zu Kosmetik-, Pflege- und Reinigungsprodukten","Information über freiverkäufliche Arzneimittel und Nahrungsergänzungsmittel","Information über Naturkosmetik und Gütesiegel","Information über Babybedarf und Haushaltswaren"],
+ c2:["Spiegeln der Regale im Kosmetikbereich (Ware nach vorn ziehen)","Pflege und Auffüllen der Tester im Kosmetikbereich","Platzierung von Aktionsware an Displays und Kopfregalen","Gestaltung saisonaler Sortimente (z.B. Sonnenschutz, Weihnachtsgeschenke)"],
+ c3:["Auszeichnung der Ware mit Preis und Grundpreis","Austausch der Aktionspreisschilder bei Aktionswechsel","Kontrolle der Preise im Regal und im Kassensystem","Preisauszeichnung von Parfüm und hochpreisiger Kosmetik"],
+ c4:["Kontrolle der Mindesthaltbarkeit bei Kosmetik und Nahrungsergänzung","Bestandskontrolle mit dem Handscanner","Erfassung von Schwund und Bruch","Inventur der Sortimentsbereiche"],
+ c5:["Annahme der Warenlieferung und Prüfung auf Vollständigkeit","Lagerung von Gefahrstoffen nach Gefahrstoffkennzeichnung und Sicherheitsdatenblatt","Anbringen von Warenschutzetiketten bei Düften","Getrennte Lagerung von Gefahrstoffen und Lebensmitteln"],
+ c6:["Beratung zu Hautpflege und Kosmetik mit Bedarfsermittlung","Abgabe freiverkäuflicher Arzneimittel mit Hinweis auf die Packungsbeilage","Hinweis auf die Apothekenpflicht bei apothekenpflichtigen Arzneimitteln","Cross-Selling (z.B. Zahnbürste zur Zahnpasta)"],
+ c7:["Kassieren mit Prüfung der Warenschutzetiketten","Bonieren von Aktionsartikeln und Coupons","Abwicklung von Kundenkarten und Bonussystemen","Kassenabrechnung am Tagesende"],
+ c8:["Beachtung der Gefahrenpiktogramme und Sicherheitsdatenblätter beim Umgang mit Gefahrstoffen","Beachtung der Hygiene beim Umgang mit Testern","Entsorgung von Gefahrstoffen und Leergut nach betrieblichen Vorgaben","Einhaltung der Arbeitsschutzvorschriften beim Heben und Tragen"]
+},
+elektro:{
+ c1:["Beratung der Kunden zu Unterhaltungselektronik und Haushaltsgeräten","Information über technische Daten und Energieeffizienzklassen (Energielabel)","Information über Garantie, Gewährleistung und Serviceleistungen (z.B. Lieferung, Montage)","Information über Zubehör und Verbrauchsmaterial"],
+ c2:["Präsentation der Geräte mit Anschluss und Funktionsfähigkeit","Platzierung von Zubehör und Spontankaufartikeln im Kassenbereich","Aufbau von Aktionsflächen","Aktualisierung der Preis- und Produktinformationen an Vorführgeräten"],
+ c3:["Auszeichnung der Geräte mit Preis- und Informationsschildern","Preisänderungen im Warenwirtschaftssystem und am Regal","Auszeichnung der Geräte mit Energielabel","Kontrolle der Preisschilder bei Aktionsangeboten"],
+ c4:["Bestandskontrolle bei Geräten und Zubehör","Erfassung von Zu- und Abgängen im Warenwirtschaftssystem","Inventur und Bestandsabgleich","Kontrolle auf Diebstahl und Bestandsdifferenzen"],
+ c5:["Annahme der Warenlieferung und Prüfung auf Transportschäden","Lagerung hochwertiger Geräte im gesicherten Lager (Diebstahlschutz)","Retourenprüfung auf Vollständigkeit und Funktionsfähigkeit","Annahme und Weitergabe von Altgeräten nach Elektro- und Elektronikgerätegesetz"],
+ c6:["Bedarfsanalyse und Beratung beim Kauf von Smartphones und Zubehör","Beratung zu Garantieverlängerung und Schutzpaketen","Aufnahme eines Garantiefalls und Reparaturauftrags","Cross-Selling von Zubehör (z.B. Hülle, Schutzfolie, Kabel)"],
+ c7:["Kassieren mit Erfassung der Seriennummern","Entfernen der Leinensicherungen (z.B. bei Smartphones) an der Kasse","Abwicklung von Umtausch und Rückgaben an der Kasse","Kassenabrechnung am Tagesende"],
+ c8:["Beachtung der elektrischen Sicherheit im Umgang mit Geräten","Beachtung des Datenschutzes bei der Bearbeitung von Kundendaten (z.B. Reparaturaufträge)","Entsorgung von Batterien und Altgeräten nach den Vorschriften","Ergonomisches Heben und Tragen schwerer Geräte"]
+},
+pflanzen:{
+ c1:["Beratung der Kunden zu Zimmer- und Gartenpflanzen","Information über Standortansprüche, Pflege und Gießverhalten der Pflanzen","Information über Erden, Dünger und Zubehör","Information über Saisonware (Frühjahrsblüher, Weihnachtsware)"],
+ c2:["Botanische Auszeichnung der Pflanzen (Name, Pflegehinweis, Preis)","Präsentation der Pflanzen nach Standortansprüchen (Sonne, Schatten)","Gestaltung von Themenbereichen im Außenbereich","Pflege der Ware (Gießen, Entfernen welker Blüten) zur Verkaufsförderung"],
+ c3:["Preisauszeichnung der Pflanzen nach Topfgröße","Abschreibung und Preisreduzierung bei Restposten","Austausch der Preisschilder bei Sonderaktionen","Kontrolle der Preisauszeichnung im Außenbereich"],
+ c4:["Bestandskontrolle bei Pflanzen auf Qualität und Frische","Aussortieren von Pflanzen mit Schädlingsbefall oder Krankheiten","Erfassung von Schwund und Abschreibungen im Warenwirtschaftssystem","Inventur im Pflanzen- und Zubehörbereich"],
+ c5:["Annahme von Pflanzenlieferungen mit Kontrolle auf Qualität und Schäden","Transportsicherung von Großkeramik und schweren Pflanzgefäßen","Lagerung von Erden und Düngern und Sicherung schwerer Säcke","Isolierung von Pflanzen mit Schädlingsbefall bei der Warenannahme"],
+ c6:["Beratung zur Pflanzenauswahl nach Standort und Pflegeaufwand","Beratung zu Pflanzenschutz und Düngung","Cross-Selling von Erde, Dünger und Pflanzgefäßen","Bearbeitung von Reklamationen bei eingegangenen Pflanzen"],
+ c7:["Kassieren und Einpacken der Pflanzen mit Transportschutz","Abwicklung von Gutscheinen und Kundenkarten","Unterstützung der Kunden beim Verladen schwerer Ware","Kassenabrechnung am Tagesende"],
+ c8:["Beachtung der Unfallverhütungsvorschriften beim Heben schwerer Erdsäcke und Pflanzgefäße","Beachtung der Vorschriften im Umgang mit Pflanzenschutzmitteln und Gefahrstoffen","Entsorgung von Pflanzenabfällen und Kunststofftöpfen (Mülltrennung)","Wassersparender Umgang bei der Bewässerung"]
+}
+};
+
+/* ============ Hilfsfunktionen ============ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const iso = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const fmt = d => pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear();
+function parseISO(s){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||''); return m ? new Date(+m[1],+m[2]-1,+m[3]) : null; }
+function mondayOf(d){ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); x.setDate(x.getDate()-((x.getDay()+6)%7)); return x; }
+function addDays(d,n){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n); }
+function isoWeek(mon){ // ISO 8601: Woche mit dem Donnerstag bestimmt das Jahr
+  const thu=addDays(mon,3), jan4=new Date(thu.getFullYear(),0,4);
+  return 1+Math.round(((thu-jan4)/86400000-3+((jan4.getDay()+6)%7))/7);
+}
+function clean(s){
+  return String(s||'').replace(/\r/g,'').replace(/[\u2018\u2019\u201A]/g,"'").replace(/[\u201C\u201D\u201E]/g,'"')
+   .replace(/[\u2022\u25CF\u00B7]/g,'-').replace(/\u2026/g,'...').replace(/[\u2013\u2014\u2212]/g,'-')
+   .replace(/\u20AC/g,'EUR').replace(/[\u00A0\t]/g,' ');
+}
+const hasForeign = s => /[^\n\x20-\x7E\u00A1-\u00FF]/.test(clean(s));
+const validHours = h => /^\d{1,2}([.,]\d{1,2})?$/.test(String(h||'').trim());
+
+/* ============ Zustand ============ */
+const DEF = {p:{name:'',year:'',area:'Verkäufer/in',region:'hb',lang:'de',branch:'',date:''},weeks:{}};
+let S;
+try{ S = JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){ S = null; }
+if(!S || !S.p) S = JSON.parse(JSON.stringify(DEF));
+S.p = Object.assign({}, DEF.p, S.p); S.weeks = S.weeks || {};
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){} }
+(function applyUrl(){ // Klassenlink: ?region=ni&lang=ar&jahr=1&branche=food&bereich=...
+  const q=new URLSearchParams(location.search);
+  if(['hb','ni'].includes(q.get('region'))) S.p.region=q.get('region');
+  if(I18N[q.get('lang')]) S.p.lang=q.get('lang');
+  if(['1','2','3'].includes(q.get('jahr'))) S.p.year=q.get('jahr');
+  if(BR[q.get('branche')]) S.p.branch=q.get('branche');
+  if(q.get('bereich')) S.p.area=q.get('bereich').slice(0,60);
+  if(!S.p.date) S.p.date=iso(new Date());
+  save();
+})();
+const P = S.p;
+const T = (k,v) => { let s=(I18N[P.lang]&&I18N[P.lang][k])||I18N.de[k]||k; if(v) for(const x in v) s=s.replace('{'+x+'}',v[x]); return s; };
+const monOf = () => { const d=parseISO(P.date); return d?mondayOf(d):null; };
+const wkKey = () => { const m=monOf(); return m?iso(m):'_'; };
+const newWeek = () => ({days:Array.from({length:7},(_,k)=>({t:'',h:k<5?'8':'',n:''})),on:[false,false],i:{t:'',h:''},s:{t:'',h:''}});
+const dayActive = (w,i) => i<5 || !!w.on[i-5];
+const lastDay = w => w.on[1]?6:(w.on[0]?5:4);
+function W(){ const k=wkKey(); let w=S.weeks[k]; if(!w) w=S.weeks[k]=newWeek(); while(w.days.length<7) w.days.push({t:'',h:'',n:''}); if(!w.on) w.on=[false,false]; return w; }
+const weekHasContent = w => w && (w.days.some(d=>d.t||d.n) || w.i.t || w.s.t);
+
+/* ============ Rendering ============ */
+function localDay(i){
+  const m=monOf(); if(!m||P.lang==='de') return '';
+  try{ if(!Intl.DateTimeFormat.supportedLocalesOf([P.lang]).length) return '';
+       return new Intl.DateTimeFormat(P.lang,{weekday:'long'}).format(addDays(m,i)); }catch(e){ return ''; }
+}
+const aiText = i => AI_PROMPT.replace('[TEXT]', (W().days[i].n||'').trim() || '[TEXT]');
+
+function render(){
+  document.documentElement.lang=P.lang; document.documentElement.dir = P.lang==='ar'?'rtl':'ltr';
+  const w=W(), mon=monOf(), fri=mon?addDays(mon,lastDay(w)):null;
+  const out = P.date && (P.date<YEAR_MIN || P.date>YEAR_MAX);
+  const yearOpts = ['1','2','3'].map(n=>`<option value="${n}" ${P.year===n?'selected':''}>${esc(T('yearOpt',{n}))}</option>`).join('');
+  const brOpts = `<option value="">${esc(T('general'))}</option>`+Object.entries(BR).map(([k,v])=>`<option value="${k}" ${P.branch===k?'selected':''}>${esc(v)}</option>`).join('');
+  const langBtns = LANGS.map(([c,n])=>`<button type="button" data-act="lang" data-v="${c}" aria-pressed="${P.lang===c}" lang="${c}">${n}</button>`).join('');
+  const dayCards = DAYS.map((dn,i)=>{
+    if(!dayActive(w,i)) return '';
+    const d=w.days[i], dd=mon?addDays(mon,i):null, loc=localDay(i);
+    return `<article class="card day" id="day${i}" aria-labelledby="dh${i}">
+      <div class="strip" aria-hidden="true"><span>${dn}</span></div>
+      <div class="body">
+        <h3 id="dh${i}">${dn}${dd?' · '+pad(dd.getDate())+'.'+pad(dd.getMonth()+1)+'.':''}${loc?`<small>${esc(loc)}</small>`:''}</h3>
+        <div class="quick">${['sick','vac','sch','hol'].map(k=>`<button type="button" class="btn sm" data-act="quick" data-i="${i}" data-k="${k}">${esc(T(k))}</button>`).join('')}</div>
+        <label for="d${i}-n">${esc(T('note'))}</label>
+        <textarea id="d${i}-n" data-f="d.${i}.n" rows="3">${esc(d.n)}</textarea>
+        <div class="acts"><button type="button" class="btn" data-act="trans" data-i="${i}">${esc(T('trans'))}</button></div>
+        <label for="d${i}-t">${esc(T('final'))}</label>
+        <textarea id="d${i}-t" class="ruled" data-f="d.${i}.t" rows="4" maxlength="${MAXLEN.d}" lang="de">${esc(d.t)}</textarea>
+        <div class="meta">
+          <div class="hrs"><label for="d${i}-h">${esc(T('hours'))}</label><input id="d${i}-h" data-f="d.${i}.h" inputmode="decimal" value="${esc(d.h)}"></div>
+          <button type="button" class="btn" data-act="phr" data-i="${i}">${esc(T('phr'))}</button>
+          <span class="cnt" id="cnt${i}">${d.t.length}/${MAXLEN.d}</span>${i>=5?`<button type="button" class="btn sm" data-act="rmday" data-i="${i}">${esc(T('rmDay'))}</button>`:''}
+        </div>
+        <details class="ai"><summary>${esc(T('ai'))}</summary>
+          <div class="prompt" id="ai${i}" lang="de">${esc(aiText(i))}</div>
+          <button type="button" class="btn sm" data-act="copyai" data-i="${i}">${esc(T('aiCopy'))}</button>
+        </details>
+      </div></article>`;
+  }).join('') + `<div class="acts" style="margin:0 0 14px">${[5,6].filter(i=>!dayActive(w,i)).map(i=>`<button type="button" class="btn" data-act="addday" data-i="${i}">${esc(T('addDay',{d:DAYS[i]}))}</button>`).join('')}</div>`;
+  const block = (key,title,hint,maxk) => `<section class="card"><h2>${esc(title)}</h2>${hint?`<p class="hint">${esc(hint)}</p>`:''}
+      <label for="${key}-t" class="sr" style="margin-top:0">${esc(title)}</label>
+      <textarea id="${key}-t" class="ruled" data-f="${key}.t" rows="${key==='s'?6:3}" maxlength="${MAXLEN[maxk]}" lang="de">${esc(w[key].t)}</textarea>
+      <div class="meta"><div class="hrs"><label for="${key}-h">${esc(T('hours'))}</label><input id="${key}-h" data-f="${key}.h" inputmode="decimal" value="${esc(w[key].h)}"></div>
+      <button type="button" class="btn" data-act="none" data-k="${key}">${esc(T('none'))}</button></div></section>`;
+  const lkUrl = classLink();
+  $('#app').innerHTML = `
+  <header class="top"><div class="wrap"><h1>${esc(T('title'))}</h1><p class="sub">${esc(T('sub'))}</p><div class="langs" role="group" aria-label="${esc(T('lang'))}">${langBtns}</div></div></header>
+  <main class="wrap">
+    <section class="card"><h2>${esc(T('s1'))}</h2>
+      <label for="f-name">${esc(T('name'))}</label>
+      <input id="f-name" data-f="p.name" autocomplete="name" value="${esc(P.name)}">
+      <div class="row2">
+        <div><label for="f-year">${esc(T('year'))}</label><select id="f-year" data-f="p.year"><option value="">–</option>${yearOpts}</select></div>
+        <div><label for="f-area">${esc(T('area'))}</label><input id="f-area" data-f="p.area" value="${esc(P.area)}" lang="de"></div>
+      </div>
+      <label id="regL">${esc(T('region'))}</label>
+      <div class="seg" role="group" aria-labelledby="regL">
+        <button type="button" class="btn" data-act="region" data-v="hb" aria-pressed="${P.region==='hb'}">${esc(T('hb'))}</button>
+        <button type="button" class="btn" data-act="region" data-v="ni" aria-pressed="${P.region==='ni'}">${esc(T('ni'))}</button>
+      </div>
+      <label for="f-branch">${esc(T('branch'))}</label>
+      <select id="f-branch" data-f="p.branch">${brOpts}</select>
+      <label for="f-date">${esc(T('date'))}</label>
+      <input type="date" id="f-date" data-f="p.date" min="${YEAR_MIN}" max="${YEAR_MAX}" value="${esc(P.date)}">
+      ${mon?`<p class="weekline">${esc(T('week',{w:isoWeek(mon),a:fmt(mon),b:fmt(fri)}))}</p>`:''}
+      ${out?`<p class="warn">${esc(T('out'))}</p>`:''}
+      <div class="acts"><button type="button" class="btn" data-act="prev">${esc(T('prev'))}</button><button type="button" class="btn" data-act="clear">${esc(T('clear'))}</button></div>
+      <p class="hint" style="margin-top:10px">${esc(T('saved'))}</p>
+    </section>
+    ${dayCards}
+    ${block('i',T('inst'),'','i')}
+    ${block('s',T('school'),T('schHint'),'s')}
+    <section class="card"><h2>${esc(T('miss'))}</h2><ul id="missL"></ul></section>
+    <details class="card"><summary style="cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center">${esc(T('teacher'))}</summary>
+      <p class="hint">${esc(T('teacherHint'))}</p>
+      <div class="lk">
+        <select data-lk="region" aria-label="${esc(T('region'))}"><option value="hb">${esc(T('hb'))}</option><option value="ni">${esc(T('ni'))}</option></select>
+        <select data-lk="lang" aria-label="${esc(T('lang'))}">${LANGS.map(([c,n])=>`<option value="${c}">${n}</option>`).join('')}</select>
+        <select data-lk="jahr" aria-label="${esc(T('year'))}"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
+        <select data-lk="branche" aria-label="${esc(T('branch'))}"><option value="">${esc(T('general'))}</option>${Object.entries(BR).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('')}</select>
+        <input id="lkOut" readonly value="${esc(lkUrl)}" aria-label="Link">
+        <button type="button" class="btn" data-act="copylink">${esc(T('linkCopy'))}</button>
+      </div></details>
+  </main>`;
+  $('#pdfBtn').textContent = T('pdf');
+  updateMissing();
+}
+function classLink(){
+  const g=k=>{const e=document.querySelector(`[data-lk="${k}"]`); return e?e.value:'';};
+  const q=new URLSearchParams(); const r=g('region')||'hb', l=g('lang')||'de';
+  q.set('region',r); q.set('lang',l); if(g('jahr')) q.set('jahr',g('jahr')); if(g('branche')) q.set('branche',g('branche'));
+  return location.origin+location.pathname+'?'+q.toString();
+}
+
+/* ============ Prüfung: Was fehlt noch? ============ */
+function validate(){
+  const w=W(), m=[], dayOk=[];
+  if(!P.name.trim()) m.push(['f-name',T('mName')]);
+  if(!P.year) m.push(['f-year',T('mYear')]);
+  if(!P.area.trim()) m.push(['f-area',T('mArea')]);
+  if(!parseISO(P.date)) m.push(['f-date',T('mDate')]);
+  DAYS.forEach((dn,i)=>{
+    if(!dayActive(w,i)) return;
+    const d=w.days[i]; let ok=true;
+    if(!clean(d.t).trim()){ m.push([`d${i}-t`,T('mText',{d:dn})]); ok=false; }
+    else if(hasForeign(d.t)){ m.push([`d${i}-t`,T('mLatin',{d:dn})]); ok=false; }
+    if(!validHours(d.h)){ m.push([`d${i}-h`,T('mHours',{d:dn})]); ok=false; }
+    dayOk[i]=ok;
+  });
+  if(!clean(w.i.t).trim()) m.push(['i-t',T('mInst')]); else if(hasForeign(w.i.t)) m.push(['i-t',T('mLatin',{d:T('inst')})]);
+  if(!clean(w.s.t).trim()) m.push(['s-t',T('mSch')]); else if(hasForeign(w.s.t)) m.push(['s-t',T('mLatin',{d:T('school')})]);
+  ['i','s'].forEach(k=>{ if(w[k].h && !validHours(w[k].h)) m.push([`${k}-h`,T('mHours',{d:k==='i'?T('inst'):T('school')})]); });
+  return {m,dayOk};
+}
+function updateMissing(){
+  const {m,dayOk}=validate();
+  dayOk.forEach((ok,i)=>{ const el=$('#day'+i); if(el) el.classList.toggle('done',ok); });
+  const L=$('#missL');
+  if(L) L.innerHTML = m.length ? m.map(([id,msg])=>`<li><button type="button" data-act="goto" data-id="${id}">${esc(msg)}</button></li>`).join('') : `<li class="okline">${esc(T('ready'))}</li>`;
+  const bt=$('#barTxt'); bt.classList.toggle('ok',!m.length);
+  bt.textContent = m.length ? `${T('miss')} (${m.length}): ${m[0][1]}` : T('ready');
+  $('#pdfBtn').disabled = m.length>0;
+}
+
+/* ============ Eingaben & Klicks ============ */
+function setF(f,v){
+  const a=f.split('.');
+  if(a[0]==='p') P[a[1]]=v;
+  else{ const w=W(); if(a[0]==='d') w.days[+a[1]][a[2]]=v; else w[a[0]][a[1]]=v; }
+  save();
+}
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.dataset&&el.dataset.lk){ const o=$('#lkOut'); if(o) o.value=classLink(); return; }
+  if(el.id==='dlgB'){ P.branch=el.value; save(); const fb=$('#f-branch'); if(fb) fb.value=P.branch; fillDlg(); return; }
+  const f=el.dataset&&el.dataset.f; if(!f) return;
+  if(f==='p.date'){ setF(f,el.value); render(); return; }
+  setF(f,el.value);
+  const a=f.split('.');
+  if(a[0]==='d'&&a[2]==='t'){ const c=$('#cnt'+a[1]); if(c) c.textContent=el.value.length+'/'+MAXLEN.d; }
+  if(a[0]==='d'&&a[2]==='n'){ const p=$('#ai'+a[1]); if(p) p.textContent=aiText(+a[1]); }
+  if(f==='p.branch'&&$('#dlg').open) fillDlg();
+  updateMissing();
+});
+let toastT;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2400); }
+async function copyText(txt){
+  try{ await navigator.clipboard.writeText(txt); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(_){} ta.remove(); }
+  toast(T('copied'));
+}
+function setDayText(i,txt){ const d=W().days[i]; d.t=txt; save(); const ta=$('#d'+i+'-t'); if(ta) ta.value=txt; const c=$('#cnt'+i); if(c) c.textContent=txt.length+'/'+MAXLEN.d; updateMissing(); }
+let dlgDay=0, curList={};
+function fillDlg(){
+  $('#dlgT').textContent=T('phrFor',{d:DAYS[dlgDay]});
+  $('#dlgX').textContent=T('close'); $('#dlgBL').textContent=T('branch'); $('#dlgH').textContent=T('tap');
+  $('#dlgB').innerHTML=`<option value="">${esc(T('general'))}</option>`+Object.entries(BR).map(([k,v])=>`<option value="${k}" ${P.branch===k?'selected':''}>${esc(v)}</option>`).join('');
+  const open=$('#dlgL').querySelector('details[open]'); const openKey=open?open.dataset.c:'c1';
+  curList={};
+  $('#dlgL').innerHTML=Object.keys(CAT).map(c=>{
+    const list=[...(P.branch&&PH[P.branch]?PH[P.branch][c]:[]),...PH.all[c]]; curList[c]=list;
+    return `<details data-c="${c}" ${c===openKey?'open':''}><summary>${esc(CAT[c])}</summary><div class="chips">${list.map((s,k)=>`<div class="chip"><button type="button" class="p" data-act="ins" data-c="${c}" data-k="${k}" lang="de">${esc(s)}</button>${P.lang!=='de'?`<button type="button" class="q" data-act="ptr" data-c="${c}" data-k="${k}" aria-label="${esc(T('tr'))}" title="${esc(T('tr'))}">?</button>`:''}</div>`).join('')}</div></details>`;
+  }).join('');
+}
+function gTranslate(text,sl,tl){ window.open('https://translate.google.com/?sl='+sl+'&tl='+tl+'&op=translate&text='+encodeURIComponent(text.slice(0,1500)),'_blank','noopener'); }
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const act=b.dataset.act, i=+b.dataset.i;
+  if(act==='lang'){ P.lang=b.dataset.v; save(); render(); if($('#dlg').open) fillDlg(); }
+  else if(act==='region'){ P.region=b.dataset.v; save(); document.querySelectorAll('[data-act=region]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===P.region)); }
+  else if(act==='quick'){
+    const d=W().days[i]; const txt=QT[b.dataset.k];
+    if(d.t.trim()&&d.t.trim()!==txt&&!confirm(T('replaceT'))) return;
+    setDayText(i,txt);
+  }
+  else if(act==='trans'){ const n=(W().days[i].n||'').trim(); if(!n){ toast(T('needNote')); $('#d'+i+'-n').focus(); return; } gTranslate(n,'auto','de'); }
+  else if(act==='copyai'){ copyText(aiText(i)); }
+  else if(act==='phr'){ dlgDay=i; fillDlg(); $('#dlg').showModal(); }
+  else if(act==='close'){ $('#dlg').close(); }
+  else if(act==='ins'){
+    const ph=curList[b.dataset.c][+b.dataset.k], d=W().days[dlgDay];
+    const cur=d.t.replace(/\s+$/,''); const nt=cur?cur+'\n- '+ph:'- '+ph;
+    if(nt.length>MAXLEN.d){ toast(T('tooLong',{n:MAXLEN.d})); return; }
+    setDayText(dlgDay,nt); b.classList.add('ok'); setTimeout(()=>b.classList.remove('ok'),700);
+  }
+  else if(act==='ptr'){ gTranslate(curList[b.dataset.c][+b.dataset.k],'de',P.lang); }
+  else if(act==='none'){ const k=b.dataset.k; W()[k].t=NONE_TXT; save(); const ta=$('#'+k+'-t'); if(ta) ta.value=NONE_TXT; updateMissing(); }
+  else if(act==='prev'){
+    const cur=wkKey(); const keys=Object.keys(S.weeks).filter(k=>k<cur&&weekHasContent(S.weeks[k])).sort();
+    if(!keys.length){ toast(T('noPrev')); return; }
+    if(weekHasContent(W())&&!confirm(T('replaceT'))) return;
+    const src=S.weeks[keys[keys.length-1]], w=W();
+    w.days=src.days.map(d=>({t:d.t,h:d.h,n:d.n})); w.on=(src.on||[false,false]).slice(); while(w.days.length<7) w.days.push({t:'',h:'',n:''}); w.i={t:src.i.t,h:src.i.h};
+    save(); render(); toast(T('prevDone'));
+  }
+  else if(act==='addday'){ W().on[i-5]=true; save(); render(); const c=$('#day'+i); if(c) c.scrollIntoView({block:'start',behavior:'smooth'}); }
+  else if(act==='rmday'){ const w=W(); if(w.days[i].t&&!confirm(T('clearQ'))) return; w.on[i-5]=false; w.days[i]={t:'',h:'',n:''}; save(); render(); }
+  else if(act==='clear'){ if(!confirm(T('clearQ'))) return; S.weeks[wkKey()]=newWeek(); save(); render(); }
+  else if(act==='goto'){ const el=document.getElementById(b.dataset.id); if(el){ el.scrollIntoView({block:'center',behavior:'smooth'}); el.focus({preventScroll:true}); } }
+  else if(act==='copylink'){ copyText($('#lkOut').value); }
+  else if(act==='pdf'){ if(!b.disabled) makePdf(); }
+});
+
+/* ============ PDF im Layout des IHK-Ausbildungsnachweises (wöchentlich) ============ */
+function fitText(doc,txt,x,y,w,h,maxFs,minFs){
+  let fs=maxFs, lines;
+  for(;fs>=minFs;fs-=0.5){ doc.setFontSize(fs); lines=doc.splitTextToSize(txt,w); if(lines.length*fs*0.3528*1.2<=h) break; }
+  if(fs<minFs){ fs=minFs; doc.setFontSize(fs); lines=doc.splitTextToSize(txt,w); }
+  const lh=fs*0.3528*1.2, maxL=Math.max(1,Math.floor(h/lh));
+  if(lines.length>maxL){ lines=lines.slice(0,maxL); lines[maxL-1]=lines[maxL-1].replace(/.{0,3}$/,'...'); }
+  lines.forEach((ln,k)=>doc.text(ln,x,y+fs*0.3528*0.95+k*lh));
+}
+function drawLogo(doc){
+  if(LOGO){ try{ const pr=doc.getImageProperties(LOGO), w=52; doc.addImage(LOGO,'PNG',195-w,11,w,w*pr.height/pr.width); return; }catch(e){} }
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.text('Handelskammer Bremen',195,17,{align:'right'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.text('IHK für Bremen und Bremerhaven',195,22,{align:'right'});
+}
+function buildPdf(doc,D){
+  const L=15,R=195,W=180,RH=15,TW=W-8-22,xT=L+8,xH=L+8+TW;
+  doc.setLineWidth(0.3); doc.setDrawColor(0); doc.setTextColor(0);
+  if(D.region==='hb') drawLogo(doc);
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.text('Ausbildungsnachweis (Berichtsheft)',L,22);
+  doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.text('- wöchentlich -',L,28.5);
+  doc.setFontSize(7.5); doc.setTextColor(110); doc.text('Stand: Juni 2017',L,33); doc.setTextColor(0);
+  const fld=(label,val,x,y,w)=>{
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.text(label,x,y);
+    const lw=doc.getTextWidth(label)+2; doc.setLineWidth(0.2); doc.line(x+lw,y+1.3,x+w,y+1.3); doc.setLineWidth(0.3);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); fitText(doc,clean(val).replace(/\n/g,' '),x+lw+1,y-3.2,w-lw-1,4.5,10,7);
+  };
+  fld('Name des/der Auszubildenden:',D.name,L,42,W);
+  fld('Ausbildungsjahr:',D.year+'. Jahr',L,50,62);
+  fld('Ausbildungsbereich:',D.area,L+70,50,W-70);
+  fld('Ausbildungswoche vom:',D.von,L,58,80);
+  fld('bis:',D.bis,L+88,58,48);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text('KW '+D.kw,R,58,{align:'right'});
+  let y=64;
+  const head=title=>{
+    doc.setFillColor(232,236,240); doc.rect(L,y,W,8,'FD');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(0);
+    doc.text(title,L+2,y+5.4); doc.text('Stunden',xH+11,y+5.4,{align:'center'}); doc.line(xH,y,xH,y+8); y+=8;
+  };
+  head('Betriebliche Tätigkeiten');
+  const y0=y; doc.rect(L,y0,W,RH*7); doc.line(xT,y0,xT,y0+RH*7); doc.line(xH,y0,xH,y0+RH*7);
+  for(let i=0;i<7;i++){
+    const ry=y0+i*RH; if(i>0) doc.line(L,ry,R,ry);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); const tw=doc.getTextWidth(DAYS_PDF[i]);
+    doc.text(DAYS_PDF[i],L+5.3,ry+RH/2+tw/2,{angle:90});
+    if(D.days[i]){
+      doc.setFont('helvetica','normal'); doc.setTextColor(0);
+      fitText(doc,clean(D.days[i].t),xT+2,ry+1.6,TW-4,RH-2.6,9,6);
+      doc.setFontSize(10); doc.text(String(D.days[i].h||'').replace('.',','),xH+11,ry+RH/2+1.3,{align:'center'});
+    }
+  }
+  y=y0+RH*7;
+  const box=(h,o)=>{
+    doc.rect(L,y,W,h); doc.line(xH,y,xH,y+h);
+    doc.setFont('helvetica','normal'); doc.setTextColor(0);
+    fitText(doc,clean(o.t),L+2,y+1.8,W-22-4,h-3,9,6);
+    if(o.h){ doc.setFontSize(10); doc.text(String(o.h).replace('.',','),xH+11,y+7,{align:'center'}); }
+    y+=h;
+  };
+  head('Unterweisungen, betrieblicher Unterricht, sonstige Schulungen'); box(22,D.inst);
+  head('Themen des Berufsschulunterrichts'); box(38,D.sch);
+  const s1=y+12, s2=s1+15;
+  doc.setLineWidth(0.3);
+  doc.line(L,s1,L+82,s1); doc.line(L+98,s1,R,s1); doc.line(L,s2,L+82,s2); doc.line(L+98,s2,R,s2);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8);
+  doc.text('Datum, Unterschrift Auszubildende/r',L,s1+4); doc.text('Datum, Unterschrift Ausbildende/r oder Ausbilder/in',L+98,s1+4);
+  doc.text('Datum, Unterschrift gesetzliche/r Vertreter/in',L,s2+4); doc.text('ggf. weitere Sichtvermerke (z.B. Arbeitnehmervertreter)',L+98,s2+4);
+}
+function makePdf(){
+  if(!window.jspdf||!window.jspdf.jsPDF){ toast(T('pdfErr')); return; }
+  const {m}=validate(); if(m.length) return;
+  const w=W(), mon=monOf(), kw=isoWeek(mon);
+  const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+  buildPdf(doc,{region:P.region,name:P.name.trim(),year:P.year,area:P.area.trim(),von:fmt(mon),bis:fmt(addDays(mon,lastDay(w))),kw,days:w.days.map((d,i)=>dayActive(w,i)?d:null),inst:w.i,sch:w.s});
+  const nm=(P.name.trim().split(/\s+/).pop()||'').replace(/[^\wäöüÄÖÜß-]+/g,'');
+  doc.save('Berichtsheft_KW'+pad(kw)+(nm?'_'+nm:'')+'.pdf');
+}
+
+render();
+if(typeof module!=='undefined') module.exports={buildPdf};
+</script>
+</body>
+</html>
