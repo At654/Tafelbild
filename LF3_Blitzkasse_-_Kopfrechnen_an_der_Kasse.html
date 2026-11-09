@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blitzkasse</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Courier+Prime:wght@400;700&family=VT323&display=swap">
+<style>
+/* Layout: links die Kundenszene mit Kassenbon, rechts die Kasse mit Leuchtanzeige und Tastenfeld; am Handy untereinander. */
+:root{
+  --bg:#e4eaed; --surface:#ffffff; --surface-2:#eef2f4; --ink:#16212a; --muted:#56656f; --line:#cbd5db;
+  --accent:#0d7f70; --accent-ink:#ffffff; --accent-soft:#d5efe9;
+  --lcd-bg:#0d191e; --lcd-fg:#56f0d3; --lcd-dim:#2b5d55; --lcd-warn:#ffb54a;
+  --good:#1f7f45; --good-bg:#e1f3e7; --bad:#b93434; --bad-bg:#fae5e3;
+  --receipt:#ffffff; --receipt-ink:#2a2e31; --receipt-mut:#7a8085;
+  --key:#ffffff; --key-ink:#16212a; --key-shadow:#b4c0c7; --key-op:#dfe7ea;
+  --m5:#a7b3ad; --m10:#e08a7c; --m20:#86a6e4; --m50:#eeb062; --gold:#d8b54e; --gold-2:#b8932f; --silver:#c9cfd3; --copper:#c98557; --copper-2:#a3633a; --money-ink:#1c1c1c;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-lcd:"VT323",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --f-bon:"Courier Prime","Courier New",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1418; --surface:#172027; --surface-2:#1e2931; --ink:#e3eaee; --muted:#95a5b0; --line:#2b3943;
+  --accent:#3cc6ae; --accent-ink:#05201b; --accent-soft:#163a34;
+  --good:#5fd08d; --good-bg:#14301f; --bad:#ff8c84; --bad-bg:#3a1b1b;
+  --receipt:#ecece6; --receipt-ink:#23272a; --receipt-mut:#6d7377;
+  --key:#232f38; --key-ink:#e3eaee; --key-shadow:#070b0e; --key-op:#2c3a45;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1418; --surface:#172027; --surface-2:#1e2931; --ink:#e3eaee; --muted:#95a5b0; --line:#2b3943;
+  --accent:#3cc6ae; --accent-ink:#05201b; --accent-soft:#163a34;
+  --good:#5fd08d; --good-bg:#14301f; --bad:#ff8c84; --bad-bg:#3a1b1b;
+  --receipt:#ecece6; --receipt-ink:#23272a; --receipt-mut:#6d7377;
+  --key:#232f38; --key-ink:#e3eaee; --key-shadow:#070b0e; --key-op:#2c3a45;
+  color-scheme:dark}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible+span,label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.app{max-width:1020px;margin:0 auto;padding-block:14px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-bottom:14px}
+.brand{font-family:var(--f-lcd);font-size:2.2rem;line-height:1;letter-spacing:.02em;display:flex;align-items:baseline;gap:10px}
+.brand small{font-family:var(--f-body);font-size:.85rem;color:var(--muted);letter-spacing:0}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.9rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat b{font-size:1.05rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.eyebrow{font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+/* Start */
+#start{display:grid;gap:16px}
+@media (min-width:800px){#start{grid-template-columns:1.25fr 1fr;align-items:start}}
+.hero h1{font-size:clamp(1.6rem,4.5vw,2.3rem);line-height:1.15;margin:4px 0 8px}
+.hero p{margin:0 0 14px;max-width:60ch;color:var(--muted)}
+.group{display:grid;gap:8px;margin-top:16px}
+.levels{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:420px){.levels{grid-template-columns:1fr}}
+.opt{position:relative;display:block;border:2px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;background:var(--surface-2)}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt b{display:block}
+.opt span{font-size:.88rem;color:var(--muted)}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;background:var(--surface-2);font-size:.95rem}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip::before{content:"";width:14px;height:14px;border-radius:4px;border:2px solid var(--muted)}
+.chip:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.chip:has(input:checked)::before{background:var(--accent);border-color:var(--accent)}
+.btn{border:0;border-radius:12px;padding:13px 20px;font-weight:700;font-size:1.05rem;background:var(--accent);color:var(--accent-ink);box-shadow:0 3px 0 var(--key-shadow)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--key-shadow)}
+.btn.ghost{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.startrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:20px}
+.hint{font-size:.88rem;color:var(--muted)}
+.rules{display:grid;gap:12px}
+.rules ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.best{font-variant-numeric:tabular-nums}
+
+/* Leuchtanzeige */
+.lcd{background:var(--lcd-bg);border-radius:12px;padding:10px 14px 8px;color:var(--lcd-fg);font-family:var(--f-lcd);box-shadow:inset 0 0 0 2px #00000040,inset 0 8px 20px #00000055}
+.lcd .lab{font-size:1.15rem;color:var(--lcd-dim);letter-spacing:.06em;text-transform:uppercase;display:flex;justify-content:space-between;gap:8px}
+.lcd .val{font-size:clamp(2.8rem,10vw,3.6rem);line-height:1;text-align:right;font-variant-numeric:tabular-nums;text-shadow:0 0 12px #56f0d355;min-height:1em;overflow-wrap:anywhere}
+.lcd .val .cur{font-size:.6em;margin-left:.2em}
+.lcd .val.empty{color:var(--lcd-dim);text-shadow:none}
+.timer{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:8px;border:1px solid var(--line)}
+.timer i{display:block;height:100%;width:100%;background:var(--accent);transition:width .1s linear}
+.timer.low i{background:var(--lcd-warn)}
+.tnote{font-size:.82rem;color:var(--muted);min-height:1.2em;margin-top:2px}
+
+/* Spiel */
+#game{display:grid;gap:16px}
+@media (min-width:780px){#game{grid-template-columns:1fr 1fr;align-items:start}}
+.scene{display:grid;gap:14px;min-width:0}
+.cust{display:flex;gap:12px;align-items:flex-start}
+.ava{flex:0 0 52px;height:52px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:1.1rem;color:#fff}
+.bubble{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px;min-width:0}
+.bubble::before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;background:var(--surface);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg)}
+.bubble .who{font-size:.8rem;color:var(--muted);font-weight:700}
+.receipt{background:var(--receipt);color:var(--receipt-ink);font-family:var(--f-bon);padding:16px 18px 6px;border-radius:4px 4px 0 0;box-shadow:0 1px 0 var(--line);font-size:1rem;max-width:420px;width:100%;justify-self:center}
+.receipt .head{text-align:center;font-size:.88rem;color:var(--receipt-mut);border-bottom:1px dashed var(--receipt-mut);padding-bottom:8px;margin-bottom:8px;line-height:1.35}
+.receipt .head b{color:var(--receipt-ink);font-size:1.05rem;letter-spacing:.12em}
+.row{display:flex;justify-content:space-between;gap:12px;padding:2px 0;font-variant-numeric:tabular-nums}
+.row span:first-child{min-width:0;overflow-wrap:anywhere}
+.row span:last-child{white-space:nowrap}
+.row.b{font-weight:700;border-top:1px dashed var(--receipt-mut);margin-top:6px;padding-top:6px;font-size:1.1rem}
+.row.q span:last-child{background:var(--receipt-ink);color:var(--receipt);padding:0 6px;border-radius:3px}
+.row.promo{color:#b0283a}
+.tear{height:9px;max-width:420px;width:100%;justify-self:center;margin-top:-14px;background:radial-gradient(circle at 6px 0,var(--receipt) 6px,transparent 6.5px) 0 0/12px 9px repeat-x}
+.mcq{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.mcq h3{font-size:1.15rem;line-height:1.35}
+.register{display:grid;gap:12px;min-width:0}
+.task{font-weight:700;font-size:1.05rem}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.key{height:58px;border:0;border-radius:12px;background:var(--key);color:var(--key-ink);font-size:1.6rem;font-weight:700;box-shadow:0 3px 0 var(--key-shadow),inset 0 0 0 1px var(--line);font-variant-numeric:tabular-nums}
+.key:active{transform:translateY(2px);box-shadow:0 1px 0 var(--key-shadow),inset 0 0 0 1px var(--line)}
+.key.op{background:var(--key-op);font-size:1.15rem}
+.key.ok{grid-column:span 2;background:var(--accent);color:var(--accent-ink);font-size:1.25rem}
+.coins{display:grid;gap:10px}
+.tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px}
+.money{border:0;background:none;padding:2px;display:grid;place-items:center;min-height:56px}
+.bill{width:66px;height:38px;border-radius:5px;display:grid;place-items:center;font-weight:700;color:var(--money-ink);font-size:.95rem;box-shadow:0 2px 0 #00000030,inset 0 0 0 2px #ffffff55}
+.coin{border-radius:50%;display:grid;place-items:center;font-weight:700;color:var(--money-ink);box-shadow:0 2px 0 #00000035,inset 0 0 0 3px #ffffff40;font-size:.8rem}
+.money:active .bill,.money:active .coin{transform:scale(.94)}
+.counter{display:grid;gap:6px;min-height:72px;background:var(--surface);border:2px dashed var(--line);border-radius:12px;padding:10px}
+.counter .lay{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.counter .empty{color:var(--muted);font-size:.9rem}
+.counter .money{min-height:0}
+.coinbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.coinsum{font-variant-numeric:tabular-nums;font-weight:700}
+.opts{display:grid;gap:8px;margin-top:12px}
+.opts button{text-align:left;border:2px solid var(--line);background:var(--surface-2);border-radius:12px;padding:12px 14px;font-size:1rem}
+.opts button:hover{border-color:var(--accent)}
+.fb{border-radius:14px;padding:16px;border:2px solid var(--line);background:var(--surface);display:grid;gap:8px}
+.fb.ok{border-color:var(--good);background:var(--good-bg)}
+.fb.no{border-color:var(--bad);background:var(--bad-bg)}
+.fb h3{font-size:1.3rem}
+.fb.ok h3{color:var(--good)}
+.fb.no h3{color:var(--bad)}
+.fb ol{margin:0;padding-left:22px;display:grid;gap:3px;font-variant-numeric:tabular-nums}
+.fb .pts{font-family:var(--f-lcd);font-size:1.6rem;line-height:1}
+.fb .btn{justify-self:start;margin-top:4px}
+.pop{animation:pop .35s ease}
+@keyframes pop{from{transform:scale(.97);opacity:.6}to{transform:none;opacity:1}}
+
+/* Schichtbericht */
+#end{display:grid;gap:16px}
+@media (min-width:800px){#end{grid-template-columns:minmax(0,420px) 1fr;align-items:start}}
+.rank{font-family:var(--f-lcd);font-size:2.4rem;line-height:1;color:var(--accent)}
+.review{display:grid;gap:12px}
+.review .item{border-left:4px solid var(--bad);padding:6px 0 6px 12px}
+.review ol{margin:4px 0 0;padding-left:20px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">BLITZKASSE <small>Kopfrechnen an der Kasse</small></div>
+    <div class="stats" id="stats" hidden>
+      <span class="stat">Kunde <b id="sNr">1</b>/<span id="sOf">10</span></span>
+      <span class="stat">Punkte <b id="sPts">0</b></span>
+      <span class="stat">Serie <b id="sStreak">0</b></span>
+    </div>
+  </header>
+
+  <!-- START -->
+  <section id="start">
+    <div class="card hero">
+      <div class="eyebrow">Lernfeld 3 · Kassieren</div>
+      <h1>Deine Schicht an Kasse 3 beginnt.</h1>
+      <p>Zehn Kunden stehen an. Rechne Rückgeld, Summen und Rabatte im Kopf und gib das Wechselgeld passend heraus. Wer schnell und richtig rechnet, sammelt mehr Punkte.</p>
+
+      <div class="group">
+        <div class="eyebrow">Stufe</div>
+        <div class="levels">
+          <label class="opt"><input type="radio" name="lvl" id="lvlBasis" value="basis" checked><b>Azubi</b><span>Runde Beträge, Scheine bis 50 €, Rabatte 10 / 20 / 25 / 50 %</span></label>
+          <label class="opt"><input type="radio" name="lvl" id="lvlProfi" value="profi"><b>Kassenprofi</b><span>Krumme Cent-Beträge, Skonto, Doppel-Rabatt und Profi-Fragen zum Begründen</span></label>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="eyebrow">Aufgaben</div>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="tChange" value="change" checked>Rückgeld</label>
+          <label class="chip"><input type="checkbox" id="tSum" value="sum" checked>Summe</label>
+          <label class="chip"><input type="checkbox" id="tDiscount" value="discount" checked>Rabatt &amp; Aktion</label>
+          <label class="chip"><input type="checkbox" id="tCoins" value="coins" checked>Geld herausgeben</label>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="eyebrow">Zeit</div>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="tTimer" checked>Mit Zeitbonus (ohne Haken: in Ruhe üben)</label>
+        </div>
+      </div>
+
+      <div class="startrow">
+        <button class="btn" id="btnStart">Schicht starten</button>
+        <span class="hint" id="startHint">Tastatur geht auch: Zahlen, Komma, Enter.</span>
+      </div>
+    </div>
+
+    <aside class="rules">
+      <div class="lcd" aria-hidden="true">
+        <div class="lab"><span>Rückgeld</span><span>Kasse 3</span></div>
+        <div class="val">6,30<span class="cur">€</span></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:8px">So läuft die Schicht</h3>
+        <ul>
+          <li>10 Kunden pro Schicht.</li>
+          <li>Richtig: 100 Punkte. Schnell: bis zu 50 Punkte extra.</li>
+          <li>Ab 3 Richtigen hintereinander gibt es Serien-Punkte.</li>
+          <li>Beim Geldherausgeben zählt auch: möglichst wenige Scheine und Münzen.</li>
+          <li>Nach jeder Antwort siehst du den schnellen Rechenweg.</li>
+        </ul>
+        <p class="hint best" id="bestLine" style="margin:10px 0 0"></p>
+      </div>
+    </aside>
+  </section>
+
+  <!-- SPIEL -->
+  <section id="game" hidden>
+    <div class="scene">
+      <div class="cust">
+        <div class="ava" id="ava">FY</div>
+        <div class="bubble"><div class="who" id="who">Frau Yilmaz</div><div id="speech">…</div></div>
+      </div>
+      <div id="bonWrap">
+        <div class="receipt" id="receipt"></div>
+        <div class="tear"></div>
+      </div>
+      <div class="mcq" id="mcq" hidden>
+        <div class="eyebrow">Profi-Frage · Begründen</div>
+        <h3 id="mcqQ" style="margin-top:6px"></h3>
+      </div>
+    </div>
+
+    <div class="register">
+      <div class="task" id="task"></div>
+      <div class="lcd">
+        <div class="lab"><span id="lcdLab">Betrag</span><span id="lcdSide"></span></div>
+        <div class="val" id="lcdVal"></div>
+      </div>
+      <div id="timerBox"><div class="timer" id="timer"><i id="timerBar"></i></div><div class="tnote" id="tnote"></div></div>
+
+      <div class="pad" id="pad">
+        <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+        <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+        <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+        <button class="key" data-k=",">,</button><button class="key" data-k="0">0</button><button class="key op" data-k="back" aria-label="Letzte Ziffer löschen">⌫</button>
+        <button class="key op" data-k="clear">C</button><button class="key ok" data-k="ok">Fertig</button>
+      </div>
+
+      <div class="coins" id="coins" hidden>
+        <div class="tray" id="tray"></div>
+        <div class="counter"><div class="eyebrow">Auf dem Tresen (antippen = zurücknehmen)</div><div class="lay" id="lay"></div></div>
+        <div class="coinbar">
+          <span class="coinsum" id="coinSum">0,00 € · 0 Teile</span>
+          <span style="display:flex;gap:8px"><button class="btn ghost" id="coinClear">Alles zurück</button><button class="btn" id="coinGive">Geld geben</button></span>
+        </div>
+      </div>
+
+      <div class="opts" id="opts" hidden></div>
+
+      <div class="fb" id="fb" hidden></div>
+    </div>
+  </section>
+
+  <!-- ENDE -->
+  <section id="end" hidden>
+    <div>
+      <div class="receipt" id="report"></div>
+      <div class="tear" style="margin-top:0"></div>
+    </div>
+    <div class="card" style="display:grid;gap:14px">
+      <div>
+        <div class="eyebrow">Dein Titel</div>
+        <div class="rank" id="rank"></div>
+        <p id="rankText" style="margin:6px 0 0"></p>
+      </div>
+      <div class="review" id="review"></div>
+      <div class="startrow" style="margin-top:0">
+        <button class="btn" id="btnAgain">Neue Schicht</button>
+        <button class="btn ghost" id="btnHome">Einstellungen ändern</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const fmtN=c=>{const neg=c<0;c=Math.abs(Math.round(c));return (neg?"−":"")+Math.floor(c/100)+","+String(c%100).padStart(2,"0");};
+const fmt=c=>fmtN(c)+" €";
+const ctTxt=c=>c>=100?fmt(c):c+" ct";
+
+const PRODUCTS=[["Milch",119],["Brötchen",45],["Butter",229],["Kaffee",699],["Schokolade",149],["Duschgel",295],["Zahnpasta",195],["Socken 3er-Pack",799],["Batterien",499],["Kaugummi",99],["Apfelsaft",179],["Ladekabel",999],["Notizbuch",350],["Bananen",180],["Chips",199],["Mascara",895],["Shampoo",345],["Eis am Stiel",250],["Duftkerze",420],["Postkarte",120],["Tiefkühlpizza",289],["Mineralwasser",65],["Haargel",315],["Müsli",379]];
+const BIG=["Jacke","Jeans","Sneaker","Rucksack","Kopfhörer","Pullover","Kaffeemaschine","Sporttasche","Winterstiefel","Bluetooth-Box","Bettwäsche","Wasserkocher"];
+const SMALL=["Duschgel","Schokolade","Chips","Zahnpasta","Shampoo","Müsliriegel","Teelichter","Taschentücher","Energydrink","Handcreme"];
+const NAMES=["Frau Yilmaz","Herr Becker","Mia","Herr Nowak","Oma Hilde","Frau Schulz","Jonas","Herr Okafor","Frau Petrović","Lena","Herr Wagner","Frau Kaya","Herr Lindqvist","Selin","Frau Meyer","Herr Haddad"];
+const AVA=["#2f7d6d","#7a5bb5","#c0603a","#3a6fb0","#a04a6e","#5b7d2a","#8a6a1f","#2c6f8f"];
+const DENOMS=[5000,2000,1000,500,200,100,50,20,10,5,2,1];
+
+const MC=[
+ {q:"Erst 20 % Rabatt, dann an der Kasse noch 10 % auf den neuen Preis. Wie viel spart die Kundin insgesamt?",o:["28 %","30 %","32 %"],why:"Die 10 % werden vom schon reduzierten Preis gerechnet. Beispiel 100 €: minus 20 % = 80 €. Davon 10 % = 8 €, also 72 €. Gespart: 28 €, das sind 28 %."},
+ {q:"Der Einkauf kostet 13,70 €. Der Kunde gibt 20,20 €. Warum macht er das?",o:["Er bekommt glatter zurück: 6,50 € statt 6,30 €","Er hat sich verzählt – die 20 ct gibt man sofort zurück","Er möchte Trinkgeld geben"],why:"6,30 € wären 5 € + 1 € + 20 ct + 10 ct (4 Teile). 6,50 € sind 5 € + 1 € + 50 ct (3 Teile). Der Kunde wird Kleingeld los und bekommt weniger Münzen zurück."},
+ {q:"6 Flaschen kosten je 4,99 €. Welcher Rechenweg ist im Kopf am schnellsten?",o:["6 × 5 € = 30 €, minus 6 ct = 29,94 €","6 × 4 € + 6 × 0,99 €","4,99 + 4,99 + 4,99 + 4,99 + 4,99 + 4,99"],why:"Mit dem runden Preis rechnen und die Cent danach abziehen: 6 × 5 € = 30 €. Pro Flasche 1 ct zu viel, also 6 ct weniger: 29,94 €."},
+ {q:"Warum kann man 25 % Rabatt mit „Preis ÷ 4“ ausrechnen?",o:["Weil 25 % ein Viertel von 100 % sind","Weil 4 × 25 = 100 ist – das ist nur ein Zufall","Das klappt nur bei runden Preisen"],why:"100 % ist der ganze Preis. 25 % ist ein Viertel davon. Ein Viertel heißt: durch 4 teilen. Das gilt für jeden Preis."},
+ {q:"Aktion „3 für 2“. Wie viel Prozent spart der Kunde, wenn er genau 3 Stück kauft?",o:["etwa 33 %","50 %","etwa 66 %"],why:"Er bezahlt 2 von 3 Teilen. 1 von 3 Teilen ist gratis. 1/3 sind etwa 33,3 %."},
+ {q:"Eine Ware kostet 80 €. Sie wird 25 % teurer. Danach gibt es 25 % Rabatt. Was kostet sie jetzt?",o:["75 €","80 €","85 €"],why:"80 € + 25 % = 80 € + 20 € = 100 €. Der Rabatt wird vom neuen Preis gerechnet: 25 % von 100 € = 25 €. 100 € − 25 € = 75 €."},
+ {q:"Sie sollen 3 % Skonto von 400 € ausrechnen. Welcher Weg ist richtig?",o:["1 % = 4 €, also 3 % = 12 €","400 € ÷ 3 = 133,33 €","400 € − 3 € = 397 €"],why:"1 % ist der hundertste Teil: 400 € ÷ 100 = 4 €. 3 % sind dreimal so viel: 12 €."},
+ {q:"Rückgeld 7,90 €. Welche Stückelung ist am besten?",o:["5 € + 2 € + 50 ct + 20 ct + 20 ct","5 € + 1 € + 1 € + 50 ct + 20 ct + 20 ct","2 € + 2 € + 2 € + 1 € + 50 ct + 20 ct + 10 ct + 10 ct"],why:"Immer mit dem größten Schein oder der größten Münze beginnen, die noch passt. So brauchst du die wenigsten Teile: hier 5 Stück."},
+ {q:"Die Kasse ist ausgefallen. Einkauf 47,80 €, der Kunde zahlt mit 100 €. Sie geben 52,20 € zurück. Wie prüfen Sie das schnell?",o:["47,80 € + 52,20 € muss 100 € ergeben","52,20 € − 47,80 € muss 0 ergeben","100 € ÷ 2 muss 52,20 € ergeben"],why:"Probe durch Zusammenzählen: Einkauf + Rückgeld = gegebenes Geld. 47,80 € + 52,20 € = 100,00 €. Stimmt."}
+];
+
+/* ---------- Aufgaben-Generatoren ---------- */
+function changeScenario(lv,plain){
+  if(lv==="basis"){
+    const total=rnd(2,19)*100+rnd(0,9)*10;
+    const bills=[500,1000,2000,5000];let i=bills.findIndex(b=>b>total);if(i<bills.length-1&&Math.random()<.3)i++;
+    const paid=bills[i];return{total,paid,speech:`Ich zahle mit einem ${paid/100}-Euro-Schein.`};
+  }
+  const total=rnd(150,8999);
+  if(!plain&&total%100&&Math.random()<.45){
+    const bill=[1000,2000,5000,10000].find(b=>b>total);const paid=bill+total%100;
+    return{total,paid,trick:true,speech:`Hier sind ${fmt(paid)} – dann bekomme ich glatter zurück.`};
+  }
+  const bills=[1000,2000,5000,10000];let i=bills.findIndex(b=>b>total);if(i<bills.length-1&&Math.random()<.3)i++;
+  const paid=bills[i];return{total,paid,speech:`Ich zahle mit einem ${paid/100}-Euro-Schein.`};
+}
+function ergSteps(total,paid){
+  const st=[];let cur=total;const up=Math.ceil(total/100)*100;
+  if(up>cur&&up<=paid){st.push(`Von ${fmt(cur)} bis ${fmt(up)} fehlen ${ctTxt(up-cur)}.`);cur=up;}
+  const pe=Math.floor(paid/100)*100;
+  if(pe>cur){st.push(`Von ${fmt(cur)} bis ${fmt(pe)} fehlen ${fmt(pe-cur)}.`);cur=pe;}
+  if(paid>cur)st.push(`Dazu kommen ${ctTxt(paid-cur)}, die der Kunde extra gegeben hat.`);
+  st.push(`Zusammen: ${fmt(paid-total)} Rückgeld.`);return st;
+}
+function genChange(lv){
+  const s=changeScenario(lv,false);const ans=s.paid-s.total;
+  let intro="Ergänzen wie an der Kasse – vom Preis hochzählen:",steps=ergSteps(s.total,s.paid);
+  if(s.trick){intro="Trick erkennen:";steps=[`Die Cent sind gleich (,${String(s.total%100).padStart(2,"0")}). Sie heben sich auf.`,`Rechne nur mit den Euro: ${Math.floor(s.paid/100)} − ${Math.floor(s.total/100)} = ${ans/100}.`,`Rückgeld: ${fmt(ans)}.`];}
+  return{type:"change",kind:"Rückgeld",speech:s.speech,lines:[["Summe",fmt(s.total),"b"],["Gegeben",fmt(s.paid)],["Rückgeld","?","q"]],ask:n=>`Wie viel Rückgeld bekommt ${n}?`,lab:"Rückgeld",answer:ans,intro,steps};
+}
+function genSum(lv){
+  const n=lv==="basis"?rnd(2,3):rnd(3,4);
+  const items=shuffle(PRODUCTS).slice(0,n).map(([name,price])=>({name,price,q:(lv==="profi"&&Math.random()<.45)?rnd(2,4):1}));
+  const sum=items.reduce((a,it)=>a+it.q*it.price,0);
+  const lines=items.map(it=>[it.name,it.q>1?`${it.q} × ${fmtN(it.price)}`:fmtN(it.price)]);
+  lines.push(["SUMME","?","b q"]);
+  let round=0,corr=0;const parts=[];
+  items.forEach(it=>{const r=Math.ceil(it.price/10)*10,d=r-it.price,pre=it.q>1?it.q+" × ":"";
+    if(d>0&&d<=5){parts.push(`${pre}${fmtN(it.price)} → ${pre}${fmtN(r)} (${it.q*d} ct zu viel)`);round+=it.q*r;corr+=it.q*d;}
+    else{parts.push(`${pre}${fmtN(it.price)}${it.q>1?" = "+fmtN(it.q*it.price):""} bleibt so`);round+=it.q*it.price;}});
+  let intro,steps;
+  if(corr>0){intro="Mit glatten Preisen rechnen, dann die Cent abziehen:";steps=[...parts,`Glatte Summe: ${fmt(round)}`,`${fmt(round)} − ${corr} ct = ${fmt(sum)}`];}
+  else{const E=items.reduce((a,it)=>a+it.q*Math.floor(it.price/100)*100,0),C=sum-E;intro="Erst die Euro, dann die Cent:";steps=[`Euro zusammen: ${E/100} €`,`Cent zusammen: ${C} ct`,`Summe: ${fmt(sum)}`];}
+  return{type:"sum",kind:"Summe",speech:pick(["Das wär's, danke.","Einmal das hier, bitte.","Nur die paar Sachen.","Ich hab's ein bisschen eilig!","Was macht das zusammen?"]),lines,ask:()=>"Wie viel kostet der Einkauf zusammen?",lab:"Summe",answer:sum,intro,steps};
+}
+function genDiscount(lv){
+  const base={type:"discount",kind:"Rabatt",lab:"Zu zahlen",ask:n=>`Wie viel muss ${n} bezahlen?`};
+  if(lv==="basis"){
+    if(Math.random()<.3){const name=pick(SMALL),p=rnd(8,45)*10,pay=2*p;
+      return{...base,kind:"3 für 2",speech:`Ich nehme drei Mal ${name}. Da ist doch die Aktion, oder?`,lines:[[`3 × ${name}`,`je ${fmtN(p)}`],["Aktion 3 für 2","","promo"],["SUMME","?","b q"]],intro:"Bei „3 für 2“ ist ein Teil gratis:",steps:[`Der Kunde bezahlt nur 2 Stück.`,`2 × ${fmt(p)} = ${fmt(pay)}`],answer:pay};}
+    const pc=pick([10,20,25,50]);const eur=pc===25?4*rnd(3,20):5*rnd(2,24);const price=eur*100,disc=price*pc/100,pay=price-disc;
+    const st={10:[`10 % = Preis ÷ 10 = ${fmt(disc)}`],20:[`10 % = Preis ÷ 10 = ${fmt(price/10)}`,`20 % = 2 × ${fmt(price/10)} = ${fmt(disc)}`],25:[`25 % = ein Viertel = Preis ÷ 4 = ${fmt(disc)}`],50:[`50 % = die Hälfte = ${fmt(disc)}`]}[pc];
+    const name=pick(BIG);
+    return{...base,speech:`Ich nehme das hier: ${name}. Das ist doch heute reduziert, oder?`,lines:[[name,fmtN(price)],[`Rabatt ${pc} %`,"− ?","promo"],["SUMME","?","b q"]],intro:"Erst den Rabatt, dann abziehen:",steps:[...st,`${fmt(price)} − ${fmt(disc)} = ${fmt(pay)}`],answer:pay};
+  }
+  const v=pick(["pct","pct","skonto","chain","half","3for2"]);
+  if(v==="3for2"){const name=pick(SMALL),p=rnd(60,349),k=pick([4,5,6]),free=Math.floor(k/3),pay=(k-free)*p;
+    return{...base,kind:"3 für 2",speech:`Ich nehme ${k} Stück ${name}. Gilt die Aktion?`,lines:[[`${k} × ${name}`,`je ${fmtN(p)}`],["Aktion 3 für 2","","promo"],["SUMME","?","b q"]],intro:"Bei „3 für 2“ ist jedes dritte Teil gratis:",steps:[`${k} Stück: ${free} davon gratis, bezahlt werden ${k-free}.`,`${k-free} × ${fmt(p)} = ${fmt(pay)}`],answer:pay};}
+  if(v==="skonto"){const pc=pick([2,3]),eur=rnd(150,690),price=eur*100,one=eur,disc=pc*one,pay=price-disc;
+    return{...base,kind:"Skonto",speech:`Ich zahle die Rechnung sofort bar. Da gibt es doch ${pc} % Skonto?`,lines:[["Rechnung Möbel-Lieferung",fmtN(price)],[`Skonto ${pc} %`,"− ?","promo"],["ZU ZAHLEN","?","b q"]],intro:"Über 1 % rechnen:",steps:[`1 % = Preis ÷ 100 = ${fmt(one)}`,`${pc} % = ${pc} × ${fmt(one)} = ${fmt(disc)}`,`${fmt(price)} − ${fmt(disc)} = ${fmt(pay)}`],answer:pay};}
+  if(v==="chain"){const eur=rnd(3,25)*10,price=eur*100,a=price*80/100,b=a/10,pay=a-b;const name=pick(BIG);
+    return{...base,kind:"Doppel-Rabatt",speech:`Ich nehme das hier: ${name}. Das ist 20 % reduziert – und ich habe noch einen 10-%-Gutschein!`,lines:[[name,fmtN(price)],["Rabatt 20 %","− ?","promo"],["Gutschein 10 % auf Rest","− ?","promo"],["SUMME","?","b q"]],intro:"Schritt für Schritt – der Gutschein gilt für den neuen Preis:",steps:[`20 % von ${fmt(price)} = ${fmt(price/5)} → ${fmt(a)}`,`10 % von ${fmt(a)} = ${fmt(b)}`,`${fmt(a)} − ${fmt(b)} = ${fmt(pay)}`,"Achtung: Das sind nicht 30 %, sondern 28 % Ersparnis."],answer:pay};}
+  if(v==="half"){const eur=rnd(15,89),price=eur*100,half=price/2,pay=price+half;const name=pick(["T-Shirt","Jeans","Bluse","Mütze","Hemd"]);
+    return{...base,kind:"2. Teil −50 %",speech:`Ich nehme zwei Mal ${name}. Das zweite ist doch halb so teuer?`,lines:[[`2 × ${name}`,`je ${fmtN(price)}`],["2. Teil −50 %","","promo"],["SUMME","?","b q"]],intro:"Ein Teil voll, eins zum halben Preis:",steps:[`1. Teil: ${fmt(price)}`,`2. Teil: ${fmt(price)} ÷ 2 = ${fmt(half)}`,`${fmt(price)} + ${fmt(half)} = ${fmt(pay)}`],answer:pay};}
+  const pc=pick([15,30,40,75,5]);const eur=rnd(12,180),price=eur*100,disc=price*pc/100,pay=price-disc,ten=price/10;
+  const st={15:[`10 % = ${fmt(ten)}`,`5 % = die Hälfte davon = ${fmt(ten/2)}`,`15 % = ${fmt(ten)} + ${fmt(ten/2)} = ${fmt(disc)}`],
+    30:[`10 % = ${fmt(ten)}`,`30 % = 3 × ${fmt(ten)} = ${fmt(disc)}`],40:[`10 % = ${fmt(ten)}`,`40 % = 4 × ${fmt(ten)} = ${fmt(disc)}`],
+    5:[`10 % = ${fmt(ten)}`,`5 % = die Hälfte = ${fmt(disc)}`],75:[`25 % = Preis ÷ 4 = ${fmt(price/4)}`,`75 % = 3 × ${fmt(price/4)} = ${fmt(disc)}`,`Schneller: Der Kunde zahlt nur 25 % = ${fmt(price/4)}`]}[pc];
+  const name=pick(BIG);
+  return{...base,speech:`Ich nehme das hier: ${name}. Heute gibt es ${pc} % darauf, stimmt's?`,lines:[[name,fmtN(price)],[`Rabatt ${pc} %`,"− ?","promo"],["SUMME","?","b q"]],intro:"Über 10 % (oder 25 %) rechnen:",steps:[...st,`${fmt(price)} − ${fmt(disc)} = ${fmt(pay)}`],answer:pay};
+}
+function greedy(a){const out=[];for(const d of DENOMS){while(a>=d){out.push(d);a-=d;}}return out;}
+const dName=d=>d>=100?(d/100)+" €":d+" ct";
+function genCoins(lv){
+  const s=changeScenario(lv,true);const amt=s.paid-s.total;const best=greedy(amt);
+  return{type:"coins",kind:"Geld herausgeben",speech:s.speech,lines:[["Summe",fmt(s.total)],["Gegeben",fmt(s.paid)],["Rückgeld",fmt(amt),"b"]],ask:()=>"Lege das Rückgeld hin – mit möglichst wenigen Scheinen und Münzen.",lab:"Rückgeld",answer:amt,best,intro:"Immer mit dem größten Schein oder der größten Münze anfangen, die noch passt:",steps:[best.map(dName).join(" + "),`Das sind ${best.length} Teile.`]};
+}
+function genMC(q){const order=shuffle([0,1,2]);return{type:"mc",kind:"Profi-Frage",speech:"Kurze Frage an Sie, bevor der nächste Kunde kommt.",who:"Filialleiterin Frau Brandt",q:q.q,opts:order.map(i=>q.o[i]),correct:order.indexOf(0),answerTxt:q.o[0],intro:"Begründung:",steps:[q.why],lab:"Profi-Frage"};}
+
+/* ---------- Zustand ---------- */
+const S={lvl:"basis",types:[],timer:true,tasks:[],i:0,score:0,streak:0,best:0,log:[],input:"",lay:[],t0:0,dur:40,tick:null,phase:"idle",name:""};
+const GEN={change:genChange,sum:genSum,discount:genDiscount,coins:genCoins};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+function readSettings(){
+  S.lvl=$("#lvlProfi").checked?"profi":"basis";
+  S.types=["tChange","tSum","tDiscount","tCoins"].filter(id=>$("#"+id).checked).map(id=>$("#"+id).value);
+  S.timer=$("#tTimer").checked;
+}
+function updateStartUi(){
+  readSettings();$("#btnStart").disabled=!S.types.length;
+  $("#startHint").textContent=S.types.length?"Tastatur geht auch: Zahlen, Komma, Enter.":"Wähle mindestens eine Aufgabenart.";
+  const b1=store.get("blitzkasse-best-basis"),b2=store.get("blitzkasse-best-profi");
+  $("#bestLine").textContent=(b1||b2)?`Dein Rekord: Azubi ${b1||"–"} · Kassenprofi ${b2||"–"} Punkte`:"Noch kein Rekord auf diesem Gerät.";
+}
+document.querySelectorAll("#start input").forEach(el=>el.addEventListener("change",updateStartUi));
+
+function buildTasks(){
+  const out=[];let pool=[];
+  const nMC=S.lvl==="profi"?3:0,n=10-nMC;
+  while(out.length<n){if(!pool.length)pool=shuffle(S.types);out.push(GEN[pool.pop()](S.lvl));}
+  if(nMC){const qs=shuffle(MC).slice(0,nMC);[3,6,9].forEach((pos,k)=>out.splice(pos,0,genMC(qs[k])));}
+  const names=shuffle(NAMES);
+  out.forEach((t,k)=>{t.name=t.who||names[k%names.length];});
+  return out;
+}
+
+function show(id){["#start","#game","#end"].forEach(s=>$(s).hidden=s!==id);$("#stats").hidden=id!=="#game";window.scrollTo({top:0});}
+function startShift(){readSettings();if(!S.types.length)return;S.tasks=buildTasks();S.i=0;S.score=0;S.streak=0;S.log=[];show("#game");showTask();}
+
+function initials(n){const p=n.replace(/^(Frau|Herr|Oma|Filialleiterin)\s+/,"").split(/\s+/);return (n.startsWith("Oma")?"O":"")+p.map(x=>x[0]).join("").slice(0,2);}
+function stamp(){const d=new Date();return d.toLocaleDateString("de-DE")+"  "+d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});}
+
+function showTask(){
+  const t=S.tasks[S.i];S.phase="answer";S.input="";S.lay=[];
+  $("#sNr").textContent=S.i+1;$("#sOf").textContent=S.tasks.length;$("#sPts").textContent=S.score;$("#sStreak").textContent=S.streak;
+  $("#who").textContent=t.name;$("#speech").textContent=t.speech;
+  const ava=$("#ava");ava.textContent=initials(t.name);ava.style.background=AVA[(S.i*3)%AVA.length];
+  const isMC=t.type==="mc";
+  $("#bonWrap").hidden=isMC;$("#mcq").hidden=!isMC;
+  if(isMC){$("#mcqQ").textContent=t.q;}
+  else{
+    let h=`<div class="head"><b>BLITZKASSE</b><br>Filiale Hafenstraße · Kasse 3<br>Bon ${String(1000+rnd(1,8999))}  ${stamp()}</div>`;
+    t.lines.forEach(([a,b,c])=>{h+=`<div class="row ${c||""}"><span>${a}</span><span>${b}</span></div>`;});
+    $("#receipt").innerHTML=h;
+  }
+  $("#task").textContent=isMC?"Wähle die richtige Antwort.":t.ask(t.name);
+  $("#lcdLab").textContent=t.lab;$("#lcdSide").textContent=t.kind;
+  $("#pad").hidden=t.type==="coins"||isMC;$("#coins").hidden=t.type!=="coins";$("#opts").hidden=!isMC;$("#fb").hidden=true;
+  if(isMC){$("#opts").innerHTML=t.opts.map((o,k)=>`<button data-o="${k}"><b>${"ABC"[k]}</b>  ${o}</button>`).join("");}
+  if(t.type==="coins")buildTray();
+  renderLcd();
+  S.dur=(S.lvl==="profi"?30:40)+(t.type==="coins"?15:0)+(isMC?10:0);
+  $("#timerBox").hidden=!S.timer;
+  clearInterval(S.tick);S.t0=performance.now();
+  if(S.timer){S.tick=setInterval(updTimer,100);updTimer();}
+}
+function frac(){if(!S.timer)return 0;return Math.max(0,1-(performance.now()-S.t0)/1000/S.dur);}
+function updTimer(){const f=frac();$("#timerBar").style.width=(f*100)+"%";$("#timer").classList.toggle("low",f<.3);
+  $("#tnote").textContent=f>0?`Zeitbonus: +${Math.round(f*50)}`:"Der Kunde wird ungeduldig – kein Zeitbonus mehr. Rechne trotzdem in Ruhe zu Ende.";
+  if(f<=0)clearInterval(S.tick);}
+
+function renderLcd(){
+  const t=S.tasks[S.i],v=$("#lcdVal");
+  if(t.type==="coins"){v.classList.remove("empty");v.innerHTML=`${fmtN(t.answer)}<span class="cur">€</span>`;return;}
+  if(t.type==="mc"){v.classList.add("empty");v.innerHTML="A · B · C";return;}
+  if(!S.input){v.classList.add("empty");v.innerHTML=`0,00<span class="cur">€</span>`;}
+  else{v.classList.remove("empty");v.innerHTML=`${S.input}<span class="cur">€</span>`;}
+}
+function keyIn(k){
+  if(S.phase!=="answer")return;const t=S.tasks[S.i];if(t.type!=="change"&&t.type!=="sum"&&t.type!=="discount")return;
+  if(k==="clear")S.input="";
+  else if(k==="back")S.input=S.input.slice(0,-1);
+  else if(k==="ok"){submitNum();return;}
+  else if(k===","){if(!S.input.includes(","))S.input=(S.input||"0")+",";}
+  else if(/^\d$/.test(k)){const parts=S.input.split(",");if(parts.length===2&&parts[1].length>=2)return;if(parts[0].length>=4&&parts.length===1)return;S.input=(S.input==="0"?"":S.input)+k;}
+  renderLcd();
+}
+function parseInput(s){if(!s)return null;const [e,c=""]=s.split(",");return parseInt(e||"0",10)*100+parseInt((c+"00").slice(0,2),10);}
+function submitNum(){const t=S.tasks[S.i];const v=parseInput(S.input);if(v===null){$("#tnote").textContent="Tippe zuerst einen Betrag ein.";return;}
+  resolve(v===t.answer,{given:fmt(v),right:fmt(t.answer)});}
+
+/* Münzen */
+function moneyEl(d,small){
+  if(d>=500){const c={5000:"--m50",2000:"--m20",1000:"--m10",500:"--m5"}[d];return `<span class="bill" style="background:var(${c})${small?";width:52px;height:30px;font-size:.8rem":""}">${d/100} €</span>`;}
+  const sz={200:46,100:43,50:42,20:38,10:34,5:36,2:32,1:28}[d]*(small?.8:1);
+  let bg;if(d===200)bg="radial-gradient(circle,var(--gold) 52%,var(--silver) 54%)";else if(d===100)bg="radial-gradient(circle,var(--silver) 52%,var(--gold) 54%)";else if(d>=10)bg="radial-gradient(circle at 35% 30%,var(--gold),var(--gold-2))";else bg="radial-gradient(circle at 35% 30%,var(--copper),var(--copper-2))";
+  return `<span class="coin" style="width:${sz}px;height:${sz}px;background:${bg};font-size:${small?.68:.78}rem">${d>=100?d/100+"€":d}</span>`;
+}
+function buildTray(){$("#tray").innerHTML=DENOMS.map(d=>`<button class="money" data-d="${d}" aria-label="${dName(d)} hinlegen">${moneyEl(d)}</button>`).join("");renderLay();}
+function renderLay(){
+  const sum=S.lay.reduce((a,b)=>a+b,0);
+  $("#lay").innerHTML=S.lay.length?S.lay.map((d,k)=>`<button class="money" data-r="${k}" aria-label="${dName(d)} zurücknehmen">${moneyEl(d,true)}</button>`).join(""):`<span class="empty">Tippe oben auf Scheine und Münzen.</span>`;
+  $("#coinSum").textContent=`${fmt(sum)} · ${S.lay.length} ${S.lay.length===1?"Teil":"Teile"}`;
+}
+$("#tray").addEventListener("click",e=>{const b=e.target.closest("[data-d]");if(!b||S.phase!=="answer")return;S.lay.push(+b.dataset.d);S.lay.sort((a,b)=>b-a);renderLay();});
+$("#lay").addEventListener("click",e=>{const b=e.target.closest("[data-r]");if(!b||S.phase!=="answer")return;S.lay.splice(+b.dataset.r,1);renderLay();});
+$("#coinClear").addEventListener("click",()=>{if(S.phase!=="answer")return;S.lay=[];renderLay();});
+$("#coinGive").addEventListener("click",()=>{
+  if(S.phase!=="answer")return;const t=S.tasks[S.i];const sum=S.lay.reduce((a,b)=>a+b,0);
+  if(!S.lay.length){$("#tnote").textContent="Lege zuerst Geld auf den Tresen.";return;}
+  const ok=sum===t.answer,min=ok&&S.lay.length===t.best.length;
+  const tl=n=>n===1?"1 Teil":n+" Teilen";resolve(ok,{given:`${fmt(sum)} in ${tl(S.lay.length)}`,right:`${fmt(t.answer)} in ${tl(t.best.length)}`,partial:ok&&!min});
+});
+
+/* MC */
+$("#opts").addEventListener("click",e=>{const b=e.target.closest("[data-o]");if(!b||S.phase!=="answer")return;const t=S.tasks[S.i];const k=+b.dataset.o;
+  resolve(k===t.correct,{given:t.opts[k],right:t.answerTxt});});
+
+/* Auswertung */
+function resolve(ok,info){
+  S.phase="feedback";clearInterval(S.tick);const t=S.tasks[S.i];const f=frac();let pts=0;
+  if(ok){S.streak++;const bonus=Math.round(f*50),serie=S.streak>=3?Math.min(S.streak-2,5)*10:0;pts=info.partial?60+Math.round(bonus/2):100+bonus+serie;}
+  else S.streak=0;
+  S.score+=pts;S.log.push({t,ok,partial:!!info.partial,pts,given:info.given,right:info.right});
+  $("#sPts").textContent=S.score;$("#sStreak").textContent=S.streak;
+  const fb=$("#fb");fb.className="fb pop "+(ok?"ok":"no");
+  let head;
+  if(ok&&info.partial)head=`<h3>Betrag stimmt!</h3><div>Aber es geht mit weniger Teilen: ${t.best.length} statt ${S.lay.length}.</div>`;
+  else if(ok)head=`<h3>${pick(["Richtig!","Stimmt genau!","Sauber gerechnet!","Perfekt!"])}</h3>`;
+  else head=`<h3>Leider nicht richtig.</h3><div>Deine Antwort: ${info.given}<br><b>Richtig: ${info.right}</b></div>`;
+  const last=S.i===S.tasks.length-1;
+  fb.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap">${head.split("</h3>")[0]}</h3><span class="pts">+${pts}</span></div>${head.split("</h3>")[1]||""}
+    <div><b>${t.intro}</b><ol>${t.steps.map(s=>`<li>${s}</li>`).join("")}</ol></div>
+    <button class="btn" id="btnNext">${last?"Schicht beenden":"Nächster Kunde"}</button>`;
+  fb.hidden=false;$("#pad").hidden=true;$("#coins").hidden=true;$("#opts").hidden=true;
+  $("#tnote").textContent="";
+  $("#btnNext").addEventListener("click",next);$("#btnNext").focus({preventScroll:true});
+  if(window.matchMedia("(max-width:779px)").matches)fb.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function next(){if(S.phase!=="feedback")return;S.i++;if(S.i>=S.tasks.length)finish();else{showTask();window.scrollTo({top:0,behavior:"smooth"});}}
+
+function finish(){
+  S.phase="end";const right=S.log.filter(l=>l.ok).length,n=S.log.length;
+  const key="blitzkasse-best-"+S.lvl;const old=parseInt(store.get(key)||"0",10);const rec=S.score>old;if(rec)store.set(key,String(S.score));
+  let h=`<div class="head"><b>SCHICHTBERICHT</b><br>Filiale Hafenstraße · Kasse 3<br>${stamp()} · ${S.lvl==="profi"?"Kassenprofi":"Azubi"}</div>`;
+  S.log.forEach((l,k)=>{h+=`<div class="row"><span>${String(k+1).padStart(2,"0")} ${l.t.kind}</span><span>${l.ok?(l.partial?"fast ✓":"✓"):"✗"} ${String(l.pts).padStart(4," ")}</span></div>`;});
+  h+=`<div class="row b"><span>PUNKTE</span><span>${S.score}</span></div><div class="row"><span>Richtig</span><span>${right} von ${n}</span></div>`;
+  h+=`<div class="row"><span>Rekord</span><span>${rec?"NEU! ":""}${Math.max(old,S.score)}</span></div><div class="head" style="border:0;border-top:1px dashed var(--receipt-mut);margin:8px 0 0;padding-top:8px">Vielen Dank für Ihren Einsatz!</div>`;
+  $("#report").innerHTML=h;
+  const q=right/n;let r,txt;
+  if(q===1){r="Kassen-Legende";txt="Alles richtig. Du bist bereit für den Samstag vor Weihnachten.";}
+  else if(q>=.8){r="Kassen-Ass";txt="Sehr sicher an der Kasse. Schau dir die Fehler unten kurz an.";}
+  else if(q>=.5){r="Kassen-Azubi";txt="Gute Grundlage. Mit den Rechenwegen unten wirst du schneller.";}
+  else{r="Kassen-Neuling";txt="Noch etwas wackelig. Spiel ohne Zeitbonus und lies die Rechenwege in Ruhe.";}
+  $("#rank").textContent=r;$("#rankText").textContent=txt+(S.lvl==="basis"&&q>=.8?" Probier als Nächstes die Stufe Kassenprofi.":"");
+  const wrong=S.log.filter(l=>!l.ok||l.partial);
+  $("#review").innerHTML=wrong.length?`<div class="eyebrow">Das schauen wir uns nochmal an</div>`+wrong.map(l=>`<div class="item"><b>${l.t.kind}${l.t.type==="mc"?": "+l.t.q:""}</b><div>Deine Antwort: ${l.given} · Richtig: ${l.right}</div><div class="hint">${l.t.intro}</div><ol>${l.t.steps.map(s=>`<li>${s}</li>`).join("")}</ol></div>`).join(""):`<div class="eyebrow">Keine Fehler in dieser Schicht</div>`;
+  show("#end");
+}
+
+/* Bedienung */
+$("#pad").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(b)keyIn(b.dataset.k);});
+document.addEventListener("keydown",e=>{
+  if($("#game").hidden)return;
+  if(S.phase==="feedback"&&e.key==="Enter"){e.preventDefault();next();return;}
+  if(S.phase!=="answer")return;const t=S.tasks[S.i];
+  if(t.type==="mc"){const k={"a":0,"b":1,"c":2,"1":0,"2":1,"3":2}[e.key.toLowerCase()];if(k!==undefined){resolve(k===t.correct,{given:t.opts[k],right:t.answerTxt});}return;}
+  if(t.type==="coins")return;
+  if(/^\d$/.test(e.key))keyIn(e.key);
+  else if(e.key===","||e.key===".")keyIn(",");
+  else if(e.key==="Backspace"){e.preventDefault();keyIn("back");}
+  else if(e.key==="Escape")keyIn("clear");
+  else if(e.key==="Enter"){e.preventDefault();keyIn("ok");}
+});
+$("#btnStart").addEventListener("click",startShift);
+$("#btnAgain").addEventListener("click",startShift);
+$("#btnHome").addEventListener("click",()=>{S.phase="idle";updateStartUi();show("#start");});
+updateStartUi();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kaufvertrags-Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #eef2f7; --surface: #ffffff; --surface-2: #f3f6fa; --text: #17222e; --muted: #56657a;
+  --accent: #1F4E79; --accent-2: #2d6aa3; --accent-soft: #e1ebf5; --border: #d4dde8;
+  --ok: #1d6b3f; --ok-soft: #dcf0e3; --bad: #b3261e; --bad-soft: #fbe3e1; --hint: #8a5300; --hint-soft: #fdf0d8;
+  --shadow: 0 10px 28px -16px rgba(20, 45, 75, .35); --r: 14px;
+  --sans: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0e1620; --surface: #16212d; --surface-2: #1b2836; --text: #e6edf4; --muted: #9db0c3;
+    --accent: #7fb3e6; --accent-2: #a6cbf0; --accent-soft: #1e3347; --border: #2a3b4d;
+    --ok: #7fd1a0; --ok-soft: #173427; --bad: #f19a92; --bad-soft: #3a1d1b; --hint: #f0bf6c; --hint-soft: #3a2c14;
+    --shadow: 0 10px 28px -14px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e1620; --surface: #16212d; --surface-2: #1b2836; --text: #e6edf4; --muted: #9db0c3;
+  --accent: #7fb3e6; --accent-2: #a6cbf0; --accent-soft: #1e3347; --border: #2a3b4d;
+  --ok: #7fd1a0; --ok-soft: #173427; --bad: #f19a92; --bad-soft: #3a1d1b; --hint: #f0bf6c; --hint-soft: #3a2c14;
+  --shadow: 0 10px 28px -14px rgba(0,0,0,.6);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 17px; line-height: 1.55; }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: 18px; padding-block: 22px 60px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 20px; border-bottom: 3px solid var(--accent); padding-bottom: 14px; margin-bottom: 18px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+h1 { margin: 2px 0 0; font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem); line-height: 1.1; text-wrap: balance; }
+.sub { color: var(--muted); font-size: .95rem; margin-top: 4px; }
+.score { display: flex; gap: 8px; flex-wrap: wrap; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 6px 12px; text-align: center; min-width: 78px; }
+.stat b { display: block; font-family: var(--mono); font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.stat span { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.chip { font: inherit; font-size: .88rem; font-weight: 700; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] .chip[aria-pressed="true"] { color: #0e1620; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .chip[aria-pressed="true"] { color: #0e1620; } }
+.chip:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--shadow); padding: 22px 22px 20px; }
+.tag { display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 3px 9px; border-radius: 6px; }
+.situation { margin: 12px 0 6px; }
+.frage { font-weight: 700; margin: 10px 0 4px; }
+.rund { color: var(--muted); font-size: .9rem; margin: 0 0 14px; }
+table.daten { border-collapse: collapse; margin: 8px 0 10px; font-variant-numeric: tabular-nums; font-size: .95rem; }
+table.daten td { padding: 4px 14px 4px 0; border-bottom: 1px solid var(--border); }
+table.daten td.n { text-align: right; font-family: var(--mono); }
+.answer { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; }
+.answer label { font-weight: 700; }
+.inbox { display: flex; align-items: center; border: 2px solid var(--border); border-radius: 10px; background: var(--surface-2); overflow: hidden; }
+.inbox input { font: inherit; font-family: var(--mono); font-size: 1.15rem; border: 0; background: transparent; color: var(--text); padding: 8px 10px; width: 9.5em; text-align: right; }
+.inbox .unit { padding: 0 12px 0 2px; color: var(--muted); font-family: var(--mono); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+button.b { font: inherit; font-weight: 700; font-size: .95rem; border-radius: 10px; padding: 9px 16px; cursor: pointer; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+button.b.primary { background: var(--accent); color: #fff; }
+:root[data-theme="dark"] button.b.primary { color: #0e1620; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button.b.primary { color: #0e1620; } }
+button.b:hover { transform: translateY(-1px); }
+.fb { margin-top: 16px; border-radius: 10px; padding: 12px 16px; display: none; }
+.fb.show { display: block; }
+.fb.ok { background: var(--ok-soft); border: 1px solid var(--ok); }
+.fb.bad { background: var(--bad-soft); border: 1px solid var(--bad); }
+.fb.hint { background: var(--hint-soft); border: 1px solid var(--hint); }
+.fb h3 { margin: 0 0 6px; font-size: 1rem; }
+.fb.ok h3 { color: var(--ok); } .fb.bad h3 { color: var(--bad); } .fb.hint h3 { color: var(--hint); }
+.steps { margin: 6px 0 0; padding-left: 22px; }
+.steps li { margin: 3px 0; }
+.tr { font-family: var(--mono); font-size: .92rem; background: var(--surface); border: 1px dashed var(--border); border-radius: 8px; padding: 6px 10px; margin-top: 8px; display: inline-block; }
+details.tool { margin-top: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 18px; }
+details.tool summary { cursor: pointer; font-weight: 700; }
+.faktor { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; margin: 10px 0 4px; font-family: var(--mono); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.faktor div { background: var(--surface-2); border-radius: 8px; padding: 5px 8px; }
+.faktor b { color: var(--accent); }
+.foot { color: var(--muted); font-size: .85rem; margin-top: 22px; text-align: center; }
+@media (max-width: 520px) { .card { padding: 18px 16px; } .inbox input { width: 7.5em; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } button.b:hover { transform: none; } }
+.chron th { text-align: left; font-size: .8rem; color: var(--muted); padding: 4px 14px 4px 0; border-bottom: 2px solid var(--border); }
+.chron td { vertical-align: top; }
+.chron td.n { white-space: nowrap; }
+.q { margin-top: 16px; }
+.q h2 { font-size: 1rem; margin: 0 0 8px; }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.opt { font: inherit; font-size: .92rem; font-weight: 700; border: 1.5px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 10px; padding: 8px 12px; cursor: pointer; min-height: 44px; text-align: left; }
+.opt[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] .opt[aria-pressed="true"] { color: #0e1620; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .opt[aria-pressed="true"] { color: #0e1620; } }
+.nname { font: inherit; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface-2); color: var(--text); width: min(100%, 22em); margin: 4px 0 8px; }
+@media (max-width: 560px) { .chron { font-size: .85rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Lernfeld 6 · Waren beschaffen</div>
+      <h1>Kaufvertrags-Trainer</h1>
+      <div class="sub">Antrag, Annahme, Vertragsdatum – wie in der WiSo-Prüfung. Jedes Mal ein neuer Fall.</div>
+    </div>
+    <div class="score" aria-live="polite">
+      <div class="stat"><b id="sRichtig">0</b><span>komplett richtig</span></div>
+      <div class="stat"><b id="sVersucht">0</b><span>Fälle</span></div>
+    </div>
+  </header>
+
+  <section class="card" aria-live="polite">
+    <span class="tag">Kaufvertrag</span>
+    <div class="situation" id="fSit"></div>
+    <div id="fChron" style="overflow-x:auto"></div>
+    <div class="q"><h2>1. Welche Erklärung ist der Antrag?</h2><div class="opts" id="q_antrag"></div></div>
+    <div class="q"><h2>2. Welche Erklärung ist die Annahme?</h2><div class="opts" id="q_annahme"></div></div>
+    <div class="q"><h2>3. An welchem Tag ist der Kaufvertrag zustande gekommen?</h2><div class="opts" id="q_vertrag"></div></div>
+    <div class="btns" style="margin-top:16px">
+      <button class="b primary" type="button" id="bPruef">Prüfen</button>
+      <button class="b" type="button" id="bNeu">Neuer Fall</button>
+      <button class="b" type="button" id="bNachweis">Nachweis</button>
+    </div>
+    <div class="fb" id="fb"></div>
+  </section>
+
+  <details class="tool">
+    <summary>Werkzeug: Wer sagt was?</summary>
+    <ul class="steps">
+      <li><b>Anfrage</b>: immer unverbindlich. <b>Katalog, Prospekt, Werbung</b>: kein Angebot.</li>
+      <li><b>Angebot</b> an uns, ohne Einschränkung = Antrag. Mit „freibleibend“, „unverbindlich“, „solange Vorrat reicht“ = kein Antrag.</li>
+      <li>Bindung: Telefon/Gespräch → sofort · E-Mail → wenige Tage · mit Frist → bis Fristende.</li>
+      <li>Bestellung <b>rechtzeitig und unverändert</b> auf ein verbindliches Angebot = <b>Annahme</b> → Vertrag am Tag der Bestellung.</li>
+      <li>Sonst ist die Bestellung der <b>Antrag</b>; Annahme = Auftragsbestätigung oder Lieferung.</li>
+    </ul>
+  </details>
+
+  <section class="card" id="nachweis" hidden style="margin-top:18px">
+    <span class="tag">Nachweis für das Punktekonto</span>
+    <p style="margin:10px 0 6px">8 komplett richtige Fälle = 1 Erledigungspunkt (Modul 14). Zeig diese Seite deiner Lehrkraft.</p>
+    <label for="nName" style="font-weight:700">Name</label><br>
+    <input id="nName" class="nname" placeholder="Vor- und Nachname" autocomplete="off">
+    <ol id="nListe" class="steps"></ol>
+    <p id="nStand" style="font-weight:700"></p>
+  </section>
+
+  <p class="foot">Kaufmännische Lehranstalten Bremerhaven · Lernfeld 6 · Lehrbuch „Kompetenz im Einzelhandel 2“ S. 27–31, 42–46 · Die Fälle sind an WiSo-Prüfungsaufgaben 2017–2026 angelehnt; Namen der Lieferer sind erfunden.</p>
+</div>
+<script>
+(function () {
+  'use strict';
+  function R(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  var WT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  function addD(d, n) { var x = new Date(d.getTime()); x.setDate(x.getDate() + n); while (x.getDay() === 0 || x.getDay() === 6) x.setDate(x.getDate() + 1); return x; }
+  function fd(d) { return ('0' + d.getDate()).slice(-2) + '.' + ('0' + (d.getMonth() + 1)).slice(-2) + '.' + d.getFullYear(); }
+  function fdl(d) { return WT[d.getDay()] + ', ' + fd(d); }
+  var WARE = [['Thermobecher', 4.2], ['Regenschirme', 5.9], ['Fitnessbänder', 3.5], ['Laufschuhe', 39.9], ['Rucksäcke', 18.5], ['Sweatshirts', 12.4], ['Deckenstrahler', 55.5], ['Kopfhörer', 24.9], ['Trinkflaschen', 6.8], ['Jeans', 21.0]];
+  var LIEF = ['Weser-Textil KG', 'Hansa Import GmbH', 'Nordsee Großhandel OHG', 'Elbe Sport GmbH', 'Kaiser & Co. KG', 'Ostfriesen Handel GmbH'];
+  function eur(x) { return x.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+  var WER = { N: 'Nordstadt-Kauf GmbH', L: '' };
+
+  // Jeder Fall: ev[] = {d, w: 'N'|'L', t, k}; antrag, annahme = Index in ev; vertrag = Index oder -1; erk = Erklärung
+  function fall() {
+    var w = pick(WARE), l = pick(LIEF), m = pick([50, 100, 120, 150, 200, 240, 300]), d0 = addD(new Date(2026, R(8, 11), R(1, 25)), 0);
+    var p = w[1], ev = [], v = pick(['frist_ok', 'frist_spaet', 'mail_ok', 'frei', 'ohne', 'ohne_lief', 'geaendert', 'telefon', 'frei_offen', 'katalog']);
+    var anf = Math.random() < 0.6;
+    function E(d, wer, t, k) { ev.push({ d: d, w: wer, t: t, k: k }); return ev.length - 1; }
+    var d = d0, iAng, iBest, iAB, iL, res = {};
+    if (anf && v !== 'ohne' && v !== 'ohne_lief' && v !== 'katalog') { E(d, 'N', 'Anfrage per E-Mail: Preis und Lieferzeit für ' + m + ' ' + w[0] + '?', 'anfrage'); d = addD(d, R(1, 3)); }
+    if (v === 'frist_ok' || v === 'frist_spaet') {
+      var bis = addD(d, R(5, 9));
+      iAng = E(d, 'L', 'Angebot per E-Mail: ' + m + ' ' + w[0] + ' zu ' + eur(p) + ' je Stück, „gültig bis ' + fd(bis) + '“.', 'angebot');
+      if (v === 'frist_ok') { d = addD(d, R(1, 4)); if (d > bis) d = bis; iBest = E(d, 'N', 'Bestellung per E-Mail: ' + m + ' ' + w[0] + ' zu ' + eur(p) + ' – genau wie im Angebot.', 'best');
+        iL = E(addD(d, R(3, 6)), 'L', 'Lieferung der Ware mit Rechnung.', 'lief');
+        res = { antrag: iAng, annahme: iBest, vertrag: iBest, erk: 'Das Angebot ist verbindlich (Antrag). Die Bestellung kommt vor Fristende und ohne Änderung – sie ist die Annahme. Der Vertrag entsteht mit der Bestellung.' };
+      } else { d = addD(bis, R(2, 5)); iBest = E(d, 'N', 'Bestellung per E-Mail: ' + m + ' ' + w[0] + ' zu ' + eur(p) + '.', 'best');
+        iAB = E(addD(d, R(1, 3)), 'L', 'Auftragsbestätigung: „Wir liefern wie bestellt.“', 'ab');
+        res = { antrag: iBest, annahme: iAB, vertrag: iAB, erk: 'Die Frist war am ' + fd(bis) + ' abgelaufen – das Angebot bindet nicht mehr. Die verspätete Bestellung ist ein neuer Antrag (§ 150 Abs. 1 BGB). Annahme ist die Auftragsbestätigung.' }; }
+    } else if (v === 'mail_ok') {
+      iAng = E(d, 'L', 'Angebot per E-Mail ohne Frist und ohne Einschränkung: ' + m + ' ' + w[0] + ' zu ' + eur(p) + ' je Stück.', 'angebot');
+      d = addD(d, 1); iBest = E(d, 'N', 'Bestellung per E-Mail zu den Bedingungen des Angebots.', 'best');
+      iAB = E(addD(d, 2), 'L', 'Auftragsbestätigung.', 'ab');
+      res = { antrag: iAng, annahme: iBest, vertrag: iBest, erk: 'Das Angebot ist verbindlich. Die Bestellung kommt schon am nächsten Tag – rechtzeitig und unverändert. Sie ist die Annahme. Die Auftragsbestätigung ist dann nicht mehr nötig.' };
+    } else if (v === 'frei' || v === 'frei_offen') {
+      var kl = pick(['freibleibend', 'solange der Vorrat reicht', 'Preise freibleibend', 'unverbindlich']);
+      iAng = E(d, 'L', 'Angebot per E-Mail: ' + m + ' ' + w[0] + ' zu ' + eur(p) + ' je Stück, „' + kl + '“.', 'frei');
+      d = addD(d, R(1, 3)); iBest = E(d, 'N', 'Bestellung zu den Bedingungen des Angebots.', 'best');
+      if (v === 'frei') { iAB = E(addD(d, R(1, 3)), 'L', 'Auftragsbestätigung.', 'ab');
+        res = { antrag: iBest, annahme: iAB, vertrag: iAB, erk: '„' + kl + '“ ist eine Freizeichnungsklausel: Das Angebot ist unverbindlich. Erst die Bestellung ist der Antrag, die Auftragsbestätigung die Annahme.' };
+      } else res = { antrag: iBest, annahme: -1, vertrag: -1, erk: '„' + kl + '“ macht das Angebot unverbindlich. Die Bestellung ist der Antrag. Der Lieferer hat noch nicht reagiert – es gibt noch keine Annahme und keinen Vertrag.' };
+    } else if (v === 'ohne' || v === 'katalog') {
+      if (v === 'katalog') { E(d, 'L', 'Katalog mit Preisliste kommt per Post an alle Kunden.', 'werbung'); d = addD(d, R(2, 6)); }
+      iBest = E(d, 'N', 'Bestellung' + (v === 'katalog' ? ' aus dem Katalog' : ' per E-Mail (ohne vorheriges Angebot)') + ': ' + m + ' ' + w[0] + '.', 'best');
+      iAB = E(addD(d, R(1, 3)), 'L', 'Auftragsbestätigung.', 'ab'); E(addD(ev[iAB].d, R(3, 6)), 'L', 'Lieferung.', 'lief');
+      res = { antrag: iBest, annahme: iAB, vertrag: iAB, erk: (v === 'katalog' ? 'Ein Katalog ist kein Angebot, sondern nur eine Aufforderung, selbst ein Angebot zu machen. ' : 'Es gab kein Angebot. ') + 'Die Bestellung ist der Antrag, die Auftragsbestätigung die Annahme.' };
+    } else if (v === 'ohne_lief') {
+      iBest = E(d, 'N', 'Bestellung per E-Mail (ohne vorheriges Angebot): ' + m + ' ' + w[0] + '.', 'best');
+      iL = E(addD(d, R(2, 5)), 'L', 'Lieferung der Ware mit Rechnung – ohne Auftragsbestätigung.', 'lief');
+      res = { antrag: iBest, annahme: iL, vertrag: iL, erk: 'Die Bestellung ohne Angebot ist der Antrag. Der Lieferer nimmt an, indem er liefert. Die Lieferung ist die Annahme.' };
+    } else if (v === 'geaendert') {
+      iAng = E(d, 'L', 'Angebot per E-Mail: ' + m + ' ' + w[0] + ' zu ' + eur(p) + ' je Stück, Lieferung frei Haus.', 'angebot');
+      d = addD(d, 1); var aend = pick(['aber zu ' + eur(Math.round(p * 90) / 100) + ' je Stück', 'aber mit Lieferung bis morgen', 'aber 3 % Skonto statt 2 %']);
+      iBest = E(d, 'N', 'Bestellung: ' + m + ' ' + w[0] + ', ' + aend + '.', 'best');
+      iAB = E(addD(d, R(1, 3)), 'L', 'Auftragsbestätigung zu den neuen Bedingungen.', 'ab');
+      res = { antrag: iBest, annahme: iAB, vertrag: iAB, erk: 'Die Bestellung ändert das Angebot. Eine Annahme mit Änderungen gilt als Ablehnung und neuer Antrag (§ 150 Abs. 2 BGB). Annahme ist die Auftragsbestätigung.' };
+    } else if (v === 'telefon') {
+      iAng = E(d, 'L', 'Telefonat: Der Vertreter bietet ' + m + ' ' + w[0] + ' zu ' + eur(p) + ' je Stück an. Wir sagen: „Wir melden uns.“', 'tel');
+      d = addD(d, R(2, 5)); iBest = E(d, 'N', 'Bestellung per E-Mail zu den Bedingungen aus dem Telefonat.', 'best');
+      iAB = E(addD(d, R(1, 2)), 'L', 'Auftragsbestätigung.', 'ab');
+      res = { antrag: iBest, annahme: iAB, vertrag: iAB, erk: 'Ein Angebot am Telefon gilt wie unter Anwesenden: Es muss sofort angenommen werden (§ 147 Abs. 1 BGB). Die spätere Bestellung ist ein neuer Antrag, die Auftragsbestätigung die Annahme.' };
+    }
+    return { ev: ev, lief: l, ware: w[0], v: v, antrag: res.antrag, annahme: res.annahme, vertrag: res.vertrag, erk: res.erk };
+  }
+  var FEHLER = {
+    anfrage: 'Die Anfrage ist immer unverbindlich – sie ist weder Antrag noch Annahme.',
+    werbung: 'Ein Katalog oder Prospekt richtet sich an alle. Er ist kein Angebot und damit kein Antrag.',
+    frei: 'Das Angebot ist freigezeichnet („freibleibend“ & Co.) – es bindet nicht und ist darum kein Antrag.',
+    tel: 'Das Telefon-Angebot wurde nicht sofort angenommen. Danach bindet es nicht mehr.',
+    lief: 'Die Lieferung ist hier die Erfüllung des Vertrags – der Vertrag bestand schon vorher.',
+    ab: 'Die Auftragsbestätigung kommt hier zu spät – der Vertrag war schon da.',
+    angebot: 'Das Angebot passt hier nicht: Prüfe, ob die Bestellung rechtzeitig und unverändert kam.',
+    best: 'Prüfe: Kam vorher ein verbindliches Angebot? Dann ist die Bestellung Annahme – sonst Antrag.'
+  };
+  var $ = function (id) { return document.getElementById(id); };
+  var cur, wahl, st = { r: 0, v: 0, ok: [], name: '' }, ZIEL = 8;
+  try { var s = JSON.parse(localStorage.getItem('lf6_kvtrainer') || 'null'); if (s) { st = s; st.ok = st.ok || []; } } catch (e) {}
+  function save() { try { localStorage.setItem('lf6_kvtrainer', JSON.stringify(st)); } catch (e) {} }
+  function show() { $('sRichtig').textContent = st.r; $('sVersucht').textContent = st.v; }
+  function neu() {
+    cur = fall(); wahl = { antrag: null, annahme: null, vertrag: null }; cur.done = false;
+    $('fSit').innerHTML = 'Die <b>Nordstadt-Kauf GmbH</b> (Bremerhaven) kauft <b>' + cur.ware + '</b> bei der <b>' + cur.lief + '</b>. So lief es:';
+    var t = '<table class="daten chron"><tr><th>Datum</th><th>Wer</th><th>Was</th></tr>';
+    cur.ev.forEach(function (e) { t += '<tr><td class="n">' + fdl(e.d) + '</td><td>' + (e.w === 'N' ? 'Nordstadt-Kauf' : 'Lieferer') + '</td><td>' + e.t + '</td></tr>'; });
+    $('fChron').innerHTML = t + '</table>';
+    ['antrag', 'annahme'].forEach(function (k) {
+      var box = $('q_' + k); box.innerHTML = '';
+      cur.ev.forEach(function (e, i) { var b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = fd(e.d) + ' · ' + e.t.split(':')[0].split('(')[0].trim(); b.onclick = function () { set(k, i); }; box.appendChild(b); });
+      if (k === 'annahme') { var b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = 'noch keine Annahme'; b.onclick = function () { set(k, -1); }; box.appendChild(b); }
+    });
+    var sel = $('q_vertrag'); sel.innerHTML = '';
+    var seen = {}; cur.ev.forEach(function (e, i) { var k = fd(e.d); if (seen[k] !== undefined) return; seen[k] = i; var b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = k; b.onclick = function () { set('vertrag', i); }; sel.appendChild(b); });
+    var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'opt'; b2.textContent = 'noch kein Vertrag'; b2.onclick = function () { set('vertrag', -1); }; sel.appendChild(b2);
+    fb('', ''); mark();
+  }
+  function set(k, i) { wahl[k] = i; mark(); }
+  function mark() {
+    ['antrag', 'annahme', 'vertrag'].forEach(function (k) {
+      var bs = $('q_' + k).querySelectorAll('.opt');
+      bs.forEach(function (b, j) {
+        var idx = k === 'vertrag' ? (j === bs.length - 1 ? -1 : idxDate(j)) : (j === bs.length - 1 && k === 'annahme' ? -1 : j);
+        b.setAttribute('aria-pressed', wahl[k] === idx || (k === 'vertrag' && wahl[k] !== null && wahl[k] !== -1 && idx !== -1 && fd(cur.ev[wahl[k]].d) === fd(cur.ev[idx].d)) ? 'true' : 'false');
+      });
+    });
+  }
+  function idxDate(j) { var seen = {}, n = -1, r = -1; cur.ev.forEach(function (e, i) { var k = fd(e.d); if (seen[k] === undefined) { seen[k] = 1; n++; if (n === j) r = i; } }); return r; }
+  function fb(cls, html) { var f = $('fb'); f.className = 'fb' + (cls ? ' show ' + cls : ''); f.innerHTML = html; }
+  function pruefen() {
+    if (wahl.antrag === null || wahl.annahme === null || wahl.vertrag === null) { fb('hint', '<h3>Fast</h3><p>Beantworte alle drei Fragen.</p>'); return; }
+    var okA = wahl.antrag === cur.antrag, okN = wahl.annahme === cur.annahme;
+    var okV = cur.vertrag === -1 ? wahl.vertrag === -1 : (wahl.vertrag !== -1 && fd(cur.ev[wahl.vertrag].d) === fd(cur.ev[cur.vertrag].d));
+    var h = '<ul class="steps">';
+    h += '<li>' + (okA ? '✓' : '✗') + ' Antrag: ' + (okA ? 'richtig.' : (FEHLER[cur.ev[wahl.antrag].k] || 'nicht richtig.')) + '</li>';
+    h += '<li>' + (okN ? '✓' : '✗') + ' Annahme: ' + (okN ? 'richtig.' : (wahl.annahme === -1 ? 'Es gibt hier eine Annahme.' : (FEHLER[cur.ev[wahl.annahme].k] || 'nicht richtig.'))) + '</li>';
+    h += '<li>' + (okV ? '✓' : '✗') + ' Vertrag: ' + (okV ? 'richtig.' : 'Der Vertrag entsteht am Tag der Annahme.') + '</li></ul>';
+    var alle = okA && okN && okV;
+    if (!cur.done) { st.v++; if (alle) { st.r++; var d = new Date(); st.ok.push({ t: cur.ware + ' – ' + cur.lief, d: d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) }); } save(); show(); liste(); }
+    cur.done = true;
+    var loes = '<p><b>Lösung:</b> Antrag = ' + (cur.antrag >= 0 ? cur.ev[cur.antrag].t.split(':')[0] + ' (' + fd(cur.ev[cur.antrag].d) + ')' : '–') + ' · Annahme = ' + (cur.annahme >= 0 ? cur.ev[cur.annahme].t.split(':')[0] + ' (' + fd(cur.ev[cur.annahme].d) + ')' : 'noch keine') + ' · Vertrag am <b>' + (cur.vertrag >= 0 ? fd(cur.ev[cur.vertrag].d) : '– (noch kein Vertrag)') + '</b></p><p>' + cur.erk + '</p>';
+    fb(alle ? 'ok' : 'bad', '<h3>' + (alle ? 'Alles richtig!' : 'Noch nicht ganz') + '</h3>' + h + loes + (alle ? '<p style="margin:8px 0 0">Weiter mit <b>Neuer Fall</b>.</p>' : '<p style="margin:8px 0 0">Du kannst deine Antworten ändern und noch einmal prüfen. Für den Nachweis zählt nur der erste Versuch.</p>'));
+  }
+  function liste() {
+    var l = $('nListe'); l.innerHTML = ''; st.ok.forEach(function (x) { var li = document.createElement('li'); li.textContent = x.d + ' · ' + x.t; l.appendChild(li); });
+    var n = st.ok.length; $('nStand').textContent = n >= ZIEL ? 'Ziel erreicht: ' + n + ' Fälle komplett richtig.' : 'Noch ' + (ZIEL - n) + ' komplett richtige Fälle bis zum Nachweis.';
+  }
+  $('bPruef').onclick = pruefen; $('bNeu').onclick = neu;
+  $('bNachweis').onclick = function () { var n = $('nachweis'); n.hidden = !n.hidden; liste(); if (!n.hidden) n.scrollIntoView({ behavior: 'smooth' }); };
+  $('nName').value = st.name || ''; $('nName').addEventListener('input', function () { st.name = $('nName').value.slice(0, 60); save(); });
+  show(); liste(); neu();
+})();
+</script>
+</body>
+</html>

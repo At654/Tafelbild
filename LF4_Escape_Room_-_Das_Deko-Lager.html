@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escape Room LF 4 – Das Deko-Lager</title>
+<style>
+:root{--blau:#1F4E79;--hell:#EAF1F8;--rosa:#E5B8B7;--gruen:#2E6B45;--rot:#C00000;--grau:#F2F2F2}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}
+header{background:var(--blau);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header h1{font-size:20px;margin:0}#uhr{font-size:22px;font-weight:bold;font-variant-numeric:tabular-nums}
+main{max-width:980px;margin:0 auto;padding:16px}
+.story{background:var(--hell);border-left:5px solid var(--blau);padding:12px 16px;border-radius:4px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin:18px 0}
+.tile{border:2px solid var(--blau);border-radius:8px;padding:14px;cursor:pointer;background:#fff;min-height:110px;position:relative}
+.tile:hover{background:var(--hell)}.tile h3{margin:0 0 4px;color:var(--blau)}.tile small{color:#595959}
+.tile.done{border-color:var(--gruen);background:#E2EFDA}.badge{position:absolute;right:12px;top:10px;font-size:30px;font-weight:bold;color:var(--gruen)}
+.station{display:none;border:2px solid var(--blau);border-radius:8px;padding:16px;margin-top:10px}
+.q{margin:12px 0;padding:10px;border-radius:6px;background:var(--grau)}.q.ok{background:#E2EFDA}.q.bad{background:#F8D7D7}
+.q p{margin:0 0 6px;font-weight:bold}label{display:block;padding:3px 0;cursor:pointer}
+input[type=number],input[type=text]{font-size:18px;padding:6px;width:140px}
+button{background:var(--blau);color:#fff;border:0;border-radius:5px;padding:9px 16px;font-size:15px;cursor:pointer;margin:6px 6px 0 0}
+button.sec{background:#fff;color:var(--blau);border:1px solid var(--blau)}
+.msg{margin-top:10px;font-weight:bold}.tipp{display:none;margin-top:8px;padding:8px;background:#FFF2CC;border-radius:5px}
+#tresor{border:3px dashed #595959;border-radius:10px;padding:16px;text-align:center;margin-top:20px}
+#code{font-size:28px;letter-spacing:8px;width:220px;text-align:center}
+#code-slots{font-size:26px;letter-spacing:10px;margin:6px 0;color:var(--gruen);font-weight:bold}
+#ende{display:none;background:#E2EFDA;border:3px solid var(--gruen);border-radius:10px;padding:18px;margin-top:16px;text-align:center}
+@media print{header{background:#fff;color:#000}}
+</style></head><body>
+<header><h1>Escape Room LF 4 · Das Deko-Lager</h1><div>⏱ <span id="uhr">45:00</span></div></header>
+<main>
+<div class="story"><b>Morgen früh eröffnet die Kaufhaus Hansa GmbH ihre neu gestaltete Abteilung.</b> Die Warenträger stehen, aber die ganze Deko, die Preisschilder und das Material für die Aktionsfläche liegen im Deko-Lager – und das hat ein Zahlenschloss. Die Filialleitung hat den Code auf sechs Aufgaben verteilt: Jede gelöste Station verrät eine Ziffer. Ihr habt <b>45 Minuten</b>. Tipps gibt es – aber jeder Tipp kostet <b>2 Minuten</b>.</div>
+<div class="grid" id="grid"></div>
+<div class="station" id="station"></div>
+<div id="tresor"><h2>🔒 Das Deko-Lager</h2><div>Eure Ziffern (Station 1 bis 6):</div><div id="code-slots">_ _ _ _ _ _</div>
+<input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="······"> <button onclick="oeffnen()">Lager öffnen</button><div class="msg" id="tmsg"></div></div>
+<div id="ende"><h2>🎉 Das Deko-Lager ist offen!</h2><p>Die Neueröffnung kann kommen. Eure Zeit: <b id="zeit"></b> · Genutzte Tipps: <b id="ntipps"></b></p>
+<p>Zeigt diesen Bildschirm eurer Lehrkraft.</p></div>
+</main>
+<script>
+const ST=[{"t": "Laden und Sinne", "m": "Module 1 und 2", "z": 2, "h": "Discountstrategie: sparen an der Gestaltung, niedrige Preise. Erlebnisstrategie: Atmosphäre und Service. Visual Merchandising spricht die Sinne an: Sehen, Hören, Riechen, Tasten, Schmecken.", "f": [["Ein Laden setzt auf Musik, warmes Licht, Sitzecken und viel Beratung. Welche Strategie verfolgt er?", ["Discountstrategie", "Erlebnisstrategie", "Zwangsumlauf", "Randsortiment"], 1], ["Welche Maßnahme spricht den Geruchssinn an?", ["Kaffee im Verkaufsbereich frisch mahlen", "ruhige Hintergrundmusik", "warmweißes Licht", "Stoffproben zum Anfassen"], 0], ["Was ist das Ziel von Visual Merchandising?", ["Ware so präsentieren, dass Kunden aufmerksam werden und Kaufwünsche entstehen", "das Lager möglichst voll machen", "Preise automatisch berechnen", "die Personalkosten erhöhen"], 0], ["Wie viele Sinne kann ein Geschäft ansprechen? (Zahl)", null, 5]]}, {"t": "Schaufenster und Verkaufsformen", "m": "Module 3 und 4", "z": 9, "h": "Ein Schaufenster hat 3–4 Sekunden: ein Blickfang, eine Botschaft, Preise. Vollbedienung: Verkäufer holt jede Ware. Vorwahl: Kunde wählt selbst, Beratung auf Wunsch. Selbstbedienung: ohne Personal bis zur Kasse.", "f": [["Wie viel Zeit hat ein Schaufenster etwa, um Passanten zu stoppen?", ["3–4 Sekunden", "30 Sekunden", "2 Minuten", "10 Minuten"], 0], ["In einem Modehaus nehmen Kunden die Ware selbst aus dem Regal, Beratung gibt es auf Wunsch. Welche Verkaufsform ist das?", ["Vollbedienung", "Vorwahl", "Selbstbedienung", "Versandhandel"], 1], ["Welche Ware wird typischerweise in Vollbedienung verkauft?", ["Schmuck und Torten an der Theke", "Konserven im Supermarkt", "Toilettenpapier", "Getränkekisten"], 0], ["Wie viele Verkaufsformen habt ihr gelernt (Vollbedienung, Vorwahl, …)? (Zahl)", null, 3]]}, {"t": "Laufwege und Zonen", "m": "Module 5 und 6", "z": 6, "h": "Kunden gehen gegen den Uhrzeigersinn und schauen nach rechts. Stark: rechts vom Kundenlauf, Gondelköpfe, Auflaufwand, Kassenzone. Schwach: Eingangsbereich, Mittelgänge, Ecken, links vom Kundenlauf.", "f": [["Welche Zone ist verkaufsstark?", ["die hintere Ecke", "der Mittelgang", "die Kassenzone", "die Fläche hinter der Kasse"], 2], ["Warum ist der Eingangsbereich meist verkaufsschwach?", ["Kunden orientieren sich erst und gehen schnell weiter.", "Dort ist es immer zu dunkel.", "Dort dürfen keine Waren stehen.", "Dort ist die Kasse."], 0], ["Wie könnt ihr einen verkaufsschwachen Mittelgang aufwerten?", ["Suchartikel oder Sonderangebote dort platzieren", "das Licht ausschalten", "höhere Regale aufstellen", "Kartons in den Gang stellen"], 0], ["Wie hoch dürfen Warenträger in der Raummitte höchstens sein, damit die Übersicht bleibt? (Zahl in cm)", null, 150]]}, {"t": "Warenträger und Regalzonen", "m": "Module 7 und 8", "z": 4, "h": "Regalzonen von oben: Reckzone, Sichtzone, Greifzone, Bückzone. Sicht- und Greifzone sind verkaufsstark. Verbundplatzierung: Artikel, die sich ergänzen, stehen zusammen.", "f": [["Welche Regalzone ist verkaufsstark?", ["Reckzone", "Sichtzone", "Bückzone", "keine"], 1], ["Welche Ware gehört in eine abschließbare Vitrine?", ["wertvoller Schmuck", "Grillkohle", "Mineralwasser", "Zeitschriften"], 0], ["Grillzangen stehen direkt neben den Grillwürstchen. Wie heißt das?", ["Zweitplatzierung", "Verbundplatzierung", "Blockplatzierung", "Reckzone"], 1], ["Wie viele Regalzonen gibt es? (Zahl)", null, 4]]}, {"t": "Sortiment", "m": "Modul 9", "z": 3, "h": "Breit = viele Warengruppen. Tief = große Auswahl innerhalb einer Warengruppe. Kernsortiment bringt den Hauptumsatz, Randsortiment ergänzt. Sortimentspyramide: Sortimentsbereich – Warengruppe – Warenart – Artikel.", "f": [["Ein Warenhaus führt Lebensmittel, Textilien, Elektro, Spielwaren und Bücher. Das Sortiment ist …", ["breit", "tief", "flach", "schmal"], 0], ["Ein Teeladen führt 300 Teesorten. Das Sortiment ist …", ["breit", "tief", "Randsortiment", "Saisonsortiment"], 1], ["Was bringt den Hauptumsatz?", ["das Randsortiment", "das Kernsortiment", "die Eigenmarke", "das Saisonsortiment"], 1], ["Wie viele Stufen hat die Sortimentspyramide (Sortimentsbereich bis Artikel)? (Zahl)", null, 4]]}, {"t": "Preise und Kennzeichnung", "m": "Module 10 und 11", "z": 7, "h": "PAngV: Gesamtpreis inkl. Umsatzsteuer, Grundpreis je 1 kg oder 1 l. Kein Anspruch auf einen falschen Regalpreis. MHD = mindestens haltbar bis, Verbrauchsdatum = danach nicht mehr verkaufen. GTIN-13: 13. Stelle = Prüfziffer.", "f": [["Eine Packung Käse (400 g) kostet 3,20 €. Welcher Grundpreis gehört auf das Schild?", ["1 kg = 8,00 €", "100 g = 0,80 €", "1 kg = 3,20 €", "1 kg = 12,80 €"], 0], ["Am Regal steht ein zu niedriger Preis. Hat der Kunde an der Kasse Anspruch auf diesen Preis?", ["Ja, immer.", "Nein, die Auszeichnung ist nur eine Aufforderung zum Angebot.", "Nur samstags.", "Nur bei Lebensmitteln."], 1], ["Nach Ablauf welches Datums darf Hackfleisch nicht mehr verkauft werden?", ["Mindesthaltbarkeitsdatum", "Verbrauchsdatum", "Lieferdatum", "Rechnungsdatum"], 1], ["Die wievielte Stelle der GTIN-13 ist die Prüfziffer? (Zahl)", null, 13]]}];
+let t0=Date.now(),strafe=0,tipps=0,fertig=false;const gel=ST.map(()=>false);
+function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function rest(){return 45*60-Math.floor((Date.now()-t0)/1000)-strafe}
+setInterval(()=>{if(!fertig){document.getElementById('uhr').textContent=fmt(rest())}},500);
+const ORD={};function ord(i,j,n){const key=i+'_'+j;if(!ORD[key]){const a=[...Array(n).keys()];for(let x=n-1;x>0;x--){const y=Math.floor(Math.random()*(x+1));[a[x],a[y]]=[a[y],a[x]]}ORD[key]=a}return ORD[key]}
+function grid(){const g=document.getElementById('grid');g.innerHTML='';ST.forEach((s,i)=>{const d=document.createElement('div');d.className='tile'+(gel[i]?' done':'');
+ d.innerHTML='<h3>Station '+(i+1)+': '+s.t+'</h3><small>'+s.m+'</small>'+(gel[i]?'<div class="badge">'+s.z+'</div>':'');d.onclick=()=>zeige(i);g.appendChild(d)});
+ document.getElementById('code-slots').textContent=ST.map((s,i)=>gel[i]?s.z:'_').join(' ')}
+function zeige(i){const s=ST[i],box=document.getElementById('station');let h='<h2>Station '+(i+1)+': '+s.t+'</h2>';
+ s.f.forEach((q,j)=>{h+='<div class="q" id="q'+i+'_'+j+'"><p>'+(j+1)+'. '+q[0]+'</p>';
+  if(q[1]){ord(i,j,q[1].length).forEach(k=>{h+='<label><input type="radio" name="r'+i+'_'+j+'" value="'+k+'"> '+q[1][k]+'</label>'})}
+  else{h+='<input type="number" id="n'+i+'_'+j+'">'}h+='</div>'});
+ h+='<button onclick="pruefe('+i+')">Prüfen</button><button class="sec" onclick="tipp('+i+')">Tipp (+2 Min.)</button><button class="sec" onclick="zu()">Zurück zur Übersicht</button>';
+ h+='<div class="tipp" id="tipp'+i+'">💡 '+s.h+'</div><div class="msg" id="msg'+i+'"></div>';box.innerHTML=h;box.style.display='block';box.scrollIntoView({behavior:'smooth'})}
+function zu(){document.getElementById('station').style.display='none';window.scrollTo({top:0,behavior:'smooth'})}
+function tipp(i){const e=document.getElementById('tipp'+i);if(e.style.display!=='block'){e.style.display='block';strafe+=120;tipps++}}
+function pruefe(i){const s=ST[i];let ok=0;s.f.forEach((q,j)=>{let a;if(q[1]){const r=document.querySelector('input[name="r'+i+'_'+j+'"]:checked');a=r?parseInt(r.value):-1}
+ else{a=parseFloat((document.getElementById('n'+i+'_'+j).value||'').replace(',','.'))}
+ const r=(a===q[2]);document.getElementById('q'+i+'_'+j).className='q '+(r?'ok':'bad');if(r)ok++});
+ const m=document.getElementById('msg'+i);
+ if(ok===s.f.length){gel[i]=true;m.innerHTML='✅ Alles richtig! Eure Ziffer für das Zahlenschloss: <span style="font-size:28px;color:#2E6B45">'+s.z+'</span>';grid()}
+ else{m.textContent=ok+' von '+s.f.length+' richtig. Die roten Aufgaben noch einmal prüfen – schaut in euren Unterlagen nach.'}}
+function oeffnen(){const c=document.getElementById('code').value.trim();const m=document.getElementById('tmsg');
+ if(c==='296437'){fertig=true;const used=45*60-rest();document.getElementById('zeit').textContent=fmt(used)+' Min. (inkl. Tipps)';document.getElementById('ntipps').textContent=tipps;
+  document.getElementById('ende').style.display='block';m.textContent='';document.getElementById('ende').scrollIntoView({behavior:'smooth'})}
+ else{m.textContent='❌ Das Lager bleibt zu. Prüft eure Ziffern!';strafe+=30}}
+grid();
+</script></body></html>

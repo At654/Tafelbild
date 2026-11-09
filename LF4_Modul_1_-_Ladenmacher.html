@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ladenmacher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito+Sans:wght@400;600;800&display=swap">
+<style>
+/* Layout: eine Spalte wie ein Bauplan-Klemmbrett; oben Statusleiste (Budget, Kundin, Schritt), darunter Ladenbild und Entscheidungskarten */
+:root{
+  --bg:#e7efec; --surface:#ffffff; --surface2:#f2f7f5; --ink:#15302d; --muted:#4b625e; --line:#c9d8d4;
+  --petrol:#0e6a64; --on-petrol:#ffffff; --coral:#d9492f; --sun:#f3b42c; --on-sun:#2a1f00;
+  --good:#1d7f47; --mid:#a86f00; --bad:#bf3626; --good-bg:#e1f3e8; --mid-bg:#fbf0d6; --bad-bg:#fbe3df;
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1b1a; --surface:#162725; --surface2:#1c312e; --ink:#e6f0ed; --muted:#9fb6b1; --line:#2d4744;
+  --petrol:#43b5aa; --on-petrol:#062120; --coral:#f0806a; --sun:#f5c454; --on-sun:#2a1f00;
+  --good:#63d18f; --mid:#eebc4a; --bad:#f2846f; --good-bg:#183a28; --mid-bg:#3a3017; --bad-bg:#40221d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1b1a; --surface:#162725; --surface2:#1c312e; --ink:#e6f0ed; --muted:#9fb6b1; --line:#2d4744;
+  --petrol:#43b5aa; --on-petrol:#062120; --coral:#f0806a; --sun:#f5c454; --on-sun:#2a1f00;
+  --good:#63d18f; --mid:#eebc4a; --bad:#f2846f; --good-bg:#183a28; --mid-bg:#3a3017; --bad-bg:#40221d; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--body);font-size:17px;line-height:1.5;padding-inline:16px;padding-block:0 40px;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:28px 28px;background-position:-1px -1px}
+.wrap{max-width:860px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);line-height:1.1;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.3rem,7vw,3.6rem);font-weight:800;letter-spacing:-.01em}
+h2{font-size:clamp(1.5rem,4.5vw,2rem);font-weight:800}
+h3{font-size:1.2rem;font-weight:700}
+p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px;border-radius:8px}
+
+/* Statusleiste */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin-inline:-16px;padding:8px 16px;
+  background:var(--surface);border-bottom:2px solid var(--ink);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;font-size:1.3rem;display:flex;align-items:center;gap:6px}
+.brand svg{width:28px;height:28px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--surface2);border:1.5px solid var(--line);font-weight:700;font-size:.9rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill.money{background:var(--sun);color:var(--on-sun);border-color:transparent}
+.bar .sp{flex:1}
+.iconbtn{border:1.5px solid var(--line);background:var(--surface2);border-radius:999px;padding:4px 12px;font-weight:700;font-size:.9rem;cursor:pointer}
+.steps{display:flex;gap:4px;width:100%}
+.steps i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.steps i.done{background:var(--petrol)}
+.steps i.now{background:var(--coral)}
+
+main{padding-top:18px;display:grid;gap:16px}
+.card{background:var(--surface);border:2px solid var(--ink);border-radius:var(--r);padding:18px;box-shadow:4px 4px 0 var(--ink)}
+.eyebrow{font-weight:800;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--petrol)}
+.lead{color:var(--muted);font-size:1.02rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stack{display:grid;gap:12px}
+
+.btn{border:2px solid var(--ink);background:var(--petrol);color:var(--on-petrol);font-weight:800;font-size:1.05rem;padding:12px 20px;border-radius:12px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:transform .08s}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.sun{background:var(--sun);color:var(--on-sun)}
+.btn.ghost{background:var(--surface);color:var(--ink)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.wide{width:100%}
+
+/* Szene */
+.scene{display:grid;grid-template-columns:1fr 2fr;gap:8px;border:2px solid var(--ink);border-radius:var(--r);overflow:hidden;background:#bfe1ec}
+.scene svg{display:block;width:100%;height:auto}
+.scene .lbl{position:absolute;left:6px;top:6px;background:rgba(255,255,255,.85);color:#15302d;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:6px}
+.scene>div{position:relative;min-width:0}
+
+/* Optionen */
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.opt{position:relative;text-align:left;border:2px solid var(--line);background:var(--surface2);border-radius:12px;padding:14px;cursor:pointer;display:grid;gap:6px;align-content:start;min-width:0}
+.opt:hover:not([disabled]){border-color:var(--petrol)}
+.opt.sel{border-color:var(--petrol);background:var(--surface);box-shadow:0 0 0 3px var(--petrol) inset}
+.opt[disabled]{cursor:default}
+.opt.off{opacity:.45}
+.opt .t{font-family:var(--display);font-weight:700;font-size:1.15rem;line-height:1.15}
+.opt .d{font-size:.95rem;color:var(--muted)}
+.tag{justify-self:start;font-family:var(--display);font-weight:700;font-size:.95rem;background:var(--sun);color:var(--on-sun);padding:0 10px;border-radius:4px 10px 10px 4px;position:relative;padding-left:16px;font-variant-numeric:tabular-nums}
+.tag::before{content:"";position:absolute;left:5px;top:50%;width:5px;height:5px;margin-top:-2.5px;border-radius:50%;background:var(--surface2)}
+.tag.free{background:var(--line);color:var(--ink)}
+.toomuch{font-size:.85rem;font-weight:800;color:var(--bad)}
+
+/* Reaktion */
+.react{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:center;border-radius:12px;padding:12px;border:2px solid var(--line);background:var(--surface2)}
+.react svg{width:72px;height:72px}
+.bubble{font-family:var(--display);font-size:1.2rem;font-weight:700;line-height:1.2}
+.term{border-left:6px solid var(--petrol);padding:8px 12px;background:var(--surface2);border-radius:0 10px 10px 0}
+.term b{color:var(--petrol)}
+.m3{color:var(--good)}.m2{color:var(--mid)}.m1{color:var(--mid)}.m0{color:var(--bad)}
+
+/* Start */
+.hero{display:grid;gap:14px}
+.heroart{border:2px solid var(--ink);border-radius:var(--r);overflow:hidden;background:#bfe1ec}
+.heroart svg{display:block;width:100%;height:auto}
+.field{display:grid;gap:4px}
+.field label{font-weight:800;font-size:.95rem}
+.field input{font:inherit;padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--surface2);color:var(--ink);width:100%}
+.field input:focus{border-color:var(--petrol);outline:none}
+.shops{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.shop{border:2px solid var(--line);border-radius:12px;background:var(--surface2);padding:10px;cursor:pointer;display:grid;gap:4px;justify-items:center;text-align:center;font-weight:800}
+.shop svg{width:100%;max-width:120px;height:auto}
+.shop.sel{border-color:var(--petrol);box-shadow:0 0 0 3px var(--petrol) inset;background:var(--surface)}
+@media (max-width:460px){.shops{grid-template-columns:1fr 1fr 1fr;gap:6px}.shop{padding:6px;font-size:.85rem}}
+
+/* Zielgruppen-Karte */
+.drawcard{perspective:900px;display:grid;justify-items:center}
+.flip{width:min(320px,100%);aspect-ratio:3/4;max-width:100%;position:relative;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.3,1.4,.5,1)}
+.flip.on{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border:2px solid var(--ink);border-radius:18px;box-shadow:5px 5px 0 var(--ink);display:grid;place-items:center;padding:18px;text-align:center}
+.face.front{background:repeating-linear-gradient(45deg,var(--petrol) 0 14px,#0b5853 14px 28px);color:#fff;font-family:var(--display);font-size:3rem;font-weight:800}
+.face.back{background:var(--surface);transform:rotateY(180deg);align-content:center;gap:10px}
+.face.back svg{width:120px;height:120px}
+
+/* Sortieren / Platzieren */
+.sortitem{font-family:var(--display);font-size:1.6rem;font-weight:800;text-align:center;padding:18px;border:2px dashed var(--ink);border-radius:12px;background:var(--surface2)}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bin{border:2px solid var(--ink);border-radius:12px;padding:12px;background:var(--surface);cursor:pointer;text-align:left;display:grid;gap:2px}
+.bin b{font-family:var(--display);font-size:1.1rem}
+.bin span{font-size:.85rem;color:var(--muted)}
+.bin.ok{background:var(--good-bg);border-color:var(--good)}
+.bin.no{background:var(--bad-bg);border-color:var(--bad)}
+.fb{border-radius:10px;padding:10px 12px;font-weight:600}
+.fb.ok{background:var(--good-bg);color:var(--ink);border:2px solid var(--good)}
+.fb.no{background:var(--bad-bg);color:var(--ink);border:2px solid var(--bad)}
+.plan{max-width:560px;width:100%;justify-self:center;border:2px solid var(--ink);border-radius:var(--r);background:#f6f3ea;overflow:hidden}
+.plan svg{display:block;width:100%;height:auto}
+.spot{cursor:pointer}
+.spot:focus-visible{outline:none}
+.spot:focus-visible circle,.spot:hover circle{stroke:#d9492f;stroke-width:4}
+.spotbtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.spotbtns button{border:2px solid var(--line);background:var(--surface2);border-radius:10px;padding:8px 10px;text-align:left;cursor:pointer;font-weight:700}
+.spotbtns button b{font-family:var(--display);color:var(--coral);margin-right:4px}
+
+/* Ergebnis */
+.event{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;border:2px solid var(--ink);border-radius:14px;padding:14px;background:var(--sun);color:var(--on-sun);box-shadow:4px 4px 0 var(--ink)}
+.event svg{width:56px;height:56px}
+.event h3{color:var(--on-sun)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat{border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface2)}
+.stat .k{font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:var(--display);font-size:1.8rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.stars{font-size:2.2rem;letter-spacing:4px;color:var(--sun);-webkit-text-stroke:1.5px var(--ink);line-height:1}
+.stars .e{color:transparent}
+.score{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.big{font-family:var(--display);font-weight:800;font-size:clamp(3rem,12vw,4.6rem);line-height:.9;font-variant-numeric:tabular-nums;color:var(--petrol)}
+.meter{height:14px;border-radius:7px;background:var(--line);overflow:hidden;border:1.5px solid var(--ink)}
+.meter i{display:block;height:100%;background:var(--petrol)}
+.senses{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.sense{border:2px solid var(--line);border-radius:10px;padding:6px 2px;text-align:center;font-size:.78rem;font-weight:800;color:var(--muted);display:grid;justify-items:center;gap:2px}
+.sense svg{width:30px;height:30px}
+.sense.on{border-color:var(--good);color:var(--good);background:var(--good-bg)}
+.list{display:grid;gap:10px}
+.dec{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:start;border-bottom:1.5px dashed var(--line);padding-bottom:10px}
+.dec:last-child{border-bottom:0}
+.mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;border:2px solid currentColor;font-family:var(--display);font-size:1.1rem}
+.dec .h{font-weight:800}
+.dec .why{font-size:.95rem;color:var(--muted)}
+.dec .ihk{font-size:.92rem;margin-top:4px;padding:6px 10px;background:var(--surface2);border-radius:8px}
+.exam{border:2px solid var(--petrol);border-radius:12px;padding:14px;display:grid;gap:8px}
+.exam ul{margin:0;padding-left:20px}
+.profi{border:2px dashed var(--ink);border-radius:12px;padding:14px;background:var(--surface2)}
+.showcard{text-align:center;display:grid;gap:6px;justify-items:center;background:var(--petrol);color:var(--on-petrol);border-color:var(--ink)}
+.showcard .big{color:var(--on-petrol)}
+.note{font-size:.85rem;color:var(--muted)}
+
+/* Wortspeicher */
+dialog{border:2px solid var(--ink);border-radius:var(--r);background:var(--surface);color:var(--ink);max-width:min(620px,calc(100vw - 32px));width:100%;padding:0;box-shadow:6px 6px 0 var(--ink)}
+dialog::backdrop{background:rgba(10,25,23,.55)}
+.dlg{padding:18px;display:grid;gap:10px;max-height:80vh;overflow:auto}
+.dlg dl{margin:0;display:grid;gap:8px}
+.dlg dt{font-weight:800;color:var(--petrol)}
+.dlg dd{margin:0 0 4px}
+
+.pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:scale(.85);opacity:.3}to{transform:none;opacity:1}}
+.note-anim{animation:float 2.4s ease-in-out infinite}
+.note-anim.fast{animation-duration:.9s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="bar" id="bar"></div>
+  <main id="screen" aria-live="polite"></main>
+</div>
+<dialog id="dlg"><div class="dlg" id="dlgbody"></div></dialog>
+
+<script>
+(function(){
+"use strict";
+const START_BUDGET = 40000;
+const $ = s => document.querySelector(s);
+const eur = n => n.toLocaleString("de-DE") + " €";
+const rnd = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- Daten ---------- */
+const SHOPS = {
+  lebensmittel:{name:"Frischemarkt", ware:"Lebensmittel", def:"Marktliebe"},
+  mode:{name:"Modeladen", ware:"Mode", def:"Fadenwerk"},
+  technik:{name:"Technikladen", ware:"Elektronik", def:"Steckdose & Co."}
+};
+const TGS = {
+  fam:{name:"Familien mit Kindern", short:"Familien", text:"Eltern mit kleinen Kindern. Sie haben wenig Zeit. Die Kinder werden schnell ungeduldig.", col:"#e58a3a"},
+  jung:{name:"Junge Leute (16 bis 25)", short:"Junge Leute", text:"Sie mögen Trends, Spaß und machen gern Fotos für Social Media. Das Geld ist knapp.", col:"#7b5cd6"},
+  alt:{name:"Ältere Kunden (65+)", short:"Ältere Kunden", text:"Sie wollen Ruhe, Übersicht, gute Beratung und auch mal eine Sitzgelegenheit.", col:"#3f86c4"},
+  spar:{name:"Schnäppchenjäger", short:"Schnäppchenjäger", text:"Sie vergleichen Preise. Hauptsache günstig. Deko ist ihnen egal.", col:"#d4a017"},
+  genuss:{name:"Kunden mit hohen Ansprüchen", short:"Anspruchsvolle", text:"Sie wollen Qualität, Beratung und etwas Besonderes erleben. Der Preis ist nicht so wichtig.", col:"#1d8a6a"}
+};
+
+const ROUNDS = [
+ {id:"strategie", el:"Strategie", sinn:null, q:"Welche Strategie verfolgt euer Laden?",
+  sub:"Das ist die erste große Entscheidung. Sie bestimmt Preise, Einrichtung und Service.",
+  term:["Discount- und Erlebnisstrategie","Discount: dauerhaft niedrige Preise, dafür einfache Gestaltung. Erlebnis: Einkaufen wird zum Erlebnis – mit Atmosphäre, Beratung und Extras."],
+  ihk:"Discountstrategie: dauerhaft niedrige Preise, einfache Gestaltung, wenig Beratung. Erlebnisstrategie: aufwendige Gestaltung (Licht, Farben, Deko, Düfte, Ruhezonen), viel Beratung und Zusatzangebote.",
+  opts:[
+   {k:"D", t:"Discountstrategie", d:"Ware im Karton, kaum Deko, wenig Personal. Dafür immer niedrige Preise.", cost:0, style:"D",
+    fit:{fam:2,jung:2,alt:1,spar:3,genuss:0}, why:"Spart Kosten. Passt zu Kunden, denen der Preis am wichtigsten ist."},
+   {k:"E", t:"Erlebnisstrategie", d:"Schönes Licht, Deko, viel Beratung und Extras. Die Preise sind etwas höher.", cost:10000, style:"E",
+    fit:{fam:2,jung:2,alt:3,spar:0,genuss:3}, why:"Kostet Geld, aber Kunden bleiben länger, kaufen mehr und kommen wieder."},
+   {k:"M", t:"Mischform", d:"Preise eher günstig, aber trotzdem gemütlich: Holzoptik, warmes Licht, breite Gänge.", cost:5000, style:"N",
+    fit:{fam:3,jung:3,alt:2,spar:2,genuss:1}, why:"Viele Discounter machen das heute: günstig bleiben, aber Kunden sollen sich wohlfühlen."}
+  ]},
+ {id:"umfeld", el:"Element 1: Ladenumfeld", sinn:"sehen", q:"Wie sieht euer Laden von außen aus?",
+  sub:"Schaufenster, Fassade, Eingang und Logo. Kunden entscheiden in wenigen Sekunden, ob sie hineingehen.",
+  term:["Ladenumfeld","Gebäude, Fassade, Schaufenster, Eingang und Logo. Ziel: Kunden erkennen den Laden sofort wieder (Wiedererkennungswert)."],
+  ihk:"Zum Ladenumfeld gehören Gebäude, Fassade, Schaufenster, Eingang und Logo. Ziel: Die Kunden erkennen den Laden sofort wieder.",
+  opts:[
+   {k:"a", t:"Schaufenster mit Thema", d:"Ein gestaltetes Schaufenster mit Licht und Deko. Großes Logo über dem Eingang.", cost:8000, style:"E", senses:["sehen"],
+    fit:{fam:3,jung:3,alt:3,spar:2,genuss:3}, why:"Lockt Kunden von der Straße herein und bleibt im Kopf."},
+   {k:"b", t:"Preise ins Fenster", d:"Große gelbe Preisplakate im Fenster. Schlichte Fassade, gut lesbares Logo.", cost:2000, style:"D", senses:["sehen"],
+    fit:{fam:2,jung:1,alt:1,spar:3,genuss:0}, why:"Günstig und klar. Schnäppchenjäger sehen sofort: Hier ist es billig."},
+   {k:"c", t:"Fenster zukleben", d:"Hinter dem Fenster steht das Lager. Also Folie drauf und ein kleines Schild.", cost:0, style:"D", bad:true,
+    fit:{fam:0,jung:0,alt:0,spar:0,genuss:0}, why:"Niemand sieht, was es gibt. Kein Wiedererkennungswert, niemand wird hereingelockt."}
+  ]},
+ {id:"licht", el:"Element 2: Verkaufsraum", sinn:"sehen", q:"Welches Licht bekommt euer Laden?",
+  sub:"Licht lenkt den Blick. Helle Bereiche ziehen Kunden an, dunkle werden gemieden.",
+  term:["Grund-, Warenwand- und Akzentbeleuchtung","Grundbeleuchtung macht die ganze Fläche hell. Warenwandbeleuchtung hebt die Ware an den Wänden hervor. Akzentbeleuchtung (Spots) betont einzelne Waren."],
+  ihk:"Beleuchtung hat einen wesentlichen Einfluss auf die Verkaufsförderung und wird gezielt eingesetzt: Grund-, Warenwand- und Akzentbeleuchtung. Die Lichtfarbe muss zur Ware passen.",
+  opts:[
+   {k:"a", t:"Nur Neonröhren", d:"Kaltes, weißes Licht. Überall gleich hell.", cost:1000, style:"D",
+    fit:{fam:1,jung:1,alt:1,spar:2,genuss:0}, shop:{lebensmittel:-1}, why:"Alles ist hell, aber nichts fällt auf. Kaltes Licht lässt Obst, Fleisch und Brot blass wirken."},
+   {k:"b", t:"Licht-Mix", d:"Grundbeleuchtung, Licht an den Warenwänden und Spots auf die Neuheiten.", cost:7000, style:"N", senses:["sehen"], verweil:2,
+    fit:{fam:3,jung:3,alt:3,spar:2,genuss:3}, why:"Genau so steht es im Buch: drei Arten von Licht, gezielt eingesetzt."},
+   {k:"c", t:"Disco-Licht", d:"Raum fast dunkel, dazu bunte Spots in Pink und Blau.", cost:4000, style:"E", bad:true,
+    fit:{fam:0,jung:1,alt:0,spar:0,genuss:0}, why:"Dunkle Bereiche werden gemieden. Farben der Ware wirken unecht, Preise sind schlecht lesbar."}
+  ]},
+ {id:"farbe", el:"Element 2: Verkaufsraum", sinn:"sehen", q:"Welche Farben bekommt euer Laden?",
+  sub:"Farben ordnen den Laden, wirken auf die Stimmung und sorgen für Wiedererkennung (Hausfarbe).",
+  term:["Farbwirkung","Farben wirken emotional. Rot und Gelb aktivieren. Blau und Grün beruhigen und wirken frisch. Schwarz wirkt elegant."],
+  ihk:"Farben wirken emotional und beeinflussen die Stimmung der Kunden, z. B. wirkt Grün in der Obstabteilung frisch, Rot aktiviert bei Sonderangeboten.",
+  opts:[
+   {k:"a", t:"Rot und Gelb", d:"Warm, laut, fällt auf. Wirkt wie ein Signal.", cost:2000, style:"N", senses:["sehen"],
+    fit:{fam:2,jung:2,alt:1,spar:3,genuss:0}, why:"Warme Farben aktivieren – gut für Angebote und Spontankäufe. Für lange Beratung zu unruhig."},
+   {k:"b", t:"Blau und Grün", d:"Ruhig, frisch, natürlich. Wirkt vertrauensvoll.", cost:2000, style:"N", senses:["sehen"],
+    fit:{fam:2,jung:1,alt:3,spar:1,genuss:2}, shop:{lebensmittel:1}, why:"Kühle Farben entspannen. Grün wirkt bei Lebensmitteln frisch."},
+   {k:"c", t:"Schwarz und Gold", d:"Edel, elegant, feierlich. Wie beim Juwelier.", cost:3000, style:"E", senses:["sehen"],
+    fit:{fam:0,jung:2,alt:1,spar:0,genuss:3}, shop:{lebensmittel:-1}, why:"Wirkt hochwertig. Für Familien und Sparfüchse eher abschreckend: \"Hier ist es bestimmt teuer.\""}
+  ]},
+ {id:"musik", el:"Element 2: Verkaufsraum", sinn:"hoeren", q:"Was hören die Kunden?",
+  sub:"Musik verändert, wie schnell Kunden gehen und wie lange sie bleiben.",
+  term:["Hintergrundmusik","Musik muss zur Zielgruppe passen. Ruhige Musik: Kunden bleiben länger. Fröhliche Musik: hebt die Stimmung. Schnelle Musik: aktiviert, wirkt jung."],
+  ihk:"Musik muss zur Zielgruppe passen und darf nicht zu laut sein: ruhige Musik – Kunden bleiben länger; schnelle Musik aktiviert.",
+  opts:[
+   {k:"a", t:"Keine Musik", d:"Spart Geld. Man hört nur die Kühlregale und die Kasse.", cost:0, style:"D",
+    fit:{fam:1,jung:0,alt:1,spar:2,genuss:0}, why:"Nicht verboten, aber der Laden wirkt still und leer. Ihr verschenkt den Sinn Hören."},
+   {k:"b", t:"Ruhige Musik, leise", d:"Entspannte Hintergrundmusik. Man kann sich gut unterhalten.", cost:1000, style:"N", senses:["hoeren"], verweil:3,
+    fit:{fam:2,jung:1,alt:3,spar:1,genuss:3}, why:"Kunden entspannen und bleiben länger. Beratung ist gut möglich.",
+    tgWhy:{fam:"Ruhige Musik ist nicht falsch. Aber Familien haben wenig Zeit, und die Kinder werden schnell ungeduldig. Fröhliche Musik passt besser zu ihnen.", jung:"Für junge Leute zu langweilig. Sie wollen Trends und Spaß.", spar:"Schnäppchenjäger wollen schnell rein und raus. Lange bleiben ist ihnen nicht wichtig."}},
+   {k:"d", t:"Fröhliche Musik, mittellaut", d:"Gut gelaunte, bekannte Songs. Nicht zu laut, nicht zu schnell.", cost:1000, style:"N", senses:["hoeren"], verweil:2,
+    fit:{fam:3,jung:2,alt:1,spar:1,genuss:1}, why:"Hebt die Stimmung, ohne zu stressen. Gut für Kunden, die gut gelaunt und zügig einkaufen.",
+    tgWhy:{alt:"Für ältere Kunden etwas zu unruhig. Sie mögen es ruhiger.", genuss:"Wirkt eher wie im Supermarkt – nichts Besonderes.", jung:"Ganz nett, aber nicht ganz das, was junge Leute gerade hören.", spar:"Schnäppchenjägern ist die Musik egal. Hauptsache günstig."}},
+   {k:"c", t:"Aktuelle Charts, laut", d:"Die Hits aus dem Radio, schön laut.", cost:1000, style:"N", senses:["hoeren"],
+    fit:{fam:1,jung:3,alt:0,spar:1,genuss:0}, why:"Junge Kunden fühlen sich angesprochen. Für andere ist es zu laut und hektisch.",
+    tgWhy:{fam:"Zu laut für Eltern mit Kindern. Man versteht sich kaum, die Kinder werden unruhig."}}
+  ]},
+ {id:"duft", el:"Element 2: Verkaufsraum", sinn:"riechen", q:"Wie riecht es in eurem Laden?",
+  sub:"Düfte bleiben lange in Erinnerung. Sie können Appetit machen oder nerven.",
+  term:["Duft im Verkaufsraum","Der Duft muss zur Ware passen. Er steigert die Kaufbereitschaft und die Verweildauer."],
+  ihk:"Duft passend zur Ware (z. B. Kaffee, Backwaren) steigert Kaufbereitschaft und Verweildauer und bleibt lange in Erinnerung.",
+  opts:[
+   {k:"a", t:"Kein Duft", d:"Es riecht nach nichts Besonderem.", cost:0, style:"D",
+    fit:{fam:1,jung:1,alt:1,spar:2,genuss:1}, why:"Nicht falsch, aber ihr nutzt den Sinn Riechen nicht."},
+   {k:"b", t:{lebensmittel:"Frisches Brot und Kaffee", mode:"Frischer Duft am Eingang", technik:"Frische Luft, angenehm kühl"},
+    d:{lebensmittel:"Es duftet nach Brot aus dem eigenen Ofen und Kaffee aus der Rösterei.", mode:"Ein leichter Duft nach frischer Wäsche. Nicht zu stark.", technik:"Ein leichter, frischer Duft. Der Raum ist angenehm kühl."},
+    cost:2000, style:"N", senses:["riechen"], verweil:2,
+    fit:{fam:3,jung:2,alt:3,spar:2,genuss:3}, why:"Der Duft passt zur Ware und macht Lust aufs Einkaufen."},
+   {k:"c", t:"Lavendel überall", d:"Starke Duftsprays mit Lavendel in jeder Ecke.", cost:1000, style:"N", bad:true,
+    fit:{fam:0,jung:0,alt:0,spar:0,genuss:0}, why:"Der Duft passt nicht zur Ware, wirkt künstlich und stört. Merke: Duft muss zur Ware passen."}
+  ]},
+ {id:"erleben", el:"Element 2: Verkaufsraum", sinn:"fuehlen", q:"Dürfen die Kunden die Ware erleben?",
+  sub:"Anfassen, ausprobieren, probieren: Das kann der Onlinehandel nicht.",
+  term:["Erlebniskauf","Kunden dürfen Ware anfassen, ausprobieren, probieren. Dazu Vorführungen und Verkostungen. Das ist der große Vorteil gegenüber dem Onlinehandel."],
+  ihk:"Erklärungsbedürftige Waren und Neuheiten werden vorgeführt, Lebensmittel verkostet. Kunden können Ware anfassen und anprobieren – das bietet der Onlinehandel nicht.",
+  opts:[
+   {k:"a", t:"Alles hinter Glas", d:"Die Ware steht in abgeschlossenen Vitrinen. Anfassen nur mit Personal.", cost:0, style:"D", bad:true,
+    fit:{fam:0,jung:0,alt:1,spar:1,genuss:0}, why:"Kunden wollen Ware anfassen und ausprobieren. Hinter Glas kaufen sie lieber gleich online."},
+   {k:"b", t:{lebensmittel:"Obst lose zum Aussuchen", mode:"Stoffe fühlen, große Umkleiden", technik:"Geräte zum Ausprobieren"},
+    d:{lebensmittel:"Obst und Gemüse liegen lose. Kunden suchen selbst aus.", mode:"Alles darf angefasst werden. Große Umkleiden mit gutem Spiegel.", technik:"Handys und Kopfhörer liegen zum Testen bereit."},
+    cost:3000, style:"N", senses:["fuehlen"], verweil:2,
+    fit:{fam:2,jung:3,alt:2,spar:2,genuss:2}, why:"Kunden prüfen die Qualität selbst. Das schafft Vertrauen."},
+   {k:"c", t:{lebensmittel:"Verkostung am Samstag", mode:"Modenschau mit Getränken", technik:"Vorführung mit Kaffee"},
+    d:{lebensmittel:"Kunden probieren Käse und Kaffee. Eine Mitarbeiterin erklärt die Sorten.", mode:"Samstags zeigt das Team die neuen Outfits. Dazu gibt es Wasser und Kaffee.", technik:"Eine Mitarbeiterin führt die neue Kaffeemaschine vor. Jeder bekommt einen Espresso."},
+    cost:6000, style:"E", senses:["schmecken","fuehlen"], verweil:3,
+    fit:{fam:3,jung:3,alt:3,spar:1,genuss:3}, why:"Ein echtes Erlebnis: sehen, schmecken, ausprobieren. Kunden bleiben und kaufen mehr."}
+  ]},
+ {id:"extra", el:"Element 2: Verkaufsraum", sinn:null, q:"Was kommt in die freie Ecke?",
+  sub:"Ruhezonen und Zusatzangebote kosten Fläche. Dafür bleiben Kunden länger.",
+  term:["Ruhezone und Zusatzangebote","Sitzecke, Café oder Spielecke: Kunden erholen sich, bleiben länger, und Begleitpersonen warten gern."],
+  ihk:"Ruhezonen (Sitzecke, Café, Imbiss) liegen meist zentral: Kunden erholen sich, bleiben länger, Begleitpersonen warten gern. Zusatzangebote gehören zum Erlebniskauf.",
+  opts:[
+   {k:"a", t:"Noch mehr Regale", d:"Die Fläche bleibt für Ware. Kostet nichts extra.", cost:0, style:"D",
+    fit:{fam:1,jung:1,alt:0,spar:3,genuss:0}, why:"Mehr Ware auf der Fläche. Aber niemand bleibt länger als nötig."},
+   {k:"b", t:"Sitzecke mit Café", d:"Sofas, Pflanzen und guter Kaffee mitten im Laden.", cost:9000, style:"E", senses:["schmecken"], verweil:6,
+    fit:{fam:2,jung:2,alt:3,spar:0,genuss:3}, why:"Kunden machen Pause und bleiben länger. Begleitpersonen warten gern."},
+   {k:"c", t:"Spielecke für Kinder", d:"Ein Teppich mit Bauklötzen und Büchern. Eltern sehen die Kinder.", cost:6000, style:"E", verweil:4,
+    fit:{fam:3,jung:0,alt:1,spar:1,genuss:1}, why:"Eltern kaufen in Ruhe ein, während die Kinder spielen."}
+  ]}
+];
+
+const SORT = [
+ ["Einkaufswagen","V"],["Vitrine mit Schmuck","W"],["Plakat „Neu eingetroffen“","I"],["Umkleidekabine","V"],
+ ["Videokamera","S"],["Gondel (Regal in der Mitte)","W"],["Kasse","V"],["Infotafel am Eingang","I"],
+ ["Diebstahlsicherung am Ausgang","S"],["Wühltisch","W"],["Deckenhänger mit Angebot","I"],["Sammelbox für alte Batterien","S"],
+ ["Kleiderständer","W"],["Einkaufskorb","V"],["Bildschirm mit Werbevideo","I"],["Feuerlöscher","S"]
+];
+const BINS = {W:["Warenträger","Regale, Gondeln, Vitrinen, Tische"],V:["Verkaufshilfe","Wagen, Kasse, Umkleide"],I:["Internes Werbemittel","Plakate, Infotafeln, Deckenhänger"],S:["Sonstige Einrichtung","Sicherheit, Sammelboxen"]};
+
+const SPOTS = {
+ A:{name:"Rechte Wand nach dem Eingang", x:248, y:110},
+ B:{name:"Hinten an der Rückwand", x:150, y:40},
+ C:{name:"An der Kasse", x:128, y:171},
+ D:{name:"Mitte des Ladens", x:150, y:112},
+ E:{name:"Linke Wand", x:44, y:92}
+};
+function placeItems(shop, extra){
+  const names = {
+    lebensmittel:{neu:"Neue Sommer-Getränke im Angebot", magnet:"Milch und Brot", impuls:"Süßigkeiten und Kaugummi"},
+    mode:{neu:"Neue Kollektion im Angebot", magnet:"Jeans und Basic-Shirts", impuls:"Socken und Haargummis"},
+    technik:{neu:"Neues Handy im Angebot", magnet:"Ladekabel und Handyhüllen", impuls:"Batterien und Speicherkarten"}
+  }[shop];
+  const middle = extra==="b" ? "Die Sitzecke mit Café" : extra==="c" ? "Die Spielecke für Kinder" : "Eine Dekoinsel mit Thema";
+  return [
+   {id:"neu", t:names.neu, ok:"A", why:"Die meisten Kunden gehen nach dem Eingang rechts herum. Dort sehen alle die Ware zuerst. Das ist eine verkaufsstarke Zone."},
+   {id:"magnet", t:names.magnet, ok:"B", why:"Diese Ware brauchen viele Kunden. Steht sie hinten, laufen die Kunden durch den ganzen Laden und sehen dabei mehr."},
+   {id:"impuls", t:names.impuls, ok:"C", why:"An der Kasse warten die Kunden. Dann greifen sie spontan zu. Man nennt das Impulskauf."},
+   {id:"mitte", t:middle, ok:"D", why:"Ruhezonen und Dekoinseln liegen meist zentral. Von dort sieht man den ganzen Laden."}
+  ];
+}
+
+const EVENTS = [
+ {id:"online", t:"Ein Onlineshop startet heute 20 % Rabatt.", f:S=>{
+   const n=sensesOf(S).length;
+   if(n>=4) return [1.0,"Eure Kunden kommen trotzdem. Anfassen, probieren und Atmosphäre gibt es online nicht."];
+   if(S.strat==="D") return [0.95,"Eure Preise sind auch niedrig. Nur wenige Kunden bleiben weg."];
+   return [0.8,"Viele bestellen lieber online. Euer Laden bietet zu wenig, was online fehlt."];}},
+ {id:"discounter", t:"Nebenan eröffnet ein neuer Discounter.", f:S=>{
+   if(S.strat==="E") return [1.05,"Ihr hebt euch ab: Abgrenzung vom Wettbewerb. Eure Kunden bleiben."];
+   if(S.strat==="M") return [0.92,"Ein paar Sparfüchse gehen rüber. Die meisten bleiben."];
+   return [0.75,"Gleiche Strategie, gleiche Kunden. Jetzt teilt ihr sie mit dem Nachbarn."];}},
+ {id:"regen", t:"Es regnet den ganzen Tag.", f:S=>{
+   const e=S.choices.extra;
+   if(e==="b"||e==="c") return [1.1,e==="b"?"Die Kunden bleiben gern im Trockenen – in eurer Sitzecke mit Café.":"Familien bleiben gern im Trockenen – die Kinder spielen in der Spielecke.",4];
+   return [0.85,"Die Kunden kaufen schnell und gehen nach Hause."];}},
+ {id:"influencer", t:"Eine Influencerin fotografiert euer Schaufenster.", f:S=>{
+   const u=S.choices.umfeld;
+   if(u==="a") return [1.3,"Das Foto geht viral. Viele neue Kunden kommen vorbei."];
+   if(u==="b") return [1.05,"Ein Foto mit Preisplakaten – ein paar Schnäppchenjäger kommen."];
+   return [0.95,"Zugeklebte Fenster? Kein Foto. Sie geht weiter."];}},
+ {id:"senioren", t:"Ein Bus mit einer Seniorengruppe hält vor dem Laden.", f:S=>{
+   let m=1, txt=[];
+   if(S.choices.extra==="b"){m+=0.15;txt.push("Die Sitzecke ist sofort voll.");}
+   if(S.choices.musik==="c"){m-=0.15;txt.push("Die laute Musik vertreibt viele.");}
+   if(S.choices.musik==="b"){m+=0.05;txt.push("Die ruhige Musik gefällt.");}
+   return [m, txt.length?txt.join(" "):"Ein paar schauen kurz rein."];}},
+ {id:"stadtfest", t:"Stadtfest direkt vor eurer Tür!", f:S=>{
+   const u=S.choices.umfeld;
+   if(u==="a") return [1.35,"Euer Schaufenster lockt die Festbesucher herein."];
+   if(u==="b") return [1.2,"Die Preisplakate fallen auf. Viele kommen rein."];
+   return [1.0,"Viele Menschen laufen vorbei – aber an euren zugeklebten Fenstern bleibt keiner stehen."];}}
+];
+
+const MOOD = {
+ 3:["Super, genau mein Ding!","Hier fühle ich mich wohl.","Da komme ich gern wieder!"],
+ 2:["Ganz okay.","Passt schon.","Nicht schlecht."],
+ 1:["Na ja …","Hm, das ist nicht so meins.","Muss das sein?"],
+ 0:["Hier will ich nicht einkaufen!","Nee, ich gehe wieder.","Das passt gar nicht zu mir."]
+};
+const CLASH = {D:"Das passt nicht zu eurer Discountstrategie: Es kostet viel, die Preise können dann nicht niedrig bleiben.",
+               E:"Das passt nicht zu eurer Erlebnisstrategie: Zu schlicht für einen Laden, der ein Erlebnis bieten will."};
+
+const PROFI = [
+ "Ein Lebensmittel-Discounter baut in seine neuen Filialen Holzoptik, wärmeres Licht und breitere Gänge ein. Passt das noch zur Discountstrategie? Begründe.",
+ "Der Onlinehandel wächst. Erläutere, warum der Erlebniskauf für euren Laden besonders wichtig ist.",
+ "Euer Laden soll umgestaltet werden. Nenne vier Ziele: zwei aus Sicht der Kunden, zwei aus Sicht des Betriebs.",
+ "Manche Händler setzen Duft gezielt ein, damit Kunden länger bleiben. Ist das eine unzulässige Beeinflussung? Beurteile aus Sicht von Händler und Kunde."
+];
+
+const GLOSSAR = [
+ ["Visual Merchandising","„Optische Verkaufsförderung“: Verkaufsraum und Ware werden so gestaltet, dass eine besondere Einkaufsatmosphäre entsteht und Kunden Lust aufs Kaufen bekommen."],
+ ["Verkaufsraumgestaltung","Drei Elemente: Ladenumfeld, Verkaufsräume und Platzierung der Waren."],
+ ["Ladenumfeld","Gebäude, Fassade, Schaufenster, Eingang, Logo. Ziel: Wiedererkennungswert."],
+ ["Discountstrategie","Dauerhaft niedrige Preise. Einfache Gestaltung, kaum Beratung."],
+ ["Erlebnisstrategie","Einkaufen wird zum Erlebnis: Licht, Farben, Deko, Düfte, Ruhezonen, viel Beratung."],
+ ["Erlebniskauf","Themenwelten, Vorführungen, Verkostungen, Beratung, Zusatzangebote wie Café oder Kinderbetreuung."],
+ ["Grundbeleuchtung","Macht die ganze Verkaufsfläche hell."],
+ ["Warenwandbeleuchtung","Hebt die Waren an den Wänden hervor."],
+ ["Akzentbeleuchtung","Spots betonen einzelne Waren oder Dekoinseln."],
+ ["Farbwirkung","Rot aktiviert, Gelb ist heiter, Blau beruhigt, Grün wirkt frisch, Schwarz elegant, Weiß sauber."],
+ ["Ruhezone","Sitzecke, Café oder Imbiss. Kunden erholen sich und bleiben länger."],
+ ["Verweildauer","Wie lange Kunden im Laden bleiben. Je länger, desto mehr kaufen sie meist."],
+ ["Warenträger","Regale, Gondeln, Vitrinen, Tische: Auf ihnen wird die Ware präsentiert."],
+ ["Verkaufshilfe","Einkaufswagen, Kasse, Umkleidekabine."],
+ ["Internes Werbemittel","Plakate, Infotafeln, Deckenhänger im Laden."],
+ ["Point of Sale (POS)","Der Ort, an dem verkauft wird – also im Laden."],
+ ["Impulskauf","Ein spontaner Kauf, nicht geplant. Typisch an der Kasse."]
+];
+
+/* ---------- Zustand ---------- */
+const KEY="ladenmacher-v1";
+let S = load() || fresh();
+function fresh(){ return {screen:"start", team:"", store:"", shop:null, tg:null, strat:null, choices:{}, locked:{}, ri:0,
+  sortList:null, sortI:0, sortRes:[], placeList:null, placeI:0, placeRes:[], event:null, result:null}; }
+function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); return s&&s.screen?s:null; }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function best(){ try{ return JSON.parse(localStorage.getItem(KEY+"-best"))||null; }catch(e){ return null; } }
+function setBest(b){ try{ localStorage.setItem(KEY+"-best", JSON.stringify(b)); }catch(e){} }
+
+const txt = (v) => (v && typeof v==="object") ? v[S.shop] : v;
+function spent(){ let c=0; ROUNDS.forEach(r=>{ const k=S.choices[r.id]; if(k){ c+=r.opts.find(o=>o.k===k).cost; } }); return c; }
+function budget(){ return START_BUDGET - spent(); }
+function fitOf(r,o){
+  if(o.bad) return {v:o.fit[S.tg], clash:false};
+  let v=o.fit[S.tg] + ((o.shop&&o.shop[S.shop])||0), clash=false;
+  if(r.id!=="strategie"){
+    if(S.strat==="D" && o.style==="E"){ v-=1; clash="D"; }
+    if(S.strat==="E" && o.style==="D"){ v-=1; clash="E"; }
+  }
+  return {v:Math.max(0,Math.min(3,v)), clash};
+}
+function maxFit(r){ return Math.max(...r.opts.map(o=>fitOf(r,o).v)); }
+function fitHint(r,o,f){
+  if(f.v>=3) return "";
+  const tg=TGS[S.tg].short, w=(o.tgWhy&&o.tgWhy[S.tg])||"";
+  if(f.v>=maxFit(r)) return (w?w+" ":"")+`Das war für ${tg} trotzdem die beste Wahl in dieser Runde.`;
+  const b=bestOption(r);
+  return (w?w+" ":"")+(b&&b.k!==o.k?`Besser für ${tg}: ${txt(b.t)}.`:"");
+}
+function sensesOf(st){
+  const s=new Set();
+  ROUNDS.forEach(r=>{ const k=st.choices[r.id]; if(!k) return; const o=r.opts.find(x=>x.k===k); if(o.senses && !o.bad) o.senses.forEach(x=>s.add(x)); });
+  return [...s];
+}
+
+/* ---------- Grafik ---------- */
+const WALL = {a:"#f0b53a", b:"#86bfb4", c:"#26262c"};
+function products(x,y,shop,scale){
+  scale=scale||1; let g="";
+  if(shop==="lebensmittel"){
+    const cols=["#e0402f","#f29a2e","#7cb342","#f2c230","#c2185b"];
+    for(let i=0;i<4;i++){ g+=`<rect x="${x+i*26}" y="${y}" width="24" height="12" rx="2" fill="#a8743f"/>`;
+      for(let j=0;j<3;j++) g+=`<circle cx="${x+i*26+5+j*7}" cy="${y-1}" r="4" fill="${cols[(i+j)%5]}"/>`; }
+  } else if(shop==="mode"){
+    const cols=["#e05a47","#3f6fb5","#f2c230","#2e8b6e","#8e5cc2"];
+    g+=`<line x1="${x}" y1="${y-14}" x2="${x+104}" y2="${y-14}" stroke="#555" stroke-width="2"/>`;
+    for(let i=0;i<6;i++){ const cx=x+8+i*17; g+=`<path d="M${cx-7} ${y-12} l4 -2 h6 l4 2 l3 5 l-3 1 v14 h-14 v-14 l-3 -1z" fill="${cols[i%5]}"/>`; }
+  } else {
+    for(let i=0;i<3;i++){ g+=`<rect x="${x+i*36}" y="${y-16}" width="32" height="22" rx="2" fill="#222"/><rect x="${x+i*36+2}" y="${y-14}" width="28" height="16" fill="${["#3aa6d9","#9b6be0","#f08a3c"][i]}" opacity=".85"/>`; }
+  }
+  return g;
+}
+function shopIcon(shop){
+  const p=products(18,64,shop);
+  return `<svg viewBox="0 0 140 90" aria-hidden="true"><rect width="140" height="90" rx="8" fill="#bfe1ec"/><rect x="8" y="22" width="124" height="62" fill="#efe7da" stroke="#15302d" stroke-width="2"/><rect x="8" y="12" width="124" height="14" fill="#0e6a64"/>${p}<rect x="8" y="78" width="124" height="6" fill="#15302d"/></svg>`;
+}
+function facade(st){
+  const wall = st.choices.farbe ? WALL[st.choices.farbe] : "#0e6a64";
+  const sign = st.choices.farbe==="c" ? "#c9a24a" : "#ffffff";
+  const u = st.choices.umfeld, strat=st.strat;
+  const bld = strat==="D" ? "#d9dad5" : "#efe2cf";
+  let win = `<rect x="18" y="104" width="104" height="80" fill="#cfe7ef"/><path d="M18 104 L60 104 L18 150Z" fill="#fff" opacity=".35"/>`;
+  if(u==="a"){
+    win = `<rect x="18" y="104" width="104" height="80" fill="#2a3d3a"/>
+      <polygon points="70,104 46,184 94,184" fill="#ffd27a" opacity=".45"/>
+      <ellipse cx="70" cy="178" rx="30" ry="5" fill="#000" opacity=".25"/>
+      <g transform="translate(70 170) scale(.78) translate(-70 -170)">${products(18,170,st.shop)}</g>
+      <circle cx="28" cy="170" r="9" fill="#2e8b57"/><circle cx="112" cy="168" r="11" fill="#2e8b57"/><rect x="26" y="170" width="4" height="12" fill="#6b4a2b"/><rect x="110" y="170" width="4" height="12" fill="#6b4a2b"/>
+      <text x="70" y="122" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="13" fill="#ffd27a">NEU</text>`;
+  } else if(u==="b"){
+    win = `<rect x="18" y="104" width="104" height="80" fill="#cfe7ef"/>
+      <rect x="24" y="110" width="44" height="34" fill="#ffe03a" transform="rotate(-4 46 127)"/><text x="46" y="133" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="16" fill="#d9492f" transform="rotate(-4 46 127)">-50%</text>
+      <rect x="72" y="118" width="44" height="34" fill="#ffe03a" transform="rotate(5 94 135)"/><text x="94" y="140" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="11" fill="#d9492f" transform="rotate(5 94 135)">TIEFPREIS</text>
+      <rect x="40" y="152" width="60" height="26" fill="#ffe03a"/><text x="70" y="170" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="13" fill="#d9492f">ab 0,99 €</text>`;
+  } else if(u==="c"){
+    win = `<rect x="18" y="104" width="104" height="80" fill="#9aa09d"/><path d="M18 104 h104 v80 h-104z" fill="url(#foil)"/><rect x="52" y="136" width="36" height="14" fill="#fff"/><text x="70" y="146" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#333">Eingang →</text>`;
+  }
+  const awning = (strat && strat!=="D") ? (()=>{ let a=""; for(let i=0;i<8;i++) a+=`<path d="M${14+i*14} 90 h14 v12 q-7 8 -14 0z" fill="${i%2?"#ffffff":wall}"/>`; return a;})() : "";
+  const name = esc((st.store||SHOPS[st.shop||"lebensmittel"].def).slice(0,18));
+  return `<svg viewBox="0 0 200 240" role="img" aria-label="Außenansicht des Ladens">
+   <defs><pattern id="foil" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8 L8 0" stroke="#7d8380" stroke-width="2"/></pattern></defs>
+   <rect width="200" height="240" fill="#bfe1ec"/>
+   <circle cx="168" cy="28" r="14" fill="#f3d36b"/>
+   <rect x="6" y="40" width="188" height="170" fill="${bld}" stroke="#15302d" stroke-width="2"/>
+   <rect x="6" y="40" width="188" height="10" fill="#15302d" opacity=".15"/>
+   <rect x="16" y="56" width="168" height="26" rx="4" fill="${wall}" stroke="#15302d" stroke-width="2"/>
+   <text x="100" y="75" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="15" fill="${sign}">${name}</text>
+   ${awning}
+   <g stroke="#15302d" stroke-width="2">${win.replace(/<text/g,'<text stroke="none"')}</g>
+   <rect x="18" y="104" width="104" height="80" fill="none" stroke="#15302d" stroke-width="3"/>
+   <rect x="134" y="104" width="50" height="106" fill="#5b7f7b" stroke="#15302d" stroke-width="2"/>
+   <rect x="140" y="110" width="38" height="70" fill="#cfe7ef" opacity=".8"/>
+   <circle cx="174" cy="160" r="2.5" fill="#15302d"/>
+   <rect x="0" y="210" width="200" height="30" fill="#b8b2a6"/>
+   <g stroke="#9c968a" stroke-width="1.5">${[20,60,100,140,180].map(x=>`<line x1="${x}" y1="210" x2="${x-10}" y2="240"/>`).join("")}</g>
+  </svg>`;
+}
+function inside(st){
+  const c=st.choices, shop=st.shop||"lebensmittel";
+  const wall = c.farbe ? WALL[c.farbe] : "#e4dfd4";
+  const floor = st.strat==="D" ? "#b5b9b5" : st.strat==="M" ? "#d8b98c" : st.strat==="E" ? "#b98552" : "#cfcac0";
+  let g = `<rect width="400" height="240" fill="${wall}"/>`;
+  if(c.farbe==="a") g+=`<rect y="120" width="400" height="16" fill="#d9492f"/>`;
+  if(c.farbe==="b") g+=`<rect y="120" width="400" height="50" fill="#5f9fc9" opacity=".55"/>`;
+  if(c.farbe==="c") g+=`<rect y="118" width="400" height="3" fill="#c9a24a"/>`;
+  g+=`<polygon points="0,170 400,170 400,240 0,240" fill="${floor}"/>`;
+  if(st.strat==="M"||st.strat==="E") for(let i=0;i<9;i++) g+=`<line x1="${i*50}" y1="170" x2="${i*50-30}" y2="240" stroke="#000" opacity=".12"/>`;
+  g+=`<rect width="400" height="14" fill="#2f3534"/>`;
+  // Regal links
+  g+=`<g><rect x="16" y="46" width="118" height="124" fill="#8a6a4a" opacity="${st.strat==="D"?0:1}"/>
+      ${st.strat==="D"?'<rect x="16" y="46" width="118" height="124" fill="#9aa09d"/>':''}
+      ${[80,118,156].map(y=>`<rect x="16" y="${y}" width="118" height="5" fill="#5a4330"/>`).join("")}
+      ${products(22,76,shop)}${products(22,114,shop)}${products(22,152,shop)}</g>`;
+  // Strategie-Deko
+  if(st.strat==="D"){
+    g+=`<g><rect x="150" y="160" width="90" height="10" fill="#c8a165"/><rect x="156" y="128" width="36" height="32" fill="#c9a26b" stroke="#8a6a3e"/><rect x="196" y="128" width="38" height="32" fill="#c9a26b" stroke="#8a6a3e"/><rect x="170" y="98" width="44" height="30" fill="#d4ae78" stroke="#8a6a3e"/>
+      <rect x="160" y="30" width="60" height="38" fill="#ffe03a" stroke="#15302d"/><text x="190" y="56" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="17" fill="#d9492f">-30%</text></g>`;
+  } else {
+    g+=`<g><rect x="156" y="150" width="84" height="8" fill="${st.strat==="E"?"#5a3a22":"#9b7448"}"/><rect x="164" y="158" width="6" height="12" fill="#5a3a22"/><rect x="226" y="158" width="6" height="12" fill="#5a3a22"/>
+      ${products(164,148,shop)}</g>`;
+    if(st.strat==="E") g+=`<g><rect x="168" y="34" width="54" height="40" fill="#fff" stroke="#c9a24a" stroke-width="3"/><path d="M174 68 l14 -18 l10 12 l8 -8 l12 14z" fill="#86bfb4"/><circle cx="210" cy="46" r="5" fill="#f3b42c"/>
+      <path d="M142 170 q-6 -30 6 -44 q8 18 -2 44z" fill="#2e8b57"/><rect x="138" y="162" width="16" height="10" fill="#b5653a"/></g>`;
+  }
+  // Erleben
+  if(c.erleben==="a") g+=`<g><rect x="248" y="122" width="40" height="48" fill="#cfe7ef" opacity=".7" stroke="#15302d" stroke-width="2"/><rect x="264" y="112" width="8" height="10" rx="4" fill="none" stroke="#15302d" stroke-width="2"/><rect x="262" y="118" width="12" height="9" fill="#15302d"/></g>`;
+  if(c.erleben==="b") g+=`<g><rect x="250" y="138" width="40" height="32" fill="#7a5a3a"/><path d="M262 132 v-14 a3 3 0 0 1 6 0 v10 v-14 a3 3 0 0 1 6 0 v14 v-10 a3 3 0 0 1 6 0 v18 q0 10 -10 10 h-4 q-8 0 -10 -8z" fill="#f2c9a0" stroke="#15302d" stroke-width="1.5"/></g>`;
+  if(c.erleben==="c") g+=`<g><rect x="246" y="134" width="48" height="36" fill="#d9492f"/><rect x="246" y="130" width="48" height="6" fill="#fff"/>
+      ${[256,268,280].map(x=>`<rect x="${x-4}" y="122" width="8" height="9" fill="#fff" stroke="#15302d"/><path d="M${x} 118 q3 -4 0 -8" stroke="#888" fill="none"/>`).join("")}
+      <text x="270" y="157" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="10" fill="#fff">PROBIEREN</text></g>`;
+  // Extra rechts
+  if(c.extra==="a") g+=`<g><rect x="300" y="56" width="90" height="114" fill="#8a6a4a"/>${[92,130,168].map(y=>`<rect x="300" y="${y-2}" width="90" height="5" fill="#5a4330"/>`).join("")}${products(304,90,shop,.8).replace(/x="(\d+)/g,(m,a)=>m)}</g>`;
+  if(c.extra==="b") g+=`<g><rect x="306" y="140" width="80" height="22" rx="8" fill="#d9492f"/><rect x="306" y="124" width="80" height="20" rx="8" fill="#e8705a"/><rect x="300" y="132" width="12" height="32" rx="5" fill="#c43f28"/><rect x="380" y="132" width="12" height="32" rx="5" fill="#c43f28"/>
+      <path d="M318 124 q-8 -40 4 -56 q10 22 -2 56z" fill="#2e8b57"/><rect x="330" y="64" width="44" height="22" rx="4" fill="#15302d"/><text x="352" y="80" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="12" fill="#f3b42c">CAFÉ</text>
+      <rect x="352" y="112" width="10" height="10" fill="#fff" stroke="#15302d"/><path d="M357 108 q3 -4 0 -8" stroke="#888" fill="none"/></g>`;
+  if(c.extra==="c") g+=`<g><ellipse cx="346" cy="166" rx="46" ry="8" fill="#7b5cd6" opacity=".55"/><rect x="314" y="146" width="16" height="16" fill="#f3b42c" stroke="#15302d"/><rect x="332" y="150" width="14" height="12" fill="#3f86c4" stroke="#15302d"/><rect x="322" y="132" width="14" height="14" fill="#d9492f" stroke="#15302d"/><circle cx="368" cy="154" r="9" fill="#2e8b57" stroke="#15302d"/>
+      <path d="M300 90 h90" stroke="#15302d"/>${["#d9492f","#f3b42c","#3f86c4","#2e8b57","#7b5cd6"].map((col,i)=>`<path d="M${304+i*17} 90 l8 14 l8 -14z" fill="${col}"/>`).join("")}</g>`;
+  // Musik
+  if(c.musik==="b"||c.musik==="c"||c.musik==="d"){
+    const fast=c.musik==="c", n=fast?5:c.musik==="d"?3:2, col=fast?"#d9492f":c.musik==="d"?"#e0a21a":"#0e6a64";
+    g+=`<rect x="362" y="18" width="22" height="28" rx="3" fill="#2f3534"/><circle cx="373" cy="36" r="6" fill="#555"/>`;
+    for(let i=0;i<n;i++){ const x=340-i*24, y=34+(i%2)*14, s=fast?1.3:1;
+      g+=`<g class="note-anim${fast?" fast":""}" style="animation-delay:${i*.2}s"><g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="0" cy="12" rx="5" ry="4" fill="${col}"/><rect x="4" y="-4" width="2" height="16" fill="${col}"/><path d="M6 -4 q6 2 6 8" stroke="${col}" stroke-width="2" fill="none"/></g></g>`; }
+  }
+  // Duft
+  if(c.duft==="b"||c.duft==="c"){
+    const lav=c.duft==="c", col=lav?"#9b6be0":"#a5713e", n=lav?7:3;
+    for(let i=0;i<n;i++){ const x=lav? 40+i*50 : 180+i*16; g+=`<path d="M${x} 150 q-8 -12 0 -24 q8 -12 0 -24" stroke="${col}" stroke-width="${lav?4:3}" fill="none" opacity=".7" stroke-linecap="round"/>`; }
+  }
+  // Licht
+  if(c.licht==="a"){ g+=`<rect width="400" height="240" fill="#d6e8ff" opacity=".22"/>`; for(let x=30;x<380;x+=90) g+=`<rect x="${x}" y="15" width="64" height="5" rx="2" fill="#f4faff"/>`; }
+  if(c.licht==="b"){
+    g+=`<rect width="400" height="240" fill="#ffd98a" opacity=".1"/>`;
+    g+=`<rect x="16" y="40" width="118" height="5" fill="#ffe7a8"/><rect x="16" y="45" width="118" height="30" fill="url(#glow)"/>`;
+    g+=`<line x1="198" y1="14" x2="198" y2="26" stroke="#2f3534" stroke-width="2"/><path d="M188 30 q10 -10 20 0z" fill="#f3b42c"/><polygon points="191,30 205,30 244,150 152,150" fill="#ffd27a" opacity=".3"/>`;
+  }
+  if(c.licht==="c"){
+    g+=`<rect width="400" height="240" fill="#0b0b1e" opacity=".6"/>`;
+    g+=`<polygon points="110,14 120,14 170,170 70,170" fill="#ff3fb4" opacity=".35"/><polygon points="290,14 300,14 350,170 250,170" fill="#3fd0ff" opacity=".35"/>`;
+  }
+  return `<svg viewBox="0 0 400 240" role="img" aria-label="Innenansicht des Ladens"><defs><linearGradient id="glow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe7a8" stop-opacity=".6"/><stop offset="1" stop-color="#ffe7a8" stop-opacity="0"/></linearGradient></defs>${g}</svg>`;
+}
+function sceneHTML(){ return `<div class="scene"><div><span class="lbl">Außen</span>${facade(S)}</div><div><span class="lbl">Innen</span>${inside(S)}</div></div>`; }
+
+function persona(tg, mood){
+  const t=TGS[tg]; mood = mood==null?2:mood;
+  const mouth = {3:"M38 62 q12 12 24 0",2:"M38 64 q12 5 24 0",1:"M38 66 h24",0:"M38 68 q12 -10 24 0"}[mood];
+  const brow = mood===0 ? `<path d="M34 40 l10 4 M66 40 l-10 4" stroke="#15302d" stroke-width="3" stroke-linecap="round"/>` : "";
+  let hair="", extra="";
+  if(tg==="alt") hair=`<path d="M24 44 q2 -24 26 -24 q24 0 26 24 q-6 -12 -26 -12 q-20 0 -26 12z" fill="#d9d9d9"/>`, extra=`<circle cx="40" cy="48" r="7" fill="none" stroke="#15302d" stroke-width="2"/><circle cx="60" cy="48" r="7" fill="none" stroke="#15302d" stroke-width="2"/><line x1="47" y1="48" x2="53" y2="48" stroke="#15302d" stroke-width="2"/>`;
+  if(tg==="jung") hair=`<path d="M22 40 q4 -22 28 -22 q24 0 28 22z" fill="#7b5cd6"/><path d="M70 36 h20 v6 h-22z" fill="#5a3fb0"/>`;
+  if(tg==="fam") hair=`<path d="M24 46 q0 -26 26 -26 q26 0 26 26 q-4 -14 -26 -14 q-22 0 -26 14z" fill="#8a4b23"/>`, extra=`<circle cx="84" cy="78" r="13" fill="#f6c9a0" stroke="#15302d" stroke-width="2"/><circle cx="80" cy="76" r="1.8" fill="#15302d"/><circle cx="88" cy="76" r="1.8" fill="#15302d"/><path d="M80 82 q4 4 8 0" stroke="#15302d" stroke-width="2" fill="none"/>`;
+  if(tg==="spar") hair=`<path d="M24 42 q2 -22 26 -22 q24 0 26 22 q-10 -8 -26 -8 q-16 0 -26 8z" fill="#3b2a1a"/>`, extra=`<g transform="rotate(-15 82 80)"><rect x="70" y="70" width="26" height="16" rx="3" fill="#f3b42c" stroke="#15302d" stroke-width="2"/><text x="83" y="82" text-anchor="middle" font-size="9" font-weight="800" font-family="sans-serif" fill="#d9492f">%</text></g>`;
+  if(tg==="genuss") hair=`<path d="M24 44 q2 -24 26 -24 q24 0 26 24 q-8 -10 -26 -10 q-18 0 -26 10z" fill="#1f1f1f"/><rect x="30" y="10" width="40" height="8" rx="2" fill="#15302d"/><rect x="38" y="0" width="24" height="12" rx="2" fill="#15302d"/>`;
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="56" r="42" fill="${t.col}" opacity=".25"/><circle cx="50" cy="50" r="27" fill="#f6c9a0" stroke="#15302d" stroke-width="2.5"/>${hair}<circle cx="41" cy="49" r="3" fill="#15302d"/><circle cx="59" cy="49" r="3" fill="#15302d"/>${brow}<path d="${mouth}" stroke="#15302d" stroke-width="3" fill="none" stroke-linecap="round"/>${extra}</svg>`;
+}
+const SENSE_ICONS = {
+ sehen:`<svg viewBox="0 0 32 32"><path d="M2 16 q14 -14 28 0 q-14 14 -28 0z" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="16" cy="16" r="5" fill="currentColor"/></svg>`,
+ hoeren:`<svg viewBox="0 0 32 32"><path d="M10 20 a8 8 0 1 1 12 -6 c0 4 -4 5 -4 9 a4 4 0 0 1 -8 0" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+ riechen:`<svg viewBox="0 0 32 32"><path d="M10 26 q-4 -5 0 -10 q4 -5 0 -10 M18 26 q-4 -5 0 -10 q4 -5 0 -10 M26 26 q-4 -5 0 -10 q4 -5 0 -10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+ schmecken:`<svg viewBox="0 0 32 32"><path d="M6 14 h20 q0 12 -10 12 q-10 0 -10 -12z" fill="currentColor"/><path d="M12 10 q2 -3 0 -6 M18 10 q2 -3 0 -6" stroke="currentColor" stroke-width="2" fill="none"/></svg>`,
+ fuehlen:`<svg viewBox="0 0 32 32"><path d="M10 28 q-5 -4 -5 -10 v-4 a2 2 0 0 1 4 0 v3 v-11 a2 2 0 0 1 4 0 v9 v-12 a2 2 0 0 1 4 0 v12 v-10 a2 2 0 0 1 4 0 v11 v-6 a2 2 0 0 1 4 0 v10 q0 8 -8 8z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>`
+};
+const SENSE_NAMES = {sehen:"Sehen",hoeren:"Hören",riechen:"Riechen",schmecken:"Schmecken",fuehlen:"Fühlen"};
+
+function planSVG(placed, hl, nospots){
+  let spots="";
+  for(const k in (nospots?{}:SPOTS)){ const p=SPOTS[k]; const item=placed[k];
+    spots+=`<g class="spot" data-spot="${k}" tabindex="0" role="button" aria-label="Platz ${k}: ${p.name}">
+      <circle cx="${p.x}" cy="${p.y}" r="17" fill="${item?"#0e6a64":"#ffffff"}" stroke="#15302d" stroke-width="2.5" stroke-dasharray="${item?"0":"4 3"}"/>
+      <text x="${p.x}" y="${p.y+6}" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="17" fill="${item?"#fff":"#d9492f"}">${k}</text></g>`; }
+  return `<svg viewBox="0 0 300 220" role="img" aria-label="Grundriss des Ladens">
+    <rect x="10" y="10" width="280" height="200" fill="#f6f3ea" stroke="#15302d" stroke-width="5"/>
+    <rect x="232" y="205" width="48" height="12" fill="#f6f3ea"/><rect x="18" y="205" width="40" height="12" fill="#f6f3ea"/>
+    <text x="256" y="200" text-anchor="middle" font-size="10" font-weight="800" font-family="sans-serif" fill="#0e6a64">Eingang ↑</text>
+    <text x="38" y="200" text-anchor="middle" font-size="10" font-weight="800" font-family="sans-serif" fill="#0e6a64">↓ Ausgang</text>
+    <rect x="60" y="160" width="46" height="22" fill="#c9b79a" stroke="#15302d"/><text x="83" y="175" text-anchor="middle" font-size="9" font-family="sans-serif" fill="#15302d" font-weight="700">Kasse</text>
+    <rect x="18" y="18" width="264" height="10" fill="#d8cdb6"/><rect x="18" y="28" width="10" height="120" fill="#d8cdb6"/><rect x="272" y="28" width="10" height="150" fill="#d8cdb6"/>
+    <rect x="96" y="62" width="30" height="80" fill="#e4dac4" stroke="#b8aa8c"/><rect x="176" y="62" width="30" height="80" fill="#e4dac4" stroke="#b8aa8c"/>
+    <path id="lauf" d="M256 214 L256 160 L252 70 L210 42 L90 42 L44 70 L44 130 L72 168" fill="none" stroke="#d9492f" stroke-width="2.5" stroke-dasharray="6 5" opacity="${hl?".9":".35"}"/>
+    <g id="walkers"></g>
+    ${spots}</svg>`;
+}
+
+/* ---------- Ansichten ---------- */
+const STEPS = ["strategie","umfeld","licht","farbe","musik","duft","erleben","extra","einrichtung","platzierung","eroeffnung"];
+function curStepIdx(){
+  if(S.screen==="round") return S.ri;
+  if(S.screen==="sort") return 8; if(S.screen==="place") return 9; if(S.screen==="open"||S.screen==="result") return 10; return -1;
+}
+function renderBar(){
+  const idx=curStepIdx();
+  const steps = idx>=0 ? `<div class="steps" aria-label="Schritt ${idx+1} von ${STEPS.length}">${STEPS.map((s,i)=>`<i class="${i<idx?"done":i===idx?"now":""}"></i>`).join("")}</div>` : "";
+  const tg = S.tg && idx>=0 ? `<span class="pill">Zielgruppe: ${TGS[S.tg].short}</span>` : "";
+  const money = S.shop && idx>=0 ? `<span class="pill money">Budget ${eur(budget())}</span>` : "";
+  $("#bar").innerHTML = `<span class="brand">${logo()}Ladenmacher</span>${money}${tg}<span class="sp"></span><button class="iconbtn" data-act="glossar">Wortspeicher</button>${steps}`;
+}
+function logo(){ return `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="11" width="26" height="18" fill="var(--surface)" stroke="currentColor" stroke-width="2.5"/><path d="M2 11 l4 -8 h20 l4 8z" fill="var(--coral)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><rect x="12" y="18" width="8" height="11" fill="var(--sun)" stroke="currentColor" stroke-width="2"/></svg>`; }
+
+function render(){
+  renderBar();
+  const m=$("#screen");
+  const f = {start:vStart, draw:vDraw, round:vRound, sort:vSort, place:vPlace, open:vOpen, result:vResult}[S.screen];
+  m.innerHTML = f();
+  if(S.screen==="open") runOpening();
+  save();
+}
+
+function vStart(){
+  const b=best();
+  const resume = S.shop && S.tg ? `<button class="btn sun" data-act="resume">Weiterspielen</button>` : "";
+  const shops = Object.keys(SHOPS).map(k=>`<button class="shop ${S.shop===k?"sel":""}" data-act="shop" data-k="${k}" aria-pressed="${S.shop===k}">${shopIcon(k)}<span>${SHOPS[k].name}</span></button>`).join("");
+  return `<section class="hero">
+    ${(()=>{ const demo={choices:{umfeld:"a",farbe:"b",licht:"b",musik:"b",duft:"b",erleben:"c",extra:"b"},strat:"E",shop:"mode",store:"Euer Laden"}; return `<div class="scene"><div>${facade(demo)}</div><div>${inside(demo)}</div></div>`; })()}
+    <div class="card stack">
+      <span class="eyebrow">Lernfeld 4 · Modul 1 · Verkaufsraum und Visual Merchandising</span>
+      <h1>Ladenmacher</h1>
+      <p class="lead">Ihr seid das Team, das einen neuen Laden einrichtet. In zehn Schritten trefft ihr Entscheidungen: Strategie, Schaufenster, Licht, Farben, Musik, Duft und wohin die Ware kommt. Dann ist Eröffnungstag. Kommen die Kunden? Bleiben sie? Kaufen sie?</p>
+      <p class="note">Jedes Spiel ist anders: Ihr zieht eine neue Zielgruppe, und am Eröffnungstag passiert etwas Unerwartetes. Euer Budget: ${eur(START_BUDGET)}.</p>
+      ${b?`<p class="note"><b>Euer Rekord auf diesem Gerät:</b> ${b.pts} Ladenpunkte (${esc(b.store)}, ${esc(b.tg)})</p>`:""}
+    </div>
+    <div class="card stack">
+      <div class="field"><label for="team">Euer Teamname</label><input id="team" maxlength="30" value="${esc(S.team)}" placeholder="z. B. Lena und Emir"></div>
+      <div class="field"><label for="store">So heißt euer Laden</label><input id="store" maxlength="18" value="${esc(S.store)}" placeholder="z. B. Marktliebe"></div>
+      <div class="field"><label id="shoplbl">Was verkauft ihr?</label><div class="shops" role="group" aria-labelledby="shoplbl">${shops}</div></div>
+      <div class="row"><button class="btn" data-act="go" ${S.shop?"":"disabled"}>Zielgruppe ziehen</button>${resume}</div>
+      <p class="note">Euer Spielstand wird nur auf diesem Gerät gespeichert.</p>
+    </div></section>`;
+}
+function vDraw(){
+  const t=TGS[S.tg];
+  return `<section class="card stack">
+    <span class="eyebrow">Eure Zielgruppe</span>
+    <h2>Für wen richtet ihr den Laden ein?</h2>
+    <div class="drawcard"><div class="flip" id="flip">
+      <div class="face front">?</div>
+      <div class="face back">${persona(S.tg,3)}<h3>${t.name}</h3><p>${t.text}</p></div>
+    </div></div>
+    <p class="lead">Diese Person bewertet jede Entscheidung. Achtet auf ihr Gesicht.</p>
+    <button class="btn wide" data-act="startrounds">Los geht's: Laden einrichten</button></section>`;
+}
+function vRound(){
+  const r=ROUNDS[S.ri], chosen=S.choices[r.id], locked=S.locked[r.id], bud=budget() + (chosen&&!locked? r.opts.find(o=>o.k===chosen).cost:0);
+  const opts = r.opts.map(o=>{
+    const tooMuch = !locked && o.cost > bud;
+    const cls = ["opt", chosen===o.k?"sel":"", locked&&chosen!==o.k?"off":""].join(" ");
+    return `<button class="${cls}" data-act="pick" data-k="${o.k}" ${locked||tooMuch?"disabled":""} aria-pressed="${chosen===o.k}">
+      <span class="tag ${o.cost?"":"free"}">${o.cost?eur(o.cost):"kostenlos"}</span>
+      <span class="t">${txt(o.t)}</span><span class="d">${txt(o.d)}</span>
+      ${tooMuch?`<span class="toomuch">Zu teuer für euer Budget</span>`:""}</button>`;
+  }).join("");
+  let after="";
+  if(locked){
+    const o=r.opts.find(x=>x.k===chosen), f=fitOf(r,o);
+    after = `<div class="react pop">${persona(S.tg,f.v)}<div><p class="bubble m${f.v}">„${rnd(MOOD[f.v])}“</p>${f.clash?`<p class="note" style="margin-top:4px">${CLASH[f.clash]}</p>`:""}${fitHint(r,o,f)?`<p class="note" style="margin-top:4px"><b>Warum?</b> ${fitHint(r,o,f)}</p>`:""}</div></div>
+      <div class="term"><b>Fachbegriff: ${r.term[0]}</b><br>${r.term[1]}</div>
+      <button class="btn wide" data-act="next">${S.ri<ROUNDS.length-1?"Weiter":"Weiter zur Einrichtung"}</button>`;
+  } else {
+    after = `<button class="btn wide" data-act="lock" ${chosen?"":"disabled"}>Entscheidung festlegen</button>`;
+  }
+  const sinn = r.sinn ? ` · Sinn: ${SENSE_NAMES[r.sinn]}` : "";
+  return `${sceneHTML()}
+   <section class="card stack">
+    <span class="eyebrow">Schritt ${S.ri+1} von ${STEPS.length} · ${r.el}${sinn}</span>
+    <h2>${r.q}</h2><p class="lead">${r.sub}</p>
+    <div class="opts">${opts}</div>${after}</section>`;
+}
+function vSort(){
+  const done = S.sortI>=S.sortList.length;
+  const right = S.sortRes.filter(Boolean).length;
+  if(done) return `<section class="card stack"><span class="eyebrow">Schritt 9 von ${STEPS.length} · Ladeneinrichtung</span>
+    <h2>Die Einrichtung steht!</h2><p class="lead">${right} von ${S.sortList.length} richtig zugeordnet. Für jede richtige Zuordnung gibt es Fachpunkte.</p>
+    <div class="term"><b>Zur Ladeneinrichtung gehören:</b><br>Warenträger (Regale, Gondeln, Vitrinen, Tische) · Verkaufshilfen (Einkaufswagen, Kasse, Umkleidekabine) · interne Werbemittel (Plakate, Infotafeln, Deckenhänger) · sonstige Einrichtung (Diebstahlsicherung, Videoüberwachung, Sammelboxen).</div>
+    <button class="btn wide" data-act="toplace">Weiter: Ware platzieren</button></section>`;
+  const it=S.sortList[S.sortI], ans=S.sortRes.length>S.sortI;
+  const bins=Object.keys(BINS).map(k=>{ let c=""; if(ans){ if(k===it[1]) c="ok"; else if(S.lastBin===k) c="no"; }
+    return `<button class="bin ${c}" data-act="bin" data-k="${k}" ${ans?"disabled":""}><b>${BINS[k][0]}</b><span>${BINS[k][1]}</span></button>`; }).join("");
+  const fb = ans ? (S.sortRes[S.sortI] ? `<div class="fb ok pop">Richtig! ${it[0]} → <b>${BINS[it[1]][0]}</b></div>` : `<div class="fb no pop">Nicht ganz. ${it[0]} → <b>${BINS[it[1]][0]}</b></div>`)+`<button class="btn wide" data-act="sortnext">Weiter</button>` : "";
+  return `<section class="card stack"><span class="eyebrow">Schritt 9 von ${STEPS.length} · Ladeneinrichtung · ${S.sortI+1} von ${S.sortList.length}</span>
+    <h2>Der Lieferwagen ist da! Wohin gehört das?</h2><p class="lead">Ordnet jedes Teil richtig ein. So lernt ihr, was zur Ladeneinrichtung gehört.</p>
+    <div class="sortitem pop">${it[0]}</div><div class="bins">${bins}</div>${fb}</section>`;
+}
+function artikel(k){ return k==="V"?"eine":k==="I"?"ein":k==="W"?"ein":"eine"; }
+function vPlace(){
+  const placed={}; S.placeRes.forEach((r,i)=>{ if(r) placed[S.placeList[i].ok]=1; });
+  const done=S.placeI>=S.placeList.length;
+  if(done){
+    const right=S.placeRes.filter(Boolean).length;
+    return `<div class="plan">${planSVG(placed,true)}</div><section class="card stack"><span class="eyebrow">Schritt 10 von ${STEPS.length} · Element 3: Platzierung der Waren</span>
+      <h2>Alles steht an seinem Platz.</h2><p class="lead">${right} von 4 richtig platziert. Die rote Linie zeigt den Kundenlauf: Die meisten Kunden gehen rechts herum, gegen den Uhrzeigersinn.</p>
+      <button class="btn sun wide" data-act="toopen">Eröffnungstag starten!</button></section>`;
+  }
+  const it=S.placeList[S.placeI], ans=S.placeRes.length>S.placeI;
+  const btns = Object.keys(SPOTS).map(k=>`<button data-act="spot" data-spot="${k}" ${ans?"disabled":""}><b>${k}</b>${SPOTS[k].name}</button>`).join("");
+  const fb = ans ? (S.placeRes[S.placeI] ? `<div class="fb ok pop">Richtig: Platz ${it.ok}. ${it.why}</div>` : `<div class="fb no pop">Besser wäre Platz ${it.ok} (${SPOTS[it.ok].name}). ${it.why}</div>`)+`<button class="btn wide" data-act="placenext">Weiter</button>` : "";
+  return `<div class="plan">${planSVG(placed,false)}</div>
+   <section class="card stack"><span class="eyebrow">Schritt 10 von ${STEPS.length} · Element 3: Platzierung der Waren · ${S.placeI+1} von 4</span>
+   <h2>Wohin kommt: ${it.t}?</h2><p class="lead">Tippt auf einen Platz im Grundriss oder wählt unten.</p>
+   <div class="spotbtns">${btns}</div>${fb}</section>`;
+}
+function vOpen(){
+  return `<div class="plan">${planSVG({},true,true)}</div>
+   <section class="card stack" id="opencard"><span class="eyebrow">Schritt 11 von ${STEPS.length} · Eröffnungstag</span>
+   <h2>Die Türen gehen auf …</h2>
+   <div id="eventbox"><p class="lead">Moment, gerade passiert etwas …</p></div>
+   <div class="stats"><div class="stat"><div class="k">Kunden heute</div><div class="v" id="cK">0</div></div><div class="stat"><div class="k">Umsatz heute</div><div class="v" id="cU">0 €</div></div></div>
+   <button class="btn sun wide" data-act="toresult" id="toresult" hidden>Zur Auswertung</button></section>`;
+}
+
+/* ---------- Berechnung ---------- */
+function compute(){
+  let sum=0, mx=0, verweil=8;
+  ROUNDS.forEach(r=>{ const o=r.opts.find(x=>x.k===S.choices[r.id]); const f=fitOf(r,o); sum+=f.v; mx+=maxFit(r); if(!o.bad) verweil+=(o.verweil||0); });
+  const zuf = Math.min(100, Math.round(sum/Math.max(1,mx)*100));
+  const senses = sensesOf(S);
+  const ev = EVENTS.find(e=>e.id===S.event);
+  const [mult, evText, evVerweil] = ev.f(S);
+  verweil += (evVerweil||0);
+  const umf = fitOf(ROUNDS[1], ROUNDS[1].opts.find(o=>o.k===S.choices.umfeld)).v;
+  const kunden = Math.round(220*(0.45+zuf/100)*(0.7+umf*0.15)*mult);
+  const bon = {D:14,M:19,E:26}[S.strat] * (0.85 + Math.min(verweil,30)/100);
+  const umsatz = Math.round(kunden*bon/10)*10;
+  const fach = S.sortRes.filter(Boolean).length*15 + S.placeRes.filter(Boolean).length*30;
+  const rest = budget();
+  const parts = {zuf:zuf*4, sinne:senses.length*30, verweil:Math.min(verweil,30)*3, fach, budget:Math.round(rest/500)};
+  const pts = Object.values(parts).reduce((a,b)=>a+b,0);
+  const max = 400+150+90+240+80;
+  const pct = pts/max;
+  const stars = pct>=.82?5:pct>=.68?4:pct>=.52?3:pct>=.38?2:1;
+  return {zuf, senses, verweil, kunden, umsatz, fach, rest, parts, pts, stars, evText, mult};
+}
+
+function runOpening(){
+  const R = compute(); S.result = R; save();
+  const ev = EVENTS.find(e=>e.id===S.event);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  setTimeout(()=>{
+    const good = R.mult>=1.02, bad = R.mult<0.98;
+    $("#eventbox").innerHTML = `<div class="event pop"><svg viewBox="0 0 56 56" aria-hidden="true"><rect x="4" y="4" width="48" height="48" rx="10" fill="#fff" stroke="#15302d" stroke-width="3"/><text x="28" y="40" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="32" fill="#d9492f">!</text></svg>
+      <div><h3>${ev.t}</h3><p>${R.evText} ${good?"<b>Mehr Kunden!</b>":bad?"<b>Weniger Kunden.</b>":""}</p></div></div>`;
+    animateWalkers(R, reduce);
+    countUp($("#cK"), R.kunden, "", reduce);
+    countUp($("#cU"), R.umsatz, " €", reduce, ()=>{ $("#toresult").hidden=false; });
+  }, reduce?0:1400);
+}
+function countUp(el,to,suf,reduce,done){
+  if(reduce){ el.textContent=to.toLocaleString("de-DE")+suf; done&&done(); return; }
+  const t0=performance.now(), d=3200;
+  (function f(t){ const p=Math.min(1,(t-t0)/d), e=1-Math.pow(1-p,3); el.textContent=Math.round(to*e).toLocaleString("de-DE")+suf; if(p<1) requestAnimationFrame(f); else done&&done(); })(t0);
+}
+function animateWalkers(R, reduce){
+  const path=document.getElementById("lauf"), g=document.getElementById("walkers"); if(!path||!g) return;
+  const L=path.getTotalLength(), n=Math.max(4,Math.min(16,Math.round(R.kunden/22)));
+  const happy=R.zuf/100;
+  const ws=[]; for(let i=0;i<n;i++){ const unhappy=Math.random()>happy+0.1;
+    const col = unhappy?"#bf3626":(Math.random()<happy?"#1d7f47":"#e0a21a");
+    const c=document.createElementNS("http://www.w3.org/2000/svg","g");
+    c.innerHTML=`<circle r="7" fill="${col}" stroke="#15302d" stroke-width="1.5"/><circle cx="-2.2" cy="-1.5" r="1" fill="#fff"/><circle cx="2.2" cy="-1.5" r="1" fill="#fff"/>`;
+    g.appendChild(c); ws.push({c,delay:i*380,stop:unhappy?0.25+Math.random()*0.2:1, speed:0.00011+Math.random()*0.00005}); }
+  if(reduce){ ws.forEach((w,i)=>{ const p=path.getPointAtLength(L*(i+1)/(n+1)*w.stop); w.c.setAttribute("transform",`translate(${p.x} ${p.y})`); }); return; }
+  const t0=performance.now();
+  (function f(t){ let alive=false;
+    ws.forEach(w=>{ let p=(t-t0-w.delay)*w.speed; if(p<0){ w.c.setAttribute("opacity","0"); alive=true; return; }
+      w.c.setAttribute("opacity","1");
+      let pos;
+      if(p<=w.stop){ pos=p; alive=true; }
+      else if(w.stop<1){ const back=p-w.stop; pos=Math.max(0,w.stop-back); if(pos>0) alive=true; else w.c.setAttribute("opacity","0"); }
+      else { pos=1; w.c.setAttribute("opacity","0"); }
+      const pt=path.getPointAtLength(L*Math.min(pos,1)); w.c.setAttribute("transform",`translate(${pt.x} ${pt.y})`); });
+    if(alive && document.getElementById("walkers")===g) requestAnimationFrame(f);
+  })(t0);
+}
+
+function vResult(){
+  const R=S.result || compute(); S.result=R;
+  const b=best();
+  if(!b || R.pts>b.pts) setBest({pts:R.pts, store:S.store||SHOPS[S.shop].def, tg:TGS[S.tg].short});
+  const isRecord = !b || R.pts>b.pts;
+  const stars = "★★★★★".split("").map((s,i)=>`<span class="${i<R.stars?"":"e"}">★</span>`).join("");
+  const senses = Object.keys(SENSE_NAMES).map(k=>`<div class="sense ${R.senses.includes(k)?"on":""}">${SENSE_ICONS[k]}${SENSE_NAMES[k]}</div>`).join("");
+  const decs = ROUNDS.map(r=>{ const o=r.opts.find(x=>x.k===S.choices[r.id]); const f=fitOf(r,o);
+    const top = f.v>=3 || f.v>=maxFit(r);
+    const sym=top?"✓":f.v===2?"~":"✗", cls=top?"m3":f.v===2?"m2":"m0";
+    const hint=fitHint(r,o,f);
+    return `<div class="dec"><span class="mark ${cls}" aria-label="${f.v>=3?"passt":top?"beste Wahl":f.v===2?"teilweise":"passt nicht"}">${sym}</span><div>
+      <p class="h">${r.el.replace(/^Element \d: /,"")}: ${txt(o.t)}</p>
+      <p class="why">${o.why}${f.clash?" "+CLASH[f.clash]:""}${hint?` <b>Für ${TGS[S.tg].short}:</b> ${hint}`:""}</p>
+      <p class="ihk"><b>So steht es in der Prüfung:</b> ${r.ihk}</p></div></div>`; }).join("");
+  const profi = PROFI[(S.result.pts + S.tg.length) % PROFI.length];
+  return `<section class="card showcard pop">
+     <span class="eyebrow" style="color:inherit">${esc(S.team||"Euer Team")} · ${esc(S.store||SHOPS[S.shop].def)} · ${SHOPS[S.shop].name} · ${TGS[S.tg].short}</span>
+     <div class="stars" aria-label="${R.stars} von 5 Sternen">${stars}</div>
+     <div class="big">${R.pts}</div><p><b>Ladenpunkte</b>${isRecord?" · Neuer Rekord auf diesem Gerät!":""}</p>
+     <p class="note" style="color:inherit">Zeigt diese Karte der Klasse.</p></section>
+   <section class="card stack">
+     <h2>Euer Eröffnungstag</h2>
+     <div class="stats">
+       <div class="stat"><div class="k">Kunden</div><div class="v">${R.kunden}</div></div>
+       <div class="stat"><div class="k">Umsatz</div><div class="v">${R.umsatz.toLocaleString("de-DE")} €</div></div>
+       <div class="stat"><div class="k">Verweildauer</div><div class="v">${R.verweil} Min.</div></div>
+       <div class="stat"><div class="k">Restbudget</div><div class="v">${eur(R.rest)}</div></div>
+     </div>
+     <div class="stack" style="gap:6px"><div class="row"><b>Kundenzufriedenheit</b><span class="sp"></span><b>${R.zuf} %</b></div><div class="meter"><i style="width:${R.zuf}%"></i></div></div>
+     <div class="stack" style="gap:6px"><b>Diese Sinne habt ihr angesprochen (${R.senses.length} von 5)</b><div class="senses">${senses}</div></div>
+     <p class="note">Ladenpunkte: Zufriedenheit ${R.parts.zuf} · Sinne ${R.parts.sinne} · Verweildauer ${R.parts.verweil} · Fachwissen ${R.parts.fach} · Restbudget ${R.parts.budget}</p>
+   </section>
+   <section class="card stack"><h2>Eure Entscheidungen</h2><p class="lead">✓ passt gut (oder beste Wahl für eure Zielgruppe) · ~ geht so · ✗ passt nicht zu eurer Zielgruppe</p><div class="list">${decs}</div></section>
+   <section class="card exam"><span class="eyebrow">Das kommt in der Prüfung</span>
+     <h3>Visual Merchandising</h3>
+     <p>„Optische Verkaufsförderung“: Verkaufsraum und Ware werden so gestaltet, dass eine besondere Einkaufsatmosphäre entsteht und die Kunden zum Kauf angeregt werden.</p>
+     <h3>Drei Elemente der Verkaufsraumgestaltung</h3>
+     <ul><li>Ladenumfeld (Fassade, Schaufenster, Eingang, Logo)</li><li>Verkaufsräume (Licht, Farben, Musik, Duft, Material, Ruhezonen)</li><li>Platzierung der Waren</li></ul>
+     <h3>Ziele einer Umgestaltung</h3>
+     <ul><li>Kunden: Einkaufserlebnis steigern, angenehmere Atmosphäre, neue Kaufanreize</li><li>Betrieb: Abgrenzung vom Wettbewerb, Neukunden gewinnen, Stammkunden binden, Umsatz steigern</li></ul>
+   </section>
+   <section class="profi"><span class="eyebrow">Für Profis</span><p style="margin-top:6px">${profi}</p><p class="note" style="margin-top:6px">Schreibt eure Antwort ins Heft. Nutzt „weil“ oder „da“.</p></section>
+   <section class="card stack"><h2>Nochmal spielen?</h2><p class="lead">Neue Zielgruppe, neues Ereignis – schafft ihr mehr Punkte?</p>
+     <div class="row"><button class="btn sun" data-act="again">Neue Zielgruppe ziehen</button><button class="btn ghost" data-act="retry">Gleiche Zielgruppe, besser machen</button><button class="btn ghost" data-act="restart">Anderen Laden wählen</button></div></section>`;
+}
+function bestOption(r){ let b=null,bv=-1; r.opts.forEach(o=>{ const v=fitOf(r,o).v - o.cost/100000; if(v>bv){bv=v;b=o;} }); return b; }
+
+/* ---------- Ablauf ---------- */
+function newGame(keepTg){
+  const keep={team:S.team, store:S.store, shop:S.shop, tg:S.tg};
+  S=fresh(); S.team=keep.team; S.store=keep.store; S.shop=keep.shop;
+  if(keepTg){ S.tg=keep.tg; } else { const opts=Object.keys(TGS).filter(k=>k!==keep.tg); S.tg=rnd(opts); }
+  S.sortList = shuffle(SORT).slice(0,8);
+  const evs = EVENTS.map(e=>e.id); S.event=rnd(evs);
+}
+document.addEventListener("click", e=>{
+  const t=e.target.closest("[data-act]"); if(!t) return;
+  const a=t.dataset.act;
+  if(a==="glossar"){ $("#dlgbody").innerHTML=`<div class="row"><h2>Wortspeicher</h2><span class="sp" style="flex:1"></span><button class="iconbtn" data-act="close">Schließen</button></div><dl>${GLOSSAR.map(g=>`<dt>${g[0]}</dt><dd>${g[1]}</dd>`).join("")}</dl>`; try{$("#dlg").showModal();}catch(err){$("#dlg").setAttribute("open","");} return; }
+  if(a==="close"){ $("#dlg").close ? $("#dlg").close() : $("#dlg").removeAttribute("open"); return; }
+  if(a==="shop"){ readInputs(); S.shop=t.dataset.k; render(); return; }
+  if(a==="go"){ readInputs(); const shop=S.shop; newGame(false); S.shop=shop; S.screen="draw"; render(); setTimeout(()=>{ const f=$("#flip"); f&&f.classList.add("on"); }, 500); return; }
+  if(a==="resume"){ readInputs(); S.screen = S.result? "result" : (S.screen==="start" ? (S._last||"round") : S.screen); render(); return; }
+  if(a==="startrounds"){ S.screen="round"; S.ri=0; render(); scrollTop(); return; }
+  if(a==="pick"){ const r=ROUNDS[S.ri]; S.choices[r.id]=t.dataset.k; if(r.id==="strategie") S.strat=t.dataset.k; render(); return; }
+  if(a==="lock"){ const r=ROUNDS[S.ri]; if(S.choices[r.id]){ S.locked[r.id]=true; render(); } return; }
+  if(a==="next"){ if(S.ri<ROUNDS.length-1){ S.ri++; } else { S.screen="sort"; S.sortI=0; S.sortRes=[]; } render(); scrollTop(); return; }
+  if(a==="bin"){ const it=S.sortList[S.sortI]; S.lastBin=t.dataset.k; S.sortRes[S.sortI]= t.dataset.k===it[1]; render(); return; }
+  if(a==="sortnext"){ S.sortI++; render(); return; }
+  if(a==="toplace"){ S.screen="place"; S.placeList=shuffle(placeItems(S.shop,S.choices.extra)); S.placeI=0; S.placeRes=[]; render(); scrollTop(); return; }
+  if(a==="spot"){ placeAt(t.dataset.spot); return; }
+  if(a==="placenext"){ S.placeI++; render(); return; }
+  if(a==="toopen"){ S.screen="open"; render(); scrollTop(); return; }
+  if(a==="toresult"){ S.screen="result"; render(); scrollTop(); return; }
+  if(a==="again"){ newGame(false); S.screen="draw"; render(); scrollTop(); setTimeout(()=>{ const f=$("#flip"); f&&f.classList.add("on"); }, 500); return; }
+  if(a==="retry"){ newGame(true); S.screen="round"; S.ri=0; render(); scrollTop(); return; }
+  if(a==="restart"){ const k={team:S.team,store:S.store}; S=fresh(); S.team=k.team; S.store=k.store; render(); scrollTop(); return; }
+});
+document.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && e.target.classList && e.target.classList.contains("spot")){ e.preventDefault(); placeAt(e.target.dataset.spot); } });
+document.addEventListener("click", e=>{ const sp=e.target.closest(".spot"); if(sp && S.screen==="place") placeAt(sp.dataset.spot); });
+function placeAt(k){ if(S.screen!=="place" || S.placeI>=S.placeList.length || S.placeRes.length>S.placeI) return; S.placeRes[S.placeI] = (k===S.placeList[S.placeI].ok); render(); }
+function readInputs(){ const a=$("#team"), b=$("#store"); if(a) S.team=a.value.trim(); if(b) S.store=b.value.trim(); }
+document.addEventListener("input", e=>{ if(e.target.id==="team"||e.target.id==="store"){ readInputs(); save(); } });
+function scrollTop(){ try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){ window.scrollTo(0,0); } }
+
+// Beim Laden: laufendes Spiel fortsetzen
+if(S.screen==="draw"){ render(); const f=$("#flip"); f&&f.classList.add("on"); }
+else if(S.screen==="open"){ S.screen = "result"; render(); }
+else render();
+})();
+</script>
+
+</body>
+</html>

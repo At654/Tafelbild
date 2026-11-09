@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF7 · Lager-Wimmelbild</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: Tafel = Kopfleiste mit Bodenmarkierung + eine Bühne pro Runde; Handy = eine Karte, große Tipp-Flächen. */
+:root{
+  --bg:#F3F4F1; --panel:#FFFFFF; --fg:#1D2326; --muted:#5B6569; --line:#CBD0CB;
+  --accent:#E3A21A; --accent-ink:#2A2108; --steel:#2E4A5B; --steel-soft:#DCE6EC;
+  --ok:#2C7A4B; --ok-soft:#DDEFE3; --bad:#B42318; --bad-soft:#F8E0DD;
+  --heat:#E3A21A;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",Arial,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141819; --panel:#1E2427; --fg:#E8ECEA; --muted:#A3ADB0; --line:#374145;
+  --accent:#F0B43A; --accent-ink:#1A1405; --steel:#9DC0D3; --steel-soft:#24343D;
+  --ok:#62BE8A; --ok-soft:#1C3328; --bad:#F2837A; --bad-soft:#3A2220; --heat:#F0B43A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141819; --panel:#1E2427; --fg:#E8ECEA; --muted:#A3ADB0; --line:#374145;
+  --accent:#F0B43A; --accent-ink:#1A1405; --steel:#9DC0D3; --steel-soft:#24343D;
+  --ok:#62BE8A; --ok-soft:#1C3328; --bad:#F2837A; --bad-soft:#3A2220; --heat:#F0B43A; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.45;min-height:100vh}
+[hidden]{display:none!important}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tabnum{font-variant-numeric:tabular-nums}
+/* Kopfleiste */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line)}
+.stripe{height:8px;background:repeating-linear-gradient(-45deg,var(--accent) 0 14px,var(--fg) 14px 28px);opacity:.9}
+.chip{font-family:var(--f-display);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:14px;background:var(--steel);color:var(--panel);padding:3px 10px;border-radius:3px}
+.name{font-family:var(--f-display);font-weight:700;font-size:26px;letter-spacing:.01em}
+.spacer{flex:1}
+.stat{font-size:14px;color:var(--muted)}
+.stat b{color:var(--fg)}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:7px 13px;border-radius:4px;font-size:15px}
+.btn:hover{border-color:var(--steel)}
+.btn.prim{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.on{background:var(--steel);border-color:var(--steel);color:var(--panel)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bad);margin-right:6px;vertical-align:middle}
+.dot.up{background:var(--ok)}
+/* Bühne */
+.wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:18px 60px}
+.leit{font-family:var(--f-display);font-weight:600;font-size:18px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px}
+.frage{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,3.4vw,42px);line-height:1.1;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 16px;max-width:75ch}
+.rundenleiste{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 16px}
+.rnd{min-width:38px;height:34px;border:1px solid var(--line);background:var(--panel);border-radius:4px;color:var(--fg)}
+.rnd.cur{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px}
+.erkl{margin-top:16px;border-left:6px solid var(--ok);background:var(--ok-soft);padding:12px 16px;border-radius:0 6px 6px 0}
+.erkl b{color:var(--ok)}
+.karte{font-size:clamp(20px,2.4vw,28px);font-weight:600;line-height:1.3;margin:0 0 14px;text-wrap:balance}
+/* Balken */
+.bars{display:grid;gap:12px}
+.bar{display:grid;grid-template-columns:minmax(120px,280px) 1fr 70px;gap:12px;align-items:center}
+.bar .lab{font-weight:600}
+.bar .track{height:34px;background:var(--steel-soft);border-radius:4px;overflow:hidden;position:relative}
+.bar .fill{height:100%;background:var(--steel);transition:width .4s}
+.bar.ok .fill{background:var(--ok)}
+.bar.no .fill{background:var(--bad)}
+.bar .num{font-family:var(--f-display);font-size:24px;font-weight:700;text-align:right}
+.verdeckt{color:var(--muted);font-style:italic}
+/* Tabellen Abgleich */
+.docs{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.doc{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0;overflow-x:auto}
+.doc h3{font-family:var(--f-display);font-size:20px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.04em}
+.doc table{border-collapse:collapse;width:100%;font-size:15px}
+.doc th,.doc td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.doc th{background:var(--steel-soft)}
+.doc td.tap{cursor:pointer;position:relative}
+.doc td.sel{outline:3px solid var(--accent);outline-offset:-3px;background:color-mix(in srgb,var(--accent) 18%,transparent)}
+.doc td .cnt{position:absolute;top:-9px;right:-6px;background:var(--heat);color:var(--accent-ink);font-weight:700;font-size:13px;border-radius:10px;padding:0 7px}
+.doc td.diff{outline:3px solid var(--bad);outline-offset:-3px}
+/* Skala */
+.axis{position:relative;height:220px;margin:10px 10px 50px}
+.axis .line{position:absolute;left:0;right:0;bottom:40px;height:4px;background:var(--fg)}
+.axis .tick{position:absolute;bottom:20px;transform:translateX(-50%);font-size:13px;color:var(--muted);text-align:center;white-space:nowrap}
+.axis .tick::before{content:"";display:block;width:2px;height:14px;background:var(--fg);margin:0 auto 4px}
+.axis .zone{position:absolute;bottom:44px;height:170px;background:var(--ok-soft);border:2px dashed var(--ok);border-bottom:0}
+.axis .stackdot{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--steel);transform:translateX(-50%)}
+.slider{width:100%;accent-color:var(--accent);height:40px}
+/* Kalender */
+.kal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;max-width:760px}
+.kal .wd{font-family:var(--f-display);text-align:center;color:var(--muted);font-weight:600}
+.kal .tag{min-height:62px;border:1px solid var(--line);border-radius:5px;background:var(--panel);padding:4px 6px;position:relative;text-align:left;color:var(--fg)}
+.kal .tag .n{font-family:var(--f-display);font-size:20px;font-weight:700}
+.kal .tag .m{display:block;font-size:11px;color:var(--steel);line-height:1.15}
+.kal .tag.sel{outline:3px solid var(--accent);outline-offset:-2px}
+.kal .tag.ok{outline:3px solid var(--ok);outline-offset:-2px;background:var(--ok-soft)}
+.kal .tag .cnt{position:absolute;right:5px;bottom:4px;background:var(--heat);color:var(--accent-ink);border-radius:9px;padding:0 6px;font-weight:700;font-size:13px}
+.kal .leer{min-height:62px}
+/* Suchbild */
+.scene{position:relative;max-width:1000px;margin:0 auto}
+.scene svg{width:100%;height:auto;display:block;border-radius:6px;border:1px solid var(--line);background:var(--panel)}
+.scene [data-h]{cursor:pointer}
+.scene [data-h].sel>.hl{stroke:var(--accent);stroke-width:5}
+.hl{fill:transparent;stroke:transparent;stroke-width:4}
+.scene .badge{font-family:var(--f-display);font-weight:700}
+/* Wolke */
+.wolke{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;justify-content:center;min-height:200px;padding:16px}
+.wolke span{font-family:var(--f-display);font-weight:700;color:var(--steel);line-height:1}
+.wolke span.ok{color:var(--ok)}
+/* Duell */
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.team h3{font-family:var(--f-display);font-size:24px;margin:0 0 6px}
+.team .mittel{font-family:var(--f-display);font-size:42px;font-weight:700}
+.vals{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.vals span{background:var(--steel-soft);border-radius:3px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.vals span.ok{background:var(--ok-soft);color:var(--ok);font-weight:600}
+.daten{overflow-x:auto}
+.daten table{border-collapse:collapse;font-size:16px}
+.daten th,.daten td{border:1px solid var(--line);padding:6px 12px;text-align:right}
+.daten th{background:var(--steel-soft);text-align:left}
+/* Kette */
+.kette{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px}
+.glied{flex:1 1 150px;background:var(--panel);border:2px solid var(--line);border-radius:6px;padding:10px;text-align:center;min-width:0}
+.glied .t{font-weight:600}
+.glied .pf{font-family:var(--f-display);font-size:34px;font-weight:700;line-height:1}
+.glied.start{border-color:var(--steel);background:var(--steel-soft)}
+.glied.ok{border-color:var(--ok)}
+.pfeil{align-self:center;font-family:var(--f-display);font-size:28px;color:var(--muted)}
+.updown{display:flex;gap:6px;justify-content:center;margin-top:8px}
+.updown button{flex:1;padding:10px 0;font-size:22px;border:1px solid var(--line);background:var(--bg);border-radius:4px;color:var(--fg)}
+.updown button.sel{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+/* Handy */
+.phone{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:14px 40px}
+.opts{display:grid;gap:10px;margin-top:12px}
+.opt{display:block;width:100%;text-align:left;padding:15px 16px;border:2px solid var(--line);border-radius:8px;background:var(--panel);font-size:18px;color:var(--fg)}
+.opt.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--panel))}
+.send{margin-top:16px;width:100%;padding:16px;font-size:19px;font-weight:700;border:0;border-radius:8px;background:var(--accent);color:var(--accent-ink)}
+.send:disabled{opacity:.5}
+.ok-msg{margin-top:14px;padding:12px 14px;border-radius:6px;background:var(--ok-soft);color:var(--ok);font-weight:600}
+.timer{height:10px;background:var(--steel-soft);border-radius:5px;overflow:hidden;margin:6px 0 10px}
+.timer i{display:block;height:100%;background:var(--accent);width:100%;transition:width 1s linear}
+.wait{text-align:center;color:var(--muted);padding:40px 10px}
+.big{font-family:var(--f-display);font-size:30px;font-weight:700}
+input[type=text],input[type=number]{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);border-radius:6px;width:100%;background:var(--panel);color:var(--fg)}
+/* QR-Overlay */
+.overlay{position:fixed;inset:0;background:color-mix(in srgb,var(--bg) 94%,transparent);display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
+.qrbox{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:24px;display:flex;flex-wrap:wrap;gap:28px;align-items:center;max-width:980px}
+.qrbox canvas{width:min(360px,70vw);height:auto;border:10px solid #fff;border-radius:6px;background:#fff}
+.code{font-family:var(--f-display);font-size:64px;font-weight:700;letter-spacing:.12em}
+.url{word-break:break-all;color:var(--muted);font-size:14px}
+.start{max-width:760px;margin:6vh auto;padding-inline:20px}
+.start .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:22px;margin-top:16px}
+.lokal{margin-top:22px;border-top:2px dashed var(--line);padding-top:16px}
+.hint{font-size:14px;color:var(--muted)}
+@media (max-width:760px){.docs,.teams{grid-template-columns:1fr}.bar{grid-template-columns:1fr 60px}.bar .lab{grid-column:1/-1}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+
+var QRLib=(function(){var M={};function R(n){n=n.replace("./","");return M[n]();}
+M["QR8bitByte"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMode = R("./QRMode");
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+})(c,c.exports);return c.exports;};})();
+M["QRBitBuffer"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+})(c,c.exports);return c.exports;};})();
+M["QRErrorCorrectLevel"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+})(c,c.exports);return c.exports;};})();
+M["QRMaskPattern"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+})(c,c.exports);return c.exports;};})();
+M["QRMath"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+})(c,c.exports);return c.exports;};})();
+M["QRMode"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+})(c,c.exports);return c.exports;};})();
+M["QRPolynomial"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMath = R("./QRMath");
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+})(c,c.exports);return c.exports;};})();
+M["QRRSBlock"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRErrorCorrectLevel = R("./QRErrorCorrectLevel");
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+})(c,c.exports);return c.exports;};})();
+M["QRUtil"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMode = R("./QRMode");
+var QRPolynomial = R("./QRPolynomial");
+var QRMath = R("./QRMath");
+var QRMaskPattern = R("./QRMaskPattern");
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+})(c,c.exports);return c.exports;};})();
+M["index"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = R("./QR8bitByte");
+var QRUtil = R("./QRUtil");
+var QRPolynomial = R("./QRPolynomial");
+var QRRSBlock = R("./QRRSBlock");
+var QRBitBuffer = R("./QRBitBuffer");
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+})(c,c.exports);return c.exports;};})();
+return {QRCode:R("./index"),ECL:R("./QRErrorCorrectLevel")};})();
+
+</script>
+<script>
+"use strict";
+const CFG = {"id": "lf7m06", "modul": 6, "name": "Lager-Wimmelbild", "typ": "suchbild", "leitfrage": "Wie lagert man Ware so, dass sie verkaufsfähig bleibt – und niemand sich verletzt?", "intro": "Im Lager der Nordstadt-Kauf GmbH läuft einiges schief – aber nicht alles. Tippt jede Stelle an, an der falsch gelagert wird. Ihr habt 75 Sekunden.", "runden": [{"text": "Findet alle Stellen, an denen falsch gelagert wird. Achtung: Drei Stellen sind richtig.", "svg": "<svg viewBox=\"0 0 1000 620\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Lager der Nordstadt-Kauf GmbH\"><rect x=\"0\" y=\"0\" width=\"1000\" height=\"620\" fill=\"#eef0ec\"/><rect x=\"0\" y=\"470\" width=\"1000\" height=\"150\" fill=\"#cfd3cd\"/><rect x=\"0\" y=\"560\" width=\"1000\" height=\"10\" fill=\"#e3a21a\"/><text x=\"20\" y=\"30\" font-size=\"18\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2e4a5b\">Lager der Nordstadt-Kauf GmbH<\/text><g data-h=\"fenster\"><rect x=\"30\" y=\"60\" width=\"150\" height=\"120\" fill=\"#bfe3f5\" stroke=\"#6d7276\" stroke-width=\"4\"/><line x1=\"105\" y1=\"60\" x2=\"105\" y2=\"180\" stroke=\"#6d7276\" stroke-width=\"3\"/><circle cx=\"150\" cy=\"95\" r=\"20\" fill=\"#f5c542\"/><rect x=\"30\" y=\"190\" width=\"150\" height=\"6\" fill=\"#8a8f93\"/><rect x=\"30\" y=\"250\" width=\"150\" height=\"6\" fill=\"#8a8f93\"/><rect x=\"30\" y=\"190\" width=\"6\" height=\"66\" fill=\"#6d7276\"/><rect x=\"174\" y=\"190\" width=\"6\" height=\"66\" fill=\"#6d7276\"/><rect x=\"45\" y=\"205\" width=\"55\" height=\"42\" rx=\"3\" fill=\"#7b4a2a\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"72\" y=\"231\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#fff\">Schoko<\/text><rect x=\"105\" y=\"205\" width=\"60\" height=\"42\" rx=\"3\" fill=\"#7b4a2a\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"135\" y=\"231\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#fff\">Schoko<\/text><rect class=\"hl\" x=\"22\" y=\"52\" width=\"166\" height=\"205\" rx=\"6\" fill=\"transparent\" stroke=\"none\"/><\/g><g data-h=\"wasch\"><rect x=\"220\" y=\"70\" width=\"220\" height=\"6\" fill=\"#8a8f93\"/><rect x=\"220\" y=\"140\" width=\"220\" height=\"6\" fill=\"#8a8f93\"/><rect x=\"220\" y=\"210\" width=\"220\" height=\"6\" fill=\"#8a8f93\"/><rect x=\"220\" y=\"70\" width=\"6\" height=\"146\" fill=\"#6d7276\"/><rect x=\"434\" y=\"70\" width=\"6\" height=\"146\" fill=\"#6d7276\"/><rect x=\"232\" y=\"88\" width=\"95\" height=\"50\" rx=\"3\" fill=\"#f08a24\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"279\" y=\"118\" text-anchor=\"middle\" font-size=\"12\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Waschmittel<\/text><rect x=\"333\" y=\"88\" width=\"95\" height=\"50\" rx=\"3\" fill=\"#6b4f3a\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"380\" y=\"118\" text-anchor=\"middle\" font-size=\"13\" font-family=\"Arial\" font-weight=\"700\" fill=\"#fff\">Kaffee<\/text><rect class=\"hl\" x=\"214\" y=\"64\" width=\"232\" height=\"82\" rx=\"6\" fill=\"transparent\" stroke=\"none\"/><\/g><rect x=\"232\" y=\"158\" width=\"196\" height=\"48\" rx=\"3\" fill=\"#d9c9a3\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"330\" y=\"187\" text-anchor=\"middle\" font-size=\"12\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Tee · Gewürze<\/text><g data-h=\"schwer\"><rect x=\"480\" y=\"60\" width=\"200\" height=\"6\" fill=\"#8a8f93\"/><rect x=\"480\" y=\"130\" width=\"200\" height=\"6\" fill=\"#8a8f93\"/><rect x=\"480\" y=\"200\" width=\"200\" height=\"6\" fill=\"#8a8f93\"/><rect x=\"480\" y=\"270\" width=\"200\" height=\"6\" fill=\"#8a8f93\"/><rect x=\"480\" y=\"60\" width=\"6\" height=\"216\" fill=\"#6d7276\"/><rect x=\"674\" y=\"60\" width=\"6\" height=\"216\" fill=\"#6d7276\"/><rect x=\"492\" y=\"75\" width=\"176\" height=\"52\" rx=\"3\" fill=\"#9aa3a8\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"580\" y=\"106\" text-anchor=\"middle\" font-size=\"12\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Getränkekisten 18 kg<\/text><rect class=\"hl\" x=\"474\" y=\"58\" width=\"212\" height=\"76\" rx=\"6\" fill=\"transparent\" stroke=\"none\"/><\/g><rect x=\"492\" y=\"145\" width=\"80\" height=\"52\" rx=\"3\" fill=\"#e6e1d6\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"532\" y=\"176\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Servietten<\/text><rect x=\"580\" y=\"145\" width=\"88\" height=\"52\" rx=\"3\" fill=\"#e6e1d6\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"624\" y=\"176\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Pappteller<\/text><rect x=\"492\" y=\"215\" width=\"176\" height=\"52\" rx=\"3\" fill=\"#e6e1d6\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"580\" y=\"246\" text-anchor=\"middle\" font-size=\"12\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Kerzen<\/text><g data-h=\"kuehl\"><rect x=\"720\" y=\"50\" width=\"250\" height=\"240\" fill=\"#dceaf2\" stroke=\"#2e4a5b\" stroke-width=\"3\"/><text x=\"845\" y=\"78\" text-anchor=\"middle\" font-size=\"15\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2e4a5b\">Kühlraum 2 °C<\/text><rect x=\"745\" y=\"100\" width=\"95\" height=\"60\" rx=\"3\" fill=\"#ffffff\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"792\" y=\"128\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Käse<\/text><text x=\"792\" y=\"141\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">getrennt<\/text><rect x=\"850\" y=\"100\" width=\"100\" height=\"60\" rx=\"3\" fill=\"#ffffff\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"900\" y=\"128\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Wurst<\/text><text x=\"900\" y=\"141\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">getrennt<\/text><rect x=\"745\" y=\"180\" width=\"205\" height=\"80\" rx=\"3\" fill=\"#cfe3f0\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"847\" y=\"225\" text-anchor=\"middle\" font-size=\"12\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Tiefkühlbox –18 °C<\/text><rect class=\"hl\" x=\"714\" y=\"44\" width=\"262\" height=\"252\" rx=\"6\" fill=\"transparent\" stroke=\"none\"/><\/g><g data-h=\"milch\"><rect x=\"735\" y=\"420\" width=\"70\" height=\"55\" rx=\"3\" fill=\"#ffffff\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"770\" y=\"452\" text-anchor=\"middle\" font-size=\"13\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Milch<\/text><rect x=\"810\" y=\"420\" width=\"70\" height=\"55\" rx=\"3\" fill=\"#ffffff\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"845\" y=\"452\" text-anchor=\"middle\" font-size=\"12\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Joghurt<\/text><text x=\"808\" y=\"410\" text-anchor=\"middle\" font-size=\"12\" font-family=\"Arial\" fill=\"#5b6569\">seit 9 Uhr hier<\/text><rect class=\"hl\" x=\"726\" y=\"395\" width=\"162\" height=\"86\" rx=\"6\" fill=\"transparent\" stroke=\"none\"/><\/g><g data-h=\"fifo\"><rect x=\"220\" y=\"300\" width=\"230\" height=\"6\" fill=\"#8a8f93\"/><rect x=\"220\" y=\"380\" width=\"230\" height=\"6\" fill=\"#8a8f93\"/><rect x=\"220\" y=\"300\" width=\"6\" height=\"86\" fill=\"#6d7276\"/><rect x=\"444\" y=\"300\" width=\"6\" height=\"86\" fill=\"#6d7276\"/><rect x=\"232\" y=\"312\" width=\"100\" height=\"60\" rx=\"3\" fill=\"#c8d9b0\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"282\" y=\"340\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">MHD 03/27<\/text><text x=\"282\" y=\"353\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">neu, vorn<\/text><rect x=\"338\" y=\"312\" width=\"100\" height=\"60\" rx=\"3\" fill=\"#a7b98c\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"388\" y=\"340\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">MHD 11/26<\/text><text x=\"388\" y=\"353\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">alt, hinten<\/text><rect class=\"hl\" x=\"214\" y=\"294\" width=\"242\" height=\"92\" rx=\"6\" fill=\"transparent\" stroke=\"none\"/><\/g><g data-h=\"papier\"><rect x=\"480\" y=\"300\" width=\"200\" height=\"10\" fill=\"#7a8288\"/><path d=\"M560 310 q-6 14 0 20 q6 -6 0 -20z\" fill=\"#4aa3df\"/><ellipse cx=\"575\" cy=\"458\" rx=\"60\" ry=\"9\" fill=\"#9cc9ea\"/><rect x=\"520\" y=\"390\" width=\"110\" height=\"62\" rx=\"3\" fill=\"#f4f1e4\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"575\" y=\"419\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Kopierpapier<\/text><text x=\"575\" y=\"432\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Druckerpapier<\/text><rect class=\"hl\" x=\"476\" y=\"294\" width=\"210\" height=\"178\" rx=\"6\" fill=\"transparent\" stroke=\"none\"/><\/g><g data-h=\"notausgang\"><rect x=\"30\" y=\"300\" width=\"120\" height=\"170\" fill=\"#ffffff\" stroke=\"#6d7276\" stroke-width=\"3\"/><rect x=\"38\" y=\"306\" width=\"104\" height=\"34\" fill=\"#2c7a4b\"/><text x=\"90\" y=\"328\" text-anchor=\"middle\" font-size=\"13\" font-family=\"Arial\" font-weight=\"700\" fill=\"#fff\">NOTAUSGANG<\/text><rect x=\"50\" y=\"400\" width=\"70\" height=\"60\" rx=\"3\" fill=\"#c9a46a\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><text x=\"85\" y=\"435\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2a2108\">Kartons<\/text><rect x=\"90\" y=\"440\" width=\"80\" height=\"40\" rx=\"3\" fill=\"#c9a46a\" stroke=\"#5b4a32\" stroke-width=\"1.5\"/><rect class=\"hl\" x=\"24\" y=\"294\" width=\"160\" height=\"192\" rx=\"6\" fill=\"transparent\" stroke=\"none\"/><\/g><g data-h=\"loescher\"><rect x=\"660\" y=\"352\" width=\"34\" height=\"14\" fill=\"#c62828\"/><rect x=\"662\" y=\"362\" width=\"30\" height=\"80\" rx=\"10\" fill=\"#e53935\"/><rect x=\"655\" y=\"330\" width=\"44\" height=\"22\" fill=\"#c62828\"/><text x=\"677\" y=\"346\" text-anchor=\"middle\" font-size=\"10\" font-family=\"Arial\" font-weight=\"700\" fill=\"#fff\">F<\/text><rect class=\"hl\" x=\"648\" y=\"324\" width=\"54\" height=\"124\" rx=\"6\" fill=\"transparent\" stroke=\"none\"/><\/g><g data-h=\"plan\"><rect x=\"250\" y=\"400\" width=\"190\" height=\"60\" fill=\"#ffffff\" stroke=\"#2e4a5b\" stroke-width=\"2\"/><text x=\"345\" y=\"425\" text-anchor=\"middle\" font-size=\"12\" font-family=\"Arial\" font-weight=\"700\" fill=\"#2e4a5b\">Regal 4 · Fach 15<\/text><text x=\"345\" y=\"445\" text-anchor=\"middle\" font-size=\"11\" font-family=\"Arial\" fill=\"#2e4a5b\">Lagerplan am Eingang<\/text><rect class=\"hl\" x=\"244\" y=\"394\" width=\"202\" height=\"72\" rx=\"6\" fill=\"transparent\" stroke=\"none\"/><\/g><\/svg>", "hot": [{"id": "fenster", "label": "Schokolade am sonnigen Fenster", "fehler": true, "erkl": "Wärme und Licht: Schokolade wird grau und weich. Kühl, dunkel und trocken lagern."}, {"id": "wasch", "label": "Waschmittel neben Kaffee", "fehler": true, "erkl": "Geruchsübertragung: Lebensmittel getrennt von Drogerie- und Reinigungsmitteln lagern."}, {"id": "schwer", "label": "Schwere Getränkekisten im obersten Fach", "fehler": true, "erkl": "Unfallgefahr: Schweres gehört nach unten."}, {"id": "kuehl", "label": "Kühlraum: Käse und Wurst getrennt, Tiefkühlbox", "fehler": false, "erkl": "Richtig: warengerechte Lagerung und getrennte Aufbewahrung (keine Geschmacksübertragung)."}, {"id": "milch", "label": "Milch und Joghurt seit 9 Uhr am Boden", "fehler": true, "erkl": "Kühlkette unterbrochen: sofort in den Kühlraum."}, {"id": "fifo", "label": "Neue Ware vorn, alte hinten", "fehler": true, "erkl": "fifo verletzt: Was zuerst eingelagert wurde, muss zuerst raus (alte Ware nach vorn)."}, {"id": "papier", "label": "Papier unter tropfendem Rohr", "fehler": true, "erkl": "Feuchtigkeit: Papier wellt sich und wird unverkäuflich."}, {"id": "notausgang", "label": "Kartons vor dem Notausgang", "fehler": true, "erkl": "Fluchtweg versperrt (Sicherheit) und unübersichtlich: Gänge immer frei halten."}, {"id": "loescher", "label": "Feuerlöscher frei zugänglich", "fehler": false, "erkl": "Richtig: Brandschutz."}, {"id": "plan", "label": "Beschriftete Lagerplätze mit Lagerplan", "fehler": false, "erkl": "Richtig: Übersichtlichkeit (Festplatzsystem)."}], "timer": 75, "erkl": "7 Fehler: Schokolade am Fenster · Waschmittel neben Kaffee · schwere Kisten oben · Milch außerhalb der Kühlung · fifo verletzt · Papier unter dem tropfenden Rohr · Kartons vor dem Notausgang. Richtig: Kühlraum, Feuerlöscher, Lagerplan.", "frage": "Welcher Fehler ist am teuersten für den Betrieb – und welcher am gefährlichsten für Menschen?"}, {"typ": "karten", "text": "Welcher Lagergrundsatz steckt hinter „Alte Ware nach vorn“?", "opts": ["warengerecht lagern", "übersichtlich lagern", "fifo – first in, first out", "geräumig lagern"], "ok": 2, "timer": 15, "erkl": "fifo: Was zuerst eingelagert wurde, wird zuerst verkauft – so veraltet und verdirbt weniger."}, {"typ": "verdacht", "text": "Wozu braucht die Nordstadt-Kauf GmbH überhaupt ein Lager? Markiert alles, was stimmt.", "items": [{"t": "Damit Ware da ist, auch wenn eine Lieferung später kommt", "ok": true, "erkl": "Verkaufsbereitschaft sichern"}, {"t": "Um Mengenrabatte bei großen Bestellungen zu nutzen", "ok": true, "erkl": "Preisvorteile"}, {"t": "Um Ware auszupacken, abzupacken, auszuzeichnen", "ok": true, "erkl": "Ware verkaufsfähig machen"}, {"t": "Um Kartoffeln vom Herbst bis zum Frühjahr zu verkaufen", "ok": true, "erkl": "Zeit überbrücken"}, {"t": "Um Verpackungen zu sammeln und zu verwerten", "ok": true, "erkl": "Umweltschutz"}, {"t": "Damit die Kunden dort beraten werden", "ok": false, "erkl": "Beratung passiert im Verkaufsraum"}], "erkl": "Fünf Aufgaben des Lagers: Verkaufsbereitschaft, Zeit überbrücken, Preisvorteile, verkaufsfähig machen, Umweltschutz (LB S. 72)."}]};
+/* ---------------- Netz: MQTT über WebSocket (wie Ecken-Sortierer), Ausweich: BroadcastChannel ---------------- */
+const TE=new TextEncoder(),TD=new TextDecoder();
+function mqStr(s){const b=TE.encode(s);return [b.length>>8,b.length&255,...b];}
+function mqLen(n){const o=[];do{let d=n%128;n=Math.floor(n/128);if(n>0)d|=128;o.push(d);}while(n>0);return o;}
+function mqPacket(h,body){return new Uint8Array([h,...mqLen(body.length),...body]);}
+class MqttLink{
+  constructor(url,cid,onMsg,onStatus){this.url=url;this.cid=cid;this.onMsg=onMsg;this.onStatus=onStatus;this.subs=new Set();this.up=false;this.buf=new Uint8Array(0);this.pid=1;this.tries=0;this.connect();}
+  connect(){clearTimeout(this.rt);clearInterval(this.ping);let ws;
+    try{ws=new WebSocket(this.url,["mqtt"]);}catch(e){this.retry();return;}
+    this.ws=ws;ws.binaryType="arraybuffer";
+    const guard=setTimeout(()=>{if(!this.up){try{ws.close();}catch(e){}}},9000);
+    ws.onopen=()=>{ws.send(mqPacket(0x10,[...mqStr("MQTT"),4,0x02,0,30,...mqStr(this.cid+"-"+Math.random().toString(36).slice(2,6))]));};
+    ws.onmessage=(ev)=>{const d=new Uint8Array(ev.data);const nb=new Uint8Array(this.buf.length+d.length);nb.set(this.buf);nb.set(d,this.buf.length);this.buf=nb;this.parse();};
+    ws.onclose=()=>{clearTimeout(guard);this.up=false;clearInterval(this.ping);this.onStatus();this.retry();};
+    ws.onerror=()=>{};}
+  retry(){this.tries++;const w=Math.min(15000,800*Math.pow(1.6,this.tries));this.rt=setTimeout(()=>this.connect(),w);}
+  parse(){while(this.buf.length>=2){let mult=1,len=0,i=1,b;
+      do{if(i>=this.buf.length)return;b=this.buf[i++];len+=(b&127)*mult;mult*=128;}while(b&128);
+      if(this.buf.length<i+len)return;
+      const type=this.buf[0]>>4,flags=this.buf[0]&15,body=this.buf.subarray(i,i+len);this.buf=this.buf.slice(i+len);
+      if(type===2){if(body[1]===0){this.up=true;this.tries=0;for(const t of this.subs)this.sendSub(t);
+          this.ping=setInterval(()=>{try{this.ws.send(new Uint8Array([0xC0,0]));}catch(e){}},20000);this.onStatus(true);}else{try{this.ws.close();}catch(e){}}}
+      else if(type===3){const tl=(body[0]<<8)|body[1];const topic=TD.decode(body.subarray(2,2+tl));let p=2+tl;const qos=(flags>>1)&3;
+        if(qos>0){const id=(body[p]<<8)|body[p+1];p+=2;if(qos===1){try{this.ws.send(new Uint8Array([0x40,2,id>>8,id&255]));}catch(e){}}}
+        let payload=null;try{payload=JSON.parse(TD.decode(body.subarray(p)));}catch(e){}
+        if(payload!==null)this.onMsg(topic,payload);}}}
+  sendSub(t){const id=this.pid=(this.pid%60000)+1;try{this.ws.send(mqPacket(0x82,[id>>8,id&255,...mqStr(t),0]));}catch(e){}}
+  subscribe(t){this.subs.add(t);if(this.up)this.sendSub(t);}
+  publish(t,obj,retain){if(!this.up)return false;const body=[...mqStr(t),...TE.encode(JSON.stringify(obj))];
+    try{this.ws.send(mqPacket(retain?0x31:0x30,body));return true;}catch(e){return false;}}
+}
+class BcLink{ /* nur zum Testen in einem Browser: ?broker=bc */
+  constructor(cid,onMsg,onStatus){this.up=true;this.subs=new Set();this.ch=new BroadcastChannel("lf7live");this.ch.onmessage=(e)=>{if(this.subs.has(e.data.t))onMsg(e.data.t,e.data.p);};setTimeout(()=>onStatus(true),50);}
+  subscribe(t){this.subs.add(t);} publish(t,obj){this.ch.postMessage({t,p:obj});return true;}
+}
+const params=new URLSearchParams(location.search);
+const BR=params.get("broker");
+const BROKERS=BR&&BR!=="bc"?[BR]:["wss://broker.hivemq.com:8884/mqtt","wss://broker.emqx.io:8084/mqtt"];
+const NS="lf7live1/";
+function rnd(n){const a="abcdefghijkmnpqrstuvwxyz23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(n));for(const x of r)s+=a[x%a.length];return s;}
+function codeGen(){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(4));for(const x of r)s+=a[x%a.length];return s;}
+class Net{
+  constructor(onMsg,onStatus){this.cid="c"+rnd(9);this.seen=new Map();this.onMsg=onMsg;
+    const cb=()=>onStatus(this.count());
+    this.links=BR==="bc"?[new BcLink(this.cid,(t,p)=>this.recv(t,p),cb)]:BROKERS.map(u=>new MqttLink(u,this.cid,(t,p)=>this.recv(t,p),cb));}
+  count(){return {up:this.links.filter(l=>l.up).length,all:this.links.length};}
+  recv(t,p){if(p&&p.mid){if(this.seen.has(p.mid))return;this.seen.set(p.mid,Date.now());if(this.seen.size>4000)this.seen.clear();}this.onMsg(t.slice(NS.length),p);}
+  sub(t){this.links.forEach(l=>l.subscribe(NS+t));}
+  pub(t,obj,retain){obj.mid=rnd(12);let ok=false;this.links.forEach(l=>{if(l.publish(NS+t,obj,retain))ok=true;});return ok;}
+}
+/* ---------------- Hilfen ---------------- */
+const $=(id)=>document.getElementById(id);
+function h(tag,attrs,...kids){const e=document.createElement(tag);if(attrs)for(const k in attrs){if(k==="class")e.className=attrs[k];else if(k==="html")e.innerHTML=attrs[k];else if(k.startsWith("on"))e.addEventListener(k.slice(2),attrs[k]);else if(attrs[k]!==false&&attrs[k]!=null)e.setAttribute(k,attrs[k]===true?"":attrs[k]);}
+  for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(String(c)));}return e;}
+function store(k,v,ses){try{const st=ses?sessionStorage:localStorage;if(v===undefined)return JSON.parse(st.getItem(k));st.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+function clean(s,max){return String(s==null?"":s).replace(/[\u0000-\u001f\u007f]/g," ").trim().slice(0,max);}
+function fmt(x,d){if(x==null||isNaN(x))return "–";return Number(x).toLocaleString("de-DE",{maximumFractionDigits:d==null?2:d,minimumFractionDigits:0});}
+function zahl(s){s=String(s).replace(/\s/g,"").replace(/€|eur|stück|stk|tage|%/gi,"");if(s.indexOf(",")>=0)s=s.replace(/\./g,"").replace(",",".");const v=parseFloat(s);return isNaN(v)?null:v;}
+function norm(w){return clean(w,30).toLowerCase().replace(/[.,!?;:"„“'()]/g,"").replace(/\s+/g," ");}
+function drawQR(canvas,text){const ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+  if(!text){ctx.fillStyle="#999";ctx.font="bold 18px sans-serif";ctx.textAlign="center";ctx.fillText("Datei erst hochladen (GitHub Pages)",canvas.width/2,canvas.height/2);return;}
+  const q=new QRLib.QRCode(-1,QRLib.ECL.M);q.addData(text);q.make();const n=q.getModuleCount(),quiet=2,cell=Math.floor(canvas.width/(n+quiet*2)),off=Math.floor((canvas.width-cell*n)/2);
+  ctx.fillStyle="#000";for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))ctx.fillRect(off+c*cell,off+r*cell,cell,cell);}
+function teamOf(cid){let s=0;for(const ch of cid)s=(s*31+ch.charCodeAt(0))%9973;return s%2;}
+
+/* =====================================================================
+   Antwort-Typen: jede Runde hat r.typ (oder CFG.typ). Für jeden Typ:
+   phone(r, ctx, send) baut die Eingabe; board(r, answers, reveal) baut die Tafel-Auswertung.
+   ===================================================================== */
+const T={};
+function typ(r){return r.typ||CFG.typ;}
+function vals(ans){return Object.values(ans||{});}
+
+/* --- karten: eine Situation, Optionen antippen, optional Countdown --- */
+T.karten={
+  phone(r,ctx,send){const box=h("div",null);if(r.bild)box.append(h("div",{class:"scene",html:r.bild}));
+    box.append(h("p",{class:"karte"},r.text));if(r.sub)box.append(h("p",{class:"sub"},r.sub));
+    let tm=null;if(r.timer){const bar=h("i");tm=h("div",{class:"timer"},bar);box.append(tm);let left=r.timer;requestAnimationFrame(()=>{bar.style.width="0%";bar.style.transition="width "+r.timer+"s linear";});
+      ctx.timeout=setTimeout(()=>{if(!ctx.sent){ctx.sent=true;send(-1);}},r.timer*1000);}
+    const o=h("div",{class:"opts"});r.opts.forEach((t,i)=>o.append(h("button",{class:"opt",onclick:()=>{if(ctx.sent)return;ctx.sent=true;clearTimeout(ctx.timeout);send(i);}},t)));box.append(o);return box;},
+  board(r,ans,rev){const n=r.opts.length,c=new Array(n).fill(0);let zu=0;vals(ans).forEach(v=>{if(v>=0&&v<n)c[v]++;else zu++;});const sum=c.reduce((a,b)=>a+b,0)+zu;
+    const okset=new Set([].concat(r.ok==null?[]:r.ok));
+    const bars=h("div",{class:"bars"});r.opts.forEach((t,i)=>{const p=sum?Math.round(c[i]/sum*100):0;
+      bars.append(h("div",{class:"bar"+(rev&&okset.size?(okset.has(i)?" ok":" no"):"")},h("div",{class:"lab"},t),h("div",{class:"track"},h("div",{class:"fill",style:"width:"+p+"%"})),h("div",{class:"num tabnum"},c[i])));});
+    if(r.timer)bars.append(h("div",{class:"bar"},h("div",{class:"lab verdeckt"},"Zeit abgelaufen"),h("div",{class:"track"},h("div",{class:"fill",style:"width:"+(sum?Math.round(zu/sum*100):0)+"%;background:var(--muted)"})),h("div",{class:"num tabnum"},zu)));
+    const box=h("div",null);if(r.bild)box.append(h("div",{class:"scene",style:"max-width:420px;margin:0 0 12px",html:r.bild}));
+    box.append(h("p",{class:"karte"},r.text),bars);return box;}
+};
+/* --- abgleich: Bestellung links, Lieferschein rechts; Zellen rechts antippen --- */
+function docTable(d,tapIds,sel,counts,diffs,onTap,prefix){
+  const t=h("table");t.append(h("tr",null,d.kopf.map(k=>h("th",null,k))));
+  d.zeilen.forEach((z,ri)=>{const tr=h("tr");z.forEach((v,ci)=>{const id=prefix+ri+"-"+ci;const tap=tapIds&&!(d.fest||[]).includes(ci);
+      const td=h("td",{class:(tap?"tap":"")+(sel&&sel.has(id)?" sel":"")+(diffs&&diffs.includes(id)?" diff":"")},v);
+      if(tap&&onTap){td.tabIndex=0;td.onclick=()=>onTap(id,td);td.onkeydown=(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();onTap(id,td);}};}
+      if(counts&&counts[id])td.append(h("span",{class:"cnt"},counts[id]));tr.append(td);});t.append(tr);});return t;}
+T.abgleich={
+  phone(r,ctx,send){const sel=new Set();const box=h("div",null,h("p",{class:"karte"},r.text));
+    const tap=(id,td)=>{if(ctx.sent)return;if(sel.has(id)){sel.delete(id);td.classList.remove("sel");}else{sel.add(id);td.classList.add("sel");}};
+    box.append(h("div",{class:"docs"},h("div",{class:"doc"},h("h3",null,r.links.titel),docTable(r.links,false)),h("div",{class:"doc"},h("h3",null,r.rechts.titel+" – antippen"),docTable(r.rechts,true,sel,null,null,tap,"z"))));
+    box.append(h("button",{class:"send",onclick:()=>{if(ctx.sent)return;ctx.sent=true;send([...sel]);}},"Abweichungen senden"));return box;},
+  board(r,ans,rev){const cnt={};vals(ans).forEach(a=>(a||[]).forEach(id=>cnt[id]=(cnt[id]||0)+1));
+    return h("div",null,h("p",{class:"karte"},r.text),h("div",{class:"docs"},h("div",{class:"doc"},h("h3",null,r.links.titel),docTable(r.links,false)),
+      h("div",{class:"doc"},h("h3",null,r.rechts.titel),docTable(r.rechts,true,null,cnt,rev?r.ok:null,null,"z"))));}
+};
+/* --- skala: Zeitstrahl / Zahlenstrahl, Punktwolke --- */
+function pos(r,v){return (v-r.min)/(r.max-r.min)*100;}
+function axisEl(r,values,rev){const ax=h("div",{class:"axis"});if(rev&&r.ok)ax.append(h("div",{class:"zone",style:"left:"+pos(r,r.ok[0])+"%;width:"+Math.max(1,pos(r,r.ok[1])-pos(r,r.ok[0]))+"%"}));
+  ax.append(h("div",{class:"line"}));(r.ticks||[]).forEach(([v,l])=>ax.append(h("div",{class:"tick",style:"left:"+pos(r,v)+"%"},l)));
+  const stack={};values.forEach(v=>{const k=Math.round(pos(r,v));stack[k]=(stack[k]||0)+1;ax.append(h("div",{class:"stackdot",style:"left:"+pos(r,v)+"%;bottom:"+(46+(stack[k]-1)*18)+"px"}));});return ax;}
+T.skala={
+  phone(r,ctx,send){const out=h("div",{class:"big tabnum",style:"text-align:center"},"–");const s=h("input",{type:"range",class:"slider",min:r.min,max:r.max,step:r.step||1,value:r.start!=null?r.start:r.min});
+    const lab=(v)=>{v=Number(v);const t=(r.ticks||[]).find(x=>x[0]===v);return (r.prefix||"")+(t&&r.tickLabel?t[1]:fmt(v,1)+" "+(r.unit||""));};
+    s.oninput=()=>{out.textContent=lab(s.value);};out.textContent=lab(s.value);
+    return h("div",null,h("p",{class:"karte"},r.text),r.sub?h("p",{class:"sub"},r.sub):null,out,s,h("div",{class:"hint",style:"display:flex;justify-content:space-between"},h("span",null,r.lmin||String(r.min)),h("span",null,r.lmax||String(r.max))),
+      h("button",{class:"send",onclick:()=>{if(ctx.sent)return;ctx.sent=true;send(Number(s.value));}},"Abschicken"));},
+  board(r,ans,rev){const v=vals(ans).filter(x=>typeof x==="number");const m=v.length?v.reduce((a,b)=>a+b,0)/v.length:null;
+    return h("div",null,h("p",{class:"karte"},r.text),h("div",{class:"panel"},axisEl(r,v,rev),h("p",{class:"stat"},"Antworten: ",h("b",null,v.length),"  ·  Mittelwert der Klasse: ",h("b",null,m==null?"–":fmt(m,1)+" "+(r.unit||"")))));}
+};
+/* --- kurve: Bestandskurve (Sägezahn), alle ziehen eine Linie --- */
+function kurveSvg(r,values,rev){const W=900,H=380,L=60,B=40,top=20,maxY=r.maxY;const y=(v)=>H-B-(v/maxY)*(H-B-top);
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Bestandskurve"><rect x="0" y="0" width="'+W+'" height="'+H+'" fill="var(--panel)"/>';
+  for(let g=0;g<=maxY;g+=r.gridY){s+='<line x1="'+L+'" x2="'+(W-10)+'" y1="'+y(g)+'" y2="'+y(g)+'" stroke="var(--line)" stroke-width="1"/><text x="'+(L-8)+'" y="'+(y(g)+5)+'" text-anchor="end" font-size="14" fill="var(--muted)">'+g+'</text>';}
+  const pts=r.punkte.map(([x,v])=>(L+x*(W-L-10))+","+y(v)).join(" ");s+='<polyline points="'+pts+'" fill="none" stroke="var(--steel)" stroke-width="4"/>';
+  (r.linien||[]).forEach(l=>{s+='<line x1="'+L+'" x2="'+(W-10)+'" y1="'+y(l.v)+'" y2="'+y(l.v)+'" stroke="'+l.farbe+'" stroke-width="3" stroke-dasharray="10 6"/><text x="'+(W-14)+'" y="'+(y(l.v)-6)+'" text-anchor="end" font-size="15" font-weight="600" fill="'+l.farbe+'">'+l.t+'</text>';});
+  const stack={};values.forEach(v=>{const k=Math.round(v/r.gridY*4);stack[k]=(stack[k]||0)+1;s+='<circle cx="'+(L+14+(stack[k]-1)*16)+'" cy="'+y(v)+'" r="7" fill="var(--accent)" stroke="var(--fg)" stroke-width="1"/>';});
+  if(rev&&r.ok!=null)s+='<line x1="'+L+'" x2="'+(W-10)+'" y1="'+y(r.ok)+'" y2="'+y(r.ok)+'" stroke="var(--ok)" stroke-width="5"/><text x="'+(L+120)+'" y="'+(y(r.ok)-8)+'" font-size="17" font-weight="700" fill="var(--ok)">'+r.okText+'</text>';
+  s+='<text x="'+(W-10)+'" y="'+(H-10)+'" text-anchor="end" font-size="14" fill="var(--muted)">'+r.xLabel+'</text><text x="12" y="16" font-size="14" fill="var(--muted)">'+r.yLabel+'</text></svg>';return s;}
+T.kurve={
+  phone(r,ctx,send){const out=h("div",{class:"big tabnum",style:"text-align:center"});const sc=h("div",{class:"scene"});
+    const s=h("input",{type:"range",class:"slider",min:0,max:r.maxY,step:r.step||5,value:Math.round(r.maxY/2)});
+    const upd=()=>{out.textContent=s.value+" "+(r.unit||"");sc.innerHTML=kurveSvg(r,[Number(s.value)],false);};s.oninput=upd;upd();
+    return h("div",null,h("p",{class:"karte"},r.text),r.sub?h("p",{class:"sub"},r.sub):null,sc,out,s,h("button",{class:"send",onclick:()=>{if(ctx.sent)return;ctx.sent=true;send(Number(s.value));}},"Linie setzen"));},
+  board(r,ans,rev){const v=vals(ans).filter(x=>typeof x==="number");const m=v.length?v.reduce((a,b)=>a+b,0)/v.length:null;
+    return h("div",null,h("p",{class:"karte"},r.text),h("div",{class:"scene",html:kurveSvg(r,v,rev)}),h("p",{class:"stat"},"Antworten: ",h("b",null,v.length),"  ·  Mittelwert: ",h("b",null,m==null?"–":fmt(m,0)+" "+(r.unit||""))));}
+};
+/* --- kalender: einen Tag antippen --- */
+function kalEl(r,cnt,sel,rev,onTap){const [Y,M]=r.monat;const first=new Date(Y,M-1,1);const days=new Date(Y,M,0).getDate();const off=(first.getDay()+6)%7;
+  const g=h("div",{class:"kal"});["Mo","Di","Mi","Do","Fr","Sa","So"].forEach(w=>g.append(h("div",{class:"wd"},w)));for(let i=0;i<off;i++)g.append(h("div",{class:"leer"}));
+  for(let d=1;d<=days;d++){const key=d;const b=h("button",{class:"tag"+(sel===d?" sel":"")+(rev&&r.ok===d?" ok":""),"aria-label":d+". "},h("span",{class:"n"},d));
+    if(r.marken&&r.marken[d])b.append(h("span",{class:"m"},r.marken[d]));if(cnt&&cnt[key])b.append(h("span",{class:"cnt"},cnt[key]));if(onTap)b.onclick=()=>onTap(d);else b.disabled=true;g.append(b);}
+  return h("div",null,h("div",{class:"leit"},r.monatName),g);}
+T.kalender={
+  phone(r,ctx,send){let sel=null;const box=h("div",null,h("p",{class:"karte"},r.text),r.sub?h("p",{class:"sub"},r.sub):null);let kal;
+    const tap=(d)=>{if(ctx.sent)return;sel=d;const n=kalEl(r,null,sel,false,tap);kal.replaceWith(n);kal=n;btn.disabled=false;};
+    kal=kalEl(r,null,null,false,tap);const btn=h("button",{class:"send",disabled:true,onclick:()=>{if(ctx.sent||sel==null)return;ctx.sent=true;send(sel);}},"Tag abschicken");box.append(kal,btn);return box;},
+  board(r,ans,rev){const c={};vals(ans).forEach(d=>c[d]=(c[d]||0)+1);return h("div",null,h("p",{class:"karte"},r.text),r.sub?h("p",{class:"sub"},r.sub):null,kalEl(r,c,null,rev,null));}
+};
+/* --- suchbild: Stellen im Bild antippen --- */
+function sceneEl(r,sel,cnt,rev,onTap){const w=h("div",{class:"scene",html:r.svg});const svg=w.querySelector("svg");
+  svg.querySelectorAll("[data-h]").forEach(g=>{const id=g.getAttribute("data-h");const hs=r.hot.find(x=>x.id===id);if(!hs)return;
+    if(sel&&sel.has(id))g.classList.add("sel");
+    if(onTap){g.setAttribute("tabindex","0");g.setAttribute("role","button");g.setAttribute("aria-label",hs.label);g.onclick=()=>onTap(id,g);g.onkeydown=(e)=>{if(e.key==="Enter"){onTap(id,g);}};}
+    const bb=g.querySelector(".hl");if(bb&&(cnt||rev)){const x=+bb.getAttribute("x"),y=+bb.getAttribute("y"),ww=+bb.getAttribute("width");
+      if(rev){bb.setAttribute("stroke",hs.fehler?"var(--bad)":"var(--ok)");bb.setAttribute("stroke-width","6");}
+      if(cnt){const n=cnt[id]||0;const ns="http://www.w3.org/2000/svg";const c=document.createElementNS(ns,"circle");c.setAttribute("cx",x+ww-6);c.setAttribute("cy",y+6);c.setAttribute("r",20);c.setAttribute("fill","var(--heat)");
+        const t=document.createElementNS(ns,"text");t.setAttribute("x",x+ww-6);t.setAttribute("y",y+13);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","20");t.setAttribute("fill","var(--accent-ink)");t.setAttribute("class","badge");t.textContent=n;g.append(c,t);}}});
+  return w;}
+T.suchbild={
+  phone(r,ctx,send){const sel=new Set();const box=h("div",null,h("p",{class:"karte"},r.text));
+    const tap=(id,g)=>{if(ctx.sent)return;if(sel.has(id)){sel.delete(id);g.classList.remove("sel");}else{sel.add(id);g.classList.add("sel");}zahlEl.textContent=sel.size+" markiert";};
+    const zahlEl=h("div",{class:"stat"},"0 markiert");
+    if(r.timer){const bar=h("i");box.append(h("div",{class:"timer"},bar));requestAnimationFrame(()=>{bar.style.transition="width "+r.timer+"s linear";bar.style.width="0%";});ctx.timeout=setTimeout(()=>{if(!ctx.sent){ctx.sent=true;send([...sel]);}},r.timer*1000);}
+    box.append(sceneEl(r,sel,null,false,tap),zahlEl,h("button",{class:"send",onclick:()=>{if(ctx.sent)return;ctx.sent=true;clearTimeout(ctx.timeout);send([...sel]);}},"Fertig – senden"));return box;},
+  board(r,ans,rev){const c={};vals(ans).forEach(a=>(a||[]).forEach(id=>c[id]=(c[id]||0)+1));const box=h("div",null,h("p",{class:"karte"},r.text),sceneEl(r,null,c,rev,null));
+    if(rev){const ul=h("div",{class:"bars",style:"margin-top:14px"});r.hot.forEach(x=>ul.append(h("div",{class:"bar "+(x.fehler?"no":"ok")},h("div",{class:"lab"},(x.fehler?"✗ ":"✓ ")+x.label),h("div",null,x.erkl||""),h("div",{class:"num tabnum"},c[x.id]||0))));box.append(ul);}
+    return box;}
+};
+/* --- wolke: kurze Begriffe eintippen --- */
+T.wolke={
+  phone(r,ctx,send){const inp=h("input",{type:"text",maxlength:28,placeholder:"ein bis drei Wörter",id:"w"+Math.random()});const list=h("div",{class:"vals"});const mine=[];
+    const go=()=>{const v=clean(inp.value,28);if(!v||mine.length>=3)return;mine.push(v);list.append(h("span",null,v));inp.value="";send(mine.slice());if(mine.length>=3){inp.disabled=true;}};
+    inp.onkeydown=(e)=>{if(e.key==="Enter")go();};
+    return h("div",null,r.bild?h("div",{class:"scene",html:r.bild}):null,h("p",{class:"karte"},r.text),r.sub?h("p",{class:"sub"},r.sub):null,inp,h("button",{class:"send",onclick:go},"Senden (bis zu 3 Begriffe)"),list);},
+  noLock:true,
+  board(r,ans,rev){const c={},orig={};vals(ans).forEach(a=>(a||[]).forEach(w=>{const k=norm(w);if(!k)return;c[k]=(c[k]||0)+1;orig[k]=orig[k]||clean(w,28);}));
+    const keys=Object.keys(c).sort((a,b)=>c[b]-c[a]).slice(0,60);const mx=Math.max(1,...keys.map(k=>c[k]));const okw=(r.ok||[]).map(norm);
+    const wl=h("div",{class:"wolke"});keys.forEach(k=>{const isOk=rev&&okw.some(o=>k.includes(o)||o.includes(k));wl.append(h("span",{class:isOk?"ok":"",style:"font-size:"+(18+34*c[k]/mx)+"px"},orig[k]));});
+    if(!keys.length)wl.append(h("span",{class:"verdeckt",style:"font-size:18px"},"Noch keine Begriffe"));
+    return h("div",null,r.bild?h("div",{class:"scene",style:"max-width:520px;margin:0 0 10px",html:r.bild}):null,h("p",{class:"karte"},r.text),h("div",{class:"panel"},wl));}
+};
+/* --- duell: zwei Teams rechnen mit verschiedenen Formeln --- */
+T.duell={
+  phone(r,ctx,send){const tm=ctx.team;const t=r.teams[tm];const inp=h("input",{type:"text",inputmode:"decimal",placeholder:"Ergebnis",id:"d"+tm});
+    return h("div",null,h("div",{class:"chip",style:"display:inline-block;margin-bottom:8px"},"Team "+t.name),h("p",{class:"karte"},r.text),h("div",{class:"daten",html:r.daten}),
+      h("p",{class:"sub",style:"margin-top:10px"},h("b",null,"Euer Rechenweg: "),t.aufgabe),inp,h("button",{class:"send",onclick:()=>{const v=zahl(inp.value);if(v==null||ctx.sent)return;ctx.sent=true;send({t:tm,v});}},"Ergebnis senden"));},
+  board(r,ans,rev){const by=[[],[]];vals(ans).forEach(a=>{if(a&&(a.t===0||a.t===1)&&typeof a.v==="number")by[a.t].push(a.v);});
+    const col=(i)=>{const v=by[i],t=r.teams[i];const m=v.length?v.reduce((a,b)=>a+b,0)/v.length:null;
+      return h("div",{class:"panel team"},h("h3",null,"Team "+t.name),h("p",{class:"sub"},t.aufgabe),h("div",{class:"mittel tabnum"},m==null?"–":fmt(m,2)),h("div",{class:"stat"},v.length+" Ergebnisse · häufigster Wert"),
+        h("div",{class:"vals"},v.slice(0,40).map(x=>h("span",{class:rev&&Math.abs(x-r.ok[i])<0.01*Math.max(1,Math.abs(r.ok[i]))?"ok":""},fmt(x,2)))),rev?h("div",{class:"erkl",style:"margin-top:10px"},h("b",null,"Richtig: "+fmt(r.ok[i],2)+" "+(r.unit||""))):null);};
+    return h("div",null,h("p",{class:"karte"},r.text),h("div",{class:"daten",html:r.daten,style:"margin-bottom:14px"}),h("div",{class:"teams"},col(0),col(1)));}
+};
+/* --- rang: Reihenfolge durch Antippen --- */
+T.rang={
+  phone(r,ctx,send){const order=[];const box=h("div",null,h("p",{class:"karte"},r.text),r.sub?h("p",{class:"sub"},r.sub):null);const o=h("div",{class:"opts"});
+    const draw=()=>{o.innerHTML="";r.items.forEach((t,i)=>{const k=order.indexOf(i);o.append(h("button",{class:"opt"+(k>=0?" sel":""),onclick:()=>{if(ctx.sent)return;if(k>=0)order.splice(k,1);else order.push(i);draw();}},(k>=0?(k+1)+".  ":"")+t));});
+      btn.disabled=order.length!==r.items.length;};
+    const btn=h("button",{class:"send",disabled:true,onclick:()=>{if(ctx.sent||order.length!==r.items.length)return;ctx.sent=true;send(order.slice());}},"Reihenfolge senden");
+    box.append(h("p",{class:"hint"},"Tippe in der Reihenfolge: zuerst „"+r.oben+"“."),o,btn);draw();return box;},
+  board(r,ans,rev){const n=r.items.length,sum=new Array(n).fill(0);let k=0;vals(ans).forEach(a=>{if(Array.isArray(a)&&a.length===n){k++;a.forEach((it,pos)=>sum[it]+=pos+1);}});
+    const avg=sum.map(s=>k?s/k:null);const idx=[...Array(n).keys()].sort((a,b)=>(avg[a]??99)-(avg[b]??99));
+    const bars=h("div",{class:"bars"});idx.forEach((i,p)=>{const okp=rev?r.ok.indexOf(i)+1:null;
+      bars.append(h("div",{class:"bar"+(rev?(okp===p+1?" ok":" no"):"")},h("div",{class:"lab"},(p+1)+".  "+r.items[i]),h("div",{class:"track"},h("div",{class:"fill",style:"width:"+(avg[i]?Math.round((n+1-avg[i])/n*100):0)+"%"})),h("div",{class:"num tabnum"},avg[i]?fmt(avg[i],1):"–")));});
+    const box=h("div",null,h("p",{class:"karte"},r.text),h("p",{class:"stat"},"Klassen-Rangliste nach mittlerem Platz (",k," Antworten). Oben: ",r.oben),bars);
+    if(rev)box.append(h("div",{class:"erkl"},h("b",null,"Begründete Reihenfolge: "),r.ok.map((i,p)=>(p+1)+". "+r.items[i]).join("  ·  ")));return box;}
+};
+/* --- kette: Ursache-Wirkungs-Kette, je Glied steigt/sinkt --- */
+T.kette={
+  phone(r,ctx,send){const v=new Array(r.glieder.length).fill(null);const box=h("div",null,h("p",{class:"karte"},r.text));const k=h("div",{class:"kette",style:"flex-direction:column"});
+    k.append(h("div",{class:"glied start"},h("div",{class:"t"},r.start)));
+    r.glieder.forEach((g,i)=>{const up=h("button",{onclick:()=>{v[i]="up";up.classList.add("sel");dn.classList.remove("sel");chk();}},"↑ steigt"),dn=h("button",{onclick:()=>{v[i]="down";dn.classList.add("sel");up.classList.remove("sel");chk();}},"↓ sinkt");
+      k.append(h("div",{class:"pfeil",style:"text-align:center"},"↓"),h("div",{class:"glied"},h("div",{class:"t"},g),h("div",{class:"updown"},up,dn)));});
+    const btn=h("button",{class:"send",disabled:true,onclick:()=>{if(ctx.sent)return;ctx.sent=true;send(v.slice());}},"Kette senden");const chk=()=>{btn.disabled=v.includes(null);};
+    box.append(k,btn);return box;},
+  board(r,ans,rev){const n=r.glieder.length,up=new Array(n).fill(0),tot=new Array(n).fill(0);vals(ans).forEach(a=>(a||[]).forEach((x,i)=>{if(x){tot[i]++;if(x==="up")up[i]++;}}));
+    const k=h("div",{class:"kette"});k.append(h("div",{class:"glied start"},h("div",{class:"t"},r.start),h("div",{class:"pf"},r.startPfeil||"↑")));
+    r.glieder.forEach((g,i)=>{const pu=tot[i]?Math.round(up[i]/tot[i]*100):0;const okv=r.ok[i];k.append(h("div",{class:"pfeil"},"→"),
+      h("div",{class:"glied"+(rev?" ok":"")},h("div",{class:"t"},g),h("div",{class:"pf"},rev?(okv==="up"?"↑":"↓"):(tot[i]?(pu>=50?"↑":"↓"):"?")),h("div",{class:"stat tabnum"},tot[i]?("↑ "+pu+" %  ·  ↓ "+(100-pu)+" %"):"–")));});
+    return h("div",null,h("p",{class:"karte"},r.text),k);}
+};
+/* --- verdacht: mehrere Aussagen markieren --- */
+T.verdacht={
+  phone(r,ctx,send){const sel=new Set();const o=h("div",{class:"opts"});r.items.forEach((it,i)=>{const b=h("button",{class:"opt",onclick:()=>{if(ctx.sent)return;if(sel.has(i)){sel.delete(i);b.classList.remove("sel");}else{sel.add(i);b.classList.add("sel");}}},it.t);o.append(b);});
+    return h("div",null,h("p",{class:"karte"},r.text),r.sub?h("p",{class:"sub"},r.sub):null,o,h("button",{class:"send",onclick:()=>{if(ctx.sent)return;ctx.sent=true;send([...sel]);}},"Verdacht abschicken"));},
+  board(r,ans,rev){const c=new Array(r.items.length).fill(0);let k=0;vals(ans).forEach(a=>{k++;(a||[]).forEach(i=>c[i]++);});
+    const bars=h("div",{class:"bars"});r.items.forEach((it,i)=>bars.append(h("div",{class:"bar"+(rev?(it.ok?" ok":" no"):"")},h("div",{class:"lab"},it.t),h("div",{class:"track"},h("div",{class:"fill",style:"width:"+(k?Math.round(c[i]/k*100):0)+"%"})),h("div",{class:"num tabnum"},c[i]))));
+    const box=h("div",null,h("p",{class:"karte"},r.text),h("p",{class:"stat"},k+" Antworten"),bars);
+    if(rev){const e=h("div",{class:"bars",style:"margin-top:12px"});r.items.forEach(it=>{if(it.erkl)e.append(h("div",{class:"hint"},(it.ok?"✓ ":"✗ ")+it.t+": "+it.erkl));});box.append(e);}return box;}
+};
+
+/* =====================================================================
+   Tafel (Lehrkraft)
+   ===================================================================== */
+const KEY="lf7live:"+CFG.id;
+function board(){
+  const S=Object.assign({code:codeGen(),rid:rnd(6),cur:0,rev:false,show:true,ans:{},einzeln:false,local:0},store(KEY)||{});
+  const save=()=>store(KEY,S);save();
+  const peers=new Map();let net=null;
+  const root=$("app");root.innerHTML="";
+  const top=h("div",{class:"top"},h("span",{class:"chip"},"LF 7 · Modul "+CFG.modul),h("span",{class:"name"},CFG.name),h("span",{class:"spacer"}),
+    h("span",{class:"stat",id:"netst"},h("span",{class:"dot",id:"netdot"}),"verbinde …"),h("span",{class:"stat"},"Code ",h("b",{id:"codeT"},S.code)),h("span",{class:"stat"},h("b",{id:"ppl"},"0")," Handys"),
+    h("button",{class:"btn",onclick:()=>{$("qr").hidden=false;}},"QR-Code"),h("button",{class:"btn",id:"bEin",onclick:()=>{S.einzeln=!S.einzeln;save();render();}},"Ein-Gerät-Modus"),
+    h("button",{class:"btn",onclick:()=>{S.ans={};S.rid=rnd(6);S.rev=false;S.cur=0;save();pub();render();}},"Neu starten"));
+  const main=h("main",{class:"wrap",id:"stage"});
+  const ov=h("div",{class:"overlay",id:"qr"},h("div",{class:"qrbox"},h("canvas",{id:"qrc",width:520,height:520}),h("div",{style:"min-width:0;flex:1 1 280px"},
+    h("div",{class:"leit"},"Mit dem Handy mitmachen"),h("div",{class:"frage"},CFG.name),h("p",null,"QR-Code scannen – oder die Adresse öffnen und diesen Code eingeben:"),h("div",{class:"code",id:"codeQ"},S.code),
+    h("p",{class:"url",id:"urlQ"}),h("p",{class:"stat"},h("b",{id:"pplQ"},"0")," Handys verbunden"),h("button",{class:"btn prim",onclick:()=>{$("qr").hidden=true;}},"Los geht’s"))));
+  root.append(top,h("div",{class:"stripe"}),main,ov);
+  function joinUrl(){if(location.protocol.startsWith("http"))return location.origin+location.pathname+"?s="+S.code+(BR?"&broker="+encodeURIComponent(BR):"");return "";}
+  $("urlQ").textContent=joinUrl()||"Diese Datei läuft gerade lokal. Für den QR-Code die Datei auf GitHub Pages hochladen – oder den Ein-Gerät-Modus nutzen.";
+  drawQR($("qrc"),joinUrl());
+  function pub(){if(net)net.pub(S.code+"/state",{t:"state",rid:S.rid,cur:S.cur,rev:S.rev,ts:Date.now()},true);}
+  try{net=new Net((t,p)=>{if(!p)return;
+      if(t===S.code+"/hi"){peers.set(clean(p.cid,20),Date.now());if(p.need)pub();updPeople();return;}
+      if(t===S.code+"/a"&&p.rid===S.rid&&typeof p.cid==="string"&&Number.isInteger(p.r)&&p.r>=0&&p.r<CFG.runden.length){
+        peers.set(clean(p.cid,20),Date.now());S.ans[p.r]=S.ans[p.r]||{};S.ans[p.r][clean(p.cid,20)]=p.v;save();updPeople();render();}},
+    (st)=>{$("netdot").className="dot"+(st.up?" up":"");$("netst").lastChild.textContent=st.up?(st.up===st.all?"live":"live (1 von 2 Diensten)"):"keine Verbindung – Ein-Gerät-Modus nutzen";if(st.up)pub();});
+    net.sub(S.code+"/hi");net.sub(S.code+"/a");}catch(e){}
+  function updPeople(){const now=Date.now();for(const [k,v] of peers)if(now-v>90000)peers.delete(k);$("ppl").textContent=peers.size;$("pplQ").textContent=peers.size;}
+  setInterval(updPeople,5000);
+  function render(){const r=CFG.runden[S.cur];const ans=S.ans[S.cur]||{};const n=Object.keys(ans).length;
+    $("bEin").classList.toggle("on",S.einzeln);main.innerHTML="";
+    main.append(h("p",{class:"leit"},"Leitfrage: "+CFG.leitfrage));
+    const nav=h("div",{class:"rundenleiste"});CFG.runden.forEach((x,i)=>nav.append(h("button",{class:"rnd"+(i===S.cur?" cur":""),onclick:()=>{S.cur=i;S.rev=false;save();pub();render();}},i+1)));
+    nav.append(h("span",{class:"spacer"}),h("span",{class:"stat"},h("b",null,n)," Antworten"),
+      h("button",{class:"btn",onclick:()=>{S.show=!S.show;save();render();}},S.show?"Ergebnis verdecken":"Ergebnis zeigen"),
+      h("button",{class:"btn prim",onclick:()=>{S.rev=!S.rev;save();pub();render();}},S.rev?"Auflösung ausblenden":"Auflösen"),
+      h("button",{class:"btn",onclick:()=>{if(S.cur<CFG.runden.length-1){S.cur++;S.rev=false;save();pub();render();}}},"Weiter →"));
+    main.append(nav);
+    if(r.titel)main.append(h("h2",{class:"frage"},r.titel));
+    const view=S.show||S.rev?T[typ(r)].board(r,ans,S.rev):h("div",{class:"panel"},h("p",{class:"karte"},r.text),h("p",{class:"verdeckt"},"Ergebnis verdeckt – erst alle antworten lassen."));
+    main.append(view);
+    if(S.rev&&r.erkl)main.append(h("div",{class:"erkl",html:"<b>Auflösung:</b> "+r.erkl}));
+    if(S.rev&&r.frage)main.append(h("div",{class:"panel",style:"margin-top:14px"},h("div",{class:"leit"},"Zur Diskussion"),h("p",{class:"karte",style:"margin:0"},r.frage)));
+    if(S.einzeln){const ctx={sent:false,team:S.local%2};const box=h("div",{class:"panel lokal",style:"margin-top:22px"},h("div",{class:"leit"},"Ein-Gerät-Modus: Antwort eintippen (jede Eingabe zählt als eine Person)"));
+      box.append(T[typ(r)].phone(r,ctx,(v)=>{S.local++;S.ans[S.cur]=S.ans[S.cur]||{};S.ans[S.cur]["lokal"+S.local]=v;save();if(!T[typ(r)].noLock)setTimeout(render,250);else render();}));main.append(box);}
+  }
+  render();
+  if(location.protocol.startsWith("http")&&!S.seenQR){$("qr").hidden=false;S.seenQR=true;save();}else{$("qr").hidden=true;}
+}
+
+/* =====================================================================
+   Handy (Azubi)
+   ===================================================================== */
+function phone(code){
+  const root=$("app");root.innerHTML="";const cidKey="lf7live:cid";let cid=store(cidKey,undefined,true);if(!cid){cid="c"+rnd(9);store(cidKey,cid,true);}
+  const st={rid:null,cur:-1,rev:false};const sent=store("lf7live:sent:"+CFG.id,undefined,true)||{};
+  const top=h("div",{class:"top"},h("span",{class:"chip"},"LF 7 · M"+CFG.modul),h("span",{class:"name",style:"font-size:22px"},CFG.name),h("span",{class:"spacer"}),h("span",{class:"stat",id:"netst"},h("span",{class:"dot",id:"netdot"}),"verbinde …"));
+  const main=h("main",{class:"phone",id:"pm"},h("div",{class:"wait"},h("div",{class:"big"},"Gleich geht’s los"),h("p",null,"Warte, bis die Lehrkraft startet.")));
+  root.append(top,h("div",{class:"stripe"}),main);
+  let net;const team=teamOf(cid);
+  net=new Net((t,p)=>{if(t===code+"/state"&&p&&p.t==="state"){const changed=p.rid!==st.rid||p.cur!==st.cur;st.rid=p.rid;st.cur=p.cur;st.rev=p.rev;if(changed)draw();else drawRev();}},
+    (s)=>{$("netdot").className="dot"+(s.up?" up":"");$("netst").lastChild.textContent=s.up?"verbunden":"keine Verbindung";if(s.up)net.pub(code+"/hi",{cid,need:true});});
+  net.sub(code+"/state");setInterval(()=>net.pub(code+"/hi",{cid}),30000);
+  function key(){return st.rid+":"+st.cur;}
+  function draw(){const r=CFG.runden[st.cur];if(!r)return;main.innerHTML="";main.append(h("div",{class:"stat"},"Runde "+(st.cur+1)+" von "+CFG.runden.length));
+    if(r.titel)main.append(h("h2",{class:"frage",style:"font-size:28px"},r.titel));
+    if(sent[key()]!=null&&!T[typ(r)].noLock){main.append(h("p",{class:"karte"},r.text),h("div",{class:"ok-msg"},"Antwort ist angekommen. Schau zur Tafel!"));drawRev();return;}
+    const ctx={sent:false,team};main.append(T[typ(r)].phone(r,ctx,(v)=>{sent[key()]=v;store("lf7live:sent:"+CFG.id,sent,true);net.pub(code+"/a",{cid,rid:st.rid,r:st.cur,v});
+      if(!T[typ(r)].noLock){main.innerHTML="";main.append(h("div",{class:"stat"},"Runde "+(st.cur+1)+" von "+CFG.runden.length),h("p",{class:"karte"},r.text),h("div",{class:"ok-msg"},"Antwort ist angekommen. Schau zur Tafel!"));}}));drawRev();}
+  function drawRev(){const old=$("prev");if(old)old.remove();const r=CFG.runden[st.cur];if(st.rev&&r&&r.erkl)main.append(h("div",{class:"erkl",id:"prev",html:"<b>Auflösung:</b> "+r.erkl}));}
+}
+
+/* =====================================================================
+   Start
+   ===================================================================== */
+function start(){
+  const code=(params.get("s")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
+  if(code){phone(code);return;}
+  const root=$("app");root.innerHTML="";
+  const inp=h("input",{type:"text",id:"codeIn",maxlength:6,placeholder:"Code, z. B. K7QD",autocomplete:"off"});
+  root.append(h("div",{class:"stripe"}),h("div",{class:"start"},h("div",{class:"leit"},"Lernfeld 7 · Modul "+CFG.modul+" · Einstieg"),h("h1",{class:"frage"},CFG.name),h("p",{class:"sub"},CFG.intro),
+    h("div",{class:"card"},h("div",{class:"leit"},"Lehrkraft"),h("p",null,"Am Beamer starten. Die Tafel zeigt den QR-Code und die Antworten der Klasse."),h("button",{class:"btn prim",onclick:board},"Tafel starten")),
+    h("div",{class:"card"},h("div",{class:"leit"},"Azubi"),h("p",null,"Code von der Tafel eingeben:"),inp,h("button",{class:"send",onclick:()=>{const c=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,"");if(c.length>=4){history.replaceState(null,"","?s="+c+(BR?"&broker="+encodeURIComponent(BR):""));params.set("s",c);phone(c);}}},"Mitmachen")),
+    h("p",{class:"hint"},"Keine Anmeldung, keine Namen. Die Antworten laufen anonym über einen öffentlichen Nachrichtendienst und sind nach der Stunde weg.")));
+}
+start();
+</script>
+</body>
+</html>

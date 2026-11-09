@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beschaffungs-Rechentrainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #eef2f7; --surface: #ffffff; --surface-2: #f3f6fa; --text: #17222e; --muted: #56657a;
+  --accent: #1F4E79; --accent-2: #2d6aa3; --accent-soft: #e1ebf5; --border: #d4dde8;
+  --ok: #1d6b3f; --ok-soft: #dcf0e3; --bad: #b3261e; --bad-soft: #fbe3e1; --hint: #8a5300; --hint-soft: #fdf0d8;
+  --shadow: 0 10px 28px -16px rgba(20, 45, 75, .35); --r: 14px;
+  --sans: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0e1620; --surface: #16212d; --surface-2: #1b2836; --text: #e6edf4; --muted: #9db0c3;
+    --accent: #7fb3e6; --accent-2: #a6cbf0; --accent-soft: #1e3347; --border: #2a3b4d;
+    --ok: #7fd1a0; --ok-soft: #173427; --bad: #f19a92; --bad-soft: #3a1d1b; --hint: #f0bf6c; --hint-soft: #3a2c14;
+    --shadow: 0 10px 28px -14px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e1620; --surface: #16212d; --surface-2: #1b2836; --text: #e6edf4; --muted: #9db0c3;
+  --accent: #7fb3e6; --accent-2: #a6cbf0; --accent-soft: #1e3347; --border: #2a3b4d;
+  --ok: #7fd1a0; --ok-soft: #173427; --bad: #f19a92; --bad-soft: #3a1d1b; --hint: #f0bf6c; --hint-soft: #3a2c14;
+  --shadow: 0 10px 28px -14px rgba(0,0,0,.6);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 17px; line-height: 1.55; }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: 18px; padding-block: 22px 60px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 20px; border-bottom: 3px solid var(--accent); padding-bottom: 14px; margin-bottom: 18px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+h1 { margin: 2px 0 0; font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem); line-height: 1.1; text-wrap: balance; }
+.sub { color: var(--muted); font-size: .95rem; margin-top: 4px; }
+.score { display: flex; gap: 8px; flex-wrap: wrap; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 6px 12px; text-align: center; min-width: 78px; }
+.stat b { display: block; font-family: var(--mono); font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.stat span { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.types { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.chip { font: inherit; font-size: .88rem; font-weight: 700; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] .chip[aria-pressed="true"] { color: #0e1620; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .chip[aria-pressed="true"] { color: #0e1620; } }
+.chip:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--shadow); padding: 22px 22px 20px; }
+.tag { display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 3px 9px; border-radius: 6px; }
+.situation { margin: 12px 0 6px; }
+.frage { font-weight: 700; margin: 10px 0 4px; }
+.rund { color: var(--muted); font-size: .9rem; margin: 0 0 14px; }
+table.daten { border-collapse: collapse; margin: 8px 0 10px; font-variant-numeric: tabular-nums; font-size: .95rem; }
+table.daten td { padding: 4px 14px 4px 0; border-bottom: 1px solid var(--border); }
+table.daten td.n { text-align: right; font-family: var(--mono); }
+.answer { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; }
+.answer label { font-weight: 700; }
+.inbox { display: flex; align-items: center; border: 2px solid var(--border); border-radius: 10px; background: var(--surface-2); overflow: hidden; }
+.inbox input { font: inherit; font-family: var(--mono); font-size: 1.15rem; border: 0; background: transparent; color: var(--text); padding: 8px 10px; width: 9.5em; text-align: right; }
+.inbox .unit { padding: 0 12px 0 2px; color: var(--muted); font-family: var(--mono); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+button.b { font: inherit; font-weight: 700; font-size: .95rem; border-radius: 10px; padding: 9px 16px; cursor: pointer; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+button.b.primary { background: var(--accent); color: #fff; }
+:root[data-theme="dark"] button.b.primary { color: #0e1620; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button.b.primary { color: #0e1620; } }
+button.b:hover { transform: translateY(-1px); }
+.fb { margin-top: 16px; border-radius: 10px; padding: 12px 16px; display: none; }
+.fb.show { display: block; }
+.fb.ok { background: var(--ok-soft); border: 1px solid var(--ok); }
+.fb.bad { background: var(--bad-soft); border: 1px solid var(--bad); }
+.fb.hint { background: var(--hint-soft); border: 1px solid var(--hint); }
+.fb h3 { margin: 0 0 6px; font-size: 1rem; }
+.fb.ok h3 { color: var(--ok); } .fb.bad h3 { color: var(--bad); } .fb.hint h3 { color: var(--hint); }
+.steps { margin: 6px 0 0; padding-left: 22px; }
+.steps li { margin: 3px 0; }
+.tr { font-family: var(--mono); font-size: .92rem; background: var(--surface); border: 1px dashed var(--border); border-radius: 8px; padding: 6px 10px; margin-top: 8px; display: inline-block; }
+details.tool { margin-top: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 18px; }
+details.tool summary { cursor: pointer; font-weight: 700; }
+.faktor { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; margin: 10px 0 4px; font-family: var(--mono); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.faktor div { background: var(--surface-2); border-radius: 8px; padding: 5px 8px; }
+.faktor b { color: var(--accent); }
+.nname { font: inherit; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface-2); color: var(--text); width: min(100%, 22em); margin: 4px 0 8px; }
+.foot { color: var(--muted); font-size: .85rem; margin-top: 22px; text-align: center; }
+@media (max-width: 520px) { .card { padding: 18px 16px; } .inbox input { width: 7.5em; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } button.b:hover { transform: none; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Lernfeld 6 · Waren beschaffen</div>
+      <h1>Beschaffungs-Rechentrainer</h1>
+      <div class="sub">Aufgaben wie in der Abschlussprüfung – jedes Mal mit neuen Zahlen.</div>
+    </div>
+    <div class="score" aria-live="polite">
+      <div class="stat"><b id="sRichtig">0</b><span>richtig</span></div>
+      <div class="stat"><b id="sVersucht">0</b><span>Aufgaben</span></div>
+      <div class="stat"><b id="sSerie">0</b><span>Serie</span></div>
+    </div>
+  </header>
+
+  <div class="types" role="group" aria-label="Aufgabentyp wählen" id="types"></div>
+
+  <section class="card" aria-live="polite">
+    <span class="tag" id="tTag">Aufgabe</span>
+    <div class="situation" id="tSit"></div>
+    <div id="tDaten"></div>
+    <p class="frage" id="tFrage"></p>
+    <p class="rund" id="tRund"></p>
+    <form class="answer" id="form" autocomplete="off">
+      <label for="antwort">Dein Ergebnis:</label>
+      <div class="inbox"><input id="antwort" inputmode="decimal" aria-describedby="tRund"><span class="unit" id="tUnit">€</span></div>
+      <div class="btns">
+        <button class="b primary" type="submit">Prüfen</button>
+        <button class="b" type="button" id="bTipp">Tipp</button>
+        <button class="b" type="button" id="bLsg">Lösung</button>
+        <button class="b" type="button" id="bNeu">Neue Aufgabe</button>
+        <button class="b" type="button" id="bNachweis">Nachweis</button>
+      </div>
+    </form>
+    <div class="fb" id="fb"></div>
+  </section>
+
+  <details class="tool">
+    <summary>Werkzeug: die Schemas</summary>
+    <table class="daten">
+      <tr><td>Listeneinkaufspreis</td><td class="n">100 %</td></tr>
+      <tr><td>– Liefererrabatt</td><td class="n">vom Listeneinkaufspreis</td></tr>
+      <tr><td>= Zieleinkaufspreis</td><td class="n">neue 100 %</td></tr>
+      <tr><td>– Liefererskonto</td><td class="n">vom Zieleinkaufspreis</td></tr>
+      <tr><td>= Bareinkaufspreis</td><td class="n"></td></tr>
+      <tr><td>+ Bezugskosten (Fracht, Verpackung)</td><td class="n">nie Rabatt/Skonto</td></tr>
+      <tr><td><b>= Bezugspreis</b></td><td class="n">immer netto</td></tr>
+    </table>
+    <p style="margin:6px 0 0"><b>Meldebestand</b> = Tagesabsatz × Lieferzeit + Mindestbestand · <b>Überweisung</b> = Rechnungsbetrag (mit USt) – Skonto · <b>Minus p %</b> → mal (1 – p : 100), z. B. – 3 % → · 0,97</p>
+  </details>
+
+  <section class="card nachweis" id="nachweis" hidden style="margin-top:18px">
+    <span class="tag">Nachweis für das Punktekonto</span>
+    <p style="margin:10px 0 6px">15 richtig gelöste Aufgaben = 1 Erledigungspunkt (Modul 14). Zeig diese Seite deiner Lehrkraft.</p>
+    <label for="nName" style="font-weight:700">Name</label><br>
+    <input id="nName" class="nname" placeholder="Vor- und Nachname" autocomplete="off">
+    <ol id="nListe" class="steps"></ol>
+    <p id="nStand" style="font-weight:700"></p>
+  </section>
+
+  <p class="foot">Kaufmännische Lehranstalten Bremerhaven · Lernfeld 6 · Lehrbuch „Kompetenz im Einzelhandel 2“ S. 19–20, 33, 38–40 · Die Aufgabentypen stammen aus den Abschlussprüfungen Warenwirtschaft und Kalkulation 2017–2026.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // ---------- Hilfen ----------
+  function R(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function rd(x, n) { var f = Math.pow(10, n); return Math.round((x + 1e-9) * f) / f; }
+  function de(x, n) { return x.toLocaleString('de-DE', { minimumFractionDigits: n, maximumFractionDigits: n }); }
+  function eur(x) { return de(x, 2) + ' €'; }
+  function pct(p) { return de(p, (p % 1) ? 1 : 0) + ' %'; }
+  function fak(p, minus) { var f = rd(minus ? 1 - p / 100 : 1 + p / 100, 4); return f.toFixed(4).replace(/0+$/, '').replace(/\.$/, '').replace('.', ','); }
+  function parse(s) {
+    s = String(s).replace(/[€%\s]/g, '');
+    if (s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.');
+    var v = parseFloat(s); return isNaN(v) ? null : v;
+  }
+  function money(a, b) { return rd(a + Math.random() * (b - a), 2); }
+
+  var WARE = [['Herrenhemden', 'Hemd'], ['Rucksäcke', 'Rucksack'], ['Laufschuhe', 'Paar'], ['Regenschirme', 'Schirm'], ['Sweatshirts', 'Sweatshirt'],
+    ['Deckenstrahler', 'Strahler'], ['Thermobecher', 'Becher'], ['Kopfhörer', 'Stück'], ['Bettwäsche-Sets', 'Set'], ['Trinkflaschen', 'Flasche'], ['Jeans', 'Jeans'], ['Fitnessbänder', 'Band']];
+  var FIRMA = 'Die Nordstadt-Kauf GmbH';
+  function tab(rows) { return '<table class="daten">' + rows.map(function (r) { return '<tr><td>' + r[0] + '</td><td class="n">' + r[1] + '</td></tr>'; }).join('') + '</table>'; }
+
+  var TYPES = [
+    { key: 'stueck', name: 'Bezugspreis je Stück aus der Rechnung', gen: function () {
+      var w = pick(WARE), m = pick([80, 100, 120, 150, 180, 200, 240, 250]), lp = money(4, 40), r = pick([5, 10, 15, 20]), bk = R(8, 45) + pick([0, 0.5, 0.9]);
+      var ziel = m * lp * (1 - r / 100), ges = ziel + bk, loe = rd(ges / m, 2);
+      return { tag: 'Bezugskalkulation', sit: FIRMA + ' erhält eine Rechnung über <b>' + m + ' ' + w[0] + '</b> zu je <b>' + eur(lp) + '</b> (netto). Der Lieferer gewährt <b>' + r + ' % Rabatt</b>. Für die Verpackung berechnet er <b>' + eur(bk) + '</b>. Auf den Gesamtbetrag kommen 19 % Umsatzsteuer.',
+        daten: '', frage: 'Berechnen Sie den Bezugspreis in Euro (netto) für ein Stück!', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe, tol: 0.011, stellen: 2,
+        tipps: ['Der Bezugspreis ist immer netto – die Umsatzsteuer lässt du weg.', 'Erst die ganze Menge: ' + m + ' · ' + de(lp, 2) + ', dann Rabatt abziehen, dann Verpackung dazu, zum Schluss durch ' + m + ' teilen.'],
+        weg: ['Listeneinkaufspreis: ' + m + ' · ' + eur(lp) + ' = ' + eur(m * lp), '– ' + r + ' % Rabatt = Zieleinkaufspreis ' + eur(ziel), '+ Verpackung ' + eur(bk) + ' = Bezugspreis ' + eur(ges), ': ' + m + ' = <b>' + eur(loe) + '</b> je ' + w[1]],
+        taste: m + ' × ' + de(lp, 2) + ' × ' + fak(r, true) + ' + ' + de(bk, 2) + ' = ÷ ' + m + ' =',
+        fallen: [{ v: rd(ges * 1.19 / m, 2), t: 'Umsatzsteuer mitgerechnet – der Bezugspreis ist netto.' }, { v: rd(ges, 2), t: 'Das ist der Bezugspreis für die ganze Lieferung. Gefragt ist ein Stück – teile durch ' + m + '.' },
+          { v: rd(lp * (1 - r / 100), 2), t: 'Die Verpackungskosten fehlen. Sie gehören zu den Bezugskosten.' }, { v: rd(lp + bk / m, 2), t: 'Der Rabatt fehlt: erst ' + r + ' % abziehen.' }] };
+    } },
+    { key: 'bezug', name: 'Bezugspreis mit Rabatt und Skonto', gen: function () {
+      var w = pick(WARE), m = pick([50, 80, 100, 120, 150, 200]), lp = money(2.5, 30), r = pick([10, 15, 20, 25]), s = pick([2, 3]), bk = rd(R(5, 40) + pick([0, 0.4, 0.9]), 2);
+      var ziel = m * lp * (1 - r / 100), bar = ziel * (1 - s / 100), loe = rd(bar + bk, 2);
+      return { tag: 'Bezugskalkulation', sit: 'Ein Lieferer bietet ' + FIRMA.replace('Die', 'der') + ' <b>' + w[0] + '</b> an. Sie bestellen <b>' + m + ' Stück</b> und zahlen innerhalb der Skontofrist.',
+        daten: tab([['Listeneinkaufspreis je Stück', eur(lp)], ['Rabatt ab 50 Stück', r + ' %'], ['Skonto bei Zahlung innerhalb von 10 Tagen', s + ' %'], ['Fracht für die gesamte Lieferung', eur(bk)]]),
+        frage: 'Berechnen Sie den Bezugspreis in Euro für die gesamte Lieferung!', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe, tol: 0.011, stellen: 2,
+        tipps: ['Reihenfolge: erst Rabatt, dann Skonto, dann Bezugskosten.', 'Skonto rechnest du vom Zieleinkaufspreis – nicht vom Listeneinkaufspreis.'],
+        weg: ['Listeneinkaufspreis: ' + m + ' · ' + eur(lp) + ' = ' + eur(m * lp), '– ' + r + ' % Rabatt = Zieleinkaufspreis ' + eur(ziel), '– ' + s + ' % Skonto = Bareinkaufspreis ' + eur(bar), '+ Bezugskosten ' + eur(bk) + ' = <b>' + eur(loe) + '</b>'],
+        taste: m + ' × ' + de(lp, 2) + ' × ' + fak(r, true) + ' × ' + fak(s, true) + ' + ' + de(bk, 2) + ' =',
+        fallen: [{ v: rd(m * lp * (1 - (r + s) / 100) + bk, 2), t: 'Rabatt und Skonto zusammengezählt. Skonto kommt vom Zieleinkaufspreis – also nach dem Rabatt.' },
+          { v: rd((ziel + bk) * (1 - s / 100), 2), t: 'Skonto auch von den Bezugskosten abgezogen. Die Bezugskosten kommen erst am Schluss dazu.' },
+          { v: rd(ziel + bk, 2), t: 'Der Skonto fehlt. Sie zahlen innerhalb der Skontofrist.' }, { v: rd(bar, 2), t: 'Die Bezugskosten (Fracht) fehlen noch.' }, { v: rd(loe / m, 2), t: 'Das ist der Preis für ein Stück. Gefragt ist die ganze Lieferung.' }] };
+    } },
+    { key: 'ueberw', name: 'Überweisungsbetrag mit Skonto', gen: function () {
+      var w = pick(WARE), m = pick([40, 60, 80, 100, 120, 150, 180]), lp = money(5, 35), r = pick([0, 10, 15]), s = pick([2, 3]);
+      var net = rd(m * lp * (1 - r / 100), 2), ust = rd(net * 0.19, 2), brut = rd(net + ust, 2), sk = rd(brut * s / 100, 2), loe = rd(brut - sk, 2);
+      var rows = [[m + ' ' + w[0] + ' je ' + eur(lp), eur(m * lp)]];
+      if (r) rows.push(['– ' + r + ' % Rabatt', eur(rd(m * lp * r / 100, 2))]);
+      rows.push(['Warenwert netto', eur(net)], ['+ 19 % Umsatzsteuer', eur(ust)], ['<b>Rechnungsbetrag</b>', '<b>' + eur(brut) + '</b>']);
+      return { tag: 'Überweisung', sit: FIRMA + ' hat diese Rechnung erhalten. Zahlungsbedingung: <b>innerhalb von 10 Tagen ' + s + ' % Skonto</b>, 30 Tage netto. Sie zahlen am 8. Tag.',
+        daten: tab(rows), frage: 'Wie viel Euro überweisen Sie?', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe, tol: 0.011, stellen: 2,
+        tipps: ['Überwiesen wird der Rechnungsbetrag (mit Umsatzsteuer) minus Skonto.', de(brut, 2) + ' · ' + fak(s, true)],
+        weg: ['Rechnungsbetrag ' + eur(brut), '– ' + s + ' % Skonto = ' + eur(sk), '= <b>' + eur(loe) + '</b> überweisen'],
+        taste: de(brut, 2) + ' × ' + fak(s, true) + ' =',
+        fallen: [{ v: rd(net * (1 - s / 100), 2), t: 'Du hast vom Nettobetrag gerechnet. Überwiesen wird der Rechnungsbetrag mit Umsatzsteuer.' }, { v: brut, t: 'Der Skonto fehlt – Sie zahlen innerhalb der Frist.' },
+          { v: sk, t: 'Das ist nur der Skontobetrag. Gefragt ist der Überweisungsbetrag.' }] };
+    } },
+    { key: 'verteilen', name: 'Bezugskosten verteilen', gen: function () {
+      var a = pick(WARE), b = pick(WARE.filter(function (x) { return x !== a; })), ga = R(2, 12) * 10, gb = R(2, 12) * 10, fr = R(6, 30) * 5, nachGew = Math.random() < 0.6;
+      var na = R(2, 10) * 10, nb = R(2, 10) * 10;
+      var loe = nachGew ? rd(fr * ga / (ga + gb), 2) : rd(fr * na / (na + nb), 2);
+      return { tag: 'Bezugskosten verteilen', sit: 'In einer Lieferung kommen <b>' + na + ' ' + a[0] + '</b> (Gewicht gesamt <b>' + ga + ' kg</b>) und <b>' + nb + ' ' + b[0] + '</b> (Gewicht gesamt <b>' + gb + ' kg</b>). Die Fracht kostet insgesamt <b>' + eur(fr) + '</b>. Sie wird <b>' + (nachGew ? 'nach dem Gewicht' : 'nach der Stückzahl') + '</b> verteilt.',
+        daten: '', frage: 'Wie viel Euro Fracht entfallen auf die ' + a[0] + '?', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe, tol: 0.011, stellen: 2,
+        tipps: [nachGew ? 'Gesamtgewicht: ' + ga + ' + ' + gb + ' kg. Fracht je kg = Fracht : Gesamtgewicht.' : 'Gesamtzahl: ' + na + ' + ' + nb + ' Stück. Fracht je Stück = Fracht : Gesamtzahl.', nachGew ? 'Dann mal ' + ga + ' kg.' : 'Dann mal ' + na + ' Stück.'],
+        weg: nachGew ? ['Gesamtgewicht ' + (ga + gb) + ' kg', eur(fr) + ' : ' + (ga + gb) + ' kg = ' + de(fr / (ga + gb), 4) + ' € je kg', '· ' + ga + ' kg = <b>' + eur(loe) + '</b>'] : ['Gesamtzahl ' + (na + nb) + ' Stück', eur(fr) + ' : ' + (na + nb) + ' = ' + de(fr / (na + nb), 4) + ' € je Stück', '· ' + na + ' Stück = <b>' + eur(loe) + '</b>'],
+        taste: nachGew ? de(fr, 2) + ' ÷ ' + (ga + gb) + ' × ' + ga + ' =' : de(fr, 2) + ' ÷ ' + (na + nb) + ' × ' + na + ' =',
+        fallen: [{ v: rd(fr / 2, 2), t: 'Halbe-halbe ist nicht gerecht: verteile ' + (nachGew ? 'nach dem Gewicht.' : 'nach der Stückzahl.') }, { v: nachGew ? rd(fr * na / (na + nb), 2) : rd(fr * ga / (ga + gb), 2), t: nachGew ? 'Du hast nach Stück verteilt. Die Aufgabe sagt: nach dem Gewicht.' : 'Du hast nach Gewicht verteilt. Die Aufgabe sagt: nach der Stückzahl.' },
+          { v: nachGew ? rd(fr * gb / (ga + gb), 2) : rd(fr * nb / (na + nb), 2), t: 'Das ist der Anteil der ' + b[0] + '. Gefragt sind die ' + a[0] + '.' }] };
+    } },
+    { key: 'melde', name: 'Meldebestand', gen: function () {
+      var w = pick(WARE), t = R(4, 25), lz = R(2, 12), tage = Math.random() < 0.35, mb = tage ? null : R(2, 12) * 5, st2 = R(2, 5);
+      var mind = tage ? t * st2 : mb, loe = t * lz + mind;
+      return { tag: 'Meldebestand', sit: 'Von den <b>' + w[0] + '</b> verkauft ' + FIRMA.replace('Die', 'die') + ' täglich durchschnittlich <b>' + t + ' Stück</b>. Die Lieferzeit beträgt <b>' + lz + ' Tage</b>. ' + (tage ? 'Als eiserne Reserve soll der Absatz von <b>' + st2 + ' Tagen</b> im Lager bleiben.' : 'Der Mindestbestand beträgt <b>' + mb + ' Stück</b>.'),
+        daten: '', frage: 'Berechnen Sie den Meldebestand in Stück!', rund: 'Ganze Zahl.', unit: 'Stück', loesung: loe, tol: 0.01, stellen: 0,
+        tipps: ['Meldebestand = Tagesabsatz × Lieferzeit + Mindestbestand.', tage ? 'Mindestbestand = ' + t + ' × ' + st2 + ' Tage = ' + mind + ' Stück.' : t + ' × ' + lz + ' + ' + mb],
+        weg: (tage ? ['Mindestbestand: ' + t + ' × ' + st2 + ' = ' + mind + ' Stück'] : []).concat([t + ' × ' + lz + ' = ' + (t * lz) + ' Stück (Verbrauch während der Lieferzeit)', '+ Mindestbestand ' + mind + ' = <b>' + loe + ' Stück</b>']),
+        taste: t + ' × ' + lz + ' + ' + mind + ' =',
+        fallen: [{ v: t * lz, t: 'Mindestbestand vergessen.' }, { v: t + lz + mind, t: 'Tagesabsatz und Lieferzeit werden malgenommen, nicht addiert.' }, { v: tage ? t * lz + st2 : -1, t: 'Die eiserne Reserve sind ' + st2 + ' Tage, nicht ' + st2 + ' Stück: ' + t + ' × ' + st2 + '.' }] };
+    } },
+    { key: 'vergleich', name: 'Angebotsvergleich', gen: function () {
+      var w = pick(WARE), m = pick([50, 80, 100, 120, 150, 200]);
+      var A = { lp: money(20, 60), r: pick([10, 15, 20]), s: pick([2, 3]), fr: 0 };
+      var B = { lp: rd(A.lp * (0.88 + Math.random() * 0.1), 2), r: pick([5, 10]), s: 0, fr: R(2, 10) * 5 };
+      function bp(o) { return rd(m * o.lp * (1 - o.r / 100) * (1 - o.s / 100) + o.fr, 2); }
+      var a = bp(A), b = bp(B), loe = Math.min(a, b), win = a <= b ? 'A' : 'B';
+      return { tag: 'Angebotsvergleich', sit: FIRMA + ' braucht <b>' + m + ' ' + w[0] + '</b> und zahlt immer so schnell wie möglich. Zwei Angebote liegen vor.',
+        daten: '<table class="daten"><tr><td></td><td class="n"><b>Angebot A</b></td><td class="n"><b>Angebot B</b></td></tr><tr><td>Listeneinkaufspreis je Stück</td><td class="n">' + eur(A.lp) + '</td><td class="n">' + eur(B.lp) + '</td></tr><tr><td>Rabatt</td><td class="n">' + A.r + ' %</td><td class="n">' + B.r + ' %</td></tr><tr><td>Zahlung</td><td class="n">' + A.s + ' % Skonto in 10 Tagen</td><td class="n">30 Tage ohne Abzug</td></tr><tr><td>Lieferung</td><td class="n">frei Haus</td><td class="n">Fracht ' + eur(B.fr) + '</td></tr></table>',
+        frage: 'Berechnen Sie den Bezugspreis in Euro des günstigeren Angebots für die gesamte Menge!', rund: 'Ergebnis auf zwei Nachkommastellen runden.', unit: '€', loesung: loe, tol: 0.011, stellen: 2,
+        tipps: ['Rechne für beide Angebote das ganze Schema bis zum Bezugspreis.', 'Bei B gibt es keinen Skonto, aber Fracht. Bei A keine Fracht.'],
+        weg: ['A: ' + m + ' · ' + eur(A.lp) + ' – ' + A.r + ' % – ' + A.s + ' % = ' + eur(a), 'B: ' + m + ' · ' + eur(B.lp) + ' – ' + B.r + ' % + Fracht ' + eur(B.fr) + ' = ' + eur(b), 'Günstiger: <b>Angebot ' + win + ' mit ' + eur(loe) + '</b>'],
+        taste: 'A: ' + m + ' × ' + de(A.lp, 2) + ' × ' + fak(A.r, true) + ' × ' + fak(A.s, true) + ' =   B: ' + m + ' × ' + de(B.lp, 2) + ' × ' + fak(B.r, true) + ' + ' + B.fr + ' =',
+        fallen: [{ v: Math.max(a, b), t: 'Das ist das teurere Angebot. Gefragt ist das günstigere.' }, { v: rd(m * B.lp * (1 - B.r / 100), 2), t: 'Bei Angebot B fehlt die Fracht.' },
+          { v: rd(m * B.lp * (1 - B.r / 100) * (1 - A.s / 100) + B.fr, 2), t: 'Bei B gibt es keinen Skonto („30 Tage ohne Abzug“).' }, { v: rd(m * A.lp * (1 - A.r / 100), 2), t: 'Bei A fehlt der Skonto.' }] };
+    } },
+    { key: 'rueck', name: 'Für Profis: Rabattsatz rückwärts', gen: function () {
+      var w = pick(WARE), m = pick([50, 100, 120, 150, 200]), lp = money(5, 40), r = pick([5, 8, 10, 12, 12.5, 15, 20, 25]);
+      var ziel = rd(m * lp * (1 - r / 100), 2);
+      return { tag: 'Für Profis', sit: 'Ein Lieferer bietet <b>' + m + ' ' + w[0] + '</b> zu je <b>' + eur(lp) + '</b> an. Nach Abzug des Rabatts beträgt der Zieleinkaufspreis <b>' + eur(ziel) + '</b>.',
+        daten: '', frage: 'Wie viel Prozent Rabatt gewährt der Lieferer?', rund: 'Auf eine Nachkommastelle runden.', unit: '%', loesung: r, tol: 0.06, stellen: 1,
+        tipps: ['Listeneinkaufspreis = 100 %. Rabatt in € = Listeneinkaufspreis – Zieleinkaufspreis.', 'Rabatt in € : Listeneinkaufspreis × 100'],
+        weg: ['Listeneinkaufspreis: ' + m + ' · ' + eur(lp) + ' = ' + eur(m * lp), 'Rabatt: ' + eur(m * lp) + ' – ' + eur(ziel) + ' = ' + eur(rd(m * lp - ziel, 2)), eur(rd(m * lp - ziel, 2)) + ' : ' + eur(m * lp) + ' × 100 = <b>' + de(r, 1) + ' %</b>'],
+        taste: '(' + de(rd(m * lp, 2), 2) + ' − ' + de(ziel, 2) + ') ÷ ' + de(rd(m * lp, 2), 2) + ' × 100 =',
+        fallen: [{ v: rd(100 - r, 1), t: 'Das ist der Anteil, der übrig bleibt (Zieleinkaufspreis in %). Gefragt ist der Rabatt.' }, { v: rd((m * lp - ziel) / ziel * 100, 1), t: 'Grundwert ist der Listeneinkaufspreis (100 %), nicht der Zieleinkaufspreis.' }] };
+    } }
+  ];
+
+  // ---------- Zustand ----------
+  var MIXED = { key: 'mix', name: 'Gemischt wie in der Prüfung' };
+  var cur = null, typKey = 'mix', tippStufe = 0, geloest = false, versuche = 0;
+  var st = { r: 0, v: 0, s: 0, ok: [], name: '' };
+  try { var saved = JSON.parse(localStorage.getItem('lf6_rechentrainer') || 'null'); if (saved) { st = saved; st.ok = st.ok || []; st.name = st.name || ''; } } catch (e) {}
+  function saveSt() { try { localStorage.setItem('lf6_rechentrainer', JSON.stringify(st)); } catch (e) {} }
+  function showSt() { document.getElementById('sRichtig').textContent = st.r; document.getElementById('sVersucht').textContent = st.v; document.getElementById('sSerie').textContent = st.s; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var typesBox = $('types');
+  [MIXED].concat(TYPES).forEach(function (t, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.id = 'chip-' + t.key;
+    b.textContent = (i ? i + ' · ' : '') + t.name; b.setAttribute('aria-pressed', t.key === typKey ? 'true' : 'false');
+    b.addEventListener('click', function () { typKey = t.key; document.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); }); neu(); });
+    typesBox.appendChild(b);
+  });
+
+  function neu() {
+    var t = typKey === 'mix' ? pick(TYPES) : TYPES.filter(function (x) { return x.key === typKey; })[0];
+    cur = t.gen(); tippStufe = 0; geloest = false; versuche = 0;
+    $('tTag').textContent = cur.tag; $('tSit').innerHTML = cur.sit; $('tDaten').innerHTML = cur.daten; $('tFrage').textContent = cur.frage; $('tRund').textContent = cur.rund;
+    $('tUnit').textContent = cur.unit; $('tUnit').style.display = cur.unit ? '' : 'none';
+    $('antwort').value = ''; fb('', '', ''); $('antwort').focus({ preventScroll: true });
+  }
+  function fb(cls, title, html) { var f = $('fb'); f.className = 'fb' + (cls ? ' show ' + cls : ''); f.innerHTML = title ? '<h3>' + title + '</h3>' + html : ''; }
+  function wegHtml() { return '<ol class="steps">' + cur.weg.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol><div class="tr">Taschenrechner: ' + cur.taste + '</div>'; }
+
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault(); if (!cur) return;
+    var v = parse($('antwort').value);
+    if (v === null) { fb('hint', 'Keine Zahl erkannt', '<p>Gib dein Ergebnis als Zahl ein, zum Beispiel 27,69.</p>'); return; }
+    versuche++;
+    if (Math.abs(v - cur.loesung) <= cur.tol) {
+      if (!geloest) { st.v++; if (versuche === 1 && tippStufe === 0) { st.r++; st.s++; } else { st.s = 0; } var d = new Date(); st.ok.push({ t: cur.tag, l: (cur.unit === '€' ? eur(cur.loesung) : de(cur.loesung, cur.stellen) + ' ' + cur.unit), d: d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) }); saveSt(); showSt(); liste(); }
+      geloest = true;
+      fb('ok', versuche === 1 && tippStufe === 0 ? 'Richtig!' : 'Jetzt stimmt es!', '<p>So sieht der Rechenweg aus:</p>' + wegHtml() + '<p style="margin:10px 0 0">Weiter mit <b>Neue Aufgabe</b>.</p>');
+      return;
+    }
+    var hit = null;
+    cur.fallen.forEach(function (f) { if (!hit && Math.abs(v - f.v) <= Math.max(cur.tol, 0.011)) hit = f; });
+    fb('bad', 'Noch nicht richtig', '<p>' + (hit ? hit.t : 'Dein Ergebnis passt nicht. Prüfe die Reihenfolge der Schritte – oder hol dir einen Tipp.') + '</p>');
+  });
+  $('bTipp').addEventListener('click', function () {
+    if (!cur) return;
+    var t = cur.tipps[Math.min(tippStufe, cur.tipps.length - 1)]; tippStufe++;
+    fb('hint', 'Tipp ' + Math.min(tippStufe, cur.tipps.length) + ' von ' + cur.tipps.length, '<p>' + t + '</p>');
+  });
+  $('bLsg').addEventListener('click', function () {
+    if (!cur) return;
+    if (!geloest) { st.v++; st.s = 0; saveSt(); showSt(); geloest = true; }
+    fb('hint', 'Lösung: ' + (cur.unit === '€' ? eur(cur.loesung) : cur.unit === '%' ? de(cur.loesung, cur.stellen) + ' %' : de(cur.loesung, cur.stellen) + ' ' + cur.unit), wegHtml() + '<p style="margin:10px 0 0">Rechne die Aufgabe jetzt selbst nach – dann <b>Neue Aufgabe</b>.</p>');
+  });
+  $('bNeu').addEventListener('click', neu);
+  var ZIEL = 15;
+  function liste() {
+    var l = $('nListe'); l.innerHTML = '';
+    st.ok.forEach(function (x) { var li = document.createElement('li'); li.textContent = x.d + ' · ' + x.t + ' · ' + x.l; l.appendChild(li); });
+    var n = st.ok.length; $('nStand').textContent = n >= ZIEL ? 'Ziel erreicht: ' + n + ' Aufgaben richtig gelöst.' : 'Noch ' + (ZIEL - n) + ' richtig gelöste Aufgaben bis zum Nachweis.';
+  }
+  $('nName').value = st.name; $('nName').addEventListener('input', function () { st.name = $('nName').value.slice(0, 60); saveSt(); });
+  $('bNachweis').addEventListener('click', function () { var n = $('nachweis'); n.hidden = !n.hidden; liste(); if (!n.hidden) n.scrollIntoView({ behavior: 'smooth' }); });
+  liste();
+  showSt(); neu();
+})();
+</script>
+
+</body>
+</html>

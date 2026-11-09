@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Das Vermächtnis der Weserforts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Big+Shoulders+Stencil+Display:wght@600;800&family=Courier+Prime:wght@400;700&family=IM+Fell+DW+Pica:ital@0;1&display=swap">
+<style>
+/* Layout: eine Spalte wie ein Magazinbuch – oben der Blick auf die Inselfestung im Watt (Wasserstand = Fehler), darunter die Entscheidung. */
+:root{
+  --bg:#0c1615; --panel:#13211f; --panel2:#192b28; --ink:#e4ecea; --muted:#9db1ad; --line:#28403b;
+  --lamp:#f2a541; --lamp-ink:#1c1103; --brick:#c8673f; --ok:#5fc39a; --bad:#ef7b66; --paper:#ece2c6; --paper-ink:#2a2216;
+  --tide1:#2f6f7a; --tide2:#7fc4c9;
+  --f-display:"Big Shoulders Stencil Display", "Arial Narrow", Impact, sans-serif;
+  --f-book:"IM Fell DW Pica", "Iowan Old Style", Georgia, serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"Courier Prime", "Courier New", ui-monospace, monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#e3ebe8; --panel:#f6f9f7; --panel2:#eaf1ee; --ink:#132320; --muted:#4a605b; --line:#c3d2cd;
+  --lamp:#a35a06; --lamp-ink:#fff7ea; --brick:#9e3f22; --ok:#1b7450; --bad:#b03a28; --paper:#f3ead2; --paper-ink:#2a2216; --tide1:#2a6b75; --tide2:#5aaab1; color-scheme:light } }
+:root[data-theme="light"]{
+  --bg:#e3ebe8; --panel:#f6f9f7; --panel2:#eaf1ee; --ink:#132320; --muted:#4a605b; --line:#c3d2cd;
+  --lamp:#a35a06; --lamp-ink:#fff7ea; --brick:#9e3f22; --ok:#1b7450; --bad:#b03a28; --paper:#f3ead2; --paper-ink:#2a2216; --tide1:#2a6b75; --tide2:#5aaab1; color-scheme:light }
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;padding-inline:16px;padding-block:12px 40px}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);font-weight:800;letter-spacing:.02em;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:2.1rem} h2{font-size:1.6rem} h3{font-size:1.2rem}
+p{margin:0}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.muted{color:var(--muted)}
+.scene{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0a1318;position:relative}
+.scene svg{display:block;width:100%;height:auto}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.story{font-size:1.02rem}
+.story em{font-style:italic;color:var(--lamp)}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{border:0;border-radius:12px;padding:14px 18px;min-height:52px;font-weight:700;background:var(--lamp);color:var(--lamp-ink);font-size:1.05rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{min-height:40px;padding:8px 12px;font-size:.92rem}
+.btn:focus-visible,.opt:focus-visible,.chip:focus-visible,.mode:focus-visible,input:focus-visible{outline:3px solid var(--lamp);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+.grow{flex:1 1 auto}
+label.lab{font-weight:700;font-size:.95rem}
+input[type=text],input[type=number],input.num{width:100%;font:inherit;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);min-height:50px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{border:2px solid var(--line);background:var(--panel2);border-radius:14px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:6px;min-width:0}
+.mode svg{width:42px;height:42px}
+.mode b{font-family:var(--f-display);font-weight:800;font-size:1.5rem;letter-spacing:.03em}
+.mode small{color:var(--muted);font-size:.88rem;line-height:1.35}
+.mode[aria-pressed="true"]{border-color:var(--lamp);box-shadow:0 0 0 3px color-mix(in srgb,var(--lamp) 25%,transparent)}
+.bar{height:6px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--lamp)}
+.chips{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.secs{display:flex;flex-wrap:wrap;gap:6px}
+.sec{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 12px;min-height:38px;font-size:.88rem}
+.sec[aria-pressed="true"]{border-color:var(--lamp);color:var(--lamp)}
+.chip{border:1px solid var(--line);background:var(--panel2);border-radius:10px;min-height:46px;font-weight:700;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--lamp);color:var(--lamp-ink);border-color:var(--lamp)}
+.hud{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;font-size:.9rem}
+.fog{height:10px;border-radius:6px;background:var(--line);overflow:hidden;position:relative}
+.fog i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--tide1),var(--tide2));transition:width .6s}
+.letters{display:flex;gap:3px;font-family:var(--f-mono);font-weight:700;font-size:1.05rem;flex-wrap:wrap}
+.letters span{width:19px;height:27px;font-size:.95rem;display:grid;place-items:center;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+.letters span.clear{background:var(--paper);color:var(--paper-ink);border-color:var(--lamp)}
+.letters span.misty{color:var(--muted);font-style:italic;opacity:.75}
+.who{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:start}
+.who svg{width:92px;height:auto}
+.bubble{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;position:relative;min-width:0}
+.bubble:before{content:"";position:absolute;left:-8px;top:22px;border:8px solid transparent;border-left:0;border-right-color:var(--line)}
+.bubble .name{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.q{font-weight:700;font-size:1.08rem}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:start;text-align:left;background:var(--panel2);border:2px solid var(--line);border-radius:12px;padding:12px;min-height:52px}
+.opt .k{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--line);font-weight:700;font-size:.9rem}
+.opt[aria-pressed="true"]{border-color:var(--lamp)}
+.opt[aria-pressed="true"] .k{background:var(--lamp);color:var(--lamp-ink)}
+.opt.right{border-color:var(--ok)} .opt.right .k{background:var(--ok);color:#06150f}
+.opt.wrong{border-color:var(--bad)} .opt.wrong .k{background:var(--bad);color:#1d0703}
+.opt.gone{opacity:.25;text-decoration:line-through}
+.opt:disabled{cursor:default}
+.feedback{border-radius:14px;padding:14px;border:2px solid var(--line);display:flex;flex-direction:column;gap:10px;background:var(--panel)}
+.feedback.good{border-color:var(--ok)} .feedback.badf{border-color:var(--bad)}
+.verdict{font-family:var(--f-display);font-weight:800;font-size:1.6rem;letter-spacing:.03em}
+.verdict.good{color:var(--ok)} .verdict.badf{color:var(--bad)}
+.react{font-style:italic;color:var(--muted)}
+.term{background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:12px;font-size:.95rem;display:flex;flex-direction:column;gap:4px}
+.term .t{font-family:var(--f-mono);font-weight:700;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase}
+.ledger{background:var(--paper);color:var(--paper-ink);border-radius:6px;padding:18px 16px;font-family:var(--f-book);font-size:1.15rem;position:relative;box-shadow:inset 0 0 40px rgba(120,90,40,.25)}
+.ledger .big{font-family:var(--f-mono);font-size:3rem;font-weight:700;line-height:1;color:#7a2e1c}
+.ledger .date{font-family:var(--f-mono);font-size:.8rem;opacity:.7}
+.word{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.word span{width:24px;height:36px;display:grid;place-items:center;font-family:var(--f-mono);font-weight:700;font-size:1.4rem;border-bottom:3px solid var(--lamp)}
+.word span.misty{opacity:.4}
+.card{background:linear-gradient(160deg,var(--panel2),var(--panel));border:2px solid var(--lamp);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;text-align:center}
+.stars{display:flex;justify-content:center;gap:6px}
+.stars svg{width:34px;height:34px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-variant-numeric:tabular-nums}
+.kpis div{background:var(--panel2);border-radius:10px;padding:8px}
+.kpis b{display:block;font-size:1.3rem}
+.review{display:flex;flex-direction:column;gap:10px}
+.rv{border-left:4px solid var(--line);padding:6px 0 6px 12px;display:flex;flex-direction:column;gap:4px;font-size:.95rem}
+.rv.ok{border-color:var(--ok)} .rv.half{border-color:var(--lamp)} .rv.no{border-color:var(--bad)}
+.rv .mk{font-weight:700}
+.rv .ihk{font-size:.9rem;background:var(--panel2);border-radius:8px;padding:8px}
+details{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+summary{cursor:pointer;font-weight:700}
+.notice{font-size:.9rem;background:var(--panel2);border:1px dashed var(--line);border-radius:10px;padding:10px 12px}
+.topbtns{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.icon-btn{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);background:transparent;border-radius:10px;padding:8px 10px;min-height:40px;font-size:.88rem}
+.icon-btn svg{width:18px;height:18px}
+.rechen{font-family:var(--f-mono);font-size:.95rem}
+.roles{display:flex;gap:8px;flex-wrap:wrap;font-size:.9rem}
+.roles span{border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:var(--panel2)}
+.roles span.on{border-color:var(--lamp);color:var(--lamp);font-weight:700}
+.boat{font-size:.9rem;color:var(--brick)}
+.pic{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#1b2523;max-width:600px;width:100%;margin:0 auto}
+.pic svg{display:block;width:100%;height:auto}
+.pic .hs{cursor:pointer}
+.pic .hs:focus-visible{outline:none}
+.pic .hs:focus-visible circle.ring{stroke:var(--lamp);stroke-width:4;stroke-dasharray:none;opacity:1}
+.found{display:flex;flex-direction:column;gap:6px;font-size:.95rem}
+.found div{border-left:4px solid var(--ok);padding:4px 0 4px 10px}
+.found div.no{border-color:var(--bad)}
+.timer{font-family:var(--f-display);font-weight:800;font-size:2.4rem;letter-spacing:.04em;font-variant-numeric:tabular-nums;line-height:1}
+.duelq{font-family:var(--f-mono);font-size:1.05rem;background:var(--panel2);border-radius:10px;padding:12px}
+.toggle{display:flex;gap:10px;align-items:flex-start;font-size:.95rem}
+.toggle input{width:22px;height:22px;flex:none;margin-top:2px}
+@keyframes drift{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
+@keyframes beam{0%{opacity:.0}10%{opacity:.9}40%{opacity:.0}100%{opacity:0}}
+@keyframes flick{0%,100%{opacity:1}45%{opacity:1}47%{opacity:.35}49%{opacity:1}72%{opacity:.6}74%{opacity:1}}
+@keyframes rise{from{transform:translateY(8px)}to{transform:none}}
+.fogl{animation:drift 14s ease-in-out infinite alternate}
+.fogl.b{animation-duration:19s;animation-direction:alternate-reverse}
+.beam{animation:beam 6s linear infinite}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(2.5px)}}
+.bob{animation:bob 2.6s ease-in-out infinite alternate}
+.wave{animation:drift 9s ease-in-out infinite alternate}
+.flick{animation:flick 6s infinite}
+.appear{animation:rise .45s ease-out}
+@media (prefers-reduced-motion: reduce){.fogl,.beam,.flick,.appear,.bob,.wave{animation:none}}
+@media (max-width:420px){ .word{gap:3px} .word span{width:20px;font-size:1.05rem} h1{font-size:1.8rem} .who{grid-template-columns:70px 1fr} .who svg{width:70px} .chips{grid-template-columns:repeat(7,1fr);gap:5px} .chip{min-height:42px;font-size:.92rem} }
+</style>
+</head>
+<body>
+
+
+<div class="wrap" id="app" aria-live="polite"></div>
+
+<script>
+// Das Vermächtnis der Weserforts – Daten. Quellen: LF7 Modul 1–14 Lösungen, Prüfungs-Checks, Fragenlisten itslearning, Pruefungsanalyse (Stand 02.10.2026)
+const LETTERS = "MAGAZINORDNUNG";
+const SECTIONS = [
+ {name:"Warenannahme", chs:[1,2,3,4,5]},
+ {name:"Lager", chs:[6,7,8]},
+ {name:"Kennzahlen", chs:[9,10,11,12]},
+ {name:"Inventur + Finale", chs:[13,14]}
+];
+const CHAPTERS = [
+ {n:1, modul:"Ware annehmen: die äußere Prüfung", place:"Der Anleger", title:"Der Fahrer will vor der Flut zurück", fig:{hat:"cap",coat:"#c0392b",hair:"#3b2a1e",age:"mann"},
+  who:"Fahrer Hauke Lammers",
+  intro:"Die MS Lütje Möwe legt am alten Anleger von Langlütjen II an. Fahrer Hauke Lammers wuchtet Kartons auf die Rampe. „Unterschreib schnell! In 20 Minuten kommt die Flut, dann sitz ich hier fest.“ Ein Karton ist an der Ecke nass.",
+  good:["Lammers brummt. „Gründlich bist du. Na gut.“","Die Kapitänin nickt dir von der Brücke aus zu."],
+  bad:["Eine Welle klatscht über den Anleger. Der nasse Karton wird noch nasser.","Lammers grinst. „Zu spät. Unterschrieben ist unterschrieben.“"],
+  page:"Magazinbuch, 3. März 1890. Jede Fuhre wird gezählt, bevor der Schiffer ablegt. Was nicht gezählt ist, ist nicht gekommen.",
+  words:"der Frachtführer (Fahrer) · der Lieferschein · die Empfängeranschrift · das Packstück · die äußere Prüfung · das Schadensprotokoll · unter Vorbehalt annehmen · die Annahme verweigern · den Empfang quittieren"},
+ {n:2, modul:"Innere Prüfung, Rechnung und Wareneingang im WWS", place:"Die Prüfkammer", title:"Der Zahlendreher in der Prüfkammer", fig:{hat:"headset",coat:"#2e6f73",hair:"#7a4b2a",age:"frau"},
+  who:"Disponentin Merle Thies",
+  intro:"In der Prüfkammer brummt ein alter Generator. Über Funk meldet sich Merle Thies vom Festland: „Ich sehe im WWS 70 Seefunkgeräte. Geliefert waren aber nur 30, oder? Wer hat das eingetippt?“ Auf dem MDE-Gerät steht noch die Eingabe.",
+  good:["Merle lacht erleichtert. „Super. Jetzt stimmt das System wieder.“","Das Licht in der Prüfkammer flackert und wird ruhig."],
+  bad:["Merle seufzt über Funk. „Dann bestellen wir zu spät. Und die Offshore-Leute warten.“","Im Gang klappert etwas. Als ob jemand mitgelesen hätte."],
+  page:"Was im Buch steht, muss im Magazin liegen. Eine falsche Ziffer macht aus einem ehrlichen Mann einen Dieb.",
+  words:"die innere Prüfung · Art, Menge, Güte · die Bestellkopie · der Lieferschein · die Rechnungsprüfung (sachlich, rechnerisch) · das WWS · das MDE-Gerät · der Artikelstamm · der Sollbestand · der Eingabefehler"},
+ {n:3, modul:"Mängelarten und Rügepflicht beim Handelskauf", place:"Die Kasematte der Kisten", title:"Die Kiste mit dem Haarriss", fig:{hat:"none",coat:"#4a4e69",hair:"#9a9a9a",age:"mann",glasses:1},
+  who:"Großhändler Kröger",
+  intro:"In der feuchten Kasematte öffnet ihr eine Kiste mit Schiffslampen für das Schifffahrtsmuseum. Zwei Gläser haben feine Risse. Am Telefon ist Herr Kröger vom Großhandel: „Risse? Das hättet ihr vor vier Wochen sagen müssen!“",
+  good:["Kröger räuspert sich. „Na schön. Ihr kennt euch aus.“","Die Lampen in der Kiste glänzen kurz im Taschenlampenlicht."],
+  bad:["Kröger legt einfach auf. Tuut, tuut, tuut.","Von der Decke tropft Weserwasser auf die Kiste."],
+  page:"Ein Fehler, den man sieht, wird sofort gemeldet. Ein Fehler, den man nicht sieht, sofort, wenn man ihn findet. Wer schweigt, verliert sein Recht.",
+  words:"der offene Mangel · der versteckte Mangel · der arglistig verschwiegene Mangel · der Mangel in der Art (Falschlieferung) · in der Menge · in der Güte · die Mängelrüge · unverzüglich (ohne schuldhaftes Zögern) · der zweiseitige Handelskauf · § 377 HGB"},
+ {n:4, modul:"Rechte des Käufers: Handelskauf und Verbrauchsgüterkauf", place:"Der Funkraum", title:"Der Chef funkt dazwischen", fig:{hat:"none",coat:"#1d3557",hair:"#c9b28d",age:"mann",beard:1},
+  who:"Geschäftsführer Jan-Hinnerk Wübben",
+  intro:"Im alten Funkraum knackt das Funkgerät. Geschäftsführer Wübben: „Die Lampen sind gerügt. Gut. Und jetzt? Ich will das Geld zurück! Sofort!“ Hinter euch raschelt Papier, obwohl niemand da ist.",
+  good:["Wübben atmet hörbar aus. „Ah. Erst Nacherfüllung. Verstehe.“","Das Funkgerät rauscht ruhig. Gute Verbindung."],
+  bad:["„Was? Das kostet uns Geld!“, ruft Wübben. Dann bricht die Verbindung ab.","Das Rascheln wird lauter. Wie Seiten, die jemand ungeduldig umblättert."],
+  page:"Zuerst soll der Lieferer seinen Fehler richten. Erst wenn er es nicht kann, darf man mehr verlangen.",
+  words:"die Nacherfüllung · die Mangelbeseitigung (Nachbesserung) · die Ersatzlieferung · vorrangig · nachrangig · der Rücktritt · die Minderung · der Schadensersatz · der Deckungskauf · der zweiseitige Handelskauf · der Verbrauchsgüterkauf · der bürgerliche Kauf"},
+ {n:5, modul:"Lieferungsverzug", place:"Die Signalstation", title:"Das Wartungsfenster im Windpark", fig:{hat:"helm",helm:"#f4a300",coat:"#e76f51",hair:"#2b2b2b",age:"mann"},
+  who:"Offshore-Techniker Ole Rickmers",
+  intro:"Ein Helikopter knattert über die Insel. Offshore-Techniker Ole Rickmers springt heraus. „Wo sind die Ersatzteile für Windpark Nordergründe? Bestellt mit ‚Lieferung fix am 14. Oktober‘. Morgen schließt unser Wartungsfenster!“",
+  good:["Ole hebt den Daumen. „Klar und richtig. So machen wir das.“","Der Helikopter wartet. Ole hat wieder Hoffnung."],
+  bad:["Ole schüttelt den Kopf. „So verlieren wir eine Woche.“","Der Wind dreht. Am Horizont türmen sich graue Wolken."],
+  page:"Der Kalender lügt nicht. Wer den Tag kennt, braucht keine Mahnung.",
+  words:"der Lieferungsverzug · fällig · kalendermäßig bestimmt · die Mahnung · das Verschulden · höhere Gewalt · die Nachfrist · der Fixkauf · der Verzugsschaden · der Deckungskauf · der Rücktritt · § 286 BGB"},
+ {n:6, modul:"Aufgaben des Lagers und Lagergrundsätze", place:"Das Pulvermagazin", title:"Der Magazinmeister erscheint", fig:{hat:"lotse",coat:"#3d4f5c",hair:"#d8d8d8",age:"geist",beard:1},
+  who:"Magazinmeister Johann Harms",
+  intro:"Im alten Pulvermagazin ist es eiskalt. Aus dem Halbdunkel tritt ein Mann in Uniform von 1890, durchsichtig wie Seenebel. „Johann Harms, Magazinmeister. Ihr lagert neue Ware in meinem Magazin? Dann zeigt mir, dass ihr Ordnung haltet.“",
+  good:["Harms streicht sich über den Bart. „Ordnung. Endlich wieder Ordnung.“","Eine alte Petroleumlampe an der Wand geht von selbst an."],
+  bad:["Harms zieht die Augenbrauen hoch. „Unordnung ist die Freundin der Diebe.“","Ein Regalbrett knarrt gefährlich."],
+  page:"Das Ältere geht zuerst hinaus. Schweres liegt unten. Kein Fass steht im Gang.",
+  words:"die Verkaufsbereitschaft · überbrücken · warengerecht · geräumig · übersichtlich · fifo (first in – first out) · das Reservelager · die Bückzone · die Geruchsübertragung · die Kühlkette · abschließbar"},
+ {n:7, modul:"Warenpflege und Umweltschutz im Lager", place:"Die Proviantkammer", title:"Smutje Hein und die verblichenen Jacken", fig:{hat:"koch",coat:"#f1f1f1",hair:"#6b4a2b",age:"mann",beard:1},
+  who:"Smutje Hein Bolte",
+  intro:"Smutje Hein Bolte holt Spezialproviant für die Seenotretter. Er stöbert durch die Proviantkammer. „Moin! Wieso sind die roten Segeljacken da drüben rosa? Und hier – dieser Käse muss noch reifen, oder?“",
+  good:["Hein lacht dröhnend. „Ihr pflegt eure Ware wie ich meine Kombüse!“","Es duftet plötzlich nach frischem Brot."],
+  bad:["Hein rümpft die Nase. „Damit lockt man keinen Kunden.“","Aus einer Ecke kommt ein muffiger Geruch."],
+  page:"Ware will gepflegt sein wie ein Schiff. Wer nicht hinsieht, dem verdirbt sie unter den Händen.",
+  words:"die Warenpflege · die Verkaufsfähigkeit · die Warenmanipulation (veredeln, reifen lassen) · die Qualitätskontrolle · das MHD · die Kühlkette · die Farbabweichung · reduziert anbieten · der Sollbestand · der Umweltschutz · das Auffangbecken"},
+ {n:8, modul:"Sicherheit im Lager", place:"Der Munitionsgang", title:"Rauch im Munitionsgang", fig:{hat:"helm",helm:"#f7f7f7",coat:"#2a9d8f",hair:"#1f1f1f",age:"frau"},
+  who:"Sicherheitsfachkraft Defne Kaya",
+  intro:"Defne Kaya, Fachkraft für Arbeitssicherheit, prüft die Bunkergänge. Plötzlich riecht es nach Rauch. Im Munitionsgang stehen Kartons vor dem Notausgang. Harms’ Stimme hallt: „Pulver und Feuer! Damals wie heute!“",
+  good:["Defne nickt. „Genau so. Sicherheit geht vor.“","Der Rauch verzieht sich. Die grünen Notausgangsschilder leuchten klar."],
+  bad:["Defne hustet. „Nein! Das ist gefährlich.“","Der Rauch wird dichter. Ein Alarm piept."],
+  page:"Kein Licht ohne Laterne im Magazin. Kein Weg wird verstellt. Wer eine Gefahr sieht, meldet sie dem Meister – sofort.",
+  words:"die Unfallverhütungsvorschriften (UVV) · die Berufsgenossenschaft (BG) · die Unterweisung · die persönliche Schutzausrüstung · der Fluchtweg · der Notausgang · das Verbotszeichen · das Gebotszeichen · das Warnzeichen · das Rettungszeichen · das Brandschutzzeichen"},
+ {n:9, modul:"Lagerbestandsgrößen: Mindest-, Melde-, Höchstbestand", place:"Die Brücke der Lütje Möwe", title:"Wenn der Sturm die Lieferzeit frisst", fig:{hat:"kapitaenin",coat:"#14213d",hair:"#b5651d",age:"frau"},
+  who:"Kapitänin Freya Ahlers",
+  intro:"Auf der Brücke der MS Lütje Möwe tippt Kapitänin Freya Ahlers auf die Seekarte. „Herbststürme. Ich kann euch nur noch alle 4 statt alle 2 Tage beliefern. Wann bestellt ihr? Und wie viel?“",
+  good:["Freya nickt. „Gut gerechnet. Dann geht euch nichts aus.“","Das Echolot piept ruhig. Klarer Kurs."],
+  bad:["Freya runzelt die Stirn. „Dann steht ihr ohne Ware da, wenn der Sturm kommt.“","Die Lütje Möwe schaukelt in einer Böe."],
+  page:"Bestelle, solange noch genug da ist, bis das Schiff kommt. Und halte immer eine eiserne Reserve.",
+  words:"der Mindestbestand (eiserne Reserve) · der Meldebestand · der Höchstbestand · die Bestellmenge · der Tagesabsatz · die Lieferzeit · Meldebestand = Tagesabsatz × Lieferzeit + Mindestbestand · Bestellmenge = Höchstbestand − Mindestbestand"},
+ {n:10, modul:"Durchschnittlicher Lagerbestand", place:"Die Schreibstube", title:"Die Quartalsbücher von 1890", fig:{hat:"lotse",coat:"#3d4f5c",hair:"#d8d8d8",age:"geist",beard:1},
+  who:"Magazinmeister Johann Harms",
+  intro:"In der Schreibstube liegen staubige Bücher. Harms blättert, ohne das Papier zu berühren. „Jedes Vierteljahr habe ich gezählt. Ihr rechnet mit Maschinen. Aber wisst ihr auch, wie viel im Durchschnitt im Magazin lag?“",
+  good:["Harms klappt das Buch zu. „Richtig gerechnet. Wie ein Kaufmann.“","Die Tinte im Buch glänzt, als wäre sie frisch."],
+  bad:["Harms schüttelt langsam den Kopf. „Ihr habt etwas vergessen. Den Anfang!“","Eine Seite reißt mit leisem Geräusch."],
+  page:"Den Bestand am ersten Tag zählt man immer mit. Wer ihn vergisst, betrügt sich selbst.",
+  words:"der Anfangsbestand (AB) · der Endbestand (EB) · der Quartalsendbestand · der Monatsendbestand · der durchschnittliche (Ø) Lagerbestand · der Einstandspreis (Bezugspreis) · in Stück · in Euro"},
+ {n:11, modul:"Umschlagshäufigkeit und Lagerdauer", place:"Der Leitstand", title:"Wie schnell schlägt die Ware um?", fig:{hat:"none",coat:"#5c677d",hair:"#2e2e2e",age:"mann",glasses:1},
+  who:"Controller Malte Behnke",
+  intro:"Im Leitstand flimmern Bildschirme. Controller Malte Behnke ist per Video zugeschaltet. „Die Kuratorin vom Schifffahrtsmuseum fragt, wie lange ihre Ware hier liegt. Und ich will wissen, wie oft wir umschlagen.“",
+  good:["Behnke tippt zufrieden. „Zahl stimmt. Gleich in den Bericht.“","Die Bildschirme leuchten grün."],
+  bad:["Behnke runzelt die Stirn. „Das kann nicht stimmen. Noch mal.“","Ein Bildschirm zeigt nur noch Rauschen."],
+  page:"Ware, die liegt, kostet. Ware, die geht, bringt Brot.",
+  words:"die Umschlagshäufigkeit · der Absatz · der Wareneinsatz · mengenmäßig (Stück) · wertmäßig (Euro) · die Ø Lagerdauer · 360 Tage · aufrunden · der geplante Absatz"},
+ {n:12, modul:"Kennzahlen deuten: Lagerkosten, Lagerzins, Risiken", place:"Der Kartenraum", title:"Der Abverkauf läuft schleppend", fig:{hat:"none",coat:"#1d3557",hair:"#c9b28d",age:"mann",beard:1},
+  who:"Geschäftsführer Jan-Hinnerk Wübben",
+  intro:"Wübben ist mit dem Boot gekommen. Im Kartenraum schlägt er auf eine Liste. „Das gelbe Ölzeug liegt seit Monaten hier! Der Abverkauf läuft schleppend. Was heißt das für uns – und was tun wir?“",
+  good:["Wübben nickt langsam. „Klar erklärt. So machen wir es.“","Auf der Seekarte leuchtet kurz ein Kurs auf."],
+  bad:["Wübben verschränkt die Arme. „Das klingt teuer.“","Die Feuchtigkeit kriecht durch die Mauer. Das Ölzeug riecht muffig."],
+  page:"Was zu lange im Magazin liegt, frisst Geld, Platz und Geduld. Und am Ende frisst es der Rost.",
+  words:"die Lagerkosten · das gebundene Kapital · der Lagerzinssatz · die Lagerzinsen · das Lagerrisiko · der Ladenhüter (Penner) · der Renner · die Renner-Penner-Liste · der Saisonwechsel · die Modeänderung · der technische Fortschritt · die Preisschwankung · der Schwund"},
+ {n:13, modul:"Inventur", place:"Die Inventurnacht", title:"Schatten im Watt", fig:{hat:"schiebermuetze",coat:"#262626",hair:"#111",age:"mann",pale:1},
+  who:"Der Schatten",
+  intro:"Inventurnacht. Draußen ist Ebbe, das Watt glänzt im Mondlicht. Laut WWS müssten 55 Seekarten-Tablets im Lager liegen. Ihr zählt 50. Plötzlich huscht eine Gestalt mit Schiebermütze durch den Gang. Ein Boot ohne Licht liegt am Fuß der Mauer.",
+  good:["Die Gestalt bleibt stehen. Sie merkt: Hier zählt jemand genau.","Harms flüstert: „Zahlen fangen Diebe besser als Ketten.“"],
+  bad:["Die Gestalt verschwindet mit einem Karton ins Dunkel.","Das Boot ohne Licht legt leise ab."],
+  page:"Einmal im Jahr wird alles gezählt. Was fehlt, sagt mehr als jeder Zeuge.",
+  words:"die Inventur · der Sollbestand (laut WWS) · der Istbestand (gezählt) · die Inventurdifferenz · der Fehlbestand · der Mehrbestand · die Stichtagsinventur · die verlegte Inventur · die permanente Inventur · die Stichprobeninventur"},
+ {n:14, modul:"Gemischtes Training", place:"Der Kommandantenraum", title:"Die letzte Prüfung des Magazinmeisters", fig:{hat:"lotse",coat:"#3d4f5c",hair:"#d8d8d8",age:"geist",beard:1},
+  who:"Magazinmeister Johann Harms",
+  intro:"Die Flut kommt zurück. Im Kommandantenraum wartet Harms an einem schweren Eichentisch. „Ihr habt meine Seiten gefunden. Jetzt prüfe ich euch ein letztes Mal – alles durcheinander, wie im Leben. Und wie in eurer Prüfung.“",
+  good:["Harms lächelt zum ersten Mal. „Das hätte ich nicht besser gemacht.“","Die Lampe auf dem Tisch leuchtet hell und ruhig."],
+  bad:["Harms tippt auf das Buch. „Noch einmal nachdenken. Ordnung braucht Ruhe.“","Das Wasser gluckert unter den Bodenplatten."],
+  page:"Meine Ordnung war nie ein Schatz aus Gold. Sie war der Schatz.",
+  words:"Annahme · Prüfung · Rüge · Rechte · Verzug · Lagergrundsätze · Warenpflege · Sicherheit · Meldebestand · Ø Lagerbestand · Umschlagshäufigkeit · Lagerdauer · Lagerkosten · Inventurdifferenz"}
+];
+const FOLLOW={
+ 1:"Lammers kommt noch einmal die Rampe hoch. „Noch ein Karton vergessen. Diesmal machst du es richtig, ja?“",
+ 2:"Merle funkt wieder: „Da ist noch eine Lieferung. Bitte genau prüfen und erfassen.“",
+ 3:"Kröger ruft zurück. „Gut, reden wir noch mal. Was genau ist das Problem?“",
+ 4:"Wübben ist wieder in der Leitung. „Erklärt es mir noch einmal. Langsam.“",
+ 5:"Ole steht noch am Helikopter. „Noch eine Frage, bevor ich abfliege.“",
+ 6:"Harms versperrt euch den Weg. „Ein Versuch noch. Dann will ich Ordnung sehen.“",
+ 7:"Smutje Hein kommt mit einer zweiten Kiste zurück. „Und was macht ihr hiermit?“",
+ 8:"Defne Kaya hebt die Hand. „Stopp. Wir gehen den Gang noch einmal durch.“",
+ 9:"Freya Ahlers legt einen neuen Fahrplan hin. „Rechnet noch einmal. Die See wartet nicht.“",
+ 10:"Harms schlägt ein anderes Buch auf. „Noch eine Rechnung. Den Anfang nicht vergessen!“",
+ 11:"Behnke schickt neue Zahlen. „Bitte noch einmal sauber.“",
+ 12:"Wübben tippt auf die nächste Zeile. „Und was heißt das hier?“",
+ 13:"Die Gestalt taucht am anderen Ende des Gangs wieder auf. Jetzt zählt jede Zahl.",
+ 14:"Harms legt die Hand auf den Tisch. „Eine letzte Frage. Dann gehört das Vermächtnis euch.“"
+};
+const POOL = [];
+
+// k: mc | rede | mcb (Entscheidung + Begründung) | num
+POOL.push(
+// ===== Kapitel 1 – Ware annehmen (äußere Prüfung) =====
+{id:"a1-1",ch:1,m:"a",k:"mc",s:"Lammers stellt 12 Kartons auf die Rampe. „Unterschreib endlich!“",q:"Was prüfst du, solange der Fahrer noch da ist?",
+ o:[["Empfängeranschrift, Anzahl der Packstücke, äußere Verpackung",1],["Inhalt, Mindesthaltbarkeitsdatum und Preis",0],["Rechnung und Bestellung",0]],
+ why:"Solange der Fahrer da ist, machst du die äußere Prüfung: Anschrift, Anzahl, Verpackung. Den Inhalt prüfst du erst danach (innere Prüfung). Die Rechnung prüft man im Büro.",
+ term:"äußere Prüfung",ihk:"In Anwesenheit des Fahrers prüfe ich die Empfängeranschrift, die Anzahl der Versandstücke und die äußere Beschaffenheit der Verpackung."},
+{id:"a1-2",ch:1,m:"a",k:"mc",s:"Ein Karton ist nass und an der Ecke eingedrückt. Lammers: „Ach, das ist nur Gischt.“",q:"Was tust du?",
+ o:[["Schaden im Schadensprotokoll festhalten, Fahrer unterschreiben lassen, unter Vorbehalt annehmen",1],["Unterschreiben und später beim Lieferer anrufen",0],["Den Karton öffnen und alles prüfen, während der Fahrer wartet",0]],
+ why:"Ein äußerer Schaden muss bewiesen werden. Deshalb: Schadensprotokoll, Unterschrift des Fahrers, Annahme unter Vorbehalt. Auspacken gehört nicht zur Prüfung vor dem Fahrer.",
+ term:"Schadensprotokoll · unter Vorbehalt",ihk:"Den Schaden lasse ich vom Fahrer im Schadensprotokoll bestätigen und nehme die Sendung unter Vorbehalt an."},
+{id:"a1-3",ch:1,m:"a",k:"mc",s:"Auf einem Paket steht: „Nordsee-Marine-Depot, Filiale Cuxhaven“.",q:"Was tust du?",
+ o:[["Annahme verweigern",1],["Annehmen und später weiterschicken",0],["Unter Vorbehalt annehmen",0]],
+ why:"Die Sendung ist nicht für euch adressiert. Eine falsch adressierte Sendung nimmt man nicht an.",
+ term:"Annahme verweigern",ihk:"Bei falscher Empfängeranschrift verweigere ich die Annahme."},
+{id:"a1-4",ch:1,m:"a",k:"mc",s:"Alles stimmt: Anschrift, 12 Kartons, keine Schäden. Lammers hält dir den Lieferschein hin.",q:"Was bestätigst du mit deiner Unterschrift?",
+ o:[["den Empfang der Packstücke",1],["dass der Inhalt ohne Mängel ist",0],["dass die Ware bezahlt ist",0]],
+ why:"Mit der Unterschrift bestätigst du nur: Die Packstücke sind angekommen. Ob der Inhalt in Ordnung ist, prüfst du erst danach.",
+ term:"Empfangsbestätigung",ihk:"Mit der Unterschrift auf dem Lieferschein bestätige ich nur den Empfang der Sendung."},
+{id:"a1-5",ch:1,m:"a",k:"mc",s:"Laut Lieferschein sind es 12 Kartons. Auf der Rampe stehen nur 11.",q:"Was tust du?",
+ o:[["Fehlmenge auf dem Lieferschein vermerken und vom Fahrer unterschreiben lassen",1],["Einfach für 12 Kartons unterschreiben",0],["Die ganze Lieferung zurückschicken",0]],
+ why:"Die Fehlmenge muss belegt sein. Darum vermerkst du sie auf dem Lieferschein, und der Fahrer bestätigt sie mit seiner Unterschrift.",
+ term:"Fehlmenge vermerken",ihk:"Fehlende Packstücke vermerke ich auf dem Lieferschein und lasse dies vom Fahrer bestätigen."},
+{id:"a1-6",ch:1,m:"a",k:"rede",s:"Lammers drängelt: „Komm schon, die Flut! Unterschreib einfach, das passt schon!“",q:"Was sagst du?",
+ o:[["„Ich beeile mich. Aber ich muss kurz die Anschrift, die Anzahl und die Kartons prüfen. Das dauert nur zwei Minuten.“",1],["„Okay, ich unterschreibe. Wird schon stimmen.“",0],["„Hetz mich nicht! Ich mache, was ich will.“",0]],
+ why:"Freundlich bleiben, aber die äußere Prüfung nicht auslassen. Sonst kann man spätere Schäden nicht mehr beweisen.",
+ term:"äußere Prüfung trotz Zeitdruck",ihk:"Auch bei Zeitdruck prüfe ich in Anwesenheit des Fahrers Anschrift, Anzahl und Verpackung."},
+{id:"p1-1",ch:1,m:"p",k:"mc",s:"IHK-Stil: Welche 3 Tätigkeiten führen Sie in Anwesenheit des Fahrers durch? 1 Anschrift prüfen · 2 Transportverpackung öffnen · 3 Lieferschein mit Rechnung vergleichen · 6 Anzahl der Pakete mit Lieferschein vergleichen · 8 Transportverpackung auf Beschädigungen prüfen · 9 MHD aller Waren prüfen",q:"Welche Kennziffern sind richtig?",
+ o:[["1 · 6 · 8",1],["1 · 2 · 9",0],["3 · 6 · 8",0],["2 · 6 · 9",0]],
+ why:"Anschrift (1), Anzahl der Pakete (6) und äußere Beschädigungen (8). Öffnen, MHD und Rechnung kommen später.",
+ term:"3 Tätigkeiten vor dem Fahrer",ihk:"Kennziffern 1, 6, 8 (IHK W 2018/19 Aufg. 1; ebenso S 2022, W 2025/26)."},
+{id:"p1-2",ch:1,m:"p",k:"mc",s:"Bringe in die richtige Reihenfolge: a) Ware auspacken und auf Mängel prüfen · b) Anschrift prüfen · c) Wareneingang im WWS erfassen · d) Anzahl und äußere Beschaffenheit prüfen · e) Warenbegleitpapiere unterschreiben",q:"Welche Reihenfolge stimmt?",
+ o:[["b – d – e – a – c",1],["b – e – d – a – c",0],["d – b – a – e – c",0],["b – d – a – c – e",0]],
+ why:"Erst prüfen, dann unterschreiben. Danach auspacken (innere Prüfung). Erfassen im WWS kommt zuletzt.",
+ term:"Ablauf der Warenannahme",ihk:"Anschrift prüfen → Anzahl und äußere Beschaffenheit prüfen → Begleitpapiere unterschreiben → auspacken und prüfen → im WWS erfassen (IHK W 2023/24 Aufg. 13)."},
+{id:"p1-3",ch:1,m:"p",k:"mcb",s:"Die Palette mit Spezialproviant ist völlig durchnässt, mehrere Kartons sind aufgerissen.",q:"Wie entscheidest du?",
+ o:[["Annahme verweigern",1],["Unter Vorbehalt annehmen",0],["Annehmen und den Lieferer sofort anrufen",0]],
+ b:{q:"Warum?",o:[["Der Schaden ist so groß, dass die Ware vermutlich unbrauchbar ist. Man nimmt sie gar nicht erst an.",1],["Weil nasse Ware immer verweigert werden muss, auch bei kleinen Flecken.",0],["Weil der Fahrer sonst die Rechnung nicht mitnimmt.",0]]},
+ why:"Kleiner Schaden: unter Vorbehalt annehmen und protokollieren. Schwerer, offensichtlicher Schaden: Annahme verweigern.",
+ term:"Annahme verweigern",ihk:"Bei schweren äußeren Schäden verweigere ich die Annahme der Sendung."},
+{id:"p1-4",ch:1,m:"p",k:"mcb",s:"Lammers bringt 200 Signalfackeln, die niemand bestellt hat.",q:"Was tust du an der Rampe?",
+ o:[["Annahme verweigern",1],["Annehmen und bezahlen",0],["Annehmen und behalten, ohne zu bezahlen",0]],
+ b:{q:"Woran hast du das erkannt?",o:[["Es fehlt die Lieferberechtigung: Für diese Ware gibt es keine Bestellung.",1],["An der nassen Verpackung.",0],["Am Gewicht der Kartons.",0]]},
+ why:"Zur Annahme gehört der Blick auf die Lieferberechtigung. Keine Bestellung bedeutet keine Lieferberechtigung, also verweigert man die Annahme.",
+ term:"Lieferberechtigung",ihk:"Nicht bestellte Ware nehme ich nicht an (keine Lieferberechtigung)."},
+{id:"p1-5",ch:1,m:"p",k:"mcb",s:"Prüferin: „Warum ist die Prüfung vor dem Fahrer so wichtig?“",q:"Was antwortest du?",
+ o:[["Schäden und Fehlmengen kann ich nur jetzt mit Unterschrift des Fahrers beweisen.",1],["Damit der Fahrer schneller abfahren kann.",0],["Weil ich sonst die Rechnung nicht bezahlen muss.",0]],
+ b:{q:"Wer ist der Fahrer rechtlich?",o:[["Der Frachtführer, also das Transportunternehmen, das die Ware bringt.",1],["Der Hersteller der Ware.",0],["Der Käufer.",0]]},
+ why:"Der Frachtführer haftet für Transportschäden. Später kann man schwer beweisen, wann ein Schaden entstanden ist.",
+ term:"Frachtführer · Beweissicherung",ihk:"Äußere Schäden lasse ich mir vom Frachtführer bestätigen, damit ich sie später nachweisen kann."},
+{id:"p1-6",ch:1,m:"p",k:"rede",s:"Lammers: „Der Karton ist nur ein bisschen nass. Unterschreib einfach ohne Vermerk, sonst krieg ich Ärger.“",q:"Welche Antwort ist fachlich und freundlich richtig?",
+ o:[["„Ich verstehe, dass Sie es eilig haben. Ich nehme die Sendung unter Vorbehalt an und schreibe den Schaden ins Protokoll. Bitte unterschreiben Sie hier.“",1],["„Kein Problem, ich unterschreibe ohne Vermerk.“",0],["„Dann nehme ich gar nichts an. Fahren Sie zurück!“",0],["„Das ist Ihr Problem, nicht meins.“",0]],
+ why:"Verständnis zeigen und trotzdem korrekt handeln: kleiner Schaden → unter Vorbehalt, Protokoll, Unterschrift des Fahrers.",
+ term:"unter Vorbehalt annehmen",ihk:"Ich nehme die Sendung unter Vorbehalt an und lasse den Schaden vom Fahrer bestätigen."},
+
+// ===== Kapitel 2 – Innere Prüfung, Rechnung, WWS =====
+{id:"a2-1",ch:2,m:"a",k:"mc",s:"Der Fahrer ist weg. Jetzt öffnest du die Kartons.",q:"Was prüfst du bei der inneren Prüfung?",
+ o:[["Art, Menge und Güte der Ware",1],["Anschrift und Anzahl der Packstücke",0],["nur das Gewicht der Kartons",0]],
+ why:"Innere Prüfung = Inhalt prüfen: Ist es die richtige Ware (Art), die richtige Zahl (Menge) und in Ordnung (Güte)?",
+ term:"innere Prüfung",ihk:"Bei der inneren Prüfung kontrolliere ich, ob Menge, Art und Beschaffenheit der Ware der Bestellung entsprechen."},
+{id:"a2-2",ch:2,m:"a",k:"mc",s:"Merle fragt über Funk: „Womit vergleichst du die Lieferung?“",q:"Welche Unterlagen brauchst du?",
+ o:[["Bestellkopie und Lieferschein",1],["Angebot und Rechnung",0],["Packzettel und Kassenbon",0]],
+ why:"Bestellt ist bestellt: Die Bestellkopie zeigt, was ihr wolltet. Der Lieferschein zeigt, was gekommen ist.",
+ term:"Bestellkopie + Lieferschein",ihk:"Zur Prüfung der Lieferung benötige ich die Bestellkopie und den Lieferschein."},
+{id:"a2-3",ch:2,m:"a",k:"mc",s:"Es wurden 30 Seefunkgeräte geliefert. Im WWS stehen aber 70.",q:"Was ist die Folge?",
+ o:[["Der Sollbestand ist zu hoch. Es wird zu spät bestellt.",1],["Der Sollbestand ist zu niedrig. Es wird zu früh bestellt.",0],["Nichts. Das WWS korrigiert das selbst.",0]],
+ why:"Das WWS glaubt, es sind 40 Geräte mehr da. Darum meldet es zu spät, dass bestellt werden muss. Dann fehlt Ware.",
+ term:"Eingabefehler im WWS",ihk:"Bei Anwendung des automatischen Bestellsystems kann es zu Verkaufsstockungen kommen."},
+{id:"a2-4",ch:2,m:"a",k:"mc",s:"Mit welchem Gerät erfasst du den Wareneingang im Lager?",q:"Wähle.",
+ o:[["Mobiles Datenerfassungsgerät (MDE)",1],["Elektronische Waage",0],["Router",0]],
+ why:"Mit dem MDE-Gerät scannst du die Ware und gibst die Menge direkt ins WWS ein.",
+ term:"MDE-Gerät",ihk:"Für die Erfassung wird üblicherweise ein mobiles Datenerfassungsgerät verwendet."},
+{id:"a2-5",ch:2,m:"a",k:"mc",s:"Was steht im Artikelstamm des WWS?",q:"Wähle.",
+ o:[["z. B. Artikelnummer, Lagerplatz, Meldebestand, Zugang, Abgang, Bestand",1],["die Adressen der Kunden",0],["die Arbeitszeiten der Mitarbeiter",0]],
+ why:"Der Artikelstamm enthält alle Daten zu einem Artikel. Kundenadressen stehen in der Kundendatei.",
+ term:"Artikelstamm",ihk:"Im Artikelstamm stehen u. a. Artikelnummer, Lagerplatz, Meldebestand, Zugänge, Abgänge und Bestand."},
+{id:"a2-6",ch:2,m:"a",k:"mc",s:"Die Rechnung kommt. Bei der rechnerischen Prüfung kontrollierst du …",q:"Was gehört dazu?",
+ o:[["Rabatt, Skonto, Summen und Umsatzsteuer",1],["ob die richtige Ware geliefert wurde",0],["ob die Ware beschädigt ist",0]],
+ why:"Rechnerisch = nachrechnen. Ob Ware und Preis stimmen, ist die sachliche Prüfung.",
+ term:"rechnerische Rechnungsprüfung",ihk:"Bei der rechnerischen Prüfung kontrolliere ich Rabatt, Skonto, Summen und Umsatzsteuer."},
+{id:"p2-1",ch:2,m:"p",k:"mcb",s:"Merle: „Du hast 25 Rettungswesten bekommen, aber nur 10 eingegeben.“",q:"Was ist die Folge?",
+ o:[["Der Sollbestand ist zu niedrig, es wird zu früh bestellt.",1],["Der Sollbestand ist zu hoch, es wird zu spät bestellt.",0],["Der Meldebestand sinkt automatisch.",0]],
+ b:{q:"Warum?",o:[["Das WWS glaubt, es seien 15 Westen weniger da. Der Meldebestand wird scheinbar früher erreicht.",1],["Weil das WWS Fehler immer nach oben rundet.",0],["Weil der Höchstbestand dadurch sinkt.",0]]},
+ why:"Zu wenig erfasst → Sollbestand zu niedrig → Bestellung zu früh → zu viel Ware, höhere Lagerkosten. Zu viel erfasst → umgekehrt.",
+ term:"Richtung des Eingabefehlers",ihk:"Wird zu wenig erfasst, ist der Sollbestand zu niedrig, und es wird zu früh bestellt."},
+{id:"p2-2",ch:2,m:"p",k:"mcb",s:"Du buchst den Zugang von 40 Taschenlampen versehentlich beim Artikel „Stirnlampe“.",q:"Was ist die Folge?",
+ o:[["Zwei Sollbestände sind falsch.",1],["Nur der Bestand der Taschenlampen ist falsch.",0],["Kein Problem, die Gesamtmenge stimmt ja.",0]],
+ b:{q:"Was passiert dann bei der Bestellung?",o:[["Bei den Stirnlampen wird zu spät bestellt, bei den Taschenlampen zu früh.",1],["Bei beiden wird zu spät bestellt.",0],["Es wird gar nichts mehr bestellt.",0]]},
+ why:"Die Stirnlampen haben im WWS 40 zu viel, die Taschenlampen 40 zu wenig. Beide Bestände sind falsch.",
+ term:"Zugang beim falschen Artikel",ihk:"Wird ein Zugang beim falschen Artikel erfasst, sind die Sollbestände beider Artikel falsch."},
+{id:"p2-3",ch:2,m:"p",k:"mc",s:"IHK-Stil: Welches Verhalten bei der Wareneingangskontrolle ist richtig?",q:"Wähle.",
+ o:[["Bei der Feinkontrolle prüfe ich, ob Menge, Art und Beschaffenheit der Bestellung entsprechen.",1],["Abweichungen zwischen Bestellung und Lieferung werden erfasst, aber nicht gerügt.",0],["Die gelieferte Ware wird als Mindestbestand im WWS erfasst.",0],["Nicht bestellte Ware wird ohne Rücksprache sofort zurückgeschickt.",0]],
+ why:"Feinkontrolle = innere Prüfung von Menge, Art und Beschaffenheit. Abweichungen werden gerügt.",
+ term:"Feinkontrolle",ihk:"Ich kontrolliere bei der Feinkontrolle, ob Menge, Art und Beschaffenheit der Ware der Bestellung entsprechen (IHK S 2017 Aufg. 10)."},
+{id:"p2-4",ch:2,m:"p",k:"mcb",s:"Die Seefunkgeräte sind in Ordnung. Du nimmst sie an.",q:"Was erklärst du damit rechtlich?",
+ o:[["Die vertragsgemäße Erfüllung des Kaufvertrags",1],["Den Rücktritt vom Vertrag",0],["Den Abschluss eines neuen Kaufvertrags",0]],
+ b:{q:"Welche Pflicht des Käufers ist das?",o:[["Die Abnahmepflicht: Der Käufer nimmt die mangelfreie Ware ab.",1],["Die Rügepflicht.",0],["Die Lieferpflicht.",0]]},
+ why:"Wer mangelfreie Ware annimmt, erfüllt seine Abnahmepflicht und bestätigt die vertragsgemäße Lieferung.",
+ term:"Erfüllung des Kaufvertrags",ihk:"Mit der Annahme mangelfreier Ware erklärt der Käufer die vertragsgemäße Erfüllung des Kaufvertrags."},
+{id:"p2-5",ch:2,m:"p",k:"mcb",s:"Auf der Rechnung steht ein Stückpreis von 89 €. Vereinbart waren 79 €.",q:"Welche Prüfung deckt das auf?",
+ o:[["Die sachliche Rechnungsprüfung",1],["Die rechnerische Rechnungsprüfung",0],["Die äußere Prüfung",0]],
+ b:{q:"Was wird bei der sachlichen Prüfung kontrolliert?",o:[["Ob Ware, Menge und Preise mit Bestellung und Lieferschein übereinstimmen.",1],["Ob Summen und Umsatzsteuer richtig gerechnet sind.",0],["Ob der Karton beschädigt ist.",0]]},
+ why:"Sachlich: Stimmen Ware, Menge, Preis und Bedingungen? Rechnerisch: Stimmt die Rechnung mathematisch?",
+ term:"sachliche Rechnungsprüfung",ihk:"Bei der sachlichen Prüfung vergleiche ich die Rechnung mit Bestellung und Lieferschein (Ware, Menge, Preis)."},
+
+// ===== Kapitel 3 – Mängel und Rügepflicht =====
+{id:"a3-1",ch:3,m:"a",k:"mc",s:"Kröger: „Ihr müsst unverzüglich prüfen. Was heißt das überhaupt?“",q:"Was bedeutet „unverzüglich“?",
+ o:[["ohne schuldhaftes Zögern",1],["innerhalb von 2 Tagen",0],["spätestens bei der Auszeichnung",0]],
+ why:"Unverzüglich heißt: so schnell, wie es im normalen Betrieb möglich ist – ohne schuldhaftes Zögern. Es gibt keine feste Zahl von Tagen.",
+ term:"unverzüglich",ihk:"Die Ware muss ohne schuldhaftes Verzögern überprüft werden."},
+{id:"a3-2",ch:3,m:"a",k:"mc",s:"Statt 50 Seenotfackeln sind nur 45 in der Kiste.",q:"Welcher Mangel ist das?",
+ o:[["Mangel in der Menge",1],["Mangel in der Art",0],["Mangel in der Güte",0]],
+ why:"Es fehlt etwas: zu wenig geliefert. Das ist ein Mangel in der Menge.",
+ term:"Mangel in der Menge",ihk:"Statt 50 Flaschen wurden 45 geliefert: Mangel in der Menge."},
+{id:"a3-3",ch:3,m:"a",k:"mc",s:"Statt Schiffslampen sind Fahrradlampen in der Kiste.",q:"Welcher Mangel ist das?",
+ o:[["Mangel in der Art (Falschlieferung)",1],["Mangel in der Menge",0],["kein Mangel",0]],
+ why:"Es kam eine andere Ware als bestellt: Mangel in der Art, auch Falschlieferung genannt.",
+ term:"Mangel in der Art",ihk:"Wird eine andere Ware geliefert, liegt ein Mangel in der Art (Falschlieferung) vor."},
+{id:"a3-4",ch:3,m:"a",k:"mc",s:"Welcher Mangel ist versteckt?",q:"Wähle.",
+ o:[["Dosenproviant ist innen verdorben.",1],["Ein Spiegel hat einen Sprung.",0],["Es fehlen 5 Flaschen.",0]],
+ why:"Versteckt ist ein Mangel, den man beim Prüfen nicht sehen kann. Einen Sprung oder fehlende Flaschen sieht man sofort.",
+ term:"versteckter Mangel",ihk:"Ein versteckter Mangel ist bei der Prüfung nicht erkennbar (z. B. Konserven innen verdorben)."},
+{id:"a3-5",ch:3,m:"a",k:"mc",s:"Was passiert, wenn ihr die Rügefrist verpasst?",q:"Wähle.",
+ o:[["Ihr verliert eure Rechte aus der mangelhaften Lieferung.",1],["Die Frist verlängert sich automatisch.",0],["Der Lieferer muss Strafe zahlen.",0]],
+ why:"Beim Handelskauf gilt: Wer zu spät rügt, verliert seine Rechte gegenüber dem Lieferer.",
+ term:"Folgen der verspäteten Rüge",ihk:"Wird die Rügefrist versäumt, verliert der Käufer seine Rechte aus der mangelhaften Lieferung."},
+{id:"a3-6",ch:3,m:"a",k:"rede",s:"Du rufst Kröger an, um die gerissenen Lampengläser zu rügen.",q:"Was sagst du?",
+ o:[["„Guten Tag, Herr Kröger. In Ihrer Lieferung vom Montag haben zwei Schiffslampen Risse im Glas. Wir rügen diesen Mangel und bitten um Ersatz.“",1],["„Ihre Lampen sind Schrott. Holen Sie den Müll ab!“",0],["„Ach, zwei Lampen sind kaputt. Ist nicht so schlimm.“",0]],
+ why:"Eine Rüge ist sachlich und genau: Welche Lieferung? Welcher Mangel? Was wollt ihr? Freundlich bleiben.",
+ term:"Mängelrüge",ihk:"Den Mangel teile ich dem Lieferer unverzüglich und genau beschrieben mit (Mängelrüge)."},
+{id:"p3-1",ch:3,m:"p",k:"mcb",s:"4 Wochen nach der Lieferung merkt ihr: Einige Rucksäcke für die Seenotretter haben einen versteckten Mangel. Ihr rügt sofort.",q:"Habt ihr die Rügefrist eingehalten?",
+ o:[["Ja.",1],["Nein.",0],["Nur, wenn der Lieferer zustimmt.",0]],
+ b:{q:"Warum?",o:[["Versteckte Mängel müssen unverzüglich nach Entdeckung, spätestens innerhalb von 2 Jahren gerügt werden.",1],["Versteckte Mängel müssen innerhalb von 2 Wochen nach Lieferung gerügt werden.",0],["Beim Handelskauf gilt keine Rügefrist.",0]]},
+ why:"Kommt in 6 von 19 Prüfungen fast wortgleich vor. Entscheidend: unverzüglich nach Entdeckung.",
+ term:"Rügefrist versteckter Mangel",ihk:"Ja, weil versteckte Mängel unverzüglich nach Entdeckung, spätestens innerhalb von 2 Jahren gerügt werden müssen."},
+{id:"p3-2",ch:3,m:"p",k:"mcb",s:"Eine Privatkundin bringt nach 3 Wochen eine Tasse mit Sprung zurück.",q:"Gilt für sie die unverzügliche Rügepflicht?",
+ o:[["Nein.",1],["Ja, auch Kunden müssen unverzüglich rügen.",0],["Ja, nach 2 Wochen ist es zu spät.",0]],
+ b:{q:"Warum nicht?",o:[["Die unverzügliche Rügepflicht (§ 377 HGB) gilt nur beim zweiseitigen Handelskauf, also zwischen zwei Kaufleuten.",1],["Weil Tassen keine Gewährleistung haben.",0],["Weil die Kundin den Bon vergessen hat.",0]]},
+ why:"Privatkundin + Händler = Verbrauchsgüterkauf. Dort gelten 2 Jahre Gewährleistung (LF 10). Der WiSo-Teil nutzt das gern als Ablenker.",
+ term:"§ 377 HGB nur Handelskauf",ihk:"Die unverzügliche Rügepflicht gilt nur beim zweiseitigen Handelskauf."},
+{id:"p3-3",ch:3,m:"p",k:"mc",s:"Der Keramik-Großhandel schickt euch 200 Vasen als „Sonderangebot“. Ihr habt nichts bestellt und braucht sie nicht.",q:"Wie verhaltet ihr euch richtig?",
+ o:[["Mitteilen, dass ihr die Vasen nicht benötigt, und sie zur Abholung bereitstellen.",1],["Annehmen, weil langjährige Geschäftsbeziehungen bestehen.",0],["Behalten, aber nicht bezahlen.",0],["Eine Vertragsstrafe androhen.",0]],
+ why:"Unbestellte Ware muss man nicht bezahlen. Man darf sie aber auch nicht einfach behalten oder wegwerfen: mitteilen und zur Abholung bereitstellen.",
+ term:"unbestellte Ware",ihk:"Ich teile dem Lieferer mit, dass ich die Ware nicht benötige, und stelle sie zur Abholung bereit (IHK S 2021, S 2025)."},
+{id:"p3-4",ch:3,m:"p",k:"mcb",s:"Der Lieferer wusste, dass die Rettungsringe einen Materialfehler haben, und hat es verschwiegen.",q:"Welche Mängelart ist das?",
+ o:[["arglistig verschwiegener Mangel",1],["offener Mangel",0],["Mangel in der Menge",0]],
+ b:{q:"Was ist das Besondere daran?",o:[["Der Lieferer kannte den Fehler und hat ihn absichtlich verschwiegen.",1],["Man sieht ihn sofort beim Auspacken.",0],["Es fehlen Teile in der Lieferung.",0]]},
+ why:"Mängel nach Erkennbarkeit: offen, versteckt, arglistig verschwiegen. Arglist = Absicht des Lieferers.",
+ term:"arglistig verschwiegener Mangel",ihk:"Ein arglistig verschwiegener Mangel ist dem Lieferer bekannt und wird absichtlich verschwiegen."},
+{id:"p3-5",ch:3,m:"p",k:"mc",s:"Prüfe, in welchem Fall ein Mangel in der Güte vorliegt.",q:"Wähle.",
+ o:[["Eine Segeljacke hat eine offene Naht.",1],["Statt Rotwein wurde Weißwein geliefert.",0],["Statt 60 Stück kamen 48.",0],["Die Lieferung kam an die falsche Filiale.",0]],
+ why:"Güte = Qualität. Falsche Ware ist Art, zu wenig ist Menge. Die falsche Filiale betrifft die Annahme.",
+ term:"Mangel in der Güte",ihk:"Eine offene Naht ist ein Mangel in der Güte (Beschaffenheit)."},
+{id:"p3-6",ch:3,m:"p",k:"rede",s:"Kröger: „Risse? Das hättet ihr vor vier Wochen sagen müssen!“ Ihr habt die Kiste heute geöffnet, die Lieferung kam gestern.",q:"Welche Antwort ist fachlich richtig?",
+ o:[["„Die Lieferung kam gestern. Wir haben heute geprüft und rügen den Mangel damit unverzüglich. Bitte schicken Sie uns zwei neue Lampen.“",1],["„Sie haben recht, dann behalten wir sie eben.“",0],["„Wir haben zwei Jahre Zeit, das wissen Sie doch.“",0],["„Das ist uns egal, wir wollen das Geld zurück.“",0]],
+ why:"Prüfen und rügen am Tag nach der Lieferung ist unverzüglich. Die 2 Jahre sind nur die Höchstfrist für versteckte Mängel, nicht die Rügefrist.",
+ term:"unverzüglich rügen",ihk:"Offene Mängel rüge ich beim zweiseitigen Handelskauf unverzüglich nach der Prüfung."},
+
+// ===== Kapitel 4 – Rechte des Käufers =====
+{id:"a4-1",ch:4,m:"a",k:"mc",s:"Wübben: „Die Lampen sind gerügt. Was verlangen wir jetzt zuerst?“",q:"Welches Recht kommt zuerst?",
+ o:[["Nacherfüllung",1],["Rücktritt",0],["Preisminderung",0]],
+ why:"Zuerst muss der Lieferer die Chance bekommen, den Fehler zu beheben: Nacherfüllung. Die anderen Rechte sind nachrangig.",
+ term:"Nacherfüllung (vorrangig)",ihk:"Vorrangig verlangt der Käufer Nacherfüllung (Mangelbeseitigung oder Ersatzlieferung)."},
+{id:"a4-2",ch:4,m:"a",k:"mc",s:"Wübben: „Und wer entscheidet, ob repariert oder neu geliefert wird?“",q:"Wer wählt?",
+ o:[["der Käufer",1],["der Verkäufer",0],["der Spediteur",0]],
+ why:"Der Käufer hat das Wahlrecht zwischen Mangelbeseitigung und Ersatzlieferung.",
+ term:"Wahlrecht des Käufers",ihk:"Der Käufer kann zwischen Mangelbeseitigung und Ersatzlieferung wählen."},
+{id:"a4-3",ch:4,m:"a",k:"mc",s:"Das Nordsee-Marine-Depot kauft beim Großhändler Kröger.",q:"Welche Art von Kaufvertrag ist das?",
+ o:[["zweiseitiger Handelskauf",1],["Verbrauchsgüterkauf",0],["bürgerlicher Kauf",0]],
+ why:"Beide sind Kaufleute: zweiseitiger Handelskauf.",
+ term:"zweiseitiger Handelskauf",ihk:"Kaufen zwei Kaufleute voneinander, liegt ein zweiseitiger Handelskauf vor."},
+{id:"a4-4",ch:4,m:"a",k:"mc",s:"Wübben: „Wir behalten die Lampen, zahlen aber weniger.“",q:"Wie heißt dieses Recht?",
+ o:[["Preisminderung",1],["Ersatzlieferung",0],["Rücktritt",0]],
+ why:"Ware behalten und weniger zahlen = Minderung.",
+ term:"Minderung",ihk:"Bei der Minderung behält der Käufer die Ware und zahlt einen geringeren Preis."},
+{id:"a4-5",ch:4,m:"a",k:"mc",s:"Eine Privatperson kauft im Museumsshop eine Schiffsglocke.",q:"Welche Art von Kaufvertrag ist das?",
+ o:[["Verbrauchsgüterkauf",1],["zweiseitiger Handelskauf",0],["bürgerlicher Kauf",0]],
+ why:"Privatperson kauft bei einem Unternehmer: Verbrauchsgüterkauf.",
+ term:"Verbrauchsgüterkauf",ihk:"Verbrauchsgüterkauf, weil eine Privatperson bei einem Händler kauft."},
+{id:"a4-6",ch:4,m:"a",k:"num",s:"Kaufpreis der Lampen 1.320 €. Ihr einigt euch auf 15 % Minderung.",q:"Wie hoch ist die Minderung in Euro?",unit:"€",ans:198,rw:"1.320 € × 15 : 100 = 198,00 €",
+ why:"Prozentwert = Grundwert × Prozentsatz : 100. Gefragt ist die Minderung, nicht der neue Preis (1.122 €).",
+ term:"Minderung berechnen",ihk:"Minderung = Kaufpreis × Minderungssatz : 100."},
+{id:"p4-1",ch:4,m:"p",k:"mcb",s:"Ihr wollt sofort vom Kaufvertrag zurücktreten. Der Mangel: Bei einer Lampe fehlt eine kleine Schraube an der Halterung.",q:"Ist der Rücktritt möglich?",
+ o:[["Nein.",1],["Ja, sofort.",0],["Ja, aber nur mit Zustimmung des Lieferers.",0]],
+ b:{q:"Warum nicht?",o:[["Bei einem unerheblichen Mangel ist der Rücktritt ausgeschlossen (§ 323 Abs. 5 BGB). Außerdem ist zuerst Nacherfüllung zu verlangen.",1],["Weil Rücktritt beim Handelskauf nie erlaubt ist.",0],["Weil versteckte Mängel nicht zum Rücktritt berechtigen.",0]]},
+ why:"Rücktritt ist nachrangig und bei unerheblichen Mängeln ausgeschlossen.",
+ term:"Rücktritt ausgeschlossen",ihk:"Bei einem unerheblichen Mangel ist der Rücktritt ausgeschlossen."},
+{id:"p4-2",ch:4,m:"p",k:"mcb",s:"Kröger hat zweimal versucht, die Lampen zu reparieren. Beide Male ohne Erfolg.",q:"Was gilt jetzt?",
+ o:[["Die Nacherfüllung ist fehlgeschlagen. Nachrangige Rechte sind möglich.",1],["Kröger darf noch beliebig oft reparieren.",0],["Ihr müsst jetzt 14 Tage warten.",0]],
+ b:{q:"Welche Rechte sind nun möglich?",o:[["Rücktritt, Minderung oder Schadensersatz",1],["Nur noch eine weitere Nachbesserung",0],["Nur ein Gutschein",0]]},
+ why:"Nach dem zweiten erfolglosen Nachbesserungsversuch gilt die Nacherfüllung als fehlgeschlagen (§ 440 BGB).",
+ term:"fehlgeschlagene Nacherfüllung",ihk:"Die Nacherfüllung gilt nach dem zweiten erfolglosen Versuch als fehlgeschlagen; dann sind Rücktritt, Minderung oder Schadensersatz möglich."},
+{id:"p4-3",ch:4,m:"p",k:"mcb",s:"Die Nacherfüllung schlägt fehl. Ihr kauft die Lampen woanders teurer ein (Deckungskauf).",q:"Welches Recht deckt die Mehrkosten?",
+ o:[["Schadensersatz statt der Leistung",1],["Preisminderung",0],["Mangelbeseitigung",0]],
+ b:{q:"Was bedeutet das für die ursprüngliche Lieferung?",o:[["Ihr verlangt keine Lieferung mehr vom alten Lieferer, sondern Ersatz des Schadens.",1],["Ihr bekommt die alten Lampen zusätzlich.",0],["Der alte Vertrag läuft weiter wie bisher.",0]]},
+ why:"Schadensersatz statt der Leistung: Der Käufer will keine Leistung mehr, sondern den Schaden (z. B. Mehrkosten des Deckungskaufs) ersetzt.",
+ term:"Schadensersatz statt der Leistung",ihk:"Die Mehrkosten eines Deckungskaufs verlangt der Käufer als Schadensersatz statt der Leistung."},
+{id:"p4-4",ch:4,m:"p",k:"mcb",s:"Für wen gilt die Beweislastumkehr von 12 Monaten?",q:"Wähle.",
+ o:[["für den Verbraucher beim Verbrauchsgüterkauf",1],["für das Nordsee-Marine-Depot gegenüber Großhändler Kröger",0],["für beide Kaufleute",0]],
+ b:{q:"Was bedeutet sie?",o:[["Zeigt sich ein Mangel innerhalb von 12 Monaten, wird vermutet, dass er schon beim Kauf da war (§ 477 BGB).",1],["Der Käufer muss beweisen, dass der Mangel schon da war.",0],["Die Gewährleistung dauert nur 12 Monate.",0]]},
+ why:"Die Beweislastumkehr schützt Verbraucher. Beim Handelskauf gibt es sie nicht.",
+ term:"Beweislastumkehr (§ 477 BGB)",ihk:"Die Beweislastumkehr von 12 Monaten gilt nur beim Verbrauchsgüterkauf."},
+{id:"p4-5",ch:4,m:"p",k:"mc",s:"Bei mehreren Seefunkgeräten fehlt die Ladeschale. Ihr bemerkt es bei der Wareneingangskontrolle.",q:"Wie verhaltet ihr euch nach den gesetzlichen Bestimmungen?",
+ o:[["Mangel unverzüglich beim Lieferer rügen und Nacherfüllung verlangen",1],["Geräte annehmen und ohne Ladeschale verkaufen",0],["Den Mangel innerhalb von 2 Jahren rügen",0],["Ohne Fristsetzung vom Vertrag zurücktreten",0]],
+ why:"Erst rügen (unverzüglich), dann zuerst Nacherfüllung verlangen.",
+ term:"Rüge + Nacherfüllung",ihk:"Ich rüge den Mangel unverzüglich beim Lieferer und verlange Nacherfüllung (IHK W 2025/26 Aufg. 10)."},
+{id:"p4-6",ch:4,m:"p",k:"mc",s:"Ein Nachbar verkauft privat sein altes Fernglas an einen anderen Privatmann.",q:"Welche Kaufart liegt vor?",
+ o:[["bürgerlicher Kauf",1],["Verbrauchsgüterkauf",0],["zweiseitiger Handelskauf",0],["Fixkauf",0]],
+ why:"Zwei Privatleute: bürgerlicher Kauf. Verbrauchsgüterkauf nur, wenn ein Unternehmer an einen Verbraucher verkauft.",
+ term:"bürgerlicher Kauf",ihk:"Verkaufen zwei Privatpersonen untereinander, liegt ein bürgerlicher Kauf vor."}
+);
+
+POOL.push(
+// ===== Kapitel 5 – Lieferungsverzug =====
+{id:"a5-1",ch:5,m:"a",k:"mc",s:"Ole: „Wann ist ein Lieferer eigentlich in Verzug?“",q:"Welche drei Voraussetzungen gehören dazu?",
+ o:[["Fälligkeit, Mahnung (falls nötig), Verschulden",1],["Mangel, Rüge, Frist",0],["Bestellung, Lieferschein, Rechnung",0]],
+ why:"Alle drei müssen erfüllt sein: Die Lieferung ist fällig, es wurde gemahnt (wenn nötig), und der Lieferer ist schuld.",
+ term:"Voraussetzungen des Lieferungsverzugs",ihk:"Lieferungsverzug liegt vor bei Fälligkeit, Mahnung (falls erforderlich) und Verschulden des Lieferers."},
+{id:"a5-2",ch:5,m:"a",k:"mc",s:"Vereinbart war: „Lieferung am 24. April“. Der Lieferer hat es einfach vergessen.",q:"Ab wann ist er in Verzug?",
+ o:[["ab 25. April, ohne Mahnung",1],["erst nach einer Mahnung",0],["erst nach 14 Tagen",0]],
+ why:"Der Termin steht genau im Kalender. Dann braucht man keine Mahnung. Verzug beginnt am Tag danach.",
+ term:"kalendermäßig bestimmter Termin",ihk:"Ist der Liefertermin kalendermäßig bestimmt, tritt der Verzug ohne Mahnung ein."},
+{id:"a5-3",ch:5,m:"a",k:"mc",s:"Vereinbart war: „Lieferung sobald wie möglich“.",q:"Braucht ihr eine Mahnung?",
+ o:[["Ja, der Termin ist nicht genau bestimmt.",1],["Nein, nie.",0],["Nur beim Fixkauf.",0]],
+ why:"„Sobald wie möglich“ ist kein Datum. Dann muss man den Lieferer erst mahnen.",
+ term:"Mahnung",ihk:"Ist der Liefertermin nicht kalendermäßig bestimmt, muss der Käufer den Lieferer mahnen."},
+{id:"a5-4",ch:5,m:"a",k:"mc",s:"Eine Sturmflut überschwemmt das Lager des Lieferers. Er kann nicht liefern.",q:"Ist er in Verzug?",
+ o:[["Nein. Das ist höhere Gewalt, er ist nicht schuld.",1],["Ja. Termin ist Termin.",0],["Ja, wenn ihr gemahnt habt.",0]],
+ why:"Ohne Verschulden kein Verzug. Eine Sturmflut kann der Lieferer nicht verhindern.",
+ term:"höhere Gewalt",ihk:"Bei höherer Gewalt fehlt das Verschulden; es liegt kein Lieferungsverzug vor."},
+{id:"a5-5",ch:5,m:"a",k:"mc",s:"Ole: „Die Teile sind bestellt mit ‚fix am 14. Oktober‘. Nach dem Wartungsfenster brauchen wir sie nicht mehr.“",q:"Was ist beim Fixkauf anders?",
+ o:[["Rücktritt ohne Nachfrist ist möglich.",1],["Eine Mahnung ist immer nötig.",0],["Der Lieferer haftet nie.",0]],
+ why:"Beim Fixkauf ist der Termin so wichtig, dass eine spätere Lieferung sinnlos ist. Darum kann man sofort zurücktreten.",
+ term:"Fixkauf",ihk:"Beim Fixkauf kann der Käufer nach Überschreiten des Termins ohne Nachfrist vom Vertrag zurücktreten."},
+{id:"a5-6",ch:5,m:"a",k:"rede",s:"Die Rettungswesten (Lieferung „Anfang Mai“, also ohne genaues Datum) sind noch nicht da. Du rufst den Lieferer an.",q:"Was sagst du?",
+ o:[["„Guten Tag, unsere Rettungswesten sind noch nicht da. Bitte liefern Sie bis spätestens 20. Mai. Sonst treten wir vom Vertrag zurück.“",1],["„Wo bleibt das Zeug? Ihr seid echt unzuverlässig!“",0],["„Ach, kein Stress. Liefern Sie einfach irgendwann.“",0]],
+ why:"Sachlich mahnen und eine angemessene Nachfrist setzen. Danach ist der Rücktritt möglich.",
+ term:"Mahnung mit Nachfrist",ihk:"Wir mahnen den Lieferer und setzen eine angemessene Nachfrist."},
+{id:"a5-7",ch:5,m:"a",k:"mc",s:"Warum überwacht ihr, ob die bestellte Ware pünktlich ankommt?",q:"Wähle.",
+ o:[["Um die Verkaufsbereitschaft sicherzustellen",1],["Um Skonto zu bekommen",0],["Um den Lagerbestand zu senken",0]],
+ why:"Kommt Ware zu spät, kann man nicht verkaufen. Das Überwachen sichert die Verkaufsbereitschaft.",
+ term:"Liefertermin überwachen",ihk:"Ich überwache den Liefertermin, um die Verkaufsbereitschaft sicherzustellen."},
+{id:"p5-1",ch:5,m:"p",k:"mcb",s:"Bestellt am 30. Oktober, Liefertermin „Ende März“. Der Lieferer hat die Verzögerung zu vertreten.",q:"Ab welchem Tag ist er in Verzug?",
+ o:[["01.04.",1],["31.03.",0],["erst nach einer Mahnung",0],["15.04.",0]],
+ b:{q:"Warum?",o:[["„Ende März“ ist kalendermäßig bestimmt. Eine Mahnung ist nicht nötig (§ 286 Abs. 2 BGB).",1],["Weil man immer 14 Tage warten muss.",0],["Weil jeder Termin eine Mahnung braucht.",0]]},
+ why:"Spätestens am 31.03. muss geliefert sein. Ab dem 01.04. ist der Lieferer in Verzug (IHK WiSo S 2020, W 2023/24).",
+ term:"Beginn des Verzugs",ihk:"Der Lieferer ist ab dem 01.04. in Verzug, da der Termin kalendermäßig bestimmt ist."},
+{id:"p5-2",ch:5,m:"p",k:"mcb",s:"Trotz Mahnung und Nachfrist kam nichts. Das Depot besteht trotzdem auf Lieferung und nimmt die verspätete Ware an.",q:"Was kann es zusätzlich verlangen?",
+ o:[["Ersatz des Verzugsschadens",1],["Rücktritt vom Kaufvertrag",0],["Schadensersatz statt der Leistung",0],["Preisminderung",0]],
+ b:{q:"Was ist ein Verzugsschaden?",o:[["Der Schaden durch die Verspätung, z. B. Mehraufwendungen oder entgangener Gewinn.",1],["Der Schaden durch einen Mangel der Ware.",0],["Die Kosten der Mahnung allein.",0]]},
+ why:"Wer auf Lieferung besteht, bekommt die Ware und dazu den Schaden durch die Verspätung (IHK WiSo S 2020, W 2023/24).",
+ term:"Verzugsschaden",ihk:"Besteht der Käufer auf Lieferung, kann er zusätzlich Ersatz des Verzugsschadens verlangen."},
+{id:"p5-3",ch:5,m:"p",k:"mcb",s:"Werbeartikel für das Jubiläum am 19.04. wurden „fix“ bestellt.",q:"Warum wählt man einen Fixkauf?",
+ o:[["Die Ware wird an einem bestimmten Tag gebraucht. Eine spätere Lieferung ist sinnlos.",1],["Damit die Lieferung sofort erfolgt.",0],["Um den Kaufpreis später zu zahlen.",0],["Um die Ware zuerst zu testen.",0]],
+ b:{q:"Welche Folge hat das bei Verspätung?",o:[["Rücktritt ohne Nachfrist (§ 323 Abs. 2 BGB).",1],["Der Käufer muss erst zweimal mahnen.",0],["Der Vertrag verlängert sich automatisch.",0]]},
+ why:"Fixkauf = Termin ist wesentlich. Die Nachfrist entfällt.",
+ term:"Fixkauf",ihk:"Die Ware wird an einem bestimmten Tag benötigt, eine spätere Lieferung ist sinnlos (IHK WiSo S 2024 Aufg. 13)."},
+{id:"p5-4",ch:5,m:"p",k:"mcb",s:"Vereinbart: „Lieferung sobald wie möglich“. Eure Mahnung geht am 9. März zu. Der Lieferer ist schuld.",q:"Ab wann ist er in Verzug?",
+ o:[["ab 9. März (mit Zugang der Mahnung)",1],["ab dem Tag der Bestellung",0],["erst 14 Tage nach der Mahnung",0]],
+ b:{q:"Warum war hier eine Mahnung nötig?",o:[["Der Termin war nicht kalendermäßig bestimmt.",1],["Weil eine Mahnung immer nötig ist.",0],["Weil es ein Fixkauf war.",0]]},
+ why:"Unbestimmter Termin → Verzug erst mit der Mahnung (§ 286 Abs. 1 BGB).",
+ term:"Verzug durch Mahnung",ihk:"Bei nicht kalendermäßig bestimmtem Termin kommt der Lieferer erst durch die Mahnung in Verzug."},
+{id:"p5-5",ch:5,m:"p",k:"mcb",s:"Nach Ablauf der Nachfrist kauft das Depot 40 Schlitten woanders. Bestellt waren sie zu 52,00 €. Der neue Lieferer verlangt 59,50 € je Stück plus 35,00 € Fracht.",q:"Wie hoch ist der Schadensersatz statt der Leistung?",
+ o:[["335,00 €",1],["300,00 €",0],["2.415,00 €",0],["7,50 €",0]],
+ b:{q:"Wie wird gerechnet?",o:[["40 × (59,50 € − 52,00 €) + 35,00 € = 300 € + 35 € = 335 €",1],["40 × 59,50 € + 35,00 €",0],["59,50 € − 52,00 €",0]]},
+ why:"Ersetzt werden die Mehrkosten des Deckungskaufs: Preisunterschied mal Menge plus zusätzliche Fracht.",
+ term:"Deckungskauf",ihk:"Die Mehrkosten des Deckungskaufs werden als Schadensersatz statt der Leistung verlangt."},
+{id:"p5-6",ch:5,m:"p",k:"mc",s:"Christbaumschmuck für den Weihnachtsmarkt wurde „sobald wie möglich“ bestellt. Der Lieferer hat getrödelt und will erst am 28. Dezember liefern.",q:"Welche Aussage stimmt?",
+ o:[["Eine Mahnung ist hier nicht nötig, weil eine spätere Lieferung sinnlos ist.",1],["Eine Mahnung ist immer nötig.",0],["Der Lieferer ist nie in Verzug, weil kein genaues Datum genannt wurde.",0],["Das ist eine mangelhafte Lieferung.",0]],
+ why:"Keine Mahnung nötig, wenn die Lieferung nach dem Termin keinen Sinn mehr hat (wie Christbäume nach Weihnachten).",
+ term:"Mahnung entbehrlich",ihk:"Eine Mahnung ist entbehrlich, wenn eine spätere Lieferung sinnlos ist."},
+
+// ===== Kapitel 6 – Lager und Lagergrundsätze =====
+{id:"a6-1",ch:6,m:"a",k:"mc",s:"Harms: „Was zuerst ins Magazin kam, geht zuerst hinaus.“",q:"Wie heißt dieser Grundsatz heute?",
+ o:[["fifo (first in – first out)",1],["Festplatzsystem",0],["Just-in-time",0]],
+ why:"fifo: Was zuerst eingelagert wurde, wird zuerst verkauft. So wird nichts alt.",
+ term:"fifo",ihk:"Nach dem fifo-Prinzip wird die zuerst eingelagerte Ware zuerst verkauft."},
+{id:"a6-2",ch:6,m:"a",k:"mc",s:"Welche Ware ist richtig gelagert?",q:"Wähle.",
+ o:[["Kopierpapier in der Bückzone im Regal",1],["Lederstiefel im feuchten Bunkerkeller",0],["Tiefgefrorenes Fischfilet bei +12 °C",0]],
+ why:"Leder verträgt keine Feuchtigkeit, Tiefkühlware braucht −18 °C. Papier in der Bückzone ist in Ordnung.",
+ term:"warengerecht lagern",ihk:"Kartons mit Kopierpapier werden in der Bückzone im Regal einsortiert (IHK W 2024/25 Aufg. 7)."},
+{id:"a6-3",ch:6,m:"a",k:"mc",s:"Smutje-Proviant: Käse, Räucherfisch und Kaffee sollen ins Magazin.",q:"Warum lagert man sie getrennt?",
+ o:[["wegen Geruchs- und Geschmacksübertragung",1],["damit mehr Platz bleibt",0],["wegen der Preisauszeichnung",0]],
+ why:"Kaffee nimmt Gerüche an. Käse und Fisch geben Geruch ab. Deshalb getrennt lagern.",
+ term:"Geruchsübertragung",ihk:"Geruchsempfindliche Waren werden getrennt gelagert, damit sich Geruch und Geschmack nicht übertragen."},
+{id:"a6-4",ch:6,m:"a",k:"mc",s:"Harms: „Wozu braucht ihr überhaupt ein Magazin?“",q:"Welche Aufgabe hat das Lager?",
+ o:[["Die Verkaufsbereitschaft sichern",1],["Kunden beraten",0],["Werbung planen",0]],
+ why:"Das Lager sorgt dafür, dass Ware da ist, wenn Kunden sie wollen.",
+ term:"Verkaufsbereitschaft",ihk:"Das Lager sichert die Verkaufsbereitschaft."},
+{id:"a6-5",ch:6,m:"a",k:"mc",s:"Im Gang zwischen den Regalen stehen drei Paletten. Harms runzelt die Stirn.",q:"Welcher Lagergrundsatz ist verletzt?",
+ o:[["Das Lager soll geräumig und übersichtlich sein.",1],["fifo",0],["Die Ware soll gekühlt sein.",0]],
+ why:"Gänge müssen frei sein: Man muss sich bewegen und alles finden können.",
+ term:"geräumig, übersichtlich",ihk:"Das Lager muss geräumig und übersichtlich sein; Gänge sind freizuhalten."},
+{id:"a6-6",ch:6,m:"a",k:"mc",s:"Schädlingsbekämpfungsmittel gegen Ratten im Bunker sollen gelagert werden.",q:"Wohin damit?",
+ o:[["in einen abschließbaren Schrank",1],["neben den Proviant",0],["frei zugänglich in Griffhöhe",0]],
+ why:"Gefährliche Stoffe gehören weggeschlossen und nicht neben Lebensmittel.",
+ term:"Gefahrstoffe sicher lagern",ihk:"Gefährliche Schädlingsbekämpfungsmittel werden in abschließbaren Vitrinen gelagert (IHK S 2025 Aufg. 24)."},
+{id:"p6-1",ch:6,m:"p",k:"mc",s:"IHK-Stil: In welchem Fall wird Ware ordnungsgemäß gelagert?",q:"Wähle.",
+ o:[["Gefährliche Schädlingsbekämpfungsmittel werden in abschließbaren Vitrinen gelagert.",1],["Frische Erdbeeren werden dauerhaft bei mindestens 22 Grad gelagert.",0],["Milchprodukte werden generell bei 15 Grad gelagert.",0],["Versandkartons liegen ohne Schutz im Freien.",0]],
+ why:"Erdbeeren und Milch brauchen Kühlung, Kartons Schutz vor Nässe.",
+ term:"ordnungsgemäße Lagerung",ihk:"Gefährliche Schädlingsbekämpfungsmittel werden in abschließbaren Vitrinen gelagert (IHK S 2025 Aufg. 24)."},
+{id:"p6-2",ch:6,m:"p",k:"mcb",s:"Harms fragt nach drei Aufgaben der Lagerhaltung.",q:"Welche Antwort ist vollständig richtig?",
+ o:[["Verkaufsbereitschaft sichern · Zeit zwischen Einkauf und Verkauf überbrücken · Preisvorteile nutzen",1],["Kunden beraten · Werbung planen · Kasse abrechnen",0],["Ware auszeichnen · Inventur machen · Preise senken",0]],
+ b:{q:"Welches Beispiel passt zu „Preisvorteile nutzen“?",o:[["Große Mengen mit Mengenrabatt einkaufen und lagern.",1],["Die Ware im Schaufenster präsentieren.",0],["Ladenhüter aus dem Sortiment nehmen.",0]]},
+ why:"Aufgaben des Lagers: sichern, überbrücken, Preisvorteile nutzen, Ware verkaufsfähig machen.",
+ term:"Aufgaben der Lagerhaltung",ihk:"Das Lager sichert die Verkaufsbereitschaft, überbrückt die Zeit zwischen Einkauf und Verkauf und ermöglicht Preisvorteile."},
+{id:"p6-3",ch:6,m:"p",k:"mcb",s:"Joghurt für die Kantine: Ihr räumt die neue Lieferung ein.",q:"Wohin stellt ihr die neue Ware?",
+ o:[["Nach hinten – die ältere Ware bleibt vorn.",1],["Nach vorn, damit sie frisch aussieht.",0],["Egal, Hauptsache gekühlt.",0]],
+ b:{q:"Warum?",o:[["fifo: Die älteste Ware wird zuerst verkauft, so läuft kein MHD ab.",1],["Weil hinten mehr Platz ist.",0],["Weil Kunden lieber hinten greifen.",0]]},
+ why:"Nachräumen nach fifo verhindert, dass alte Ware das MHD überschreitet.",
+ term:"fifo beim Einräumen",ihk:"Nach dem fifo-Prinzip wird neue Ware hinter die ältere geräumt."},
+{id:"p6-4",ch:6,m:"p",k:"mc",s:"Wie heißt das Lager direkt neben dem Verkaufsraum, aus dem nachgefüllt wird?",q:"Wähle.",
+ o:[["Reservelager",1],["Zentrallager",0],["Außenlager",0],["Verkaufslager",0]],
+ why:"Achtung: In der Prüfung kommen Lagerarten fast nur als falsche Antwort vor. Reservelager = Handlager zum Auffüllen.",
+ term:"Reservelager",ihk:"Das Reservelager liegt in der Nähe des Verkaufsraums und dient dem Auffüllen."},
+{id:"p6-5",ch:6,m:"p",k:"mcb",s:"Getränkekisten für die Lütje Möwe sollen ins Regal.",q:"Wohin?",
+ o:[["unten",1],["oben",0],["in den Gang davor",0]],
+ b:{q:"Warum?",o:[["Schweres gehört nach unten: Das Regal bleibt stabil, und Heben über Kopf ist gefährlich.",1],["Weil Getränke unten kühler sind.",0],["Weil Kunden lieber unten greifen.",0]]},
+ why:"Warengerecht und sicher lagern: Schweres unten, Leichtes oben.",
+ term:"Schweres unten",ihk:"Schwere Waren werden unten gelagert."},
+
+// ===== Kapitel 7 – Warenpflege =====
+{id:"a7-1",ch:7,m:"a",k:"mc",s:"Hein: „Warum macht ihr euch so viel Mühe mit der Ware?“",q:"Welche Bedeutung hat die Warenpflege?",
+ o:[["Sie erhält die Verkaufsfähigkeit der Ware.",1],["Sie garantiert höhere Umsätze.",0],["Sie steigert automatisch den Gewinn.",0]],
+ why:"Achtung bei „garantiert“ und „automatisch“ – das ist zu stark. Warenpflege erhält die Verkaufsfähigkeit.",
+ term:"Bedeutung der Warenpflege",ihk:"Durch die Warenpflege wird die Verkaufsfähigkeit der Ware erhalten."},
+{id:"a7-2",ch:7,m:"a",k:"mc",s:"Rote Segeljacken sind rosa geworden – sie hingen monatelang im Licht am Bunkerfenster.",q:"Was ist wirtschaftlich sinnvoll?",
+ o:[["Reduziert auf einem eigenen Warenträger anbieten",1],["Beim Lieferer reklamieren",0],["Vernichten",0]],
+ why:"Der Fehler liegt bei euch (falsche Lagerung). Also nicht reklamieren. Die Jacken sind noch brauchbar: reduziert verkaufen.",
+ term:"Farbabweichung",ihk:"Ich biete die Shirts zum reduzierten Preis auf einem gesonderten Warenträger an."},
+{id:"a7-3",ch:7,m:"a",k:"mc",s:"Welche Tätigkeit gehört zur Warenpflege?",q:"Wähle.",
+ o:[["Kühlkette bei Tiefkühlkost einhalten",1],["Preisschilder anbringen",0],["Fußboden reinigen",0]],
+ why:"Warenpflege betrifft die Ware selbst: Kühlkette, MHD prüfen, reifen lassen …",
+ term:"Warenpflege",ihk:"Das Einhalten der Kühlkette bei Tiefkühlkost gehört zur Warenpflege."},
+{id:"a7-4",ch:7,m:"a",k:"mc",s:"Dir fällt ein Fernglas herunter. Es ist kaputt und nicht mehr verkaufsfähig.",q:"Was änderst du im WWS?",
+ o:[["den Sollbestand",1],["den Meldebestand",0],["den Mindestbestand",0]],
+ why:"Das Fernglas ist weg. Der Bestand im WWS muss stimmen. Also korrigierst du den Sollbestand.",
+ term:"Sollbestand korrigieren",ihk:"Bei beschädigter Ware ändere ich im WWS den Sollbestand."},
+{id:"a7-5",ch:7,m:"a",k:"mc",s:"Hein: „Diesen Käse lassen wir noch zwei Wochen reifen.“",q:"Wie heißt das?",
+ o:[["Warenmanipulation",1],["Warensicherung",0],["Inventur",0]],
+ why:"Warenmanipulation heißt: Ware verbessern und verkaufsfähig machen, z. B. Käse reifen lassen. Es hat nichts mit Betrug zu tun.",
+ term:"Warenmanipulation",ihk:"Warenmanipulation bedeutet, die Ware zu verbessern und verkaufsfähig zu machen."},
+{id:"a7-6",ch:7,m:"a",k:"mc",s:"Leere Kartons stapeln sich. Hein: „Und wohin damit?“",q:"Was ist Umweltschutz im Lager?",
+ o:[["Kartons sammeln und zum Recycling geben",1],["Kartons im Watt verbrennen",0],["Kartons in den Gang stellen",0]],
+ why:"Abfall vermeiden, trennen, wiederverwerten.",
+ term:"Umweltschutz im Lager",ihk:"Verpackungen werden gesammelt, getrennt und der Wiederverwertung zugeführt."},
+{id:"p7-1",ch:7,m:"p",k:"mcb",s:"Die Segeljacken sind durch eure eigene falsche Lagerung verblichen.",q:"Welche Maßnahme ist wirtschaftlich sinnvoll?",
+ o:[["Reduziert gesondert anbieten",1],["Beim Lieferer reklamieren",0],["Als Tombola-Preis verschenken",0],["Nichts tun",0]],
+ b:{q:"Warum nicht reklamieren?",o:[["Der Mangel ist durch eigene falsche Lagerung entstanden, nicht beim Lieferer.",1],["Weil die Rügefrist abgelaufen ist.",0],["Weil Jacken keine Gewährleistung haben.",0]]},
+ why:"Diese Aufgabe kam in 5 Prüfungen fast wortgleich. Der Lieferer ist nicht schuld. Wer nichts tut, riskiert Reklamationen der Kunden.",
+ term:"Farbabweichung durch eigene Lagerung",ihk:"Ich biete die Shirts zum reduzierten Preis auf einem gesonderten Warenträger an (IHK W 2025/26 Aufg. 16 u. a.)."},
+{id:"p7-2",ch:7,m:"p",k:"mcb",s:"Eine elektrische Massagerolle fällt bei der Regalpflege auf den Boden und ist nicht mehr verkaufsfähig.",q:"Welche Position ändert ihr im WWS?",
+ o:[["Sollbestand",1],["Meldebestand",0],["Höchstbestand",0],["Bestellte Menge",0]],
+ b:{q:"Was passiert, wenn ihr es vergesst?",o:[["Das WWS zeigt mehr Ware an, als da ist. Bei der Inventur entsteht eine Differenz.",1],["Nichts, das WWS merkt es selbst.",0],["Der Meldebestand sinkt automatisch.",0]]},
+ why:"Kam 3-mal in der Prüfung. Sollbestand = Bestand laut WWS.",
+ term:"Sollbestand",ihk:"Ich ändere den Sollbestand im Warenwirtschaftssystem (IHK S 2026 Aufg. 25)."},
+{id:"p7-3",ch:7,m:"p",k:"mc",s:"Welche Maßnahme ist technischer Umweltschutz im Lager?",q:"Wähle.",
+ o:[["Auffangbecken unter Kanistern mit Bootsdiesel",1],["Verpackungen wiederverwenden",0],["Mitarbeiter schulen",0],["Abfall vermeiden",0]],
+ why:"Technisch = eine Einrichtung oder ein Gerät. Wiederverwenden, schulen und vermeiden sind organisatorische Maßnahmen.",
+ term:"technischer Umweltschutz",ihk:"Ein Auffangbecken unter Kanistern ist eine technische Umweltschutzmaßnahme."},
+{id:"p7-4",ch:7,m:"p",k:"mcb",s:"Beim Rundgang: Ein Fach mit Rettungsdecken ist leer.",q:"Was tust du?",
+ o:[["Leeres Fach melden und auffüllen",1],["Warten, bis ein Kunde fragt",0],["Das Fach mit anderer Ware füllen",0]],
+ b:{q:"Zu welchem Bereich der Warenpflege gehört das?",o:[["Vorratslücken vermeiden",1],["Warenmanipulation",0],["Warensicherung",0]]},
+ why:"Leere Fächer kosten Umsatz. Vorratslücken vermeiden gehört zur Warenpflege.",
+ term:"Vorratslücken vermeiden",ihk:"Zur Warenpflege gehört, Vorratslücken zu vermeiden."},
+{id:"p7-5",ch:7,m:"p",k:"mc",s:"Ordne zu: „MHD des Proviants kontrollieren“ gehört zu …",q:"Wähle.",
+ o:[["Qualitätskontrolle",1],["Warensicherung",0],["Warenmanipulation",0],["Umweltschutz",0]],
+ why:"Bereiche: Qualitätskontrolle (MHD), Warenmanipulation (reifen lassen), Warensicherung (Alarm-Etikett), Vorratslücken vermeiden, Umweltschutz.",
+ term:"Qualitätskontrolle",ihk:"Die Kontrolle des Mindesthaltbarkeitsdatums gehört zur Qualitätskontrolle."},
+
+// ===== Kapitel 8 – Sicherheit im Lager =====
+{id:"a8-1",ch:8,m:"a",k:"mc",s:"Defne: „Wer erlässt eigentlich die Unfallverhütungsvorschriften?“",q:"Wähle.",
+ o:[["die Berufsgenossenschaft",1],["die IHK",0],["das Ordnungsamt",0]],
+ why:"Die Berufsgenossenschaft (BG) ist Träger der gesetzlichen Unfallversicherung und erlässt die UVV.",
+ term:"Berufsgenossenschaft",ihk:"Die zuständige Berufsgenossenschaft erlässt die Unfallverhütungsvorschriften."},
+{id:"a8-2",ch:8,m:"a",k:"mc",s:"Es riecht nach Rauch. Hinten im Gang flackert ein Feuer.",q:"Was tust du zuerst?",
+ o:[["Brand melden",1],["sofort löschen",0],["die Ware retten",0]],
+ why:"Reihenfolge: 1. Brand melden (112) – 2. Menschen in Sicherheit bringen – 3. Löschversuch, nur ohne Eigengefährdung.",
+ term:"Verhalten im Brandfall",ihk:"Brand melden – in Sicherheit bringen – Löschversuch unternehmen."},
+{id:"a8-3",ch:8,m:"a",k:"mc",s:"Ein rundes, blaues Schild mit einem Schuh.",q:"Was für ein Zeichen ist das?",
+ o:[["Gebotszeichen",1],["Verbotszeichen",0],["Warnzeichen",0]],
+ why:"Rund und blau = Gebot (du musst …). Rund mit rotem Rand = Verbot. Dreieck gelb = Warnung.",
+ term:"Gebotszeichen",ihk:"Gebotszeichen sind rund und blau."},
+{id:"a8-4",ch:8,m:"a",k:"mc",s:"Ein eckiges, grünes Schild mit einem laufenden Männchen.",q:"Was für ein Zeichen ist das?",
+ o:[["Rettungszeichen",1],["Brandschutzzeichen",0],["Gebotszeichen",0]],
+ why:"Eckig und grün = Rettung (Notausgang, Erste Hilfe). Eckig und rot = Brandschutz (Feuerlöscher).",
+ term:"Rettungszeichen",ihk:"Rettungszeichen sind eckig und grün."},
+{id:"a8-5",ch:8,m:"a",k:"mc",s:"Ein Regal im Munitionsgang wackelt stark.",q:"Was tust du?",
+ o:[["Unverzüglich dem Vorgesetzten melden",1],["Bis zur nächsten Inventur warten",0],["Nichts, es hält schon",0]],
+ why:"Sicherheitsmängel meldet man sofort.",
+ term:"Mängel melden",ihk:"Sicherheitsmängel werden unverzüglich dem Vorgesetzten gemeldet."},
+{id:"a8-6",ch:8,m:"a",k:"mc",s:"Kartons stehen vor dem Notausgang.",q:"Was gilt?",
+ o:[["Fluchtwege und Notausgänge müssen immer frei sein.",1],["Das ist okay, wenn es nur kurz ist.",0],["Das ist okay, wenn die Tür abgeschlossen ist.",0]],
+ why:"Im Notfall muss jeder sofort raus können.",
+ term:"Fluchtwege freihalten",ihk:"Rettungswege und Notausgänge sind jederzeit freizuhalten."},
+{id:"a8-7",ch:8,m:"a",k:"rede",s:"Ein Kollege trägt im Lager Turnschuhe. „Die Sicherheitsschuhe sind mir zu warm.“",q:"Was sagst du?",
+ o:[["„Ich verstehe das. Aber hier fallen schwere Kisten. Bitte zieh die Sicherheitsschuhe an, die sind Pflicht.“",1],["„Ist doch egal, mach wie du willst.“",0],["„Du bist echt dumm.“",0]],
+ why:"Freundlich, aber klar: Persönliche Schutzausrüstung trägt man immer, auch im Sommer.",
+ term:"persönliche Schutzausrüstung",ihk:"Die persönliche Schutzausrüstung ist unabhängig von der Temperatur zu tragen."},
+{id:"p8-1",ch:8,m:"p",k:"mc",s:"IHK-Stil: In welchem Fall werden die Unfallverhütungsvorschriften im Lager eingehalten?",q:"Wähle.",
+ o:[["Die Mitarbeiter erhalten Kartonmesser mit automatischem Klingeneinzug.",1],["Paletten werden platzsparend stehend gelagert.",0],["Die schmalen Gänge vor den Regalen werden zur Lagerung genutzt.",0],["Langjährige Mitarbeiter brauchen keine Schulungen.",0]],
+ why:"Stehende Paletten kippen, Gänge müssen frei sein, Unterweisung gilt für alle.",
+ term:"UVV im Lager",ihk:"Die Mitarbeiter erhalten Kartonmesser mit automatischem Klingeneinzug, um das Verletzungsrisiko zu senken (IHK W 2024/25 Aufg. 25)."},
+{id:"p8-2",ch:8,m:"p",k:"mc",s:"Welche Erläuterung zum Arbeitsschutz ist richtig?",q:"Wähle.",
+ o:[["Türen im Rettungsweg müssen sich jederzeit von innen öffnen lassen.",1],["Eine Unterweisung muss alle 6 Wochen erfolgen.",0],["Sicherheitsmängel müssen innerhalb eines Monats beseitigt werden.",0],["Die Verantwortung liegt bei der Gewerbeaufsicht.",0]],
+ why:"Die anderen Fristen sind erfunden. Die Verantwortung für den Arbeitsschutz im Betrieb trägt der Unternehmer.",
+ term:"Rettungswege",ihk:"Türen, die als Rettungsweg genutzt werden, müssen sich jederzeit von innen öffnen lassen (IHK W 2023/24 Aufg. 22)."},
+{id:"p8-3",ch:8,m:"p",k:"mcb",s:"Defne: „Welche Vorschriften müssen bei euch aushängen?“",q:"Wähle.",
+ o:[["die Unfallverhütungsvorschriften",1],["die Preisangabenverordnung",0],["das Produkthaftungsgesetz",0]],
+ b:{q:"Wer muss dafür sorgen?",o:[["Der Unternehmer: Er macht die UVV zugänglich und unterweist regelmäßig.",1],["Jeder Mitarbeiter selbst.",0],["Die IHK.",0]]},
+ why:"Der Unternehmer muss die UVV zugänglich machen (aushängen), unterweisen, Schutzausrüstung stellen.",
+ term:"Aushangpflicht",ihk:"Die Unfallverhütungsvorschriften sind aushangpflichtig (IHK WiSo W 2021/22, S 2026)."},
+{id:"p8-4",ch:8,m:"p",k:"mcb",s:"Ein Azubi stürzt auf dem direkten Weg zur Arbeit mit dem Fahrrad.",q:"Wer zahlt die Behandlung?",
+ o:[["die Berufsgenossenschaft",1],["der Azubi selbst",0],["die IHK",0]],
+ b:{q:"Warum?",o:[["Wegeunfälle sind über die gesetzliche Unfallversicherung (BG) versichert. Der Unfall muss gemeldet werden.",1],["Weil der Arbeitgeber immer alles privat zahlt.",0],["Weil Fahrradunfälle nicht versichert sind.",0]]},
+ why:"Die BG ist Träger der gesetzlichen Unfallversicherung: Arbeitsunfälle, Wegeunfälle, Berufskrankheiten.",
+ term:"Wegeunfall",ihk:"Die Berufsgenossenschaft trägt als gesetzliche Unfallversicherung auch Wegeunfälle."},
+{id:"p8-5",ch:8,m:"p",k:"mc",s:"Ordne zu: eckig, rot, mit Feuerlöscher-Symbol.",q:"Welche Zeichenart?",
+ o:[["Brandschutzzeichen",1],["Verbotszeichen",0],["Rettungszeichen",0],["Warnzeichen",0]],
+ why:"Fünf Zeichenarten: Verbot (rund, rot), Gebot (rund, blau), Warnung (Dreieck, gelb), Rettung (eckig, grün), Brandschutz (eckig, rot).",
+ term:"Brandschutzzeichen",ihk:"Brandschutzzeichen sind eckig und rot (z. B. Feuerlöscher)."},
+{id:"p8-6",ch:8,m:"p",k:"mcb",s:"Eine Aushilfe will auf dem Hubwagen mitfahren. „Geht schneller!“",q:"Was gilt?",
+ o:[["Auf dem Hubwagen fährt man nicht mit.",1],["Das ist erlaubt, wenn man sich festhält.",0],["Das ist erlaubt, wenn der Gang frei ist.",0]],
+ b:{q:"Wer darf Flurförderzeuge bedienen?",o:[["Nur unterwiesene Personen; Stapler nur mit Fahrausweis.",1],["Jeder, der älter als 16 ist.",0],["Nur der Chef.",0]]},
+ why:"Typische Regel im Lager. Arbeitsschutz im Lager kommt in WaWi und WiSo vor.",
+ term:"Hubwagen",ihk:"Auf dem Hubwagen wird nicht mitgefahren; nur unterwiesene Personen bedienen Flurförderzeuge."}
+);
+
+POOL.push(
+// ===== Kapitel 9 – Bestandsgrößen =====
+{id:"a9-1",ch:9,m:"a",k:"mc",s:"Freya: „Bei welchem Bestand müsst ihr mich anfunken und bestellen?“",q:"Welche Bestandsgröße ist das?",
+ o:[["Meldebestand",1],["Mindestbestand",0],["Höchstbestand",0]],
+ why:"Der Meldebestand meldet: Jetzt bestellen! Der Mindestbestand ist die eiserne Reserve.",
+ term:"Meldebestand",ihk:"Der Meldebestand gibt an, wann bestellt werden muss."},
+{id:"a9-2",ch:9,m:"a",k:"mc",s:"Wozu dient der Mindestbestand?",q:"Wähle.",
+ o:[["als Reserve bei Lieferschwierigkeiten",1],["als Zeitpunkt für die Bestellung",0],["als Obergrenze für das Lager",0]],
+ why:"Der Mindestbestand ist die eiserne Reserve, z. B. wenn die Lütje Möwe wegen Sturm später kommt.",
+ term:"Mindestbestand",ihk:"Der Mindestbestand ist die Menge, die beim Eintreffen der Ware mindestens vorhanden ist, um Lieferschwierigkeiten zu überbrücken."},
+{id:"a9-3",ch:9,m:"a",k:"mc",s:"Freya: „Wegen der Herbststürme dauert die Lieferung jetzt länger.“",q:"Was müsst ihr tun?",
+ o:[["Meldebestand erhöhen",1],["Meldebestand senken",0],["Nichts",0]],
+ why:"Längere Lieferzeit → ihr müsst früher bestellen → höherer Meldebestand.",
+ term:"Lieferzeit und Meldebestand",ihk:"Verlängert sich die Lieferzeit, muss der Meldebestand erhöht werden."},
+{id:"a9-4",ch:9,m:"a",k:"mc",s:"Die Lütje Möwe legt an und bringt die bestellte Ware.",q:"Welcher Bestand ist jetzt erreicht?",
+ o:[["der Höchstbestand",1],["der Meldebestand",0],["der Mindestbestand",0]],
+ why:"Kommt die Bestellung an, ist das Lager voll: Höchstbestand.",
+ term:"Höchstbestand",ihk:"Der Höchstbestand wird beim Eintreffen der bestellten Ware erreicht."},
+{id:"a9-5",ch:9,m:"a",k:"num",s:"Rettungswesten: Tagesabsatz 15 Stück, Lieferzeit 5 Tage, Mindestbestand 40 Stück.",q:"Wie hoch ist der Meldebestand?",unit:"Stück",ans:115,rw:"(15 × 5) + 40 = 115 Stück",
+ why:"Meldebestand = Tagesabsatz × Lieferzeit + Mindestbestand. Den Mindestbestand nicht vergessen!",
+ term:"Meldebestand berechnen",ihk:"Meldebestand = (Tagesabsatz × Lieferzeit) + Mindestbestand."},
+{id:"a9-6",ch:9,m:"a",k:"num",s:"Signalpistolen-Patronen: Tagesabsatz 8 Packungen, Lieferzeit 3 Tage, Mindestbestand 16 Packungen.",q:"Wie hoch ist der Meldebestand?",unit:"Packungen",ans:40,rw:"(8 × 3) + 16 = 40 Packungen",
+ why:"Erst malnehmen, dann den Mindestbestand dazuzählen.",
+ term:"Meldebestand berechnen",ihk:"Meldebestand = (Tagesabsatz × Lieferzeit) + Mindestbestand."},
+{id:"a9-7",ch:9,m:"a",k:"mc",s:"Was ist eine Folge eines zu kleinen Lagerbestands?",q:"Wähle.",
+ o:[["Lücken im Regal und verärgerte Kunden",1],["hohe Lagerkosten",0],["zu viel gebundenes Kapital",0]],
+ why:"Zu wenig Ware → Kunden finden nichts. Hohe Kosten sind die Folge eines zu großen Bestands.",
+ term:"zu kleiner Lagerbestand",ihk:"Ein zu kleiner Lagerbestand führt zu Präsenzlücken und verärgerten Kunden."},
+{id:"p9-1",ch:9,m:"p",k:"num",s:"Lieferzeit wegen Sturm jetzt 14 Tage. Tagesabsatz 25 Stück, Mindestbestand 100 Stück.",q:"Berechne den neuen Meldebestand.",unit:"Stück",ans:450,rw:"(25 × 14) + 100 = 450 Stück",
+ why:"Typische Fehler: Mindestbestand vergessen (350) oder addiert statt multipliziert (139).",
+ term:"Meldebestand",ihk:"Meldebestand = (Tagesabsatz × Lieferzeit) + Mindestbestand (in 12 von 19 Prüfungen gerechnet)."},
+{id:"p9-2",ch:9,m:"p",k:"num",s:"Höchstbestand 330 Pakete, Mindestbestand 40 Pakete, Meldebestand 90 Pakete.",q:"Wie groß ist die Bestellmenge?",unit:"Pakete",ans:290,rw:"330 − 40 = 290 Pakete",
+ why:"Kommt die Ware an, ist noch der Mindestbestand da. Bis zum Höchstbestand fehlen 290.",
+ term:"Bestellmenge",ihk:"Bestellmenge = Höchstbestand − Mindestbestand."},
+{id:"p9-3",ch:9,m:"p",k:"mcb",s:"Der Lieferer modernisiert sein Netz. Die Lieferzeit sinkt auf 2 Tage.",q:"Welche Auswirkung hat das?",
+ o:[["Der Meldebestand kann gesenkt werden.",1],["Der Mindestbestand muss gesenkt werden.",0],["Der Höchstbestand muss erhöht werden.",0],["Die Lagerdauer steigt.",0]],
+ b:{q:"Warum?",o:[["Bei kürzerer Lieferzeit wird bis zum Eintreffen weniger verkauft. Man kann später bestellen.",1],["Weil der Mindestbestand von der Lieferzeit abhängt.",0],["Weil dann mehr Platz im Lager ist.",0]]},
+ why:"Meldebestand = Tagesabsatz × Lieferzeit + Mindestbestand. Die Lieferzeit sinkt, also sinkt der Meldebestand. Der Mindestbestand bleibt.",
+ term:"Lieferzeit ↓ → Meldebestand ↓",ihk:"Der Meldebestand kann gesenkt werden (IHK S 2026 Aufg. 16)."},
+{id:"p9-4",ch:9,m:"p",k:"num",s:"Täglicher Verkauf 18 Stück, Beschaffungszeit 4 Tage, Mindestbestand 40 Stück.",q:"Bei welcher Stückzahl muss bestellt werden?",unit:"Stück",ans:112,rw:"(18 × 4) + 40 = 112 Stück",
+ why:"„Bei welcher Stückzahl bestellen?“ heißt: Meldebestand.",
+ term:"Meldebestand",ihk:"Meldebestand = (Tagesabsatz × Lieferzeit) + Mindestbestand."},
+{id:"p9-5",ch:9,m:"p",k:"mcb",s:"Prüfe, welcher Sachverhalt auf den Mindestbestand zutrifft.",q:"Wähle.",
+ o:[["Menge, die beim Eintreffen der Ware mindestens vorhanden ist, um Lieferschwierigkeiten zu überbrücken",1],["Menge, die mindestens vom Lieferer geliefert wird",0],["Menge, bei der bestellt werden muss",0],["Menge, die höchstens im Lager sein darf",0]],
+ b:{q:"Was passiert, wenn der Mindestbestand erhöht wird?",o:[["Lagerbestand und Lagerkosten steigen.",1],["Die Lagerkosten sinken.",0],["Der Meldebestand sinkt.",0]]},
+ why:"Mindestbestand ≠ Mindestbestellmenge. Ein höherer Mindestbestand bedeutet mehr Ware im Lager und höhere Kosten.",
+ term:"Mindestbestand",ihk:"Der Mindestbestand soll Lieferschwierigkeiten überbrücken (IHK W 2024/25 Aufg. 20)."},
+{id:"p9-6",ch:9,m:"p",k:"num",s:"Fertiggericht „Labskaus“: Lieferzeit 5 Tage, Mindestbestand 40 Pakete, Höchstbestand 330 Pakete, Absatz 10 Pakete pro Tag.",q:"Berechne den Meldebestand.",unit:"Pakete",ans:90,rw:"(10 × 5) + 40 = 90 Pakete",
+ why:"Der Höchstbestand ist hier ein Ablenker. Für den Meldebestand braucht man ihn nicht.",
+ term:"Meldebestand",ihk:"Meldebestand = (Tagesabsatz × Lieferzeit) + Mindestbestand."},
+
+// ===== Kapitel 10 – Ø Lagerbestand =====
+{id:"a10-1",ch:10,m:"a",k:"mc",s:"Harms: „Anfangsbestand plus vier Quartalsendbestände. Wodurch teilt ihr?“",q:"Wähle.",
+ o:[["durch 5",1],["durch 4",0],["durch 2",0]],
+ why:"Es sind 5 Zahlen: der Anfangsbestand und die 4 Quartalsendbestände.",
+ term:"Nenner beim Ø Lagerbestand",ihk:"Ø Lagerbestand = (Anfangsbestand + 4 Quartalsendbestände) : 5."},
+{id:"a10-2",ch:10,m:"a",k:"mc",s:"Anfangsbestand plus 12 Monatsendbestände.",q:"Wodurch teilt ihr?",
+ o:[["durch 13",1],["durch 12",0],["durch 2",0]],
+ why:"12 Monatswerte plus der Anfangsbestand = 13 Zahlen.",
+ term:"Monatswerte",ihk:"Ø Lagerbestand = (Anfangsbestand + 12 Monatsendbestände) : 13."},
+{id:"a10-3",ch:10,m:"a",k:"mc",s:"Harms: „Wozu braucht ihr den Ø Lagerbestand überhaupt?“",q:"Wähle.",
+ o:[["um die Umschlagshäufigkeit zu berechnen",1],["um den Meldebestand zu berechnen",0],["um den Wareneingang zu prüfen",0]],
+ why:"Mit dem Ø Lagerbestand rechnet man Umschlagshäufigkeit, Lagerdauer und Lagerzinsen.",
+ term:"Wozu Ø Lagerbestand?",ihk:"Den durchschnittlichen Lagerbestand benötige ich, um die Umschlagshäufigkeit zu ermitteln."},
+{id:"a10-4",ch:10,m:"a",k:"num",s:"Kompasse: Anfangsbestand 31, Quartalsendbestände 45, 63, 57, 34 Stück.",q:"Wie hoch ist der Ø Lagerbestand?",unit:"Stück",ans:46,rw:"(31 + 45 + 63 + 57 + 34) : 5 = 230 : 5 = 46 Stück",
+ why:"Alle 5 Werte addieren und durch 5 teilen.",
+ term:"Ø Lagerbestand (Quartale)",ihk:"Ø Lagerbestand = (AB + 4 Quartalsendbestände) : 5."},
+{id:"a10-5",ch:10,m:"a",k:"num",s:"Jahresinventur: Anfangsbestand 300.000 €, Endbestand 200.000 €.",q:"Wie hoch ist der Ø Lagerbestand?",unit:"€",ans:250000,rw:"(300.000 + 200.000) : 2 = 250.000 €",
+ why:"Nur zwei Werte: Anfangs- und Endbestand, also durch 2.",
+ term:"Ø Lagerbestand (AB + EB)",ihk:"Ø Lagerbestand = (Anfangsbestand + Endbestand) : 2."},
+{id:"a10-6",ch:10,m:"a",k:"mc",s:"Zu welchen Preisen wird der Lagerbestand bewertet?",q:"Wähle.",
+ o:[["zu Einstandspreisen (Bezugspreisen)",1],["zu Verkaufspreisen",0],["zu Preisen der Konkurrenz",0]],
+ why:"Im Lager zählt, was die Ware euch gekostet hat: der Einstandspreis.",
+ term:"Bewertung zu Einstandspreisen",ihk:"Der Lagerbestand wird zu Einstandspreisen bewertet."},
+{id:"p10-1",ch:10,m:"p",k:"num",s:"Lagerdatei Bluetooth-Lautsprecher: 01.03. 80 Stück, 10.03. 123 Stück, 20.03. 92 Stück, 31.03. 65 Stück. „Unter Berücksichtigung aller Werte“.",q:"Ø Lagerbestand im März?",unit:"Stück",ans:90,rw:"(80 + 123 + 92 + 65) : 4 = 360 : 4 = 90 Stück",
+ why:"„Alle Werte“: alle Zahlen addieren und durch ihre Anzahl teilen – hier 4.",
+ term:"Ø Lagerbestand (alle Werte)",ihk:"Ø Lagerbestand = Summe aller Bestände : Anzahl der Bestände (IHK S 2025 Aufg. 2)."},
+{id:"p10-2",ch:10,m:"p",k:"num",s:"Warengruppe Bordelektronik: Jahresanfangsbestand 40.000 €, Summe der 12 Monatsendbestände 480.000 €.",q:"Ø Lagerbestand in Euro?",unit:"€",ans:40000,rw:"(40.000 + 480.000) : 13 = 520.000 : 13 = 40.000 €",
+ why:"Typischer Fehler: durch 12 geteilt (43.333 €) oder den Anfangsbestand vergessen.",
+ term:"Ø Lagerbestand (Monate)",ihk:"Ø Lagerbestand = (AB + 12 Monatsendbestände) : 13 (IHK S 2026 Aufg. 17)."},
+{id:"p10-3",ch:10,m:"p",k:"num",s:"Ferngläser: Anfangsbestand 31, Quartalsendbestände 35, 63, 82, 34 Stück.",q:"Ø Lagerbestand in Stück?",unit:"Stück",ans:49,rw:"(31 + 35 + 63 + 82 + 34) : 5 = 245 : 5 = 49 Stück",
+ why:"Durch 4 geteilt ergäbe 61,25 – dann fehlt der Anfangsbestand im Nenner.",
+ term:"Ø Lagerbestand (Quartale)",ihk:"Ø Lagerbestand = (AB + 4 Quartalsendbestände) : 5."},
+{id:"p10-4",ch:10,m:"p",k:"num",s:"Ø Lagerbestand Seekarten: 30 Stück. Bezugspreis 198,00 € je Stück.",q:"Ø Lagerbestand in Euro?",unit:"€",ans:5940,rw:"30 × 198,00 € = 5.940,00 €",
+ why:"Stück × Einstandspreis = Wert.",
+ term:"Ø Lagerbestand in Euro",ihk:"Ø Lagerbestand (€) = Ø Lagerbestand (Stück) × Einstandspreis."},
+{id:"p10-5",ch:10,m:"p",k:"mcb",s:"Harms: „Warum steht bei Quartalswerten im Nenner eine 5 und keine 4?“",q:"Wähle.",
+ o:[["weil der Anfangsbestand mitzählt",1],["weil das Jahr 5 Teile hat",0],["weil man immer durch 5 teilt",0]],
+ b:{q:"Wozu braucht man das Ergebnis?",o:[["Für Umschlagshäufigkeit, Lagerdauer und Lagerzinsen.",1],["Für den Meldebestand.",0],["Für die Umsatzrentabilität.",0]]},
+ why:"Anfangsbestand + 4 Quartalsendbestände = 5 Werte. Der Ø Lagerbestand ist die Grundlage der Lagerkennzahlen.",
+ term:"Nenner 5",ihk:"Den durchschnittlichen Lagerbestand benötige ich, um die Umschlagshäufigkeit zu ermitteln (IHK S 2026 Aufg. 19)."},
+
+// ===== Kapitel 11 – Umschlagshäufigkeit und Lagerdauer =====
+{id:"a11-1",ch:11,m:"a",k:"mc",s:"Behnke: „Was sagt die Umschlagshäufigkeit eigentlich?“",q:"Wähle.",
+ o:[["wie oft der Ø Lagerbestand im Jahr verkauft wurde",1],["wie lange die Ware im Lager liegt",0],["wie oft im Jahr bestellt wird",0]],
+ why:"Umschlagshäufigkeit = wie oft das Lager im Durchschnitt „einmal leer verkauft“ wurde.",
+ term:"Umschlagshäufigkeit",ihk:"Die Umschlagshäufigkeit gibt an, wie oft der durchschnittliche Lagerbestand im Zeitraum verkauft wurde."},
+{id:"a11-2",ch:11,m:"a",k:"mc",s:"Die Umschlagshäufigkeit steigt.",q:"Was passiert mit der Lagerdauer?",
+ o:[["Sie sinkt.",1],["Sie steigt.",0],["Sie bleibt gleich.",0]],
+ why:"Schneller verkauft → kürzer im Lager.",
+ term:"Umschlag ↑ → Lagerdauer ↓",ihk:"Steigt die Umschlagshäufigkeit, sinkt die Lagerdauer."},
+{id:"a11-3",ch:11,m:"a",k:"mc",s:"Die Kuratorin fragt: „Was ist die Lagerdauer?“",q:"Wähle.",
+ o:[["die Zeit vom Eingang der Ware bis zu ihrem Verkauf",1],["die Zeit von der Bestellung bis zum Eingang",0],["die Zeit bis zur Zahlung",0]],
+ why:"Lagerdauer = wie lange die Ware im Lager liegt. Die Zeit bis zum Eingang ist die Lieferzeit.",
+ term:"Lagerdauer",ihk:"Die Lagerdauer ist die Zeit vom Eingang der Ware bis zu ihrem Verkauf."},
+{id:"a11-4",ch:11,m:"a",k:"num",s:"Die Umschlagshäufigkeit beträgt 5.",q:"Wie viele Tage liegt die Ware im Durchschnitt?",unit:"Tage",ans:72,rw:"360 : 5 = 72 Tage",
+ why:"Lagerdauer = 360 : Umschlagshäufigkeit. Wir rechnen mit 360 Tagen.",
+ term:"Lagerdauer berechnen",ihk:"Ø Lagerdauer = 360 : Umschlagshäufigkeit."},
+{id:"a11-5",ch:11,m:"a",k:"num",s:"Absatz Bordkompasse 1.800 Stück, Ø Lagerbestand 150 Stück.",q:"Wie hoch ist die Umschlagshäufigkeit?",unit:"",ans:12,rw:"1.800 : 150 = 12",
+ why:"Umschlagshäufigkeit = Absatz : Ø Lagerbestand.",
+ term:"Umschlagshäufigkeit berechnen",ihk:"Umschlagshäufigkeit = Absatz : Ø Lagerbestand."},
+{id:"a11-6",ch:11,m:"a",k:"num",s:"Die Umschlagshäufigkeit beträgt 15.",q:"Wie viele Tage beträgt die Lagerdauer?",unit:"Tage",ans:24,rw:"360 : 15 = 24 Tage",
+ why:"360 geteilt durch die Umschlagshäufigkeit.",
+ term:"Lagerdauer",ihk:"Ø Lagerdauer = 360 : Umschlagshäufigkeit."},
+{id:"p11-1",ch:11,m:"p",k:"num",s:"Bio-Kartoffeln für die Kombüsen: Absatz 4.400 kg, Ø Lagerbestand 275 kg.",q:"Umschlagshäufigkeit?",unit:"",ans:16,rw:"4.400 : 275 = 16,0",
+ why:"Nicht umdrehen: 275 : 4.400 = 0,06 wäre der Kehrwert.",
+ term:"Umschlagshäufigkeit mengenmäßig",ihk:"Umschlagshäufigkeit = Absatz : Ø Lagerbestand (IHK W 2022/23 Aufg. 21)."},
+{id:"p11-2",ch:11,m:"p",k:"num",s:"Umschlagshäufigkeit der Bio-Kartoffeln: 16. Ergebnis auf ganze Tage aufrunden.",q:"Ø Lagerdauer in Tagen?",unit:"Tage",ans:23,rw:"360 : 16 = 22,5 → aufgerundet 23 Tage",
+ why:"„Aufrunden“ heißt: 22,5 wird 23 – nicht 22.",
+ term:"Lagerdauer, aufrunden",ihk:"360 : 16 = 22,5 → 23 Tage (IHK W 2022/23 Aufg. 22)."},
+{id:"p11-3",ch:11,m:"p",k:"num",s:"Wareneinsatz 750.000 €, Ø Lagerbestand 250.000 €.",q:"Umschlagshäufigkeit (wertmäßig)?",unit:"",ans:3,rw:"750.000 : 250.000 = 3",
+ why:"Wertmäßig: Wareneinsatz statt Absatz, beides in Euro.",
+ term:"Umschlagshäufigkeit wertmäßig",ihk:"Umschlagshäufigkeit = Wareneinsatz : Ø Lagerbestand (in €)."},
+{id:"p11-4",ch:11,m:"p",k:"num",s:"Bei den Seefunkgeräten wird eine Umschlagshäufigkeit von 8 angestrebt. Ø Lagerbestand 49 Stück.",q:"Geplanter Absatz in Stück?",unit:"Stück",ans:392,rw:"8 × 49 = 392 Stück",
+ why:"Formel umgestellt: Absatz = Umschlagshäufigkeit × Ø Lagerbestand.",
+ term:"geplanter Absatz",ihk:"Geplanter Absatz = Umschlagshäufigkeit × Ø Lagerbestand (IHK S 2021 Aufg. 11)."},
+{id:"p11-5",ch:11,m:"p",k:"mcb",s:"Behnke: „Warum rechnen wir die Lagerdauer mit 360 und nicht mit 365?“",q:"Was stimmt?",
+ o:[["Kaufleute rechnen mit 360 Tagen (12 Monate × 30 Tage), so steht es im Lehrbuch.",1],["Weil 5 Tage Feiertage sind.",0],["Weil das Lager 5 Tage geschlossen ist.",0]],
+ b:{q:"Welche Formel gilt dann?",o:[["Ø Lagerdauer = 360 : Umschlagshäufigkeit",1],["Ø Lagerdauer = Umschlagshäufigkeit : 360",0],["Ø Lagerdauer = 360 × Umschlagshäufigkeit",0]]},
+ why:"Kaufmännisches Jahr = 360 Tage. Im einzigen Prüfungsfall mit Lagerdauer ergeben 360 und 365 nach dem Aufrunden dasselbe.",
+ term:"360 Tage",ihk:"Ø Lagerdauer = 360 : Umschlagshäufigkeit."},
+{id:"p11-6",ch:11,m:"p",k:"mc",s:"Ordne zu: „Wareneinsatz : Ø Lagerbestand (€)“ ist …",q:"Wähle.",
+ o:[["die wertmäßige Umschlagshäufigkeit",1],["die mengenmäßige Umschlagshäufigkeit",0],["die Ø Lagerdauer",0],["der geplante Absatz",0]],
+ why:"Mengenmäßig: Absatz in Stück. Wertmäßig: Wareneinsatz in Euro.",
+ term:"wertmäßig vs. mengenmäßig",ihk:"Wertmäßige Umschlagshäufigkeit = Wareneinsatz : Ø Lagerbestand."},
+
+// ===== Kapitel 12 – Kennzahlen deuten =====
+{id:"a12-1",ch:12,m:"a",k:"mc",s:"Wübben: „Das Ölzeug verkauft sich sehr schleppend.“",q:"Welche Folge ist richtig?",
+ o:[["Durch die hohe Lagerdauer steigen die Lagerkosten.",1],["Durch die hohe Lagerdauer steigt die Umschlagshäufigkeit.",0],["Die Lagerdauer hat keinen Einfluss.",0]],
+ why:"Schleppend = lange im Lager = hohe Lagerdauer → höhere Lagerkosten. Kam in 8 von 19 Prüfungen.",
+ term:"schleppender Abverkauf",ihk:"Durch eine hohe Lagerdauer erhöhen sich die Lagerkosten."},
+{id:"a12-2",ch:12,m:"a",k:"mc",s:"Wann sinken die Lagerkosten?",q:"Wähle.",
+ o:[["wenn die Umschlagshäufigkeit steigt",1],["wenn die Lagerdauer steigt",0],["wenn der Mindestbestand erhöht wird",0]],
+ why:"Höherer Umschlag → kürzere Lagerdauer → weniger Kosten.",
+ term:"Lagerkosten ↓",ihk:"Die Lagerkosten verringern sich, wenn die Umschlagshäufigkeit steigt."},
+{id:"a12-3",ch:12,m:"a",k:"mc",s:"Smartphones vom Vorjahr verkaufen sich kaum noch.",q:"Welches Lagerrisiko ist das?",
+ o:[["technischer Fortschritt",1],["Saisonwechsel",0],["Verderb",0]],
+ why:"Neue Modelle machen alte Geräte unattraktiv.",
+ term:"technischer Fortschritt",ihk:"Bei Smartphones besteht ein Lagerrisiko durch technischen Fortschritt."},
+{id:"a12-4",ch:12,m:"a",k:"mc",s:"Winterjacken im März: Keiner will sie mehr.",q:"Welches Lagerrisiko ist das?",
+ o:[["Saisonwechsel",1],["Preisschwankung",0],["technischer Fortschritt",0]],
+ why:"Nach der Saison kauft kaum jemand die Ware.",
+ term:"Saisonwechsel",ihk:"Es besteht ein Lagerrisiko durch Saisonwechsel."},
+{id:"a12-5",ch:12,m:"a",k:"mc",s:"Was erhöht die Umschlagshäufigkeit?",q:"Wähle.",
+ o:[["Ø Lagerbestand senken bei gleichem Absatz",1],["Bestellmengen erhöhen",0],["Lagerdauer erhöhen",0]],
+ why:"Weniger im Lager bei gleichem Verkauf → höherer Umschlag.",
+ term:"Umschlag erhöhen",ihk:"Eine höhere Umschlagshäufigkeit entsteht, wenn der Ø Lagerbestand verringert wird."},
+{id:"a12-6",ch:12,m:"a",k:"mc",s:"Wübben: „Und wozu ist die Renner-Penner-Liste aus dem WWS gut?“",q:"Wähle.",
+ o:[["Sie zeigt, welche Artikel sich gut und welche sich schlecht verkaufen.",1],["Sie zeigt, wer die Ware gekauft hat.",0],["Sie zeigt den Meldebestand.",0]],
+ why:"Renner verkaufen sich schnell, Penner (Ladenhüter) liegen lange.",
+ term:"Renner-Penner-Liste",ihk:"Die Renner-Penner-Liste zeigt, welche Artikel sich gut und welche sich schlecht verkaufen."},
+{id:"p12-1",ch:12,m:"p",k:"mcb",s:"Die Schuhabteilung hat eine Umschlagshäufigkeit von 3. In der Branche sind 5 üblich.",q:"Welche Maßnahme ist sinnvoll?",
+ o:[["Artikel mit niedriger Umschlagshäufigkeit aus dem Sortiment nehmen",1],["Den Lagerbestand erhöhen",0],["Den Höchstbestand erhöhen",0],["Die Lagerdauer erhöhen",0]],
+ b:{q:"Was bewirkt das?",o:[["Der Ø Lagerbestand sinkt, die Umschlagshäufigkeit steigt, Lagerkosten sinken.",1],["Die Lagerdauer steigt.",0],["Der Meldebestand steigt.",0]]},
+ why:"Alle anderen Maßnahmen wirken in die falsche Richtung.",
+ term:"Ladenhüter auslisten",ihk:"Ich nehme Artikel mit einer niedrigen Umschlagshäufigkeit aus dem Sortiment (IHK S 2023 Aufg. 19)."},
+{id:"p12-2",ch:12,m:"p",k:"mc",s:"Die Lagerkosten in der Haushaltswarenabteilung sind gestiegen.",q:"Welchen Grund könnte es geben?",
+ o:[["Bei einigen Artikeln wurde der Mindestbestand erhöht.",1],["Die Ø Lagerdauer ist geringer geworden.",0],["Die Umschlagshäufigkeit hat sich erhöht.",0],["Der Ø Lagerbestand ist gesunken.",0]],
+ why:"Höherer Mindestbestand → mehr Ware im Lager → höhere Kosten.",
+ term:"Mindestbestand ↑ → Lagerkosten ↑",ihk:"Bei einigen Artikeln wurde der Mindestbestand erhöht (IHK W 2022/23 Aufg. 10)."},
+{id:"p12-3",ch:12,m:"p",k:"mc",s:"Die Umschlagshäufigkeit der Sportabteilung stieg von 30 auf 33.",q:"Welcher Sachverhalt ist dafür verantwortlich?",
+ o:[["Der Ø Lagerbestand wurde verringert.",1],["Der Umsatz ist bei gleichem Ø Lagerbestand gesunken.",0],["Absatz und Umsatz sind zurückgegangen.",0],["Die Lagerdauer hat sich erhöht.",0]],
+ why:"Umschlag = Absatz : Ø Lagerbestand. Wird der Nenner kleiner, steigt das Ergebnis.",
+ term:"Ursache für höheren Umschlag",ihk:"Der durchschnittliche Lagerbestand ist verringert worden."},
+{id:"p12-4",ch:12,m:"p",k:"num",s:"Für Profis: Marktzinssatz 2 %, Ø Lagerdauer 72 Tage.",q:"Lagerzinssatz in %?",unit:"%",ans:0.4,rw:"2 × 72 : 360 = 0,4 %",
+ why:"Lagerzinssatz = Marktzinssatz × Ø Lagerdauer : 360. In der Prüfung nur als Begriff – hier zum Vertiefen.",
+ term:"Lagerzinssatz",ihk:"Lagerzinssatz = Marktzinssatz × Ø Lagerdauer : 360."},
+{id:"p12-5",ch:12,m:"p",k:"num",s:"Für Profis: Ø Lagerbestand 35.000 €, Lagerzinssatz 0,4 %.",q:"Lagerzinsen in Euro?",unit:"€",ans:140,rw:"35.000 × 0,4 : 100 = 140,00 €",
+ why:"Lagerzinsen = Ø Lagerbestand × Lagerzinssatz : 100.",
+ term:"Lagerzinsen",ihk:"Lagerzinsen = Ø Lagerbestand × Lagerzinssatz : 100."},
+{id:"p12-6",ch:12,m:"p",k:"mcb",s:"Wübben: „Wenn wir doppelt so schnell umschlagen – was heißt das fürs Geld?“",q:"Was stimmt?",
+ o:[["Der Kapitalbedarf halbiert sich ungefähr.",1],["Der Kapitalbedarf verdoppelt sich.",0],["Am Kapitalbedarf ändert sich nichts.",0]],
+ b:{q:"Warum?",o:[["Bei gleichem Absatz liegt im Durchschnitt nur halb so viel Ware im Lager.",1],["Weil die Ware dann teurer wird.",0],["Weil man doppelt so viel bestellen muss.",0]]},
+ why:"Doppelter Umschlag = halber Ø Lagerbestand = halbes gebundenes Kapital.",
+ term:"gebundenes Kapital",ihk:"Eine höhere Umschlagshäufigkeit senkt den Kapitalbedarf und die Lagerzinsen."},
+
+// ===== Kapitel 13 – Inventur =====
+{id:"a13-1",ch:13,m:"a",k:"mc",s:"Laut WWS: 55 Seekarten-Tablets. Gezählt: 50.",q:"Wie heißen die 55 Stück?",
+ o:[["Sollbestand",1],["Istbestand",0],["Meldebestand",0]],
+ why:"Soll = was laut WWS da sein soll. Ist = was wirklich gezählt wird.",
+ term:"Sollbestand",ihk:"Die 55 Stück laut WWS sind der Sollbestand."},
+{id:"a13-2",ch:13,m:"a",k:"num",s:"Soll 55, Ist 50 Seekarten-Tablets.",q:"Inventurdifferenz in Stück (mit Vorzeichen)?",unit:"Stück",ans:-5,rw:"Ist − Soll = 50 − 55 = −5 Stück (Fehlbestand)",
+ why:"Inventurdifferenz = Ist − Soll. Minus heißt: Es fehlt etwas.",
+ term:"Inventurdifferenz",ihk:"Inventurdifferenz = Istbestand − Sollbestand."},
+{id:"a13-3",ch:13,m:"a",k:"mc",s:"Ist liegt deutlich unter Soll. Und draußen lag ein Boot ohne Licht …",q:"Was ist eine typische Ursache für einen Fehlbestand?",
+ o:[["Ladendiebstahl bzw. Diebstahl",1],["Eine Kundenretoure wurde nicht gebucht.",0],["Der Meldebestand wurde gesenkt.",0]],
+ why:"Diebstahl führt zu Fehlbestand. Eine nicht gebuchte Retoure führt dagegen zu einem Mehrbestand.",
+ term:"Fehlbestand",ihk:"Eine typische Ursache für einen Fehlbestand ist Ladendiebstahl."},
+{id:"a13-4",ch:13,m:"a",k:"mc",s:"Woher kommt der Sollbestand?",q:"Wähle.",
+ o:[["aus dem WWS (Anfangsbestand + Eingänge − Verkäufe)",1],["vom Zählen bei der Inventur",0],["vom Lieferschein",0]],
+ why:"Das WWS rechnet den Sollbestand aus. Gezählt wird der Istbestand.",
+ term:"Sollbestand",ihk:"Der Sollbestand stammt aus dem Warenwirtschaftssystem."},
+{id:"a13-5",ch:13,m:"a",k:"mc",s:"Alle Waren werden am 31.12. gezählt.",q:"Wie heißt dieses Verfahren?",
+ o:[["Stichtagsinventur",1],["permanente Inventur",0],["Stichprobeninventur",0]],
+ why:"Ein fester Tag (31.12., ± 10 Tage) = Stichtagsinventur.",
+ term:"Stichtagsinventur",ihk:"Bei der Stichtagsinventur erfolgt die körperliche Bestandsaufnahme am 31.12."},
+{id:"a13-6",ch:13,m:"a",k:"num",s:"Soll 40, Ist 36 Taucheruhren. Einstandspreis 12,50 €.",q:"Inventurdifferenz in Euro (mit Vorzeichen)?",unit:"€",ans:-50,rw:"(36 − 40) × 12,50 € = −4 × 12,50 € = −50,00 €",
+ why:"Erst die Differenz in Stück, dann mal Einstandspreis. Minus = Fehlbestand.",
+ term:"Inventurdifferenz in €",ihk:"Inventurdifferenz (€) = (Ist − Soll) × Einstandspreis."},
+{id:"p13-1",ch:13,m:"p",k:"mc",s:"Ordne zu: Gezählt wird am 15.10.; der Bestand wird auf den 31.12. fortgeschrieben.",q:"Welches Verfahren?",
+ o:[["verlegte Inventur",1],["Stichtagsinventur",0],["permanente Inventur",0],["Stichprobeninventur",0]],
+ why:"Verlegt = 3 Monate vor bis 2 Monate nach dem Stichtag zählen, dann fortschreiben.",
+ term:"verlegte Inventur",ihk:"Verlegte Inventur: Zählung bis 3 Monate vor oder 2 Monate nach dem Stichtag, Fortschreibung auf den Stichtag (IHK W 2021/22 Aufg. 23)."},
+{id:"p13-2",ch:13,m:"p",k:"mcb",s:"Das WWS schreibt alle Bestände laufend fort. Jeder Artikel wird einmal im Jahr gezählt – zu einem beliebigen Zeitpunkt.",q:"Welches Verfahren?",
+ o:[["permanente Inventur",1],["verlegte Inventur",0],["Stichtagsinventur",0]],
+ b:{q:"Welcher Vorteil hat die artikelgenaue Erfassung im WWS?",o:[["Der Sollbestand ist ständig verfügbar.",1],["Man muss nie mehr zählen.",0],["Diebstahl ist dann unmöglich.",0]]},
+ why:"Permanente Inventur braucht ein WWS mit laufender Fortschreibung. Gezählt wird trotzdem einmal im Jahr.",
+ term:"permanente Inventur",ihk:"Die Bestände werden laufend im WWS fortgeschrieben; jeder Artikel wird einmal im Geschäftsjahr gezählt."},
+{id:"p13-3",ch:13,m:"p",k:"num",s:"Sollwert einer Warengruppe 509,15 €, Inventurdifferenz 43,74 €. Eine Nachkommastelle.",q:"Inventurdifferenz in % vom Sollwert?",unit:"%",ans:8.6,rw:"43,74 × 100 : 509,15 = 8,59… ≈ 8,6 %",
+ why:"Bezugsgröße ist der Sollwert (ohne andere Angabe).",
+ term:"Inventurdifferenz in %",ihk:"Inventurdifferenz in % = Differenz × 100 : Sollwert (IHK W 2022/23 Aufg. 8)."},
+{id:"p13-4",ch:13,m:"p",k:"num",s:"Die Filiale erzielte 2.400.000 € Umsatz. Die Inventurdifferenz beträgt 14.400 €.",q:"Inventurdifferenz in % vom Umsatz?",unit:"%",ans:0.6,rw:"14.400 × 100 : 2.400.000 = 0,6 %",
+ why:"Hier ist ausdrücklich der Umsatz die Bezugsgröße.",
+ term:"Inventurdifferenz vom Umsatz",ihk:"Inventurdifferenz in % = Differenz × 100 : Umsatz (IHK W 2019/20 Aufg. 22)."},
+{id:"p13-5",ch:13,m:"p",k:"mcb",s:"Das WWS meldet 70 Seefunkgeräte. Gezählt werden 30. Im Wareneingangsbuch steht: geliefert 30 – erfasst 70.",q:"Was ist die wahrscheinlichste Ursache der Differenz?",
+ o:[["Ein Erfassungsfehler beim Wareneingang (Zahlendreher)",1],["Diebstahl von 40 Geräten",0],["Eine nicht gebuchte Kundenretoure",0]],
+ b:{q:"Was tut ihr?",o:[["Den Sollbestand im WWS korrigieren und die Erfassung künftig genauer prüfen.",1],["Die Polizei rufen.",0],["Die 40 Geräte nachbestellen und nichts korrigieren.",0]]},
+ why:"Nicht jede Differenz ist Diebstahl. Erfassungsfehler beim Wareneingang (Modul 2) verfälschen den Sollbestand.",
+ term:"Erfassungsfehler als Ursache",ihk:"Inventurdifferenzen entstehen auch durch Erfassungsfehler, z. B. falsch erfasste Wareneingänge."},
+{id:"p13-6",ch:13,m:"p",k:"num",s:"Soll 55, Ist 50 Tablets, Einstandspreis 24,00 €.",q:"Inventurdifferenz in Euro (mit Vorzeichen)?",unit:"€",ans:-120,rw:"(50 − 55) × 24,00 € = −120,00 €",
+ why:"Ohne Vorzeichen (120) wäre nicht klar, ob etwas fehlt oder zu viel da ist.",
+ term:"Inventurdifferenz in €",ihk:"Inventurdifferenz (€) = (Ist − Soll) × Einstandspreis."},
+
+// ===== Kapitel 14 – Gemischtes Training =====
+{id:"a14-1",ch:14,m:"a",k:"mc",s:"Harms: „Ein Paketdienst bringt 14 Kartons und drängelt. Was prüft ihr?“",q:"Wähle.",
+ o:[["Anschrift, Anzahl der Packstücke und Verpackung auf äußere Schäden",1],["den Inhalt jedes Kartons",0],["die Rechnung mit der Bestellung",0]],
+ why:"Modul 1: äußere Prüfung vor dem Fahrer.",
+ term:"äußere Prüfung",ihk:"In Anwesenheit des Fahrers prüfe ich Anschrift, Anzahl der Packstücke und die Verpackung auf äußere Beschädigungen."},
+{id:"a14-2",ch:14,m:"a",k:"mc",s:"Harms: „Versteckter Mangel, beide sind Kaufleute. Wann rügt ihr?“",q:"Wähle.",
+ o:[["unverzüglich nach der Entdeckung",1],["innerhalb von 14 Tagen",0],["gar nicht",0]],
+ why:"Modul 3: § 377 HGB.",
+ term:"Rügefrist",ihk:"Versteckte Mängel werden unverzüglich nach Entdeckung gerügt."},
+{id:"a14-3",ch:14,m:"a",k:"mc",s:"Harms: „Joghurt räumt man nach …“",q:"Wähle.",
+ o:[["fifo",1],["Zufall",0],["Farbe",0]],
+ why:"Modul 6: Die älteste Ware zuerst verkaufen.",
+ term:"fifo",ihk:"Nach dem fifo-Prinzip wird die zuerst eingelagerte Ware zuerst verkauft."},
+{id:"a14-4",ch:14,m:"a",k:"num",s:"Harms: „Tagesabsatz 15, Lieferzeit 6 Tage, Mindestbestand 40.“",q:"Meldebestand?",unit:"Stück",ans:130,rw:"(15 × 6) + 40 = 130 Stück",
+ why:"Modul 9: Tagesabsatz × Lieferzeit + Mindestbestand.",
+ term:"Meldebestand",ihk:"Meldebestand = (Tagesabsatz × Lieferzeit) + Mindestbestand."},
+{id:"a14-5",ch:14,m:"a",k:"mc",s:"Harms: „Ist weniger da als im WWS. Wie heißt das?“",q:"Wähle.",
+ o:[["Fehlbestand",1],["Mehrbestand",0],["Höchstbestand",0]],
+ why:"Modul 13: Ist < Soll = Fehlbestand.",
+ term:"Fehlbestand",ihk:"Liegt der Istbestand unter dem Sollbestand, besteht ein Fehlbestand."},
+{id:"a14-6",ch:14,m:"a",k:"mc",s:"Harms: „Eine Lieferung kommt zu spät. Der Termin war ‚am 3. Mai‘.“",q:"Ab wann ist der Lieferer in Verzug, wenn er schuld ist?",
+ o:[["ab 4. Mai, ohne Mahnung",1],["erst nach einer Mahnung",0],["ab 3. Mai früh",0]],
+ why:"Modul 5: kalendermäßig bestimmt → keine Mahnung nötig.",
+ term:"Lieferungsverzug",ihk:"Bei kalendermäßig bestimmtem Termin tritt der Verzug ohne Mahnung ein."},
+{id:"p14-1",ch:14,m:"p",k:"num",s:"Harms: „Absatz Bio-Kartoffeln 4.400 kg, Ø Lagerbestand 275 kg. Lagerdauer, aufgerundet auf ganze Tage?“",q:"Ø Lagerdauer in Tagen?",unit:"Tage",ans:23,rw:"4.400 : 275 = 16 → 360 : 16 = 22,5 → 23 Tage",
+ why:"Zwei Schritte: erst die Umschlagshäufigkeit, dann die Lagerdauer.",
+ term:"Umschlag → Lagerdauer",ihk:"Umschlagshäufigkeit = Absatz : Ø Lagerbestand; Lagerdauer = 360 : Umschlagshäufigkeit."},
+{id:"p14-2",ch:14,m:"p",k:"num",s:"Harms: „Umsatz 2.000.000 €, Inventurdifferenz 10.000 €.“",q:"Inventurdifferenz in % vom Umsatz?",unit:"%",ans:0.5,rw:"10.000 × 100 : 2.000.000 = 0,5 %",
+ why:"Modul 13: Differenz × 100 : Bezugsgröße.",
+ term:"Inventurdifferenz in %",ihk:"Inventurdifferenz in % = Differenz × 100 : Umsatz (IHK S 2025 Aufg. 9)."},
+{id:"p14-3",ch:14,m:"p",k:"mcb",s:"Harms: „Der Abverkauf der Laufschuhe läuft trotz aller Bemühungen sehr schleppend.“",q:"Wie wirkt sich die Lagerdauer auf andere Kennzahlen aus?",
+ o:[["Durch eine hohe Lagerdauer erhöhen sich die Lagerkosten.",1],["Durch eine niedrige Lagerdauer erhöhen sich die Lagerkosten.",0],["Durch eine hohe Lagerdauer erhöht sich die Umschlagshäufigkeit.",0],["Die hohe Lagerdauer erhöht automatisch den Warenumsatz.",0]],
+ b:{q:"Welche Denkreihe stimmt?",o:[["schleppend → lange Lagerdauer → niedriger Umschlag → Kosten, Zinsen und Risiko steigen",1],["schleppend → kurze Lagerdauer → Kosten sinken",0],["schleppend → hoher Umschlag → Umsatz steigt",0]]},
+ why:"Modul 12. Bei jeder Antwort die Richtung prüfen (steigt/sinkt).",
+ term:"Lagerdauer ↑ → Lagerkosten ↑",ihk:"Durch eine hohe Lagerdauer erhöhen sich die Lagerkosten (IHK S 2026 Aufg. 11)."},
+{id:"p14-4",ch:14,m:"p",k:"mcb",s:"Harms: „Ein Großhändler liefert 80 Dosen Karottensaft statt Energydrinks. Ihr merkt es beim Auspacken.“",q:"Was tut ihr?",
+ o:[["Mangel in der Art unverzüglich rügen und Ersatzlieferung verlangen",1],["Den Saft behalten und nichts sagen",0],["Sofort vom Vertrag zurücktreten",0],["Innerhalb von 2 Jahren rügen",0]],
+ b:{q:"Welche Rechtsgrundlage gilt?",o:[["Zweiseitiger Handelskauf: unverzügliche Rüge nach § 377 HGB, dann Nacherfüllung vorrangig.",1],["Verbrauchsgüterkauf: 2 Jahre Zeit.",0],["Fixkauf: Rücktritt sofort.",0]]},
+ why:"Module 3 und 4 zusammen: erst rügen, dann Nacherfüllung (hier Ersatzlieferung).",
+ term:"Rüge + Nacherfüllung",ihk:"Offene Mängel rüge ich unverzüglich und verlange vorrangig Nacherfüllung."},
+{id:"p14-5",ch:14,m:"p",k:"mc",s:"Harms: „Welche Formel ist falsch?“",q:"Wähle die falsche Formel.",
+ o:[["Bestellmenge = Höchstbestand − Meldebestand",1],["Meldebestand = Tagesabsatz × Lieferzeit + Mindestbestand",0],["Lagerdauer = 360 : Umschlagshäufigkeit",0],["Inventurdifferenz = Istbestand − Sollbestand",0]],
+ why:"Richtig: Bestellmenge = Höchstbestand − Mindestbestand. Beim Eintreffen ist nur noch der Mindestbestand da.",
+ term:"Formeln im Überblick",ihk:"Bestellmenge = Höchstbestand − Mindestbestand."},
+{id:"p14-6",ch:14,m:"p",k:"mcb",s:"Harms: „Im Lager steht ein Kanister Bootsdiesel neben dem Proviant, ohne Auffangwanne, direkt vor dem Notausgang.“",q:"Was ist zuerst zu tun?",
+ o:[["Den Notausgang sofort freiräumen und den Kanister sicher lagern",1],["Erst bei der nächsten Inventur melden",0],["Den Kanister in den Gang daneben stellen",0]],
+ b:{q:"Welche Grundsätze sind verletzt?",o:[["Sicherheit (Fluchtweg frei), warengerechte Lagerung (getrennt von Lebensmitteln) und Umweltschutz (Auffangwanne).",1],["Nur fifo.",0],["Nur der Meldebestand.",0]]},
+ why:"Module 6, 7 und 8 zusammen: Sicherheit geht vor, dann Lagergrundsätze und Umweltschutz.",
+ term:"Sicherheit + Lagergrundsätze",ihk:"Rettungswege und Notausgänge sind jederzeit freizuhalten."}
+);
+
+POOL.push(
+{id:"p2-6",ch:2,m:"p",k:"mc",s:"IHK-Stil: Ihr habt 30 Seefunkgeräte ordnungsgemäß angenommen, gebt aber versehentlich 70 als Liefermenge ins WWS ein.",q:"Welche Auswirkung hat dieser Eingabefehler?",
+ o:[["Bei Anwendung des automatischen Bestellsystems kann es zu Verkaufsstockungen kommen.",1],["Das WWS signalisiert zum richtigen Zeitpunkt die richtige Bestellmenge.",0],["Das WWS korrigiert den Fehler automatisch.",0],["Weil rechtzeitig nachbestellt wird, kommt es nicht zu Verkaufsstockungen.",0]],
+ why:"Das WWS rechnet mit 40 Geräten, die es nicht gibt. Es bestellt zu spät – dann ist das Regal leer.",
+ term:"Verkaufsstockung",ihk:"Bei Anwendung des automatischen Bestellsystems kann es zu Verkaufsstockungen kommen (IHK S 2020 Aufg. 15)."},
+{id:"p6-6",ch:6,m:"p",k:"mcb",s:"Rote Ölzeugjacken hängen im Bunker direkt unter einem Lichtschacht.",q:"Welcher Lagergrundsatz ist verletzt?",
+ o:[["warengerecht lagern",1],["fifo",0],["geräumig lagern",0]],
+ b:{q:"Welche Folge droht?",o:[["Das Licht bleicht die Farbe aus – die Jacken sind nicht mehr voll verkaufsfähig.",1],["Die Jacken werden schwerer.",0],["Der Meldebestand steigt.",0]]},
+ why:"Textilien vor Licht schützen. Genau so entstehen die Farbabweichungen aus Modul 7.",
+ term:"warengerechte Lagerung",ihk:"Textilien sind vor Licht zu schützen, weil die Farbe sonst ausbleicht."},
+{id:"p7-6",ch:7,m:"p",k:"mcb",s:"Hein lässt im kühlen Bunker Rotwein und Käse lagern, damit sie besser werden.",q:"Wie heißt diese Tätigkeit?",
+ o:[["Warenmanipulation",1],["Qualitätskontrolle",0],["Warensicherung",0]],
+ b:{q:"Was bedeutet der Begriff?",o:[["Die Ware wird verbessert und verkaufsfähig gemacht.",1],["Die Ware wird heimlich umetikettiert.",0],["Die Ware wird gegen Diebstahl gesichert.",0]]},
+ why:"Der Begriff klingt negativ, ist es aber nicht: Reifen lassen, veredeln, verkaufsfähig machen.",
+ term:"Warenmanipulation",ihk:"Warenmanipulation bedeutet, die Ware zu verbessern und verkaufsfähig zu machen, z. B. Käse reifen lassen."},
+{id:"p10-6",ch:10,m:"p",k:"num",s:"Jahresinventur Seekarten: Anfangsbestand 48.000 €, Endbestand 36.000 €.",q:"Ø Lagerbestand in Euro?",unit:"€",ans:42000,rw:"(48.000 + 36.000) : 2 = 42.000 €",
+ why:"Nur Anfangs- und Endbestand angegeben → durch 2.",
+ term:"Ø Lagerbestand (AB + EB)",ihk:"Ø Lagerbestand = (Anfangsbestand + Endbestand) : 2."}
+);
+
+// Suchbilder (Kap. 1 Rampe, Kap. 8 Munitionsgang). Quellen: LF7 M1 Lösungen/Fragenliste, M8 Lösungen (Typische Regeln im Lager), IHK W 2024/25 Aufg. 25
+const SEARCH = {
+ 1: {title:"Suchbild Rampe", task:"Lammers wedelt mit dem Stift. Bevor ihr unterschreibt: Tippt die 3 Dinge an, die ihr bemerken müsst. Vorsicht – nicht alles ist ein Fehler.",
+  term:"äußere Prüfung", ihk:"In Anwesenheit des Fahrers prüfe ich die Empfängeranschrift, die Anzahl der Versandstücke und die äußere Beschaffenheit der Verpackung.",
+  spots:[
+   {x:270,y:282,r:30,err:true,aria:"Karton unten in der Mitte",why:"Nasser, eingedrückter Karton: Schaden ins Schadensprotokoll, vom Fahrer unterschreiben lassen, unter Vorbehalt annehmen."},
+   {x:466,y:256,r:40,err:true,aria:"Paket auf der Sackkarre",why:"Das Paket ist an die Filiale Cuxhaven adressiert: falsche Empfängeranschrift – dieses Paket nicht annehmen."},
+   {x:551,y:158,r:42,err:true,aria:"Lieferschein auf der Kiste",why:"Laut Lieferschein 12 Kartons Seefunkgeräte – auf der Palette stehen nur 11. Fehlmenge vermerken und vom Fahrer bestätigen lassen."},
+   {x:112,y:334,r:34,err:false,aria:"Hubwagen",why:"Der Hubwagen steht am Rand abgestellt. Das ist in Ordnung."},
+   {x:314,y:210,r:24,err:false,aria:"Karton oben mit Pfeilen",why:"Der Karton mit den Pfeilen steht richtig herum. Das ist in Ordnung."}
+  ],
+  svg:()=>{
+   const box=(x,y,c,lab)=>`<rect x="${x}" y="${y}" width="42" height="34" rx="2" fill="${c}" stroke="#5a3d22" stroke-width="1.5"/><path d="M${x} ${y+11} h42" stroke="#5a3d22" stroke-width="1" opacity=".5"/><text x="${x+21}" y="${y+26}" text-anchor="middle" font-family="Courier Prime, monospace" font-size="10" font-weight="700" fill="#4a2f17">${lab}</text>`;
+   let boxes="";
+   [[204,264],[292,264],[336,264],[204,228],[248,228],[292,228],[336,228],[204,192],[248,192],[292,192]].forEach(([x,y])=>{boxes+=box(x,y,"#c79a5d","SF")});
+   return `<svg viewBox="0 0 600 380" role="img" aria-label="Rampe am Anleger: Palette mit Kartons, Paket auf einer Sackkarre, Lieferschein, Hubwagen">
+   <rect width="600" height="210" fill="#7f4430"/>
+   <g stroke="#5e2f20" stroke-width="1.2" opacity=".6">${[30,60,90,120,150,180].map(y=>`<path d="M0 ${y} h600"/>`).join("")}</g>
+   <path d="M20 210 L20 110 Q95 40 170 110 L170 210 Z" fill="#14100d"/>
+   <rect y="210" width="600" height="170" fill="#55564f"/><path d="M0 210 h600" stroke="#3c3d37" stroke-width="3"/>
+   <rect x="190" y="298" width="200" height="14" fill="#8d6a43"/><rect x="196" y="312" width="12" height="8" fill="#6d5132"/><rect x="284" y="312" width="12" height="8" fill="#6d5132"/><rect x="372" y="312" width="12" height="8" fill="#6d5132"/>
+   ${boxes}
+   <rect x="248" y="264" width="42" height="34" rx="2" fill="#7a5a35" stroke="#4a3018" stroke-width="1.5"/>
+   <path d="M248 264 L262 276 L276 266 L290 270" fill="none" stroke="#3a2412" stroke-width="2"/>
+   <ellipse cx="266" cy="286" rx="13" ry="7" fill="#3d3a33" opacity=".7"/>
+   <path d="M258 298 q2 8 0 12 M272 298 q2 6 0 10" stroke="#7fc4c9" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+   <path d="M306 200 v-6 l-4 4 M306 194 l4 4 M322 200 v-6 l-4 4 M322 194 l4 4" stroke="#4a2f17" stroke-width="1.6" fill="none"/>
+   <!-- Sackkarre mit Paket -->
+   <path d="M432 214 L432 312 L496 312" stroke="#2a2a2a" stroke-width="5" fill="none"/><circle cx="440" cy="318" r="10" fill="#1d1d1d"/>
+   <rect x="438" y="232" width="56" height="78" rx="2" fill="#d8b47a" stroke="#6d5132" stroke-width="1.5"/>
+   <rect x="443" y="246" width="46" height="34" fill="#fbf6ea" stroke="#999"/>
+   <text x="466" y="257" text-anchor="middle" font-family="Courier Prime, monospace" font-size="7.5" fill="#222">AN: NMD GmbH</text>
+   <text x="466" y="267" text-anchor="middle" font-family="Courier Prime, monospace" font-size="7.5" font-weight="700" fill="#b0392a">Filiale</text>
+   <text x="466" y="276" text-anchor="middle" font-family="Courier Prime, monospace" font-size="7.5" font-weight="700" fill="#b0392a">Cuxhaven</text>
+   <!-- Lieferschein -->
+   <rect x="508" y="214" width="84" height="90" fill="#6d5132"/>
+   <rect x="518" y="110" width="66" height="98" rx="3" fill="#7a5a35"/><rect x="524" y="118" width="54" height="84" fill="#fbf6ea"/>
+   <rect x="540" y="106" width="22" height="9" rx="2" fill="#9aa"/>
+   <text x="551" y="132" text-anchor="middle" font-family="Courier Prime, monospace" font-size="7.5" font-weight="700" fill="#222">LIEFERSCHEIN</text>
+   <text x="551" y="150" text-anchor="middle" font-family="Courier Prime, monospace" font-size="12" font-weight="700" fill="#222">12 Kartons</text>
+   <text x="551" y="163" text-anchor="middle" font-family="Courier Prime, monospace" font-size="7" fill="#222">Seefunkgeräte</text>
+   <path d="M530 176 h42 M530 184 h42 M530 192 h30" stroke="#999" stroke-width="1"/>
+   <!-- Hubwagen -->
+   <rect x="70" y="336" width="100" height="8" fill="#e08a1e"/><rect x="70" y="344" width="100" height="5" fill="#a85f0b"/>
+   <path d="M80 336 L64 298" stroke="#e08a1e" stroke-width="5"/><rect x="54" y="290" width="22" height="7" rx="3" fill="#222"/>
+   <circle cx="160" cy="352" r="5" fill="#222"/>
+   <!--HS-->
+   </svg>`;}
+ },
+ 8: {title:"Suchbild Munitionsgang", task:"Defne Kaya geht mit euch durch den Gang. Tippt die 3 Verstöße gegen die Sicherheit an. Vorsicht – nicht alles ist ein Fehler.",
+  term:"Unfallverhütung im Lager", ihk:"Rettungswege und Notausgänge sind jederzeit freizuhalten; Paletten werden liegend gelagert, Schweres unten.",
+  spots:[
+   {x:495,y:262,r:46,err:true,aria:"Kartons an der Tür rechts",why:"Kartons vor dem Notausgang: Fluchtwege und Notausgänge sind jederzeit freizuhalten."},
+   {x:118,y:100,r:42,err:true,aria:"Oberstes Regalbrett",why:"Schwere Getränkekisten ganz oben: Schweres gehört nach unten – sonst kippt das Regal, und Heben über Kopf ist gefährlich."},
+   {x:276,y:228,r:42,err:true,aria:"Paletten an der Wand",why:"Paletten stehen hochkant an der Wand: Sie können umkippen. Paletten werden liegend gelagert."},
+   {x:515,y:104,r:24,err:false,aria:"Grünes Schild über der Tür",why:"Das grüne Rettungszeichen zeigt den Notausgang. Richtig angebracht."},
+   {x:360,y:232,r:30,err:false,aria:"Roter Feuerlöscher",why:"Der Feuerlöscher hängt frei zugänglich, das rote Brandschutzzeichen darüber stimmt."},
+   {x:420,y:150,r:24,err:false,aria:"Blaues rundes Schild",why:"Das blaue Gebotszeichen „Fußschutz benutzen“ ist richtig – Sicherheitsschuhe sind Pflicht."}
+  ],
+  svg:()=>{
+   const crate=(x,y)=>`<rect x="${x}" y="${y}" width="44" height="30" rx="2" fill="#2e6f9e" stroke="#1d4766"/>${[0,1,2,3].map(i=>`<rect x="${x+5+i*10}" y="${y-10}" width="6" height="14" rx="2" fill="#5aa86a"/>`).join("")}`;
+   const lbox=(x,y)=>`<rect x="${x}" y="${y}" width="40" height="28" fill="#c79a5d" stroke="#6d5132"/>`;
+   return `<svg viewBox="0 0 600 380" role="img" aria-label="Bunkergang mit Regal, Paletten, Feuerlöscher, Schildern und einer Notausgangstür">
+   <rect width="600" height="380" fill="#3a2a22"/>
+   <path d="M0 40 Q300 -20 600 40 L600 300 L0 300 Z" fill="#6e3b2a"/>
+   <g stroke="#4f2a1d" stroke-width="1.2" opacity=".6">${[70,100,130,160,190,220,250,280].map(y=>`<path d="M0 ${y} h600"/>`).join("")}</g>
+   <rect y="300" width="600" height="80" fill="#4d4c45"/><path d="M0 300 h600" stroke="#33322d" stroke-width="3"/>
+   <!-- Regal -->
+   <rect x="40" y="76" width="8" height="226" fill="#555"/><rect x="190" y="76" width="8" height="226" fill="#555"/>
+   ${[126,196,266].map(y=>`<rect x="40" y="${y}" width="158" height="6" fill="#777"/>`).join("")}
+   ${crate(52,96)}${crate(100,96)}${crate(148,96)}
+   ${lbox(54,168)}${lbox(100,168)}${lbox(146,168)}${lbox(54,238)}${lbox(100,238)}
+   <!-- Paletten hochkant -->
+   ${[0,1].map(i=>`<g transform="translate(${250+i*18} 0) rotate(4 20 300)"><rect x="0" y="162" width="16" height="138" fill="#a07a4c" stroke="#6d5132"/>${[170,200,230,260,290].map(y=>`<rect x="-3" y="${y}" width="22" height="6" fill="#8d6a43"/>`).join("")}</g>`).join("")}
+   <!-- Feuerlöscher -->
+   <rect x="346" y="168" width="28" height="22" fill="#c0392b"/><path d="M352 186 L360 172 L368 186 Z" fill="#fff"/>
+   <rect x="350" y="206" width="20" height="50" rx="8" fill="#d63a2a"/><rect x="354" y="198" width="12" height="10" fill="#222"/><path d="M366 202 q14 4 8 22" stroke="#222" stroke-width="3" fill="none"/>
+   <!-- Gebotszeichen -->
+   <circle cx="420" cy="150" r="18" fill="#1f5fa8"/><path d="M412 156 h18 v-6 h-8 l-2 -10 h-6 z" fill="#fff"/>
+   <!-- Tür + Rettungszeichen -->
+   <rect x="470" y="122" width="92" height="178" fill="#6f7a7c" stroke="#3f4648" stroke-width="3"/><rect x="545" y="210" width="10" height="4" fill="#222"/>
+   <rect x="482" y="94" width="66" height="22" fill="#2e8b57"/><circle cx="500" cy="100" r="3" fill="#fff"/><path d="M500 104 l-4 8 M500 104 l5 7 M499 106 l-6 -2 M499 106 l6 1" stroke="#fff" stroke-width="2"/><path d="M516 105 h22 l-6 -5 M538 105 l-6 5" stroke="#fff" stroke-width="2" fill="none"/>
+   <!-- Kartons vor der Tür -->
+   ${lbox(458,272)}${lbox(500,272)}${lbox(478,244)}${lbox(470,216)}
+   <!--HS-->
+   </svg>`;}
+ }
+};
+
+</script>
+<script>
+(function(){
+"use strict";
+// ---------- Speicher (nur dieses Gerät) ----------
+const KEY="weserfort-lf7-v1";
+let storeOK=true;
+function load(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):{}}catch(e){storeOK=false;return {}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){storeOK=false}}
+let DB=load(); DB.seen=DB.seen||{a:[],p:[]}; DB.best=DB.best||{a:0,p:0}; DB.nights=DB.nights||0; if(typeof DB.sound!=="boolean")DB.sound=false;
+DB.wrong=DB.wrong||{a:[],p:[]}; DB.fixed=DB.fixed||0;
+
+const $=s=>document.querySelector(s);
+const app=$("#app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// Zufall: normal Math.random, mit Klassen-Code ein fester Startwert (alle Teams gleiche Ziehung)
+let RNG=Math.random;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(RNG()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const PER={a:2,p:3};
+// ---------- Zustand ----------
+if(typeof DB.roles!=="boolean")DB.roles=true; DB.duelBest=DB.duelBest||{a:0,p:0};
+let S={mode:DB.lastMode||"a",team:DB.lastTeam||"",chs:CHAPTERS.map(c=>c.n),confirmReset:false,code:""};
+let G=null; // laufendes Spiel
+
+// ---------- Klang (Web Audio, Standard aus) ----------
+let AC=null,master=null,nodes=[],beatT=null;
+function soundStart(){
+  try{
+    if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();}
+    if(AC.state==="suspended")AC.resume();
+    soundStop(true);
+    master=AC.createGain();master.gain.value=0.0001;master.connect(AC.destination);
+    master.gain.exponentialRampToValueAtTime(0.10,AC.currentTime+2);
+    const lp=AC.createBiquadFilter();lp.type="lowpass";lp.frequency.value=380;lp.connect(master);
+    [55,55.6,82.4].forEach((f,i)=>{const o=AC.createOscillator();o.type=i==2?"triangle":"sawtooth";o.frequency.value=f;const g=AC.createGain();g.gain.value=i==2?0.25:0.5;o.connect(g);g.connect(lp);o.start();nodes.push(o)});
+    const lfo=AC.createOscillator();lfo.frequency.value=0.07;const lg=AC.createGain();lg.gain.value=160;lfo.connect(lg);lg.connect(lp.frequency);lfo.start();nodes.push(lfo);
+    beatT=setInterval(()=>{ if(!G||!AC||!master)return; const lvl=G.fog; if(lvl<55&&G.step!=="duel")return;
+      [0,0.28].forEach(d=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=48;g.gain.setValueAtTime(0.0001,AC.currentTime+d);g.gain.exponentialRampToValueAtTime(0.5,AC.currentTime+d+0.03);g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+d+0.25);o.connect(g);g.connect(master);o.start(AC.currentTime+d);o.stop(AC.currentTime+d+0.3)});
+    },lvlInterval());
+  }catch(e){}
+}
+function lvlInterval(){return 1300}
+function soundStop(quick){try{clearInterval(beatT);nodes.forEach(n=>{try{n.stop()}catch(e){}});nodes=[];if(master){master.disconnect();master=null}}catch(e){}}
+function chime(good){ if(!DB.sound||!AC||!master)return; try{const t=AC.currentTime;(good?[523,659,784]:[311,277]).forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=f;g.gain.setValueAtTime(0.0001,t+i*0.12);g.gain.exponentialRampToValueAtTime(0.25,t+i*0.12+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.12+0.6);o.connect(g);g.connect(master);o.start(t+i*0.12);o.stop(t+i*0.12+0.7)})}catch(e){} }
+function toggleSound(){DB.sound=!DB.sound;save();if(DB.sound)soundStart();else soundStop();render()}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)soundStop();else if(DB.sound&&AC)soundStart()});
+
+// ---------- Grafik ----------
+function scene(flut,opts){
+  opts=opts||{}; const f=Math.max(0,Math.min(100,flut))/100; const ghost=opts.ghost!=null?opts.ghost:Math.min(.75,.15+f*0.6);
+  const dawn=opts.dawn; const wy=Math.round(236-f*66);
+  const sky1=dawn?"#35596a":"#08121a", sky2=dawn?"#e9b783":"#1b3442";
+  const thief=opts.thief!=null?opts.thief:(G?Math.min(1,(G.thief||0)*0.3):0);
+  return `<svg viewBox="0 0 640 300" role="img" aria-label="Die Inselfestung Langlütjen II im Weser-Watt, im Hintergrund Bremerhaven. Der Wasserstand zeigt, wie hoch die Flut steht.">
+  <defs>
+    <linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky1}"/><stop offset="1" stop-color="${sky2}"/></linearGradient>
+    <linearGradient id="wa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f4a52" stop-opacity=".95"/><stop offset="1" stop-color="#0a1d24"/></linearGradient>
+    <linearGradient id="mud" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4d4336"/><stop offset="1" stop-color="#2c261f"/></linearGradient>
+    <radialGradient id="lampg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe2a0" stop-opacity=".95"/><stop offset="1" stop-color="#ffc45a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="gh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcebea" stop-opacity=".95"/><stop offset="1" stop-color="#dcebea" stop-opacity="0"/></linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="10"/></filter>
+  </defs>
+  <rect width="640" height="300" fill="url(#sk)"/>
+  ${dawn?"":[[40,30],[120,18],[210,42],[300,22],[420,34],[520,16],[600,46],[470,64],[160,64],[350,58]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.2" fill="#d4e4e8" opacity=".75"/>`).join("")}
+  <circle cx="${dawn?110:540}" cy="${dawn?118:48}" r="${dawn?26:17}" fill="${dawn?"#ffe0b0":"#eef3f2"}" opacity=".9"/>
+  <!-- Bremerhaven am Horizont -->
+  <g fill="${dawn?"#2b4a57":"#22404c"}" opacity=".95">
+    <rect x="380" y="132" width="260" height="14"/>
+    <path d="M420 132 L420 96 L424 96 L424 132 Z M404 96 L462 96 L462 99 L404 99 Z M424 99 L446 116 L444 118 L423 102 Z"/>
+    <path d="M470 132 L470 90 L474 90 L474 132 Z M456 90 L520 90 L520 93 L456 93 Z M474 93 L498 112 L496 114 L473 96 Z"/>
+    <path d="M530 132 L530 100 L534 100 L534 132 Z M516 100 L576 100 L576 103 L516 103 Z"/>
+    <path d="M592 132 L596 76 L606 76 L610 132 Z"/><rect x="594" y="70" width="14" height="7"/>
+  </g>
+  <path class="beam" d="M601 73 L470 60 L470 86 Z" fill="#fff2c4" opacity=".35"/>
+  <circle cx="601" cy="73" r="5" fill="url(#lampg)"/>
+  <rect x="0" y="144" width="640" height="4" fill="#123038" opacity=".8"/>
+  <!-- Watt bei Ebbe -->
+  <rect x="0" y="148" width="640" height="152" fill="url(#mud)"/>
+  <g stroke="#6a5c49" stroke-width="2" fill="none" opacity=".55"><path d="M0 268 C80 258 140 278 220 262 M330 280 C400 266 480 286 640 270 M40 290 C120 284 170 296 260 288"/></g>
+  <!-- Insel Langlütjen II: Erdwall und Backsteinfront -->
+  <g transform="translate(377 240) scale(1.32) translate(-377 -240)">
+  <path d="M206 244 Q236 176 300 168 L462 168 Q520 176 548 244 Z" fill="#3b5536"/>
+  <path d="M232 238 Q256 186 304 180 L458 180 Q508 186 528 238 Z" fill="#46663f"/>
+  <rect x="286" y="182" width="182" height="46" fill="#7f4430"/>
+  <g stroke="#5e2f20" stroke-width="1" opacity=".7"><path d="M286 194 h182 M286 206 h182 M286 218 h182"/></g>
+  ${[300,336,372,408,444].map((x,i)=>`<path d="M${x} 228 L${x} 204 Q${x+10} 192 ${x+20} 204 L${x+20} 228 Z" fill="${i===3?"#f1c46a":"#1a0f0b"}" ${i===3?'class="flick"':""}/>`).join("")}
+  <circle cx="418" cy="214" r="22" fill="url(#lampg)" opacity=".55"/>
+  <rect x="284" y="178" width="186" height="5" fill="#5e2f20"/>
+  <!-- Geist des Magazinmeisters in der Tür -->
+  <g opacity="${ghost.toFixed(2)}">
+    <path d="M410 228 C410 210 412 204 418 204 C424 204 426 210 426 228 Z" fill="url(#gh)"/>
+    <circle cx="418" cy="200" r="5" fill="#e6f0ef"/><rect x="411" y="193" width="14" height="3.5" fill="#3d4f5c"/>
+  </g>
+  </g>
+  <!-- Anleger -->
+  <g fill="#3b2c20"><rect x="120" y="222" width="122" height="6"/>${[126,150,174,198,222].map(x=>`<rect x="${x}" y="222" width="4" height="40"/>`).join("")}</g>
+  <!-- MS Lütje Möwe -->
+  <g transform="translate(0 ${wy-236})"><g class="bob">
+    <path d="M28 226 L150 226 L140 244 L40 244 Z" fill="#1e3d59"/>
+    <rect x="28" y="224" width="122" height="4" fill="#c8673f"/>
+    <rect x="86" y="206" width="40" height="18" fill="#e9ecea"/><rect x="92" y="196" width="22" height="10" fill="#e9ecea"/>
+    <rect x="92" y="211" width="8" height="6" fill="#f5c76a"/><rect x="104" y="211" width="8" height="6" fill="#f5c76a"/><rect x="114" y="211" width="8" height="6" fill="#f5c76a"/>
+    <rect x="100" y="186" width="3" height="10" fill="#e9ecea"/>
+  </g></g>
+  <!-- Boot ohne Licht -->
+  <g opacity="${thief.toFixed(2)}" transform="translate(0 ${wy-236})"><g class="bob">
+    <path d="M560 232 L620 232 L612 244 L566 244 Z" fill="#0b0f12"/>
+    <path d="M588 232 L588 214 L596 214 L596 232 Z" fill="#11161a"/><circle cx="592" cy="210" r="4" fill="#11161a"/>
+  </g></g>
+  <!-- Wasser: steigt mit jedem Fehler -->
+  <rect x="0" y="${wy}" width="640" height="${300-wy}" fill="url(#wa)"/>
+  <g class="wave" stroke="#6fb4ba" stroke-width="2" opacity=".55" fill="none"><path d="M-20 ${wy+2} q20 -4 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/></g>
+  <g stroke="#2e5e66" stroke-width="2" opacity=".6"><path d="M30 ${wy+18} h60 M160 ${wy+30} h80 M310 ${wy+14} h50 M430 ${wy+34} h90 M560 ${wy+22} h60"/></g>
+  <g filter="url(#blur)"><ellipse cx="320" cy="${wy}" rx="360" ry="${10+f*24}" fill="#cfdedd" opacity="${(0.05+f*0.25).toFixed(2)}"/></g>
+</svg>`;
+}
+
+function persona(fig,mood){
+  const skin=fig.pale||fig.age==="geist"?"#e4ecee":(fig.skin||"#efe2d4");
+  const op=fig.age==="geist"?.8:1;
+  const mouth=mood==="good"?`<path d="M44 66 Q50 71 56 66" stroke="#4a3328" stroke-width="2.4" fill="none" stroke-linecap="round"/>`:mood==="bad"?`<ellipse cx="50" cy="67" rx="4" ry="5" fill="#3a1f18"/>`:`<path d="M44 67 L56 67" stroke="#4a3328" stroke-width="2.4" stroke-linecap="round"/>`;
+  const brow=mood==="bad"?`<path d="M37 47 L45 50 M63 47 L55 50" stroke="#3a2a22" stroke-width="2.2" stroke-linecap="round"/>`:"";
+  const hairs={kind:`<path d="M30 52 C28 30 72 30 70 52 C70 40 30 40 30 52 Z" fill="${fig.hair}"/><path d="M28 50 C26 74 34 80 32 86 M72 50 C74 74 66 80 68 86" stroke="${fig.hair}" stroke-width="6" fill="none" stroke-linecap="round"/>`,
+    frau:`<path d="M30 54 C26 34 74 34 70 54 C66 46 34 46 30 54 Z" fill="${fig.hair}"/>`,
+    alt:`<path d="M31 52 C30 40 70 40 69 52" stroke="${fig.hair}" stroke-width="5" fill="none"/>`,
+    mann:`<path d="M31 50 C30 36 70 36 69 50 C64 44 36 44 31 50 Z" fill="${fig.hair}"/>`,
+    geist:`<path d="M31 52 C30 40 70 40 69 52" stroke="${fig.hair}" stroke-width="5" fill="none"/>`};
+  const hats={
+    schleife:`<path d="M58 34 L70 28 L70 42 Z M58 34 L66 44 L56 40 Z" fill="#c8553d"/><circle cx="58" cy="36" r="3" fill="#a33e2b"/>`,
+    muetze:`<path d="M30 42 C30 22 70 22 70 42 Z" fill="#2c4a63"/><rect x="28" y="38" width="44" height="7" rx="3" fill="#1f3446"/>`,
+    kapitaen:`<path d="M27 40 C27 26 73 26 73 40 Z" fill="#f2f2f2"/><rect x="26" y="38" width="48" height="7" fill="#1b263b"/><path d="M28 45 L72 45 L66 50 L34 50 Z" fill="#111"/><circle cx="50" cy="35" r="3.5" fill="#e0b53a"/>`,
+    glocke:`<path d="M26 48 C24 22 76 22 74 48 C66 42 34 42 26 48 Z" fill="#8a6f9e"/><rect x="28" y="40" width="44" height="4" fill="#5e4a70"/>`,
+    suedwester:`<path d="M30 40 C30 22 70 22 70 40 Z" fill="#e9c46a"/><path d="M20 42 Q50 34 80 42 L84 50 Q50 42 16 50 Z" fill="#d4a93d"/>`,
+    schiebermuetze:`<path d="M28 42 C28 26 72 24 72 40 Z" fill="#555"/><path d="M28 42 Q48 46 74 40 L78 44 Q50 52 26 46 Z" fill="#3e3e3e"/>`,
+    lotse:`<path d="M29 41 C29 26 71 26 71 41 Z" fill="#26323a"/><rect x="28" y="38" width="44" height="6" fill="#1a2329"/><path d="M30 44 L70 44 L64 49 L36 49 Z" fill="#0f151a"/>`,
+    zylinder:`<rect x="35" y="12" width="30" height="28" fill="#1e1e1e"/><rect x="27" y="38" width="46" height="6" rx="2" fill="#151515"/><rect x="35" y="32" width="30" height="4" fill="#7a1f1f"/>`,
+    melone:`<path d="M33 40 C33 20 67 20 67 40 Z" fill="#2a2d33"/><rect x="26" y="38" width="48" height="6" rx="3" fill="#1d1f24"/>`,
+    kapitaenin:`<path d="M27 40 C27 26 73 26 73 40 Z" fill="#f2f2f2"/><rect x="26" y="38" width="48" height="7" fill="#14213d"/><path d="M28 45 L72 45 L66 50 L34 50 Z" fill="#111"/><path d="M44 34 h12" stroke="#e0b53a" stroke-width="3"/>`,
+    cap:`<path d="M30 44 C30 24 70 24 70 44 Z" fill="#b8332a"/><path d="M50 41 L84 45 L82 50 L50 46 Z" fill="#8e241d"/>`,
+    headset:`<path d="M28 54 C28 26 72 26 72 54" stroke="#222" stroke-width="4" fill="none"/><rect x="23" y="49" width="9" height="13" rx="3" fill="#222"/><rect x="68" y="49" width="9" height="13" rx="3" fill="#222"/><path d="M28 60 Q32 74 44 71" stroke="#222" stroke-width="2.5" fill="none"/><circle cx="45" cy="71" r="2.6" fill="#222"/>`,
+    helm:`<path d="M26 46 C26 20 74 20 74 46 Z" fill="${fig.helm||"#f4a300"}"/><rect x="22" y="43" width="56" height="6" rx="3" fill="${fig.helm||"#f4a300"}"/><path d="M50 22 L50 44" stroke="#0003" stroke-width="5"/><path d="M26 46 L74 46" stroke="#0003" stroke-width="1"/>`,
+    koch:`<path d="M34 42 L34 30 C24 30 25 14 38 18 C40 6 60 6 62 18 C75 14 76 30 66 30 L66 42 Z" fill="#fbfbfb" stroke="#c9c9c9"/>`,
+    none:""
+  };
+  const glasses=fig.glasses?`<g stroke="#20262a" stroke-width="1.8" fill="none"><circle cx="42" cy="55" r="6.5"/><circle cx="58" cy="55" r="6.5"/><path d="M48.5 55 h3"/></g>`:"";
+  const beard=fig.beard?`<path d="M36 62 C38 84 62 84 64 62 C60 72 40 72 36 62 Z" fill="${fig.hair}" opacity=".9"/>`:"";
+  return `<svg viewBox="0 0 100 130" aria-hidden="true" style="opacity:${op}">
+    <defs><linearGradient id="fade${fig.coat.slice(1)}" x1="0" y1="0" x2="0" y2="1"><stop offset=".55" stop-color="${fig.coat}"/><stop offset="1" stop-color="${fig.coat}" stop-opacity="0"/></linearGradient></defs>
+    <path d="M16 130 C16 96 30 84 50 84 C70 84 84 96 84 130 Z" fill="url(#fade${fig.coat.slice(1)})"/>
+    <path d="M44 84 L50 98 L56 84" fill="#e8e2d6" opacity=".9"/>
+    <ellipse cx="50" cy="56" rx="20" ry="23" fill="${skin}"/>
+    ${hairs[fig.age]||hairs.mann}
+    ${hats[fig.hat]||""}
+    <circle cx="42" cy="55" r="${mood==="bad"?3.2:2.6}" fill="#1c2a30"/><circle cx="58" cy="55" r="${mood==="bad"?3.2:2.6}" fill="#1c2a30"/>
+    ${brow}${beard}${mouth}${glasses}
+    <ellipse cx="38" cy="63" rx="4" ry="2.4" fill="#d9a0a0" opacity="${fig.age==="geist"||fig.pale?0:.35}"/><ellipse cx="62" cy="63" rx="4" ry="2.4" fill="#d9a0a0" opacity="${fig.age==="geist"||fig.pale?0:.35}"/>
+  </svg>`;
+}
+const ICON={
+  anchor:`<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M24 13 V42 M15 20 H33" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M8 28 C8 38 16 42 24 42 C32 42 40 38 40 28" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M5 31 L8 26 L12 30 M43 31 L40 26 L36 30" stroke="#f2a541" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`,
+  radio:`<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="12" y="16" width="24" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M18 16 V4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><rect x="17" y="22" width="14" height="8" rx="1.5" fill="#f2a541"/><circle cx="20" cy="37" r="2" fill="currentColor"/><circle cx="28" cy="37" r="2" fill="currentColor"/><path d="M6 10 C3 14 3 20 6 24 M42 10 C45 14 45 20 42 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  lantern:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 8 h12 v4 h-12z" fill="currentColor"/><path d="M24 2 a4 4 0 0 1 4 4 h-8 a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="12" width="20" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M24 18 c4 6 4 10 0 14 c-4 -4 -4 -8 0 -14z" fill="#f0b84a"/><rect x="12" y="38" width="24" height="5" rx="2" fill="currentColor"/></svg>`,
+  compass:`<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M24 8 L29 24 L24 40 L19 24 Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M24 8 L29 24 L19 24 Z" fill="#c86a4e"/><circle cx="24" cy="24" r="2.5" fill="currentColor"/></svg>`,
+  sound:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8c1.5 1.2 1.5 6.8 0 8M18.5 5.5c3 3 3 10 0 13" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`,
+  mute:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  book:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-4a2 2 0 0 0-2 2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>`,
+  star:(on)=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${on?"var(--lamp)":"none"}" stroke="var(--lamp)" stroke-width="1.5"/></svg>`
+};
+
+// ---------- Pool ----------
+function poolFor(m){return POOL.filter(q=>q.m===m)}
+function newCount(m){const seen=new Set(DB.seen[m]);return poolFor(m).filter(q=>!seen.has(q.id)).length}
+function draw(m,chs,code){
+  const notes=[]; const seen=new Set(code?[]:DB.seen[m]); const out=[];
+  chs.forEach(c=>{
+    const items=POOL.filter(q=>q.m===m&&q.ch===c); const n=Math.min(PER[m],items.length);
+    let fresh=shuffle(items.filter(q=>!seen.has(q.id)));
+    if(!code&&fresh.length<n){
+      notes.push(c);
+      const rest=shuffle(items.filter(q=>seen.has(q.id)));
+      DB.seen[m]=DB.seen[m].filter(id=>!items.some(q=>q.id===id));
+      fresh=fresh.concat(rest);
+    }
+    fresh.slice(0,n).forEach(q=>out.push(prep(q)));
+  });
+  save();
+  return {qs:out,notes};
+}
+function prep(q){
+  const o=shuffle(q.o?q.o.map((x,i)=>({t:x[0],ok:!!x[1],i})):[]);
+  const b=q.b?{q:q.b.q,o:shuffle(q.b.o.map((x,i)=>({t:x[0],ok:!!x[1],i})))}:null;
+  return {q,o,b,sel:null,bsel:null,wsel:null,w:null,num:"",phase:q.k==="rede"?"write":"choose",gone:[],res:null,own:"",chk:[]};
+}
+function drawWrong(m){
+  const ids=new Set(DB.wrong[m]);
+  const items=POOL.filter(q=>q.m===m&&ids.has(q.id));
+  const sel=shuffle(items).slice(0,20).sort((a,b)=>a.ch-b.ch);
+  return sel.map(prep);
+}
+
+// ---------- Ablauf ----------
+function startGame(kind){
+  kind=kind||"normal";
+  const m=S.mode; let chs=S.chs.slice().sort((a,b)=>a-b);
+  const code=kind==="normal"?S.code.trim().toUpperCase():"";
+  RNG=code?mulberry32(hashStr(code+"|"+m+"|"+chs.join(","))):Math.random;
+  let d;
+  if(kind==="fehler"){const qs=drawWrong(m); if(!qs.length)return; chs=[...new Set(qs.map(x=>x.q.ch))]; d={qs,notes:[]};}
+  else { if(!chs.length)return; d=draw(m,chs,code); }
+  G={mode:m,kind,code,team:S.team.trim()||"Team Watt",chs,qs:d.qs,notes:d.notes,i:0,step:"prolog",lanterns:m==="a"?3:0,used:0,fog:15,score:0,max:0,chRes:{},second:{},fixedNow:0,
+     roles:DB.roles,thief:0,fogAdj:0,search:{},duel:null,duelCh:null,thiefWarned:false};
+  if(kind!=="fehler"){
+    const dc=[11,10,9].find(c=>chs.includes(c)); if(dc)G.duelCh=dc;
+    Object.keys(SEARCH).forEach(k=>{if(chs.includes(+k))G.search[k]={found:[],wrong:0,taps:[],done:false,last:null}});
+  }
+  G.max=G.qs.reduce((s,x)=>s+maxPts(x),0)+Object.keys(G.search).length*15;
+  DB.lastMode=m;DB.lastTeam=S.team;save();
+  render(); window.scrollTo(0,0);
+}
+function hasWeil(q){return q.k!=="mcb"&&q.k!=="num"&&!/^Kennziffer/.test(q.ihk)}
+function maxPts(x){return (x.q.k==="mcb"?15:10)+(G&&G.roles&&hasWeil(x.q)?3:0)}
+function cleanIhk(t){return t.replace(/\s*\((IHK|nach)[^)]*\)\.?$/,"").replace(/\s+$/,"")}
+function buildWeil(q){
+  const others=shuffle(POOL.filter(o=>o.ch!==q.ch&&hasWeil(o)&&o.ihk!==q.ihk)).slice(0,2);
+  return shuffle([{t:cleanIhk(q.ihk),ok:true}].concat(others.map(o=>({t:cleanIhk(o.ihk),ok:false}))));
+}
+function cur(){return G.qs[G.i]}
+function chOf(n){return CHAPTERS[n-1]}
+function wrongCount(){return G.qs.filter(x=>x.res&&x.res!=="ok").length}
+function updFog(){const total=G.qs.length;const w=G.qs.reduce((s,x)=>s+(x.res==="no"?1:x.res==="half"?0.5:0),0);G.fog=Math.max(5,Math.min(100,Math.round(15+w*(85/(total*0.5))+G.fogAdj)))}
+
+function render(){
+  if(!G){renderStart();return}
+  if(G.step==="prolog")return renderProlog();
+  if(G.step==="intro")return renderIntro();
+  if(G.step==="q")return renderQ();
+  if(G.step==="page")return renderPage();
+  if(G.step==="follow")return renderFollow();
+  if(G.step==="end")return renderEnd();
+  if(G.step==="suche")return renderSearch();
+  if(G.step==="duel")return renderDuel();
+}
+
+function topBar(){
+  return `<div class="topbtns"><span class="eyebrow">LF 7 · Langlütjen II</span>
+  <button class="icon-btn" id="snd" aria-pressed="${DB.sound}">${DB.sound?ICON.sound:ICON.mute}<span>Klang ${DB.sound?"an":"aus"}</span></button></div>`;
+}
+function bindTop(){const b=$("#snd");if(b)b.onclick=toggleSound}
+
+function renderStart(){
+  const na=newCount("a"),pa=poolFor("a").length,np=newCount("p"),pp=poolFor("p").length;
+  app.innerHTML=`${topBar()}
+  <div class="scene">${scene(20,{ghost:.3,thief:.4})}</div>
+  <div class="panel appear">
+    <span class="eyebrow">Geheimauftrag auf Langlütjen</span>
+    <h1>Das Vermächtnis der Weserforts</h1>
+    <p class="story">Die Nordsee-Marine-Depot GmbH hat die alten Bunker der Weserinsel <em>Langlütjen II</em> als Außenlager gemietet. Ihr seid frisch ausgebildet und verantwortlich für das ganze Lager. Die Kapitänin warnt: Plünderer haben es auf die Fracht abgesehen. Und im Pulvermagazin spukt Magazinmeister <em>Johann Harms</em>. Nur wer Ware richtig annimmt, lagert und zählt, hält die Flut und die Diebe auf.</p>
+    <p class="muted">Lernfeld 7 · Module 1–14 · Spielt zu zweit an einem Handy.</p>
+  </div>
+  <div class="panel">
+    <label class="lab" for="team">Euer Teamname</label>
+    <input id="team" type="text" maxlength="28" placeholder="z. B. Die Wattläufer" value="${esc(S.team)}">
+    <div class="lab">Wie mutig seid ihr?</div>
+    <div class="modes">
+      <button class="mode" data-m="a" aria-pressed="${S.mode==="a"}">${ICON.anchor}<b>Anfänger</b><small>2 Fragen pro Kapitel, Wortspeicher, 3 Funksprüche an die Kapitänin als Joker. Alle 14 Kapitel: etwa 40 Minuten.</small>
+        <span class="bar" title="neu"><i style="width:${Math.round(na/pa*100)}%"></i></span><small>Neu für euch: ${na} von ${pa} Fragen</small></button>
+      <button class="mode" data-m="p" aria-pressed="${S.mode==="p"}">${ICON.compass}<b>Profi</b><small>3 Fragen pro Kapitel. Entscheidung <i>und</i> Begründung, Paragrafen, Rechnen. Alle 14 Kapitel: etwa 60 Minuten.</small>
+        <span class="bar"><i style="width:${Math.round(np/pp*100)}%"></i></span><small>Neu für euch: ${np} von ${pp} Fragen</small></button>
+    </div>
+    <div class="lab">Welche Module hattet ihr schon? <span class="muted" style="font-weight:400">(Kapitel = Modul)</span></div>
+    <div class="secs">${SECTIONS.map((sec,k)=>`<button class="sec" data-s="${k}" aria-pressed="${sec.chs.length===S.chs.length&&sec.chs.every(c=>S.chs.includes(c))}">${esc(sec.name)} · ${sec.chs[0]}–${sec.chs[sec.chs.length-1]}</button>`).join("")}</div>
+    <div class="chips">${CHAPTERS.map(c=>`<button class="chip" data-c="${c.n}" aria-pressed="${S.chs.includes(c.n)}" title="${esc(c.modul)}">${c.n}</button>`).join("")}</div>
+    <div class="row"><button class="btn ghost small" id="all">Alle 14</button><button class="btn ghost small" id="none">Keine</button><span class="muted grow" style="font-size:.9rem">${S.chs.length} Kapitel gewählt</span></div>
+    <details ${S.code?"open":""}><summary>Klassen-Code (für einen fairen Vergleich)</summary>
+      <p style="margin-top:6px;font-size:.92rem">Alle Teams geben denselben Code ein, wählen denselben Modus und dieselben Kapitel – dann bekommen alle dieselben Fragen. Ohne Code zieht das Spiel Fragen, die ihr noch nicht hattet.</p>
+      <div class="row" style="margin-top:8px"><input id="code" type="text" maxlength="16" placeholder="z. B. FORT1410" value="${esc(S.code)}" style="flex:1 1 160px;text-transform:uppercase"><button class="btn ghost small" id="today">Tagescode</button>${S.code?`<button class="btn ghost small" id="nocode">Ohne Code</button>`:""}</div>
+    </details>
+    <label class="toggle" for="roles"><input type="checkbox" id="roles" ${DB.roles?"checked":""}><span><b>Teamrollen:</b> Ihr wechselt euch ab. Eine Person entscheidet, die andere wählt die Begründung.</span></label>
+    <button class="btn" id="go" ${S.chs.length?"":"disabled"}>Überfahrt starten${S.code.trim()?" · Code "+esc(S.code.trim().toUpperCase()):""}</button>
+    ${DB.wrong[S.mode].length?`<button class="btn ghost" id="fehler">Fehler-Flut: ${Math.min(20,DB.wrong[S.mode].length)} Fragen, die ihr falsch hattet (${S.mode==="a"?"Anfänger":"Profi"})</button>`:""}
+    ${DB.best.a||DB.best.p?`<p class="muted" style="font-size:.9rem">Rekord auf diesem Gerät: Anfänger ${DB.best.a} % · Profi ${DB.best.p} %</p>`:""}
+  </div>
+  <details><summary>Fortschritt und Speichern</summary>
+    <p style="margin-top:8px;font-size:.92rem">Welche Fragen ihr schon hattet, merkt sich nur dieses Gerät. Erst wenn alle Fragen eines Kapitels dran waren, kommen sie gemischt wieder.</p>
+    ${storeOK?"":`<p class="notice">Dieser Browser speichert gerade nichts (z. B. privates Fenster). Das Spiel läuft trotzdem, nur ohne Gedächtnis.</p>`}
+    <div class="row" style="margin-top:8px">${S.confirmReset?`<span>Wirklich alles zurücksetzen?</span><button class="btn small" id="resY">Ja, zurücksetzen</button><button class="btn ghost small" id="resN">Abbrechen</button>`:`<button class="btn ghost small" id="res">Fortschritt zurücksetzen</button>`}</div>
+  </details>`;
+  bindTop();
+  $("#team").oninput=e=>{S.team=e.target.value};
+  app.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;render()});
+  app.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{const n=+b.dataset.c;S.chs=S.chs.includes(n)?S.chs.filter(x=>x!==n):S.chs.concat(n);render()});
+  $("#all").onclick=()=>{S.chs=CHAPTERS.map(c=>c.n);render()};
+  app.querySelectorAll(".sec").forEach(b=>b.onclick=()=>{S.chs=SECTIONS[+b.dataset.s].chs.slice();render()});
+  $("#none").onclick=()=>{S.chs=[];render()};
+  $("#go").onclick=()=>startGame("normal");
+  $("#roles").onchange=e=>{DB.roles=e.target.checked;save()};
+  $("#code").oninput=e=>{S.code=e.target.value;const g=$("#go");g.textContent="Überfahrt starten"+(S.code.trim()?" · Code "+S.code.trim().toUpperCase():"")};
+  $("#today").onclick=()=>{const t=new Date();S.code="FORT"+String(t.getDate()).padStart(2,"0")+String(t.getMonth()+1).padStart(2,"0");render()};
+  const nc=$("#nocode");if(nc)nc.onclick=()=>{S.code="";render()};
+  const fe=$("#fehler");if(fe)fe.onclick=()=>startGame("fehler");
+  const r=$("#res");if(r)r.onclick=()=>{S.confirmReset=true;render()};
+  const y=$("#resY");if(y)y.onclick=()=>{DB.seen={a:[],p:[]};DB.best={a:0,p:0};save();S.confirmReset=false;render()};
+  const n=$("#resN");if(n)n.onclick=()=>{S.confirmReset=false;render()};
+}
+
+function hud(){
+  const ch=chOf(cur()?cur().q.ch:G.chs[G.chs.length-1]);
+  return `<div class="panel" style="gap:8px">
+   <div class="hud"><span><b>Kapitel ${ch.n}</b> · ${esc(ch.place)}</span><span class="muted" style="font-variant-numeric:tabular-nums">Frage ${Math.min(G.i+1,G.qs.length)}/${G.qs.length}</span>
+   <div class="fog" title="Flut"><i style="width:${G.fog}%"></i></div><span class="muted">Flut ${G.fog} %</span></div>
+   <div class="letters" aria-label="Gefundene Buchstaben">${letterSpans()}</div>
+  </div>`;
+}
+function letterSpans(){
+  return CHAPTERS.map(c=>{const r=G.chRes[c.n]; if(!G.chs.includes(c.n))return `<span title="nicht gespielt">·</span>`;
+    if(!r)return `<span>?</span>`; return `<span class="${r==="clear"?"clear":"misty"}">${LETTERS[c.n-1]}</span>`}).join("");
+}
+
+function renderProlog(){
+  app.innerHTML=`${topBar()}<div class="scene">${scene(18,{ghost:.15,thief:.5})}</div>
+  <div class="panel appear"><span class="eyebrow">Prolog · Oktober, 6:40 Uhr, Niedrigwasser</span>
+  <h2>Überfahrt nach Langlütjen</h2>
+  <p class="story">Die Nordsee-Marine-Depot GmbH beliefert Schiffe, Offshore-Windparks und das Deutsche Schifffahrtsmuseum in Bremerhaven. Das Lager an Land wird umgebaut. Darum hat die Firma das alte Bunkersystem der künstlichen Weserinsel <em>Langlütjen II</em> gemietet. Ihr seid frisch ausgebildet und für das ganze Lager verantwortlich.</p>
+  <p class="story">Auf der MS Lütje Möwe beugt sich Kapitänin Freya Ahlers zu euch: „Auf Langlütjen spukt es nicht nur. Es gibt Gerüchte über Plünderer, die es auf unsere teure Ware abgesehen haben. Und die Gezeiten warten nicht. Wenn ihr die Ware falsch annehmt, falsch lagert oder die Zahlen nicht im Griff habt, verdirbt die Fracht in den feuchten Mauern – oder sie wird gestohlen.“</p>
+  <p class="story">Dann senkt sie die Stimme: „Und noch was. 1890 war hier Magazinmeister Johann Harms. Man sagt, er hat ein Vermächtnis hinterlassen. Vierzehn Seiten aus seinem Magazinbuch. Wer sie alle findet …“ Sie lacht. Das Schiff legt an.</p>
+  ${G.notes.length?`<p class="notice">Alle Fragen aus Kapitel ${G.notes.join(", ")} hattet ihr schon. Jetzt geht es dort von vorn los, gemischt.</p>`:""}
+  ${G.kind==="fehler"?`<p class="notice">Fehler-Flut: Heute kommen nur Fragen, die ihr auf diesem Handy schon einmal falsch hattet. Jede richtige Antwort streicht die Frage von eurer Fehlerliste.</p>`:""}
+  ${G.code?`<p class="notice">Klassen-Code <b>${esc(G.code)}</b>: Alle Teams mit diesem Code bekommen dieselben Fragen.</p>`:""}
+  ${G.kind!=="fehler"?`<p class="muted" style="font-size:.92rem">Achtung: Wer in einem Kapitel danebenliegt, zu dem kommt die Figur zurück. Dann gibt es eine zweite Chance.</p>`:""}
+  <p class="muted" style="font-size:.92rem">So geht es: Lest die Situation, wählt eine Antwort, dann „Entscheidung festlegen“. In jedem Kapitel findet ihr eine Seite aus Harms’ Magazinbuch mit einem Buchstaben. Jeder Fehler lässt die Flut steigen.${G.mode==="a"?" Ein Funkspruch an die Kapitänin blendet eine falsche Antwort aus, kostet aber 3 Punkte.":" Im Profi-Modus zählt eine Entscheidung erst ganz, wenn auch die Begründung stimmt."}</p>
+  <button class="btn" id="nx">An Land gehen</button></div>`;
+  bindTop(); $("#nx").onclick=()=>{G.step="intro";render();window.scrollTo(0,0)};
+}
+
+function renderIntro(){
+  const ch=chOf(cur().q.ch);
+  app.innerHTML=`${topBar()}<div class="scene">${scene(G.fog)}</div>${hud()}
+  <div class="panel appear"><span class="eyebrow">Kapitel ${ch.n} · ${esc(ch.place)} · Modul ${ch.n}: ${esc(ch.modul)}</span>
+  <h2>${esc(ch.title)}</h2>
+  <div class="who">${persona(ch.fig,"neutral")}<p class="story">${esc(ch.intro)}${ch.n===13&&G.kind!=="fehler"?" "+esc(thiefText()):""}</p></div>
+  ${G.search[ch.n]&&!G.search[ch.n].done?`<p class="muted" style="font-size:.92rem">Zuerst: Suchbild. Findet die Fehler, bevor es weitergeht.</p>`:""}
+  <button class="btn" id="nx">${G.search[ch.n]&&!G.search[ch.n].done?"Zum Suchbild":"Weiter"}</button></div>`;
+  if(ch.n===13&&G.kind!=="fehler"&&!G.thiefWarned){G.thiefWarned=true;if(G.thief>=3){G.fogAdj+=10;updFog()}}
+  bindTop(); $("#nx").onclick=()=>{G.step=G.search[ch.n]&&!G.search[ch.n].done?"suche":"q";render();window.scrollTo(0,0)};
+}
+
+function optHTML(list,sel,phase,gone,which){
+  const L="ABCD";
+  return `<div class="opts" role="group">${list.map((o,j)=>{
+    let cls=""; const locked=phase!=="choose";
+    if(locked){ if(o.ok)cls="right"; else if(sel===j)cls="wrong"; }
+    if(gone.includes(j))cls+=" gone";
+    return `<button class="opt ${cls}" data-w="${which}" data-j="${j}" aria-pressed="${sel===j}" ${locked||gone.includes(j)?"disabled":""}><span class="k">${L[j]}</span><span>${esc(o.t)}</span></button>`}).join("")}</div>`;
+}
+
+function renderQ(){
+  const x=cur(), q=x.q, ch=chOf(q.ch); const A=G.mode==="a";
+  const mood=x.phase==="done"?(x.res==="ok"?"good":"bad"):"neutral";
+  let body="";
+  const kindLabel=q.k==="rede"?"Wörtliche Rede":q.k==="mcb"?"Entscheidung + Begründung":q.k==="num"?"Rechnen":"Entscheidung";
+  body+=`<div class="who">${persona(ch.fig,mood)}<div class="bubble"><div class="name">Die Situation</div><p>${esc(q.s)}</p></div></div>`;
+  body=(x.follow?`<span class="eyebrow" style="color:var(--brick)">Folge eurer Entscheidung · zweite Chance</span>`:"")+body;
+  if(G.roles&&!x.w&&hasWeil(q))x.w=buildWeil(q);
+  if(G.roles){const a=1+(G.i%2),b=a===1?2:1;const dec=x.phase==="choose"||x.phase==="write";
+    body=`<div class="roles" aria-label="Teamrollen"><span class="${dec?"on":""}">Person ${a} entscheidet</span><span class="${!dec&&x.phase!=="done"?"on":""}">Person ${b} ${q.k==="num"?"rechnet nach":"begründet"}</span></div>`+body;}
+  body+=`<span class="eyebrow">${kindLabel}</span><p class="q">${x.phase==="write"?"Was sagt ihr?":esc(q.q)}</p>`;
+  if(x.phase==="write"){
+    body+=`<label class="lab" for="own">Schreibt zuerst eure eigene Antwort – so, wie ihr es sagen würdet. Danach wählt ihr aus vier Mustern.</label>
+    <textarea id="own" rows="4" style="width:100%;font:inherit;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink)" placeholder="„…“">${esc(x.own)}</textarea>
+    <p class="muted" style="font-size:.88rem">${A?"Tipp: Wortspeicher unten. Ihr könnt auch ohne Schreiben weitermachen.":"Im Profi-Modus mindestens ein ganzer Satz."}</p>`;
+  } else if(q.k==="num"){
+    const locked=x.phase!=="choose";
+    body+=`<label class="lab" for="numin">Ergebnis${q.unit?" in "+esc(q.unit):" (ohne Einheit)"}</label><input id="numin" class="num" inputmode="decimal" autocomplete="off" placeholder="z. B. 12,34" value="${esc(x.num)}" ${locked?"disabled":""}>`;
+  } else {
+    body+=optHTML(x.o,x.sel,x.phase==="choose"?"choose":"locked",x.gone,"o");
+    if(x.w&&(x.phase==="weil"||x.phase==="done")){
+      body+=`<p class="q" style="margin-top:4px">${G.roles?"Begründung: ":""}Welcher Satz aus der Prüfung passt zu eurer Entscheidung?</p>`+optHTML(x.w,x.wsel,x.phase==="weil"?"choose":"locked",[],"w");
+    }
+    if(q.k==="mcb"&&x.phase!=="choose"){
+      body+=`<p class="q" style="margin-top:4px">${esc(x.b.q)}</p>`+optHTML(x.b.o,x.bsel,x.phase==="reason"?"choose":"locked",[],"b");
+    }
+  }
+  let actions="";
+  if(x.phase==="write"){
+    actions=`<div class="row">${A?`<button class="btn ghost small" id="skipw">Ohne Schreiben weiter</button>`:""}<span class="grow"></span><button class="btn" id="donew" ${!A&&x.own.trim().length<15?"disabled":""}>Weiter zur Auswahl</button></div>`;
+  } else if(x.phase==="choose"){
+    actions=`<div class="row">${A&&q.k!=="num"?`<button class="btn ghost small" id="lan" ${G.lanterns<1||x.gone.length?"disabled":""}>${ICON.radio.replace('<svg','<svg style="width:20px;height:20px;vertical-align:-4px"')} Kapitänin anfunken (${G.lanterns})</button>`:""}<span class="grow"></span>
+      <button class="btn" id="lock" ${(q.k==="num"?x.num.trim()==="":x.sel===null)?"disabled":""}>Entscheidung festlegen</button></div>`;
+  } else if(x.phase==="weil"){
+    actions=`<div class="row end"><button class="btn" id="lockw" ${x.wsel===null||x.wsel===undefined?"disabled":""}>Begründung festlegen</button></div>`;
+  } else if(x.phase==="reason"){
+    actions=`<div class="row end"><button class="btn" id="lockb" ${x.bsel===null?"disabled":""}>Begründung festlegen</button></div>`;
+  }
+  let fb="";
+  if(x.phase==="done"){
+    const good=x.res==="ok", half=x.res==="half";
+    const line=pick(good?ch.good:ch.bad);
+    const right=q.k==="num"?`${q.rw}`:x.o.find(o=>o.ok).t;
+    fb=`<div class="feedback ${good?"good":"badf"} appear">
+      <div class="verdict ${good?"good":"badf"}">${good?"Richtig.":half?"Halb richtig.":"Nicht ganz."}</div>
+      <p class="react">${esc(line)}</p>
+      ${!good?`<p><b>${q.k==="num"?"Rechenweg":"Richtig ist"}:</b> <span class="${q.k==="num"?"rechen":""}">${esc(right)}</span></p>`:""}
+      ${good&&q.k==="num"?`<p class="rechen">${esc(q.rw)}</p>`:""}
+      ${q.k==="mcb"&&x.res!=="ok"?`<p><b>Begründung:</b> ${esc(x.b.o.find(o=>o.ok).t)}</p>`:""}
+      ${x.w&&x.wsel!=null?`<p><b>Begründung:</b> ${x.w[x.wsel].ok?"passt (+3 Punkte).":"passt nicht. Richtig wäre: „"+esc(x.w.find(o=>o.ok).t)+"“"}</p>`:""}
+      ${x.boat?`<p class="boat"><b>Das Boot ohne Licht kommt näher.</b> Wer bei Annahme, Erfassung oder Ordnung schlampt, macht es Dieben leicht.</p>`:""}
+      ${x.follow?`<p><b>${good?`Zweite Chance genutzt: Der Buchstabe ${LETTERS[q.ch-1]} ist jetzt klar.`:`Der Buchstabe ${LETTERS[q.ch-1]} bleibt unter Wasser.`}</b></p>`:""}
+      <div class="term"><span class="t">Fachbegriff · ${esc(q.term)}</span><span><b>So steht es in der Prüfung:</b> ${esc(q.ihk)}</span></div>
+      ${x.own.trim()?`<div class="bubble" style="margin-left:0"><div class="name">Eure eigene Antwort</div><p>${esc(x.own)}</p>
+        <p style="margin-top:8px;font-size:.92rem"><b>Vergleicht mit dem Muster oben. Habt ihr …</b></p>
+        ${["in wörtlicher Rede geschrieben (so, wie man es sagt)?","einen Grund genannt oder eine Lösung angeboten?","freundlich formuliert – ohne Vorwurf und ohne Belehrung?"].map((t,k)=>`<label style="display:flex;gap:8px;align-items:flex-start;margin-top:6px"><input type="checkbox" class="chk" data-k="${k}" ${x.chk.includes(k)?"checked":""} style="width:22px;height:22px;flex:none">${t}</label>`).join("")}</div>`:""}
+      <button class="btn" id="nx">Weiter</button></div>`;
+  }
+  const words=A?`<details><summary>${ICON.book.replace('<svg','<svg style="width:18px;height:18px;vertical-align:-3px"')} Wortspeicher</summary><p style="margin-top:6px;font-size:.95rem">${esc(ch.words)}</p></details>`:"";
+  app.innerHTML=`${topBar()}<div class="scene">${scene(G.fog)}</div>${hud()}
+   <div class="panel">${body}${actions}</div>${fb}${words}
+   <div class="row">${G.confirmQuit?`<span class="muted">Einsatz wirklich abbrechen?</span><button class="btn small" id="qy">Ja</button><button class="btn ghost small" id="qn">Nein</button>`:`<button class="btn ghost small" id="quit">Einsatz abbrechen</button>`}</div>`;
+  bindTop();
+  app.querySelectorAll('.opt[data-w="o"]').forEach(b=>b.onclick=()=>{x.sel=+b.dataset.j;render()});
+  app.querySelectorAll('.opt[data-w="b"]').forEach(b=>b.onclick=()=>{x.bsel=+b.dataset.j;render()});
+  app.querySelectorAll('.opt[data-w="w"]').forEach(b=>b.onclick=()=>{x.wsel=+b.dataset.j;render()});
+  const lw=$("#lockw"); if(lw)lw.onclick=()=>{x.phase="done";finish(x)};
+  const ni=$("#numin"); if(ni){ni.oninput=e=>{x.num=e.target.value;const l=$("#lock");if(l)l.disabled=x.num.trim()===""}; ni.onkeydown=e=>{if(e.key==="Enter"&&x.num.trim())lockMain()}}
+  const lan=$("#lan"); if(lan)lan.onclick=()=>{const wrong=x.o.map((o,j)=>o.ok?-1:j).filter(j=>j>=0&&j!==x.sel);if(!wrong.length)return;x.gone=[pick(wrong)];G.lanterns--;G.used++;render()};
+  const ow=$("#own"); if(ow)ow.oninput=e=>{x.own=e.target.value;const d=$("#donew");if(d&&!A)d.disabled=x.own.trim().length<15};
+  const dw=$("#donew"); if(dw)dw.onclick=()=>{x.phase="choose";render()};
+  const sw=$("#skipw"); if(sw)sw.onclick=()=>{x.own="";x.phase="choose";render()};
+  app.querySelectorAll(".chk").forEach(c=>c.onchange=()=>{const k=+c.dataset.k;x.chk=c.checked?[...new Set(x.chk.concat(k))]:x.chk.filter(v=>v!==k)});
+  const lk=$("#lock"); if(lk)lk.onclick=lockMain;
+  const lb=$("#lockb"); if(lb)lb.onclick=()=>{x.phase="done";finish(x)};
+  const nx=$("#nx"); if(nx){nx.onclick=next; setTimeout(()=>nx.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"}),60)}
+  const qu=$("#quit"); if(qu)qu.onclick=()=>{G.confirmQuit=true;render()};
+  const qy=$("#qy"); if(qy)qy.onclick=()=>{G=null;render();window.scrollTo(0,0)};
+  const qn=$("#qn"); if(qn)qn.onclick=()=>{G.confirmQuit=false;render()};
+}
+function parseNum(s){s=String(s).replace(/€|\s/g,"");if(/,/.test(s)){s=s.replace(/\./g,"").replace(",",".")}const v=parseFloat(s);return isNaN(v)?null:v}
+function lockMain(){
+  const x=cur();
+  if(x.q.k==="mcb"){x.phase="reason";render();return}
+  if(G.roles&&x.w){x.phase="weil";render();return}
+  x.phase="done";finish(x);
+}
+function finish(x){
+  const q=x.q; let pts=0;
+  if(q.k==="num"){const v=parseNum(x.num);x.res=(v!==null&&Math.abs(v-q.ans)<0.011)?"ok":"no";pts=x.res==="ok"?10:0}
+  else if(q.k==="mcb"){const a=x.o[x.sel].ok,b=x.b.o[x.bsel].ok;x.res=a&&b?"ok":a?"half":"no";pts=a&&b?15:a?5:0}
+  else{x.res=x.o[x.sel].ok?"ok":"no";pts=x.res==="ok"?10:0}
+  if(x.gone.length)pts=Math.max(0,pts-3);
+  if(x.w&&x.wsel!=null&&x.w[x.wsel].ok)pts+=3;
+  if([1,2,6].includes(q.ch)&&x.res!=="ok"&&G.kind!=="fehler"){G.thief++;x.boat=true}
+  x.pts=pts;G.score+=pts;
+  if(!G.code&&!DB.seen[G.mode].includes(q.id))DB.seen[G.mode].push(q.id);
+  const wl=DB.wrong[G.mode];
+  if(x.res==="ok"){ if(wl.includes(q.id)){DB.wrong[G.mode]=wl.filter(id=>id!==q.id);DB.fixed++;G.fixedNow++;} }
+  else if(!wl.includes(q.id)) wl.push(q.id);
+  if(x.follow&&x.res==="ok")G.chRes[q.ch]="clear";
+  save();
+  updFog(); chime(x.res==="ok"); render();
+}
+function next(){
+  G.confirmQuit=false;
+  const x=cur(); const c=x.q.ch; const nextQ=G.qs[G.i+1];
+  if(x.follow){advance();return}
+  if(!nextQ||nextQ.q.ch!==c){
+    const items=G.qs.filter(y=>y.q.ch===c&&!y.follow); G.chRes[c]=items.every(y=>y.res==="ok")?"clear":"misty";
+    G.step="page"; render(); window.scrollTo(0,0); return;
+  }
+  G.i++; render(); window.scrollTo(0,0);
+}
+function renderPage(){
+  const x=cur(); const ch=chOf(x.q.ch); const clear=G.chRes[ch.n]==="clear";
+  app.innerHTML=`${topBar()}<div class="scene">${scene(G.fog)}</div>${hud()}
+  <div class="panel appear"><span class="eyebrow">Seite gefunden · Kapitel ${ch.n}</span>
+   <div class="ledger"><div class="date">Magazinbuch J. Harms · Fort Langlütjen II · Seite ${ch.n}</div>
+    <div class="row" style="align-items:flex-start;gap:14px;flex-wrap:nowrap"><span class="big" style="${clear?"":"opacity:.35;filter:blur(1px)"}">${LETTERS[ch.n-1]}</span><p style="min-width:0">${esc(ch.page)}</p></div></div>
+   <p>${clear?"Alle Entscheidungen in diesem Kapitel waren richtig. Der Buchstabe ist klar zu lesen.":"Einige Entscheidungen waren nicht richtig. Die Seite ist nass geworden, der Buchstabe nur schwach zu erkennen."}</p>
+   <button class="btn" id="nx">${!clear&&G.kind!=="fehler"&&!G.second[ch.n]?"Weiter":G.i+1<G.qs.length?"Nächstes Kapitel":"Zum Ende des Einsatzes"}</button></div>`;
+  bindTop();
+  $("#nx").onclick=()=>{
+    const c=ch.n;
+    if(!clear&&G.kind!=="fehler"&&!G.second[c]){
+      G.second[c]=1;
+      const used=new Set(G.qs.map(y=>y.q.id)); const seen=new Set(G.code?[]:DB.seen[G.mode]);
+      const cand=POOL.filter(q=>q.m===G.mode&&q.ch===c&&!used.has(q.id));
+      const fresh=cand.filter(q=>!seen.has(q.id));
+      const list=shuffle(fresh.length?fresh:cand);
+      if(list.length){const f=prep(list[0]);f.follow=c;G.qs.splice(G.i+1,0,f);G.max+=maxPts(f);G.i++;G.step="follow";render();window.scrollTo(0,0);return}
+    }
+    advance();
+  };
+}
+function advance(){
+  const c=cur().q.ch;
+  if(G.duelCh===c&&!G.duel){G.duel={phase:"ready",right:0,wrong:0,log:[],cur:null,end:0,input:""};G.step="duel";render();window.scrollTo(0,0);return}
+  if(G.i+1<G.qs.length){G.i++;G.step="intro"}
+  else{G.step="end";const pct=Math.round(G.score/G.max*100);if(G.kind==="normal"&&!G.code&&pct>(DB.best[G.mode]||0))DB.best[G.mode]=pct;DB.nights++;save()}
+  render();window.scrollTo(0,0);
+}
+function thiefText(){
+  const t=G.thief;
+  if(t===0)return "Das Boot ohne Licht liegt weit draußen. Bei eurer sauberen Annahme und Ordnung hatten die Plünderer kaum eine Chance.";
+  if(t<=2)return "Das Boot ohne Licht liegt nah an der Mauer. Ein paar Kartons könnten fehlen. Jetzt zählt jede Zahl.";
+  return "Das Boot ohne Licht liegt direkt an der Mauer. Schlampige Annahme, falsche Buchungen, unübersichtliche Gänge – die Plünderer hatten leichtes Spiel. Die Flut steigt.";
+}
+function thiefEnd(){const t=G.thief;return t<=1?"gefasst":t<=3?"mit ein paar Kartons entkommen":"mit reicher Beute entkommen"}
+
+// ---------- Suchbild ----------
+function renderSearch(){
+  const n=cur().q.ch, S0=SEARCH[n], st=G.search[n]; const errs=S0.spots.filter(p=>p.err).length;
+  const all=st.found.length===errs, over=st.taps.length>=S0.spots.length+1;
+  const show=all||over;
+  const spots=S0.spots.map((p,k)=>{const hit=st.found.includes(k), miss=st.taps.includes(k)&&!p.err, rev=show&&p.err&&!hit;
+    return `<g class="hs" data-k="${k}" tabindex="${show?-1:0}" role="button" aria-label="${esc(p.aria)}">
+      <circle cx="${p.x}" cy="${p.y}" r="${p.r}" fill="#ffffff" fill-opacity="0.001"/>
+      ${hit||rev?`<circle class="ring" cx="${p.x}" cy="${p.y}" r="${p.r}" fill="none" stroke="${hit?"#5fc39a":"#f2a541"}" stroke-width="4" ${rev?'stroke-dasharray="8 6"':""}/>`:""}
+      ${miss?`<path d="M${p.x-12} ${p.y-12} L${p.x+12} ${p.y+12} M${p.x+12} ${p.y-12} L${p.x-12} ${p.y+12}" stroke="#ef7b66" stroke-width="5" stroke-linecap="round"/>`:""}
+      <circle class="ring" cx="${p.x}" cy="${p.y}" r="${p.r}" fill="none" stroke="#f2a541" stroke-width="2" stroke-dasharray="4 6" opacity="0"/></g>`}).join("");
+  const list=S0.spots.map((p,k)=>({p,k})).filter(o=>st.found.includes(o.k)||(st.taps.includes(o.k)&&!o.p.err)||(show&&o.p.err)).map(o=>`<div class="${o.p.err?"":"no"}">${o.p.err?(st.found.includes(o.k)?"<b>Gefunden:</b> ":"<b>Übersehen:</b> "):"<b>Kein Fehler:</b> "}${esc(o.p.why)}</div>`).join("");
+  app.innerHTML=`${topBar()}${hud()}
+  <div class="panel appear"><span class="eyebrow">Suchbild · Kapitel ${n}</span><h2>${esc(S0.title)}</h2>
+   <p class="story">${esc(S0.task)}</p>
+   <div class="pic">${S0.svg().replace("<!--HS-->",spots)}</div>
+   <p class="muted" style="font-variant-numeric:tabular-nums">Gefunden: ${st.found.length} von ${errs} · Fehlklicks: ${st.wrong}</p>
+   ${st.last?`<p class="appear" style="font-weight:700;color:${st.last.ok?"var(--ok)":"var(--bad)"}">${esc(st.last.t)}</p>`:""}
+   ${list?`<div class="found">${list}</div>`:""}
+   ${show?`<div class="term"><span class="t">Fachbegriff · ${esc(S0.term)}</span><span><b>So steht es in der Prüfung:</b> ${esc(S0.ihk)}</span></div>`:""}
+   <div class="row">${!show?`<button class="btn ghost small" id="give">Auflösen</button>`:""}<span class="grow"></span><button class="btn" id="nx" ${show?"":"disabled"}>Weiter zu den Fragen</button></div></div>`;
+  bindTop();
+  const tap=k=>{if(show)return;const p=S0.spots[k];if(st.taps.includes(k)&&!p.err)return;if(st.found.includes(k))return;
+    st.taps.push(k); if(p.err){st.found.push(k);st.last={ok:true,t:"Richtig erkannt!"};chime(true)} else {st.wrong++;st.last={ok:false,t:"Das ist in Ordnung – kein Fehler."};chime(false)} render()};
+  app.querySelectorAll(".hs").forEach(g=>{g.onclick=()=>tap(+g.dataset.k);g.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();tap(+g.dataset.k)}}});
+  const gv=$("#give"); if(gv)gv.onclick=()=>{while(st.taps.length<S0.spots.length+1)st.taps.push(-1);render()};
+  $("#nx").onclick=()=>{st.done=true;st.pts=Math.max(0,st.found.length*5-st.wrong*2);G.score+=st.pts;G.fogAdj+=(errs-st.found.length)*3;updFog();save();G.step="q";render();window.scrollTo(0,0)};
+}
+
+// ---------- Rampen-Duell ----------
+function rint(a,b){return a+Math.floor(RNG()*(b-a+1))}
+function duelTask(){
+  const A=G.mode==="a"; const types=[]; if(G.chs.includes(9))types.push("mb"); if(G.chs.includes(10))types.push("avg"); if(G.chs.includes(11))types.push("ld","uh");
+  const t=types[Math.floor(RNG()*types.length)];
+  if(t==="mb"){const a=A?rint(4,15):rint(8,45),l=A?rint(2,6):rint(3,14),m=10*(A?rint(1,5):rint(2,15));
+    return {t:"Meldebestand",q:`Tagesabsatz ${a} Stück · Lieferzeit ${l} Tage · Mindestbestand ${m} Stück`,ans:a*l+m,rw:`(${a} × ${l}) + ${m} = ${a*l+m}`,typ:[[a*l,"Mindestbestand vergessen"],[a+l+m,"addiert statt multipliziert"]]};}
+  if(t==="avg"){const v=[0,0,0,0].map(()=>A?rint(10,60):rint(20,140));let last=A?rint(10,60):rint(20,140);const s=v.reduce((p,c)=>p+c,0);last+=(5-(s+last)%5)%5;v.push(last);const sum=s+last;
+    return {t:"Ø Lagerbestand",q:`Anfangsbestand ${v[0]} · Quartalsendbestände ${v.slice(1).join(", ")} Stück`,ans:sum/5,rw:`(${v.join(" + ")}) : 5 = ${sum/5}`,typ:[[sum/4,"durch 4 statt durch 5 geteilt"],[(sum-v[0])/4,"Anfangsbestand vergessen"]]};}
+  if(t==="ld"){const u=[2,3,4,5,6,8,9,10,12,15,18,20,24,30][rint(0,13)];
+    return {t:"Lagerdauer",q:`Umschlagshäufigkeit ${u} · Lagerdauer in Tagen?`,ans:360/u,rw:`360 : ${u} = ${360/u} Tage`,typ:[[Math.round(365/u*10)/10,"mit 365 statt 360 Tagen gerechnet"],[360*u,"multipliziert statt geteilt"]]};}
+  const u=A?rint(2,10):rint(3,24),avg=A?rint(10,60):rint(15,250);
+  return {t:"Umschlagshäufigkeit",q:`Absatz ${(u*avg).toLocaleString("de-DE")} Stück · Ø Lagerbestand ${avg} Stück`,ans:u,rw:`${(u*avg).toLocaleString("de-DE")} : ${avg} = ${u}`,typ:[[Math.round(avg/(u*avg)*1000)/1000,"Kehrwert gerechnet"]]};
+}
+let duelT=null;
+function renderDuel(){
+  const D=G.duel; const A=G.mode==="a";
+  if(D.phase==="ready"){
+    app.innerHTML=`${topBar()}<div class="scene">${scene(G.fog)}</div>${hud()}
+    <div class="panel appear"><span class="eyebrow">Mini-Spiel · Rampen-Duell</span><h2>60 Sekunden bis die Tide kippt</h2>
+    <div class="who">${persona(CHAPTERS[8].fig,"neutral")}<p class="story">Kapitänin Ahlers funkt: „Die Lütje Möwe wird beladen! Rechnet die Ladeliste durch, so schnell ihr könnt. Jede richtige Rechnung drückt die Flut zurück.“</p></div>
+    <p class="muted" style="font-size:.92rem">Ergebnis eintippen, dann Enter oder „Prüfen“. Taschenrechner ist erlaubt.${G.roles?" Tipp: Eine Person rechnet, die andere tippt.":""}</p>
+    <button class="btn" id="go2">Duell starten</button></div>`;
+    bindTop(); $("#go2").onclick=()=>{D.phase="run";D.end=Date.now()+60000;D.cur=duelTask();D.input="";render();
+      clearInterval(duelT);duelT=setInterval(()=>{if(!G||G.step!=="duel"||D.phase!=="run"){clearInterval(duelT);return}
+        const left=Math.max(0,Math.ceil((D.end-Date.now())/1000)); const el=$("#tmr"); if(el)el.textContent=left+" s";
+        if(left<=0){clearInterval(duelT);D.phase="over";G.fogAdj+=-2*D.right+D.wrong;updFog();if(!G.code&&D.right>(DB.duelBest[G.mode]||0))DB.duelBest[G.mode]=D.right;save();chime(true);render()}},250)};
+    return;
+  }
+  if(D.phase==="run"){
+    const left=Math.max(0,Math.ceil((D.end-Date.now())/1000)); const last=D.log[D.log.length-1];
+    app.innerHTML=`${topBar()}${hud()}
+    <div class="panel"><div class="row"><span class="eyebrow grow">Rampen-Duell · ${esc(D.cur.t)}</span><span class="timer" id="tmr">${left} s</span></div>
+     <p class="duelq">${esc(D.cur.q)}</p>
+     <label class="lab" for="dn">Ergebnis</label><input id="dn" class="num" inputmode="decimal" autocomplete="off" value="">
+     <div class="row"><span class="muted grow" style="font-variant-numeric:tabular-nums">Richtig: ${D.right} · Falsch: ${D.wrong}</span><button class="btn" id="chk">Prüfen</button></div>
+     ${last?`<p style="color:${last.ok?"var(--ok)":"var(--bad)"};font-weight:700">Letzte Aufgabe: ${last.ok?"richtig!":"falsch – "+esc(last.hint)}</p><p class="rechen">${esc(last.rw)}</p>`:""}</div>`;
+    bindTop(); const inp=$("#dn"); inp.focus();
+    const check=()=>{const v=parseNum(inp.value);if(v===null)return;const c=D.cur;const ok=Math.abs(v-c.ans)<0.011;
+      let hint="Rechenweg prüfen"; c.typ.forEach(([w,h])=>{if(Math.abs(v-w)<0.051)hint=h});
+      D.log.push({ok,rw:c.rw,t:c.t,q:c.q,your:inp.value,hint}); if(ok)D.right++; else D.wrong++; chime(ok); D.cur=duelTask(); render()};
+    $("#chk").onclick=check; inp.onkeydown=e=>{if(e.key==="Enter")check()};
+    return;
+  }
+  const fails=D.log.filter(l=>!l.ok);
+  app.innerHTML=`${topBar()}<div class="scene">${scene(G.fog)}</div>${hud()}
+  <div class="panel appear"><span class="eyebrow">Rampen-Duell · Zeit ist um</span><h2>${D.right} richtig, ${D.wrong} falsch</h2>
+   <p class="story">${D.right>D.wrong?"Die Lütje Möwe ist beladen. Die Flut weicht ein Stück zurück.":"Die Ladeliste hat Fehler. Das Wasser steigt weiter."}</p>
+   ${fails.length?`<div class="found">${fails.map(l=>`<div class="no"><b>${esc(l.t)}:</b> ${esc(l.q)} · eure Antwort ${esc(l.your)} – ${esc(l.hint)}<br><span class="rechen">${esc(l.rw)}</span></div>`).join("")}</div>`:`<p>Keine Fehler – stark!</p>`}
+   <p class="muted" style="font-size:.9rem">${G.code?"":"Bestes Duell auf diesem Gerät: "+(DB.duelBest[G.mode]||0)+" richtig"}</p>
+   <button class="btn" id="nx">Weiter</button></div>`;
+  bindTop(); $("#nx").onclick=()=>{D.phase="done";advance()};
+}
+
+function renderFollow(){
+  const x=cur(); const ch=chOf(x.q.ch);
+  app.innerHTML=`${topBar()}<div class="scene">${scene(G.fog)}</div>${hud()}
+  <div class="panel appear"><span class="eyebrow" style="color:var(--brick)">Folge eurer Entscheidung</span>
+  <h2>${esc(ch.who)} kommt zurück</h2>
+  <div class="who">${persona(ch.fig,"bad")}<p class="story">${esc(FOLLOW[ch.n])} Wenn ihr jetzt richtig entscheidet, wird der Buchstabe <b>${LETTERS[ch.n-1]}</b> klar.</p></div>
+  <button class="btn" id="nx">Zweite Chance</button></div>`;
+  bindTop(); $("#nx").onclick=()=>{G.step="q";render();window.scrollTo(0,0)};
+}
+
+function renderEnd(){
+  const pct=Math.round(G.score/G.max*100);
+  const ok=G.qs.filter(x=>x.res==="ok").length, tot=G.qs.length;
+  const sf=Object.values(G.search),sErr=Object.keys(G.search).reduce((a,k)=>a+SEARCH[k].spots.filter(p=>p.err).length,0);
+  const ratio=(ok+sf.reduce((a,s)=>a+s.found.length,0))/(tot+sErr); const full=G.chs.length===CHAPTERS.length;
+  const stars=pct>=85?3:pct>=60?2:pct>=35?1:0;
+  const clears=G.chs.filter(c=>G.chRes[c]==="clear").length;
+  let title,story,dawn=false,fogEnd=G.fog,thief=null;
+  if(ratio>=0.8){dawn=true;fogEnd=5;thief=0;title="Ebbe – die Fracht ist gerettet";
+    story=full?`Die Flut zieht sich zurück. Ihr legt die vierzehn Seiten nebeneinander und lest: <b>MAGAZINORDNUNG</b>. Hinter einem losen Ziegel im Kommandantenraum liegt ein Bündel in Wachstuch: Harms’ Magazinordnung von 1890. Kein Gold, keine Juwelen – nur Regeln. Zählen vor dem Fahrer. Rügen ohne Zögern. Das Ältere zuerst hinaus. Und jede Zahl ehrlich ins Buch. Genau diese Ordnung hat heute Nacht gezeigt, was wirklich los war: Ein Teil der „gestohlenen“ Ware war nur falsch gebucht. Der Rest fehlte wirklich – und die Inventurdifferenz hat die Plünderer verraten. ${G.thief<=3?"Bei Niedrigwasser holt die Wasserschutzpolizei das Boot ohne Licht aus dem Priel.":"Das Boot ohne Licht ist längst über alle Berge – aber dank der Inventurdifferenz weiß die Polizei genau, was fehlt."} Harms steht in der Tür des Pulvermagazins. „Ordnung war mein Schatz. Jetzt ist sie eurer.“ Dann ist er fort. Kapitänin Ahlers tippt an ihre Mütze: „Willkommen im Team.“`
+    :`Das Wasser fällt. Harms nickt euch zu. „Gut gemacht. Aber mein Magazinbuch hat vierzehn Seiten. Kommt wieder, wenn ihr die anderen Kapitel gelernt habt.“`;}
+  else if(ratio>=0.5){title="Gerade noch vor der Flut";fogEnd=Math.min(G.fog,50);
+    story=`Das Wasser steht an der Bunkertür – und bleibt dort stehen. Ein paar Seiten des Magazinbuchs sind lesbar, andere sind nass und verschwommen. Draußen gleitet das Boot ohne Licht ins Watt davon. Harms schüttelt den Kopf. „Fast. Ihr seid auf dem richtigen Kurs. Aber Ordnung duldet keine halben Sachen. Bei der nächsten Tide bin ich wieder da.“`;}
+  else {title="Land unter im Bunker";
+    story=`Das Wasser läuft in die Kasematten. Kartons schwimmen durch den Gang, und im Dunkeln legt ein Boot ohne Licht ab – voll beladen. Aus dem Pulvermagazin hallt eine Stimme: „Zählen. Prüfen. Rügen. Ordnen …“ Kapitänin Ahlers funkt: „Nächste Ebbe hole ich euch wieder ab. Traut ihr euch noch einmal?“`;}
+  const word=CHAPTERS.map(c=>{const r=G.chRes[c.n];return `<span class="${r==="clear"?"":"misty"}">${G.chs.includes(c.n)?LETTERS[c.n-1]:"_"}</span>`}).join("");
+  const rv1=x=>{const q=x.q;const mk=x.res==="ok"?"✓":x.res==="half"?"~":"✗";
+    const your=q.k==="num"?(x.num+" "+q.unit):x.o[x.sel].t;
+    const right=q.k==="num"?q.rw:x.o.find(o=>o.ok).t;
+    return `<div class="rv ${x.res==="ok"?"ok":x.res==="half"?"half":"no"}"><span class="mk">${mk} Kapitel ${q.ch}${x.follow?" · zweite Chance":""} · ${esc(q.q)}</span>
+      <span class="muted">${esc(q.s)}</span>
+      <span><b>Eure Antwort:</b> ${esc(your)}${q.k==="mcb"?` – <i>${esc(x.b.o[x.bsel].t)}</i>`:""}</span>
+      ${x.res!=="ok"?`<span><b>Besser:</b> ${esc(right)}${q.k==="mcb"?` – <i>${esc(x.b.o.find(o=>o.ok).t)}</i>`:""}</span>`:""}
+      ${x.own.trim()?`<span><b>Selbst formuliert:</b> ${esc(x.own)}</span>`:""}
+      <span><b>Warum:</b> ${esc(q.why)}</span>
+      <span class="ihk"><b>So steht es in der Prüfung:</b> ${esc(q.ihk)}</span></div>`};
+  const wrongL=G.qs.filter(x=>x.res!=="ok"), rightL=G.qs.filter(x=>x.res==="ok");
+  const review=(wrongL.length?`<p class="muted" style="font-size:.95rem">Zuerst das, was noch nicht saß (${wrongL.length}):</p>`+wrongL.map(rv1).join(""):`<p>Alles richtig – stark!</p>`)
+    +(rightL.length?`<details${wrongL.length?"":" open"}><summary>Richtig gelöst (${rightL.length}) ansehen</summary><div class="review" style="margin-top:10px">${rightL.map(rv1).join("")}</div></details>`:"");
+  app.innerHTML=`${topBar()}<div class="scene">${scene(fogEnd,{dawn,ghost:dawn?0.2:.6,thief:thief})}</div>
+  <div class="panel appear"><span class="eyebrow">Ende des Einsatzes</span><h2>${title}</h2><p class="story">${story}</p>
+   <div class="word" aria-label="Lösungswort">${word}</div></div>
+  <div class="card"><span class="eyebrow">Punktekarte · zum Vorzeigen</span>
+   <h3>${esc(G.team)}</h3><span class="muted">${G.mode==="a"?"Anfänger":"Profi"}${G.kind==="fehler"?" · Fehler-Flut":""}${G.code?" · Code "+esc(G.code):""} · Kapitel ${G.chs.join(", ")}</span>
+   <div class="stars">${[0,1,2].map(i=>ICON.star(i<stars)).join("")}</div>
+   <div class="kpis"><div><b>${G.score}/${G.max}</b>Punkte</div><div><b>${ok}/${tot}</b>ganz richtig</div><div><b>${clears}/${G.chs.length}</b>klare Buchstaben</div></div>
+   ${G.used?`<span class="muted" style="font-size:.9rem">Funksprüche benutzt: ${G.used}</span>`:""}
+   ${G.kind!=="fehler"&&G.chs.some(c=>[1,2,6].includes(c))?`<span style="font-size:.95rem">Plünderer: <b>${thiefEnd()}</b></span>`:""}
+   ${Object.keys(G.search).map(k=>`<span style="font-size:.95rem">${esc(SEARCH[k].title)}: ${G.search[k].found.length}/${SEARCH[k].spots.filter(p=>p.err).length} gefunden</span>`).join("")}
+   ${G.duel?`<span style="font-size:.95rem">Rampen-Duell: ${G.duel.right} richtig</span>`:""}
+   ${G.fixedNow?`<span style="font-size:.95rem"><b>${G.fixedNow}</b> alte Fehler ausgebügelt. Auf der Fehlerliste stehen noch ${DB.wrong[G.mode].length}.</span>`:""}
+   <span class="muted" style="font-size:.9rem">${pct} %${G.kind==="normal"&&!G.code?" · Rekord auf diesem Gerät: "+DB.best[G.mode]+" %":""}</span></div>
+  <div class="panel"><h3>Eure Entscheidungen</h3><div class="review">${review}</div></div>
+  <div class="panel"><h3>Noch eine Tide?</h3>
+   <p class="muted" style="font-size:.95rem">${G.code?"Mit demselben Code kommen dieselben Fragen. ":"Beim nächsten Mal kommen zuerst Fragen, die ihr noch nicht hattet. "}Falsche Antworten landen auf eurer Fehlerliste – dafür gibt es auf der Startseite die Fehler-Flut.</p>
+   <div class="row"><button class="btn" id="again">Noch eine Tide (${G.mode==="a"?"Anfänger":"Profi"})</button><button class="btn ghost" id="other">${G.mode==="a"?"Jetzt als Profi":"Jetzt als Anfänger"}</button><button class="btn ghost" id="home">Startseite</button></div></div>`;
+  bindTop();
+  $("#again").onclick=()=>{S.mode=G.mode;if(G.kind==="normal")S.chs=G.chs;startGame(G.kind==="fehler"&&DB.wrong[G.mode].length?"fehler":"normal")};
+  $("#other").onclick=()=>{S.mode=G.mode==="a"?"p":"a";if(G.kind==="normal")S.chs=G.chs;startGame("normal")};
+  $("#home").onclick=()=>{G=null;render();window.scrollTo(0,0)};
+}
+
+// Test-Hilfe (nur für automatische Prüfung)
+window.__fort={get G(){return G},get DB(){return DB},POOL,CHAPTERS,SEARCH};
+render();
+})();
+</script>
+
+</body>
+</html>

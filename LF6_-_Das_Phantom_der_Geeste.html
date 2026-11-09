@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Das Phantom der Geeste</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: eine schmale Spalte wie eine Fallakte; oben die Hafenszene, darunter Karten mit Entscheidungen. */
+:root{
+  --bg:#E6ECEE; --surface:#F8FAFA; --surface2:#EEF3F4; --ink:#10242F; --muted:#4D626D; --line:#C5D2D7;
+  --accent:#C9501C; --accent-ink:#A33F12; --on-accent:#FFFFFF;
+  --brass:#8C6A1C; --brass-bg:#F4ECD6; --ok:#2C7348; --ok-bg:#E1F1E6; --bad:#AE2B22; --bad-bg:#F8E3E0; --mid:#8A6410; --mid-bg:#F6EED8;
+  --shadow:0 1px 2px rgba(16,36,47,.08),0 6px 18px rgba(16,36,47,.07);
+  --f-display:'Big Shoulders Stencil Display','Arial Narrow','Roboto Condensed',sans-serif;
+  --f-body:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A161D; --surface:#11232D; --surface2:#162C37; --ink:#E3ECEF; --muted:#9BB0B9; --line:#264451;
+  --accent:#EE7A40; --accent-ink:#F59A68; --on-accent:#1A0C04;
+  --brass:#D9B25C; --brass-bg:#2A2414; --ok:#62C38A; --ok-bg:#12301F; --bad:#F27A6E; --bad-bg:#3A1714; --mid:#E1B85A; --mid-bg:#2E2610;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A161D; --surface:#11232D; --surface2:#162C37; --ink:#E3ECEF; --muted:#9BB0B9; --line:#264451;
+  --accent:#EE7A40; --accent-ink:#F59A68; --on-accent:#1A0C04;
+  --brass:#D9B25C; --brass-bg:#2A2414; --ok:#62C38A; --ok-bg:#12301F; --bad:#F27A6E; --bad-bg:#3A1714; --mid:#E1B85A; --mid-bg:#2E2610;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.35); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;margin:0}
+.wrap{max-width:660px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+h1,h2,h3{font-family:var(--f-display);font-weight:800;letter-spacing:.01em;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:2.6rem}
+h2{font-size:1.9rem}
+h3{font-size:1.35rem}
+p{margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--muted)}
+/* Kopfleiste */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar .in{max-width:660px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:10px}
+.bar .brand{font-family:var(--f-display);font-weight:800;font-size:1.15rem;letter-spacing:.02em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 10px;font-size:.85rem;white-space:nowrap}
+.iconbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:40px;border:1px solid var(--line);background:var(--surface);border-radius:10px;cursor:pointer;padding:0 10px;font-size:.85rem}
+.iconbtn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-ink)}
+.iconbtn svg{width:20px;height:20px}
+/* Szene */
+.scene{border-radius:14px;overflow:hidden;margin-top:14px;box-shadow:var(--shadow);background:#0E2733}
+.scene svg{display:block;width:100%;height:auto}
+.fog{animation:drift 26s linear infinite alternate}
+.fog2{animation:drift 34s linear infinite alternate-reverse}
+@keyframes drift{from{transform:translateX(-30px)}to{transform:translateX(30px)}}
+.beam{transform-origin:62px 40px;animation:sweep 5s ease-in-out infinite alternate}
+@keyframes sweep{from{transform:rotate(-12deg)}to{transform:rotate(14deg)}}
+@media (prefers-reduced-motion: reduce){.fog,.fog2,.beam{animation:none}.wheel{transition:none!important}}
+/* Karten */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.note{background:var(--brass-bg);border:1px solid color-mix(in srgb,var(--brass) 45%,transparent);border-radius:12px;padding:14px 16px}
+.note .eyebrow{color:var(--brass)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 22px;border-radius:12px;border:2px solid var(--accent);background:var(--accent);color:var(--on-accent);font-weight:700;font-size:1.05rem;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--accent-ink)}
+.btn.small{min-height:42px;font-size:.95rem;padding:0 14px}
+.btn.wide{width:100%}
+.linkbtn{background:none;border:none;color:var(--accent-ink);text-decoration:underline;cursor:pointer;padding:6px 0;font-size:.95rem}
+/* Startseite */
+.hero-title{font-size:3rem;line-height:.95}
+.hero-title small{display:block;font-size:1.2rem;color:var(--accent-ink);letter-spacing:.06em;margin-top:6px}
+.claasen{font-family:var(--f-mono);font-size:.95rem;background:var(--brass-bg);border-left:4px solid var(--brass);padding:12px 14px;border-radius:0 10px 10px 0}
+label.lbl{font-weight:700;display:block;margin-bottom:6px}
+input.txt{width:100%;min-height:50px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;padding:0 14px}
+input.txt:focus{border-color:var(--accent);outline:none}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-width:0}
+.mode[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.mode b{font-family:var(--f-display);font-size:1.45rem;letter-spacing:.02em}
+.mode span{font-size:.88rem;color:var(--muted);line-height:1.35}
+.mode svg{width:34px;height:34px}
+/* Akte */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.stat b{display:block;font-family:var(--f-mono);font-size:1.3rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.78rem;color:var(--muted)}
+.route{list-style:none;margin:0;padding:0;position:relative}
+.route:before{content:"";position:absolute;left:21px;top:20px;bottom:20px;border-left:3px dashed var(--line)}
+.stop{position:relative;display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:10px 0;cursor:pointer;background:none;border:none;width:100%;text-align:left}
+.stop .num{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:2px solid var(--line);font-family:var(--f-mono);font-weight:600;z-index:1}
+.stop.done .num{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.stop.fin .num{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.stop .t{min-width:0}
+.stop .t b{display:block;font-size:1.05rem}
+.stop .t small{display:block;color:var(--muted);font-size:.82rem;line-height:1.3}
+.stop .r{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:.78rem;color:var(--muted)}
+.stars{color:var(--brass);letter-spacing:1px;font-size:.95rem}
+.badge-new{font-size:.7rem;font-family:var(--f-mono);padding:2px 6px;border-radius:6px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink)}
+.clue-ic{width:18px;height:18px;vertical-align:-3px}
+/* Aufgaben */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.lives{display:flex;gap:4px}
+.lives svg{width:24px;height:24px}
+.dots{display:flex;gap:6px}
+.dots i{width:22px;height:6px;border-radius:3px;background:var(--line)}
+.dots i.on{background:var(--accent)}
+.dots i.ok{background:var(--ok)} .dots i.bad{background:var(--bad)} .dots i.mid{background:var(--mid)}
+.q{font-size:1.12rem;font-weight:700;line-height:1.4}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:13px 14px;cursor:pointer;min-height:52px;line-height:1.35}
+.opt .k{flex:none;width:28px;height:28px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--f-mono);font-size:.85rem}
+.opt[aria-pressed="true"]{border-color:var(--accent)}
+.opt[aria-pressed="true"] .k{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt:disabled{cursor:default}
+.numin{display:flex;gap:10px;align-items:center}
+.numin input{font-family:var(--f-mono);font-size:1.3rem;text-align:right;max-width:220px}
+.numin .u{font-family:var(--f-mono);font-size:1.2rem}
+.sortrow{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
+.sortrow .cats{display:flex;flex-wrap:wrap;gap:6px}
+.cat{border:2px solid var(--line);background:var(--surface2);border-radius:999px;padding:6px 12px;min-height:38px;cursor:pointer;font-size:.88rem}
+.cat[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+.sortrow.right{border-color:var(--ok);background:var(--ok-bg)} .sortrow.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.ordbtn{display:flex;gap:12px;align-items:center;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;cursor:pointer;min-height:52px}
+.ordbtn .k{flex:none;width:30px;height:30px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--f-mono)}
+.ordbtn.set .k{border-style:solid;background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.ordbtn.right{border-color:var(--ok);background:var(--ok-bg)} .ordbtn.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tipbox{background:var(--surface2);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;font-size:.95rem}
+.ws{display:flex;flex-wrap:wrap;gap:6px}
+.ws span{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:.88rem}
+/* Rückmeldung */
+.react{display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:center}
+.react svg{width:64px;height:64px}
+.bubble{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:10px 14px;font-weight:700;position:relative}
+.verdict{font-family:var(--f-display);font-size:1.4rem;letter-spacing:.02em}
+.verdict.ok{color:var(--ok)} .verdict.bad{color:var(--bad)} .verdict.mid{color:var(--mid)}
+.fach{border-left:4px solid var(--accent);background:var(--surface2);border-radius:0 12px 12px 0;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.ihk{font-size:.95rem;border-top:1px dashed var(--line);padding-top:8px}
+.ihk b{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink);display:block}
+.calc{font-family:var(--f-mono);font-size:.9rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto}
+/* Verdächtige */
+.sus{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.suscard{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px;text-align:left;min-width:0}
+button.suscard{cursor:pointer}
+.suscard[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.suscard svg{width:72px;height:72px}
+.suscard b{font-size:1.05rem}
+.suscard small{color:var(--muted);font-size:.8rem;line-height:1.3}
+.attr{display:flex;flex-direction:column;gap:2px;font-size:.82rem;font-family:var(--f-mono)}
+.attr span.x{text-decoration:line-through;color:var(--muted)}
+.cluelist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.cluelist li{display:grid;grid-template-columns:34px 1fr;gap:8px;align-items:start;font-size:.95rem}
+.cluelist .n{font-family:var(--f-mono);font-size:.8rem;color:var(--brass);border:1px solid var(--brass);border-radius:6px;text-align:center;padding:1px 0}
+.cluelist li.miss{color:var(--muted)}
+/* Schloss */
+.lock{display:flex;gap:6px;justify-content:center}
+.wheel{width:40px;height:54px;border-radius:8px;background:#1B2E38;color:#E9D9A8;font-family:var(--f-mono);font-size:1.6rem;display:grid;place-items:center;border:2px solid #3B5563;transition:transform .4s}
+.wheel.on{background:#2C4A2F;border-color:#7FC495;color:#DFF5E6;transform:rotateX(360deg)}
+.timer{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.timer i{display:block;height:100%;background:var(--accent);width:100%}
+/* Punktekarte */
+.score{border:2px solid var(--brass);border-radius:16px;padding:18px;background:linear-gradient(180deg,var(--brass-bg),var(--surface));display:flex;flex-direction:column;gap:10px;text-align:center}
+.score .big{font-family:var(--f-display);font-size:3rem;line-height:1}
+.confirm{border:2px solid var(--bad);background:var(--bad-bg);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.notice{font-size:.9rem;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.opt.gone{opacity:.35;text-decoration:line-through}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.roles span{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;min-width:0}
+.roles small{display:block;font-size:.72rem;font-family:var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.roles b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.saidrow{display:flex;gap:10px;align-items:flex-start;background:var(--brass-bg);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:.95rem}
+.saidrow input{width:22px;height:22px;flex:none;margin-top:2px}
+details summary{cursor:pointer;list-style-position:inside}
+.foot{margin-top:28px;font-size:.8rem;color:var(--muted);text-align:center}
+@media (max-width:420px){h1{font-size:2.2rem}.hero-title{font-size:2.5rem}h2{font-size:1.6rem}.stat b{font-size:1.1rem}.suscard svg{width:56px;height:56px}}
+</style>
+</head>
+<body>
+<header class="bar" id="bar"></header>
+<main class="wrap" id="view"></main>
+<p class="foot wrap">LF 6 „Waren beschaffen“ · Kapitel 1–13 passen zu Modul 1–13, das Finale zu Modul 14 · Alle Personen und Firmen sind erfunden.</p>
+<script>
+/* ===== Daten: Verdächtige, Indizien, Kapitel 1–7 ===== */
+const SUSPECTS = [
+  {id:'brandt', name:'Jens Brandt', rolle:'Vertreter beim Hansa-Großhandel', tinte:'grün', hand:'links', weg:'Boot',
+   info:'Kommt jede Woche mit neuen Katalogen. Kennt alle Preise der Stadt.'},
+  {id:'thode', name:'Merle Thode', rolle:'Aushilfe im Lager', tinte:'blau', hand:'links', weg:'Rad',
+   info:'Arbeitet seit dem Sommer bei euch. Hat einen Schlüssel zum Gewölbelager.'},
+  {id:'sievers', name:'Henrik Sievers', rolle:'Konkurrent, Souvenirladen „Kajüte“', tinte:'blau', hand:'rechts', weg:'Boot',
+   info:'Will seit Jahren den Laden am Alten Hafen kaufen.'},
+  {id:'wendt', name:'Ilka Wendt', rolle:'Beraterin beim Hafen-Gewerbeverein', tinte:'grün', hand:'rechts', weg:'Rad',
+   info:'Entscheidet mit, wer im Hafen eine Händlerlizenz bekommt.'}
+];
+const DIMS = {
+  tinte:{label:'Tinte', grün:'grüne Tinte', blau:'blaue Tinte'},
+  hand:{label:'Schreibhand', links:'Linkshänder/in', rechts:'Rechtshänder/in'},
+  weg:{label:'Unterwegs mit', Boot:'Motorboot', Rad:'Fahrrad'}
+};
+
+const CHAPTERS = [
+{n:1, ort:'Laden am Alten Hafen', titel:'Die Notiz', modul:'Modul 1 · Bedarf und Menge', prop:'notiz', dim:'tinte',
+ intro:'Es ist kurz nach sieben. Nebel liegt über dem Alten Hafen, neben dem Laden ragt der Turm des U-Boots „Wilhelm Bauer“ aus dem Wasser. Kapitän Claasen ist verschwunden. Auf seinem Tisch liegt die Notiz – und eine Absatzstatistik, in der jemand Zahlen verändert hat. Plant den Wintereinkauf. Prüft jede Zahl.',
+ clue:{grün:'In der gefälschten Absatzstatistik sind Zahlen mit grüner Tinte überschrieben.', blau:'In der gefälschten Absatzstatistik sind Zahlen mit blauer Tinte überschrieben.'},
+ cliff:'Unter der Statistik klebt ein Zettel: „Das Lager. Heute Nacht.“',
+ tip:'Vier Fragen vor jeder Bestellung: Was? Wie viel? Wann? Wo und zu welchem Preis? · Bedarf ermitteln mit Marktberichten UND eigenen Verkaufsdaten. · Reichweite mit Dreisatz: erst auf 1 rechnen, dann auf die gesuchte Menge.',
+ ws:['die Beschaffung','der Bedarf','die Absatzstatistik','der Absatz (Stück)','der Umsatz (€)','die Bestellmenge','die Bestellkosten','die Lagerkosten','die Kapitalbindung','das Lagerrisiko','die Reichweite'],
+ pool:[
+ {id:'k1a',t:'mc',l:'ap',q:'Vor jeder Bestellung klärt ihr vier Fragen. Welche Frage gehört NICHT dazu?',
+  o:['Wer bekommt die Provision?','Was kaufen wir ein?','Wie viel kaufen wir ein?','Wann bestellen wir?','Wo und zu welchem Preis kaufen wir?'],
+  e:'Die Beschaffungsplanung fragt: Was? Wie viel? Wann? Wo und zu welchem Preis? Die Provision hat mit dem Einkauf nichts zu tun.',
+  s:'Die Beschaffungsplanung umfasst Bedarfs-, Mengen-, Zeit- und Bezugsquellenplanung.',
+  w:['… weil der Einkauf nur klärt, welche Ware in welcher Menge wann und wo beschafft wird.','… weil Provisionen erst am Jahresende gezahlt werden.','… weil die Provision der Lieferer festlegt.']},
+ {id:'k1b',t:'mc',l:'ap',q:'Ihr wollt den Bedarf an Island-Pullovern für den Winter ermitteln. Was tut ihr?',
+  o:['Wir werten Marktberichte und betriebliche Verkaufsdaten aus.','Wir holen Informationen ausschließlich auf Messen und aus Fachzeitschriften.','Wir werten die Zahlungsbedingungen aller Angebote aus.','Wir überwachen die Außenstände.','Wir planen die Gliederung des Lagers.'],
+  e:'Für die Bedarfsermittlung braucht man Quellen von innen (Verkaufsdaten, Absatzstatistik) und von außen (Marktberichte). „Ausschließlich Messen“ ist die typische Falle.',
+  s:'Sie werten Marktberichte und betriebliche Verkaufsdaten aus.',
+  w:['… weil interne und externe Quellen zusammen ein sicheres Bild vom Bedarf geben.','… weil Messen die einzige zuverlässige Quelle sind.','… weil der Preis allein den Bedarf bestimmt.']},
+ {id:'k1c',t:'mc',l:'ap',q:'Absatz von Wollmützen (Stück, 4. Quartal): unter 10 € fällt von 150 auf 95, 10–20 € bleibt bei 135 → 138, über 20 € steigt von 30 auf 70. Die Summe bleibt fast gleich. Welche Entscheidung ist richtig?',
+  o:['Mehr Mützen der gehobenen Preisgruppe, weniger der unteren.','Alle Bestellmengen gleich lassen, die Summe ändert sich ja kaum.','Gar keine Mützen der unteren Preisgruppe mehr einkaufen.','In allen Preisgruppen weniger bestellen.','Untere und mittlere Preisgruppe verringern.'],
+  e:'Erst die Summe, dann jede Zeile ansehen. Die Verschiebung steckt in den Zeilen: Die Kunden fragen höherwertige Mützen nach. Die untere Gruppe wird weniger, aber nicht null.',
+  s:'Die Auswertung der Verkaufsdaten zeigt eine steigende Nachfrage in der gehobenen Preisgruppe; die Bestellmenge dort wird erhöht.',
+  w:['… weil die Kunden vermehrt die gehobene Preisgruppe nachfragen.','… weil die Summe des Absatzes stark gestiegen ist.','… weil teure Ware immer mehr Gewinn bringt.']},
+ {id:'k1d',t:'mc',l:'ap',q:'Ein Lieferer bietet 500 Geschenkkartons für Buddelschiffe zum Sonderpreis an. Sonst bestellt ihr 100 Stück. Welche Folge kann die Annahme haben?',
+  o:['Die Lagerkapazität reicht nicht aus.','Die Kapitalbindung sinkt.','Der Mindestbestand kann gesenkt werden.','Die Lagerdauer wird kürzer.','Die Annahme der Ware muss verweigert werden.'],
+  e:'Eine große Menge spart Geld beim Stückpreis, braucht aber viel Platz, bindet Kapital und erhöht das Lagerrisiko.',
+  s:'Die Lagerkapazität reicht für die Bestellmenge nicht aus.',
+  w:['… weil eine große Bestellmenge viel Lagerplatz braucht.','… weil dann weniger Geld im Lager steckt.','… weil seltener bestellt werden muss.']},
+ {id:'k1e',t:'num',l:'ap',q:'270 Packungen Ostfriesentee reichen 15 Tage. Wie viele Tage reichen 306 Packungen bei gleichem Absatz?',
+  a:17,u:'Tage',r:'270 Packungen → 15 Tage · 1 Packung → 15 : 270 Tage · 306 Packungen → 15 : 270 × 306 = 17 Tage',
+  d:[13.24,51],de:['Umgekehrt gerechnet: Mehr Packungen reichen länger, nicht kürzer.','Die Mehrmenge (36) einfach zu den Tagen addiert. Erst auf 1 Packung rechnen!'],
+  e:'Dreisatz: erst auf 1 rechnen, dann auf die gesuchte Menge.',s:'Der Bestand reicht bei gleichbleibendem Absatz 17 Tage.'},
+ {id:'k1f',t:'num',l:'ap',q:'240 Leuchtturm-Tassen reichen 12 Tage. Wie viele Tage reichen 300 Tassen?',
+  a:15,u:'Tage',r:'240 Tassen → 12 Tage · 1 Tasse → 12 : 240 Tage · 300 Tassen → 12 : 240 × 300 = 15 Tage',
+  d:[9.6,72],de:['Umgekehrt gerechnet: Mehr Tassen reichen länger.','Die Mehrmenge (60) zu den Tagen addiert.'],
+  e:'Dreisatz mit gleicher Richtung: mehr Ware → mehr Tage.',s:'Der Bestand reicht 15 Tage.'},
+ {id:'k1g',t:'mc',l:'ap',q:'Zum Hafenfest öffnet der Laden am Sonntag – wie im letzten Jahr. Welche Daten aus dem Warenwirtschaftssystem helfen beim Einkauf?',
+  o:['der Warenabsatz der letzten Sonntagsöffnung','der Gewinn der letzten Sonntagsöffnung','die Kassendifferenz der letzten Sonntagsöffnung','die Provision der Verkäufer','der durchschnittliche Lagerbestand des letzten Jahres'],
+  e:'Für die Menge zählt, was beim letzten Mal verkauft wurde: der Absatz.',
+  s:'Den Warenabsatz der letzten Sonntagsöffnung.',
+  w:['… weil der Absatz zeigt, welche Mengen an so einem Tag gebraucht werden.','… weil der Gewinn die Bestellmenge bestimmt.','… weil der Lagerbestand des ganzen Jahres den Sonntag genau abbildet.']},
+ {id:'k1h',t:'sort',l:'ap',q:'Woher kommen die Informationen für die Bedarfsermittlung? Ordnet zu.',c:['intern (im Betrieb)','extern (außerhalb)'],
+  it:[['Verkaufsdaten aus der Kasse',0],['Absatzstatistik des Vorjahres',0],['Lagerbestand',0],['Kundenwünsche und Reklamationen',0],['Beobachtungen des Verkaufspersonals',0],['Marktberichte',1],['Fachzeitschriften',1],['Messen und Vertreterbesuche',1],['Angebote der Mitbewerber',1],['Wetter und Feste in der Stadt',1]],
+  e:'Intern = Daten aus dem eigenen Betrieb. Extern = alles von außen.',s:'Die Nordsee-Traditionen ermittelt den Bedarf mithilfe von internen und externen Quellen.'},
+ {id:'k1i',t:'sort',l:'ap',q:'Große oder kleine Bestellmenge – wozu passt die Aussage?',c:['große Bestellmenge','kleine Bestellmenge'],
+  it:[['Mengenrabatt',0],['wenige Bestellungen, niedrige Bestellkosten',0],['hohe Kapitalbindung',0],['viel Lagerplatz nötig',0],['Lagerrisiko (Verderb, Mode)',0],['wenig Lagerplatz',1],['wenig Kapitalbindung',1],['hohe Bestellkosten',1],['kaum Rabatt',1],['Gefahr leerer Regale',1]],
+  e:'Große Mengen: billiger im Einkauf, teuer im Lager. Kleine Mengen: umgekehrt.',s:'Eine große Bestellmenge erhöht die Kapitalbindung.'},
+ {id:'k1j',t:'mc',l:'p',q:'Was versteht man unter der optimalen Bestellmenge?',
+  o:['Die Menge, bei der Bestellkosten und Lagerkosten zusammen am niedrigsten sind.','Die Menge mit dem höchsten Mengenrabatt.','Die Menge, die genau bis zum Mindestbestand reicht.','Die größte Menge, die ins Lager passt.'],
+  e:'Große Mengen senken die Bestellkosten, erhöhen aber die Lagerkosten. Das Optimum liegt dazwischen. Das WWS kann es berechnen.',
+  s:'Optimale Bestellmenge: Summe aus Bestell- und Lagerkosten ist am niedrigsten.',
+  w:['… weil große Mengen die Bestellkosten senken, aber die Lagerkosten erhöhen.','… weil Rabatt immer wichtiger ist als Lagerkosten.','… weil das Lager immer voll sein soll.']},
+ {id:'k1k',t:'num',l:'p',q:'Für das 4. Quartal plant ihr einen Wareneinsatz von 60.000 €. Am Quartalsende sollen Waren für 18.000 € im Lager sein, jetzt sind es 22.000 €. Bestellt sind schon 9.000 €. 10 % des Einkaufsvolumens bleiben als Reserve. Wie hoch ist das freie Limit?',
+  a:41400,u:'€',r:'Einkaufsvolumen = 60.000 + 18.000 − 22.000 = 56.000 € · Reserve 10 % = 5.600 € · freies Limit = 56.000 − 9.000 − 5.600 = 41.400 €',
+  d:[47000,50400],de:['Die Reserve (10 %) vergessen.','Die schon bestellte Ware (9.000 €) nicht abgezogen.'],
+  e:'Limitrechnung (Kür): Erst das Einkaufsvolumen, dann Bestelltes und Reserve abziehen.',s:'Das freie Limit beträgt 41.400 €.'}
+ ]},
+
+{n:2, ort:'Gewölbelager', titel:'Sperrwerk zu?', modul:'Modul 2 · Meldebestand', prop:'regal', dim:'weg',
+ intro:'Im Gewölbelager unter dem Laden tropft es von der Decke. Über Funk kommt eine Meldung: Die Weser sei gesperrt, alle Lieferungen kämen später. Stimmt das – oder ist es ein Trick des Syndikats? Rechnet nach, wann ihr bestellen müsst.',
+ clue:{Boot:'Am Kellerfenster des Lagers: nasse Bootstaue und Ölflecken von einem Außenbordmotor.', Rad:'Am Kellerfenster des Lagers: frische Fahrradspuren im Schlick.'},
+ cliff:'Oben piept die Kasse. Jemand ist im Laden.',
+ tip:'Meldebestand = Tagesabsatz × Lieferzeit + Mindestbestand. · Lieferzeit länger → Meldebestand erhöhen. · Meldebestand erreicht → bestellen.',
+ ws:['der Bestellzeitpunkt','das Bestellrhythmusverfahren','das Bestellpunktverfahren','der Meldebestand','der Mindestbestand (eiserne Reserve)','der Tagesabsatz','die Lieferzeit','die Verkaufsbereitschaft','die Präsenzlücke'],
+ pool:[
+ {id:'k2a',t:'num',l:'ap',q:'Täglich verkauft ihr 8 Seemannspullover. Der Lieferer braucht 3 Tage. Der Mindestbestand beträgt 16 Stück. Bei welchem Bestand müsst ihr bestellen?',
+  a:40,u:'Stück',r:'8 × 3 = 24 Stück · 24 + 16 = 40 Stück',d:[24,27],de:['Mindestbestand vergessen.','Tagesabsatz und Lieferzeit addiert statt multipliziert.'],
+  e:'Erst rechnen, was während der Lieferzeit verkauft wird, dann den Mindestbestand dazu.',s:'Meldebestand = Tagesabsatz × Lieferzeit + Mindestbestand.'},
+ {id:'k2b',t:'num',l:'ap',q:'Gummistiefel: Absatz 15 Paar pro Tag, Lieferzeit 5 Tage, Mindestbestand 40 Paar. Ermittelt den Meldebestand.',
+  a:115,u:'Paar',r:'15 × 5 = 75 Paar · 75 + 40 = 115 Paar',d:[75,60],de:['Mindestbestand vergessen.','Alle Zahlen nur addiert (15 + 5 + 40).'],
+  e:'Die Einheit steht im Lösungsbogen schon dabei: hier Paar.',s:'Der Meldebestand beträgt 115 Paar.'},
+ {id:'k2c',t:'num',l:'ap',q:'Ostfriesentee: täglich 10 Pakete, Lieferzeit 5 Tage, Mindestbestand 40 Pakete. Meldebestand?',
+  a:90,u:'Pakete',r:'10 × 5 = 50 · 50 + 40 = 90 Pakete',d:[50,55],de:['Mindestbestand vergessen.','Alle Zahlen nur addiert.'],
+  e:'Absatz × Lieferzeit + Mindestbestand.',s:'Der Meldebestand beträgt 90 Pakete.'},
+ {id:'k2d',t:'num',l:'ap',q:'Kinder-Friesennerze: Tagesabsatz 2 Stück, Lieferzeit 3 Tage, Mindestbestand 6 Stück. Meldebestand?',
+  a:12,u:'Stück',r:'2 × 3 = 6 · 6 + 6 = 12 Stück',d:[6,11],de:['Mindestbestand vergessen.','Alle Zahlen nur addiert.'],
+  e:'Auch bei kleinen Zahlen: erst multiplizieren, dann addieren.',s:'Der Meldebestand beträgt 12 Stück.'},
+ {id:'k2e',t:'num',l:'ap',q:'Thermobecher: Lieferzeit 14 Tage, Tagesabsatz 25 Stück, Mindestbestand 100 Stück. Meldebestand?',
+  a:450,u:'Stück',r:'25 × 14 = 350 · 350 + 100 = 450 Stück',d:[350,139],de:['Mindestbestand vergessen.','Alle Zahlen nur addiert.'],
+  e:'Lange Lieferzeit → hoher Meldebestand.',s:'Der Meldebestand beträgt 450 Stück.'},
+ {id:'k2f',t:'mc',l:'ap',q:'Der Bestand an Island-Wolle hat den Meldebestand erreicht. Was muss jetzt passieren?',
+  o:['Die Ware muss bestellt werden.','Es muss eine Anfrage an den Lieferer geschrieben werden.','Die Ware muss geliefert sein.','Der Höchstbestand muss geändert werden.','Die Mindestbestellmenge muss angepasst werden.'],
+  e:'Beim Meldebestand wird bestellt – nicht erst angefragt. Der Bestand reicht genau für die Lieferzeit plus Mindestbestand.',
+  s:'Der Meldebestand ist erreicht; eine Bestellung wird ausgelöst.',
+  w:['… weil der Bestand genau noch für die Lieferzeit plus Mindestbestand reicht.','… weil man vor jeder Bestellung erst neu anfragen muss.','… weil sonst der Mindestbestand sinkt.']},
+ {id:'k2g',t:'mc',l:'ap',q:'Der Lieferer meldet: Die Lieferzeit für Island-Wolle verlängert sich um eine Woche. Was tut ihr?',
+  o:['den Meldebestand erhöhen','den Meldebestand senken','den Mindestbestand senken','mit niedrigerem Lagerkostenanteil kalkulieren','sofort einen anderen Lieferer suchen'],
+  e:'Während der längeren Lieferzeit wird mehr verkauft. Also muss früher bestellt werden.',
+  s:'Wegen der längeren Lieferzeit wird der Meldebestand erhöht.',
+  w:['… weil während der längeren Lieferzeit mehr verkauft wird und früher bestellt werden muss.','… weil weniger Ware im Lager die Kapitalbindung senkt.','… weil der Lieferer sonst eine Strafe zahlt.']},
+ {id:'k2h',t:'mc',l:'ap',q:'Ein Lieferer liefert jetzt schneller: 2 statt 5 Tage. Welche Auswirkung hat das?',
+  o:['Der Meldebestand kann gesenkt werden. Dadurch sinkt die Kapitalbindung.','Der Meldebestand muss erhöht werden. Dadurch sinkt die Kapitalbindung.','Der Meldebestand muss erhöht werden. Dadurch steigt die Kapitalbindung.','Der Lagerbestand kann sinken. Dadurch steigt das Lagerrisiko.','Der Mindestbestand kann sinken. Dadurch steigt das Lagerrisiko.'],
+  e:'Kürzere Lieferzeit → weniger Verbrauch bis zur Lieferung → kleinerer Meldebestand → weniger Geld im Lager.',
+  s:'Bei kürzerer Lieferzeit kann der Meldebestand gesenkt werden; die Kapitalbindung sinkt.',
+  w:['… weil bis zur Lieferung weniger verkauft wird und weniger Ware im Lager liegen muss.','… weil der Mindestbestand bei schneller Lieferung immer null ist.','… weil schnelle Lieferer teurer sind.']},
+ {id:'k2i',t:'mc',l:'ap',q:'Wovon hängt der Zeitpunkt einer Bestellung NICHT ab?',
+  o:['von den Zahlungsbedingungen des Lieferers','vom aktuellen Warenbestand','von offenen Bestellungen','von Lieferzeitschwankungen','von Nachfrageschwankungen'],
+  e:'Zahlungsbedingungen betreffen das Bezahlen, nicht den Bestellzeitpunkt. Beliebte Prüfungsfalle.',
+  s:'Der Bestellzeitpunkt wird nicht von den Zahlungsbedingungen beeinflusst.'},
+ {id:'k2j',t:'mc',l:'ap',q:'Ihr habt Wetterstationen bestellt und erwartet sie in 14 Tagen. Warum überwacht ihr, ob sie pünktlich kommen?',
+  o:['um die Verkaufsbereitschaft zu sichern','um das Einkaufslimit nicht zu überschreiten','um Skonto in Anspruch nehmen zu können','um die Rechnung rechtzeitig bezahlen zu können','um die Umschlagshäufigkeit zu erhöhen'],
+  e:'Kommt die Ware zu spät, ist das Regal leer. Skonto und Limit sind beliebte Ablenker.',
+  s:'Der Liefertermin wird überwacht, um die Verkaufsbereitschaft sicherzustellen.',
+  w:['… weil sonst leere Regale (Präsenzlücken) drohen.','… weil Skonto nur bei pünktlicher Lieferung gilt.','… weil der Lieferer sonst den Preis erhöht.']},
+ {id:'k2k',t:'sort',l:'ap',q:'Zwei Wege zum Bestellzeitpunkt. Ordnet zu.',c:['Bestellrhythmusverfahren','Bestellpunktverfahren'],
+  it:[['Bestellung in festen Abständen, z. B. jeden Montag',0],['typisch für Frischware',0],['feste Liefertage, einfach zu planen',0],['Bestellung, wenn der Meldebestand erreicht ist',1],['das WWS schlägt die Bestellung automatisch vor',1],['passt sich dem Absatz an',1]],
+  e:'Rhythmus = feste Termine. Punkt = ein bestimmter Bestand.',s:'Beim Bestellpunktverfahren wird bei Erreichen des Meldebestands bestellt.'},
+ {id:'k2l',t:'num',l:'p',q:'Der Meldebestand für Trekkingrucksäcke liegt bei 160 Stück. Täglich werden 15 verkauft, die Lieferzeit beträgt 8 Tage. Wie hoch ist der Mindestbestand?',
+  a:40,u:'Stück',r:'15 × 8 = 120 Stück · 160 − 120 = 40 Stück',d:[120,280],de:['Das ist der Verbrauch während der Lieferzeit, nicht der Mindestbestand.','Addiert statt abgezogen.'],
+  e:'Rückwärts rechnen: Mindestbestand = Meldebestand − Tagesabsatz × Lieferzeit.',s:'Der Mindestbestand beträgt 40 Stück.'},
+ {id:'k2m',t:'mc',l:'p',q:'Warum schadet ein zu hoch eingestellter Meldebestand, obwohl die Regale dann nie leer sind?',
+  o:['Es wird zu früh bestellt – das bindet Kapital und erhöht Lagerkosten und Lagerrisiko.','Der Lieferer gewährt dann kein Skonto.','Das WWS kann dann keine Bestellvorschläge machen.','Der Mindestbestand wird automatisch null.'],
+  e:'Dauerhaft zu viel Ware im Lager kostet Zinsen, Platz und Versicherung – und kann verderben oder unmodern werden.',
+  s:'Ein zu hoher Meldebestand erhöht Kapitalbindung, Lagerkosten und Lagerrisiko.',
+  w:['… weil dauerhaft mehr Ware als nötig im Lager liegt.','… weil der Lieferer dann weniger Rabatt gibt.','… weil Präsenzlücken dann häufiger werden.']}
+ ]},
+
+{n:3, ort:'An der Kasse', titel:'Der falsche Preis', modul:'Modul 3 · WWS I', prop:'kasse', dim:'hand',
+ intro:'An der Kasse stehen Touristen von der Seebäderkaje. Die Bons zeigen seltsame Preise. Ein freundlicher Herr mit Hut sagt: „Im Strichcode steckt der Preis. Ich drucke Ihnen gern neue Etiketten.“ Das Syndikat will an eure Artikel.',
+ clue:{links:'Auf dem falschen Preisschild ist die Tinte verwischt – typisch für jemanden, der mit links schreibt.', rechts:'Auf dem falschen Preisschild neigt sich die Schrift sauber nach rechts – geschrieben mit der rechten Hand.'},
+ cliff:'Der Herr lässt einen Flyer liegen: „Händlermesse – Stand 13, Nordlicht-Import“.',
+ tip:'Im GTIN-Code stehen Land, Hersteller, Artikelnummer, Prüfziffer – kein Preis. · Artikelstammdaten = Artikel, Liefererstammdaten = Lieferer, Bewegungsdaten = Verkäufe und Eingänge. · Das WWS zeigt den Soll-Bestand.',
+ ws:['das Warenwirtschaftssystem (WWS)','geschlossen','integriert','die Artikelstammdaten','die Liefererstammdaten','die Bewegungsdaten','der Soll-Bestand','die GTIN','die Prüfziffer','das PLU-Verfahren','das MDE-Gerät'],
+ pool:[
+ {id:'k3a',t:'mc',l:'ap',q:'Welche Information ist in einem GTIN-Code NICHT verschlüsselt?',
+  o:['der Bruttoverkaufspreis','der Hersteller','das Länderkennzeichen','die Prüfziffer','die Artikelnummer'],
+  e:'Der Code nennt den Artikel, der Computer nennt den Preis. Die Kasse holt den Preis aus dem Artikelstamm.',
+  s:'Beim PLU-Verfahren wird der Preis anhand der GTIN aus dem Artikelstamm abgerufen.',
+  w:['… weil die Kasse den Preis aus dem Artikelstamm holt (PLU-Verfahren).','… weil der Preis in der Prüfziffer versteckt ist.','… weil Preise im Code geheim sind.']},
+ {id:'k3b',t:'ord',l:'ap',q:'Was passiert beim Scannen an der Kasse (PLU-Verfahren)? Tippt die Schritte in der richtigen Reihenfolge an.',
+  it:['Die GTIN wird gescannt und decodiert.','Die Daten werden im Artikelstamm gesucht.','Bezeichnung und Preis gehen an die Kasse.','Der Kassenbon zeigt den Artikel.','Der Verkauf wird gespeichert, der Bestand sinkt.'],
+  e:'Scannen – suchen – übertragen – Bon – speichern. Deshalb stimmt der Soll-Bestand.',s:'Der Verkauf wird im WWS gespeichert; der Soll-Bestand sinkt.'},
+ {id:'k3c',t:'sort',l:'ap',q:'Welche Daten sind das? Ordnet zu.',c:['Artikelstammdaten','Liefererstammdaten','Bewegungsdaten'],
+  it:[['Artikelbezeichnung',0],['GTIN',0],['Bruttoverkaufspreis',0],['Meldebestand des Artikels',0],['Adresse des Lieferers',1],['Bankverbindung des Lieferers',1],['Lieferernummer',1],['Rabatt und Skonto des Lieferers',1],['heute verkauft: 12 Stück',2],['Wareneingang am 06.03.: 140 Stück',2],['offene Bestellungen',2]],
+  e:'Stammdaten ändern sich selten. Bewegungsdaten ändern sich laufend.',s:'Kommt ein neuer Lieferer dazu, wird die Liefererdatei ergänzt.'},
+ {id:'k3d',t:'mc',l:'ap',q:'Welchen Vorteil bietet euch das Warenwirtschaftssystem?',
+  o:['Die Soll-Lagerbestände können direkt abgerufen werden.','Es gibt keine Inventurdifferenzen mehr.','Es gibt keine Kassendifferenzen mehr.','Die Umschlagshäufigkeit erhöht sich automatisch.','Es werden neue Artikel vorgeschlagen.'],
+  e:'Das WWS bucht jeden Zugang und Verkauf artikelgenau. Diebstahl und Fehler verhindert es nicht.',
+  s:'Das WWS ermöglicht, die Soll-Lagerbestände direkt abzurufen.',
+  w:['… weil jeder Zugang und jeder Verkauf artikelgenau gebucht wird.','… weil das WWS Diebstahl verhindert.','… weil das WWS jeden Abend selbst zählt.']},
+ {id:'k3e',t:'mc',l:'ap',q:'Welche Angabe kann NICHT über das WWS abgerufen werden?',
+  o:['die Risiken der Lagerhaltung','die Höhe des Meldebestands','der Bestellzeitpunkt','die Höhe des Soll-Bestands','die Höhe des Mindestbestands'],
+  e:'Zahlen wie Melde-, Mindest- und Soll-Bestand stehen im WWS. „Risiken“ kann kein Programm ausrechnen.',
+  s:'Die Risiken der Lagerhaltung können nicht über das WWS abgerufen werden.'},
+ {id:'k3f',t:'mc',l:'ap',q:'Welche Beschreibung zum MDE-Gerät (mobile Datenerfassung) ist richtig?',
+  o:['Die Menge der gelieferten Ware wird damit erfasst und an den Hauptrechner übermittelt.','Versteckte Mängel werden damit erfasst.','Mit dem MDE-Gerät gibt es keine Inventurdifferenzen mehr.','Das MDE-Gerät sichert Artikel gegen Diebstahl.','Mit dem MDE-Gerät gibt es weniger Kassendifferenzen.'],
+  e:'Das MDE-Gerät ist ein Handscanner mit Display: Wareneingang, Inventur, Bestellung am Regal.',
+  s:'Die Menge der gelieferten Ware wird mit dem MDE-Gerät erfasst und an den Hauptrechner übermittelt.'},
+ {id:'k3g',t:'mc',l:'ap',q:'Ein neuer Lieferer für Sanddorn-Gelee schickt ein Angebot. Was ist im WWS zu tun?',
+  o:['Die Liefererdatei wird ergänzt.','Die Kundendatei wird ergänzt.','Alle Angebote werden in der Auftragserfassung gespeichert.','In der Wareneingangsdatei werden Artikelnummern eingetragen.','In der Lagerdatei werden neue Bestände aufgenommen.'],
+  e:'Neuer Lieferer = neue Liefererstammdaten.',s:'Die Liefererdatei muss ergänzt werden.',
+  w:['… weil Name, Adresse, Bankverbindung und Konditionen des Lieferers Stammdaten sind.','… weil Lieferer auch Kunden sind.','… weil ein Angebot schon ein Wareneingang ist.']},
+ {id:'k3h',t:'mc',l:'ap',q:'Zur Hafenwoche sollen alle Leuchtturm-Tassen billiger werden. Was ist zu tun?',
+  o:['Den Verkaufspreis einmal im Artikelstamm ändern.','Alle GTIN-Etiketten neu drucken und aufkleben.','Die Prüfziffer der GTIN ändern.','Die Liefererdatei ändern.'],
+  e:'Der Code nennt den Artikel, der Computer nennt den Preis. Neue Etiketten braucht es nicht – genau das wollte der Mann mit Hut.',
+  s:'Für eine Preisaktion wird der Preis im Artikelstamm geändert.',
+  w:['… weil die Kasse den Preis über die GTIN aus dem Artikelstamm holt.','… weil der Preis im Strichcode steht.','… weil der Lieferer den Preis festlegt.']},
+ {id:'k3i',t:'mc',l:'ap',q:'Euer WWS schickt Bestellungen jetzt elektronisch direkt an den Lieferer. Wie heißt so ein System?',
+  o:['integriertes Warenwirtschaftssystem','geschlossenes Warenwirtschaftssystem','offenes Kassensystem','PLU-Verfahren'],
+  e:'Geschlossen: Alle Bereiche im Betrieb sind verbunden. Integriert: zusätzlich mit Partnern außerhalb (Lieferer, Bank, Zentrale).',
+  s:'Ein integriertes WWS ist mit Partnern außerhalb des Betriebs verbunden.'},
+ {id:'k3j',t:'num',l:'p',q:'Berechnet die Prüfziffer der GTIN 400638133393_. Regel: die 12 Ziffern abwechselnd mit 1 und 3 multiplizieren (erste × 1), alles addieren. Prüfziffer = Abstand bis zum nächsten Zehner.',
+  a:1,u:'',r:'4·1 + 0·3 + 0·1 + 6·3 + 3·1 + 8·3 + 1·1 + 3·3 + 3·1 + 3·3 + 9·1 + 3·3 = 89 → bis 90 fehlt 1 → Prüfziffer 1',
+  d:[9,89],de:['Das ist die letzte Stelle der Summe – gesucht ist der Abstand bis 90.','Das ist die Summe. Die Prüfziffer ist der Rest bis zum nächsten Zehner.'],
+  e:'Mit der Prüfziffer erkennt die Kasse Lesefehler.',s:'Die Prüfziffer lautet 1.'},
+ {id:'k3k',t:'mc',l:'p',q:'Der Laden will vom geschlossenen zum integrierten WWS wechseln. Welche Aussage ist richtig?',
+  o:['Ziele: schnellere Bestellung per EDI und optimierte Bestände – Nachteil: Technikkosten und Abhängigkeit vom Lieferer.','Ziel: keine Inventur mehr nötig – Nachteil: keiner.','Ziel: höhere Verkaufspreise – Nachteil: mehr Papier.','Ziel: Kassendifferenzen verhindern – Nachteil: kein Datenschutz nötig.'],
+  e:'Integriert heißt: Daten fließen auch zu Lieferern und Zentrale. Das spart Zeit, kostet aber Technik und schafft Abhängigkeit.',
+  s:'Ziele des integrierten WWS: Kostenminimierung und Bestandsoptimierung.'}
+ ]},
+
+{n:4, ort:'Händlermesse in der Stadthalle', titel:'Stand 13', modul:'Modul 4 · Bezugsquellen', prop:'messe', dim:'tinte',
+ intro:'In der Stadthalle ist Händlermesse. Ihr braucht neue Lieferer für Island-Wolle und Wetterstationen. Stand 13 – „Nordlicht-Import“ – verspricht alles sofort und billig. Geht klug vor.',
+ clue:{grün:'Auf der Visitenkarte von Stand 13 steht eine Notiz in grüner Tinte.', blau:'Auf der Visitenkarte von Stand 13 steht eine Notiz in blauer Tinte.'},
+ cliff:'Am nächsten Morgen liegt ein dicker Umschlag im Briefkasten.',
+ tip:'Ablauf: Schwerpunkte festlegen → Bezugsquellen suchen → Anfragen schreiben → Angebote prüfen → Lieferer wählen. · Hersteller: oft billiger, große Mindestmengen. Großhändler: kleine Mengen, breites Sortiment.',
+ ws:['die Bezugsquelle','der Lieferer','der Hersteller','der Großhändler','die Liefererdatei','die Fachmesse','der Vertreter','die Anfrage','die Kooperation','die Einkaufsgenossenschaft','die Zentralregulierung'],
+ pool:[
+ {id:'k4a',t:'ord',l:'ap',q:'Das Sortiment Island-Wolle soll erweitert werden. Tippt die Arbeitsschritte in der richtigen Reihenfolge an.',
+  it:['Mit dem Chef Artikelschwerpunkte festlegen.','Neue Bezugsquellen im Internet suchen.','Anfragen an Großhändler und Hersteller schreiben, Muster anfordern.','Die Angebote prüfen.','Sich für einen Lieferer entscheiden.'],
+  e:'Was? – Wer? – Zu welchen Bedingungen? – Wer ist am besten? – Bestellen.',s:'Schwerpunkte → Bezugsquellen → Anfragen → Angebote prüfen → entscheiden.'},
+ {id:'k4b',t:'sort',l:'ap',q:'Wo findet ihr Lieferer? Ordnet zu.',c:['intern (im Betrieb)','extern (außerhalb)'],
+  it:[['Liefererdatei im WWS',0],['Artikeldatei: Wer hat bisher geliefert?',0],['frühere Angebote im Ordner',0],['Händlermesse',1],['Plattform „Wer liefert was“',1],['Vertreterbesuch',1],['Kataloge und Fachzeitschriften',1],['Branchenverzeichnis der IHK',1]],
+  e:'Intern sucht man zuerst in den eigenen Daten, extern auf Messen, im Internet, in Katalogen.',s:'Ich ermittle neue Bezugsquellen im Internet (externe Bezugsquelle).'},
+ {id:'k4c',t:'sort',l:'ap',q:'Hersteller oder Großhändler? Ordnet zu.',c:['Hersteller','Großhändler'],
+  it:[['oft günstiger',0],['große Mindestmengen',0],['schmales Sortiment',0],['Sonderwünsche möglich',0],['auch kleine Mengen',1],['breites Sortiment aus einer Hand',1],['schnelle Lieferung',1],['meist teurer',1]],
+  e:'Der Großhändler will auch verdienen – dafür liefert er kleine Mengen und viel Auswahl.',s:'Beim Großhändler bekomme ich auch kleine Mengen, zahle aber meist mehr.'},
+ {id:'k4d',t:'mc',l:'ap',q:'Was ist eine Einkaufsgenossenschaft?',
+  o:['Rechtlich selbstständige Einzelhändler schließen sich zum gemeinsamen Wareneinkauf zusammen.','Rechtlich selbstständige Einzelhändler eröffnen ihre Geschäfte in einem Gebäude.','Rechtlich selbstständige Einzelhändler treffen Preisabsprachen.','Rechtlich selbstständige Einzelhändler starten vor Festtagen gemeinsame Werbung.','Rechtlich selbstständige Einzelhändler suchen sich beim Großhändler Ware selbst aus.'],
+  e:'Gemeinsam einkaufen = große Mengen = bessere Preise. Beispiele: EDEKA, REWE, Intersport.',
+  s:'Selbstständige Einzelhändler sind in einer Einkaufsgenossenschaft zusammengeschlossen.',
+  w:['… weil die Zentrale große Mengen günstig einkauft.','… weil die Händler dann keine eigenen Läden mehr haben.','… weil Preisabsprachen erlaubt sind.']},
+ {id:'k4e',t:'mc',l:'ap',q:'Welcher Punkt ist KEIN Vorteil einer Kooperation im Einkauf?',
+  o:['hoher Abstimmungsbedarf zwischen den Unternehmen','günstigerer Einkauf durch Mengenrabatte','gemeinsames Rechnungswesen durch die Zentrale','gemeinsame Werbung und Informationsmaterial','Schulungsangebote für Mitarbeiter'],
+  e:'Viel abstimmen müssen ist ein Nachteil: weniger Freiheit für den einzelnen Händler.',
+  s:'Ein Nachteil der Kooperation ist der hohe Abstimmungsbedarf.'},
+ {id:'k4f',t:'sort',l:'ap',q:'Welche Tätigkeit gehört wohin? Ordnet zu.',c:['Wareneinkauf','Wareneingangskontrolle','Rechnungsbearbeitung'],
+  it:[['Warenbestellung aufgrund der Bedarfsermittlung',0],['Anfragen an Lieferer schreiben',0],['Kontrolle von Art und Beschaffenheit der gelieferten Ware',1],['Vergleich von Rechnung und Lieferschein',2]],
+  e:'Erst einkaufen, dann die Lieferung prüfen, dann die Rechnung. Wareneingang und Rechnung vertieft ihr in LF 7.',s:'Wareneinkauf: Warenbestellung aufgrund der Bedarfsermittlung.'},
+ {id:'k4g',t:'mc',l:'ap',q:'Der Vertreter an Stand 13 sagt: „Anfragen sind Zeitverschwendung. Bestellen Sie heute!“ Warum schreibt ihr trotzdem Anfragen an mehrere Lieferer?',
+  o:['Eine Anfrage ist unverbindlich – wir können Preise und Bedingungen vergleichen, ohne kaufen zu müssen.','Eine Anfrage verpflichtet den Lieferer, zu unserem Preis zu liefern.','Ohne Anfrage darf man gar nicht bestellen.','Eine Anfrage sichert automatisch Skonto.'],
+  e:'Wer anfragt, muss nicht kaufen. Man darf bei vielen Lieferern gleichzeitig anfragen.',
+  s:'Wir richten Anfragen an mehrere Lieferer; die Anfrage ist rechtlich unverbindlich.'},
+ {id:'k4h',t:'mc',l:'ap',q:'Ein Lieferer ist noch nicht im WWS erfasst. Welche Arbeit muss im WWS ausgeführt werden?',
+  o:['Die Liefererdatei muss ergänzt werden.','Die Kundendatei muss ergänzt werden.','Im Programm „Auftragserfassung“ müssen alle Angebote erfasst werden.','In der Lagerdatei müssen neue Bestände aufgenommen werden.','Die GTIN muss geändert werden.'],
+  e:'Wiederholung aus dem WWS-Kapitel: neuer Lieferer = Liefererdatei.',s:'Die Liefererdatei muss ergänzt werden.'},
+ {id:'k4i',t:'mc',l:'p',q:'Was bedeutet Zentralregulierung?',
+  o:['Die Zentrale bezahlt die Rechnungen der Mitglieder an den Lieferer und haftet dafür (Delkredere).','Die Zentrale legt die Verkaufspreise aller Mitglieder fest.','Ein Großhändler mietet Regalfläche im Laden und füllt sie selbst auf.','Jedes Mitglied zahlt jede Rechnung einzeln an den Lieferer.'],
+  e:'Der Lieferer hat nur einen Ansprechpartner und kein Ausfallrisiko – dafür gibt er bessere Konditionen.',
+  s:'Bei der Zentralregulierung bezahlt die Zentrale die Rechnungen und übernimmt das Delkredere.',
+  w:['… weil der Lieferer so kein Ausfallrisiko hat und bessere Konditionen gewährt.','… weil die Mitglieder dann keine Rechnungen mehr bekommen.','… weil das Gesetz es verlangt.']},
+ {id:'k4j',t:'mc',l:'p',q:'Ihr wollt 80 % der Ware bei Nordlicht-Import kaufen, weil es billig ist. Wie beurteilt ihr das?',
+  o:['Riskant: Abhängigkeit bei Lieferausfall oder Preiserhöhung – besser Hauptlieferer plus Ausweichlieferer.','Ideal: Ein einziger Lieferer bedeutet kein Beschaffungsrisiko.','Verboten: Händler müssen mindestens drei Lieferer haben.','Egal: Die Zahl der Lieferer hat keinen Einfluss.'],
+  e:'Große Mengen bei einem Lieferer bringen gute Konditionen – aber auch Abhängigkeit.',
+  s:'Zur Senkung des Beschaffungsrisikos werden Haupt- und Ausweichlieferer genutzt.',
+  w:['… weil ein Lieferausfall dann das ganze Sortiment trifft.','… weil Großhändler keine Mengenrabatte geben.','… weil das WWS nur einen Lieferer speichern kann.']}
+ ]},
+
+{n:5, ort:'Briefkasten im Kontor', titel:'Post vom Phantom', modul:'Modul 5 · Anfrage und Angebot', prop:'brief', dim:'weg',
+ intro:'Im Briefkasten: Prospekte, E-Mails, Briefe. Ein Brief ohne Absender sagt: „Sie haben bei uns bestellt. Zahlen Sie!“ Prüft, was überhaupt ein Angebot ist – und was nur Papier.',
+ clue:{Boot:'Der Bote mit dem Brief wurde gesehen: Er legte mit einem Motorboot an der Kaje an.', Rad:'Der Bote mit dem Brief wurde gesehen: Er fuhr mit dem Fahrrad über die Brücke davon.'},
+ cliff:'Ein Umschlag trägt den Stempel „Fischereihafen“.',
+ tip:'Anfrage = unverbindlich. · Angebot an eine bestimmte Person = verbindlich. · Prospekt, Schaufenster, Katalog = kein Angebot. · „freibleibend“, „solange der Vorrat reicht“ = Freizeichnung. · Telefon: nur sofort, Brief: etwa eine Woche.',
+ ws:['die Anfrage','allgemein','bestimmt','unverbindlich','das Angebot (der Antrag)','verbindlich','die Willenserklärung','die Bindungsfrist','unter Anwesenden','unter Abwesenden','die Freizeichnungsklausel'],
+ pool:[
+ {id:'k5a',t:'sort',l:'ap',q:'Angebot oder nicht? Ordnet zu.',c:['Angebot (verbindlich)','kein Angebot','Angebot, aber unverbindlich'],
+  it:[['E-Mail an euch: „Wir liefern Ihnen 50 Friesennerze zu 39,00 €.“',0],['Telefonangebot eines Vertreters an die Einkäuferin',0],['Prospekt in der Tageszeitung',1],['Schaufenster mit Preisschildern',1],['Webshop-Seite eines Großhändlers',1],['Katalog',1],['Brief an euch: „Preise freibleibend“',2],['Angebot an euch „solange der Vorrat reicht“',2]],
+  e:'Ein Angebot richtet sich an eine bestimmte Person. Werbung richtet sich an die Allgemeinheit.',s:'Ein Prospekt ist eine Aufforderung zur Abgabe eines Angebots.'},
+ {id:'k5b',t:'mc',l:'ap',q:'Was gilt für eine Anfrage?',
+  o:['Sie ist rechtlich unverbindlich.','Sie verpflichtet zum Kauf, wenn das Angebot passt.','Sie ist die Annahme eines Angebots.','Man darf nur bei einem Lieferer anfragen.'],
+  e:'Fragen kostet nichts. Man darf bei vielen Lieferern gleichzeitig anfragen.',s:'Eine Anfrage ist rechtlich unverbindlich.'},
+ {id:'k5c',t:'mc',l:'ap',q:'„Zu welchem Preis liefern Sie 200 Thermobecher bis zum 15.11.?“ Was ist das?',
+  o:['eine bestimmte Anfrage','eine allgemeine Anfrage','ein Angebot','eine Bestellung'],
+  e:'Bestimmte Anfrage: konkrete Ware, Menge, Termin. Allgemeine Anfrage: Bitte um Katalog oder Preisliste.',s:'Ich richte eine bestimmte Anfrage an den Lieferer.'},
+ {id:'k5d',t:'mc',l:'ap',q:'Ein Vertreter macht am Telefon ein Angebot. Ihr sagt: „Wir melden uns morgen.“ Ist er morgen noch gebunden?',
+  o:['Nein – unter Anwesenden (auch am Telefon) gilt das Angebot nur sofort.','Ja – Angebote gelten immer eine Woche.','Ja – am Telefon wird ja kein Brief verschickt.','Nein – Telefonangebote sind nie verbindlich.'],
+  e:'Persönlich, am Telefon oder im Video-Call: Das Angebot muss sofort angenommen werden.',
+  s:'Ein Angebot unter Anwesenden kann nur sofort angenommen werden.',
+  w:['… weil man unter Anwesenden sofort antworten kann.','… weil Telefongespräche nicht zählen.','… weil der Vertreter kein Kaufmann ist.']},
+ {id:'k5e',t:'mc',l:'ap',q:'Ein Lieferer schickt am 2. November per Brief ein Angebot ohne Einschränkung. Ihr bestellt am 28. November. Kommt ein Kaufvertrag zustande?',
+  o:['Nein – die Bindung unter Abwesenden ist abgelaufen; die Bestellung ist ein neuer Antrag.','Ja – Angebote ohne Frist gelten unbegrenzt.','Ja – eine Bestellung ist immer die Annahme.','Nein – Briefangebote sind nie verbindlich.'],
+  e:'Unter Abwesenden gilt das Angebot, solange man normalerweise eine Antwort erwarten kann: beim Brief etwa eine Woche.',
+  s:'Die Bindungsfrist des Angebots unter Abwesenden ist abgelaufen; der Lieferer ist nicht mehr gebunden.',
+  w:['… weil man unter normalen Umständen nach etwa einer Woche eine Antwort erwarten kann.','… weil Angebote nach 14 Tagen immer erlöschen.','… weil ein Brief nie ein Angebot ist.']},
+ {id:'k5f',t:'mc',l:'ap',q:'Angebot vom 2. Oktober: „gültig bis 20. Oktober“. Ihr bestellt am 18. Oktober zu den Bedingungen des Angebots. Was gilt?',
+  o:['Kaufvertrag – die Bestellung kam innerhalb der Frist und unverändert.','Kein Kaufvertrag – nach zwei Wochen ist jedes Angebot erloschen.','Kein Kaufvertrag – erst die Auftragsbestätigung zählt.','Kaufvertrag erst bei Lieferung.'],
+  e:'Befristetes Angebot: Es gilt bis zum genannten Termin.',s:'Die Bestellung erfolgte innerhalb der Frist und unverändert; ein Kaufvertrag kommt zustande.'},
+ {id:'k5g',t:'mc',l:'ap',q:'Ein Kunde sagt: „Im Prospekt stand die Wetterstation für 29 €. Sie müssen sie mir verkaufen!“ Hat er recht?',
+  o:['Nein – ein Prospekt ist kein Angebot, sondern eine Aufforderung, ein Angebot abzugeben.','Ja – was im Prospekt steht, ist verbindlich.','Ja – aber nur für Stammkunden.','Nein – weil der Kunde vorher nicht angefragt hat.'],
+  e:'Werbung richtet sich an die Allgemeinheit. Der Kunde macht mit seinem Kaufwunsch das Angebot.',
+  s:'Ein Prospekt ist eine Aufforderung zur Abgabe eines Angebots.',
+  w:['… weil sich ein Prospekt an die Allgemeinheit richtet.','… weil Preise im Prospekt immer falsch sind.','… weil Kunden keine Rechte haben.']},
+ {id:'k5h',t:'mc',l:'ap',q:'Ihr bestellt auf ein Angebot der Kramer GmbH 500 Sektgläser – rechtzeitig und zu den angebotenen Bedingungen. Kommt ein Kaufvertrag zustande?',
+  o:['Ja, weil das Angebot keine Freizeichnungsklausel enthält und unverändert angenommen wurde.','Nein, erst wenn die Kramer GmbH den Liefertermin bestätigt.','Ja, weil jede Bestellung verbindlich ist.','Nein, denn Angebote sind stets rechtlich unverbindlich.','Ja, weil das Angebot die erste Willenserklärung darstellt.'],
+  e:'Drei Prüffragen: Angebot an uns ohne Freizeichnung? Rechtzeitig bestellt? Nichts geändert? Dreimal Ja → Kaufvertrag.',
+  s:'Ein Angebot ohne Freizeichnungsklausel, das rechtzeitig und unverändert angenommen wird, führt zum Kaufvertrag.',
+  w:['… weil Angebot und Bestellung zwei übereinstimmende Willenserklärungen sind.','… weil der Lieferer immer bestätigen muss.','… weil Sektgläser Handelsware sind.']},
+ {id:'k5i',t:'mc',l:'p',q:'Ihr bestellt auf das Angebot der Kramer GmbH 500 Sektgläser und schreibt dazu: „Lieferung am 19.04. fix.“ Im Angebot stand kein Fixtermin. Kommt durch die Bestellung ein Kaufvertrag zustande?',
+  o:['Nein, erst wenn die Kramer GmbH den Liefertermin bestätigt.','Ja, weil das Angebot keine Freizeichnungsklausel enthält.','Ja, weil jede Bestellung verbindlich ist.','Nein, denn Angebote sind stets rechtlich unverbindlich.','Ja, weil das Angebot die erste Willenserklärung darstellt.'],
+  e:'Die Bestellung weicht vom Angebot ab (Fixtermin). Eine Annahme mit Änderungen ist ein neuer Antrag. So lautet auch die IHK-Lösung.',
+  s:'Eine abgeänderte Annahme gilt als Ablehnung verbunden mit einem neuen Antrag (§ 150 Abs. 2 BGB).',
+  w:['… weil eine Annahme mit Änderung als neuer Antrag gilt (§ 150 Abs. 2 BGB).','… weil Fixkäufe immer schriftlich sein müssen.','… weil Sektgläser zerbrechlich sind.']},
+ {id:'k5j',t:'mc',l:'ap',q:'Die Sport KG bietet euch 20 Schlitten an: 29,00 € netto, 2 % Skonto in 20 Tagen, Lieferung unter Eigentumsvorbehalt, „solange der Vorrat reicht“. Welche rechtliche Bedeutung hat das Angebot?',
+  o:['Es ist unverbindlich, da es eine Freizeichnungsklausel enthält.','Es ist verbindlich, da die Sport KG ein Handelsunternehmen ist.','Es ist unverbindlich, da die Lieferung unter Eigentumsvorbehalt erfolgt.','Es ist unverbindlich, da es an die Allgemeinheit gerichtet ist.','Es ist verbindlich, weil es den Preis enthält.'],
+  e:'„Solange der Vorrat reicht“ ist eine Freizeichnungsklausel. Der Eigentumsvorbehalt ist ein Ablenker.',
+  s:'Das Angebot enthält eine Freizeichnungsklausel und ist deshalb unverbindlich.',
+  w:['… weil „solange der Vorrat reicht“ die Bindung ausschließt.','… weil Eigentumsvorbehalt jedes Angebot unverbindlich macht.','… weil Schlitten Saisonware sind.']},
+ {id:'k5k',t:'sort',l:'ap',q:'Was ist durch die Klausel unverbindlich? Ordnet zu.',c:['das ganze Angebot','nur der Preis','nur die Menge'],
+  it:[['„freibleibend“',0],['„unverbindlich“',0],['„ohne Obligo“',0],['„Preis freibleibend“',1],['„solange der Vorrat reicht“',2]],
+  e:'Freizeichnungsklauseln schränken die Bindung ganz oder teilweise ein.',s:'„Preis freibleibend“: Nur der Preis ist unverbindlich.'},
+ {id:'k5l',t:'mc',l:'p',q:'Ein Lieferer schickt am Montag per Brief ein Angebot. Am Dienstag ruft er an, bevor der Brief da ist: „Ich nehme mein Angebot zurück.“ Ist das wirksam?',
+  o:['Ja – ein Widerruf wirkt, wenn er vor oder gleichzeitig mit dem Angebot ankommt.','Nein – ein abgeschicktes Angebot kann nie zurückgenommen werden.','Nein – ein Widerruf muss schriftlich sein.','Ja – Angebote darf man immer innerhalb einer Woche widerrufen.'],
+  e:'§ 130 BGB: Eine Willenserklärung wird erst mit Zugang wirksam. Kommt der Widerruf vorher oder gleichzeitig, gilt sie nicht.',
+  s:'Ein Widerruf ist wirksam, wenn er spätestens gleichzeitig mit dem Angebot zugeht.'},
+ {id:'k5m',t:'mc',l:'p',q:'Im Angebot steht versehentlich 30,00 € statt 300,00 € je Stück. Ihr bestellt sofort. Was kann der Lieferer tun?',
+  o:['Er kann wegen eines Irrtums in der Erklärung unverzüglich anfechten.','Er muss zu 30,00 € liefern, ohne Ausnahme.','Der Vertrag ist automatisch nichtig.','Er kann zurücktreten, weil die Preise gestiegen sind.'],
+  e:'Ein Schreibfehler ist ein Erklärungsirrtum (§ 119 BGB). Gestiegene Preise sind dagegen kein Anfechtungsgrund.',
+  s:'Der Lieferer ist berechtigt, den Kaufvertrag wegen Erklärungsirrtums anzufechten.'}
+ ]},
+
+{n:6, ort:'Schaufenster Fischereihafen', titel:'Das Kleingedruckte', modul:'Modul 6 · Inhalt des Angebots', prop:'lupe', dim:'hand',
+ intro:'Im Schaufenster Fischereihafen riecht es nach Räucherfisch. Nordlicht-Import hat euch ein Angebot geschickt: unglaublich billig. Doch das Wichtigste steht im Kleingedruckten.',
+ clue:{links:'Am Paket von Nordlicht-Import: Der Knoten wurde mit der linken Hand gebunden, sagt der alte Netzmacher.', rechts:'Am Paket von Nordlicht-Import: Der Knoten wurde mit der rechten Hand gebunden, sagt der alte Netzmacher.'},
+ cliff:'Der Netzmacher flüstert: „Claasen hat alles aufgeschrieben. In seinem Rechenbuch.“',
+ tip:'Rabatt = sofort, z. B. für Menge. Bonus = nachträglich für Umsatz. Skonto = für schnelles Bezahlen. · frei Haus = Verkäufer zahlt Transport. ab Werk = Käufer zahlt. · Bezugskosten = Kosten, bis die Ware bei uns ist.',
+ ws:['der Listenpreis','netto','brutto','der Rabatt','der Bonus','das Skonto','die Zahlungsbedingung','das Zahlungsziel','die Lieferungsbedingung','frei Haus','unfrei','ab Werk','die Bezugskosten'],
+ pool:[
+ {id:'k6a',t:'sort',l:'ap',q:'Welcher Nachlass ist das? Ordnet zu.',c:['Rabatt','Bonus','Skonto'],
+  it:[['Nachlass bei Bestellung größerer Stückzahlen',0],['Treuerabatt für langjährige Kunden',0],['Messerabatt auf der Händlermesse',0],['Nachlass, der nachträglich bei Erreichen einer Umsatzhöhe gewährt wird',1],['Geld zurück am Jahresende für viel Umsatz',1],['Nachlass für Bezahlung innerhalb einer festgelegten Frist',2],['2 % bei Zahlung innerhalb von 10 Tagen',2]],
+  e:'Rabatt sofort auf der Rechnung, Bonus nachträglich, Skonto beim schnellen Bezahlen.',s:'Der Lieferer gewährt einen umsatzabhängigen Bonus.'},
+ {id:'k6b',t:'mc',l:'ap',q:'Welche Erklärung zu „Skonto“ ist richtig?',
+  o:['Skonto wird gewährt, wenn die Rechnung innerhalb einer vereinbarten Frist bezahlt wird.','Skonto wird gewährt, wenn große Stückzahlen bestellt werden.','Skonto wird automatisch bei einer Erstbestellung gewährt.','Skonto wird gewährt, wenn die Bestellung innerhalb einer Frist erfolgt.','Skonto wird nur bei langjähriger Geschäftsbeziehung am Jahresende gewährt.'],
+  e:'Skonto ist kein Mengennachlass. Es gibt ihn für vorzeitige Zahlung.',
+  s:'Bei Zahlung innerhalb der Skontofrist darf Skonto abgezogen werden.',
+  w:['… weil Skonto die schnelle Zahlung belohnt.','… weil Skonto ein Mengennachlass ist.','… weil Skonto ein Bonus am Jahresende ist.']},
+ {id:'k6c',t:'sort',l:'ap',q:'Wer zahlt den Transport? Ordnet zu.',c:['der Verkäufer (Lieferer)','der Käufer (ihr)'],
+  it:[['„Lieferung frei Haus“',0],['„ab Werk“',1],['„ab Lager“',1],['keine Vereinbarung im Vertrag (Gesetz)',1],['„Lieferung auf Kosten des Käufers“',1]],
+  e:'Frei Haus: Lieferer zahlt alles. Ab Werk: Käufer zahlt alles. Ohne Vereinbarung trägt der Käufer die Versandkosten (§ 448 BGB).',s:'Die Lieferung erfolgt frei Haus.'},
+ {id:'k6d',t:'mc',l:'ap',q:'Im Kleingedruckten steht „Lieferung unfrei“. Was bedeutet das?',
+  o:['Der Verkäufer zahlt bis zur Versandstation, ab dort zahlt der Käufer.','Der Verkäufer zahlt alle Transportkosten.','Der Käufer zahlt alle Kosten ab dem Lager des Verkäufers.','Der Transport ist kostenlos.'],
+  e:'Unfrei liegt zwischen „ab Werk“ und „frei Haus“. Die Fracht ab der Versandstation zahlt ihr – das sind Bezugskosten.',
+  s:'Bei „unfrei“ trägt der Käufer die Fracht ab der Versandstation.'},
+ {id:'k6e',t:'mc',l:'ap',q:'Bei welchen Kosten handelt es sich NICHT um Bezugskosten?',
+  o:['Kosten für die Zwischenlagerung der Ware in einem Fremdlager','Kosten, die der Lieferer für die Anlieferung per Lkw berechnet','Kosten für Luftfracht bei Ware aus dem Ausland','Kosten, die der Lieferer für Verpackung berechnet','Kosten, die der Lieferer für Paketporto berechnet'],
+  e:'Bezugskosten entstehen, bis die Ware bei uns ist. Lagerkosten entstehen danach – das sind Handlungskosten (LF 9).',
+  s:'Kosten für die Zwischenlagerung im Fremdlager sind keine Bezugskosten.',
+  w:['… weil Lagerkosten erst entstehen, wenn die Ware schon bei uns ist.','… weil Fremdlager immer kostenlos sind.','… weil Lagerkosten der Lieferer trägt.']},
+ {id:'k6f',t:'mc',l:'ap',q:'Die Kosten für die Anlieferung der Waren sind gestiegen. Welche Auswirkung hat das auf die Kalkulation?',
+  o:['Der Bezugspreis erhöht sich.','Der Listeneinkaufspreis erhöht sich.','Der Zieleinkaufspreis erhöht sich.','Der Bareinkaufspreis erhöht sich.','Der Handlungskostenzuschlagssatz erhöht sich.'],
+  e:'Anlieferungskosten sind Bezugskosten. Sie kommen erst nach dem Bareinkaufspreis dazu.',
+  s:'Steigen die Anlieferungskosten, steigt der Bezugspreis.',
+  w:['… weil Bezugskosten zum Bareinkaufspreis addiert werden.','… weil Fracht immer im Listenpreis steckt.','… weil Fracht vom Rabatt abgezogen wird.']},
+ {id:'k6g',t:'mc',l:'ap',q:'Ein Keramik-Großhändler schreibt: „Vase 15,00 € netto. Bei Vertragsabschluss 10 % Anzahlung, Rest 10 Tage nach Lieferung ohne Abzug. Lieferung auf Kosten des Käufers. Erfüllungsort ist Bremen.“ Was ist eine Zahlungsbedingung?',
+  o:['Bei Vertragsabschluss müssen 10 % des Kaufpreises angezahlt werden.','Die Lieferung erfolgt auf Kosten des Käufers.','Die Vase kostet 15,00 € netto.','Erfüllungsort ist Bremen.'],
+  e:'Zahlungsbedingung = wann und wie gezahlt wird. Lieferungsbedingung = wer den Transport zahlt.',
+  s:'Zahlungsbedingung: Anzahlung 10 % bei Vertragsabschluss.'},
+ {id:'k6h',t:'mc',l:'ap',q:'Zahlungsbedingung: „2 % Skonto innerhalb von 10 Tagen oder 30 Tage netto.“ Ihr zahlt am 25. Tag. Was zahlt ihr?',
+  o:['den vollen Rechnungsbetrag','den Rechnungsbetrag minus 2 % Skonto','den Rechnungsbetrag minus 30 %','nichts – die Frist ist abgelaufen'],
+  e:'Am 25. Tag ist die Skontofrist vorbei, aber das Zahlungsziel (30 Tage) noch nicht.',s:'„30 Tage netto“: 30 Tage Zeit, ohne Abzug.'},
+ {id:'k6i',t:'sort',l:'ap',q:'Zahlungs- oder Lieferungsbedingung? Ordnet zu.',c:['Zahlungsbedingung','Lieferungsbedingung'],
+  it:[['„30 Tage netto“',0],['„2 % Skonto innerhalb von 10 Tagen“',0],['„Vorauskasse“',0],['„Anzahlung 10 % bei Vertragsabschluss“',0],['„frei Haus“',1],['„ab Werk“',1],['„Lieferung auf Kosten des Käufers“',1],['„unfrei“',1]],
+  e:'Ein Angebot liest man wie eine Checkliste: Ware – Preis – Rabatt – Zahlung – Lieferung – Lieferzeit.',s:'Lieferungsbedingung: Lieferung frei Haus.'},
+ {id:'k6j',t:'num',l:'p',q:'„2 % Skonto innerhalb von 10 Tagen oder 30 Tage netto.“ Wer am 10. statt am 30. Tag zahlt, bekommt 2 % für 20 Tage früheres Zahlen. Wie hoch ist das als Jahreszins (Jahr = 360 Tage)?',
+  a:36,u:'%',r:'2 % für 20 Tage → 2 × 360 : 20 = 36 % im Jahr',d:[24,2],de:['Mit 12 Monaten gerechnet. Es geht um 20 Tage, nicht um einen Monat.','Das ist nur der Skontosatz für 20 Tage.'],
+  e:'Skonto lohnt sich fast immer – sogar mit einem Kredit.',s:'Skonto entspricht hier einem Jahreszins von 36 %.'},
+ {id:'k6k',t:'mc',l:'p',q:'Im Angebot ist kein Erfüllungsort vereinbart. Was gilt dann nach dem Gesetz?',
+  o:['der Sitz des Schuldners – für die Ware der Verkäufer, für das Geld der Käufer','immer der Sitz des Käufers','immer der Sitz des Verkäufers','der Ort des zuständigen Gerichts'],
+  e:'Kür: Erfüllungsort = Ort, an dem die Leistung zu erbringen ist. Ohne Vereinbarung gilt der Sitz des Schuldners (§§ 269, 270 BGB). Geld schickt der Käufer aber auf eigene Kosten und Gefahr.',
+  s:'Gesetzlicher Erfüllungsort ist der Wohn- bzw. Geschäftssitz des Schuldners.'}
+ ]},
+
+{n:7, ort:'Kontor über dem Laden', titel:'Claasens Rechenbuch', modul:'Modul 7 · Bezugskalkulation I', prop:'buch', dim:'tinte',
+ intro:'Claasens Rechenbuch liegt im Kontor über dem Laden: Ledereinband, Kaffeeflecken, saubere Spalten. Darin stehen seine Kalkulationen für den Winter. Aber einige Seiten sind manipuliert. Rechnet selbst nach.',
+ clue:{grün:'In Claasens Rechenbuch hat jemand Zahlen mit grüner Tinte verändert.', blau:'In Claasens Rechenbuch hat jemand Zahlen mit blauer Tinte verändert.'},
+ cliff:'Zwischen den Seiten steckt eine Rechnung von Nordlicht-Import.',
+ tip:'Listeneinkaufspreis − Rabatt (vom Listenpreis) = Zieleinkaufspreis − Skonto (vom Zieleinkaufspreis) = Bareinkaufspreis + Bezugskosten = Bezugspreis. · Immer netto. · Erst die ganze Menge, dann teilen. Erst am Ende runden.',
+ ws:['die Bezugskalkulation','der Listeneinkaufspreis','der Liefererrabatt','der Zieleinkaufspreis','das Liefererskonto','der Bareinkaufspreis','die Bezugskosten','der Bezugspreis (Einstandspreis)','kaufmännisch runden'],
+ pool:[
+ {id:'k7a',t:'ord',l:'ap',q:'Das Schema der Bezugskalkulation. Tippt die Zeilen in der richtigen Reihenfolge an.',
+  it:['Listeneinkaufspreis','− Liefererrabatt','= Zieleinkaufspreis','− Liefererskonto','= Bareinkaufspreis','+ Bezugskosten','= Bezugspreis'],
+  e:'Minus Rabatt – minus Skonto – plus Bezugskosten. Bei jedem „=“ entsteht ein neuer Grundwert.',s:'Vom Listeneinkaufspreis wird der Rabatt abgezogen, vom Zieleinkaufspreis das Skonto; zum Bareinkaufspreis werden die Bezugskosten addiert.'},
+ {id:'k7b',t:'num',l:'ap',q:'Winterjacke: Listenpreis 50,00 € je Stück, 10 % Rabatt, 2 % Skonto, Fracht 3,00 € je Jacke. Ihr zahlt in der Skontofrist. Wie hoch ist der Bezugspreis je Jacke?',
+  a:47.10,u:'€',r:'50,00 − 10 % (5,00) = 45,00 · − 2 % (0,90) = 44,10 · + 3,00 = 47,10 €',
+  d:[47.00,44.10],de:['Skonto vom Listenpreis gerechnet – Skonto kommt vom Zieleinkaufspreis.','Bezugskosten (Fracht) vergessen.'],
+  e:'Skonto immer vom Zieleinkaufspreis – nicht von 50,00 €!',s:'Der Bezugspreis beträgt 47,10 € je Jacke.'},
+ {id:'k7c',t:'num',l:'ap',q:'Leuchtturm-Magnete: Listenpreis 6,00 € je Stück, ab 100 Stück 5 % Rabatt, 3 % Skonto bei Zahlung in 8 Tagen, frei Haus. Ihr bestellt 200 Stück und zahlt in der Skontofrist. Bezugspreis für die gesamte Menge?',
+  a:1105.80,u:'€',r:'200 × 6,00 = 1.200,00 · − 5 % (60,00) = 1.140,00 · − 3 % (34,20) = 1.105,80 · frei Haus + 0,00 = 1.105,80 €',
+  d:[1104.00,5.53],de:['Skonto vom Listenpreis gerechnet.','Das ist der Preis je Stück – gefragt ist die gesamte Menge.'],
+  e:'Frage genau lesen: gesamte Menge oder je Stück?',s:'Der Bezugspreis für 200 Stück beträgt 1.105,80 €.'},
+ {id:'k7d',t:'num',l:'ap',q:'Schlüsselanhänger „Anker“: 4,50 € je Stück, 20 % Rabatt ab 100 Stück, 2 % Skonto, Bezugskosten insgesamt 6,90 €. Ihr bestellt 100 Stück. Bezugspreis für die gesamte Menge?',
+  a:359.70,u:'€',r:'100 × 4,50 = 450,00 · − 20 % (90,00) = 360,00 · − 2 % (7,20) = 352,80 · + 6,90 = 359,70 €',
+  d:[352.80,3.60],de:['Bezugskosten vergessen.','Das ist der Preis je Stück.'],
+  e:'Bezugskosten gelten meist für die ganze Lieferung – also erst die ganze Menge rechnen.',s:'Der Bezugspreis für 100 Stück beträgt 359,70 €.'},
+ {id:'k7e',t:'num',l:'ap',q:'Schlüsselanhänger „Anker“: Bezugspreis für 100 Stück = 359,70 €. Wie hoch ist der Bezugspreis je Stück?',
+  a:3.60,u:'€',r:'359,70 : 100 = 3,597 → kaufmännisch gerundet 3,60 €',d:[3.59,359.70],de:['Abgeschnitten statt gerundet: 3,597 wird zu 3,60.','Das ist die gesamte Menge.'],
+  e:'Kaufmännisch runden: ab 5 aufrunden, erst am Ende.',s:'Der Bezugspreis je Stück beträgt 3,60 €.'},
+ {id:'k7f',t:'num',l:'ap',q:'Strickjacke „Beta“: Listenpreis 15,95 €, 5 % Rabatt, 2 % Skonto, frei Haus. Bezugspreis für eine Strickjacke?',
+  a:14.85,u:'€',r:'15,95 − 5 % = 15,1525 · − 2 % = 14,84945 → 14,85 €',d:[14.83,15.15],de:['5 % + 2 % = 7 % vom Listenpreis gerechnet. Skonto kommt vom Zieleinkaufspreis.','Skonto vergessen.'],
+  e:'Mit allen Stellen weiterrechnen, erst das Ergebnis runden.',s:'Der Bezugspreis beträgt 14,85 €.'},
+ {id:'k7g',t:'num',l:'ap',q:'Für das Kontor wird ein Seefunkgerät gekauft: Listenpreis 750,00 €, 15 % Rabatt, 2 % Skonto bei Zahlung in 10 Tagen. Bareinkaufspreis, wenn ihr Skonto nutzt?',
+  a:624.75,u:'€',r:'750,00 − 15 % (112,50) = 637,50 · − 2 % (12,75) = 624,75 €',d:[622.50,637.50],de:['15 % + 2 % = 17 % vom Listenpreis gerechnet.','Skonto vergessen – das ist der Zieleinkaufspreis.'],
+  e:'Gefragt ist der Bareinkaufspreis – also ohne Bezugskosten.',s:'Der Bareinkaufspreis beträgt 624,75 €.'},
+ {id:'k7h',t:'num',l:'ap',q:'Für 35 Friesennerze beträgt der Listenpreis insgesamt 1.400,00 €. Der Lieferer gewährt 15 % Rabatt und 2 % Skonto. Bareinkaufspreis für einen Friesennerz?',
+  a:33.32,u:'€',r:'1.400,00 − 15 % (210,00) = 1.190,00 · − 2 % (23,80) = 1.166,20 · : 35 = 33,32 €',d:[1166.20,33.20],de:['Das ist der Betrag für alle 35 Stück.','17 % vom Listenpreis gerechnet.'],
+  e:'Ganze Menge rechnen, dann teilen.',s:'Der Bareinkaufspreis je Stück beträgt 33,32 €.'},
+ {id:'k7i',t:'num',l:'ap',q:'Ihr bestellt 80 Sturmlaternen zu je 12,50 € Listenpreis. Rabatt 12 %, Skonto 3 %, Fracht für die Lieferung 24,00 €. Bezugspreis je Laterne?',
+  a:10.97,u:'€',r:'80 × 12,50 = 1.000,00 · − 12 % = 880,00 · − 3 % (26,40) = 853,60 · + 24,00 = 877,60 · : 80 = 10,97 €',d:[10.67,877.60],de:['Fracht vergessen.','Das ist der Bezugspreis für alle 80 Laternen.'],
+  e:'Fracht für die ganze Lieferung erst addieren, dann durch die Stückzahl teilen.',s:'Der Bezugspreis je Laterne beträgt 10,97 €.'},
+ {id:'k7j',t:'num',l:'p',q:'Kapitänsfernglas: Listenpreis 80,00 €. 25 % Wiederverkäuferrabatt und zusätzlich 5 % Sonderrabatt auf den bereits reduzierten Preis, 2 % Skonto, Bezugskosten 1,20 € je Stück. Bezugspreis je Stück?',
+  a:57.06,u:'€',r:'80,00 − 25 % = 60,00 · − 5 % = 57,00 · − 2 % = 55,86 · + 1,20 = 57,06 €',d:[56.08,58.20],de:['25 % + 5 % zusammengezählt – der Sonderrabatt kommt vom bereits reduzierten Preis.','Skonto vergessen.'],
+  e:'Zwei Rabatte nacheinander sind nicht dasselbe wie die Summe der Prozentsätze.',s:'Der Bezugspreis beträgt 57,06 €.'},
+ {id:'k7k',t:'mc',l:'ap',q:'Wovon wird das Skonto in der Bezugskalkulation berechnet?',
+  o:['vom Zieleinkaufspreis','vom Listeneinkaufspreis','vom Bezugspreis','vom Bareinkaufspreis'],
+  e:'Rabatt vom Listenpreis, Skonto vom Zieleinkaufspreis – die zwei Grundregeln.',s:'Das Liefererskonto wird vom Zieleinkaufspreis berechnet.',
+  w:['… weil Skonto auf den Betrag gewährt wird, den wir nach Abzug des Rabatts tatsächlich zahlen müssten.','… weil der Listenpreis die Grundlage für alle Nachlässe ist.','… weil Skonto immer ganz am Ende abgezogen wird.']},
+ {id:'k7l',t:'mc',l:'ap',q:'Ist der Bezugspreis netto oder brutto?',
+  o:['netto – ohne Umsatzsteuer','brutto – mit 19 % Umsatzsteuer','je nach Lieferer verschieden','brutto, wenn frei Haus geliefert wird'],
+  e:'Die Umsatzsteuer gehört nicht in die Bezugskalkulation. Der Betrieb verrechnet sie als Vorsteuer.',s:'Der Bezugspreis wird ohne Umsatzsteuer (netto) ermittelt.',
+  w:['… weil die Umsatzsteuer als Vorsteuer verrechnet wird.','… weil Lieferer keine Steuer berechnen.','… weil Steuern zu den Bezugskosten gehören.']}
+ ]}
+];
+
+/* ===== Kapitel 8–14 ===== */
+CHAPTERS.push(
+{n:8, ort:'Kontor, Schreibtisch', titel:'Die Rechnung', modul:'Modul 8 · Bezugskalkulation II', prop:'rechnung', dim:'hand',
+ intro:'Die Rechnung von Nordlicht-Import sieht echt aus: Stempel, Steuernummer, alles da. Doch das Syndikat rechnet mit Tricks – Steuer, Skonto, Frachtkosten. Wer hier falsch überweist, verliert Geld und am Ende die Lizenz.',
+ clue:{links:'Die Unterschrift auf der Rechnung ist verwischt – geschrieben mit der linken Hand.', rechts:'Die Unterschrift auf der Rechnung ist sauber nach rechts geneigt – geschrieben mit der rechten Hand.'},
+ cliff:'Auf der Rückseite steht mit Bleistift: „Containerterminal, Kai 4“.',
+ tip:'Bezugspreis aus der Rechnung: Netto suchen – Steuer weglassen – durch die Menge teilen. · Überweisungsbetrag = Rechnungsbetrag (brutto) − Skonto. · Bezugskosten verteilen: Kosten : Gesamtgewicht (oder Stückzahl) × Anteil.',
+ ws:['die Rechnung','der Rechnungsbetrag (brutto)','der Nettobetrag','die Umsatzsteuer','der Überweisungsbetrag','die Skontofrist','verteilen','nach Gewicht','nach Stückzahl','der Rabattsatz','rückwärts rechnen'],
+ pool:[
+ {id:'k8a',t:'num',l:'ap',q:'Rechnung: 180 Fischerhemden × 16,00 € = 2.880,00 € · − 10 % Rabatt 288,00 € · + Verpackung 18,00 € · Netto 2.610,00 € · + 19 % USt 495,90 € · Brutto 3.105,90 €. Bezugspreis (netto) für ein Hemd?',
+  a:14.50,u:'€',r:'Netto 2.610,00 € (Ware nach Rabatt + Verpackung, ohne USt) · 2.610,00 : 180 = 14,50 €',d:[17.26,14.40],de:['Mit Umsatzsteuer gerechnet. Der Bezugspreis ist immer netto.','Verpackung vergessen – Verpackung des Lieferers sind Bezugskosten.'],
+  e:'Netto suchen – Steuer weg – durch die Menge teilen.',s:'Der Bezugspreis wird ohne Umsatzsteuer ermittelt: 14,50 € je Hemd.'},
+ {id:'k8b',t:'num',l:'ap',q:'Rechnung: 50 Seesäcke × 53,80 € = 2.690,00 € · − 10 % Rabatt 269,00 € · + Verpackung 29,00 € · Netto 2.450,00 € · + 19 % USt 465,50 € · Brutto 2.915,50 €. Bezugspreis für einen Seesack?',
+  a:49.00,u:'€',r:'Netto 2.450,00 € · 2.450,00 : 50 = 49,00 €',d:[58.31,48.42],de:['Mit Umsatzsteuer (brutto) gerechnet.','Verpackung vergessen.'],
+  e:'Die Umsatzsteuer gehört nicht in den Bezugspreis.',s:'Der Bezugspreis beträgt 49,00 € je Seesack.'},
+ {id:'k8c',t:'num',l:'ap',q:'Eine Rechnung über 3.820,00 € soll mit 3 % Skonto bezahlt werden. Wie hoch ist der Überweisungsbetrag?',
+  a:3705.40,u:'€',r:'3.820,00 × 3 : 100 = 114,60 · 3.820,00 − 114,60 = 3.705,40 €',d:[3820.00,3934.60],de:['Skonto vergessen.','Skonto addiert statt abgezogen.'],
+  e:'Beim Bezahlen zählt der Rechnungsbetrag. Davon wird das Skonto abgezogen.',s:'Der Überweisungsbetrag ergibt sich aus dem Rechnungsbetrag abzüglich Skonto.'},
+ {id:'k8d',t:'num',l:'ap',q:'Rechnung: Warenwert netto 4.300,00 €, frei Haus, 19 % USt 817,00 €, Gesamtbetrag 5.117,00 €. Zahlung innerhalb von 10 Tagen mit 2 % Skonto. Überweisungsbetrag nach Abzug von Skonto?',
+  a:5014.66,u:'€',r:'5.117,00 × 2 : 100 = 102,34 · 5.117,00 − 102,34 = 5.014,66 €',d:[4214.00,5117.00],de:['Vom Nettobetrag gerechnet – überwiesen wird der Bruttobetrag minus Skonto.','Skonto vergessen.'],
+  e:'Bezugspreis = netto. Überweisungsbetrag = brutto minus Skonto. Häufigster Fehler im Rechenteil!',s:'Der Überweisungsbetrag beträgt 5.014,66 €.'},
+ {id:'k8e',t:'num',l:'ap',q:'Ihr erhaltet 150 kg Ware A, 240 kg Ware B und 360 kg Ware C. Die Fracht von 75,00 € wird nach Gewicht verteilt. Wie viel Euro entfallen auf Ware C?',
+  a:36.00,u:'€',r:'150 + 240 + 360 = 750 kg · 75,00 : 750 = 0,10 € je kg · 360 × 0,10 = 36,00 €',d:[25.00,0.10],de:['Die Fracht nur durch 3 geteilt – nach Gewicht heißt: Kosten je kg.','Das ist der Satz je kg, nicht der Anteil von Ware C.'],
+  e:'Gesamtgewicht → Kosten je kg → Anteil.',s:'Die Bezugskosten werden im Verhältnis der Gewichtsanteile verteilt.'},
+ {id:'k8f',t:'num',l:'ap',q:'Eine Lieferung: 75 Fischerhosen, 50 Ringelshirts, 35 Friesennerze. Transport insgesamt 80,00 €, verteilt nach Stückzahl. Wie viel Euro entfallen auf die Fischerhosen?',
+  a:37.50,u:'€',r:'75 + 50 + 35 = 160 Stück · 80,00 : 160 = 0,50 € je Stück · 75 × 0,50 = 37,50 €',d:[26.67,0.50],de:['Die Kosten nur durch 3 geteilt.','Das ist der Satz je Stück.'],
+  e:'Nach Stückzahl genauso wie nach Gewicht.',s:'Auf die Fischerhosen entfallen 37,50 € Transportkosten.'},
+ {id:'k8g',t:'num',l:'ap',q:'Lieferung: 210 kg Kandis, 140 kg Ostfriesentee, 150 kg Sanddorn-Gelee. Transport 70,00 €, nach Gewicht verteilt. Anteil für den Tee?',
+  a:19.60,u:'€',r:'210 + 140 + 150 = 500 kg · 70,00 : 500 = 0,14 € je kg · 140 × 0,14 = 19,60 €',d:[23.33,0.14],de:['Die Kosten nur durch 3 geteilt.','Das ist der Satz je kg.'],
+  e:'Gesamtgewicht zuerst.',s:'Auf den Tee entfallen 19,60 €.'},
+ {id:'k8h',t:'num',l:'ap',q:'Taschenlampen 65 kg, Funkuhren 85 kg, Wetterstationen 110 kg. Transport 80,00 €, nach Gewicht verteilt. Wie viel Euro entfallen auf die Taschenlampen?',
+  a:20.00,u:'€',r:'65 + 85 + 110 = 260 kg · 80,00 : 260 = 0,30769… € je kg · 65 × 0,30769… = 20,00 €',d:[26.67,0.31],de:['Die Kosten nur durch 3 geteilt.','Das ist der Satz je kg.'],
+  e:'Den Satz je kg nicht zu früh runden.',s:'Auf die Taschenlampen entfallen 20,00 €.'},
+ {id:'k8i',t:'num',l:'ap',q:'Der Zieleinkaufspreis einer Ware beträgt 21,00 €, der Bareinkaufspreis 20,37 €. Wie viel Prozent Skonto wurden abgezogen?',
+  a:3,u:'%',r:'21,00 − 20,37 = 0,63 € · 0,63 × 100 : 21,00 = 3 %',d:[0.63,3.09],de:['Das ist das Skonto in Euro, nicht in Prozent.','Vom Bareinkaufspreis gerechnet – Grundwert ist der Zieleinkaufspreis.'],
+  e:'Rückwärts: Skonto in € × 100 : Zieleinkaufspreis.',s:'Der Skontosatz beträgt 3 %.'},
+ {id:'k8j',t:'num',l:'ap',q:'Ein Lieferer räumt 20 % Rabatt auf den Listenpreis eines Radargeräts ein. Der Rabatt beträgt 160,00 €. Wie hoch ist der Listenpreis?',
+  a:800,u:'€',r:'20 % = 160,00 € · 100 % = 160,00 × 100 : 20 = 800,00 €',d:[32,192],de:['20 % von 160 € gerechnet – gesucht ist der Grundwert (100 %).','20 % von 160 € addiert – gesucht ist der Grundwert.'],
+  e:'Rückwärts: Rabatt in € × 100 : Rabattsatz.',s:'Der Listenpreis beträgt 800,00 €.'},
+ {id:'k8k',t:'num',l:'ap',q:'Listenpreis eines Seefunkgeräts 750,00 €. Nach Abzug des Rabatts bleiben 600,00 €. Wie viel Prozent Rabatt gewährt der Lieferer?',
+  a:20,u:'%',r:'750,00 − 600,00 = 150,00 € · 150,00 × 100 : 750,00 = 20 %',d:[25,150],de:['Vom reduzierten Preis gerechnet – Grundwert ist der Listenpreis.','Das ist der Rabatt in Euro.'],
+  e:'Rabattsatz = Rabatt in € × 100 : Listenpreis.',s:'Der Lieferer gewährt 20 % Rabatt.'},
+ {id:'k8l',t:'num',l:'p',q:'Rechnung: 250 Herrenhemden zu 12,00 € = 3.000,00 € · − 10 % Rabatt 300,00 € · + Verpackung und Versand 35,00 € · Netto 2.735,00 € · + 19 % USt 519,65 € · Brutto 3.254,65 €. Bezugspreis für ein Hemd?',
+  a:10.94,u:'€',r:'Netto 2.735,00 € · 2.735,00 : 250 = 10,94 €',d:[13.02,10.80],de:['Mit Umsatzsteuer gerechnet.','Verpackung und Versand vergessen.'],
+  e:'Netto – ohne Steuer – durch die Menge.',s:'Der Bezugspreis beträgt 10,94 €.'},
+ {id:'k8m',t:'num',l:'p',q:'Rechnung der Casa GmbH, frei Haus: u. a. 15 Topf-Sets × 120,00 € netto, 19 % USt, „innerhalb von 10 Tagen 2 % Skonto“. Bezugspreis je Topf-Set unter Abzug von Skonto?',
+  a:117.60,u:'€',r:'120,00 − 2 % (2,40) = 117,60 € · frei Haus: keine Bezugskosten · ohne USt',d:[139.94,120.00],de:['Mit Umsatzsteuer gerechnet.','Skonto vergessen.'],
+  e:'Für den Bezugspreis: netto und mit Skonto, wenn es ausdrücklich gefragt ist.',s:'Der Bezugspreis je Topf-Set beträgt 117,60 €.'},
+ {id:'k8n',t:'num',l:'p',q:'Rechnung netto 4.930,00 €, 7 % USt. Darin enthalten sind 50 Gläser Sanddorn-Gelee zu je 12,40 €. Sie wurden nicht geliefert, der Lieferer bittet, sie nicht zu bezahlen. Zahlbar ohne Abzug. Überweisungsbetrag?',
+  a:4611.70,u:'€',r:'50 × 12,40 = 620,00 · 4.930,00 − 620,00 = 4.310,00 € netto · + 7 % USt (301,70) = 4.611,70 €',d:[5275.10,4310.00],de:['Die nicht gelieferten Gläser nicht abgezogen.','Umsatzsteuer vergessen – überwiesen wird brutto.'],
+  e:'Erst netto korrigieren, dann die Steuer.',s:'Der Überweisungsbetrag beträgt 4.611,70 €.'},
+ {id:'k8o',t:'mc',l:'ap',q:'Was ist der Unterschied zwischen Bezugspreis und Überweisungsbetrag?',
+  o:['Bezugspreis = netto (für die Kalkulation), Überweisungsbetrag = brutto minus Skonto (was vom Konto geht).','Beides ist dasselbe.','Bezugspreis = brutto, Überweisungsbetrag = netto.','Der Überweisungsbetrag ist immer der Listenpreis.'],
+  e:'Das ist der häufigste Fehler im Rechenteil der Prüfung.',s:'Bezugspreis = netto; Überweisungsbetrag = Rechnungsbetrag (brutto) − Skonto.'}
+ ]},
+
+{n:9, ort:'Containerterminal', titel:'Kai 4', modul:'Modul 9 · Quantitativer Angebotsvergleich', prop:'container', dim:'weg',
+ intro:'Am Containerterminal stapeln sich bunte Container bis in den Nebel. Drei Lieferer bieten euch Schiffslampen und Tee an. Der billigste Listenpreis glänzt – genau so stellt das Syndikat seine Fallen.',
+ clue:{Boot:'Die Hafenkamera an Kai 4 zeigt eine Gestalt, die mit einem Motorboot ablegt.', Rad:'Die Hafenkamera an Kai 4 zeigt eine Gestalt, die mit dem Fahrrad davonfährt.'},
+ cliff:'In Container 4 liegt Wolle – mit einem seltsamen Siegel.',
+ tip:'1. Alle Angebote auf dieselbe Menge und Einheit bringen. 2. Für jedes den Bezugspreis rechnen. 3. Fallen prüfen: Fracht? „ohne Abzug“? Rabatt erst ab Menge? 4. Niedrigster Bezugspreis gewinnt.',
+ ws:['der Angebotsvergleich','quantitativ','die Vergleichsbasis','die Mengeneinheit','der Bezugspreis','frei Haus','die Fracht','ohne Abzug','das günstigste Angebot'],
+ pool:[
+ {id:'k9a',t:'num',l:'ap',q:'100 Schiffslampen. Fjord-Import: 55,50 € je Stück, 15 % Rabatt, frei Haus, 3 % Skonto bei Zahlung in 2 Wochen. Großhandel Lüdtke: 50,00 € je Stück, 10 % Rabatt, Fracht insgesamt 20,00 €, Zahlung 30 Tage ohne Abzug. Wie hoch ist der niedrigere Bezugspreis für 100 Stück?',
+  a:4520.00,u:'€',r:'Fjord: 5.550,00 − 832,50 = 4.717,50 − 141,53 = 4.575,97 € · Lüdtke: 5.000,00 − 500,00 = 4.500,00 + 20,00 = 4.520,00 € → niedriger: 4.520,00 €',
+  d:[4575.97,4500.00],de:['Das ist der höhere Bezugspreis (Fjord-Import).','Fracht vergessen – bei Lüdtke kommen 20,00 € dazu.'],
+  e:'Nebeneinander rechnen, Zeile für Zeile. Bei Lüdtke gibt es kein Skonto, aber Fracht.',s:'Der niedrigere Bezugspreis beträgt 4.520,00 €.'},
+ {id:'k9b',t:'mc',l:'ap',q:'Ihr braucht 200 kg Ostfriesentee. Welches Angebot ist am günstigsten?',
+  o:['1.020,00 € je 100 kg, 2 % Skonto','1.080,00 € je 100 kg, 3 % Skonto','520,00 € je 50 kg, 1 % Skonto','10,40 € je 1 kg, 3 % Skonto','540,00 € je 50 kg, 1 % Skonto'],
+  e:'Erst auf dieselbe Einheit (100 kg), dann Skonto: 999,60 € schlägt 1.008,80 €, 1.029,60 €, 1.047,60 € und 1.069,20 €.',
+  s:'Das Angebot mit dem niedrigsten Bezugspreis ist rechnerisch das günstigste.',
+  w:['… weil auf 100 kg umgerechnet und nach Skonto nur 999,60 € übrig bleiben.','… weil 1.020 € der kleinste Listenpreis je 100 kg ist.','… weil weniger Skonto weniger Arbeit macht.']},
+ {id:'k9c',t:'num',l:'ap',q:'Strickjacken je Stück, beide frei Haus. Alpha: 17,80 €, 20 % Rabatt, 3 % Skonto. Beta: 15,95 €, 5 % Rabatt, 2 % Skonto. Wie hoch ist der niedrigere Bezugspreis?',
+  a:13.81,u:'€',r:'Alpha: 17,80 − 3,56 = 14,24 − 0,43 = 13,81 € · Beta: 15,95 − 0,80 = 15,15 − 0,30 = 14,85 € → Alpha ist günstiger',d:[14.85,14.24],de:['Das ist Beta – Alpha ist trotz höherem Listenpreis günstiger.','Bei Alpha das Skonto vergessen.'],
+  e:'Der höhere Rabatt und das höhere Skonto gleichen den höheren Listenpreis aus.',s:'Der niedrigere Listenpreis sagt noch nichts; entscheidend ist der Bezugspreis.'},
+ {id:'k9d',t:'num',l:'ap',q:'200 Thermobecher. A: 4,20 €, 10 % Rabatt, 2 % Skonto, Fracht 18,00 €. B: 4,00 €, kein Rabatt, 3 % Skonto, frei Haus. C: 4,50 €, 15 % Rabatt, ohne Abzug, Fracht 12,00 €. Wie hoch ist der niedrigste Bezugspreis für 200 Stück?',
+  a:758.88,u:'€',r:'A: 840,00 − 84,00 = 756,00 − 15,12 = 740,88 + 18,00 = 758,88 € · B: 800,00 − 24,00 = 776,00 € · C: 900,00 − 135,00 = 765,00 + 12,00 = 777,00 € → A',
+  d:[776.00,740.88],de:['Das ist Angebot B – A ist günstiger.','Bei A die Fracht vergessen.'],
+  e:'Drei Angebote, drei Spalten, gleiche Menge.',s:'Angebot A ist mit 758,88 € am günstigsten.'},
+ {id:'k9e',t:'mc',l:'ap',q:'Warum ist der niedrigste Listenpreis nicht immer das günstigste Angebot?',
+  o:['Rabatt, Skonto und Bezugskosten können die Reihenfolge umdrehen – entscheidend ist der Bezugspreis.','Weil teure Ware immer besser ist.','Weil der Listenpreis die Umsatzsteuer enthält.','Weil Listenpreise nie stimmen.'],
+  e:'Erst der Bezugspreis zeigt, was die Ware wirklich kostet.',s:'Der niedrigere Listenpreis sagt noch nichts; entscheidend ist der Bezugspreis.',
+  w:['… weil erst nach Rabatt, Skonto und Fracht feststeht, was wir wirklich zahlen.','… weil Listenpreise immer gelogen sind.','… weil der Listenpreis brutto ist.']},
+ {id:'k9f',t:'sort',l:'ap',q:'Falle oder richtig gemacht? Ordnet zu.',c:['Falle beim Vergleich','richtig gemacht'],
+  it:[['Ein Angebot kostet Fracht, das andere ist frei Haus – Fracht nicht beachtet.',0],['„Zahlung ohne Abzug“ – trotzdem Skonto abgezogen.',0],['Rabatt gilt erst ab 200 Stück, ihr braucht 150 – trotzdem abgezogen.',0],['Preis je 50 kg mit Preis je 100 kg direkt verglichen.',0],['Alle Angebote auf dieselbe Menge gerechnet.',1],['Die Bezugspreise verglichen, nicht die Listenpreise.',1],['Skonto nur abgezogen, wenn es angeboten wird.',1]],
+  e:'Die Fallen: Fracht, „ohne Abzug“, Mindestmenge, Mengeneinheit.',s:'Beim zweiten Angebot fallen Bezugskosten an, die den Bezugspreis erhöhen.'},
+ {id:'k9g',t:'ord',l:'ap',q:'Vier Schritte zum günstigsten Angebot. Tippt sie in der richtigen Reihenfolge an.',
+  it:['Alle Angebote auf dieselbe Menge und Einheit bringen.','Für jedes Angebot den Bezugspreis berechnen.','Fallen prüfen: Fracht, „ohne Abzug“, Mindestmenge.','Das Angebot mit dem niedrigsten Bezugspreis wählen.'],
+  e:'Basis – rechnen – Fallen prüfen – entscheiden.',s:'Das Angebot mit dem niedrigsten Bezugspreis ist rechnerisch das günstigste.'},
+ {id:'k9h',t:'num',l:'p',q:'Schiffslampen-Fall: Fjord-Import kostet 4.575,97 €, Lüdtke ohne Fracht 4.500,00 €. Ab welcher Frachtpauschale wäre Lüdtke nicht mehr günstiger?',
+  a:75.97,acc:[75.98],u:'€',r:'4.575,97 − 4.500,00 = 75,97 € → ab einer Fracht von 75,97 € (darüber) ist Fjord-Import günstiger',d:[55.97,20.00],de:['Die bisherige Fracht (20 €) noch einmal abgezogen.','Das ist die jetzige Fracht.'],
+  e:'Profi-Frage: Wann kippt das Angebot?',s:'Bei einer Fracht über 75,97 € wäre Fjord-Import günstiger.'},
+ {id:'k9i',t:'num',l:'p',q:'Neue Info: Bei Lüdtke gibt es die 10 % Rabatt erst ab 200 Stück. Ihr braucht 100 Schiffslampen (Lüdtke: 50,00 €, Fracht 20,00 €, ohne Abzug; Fjord-Import unverändert 4.575,97 €). Wie hoch ist jetzt der niedrigere Bezugspreis?',
+  a:4575.97,acc:[4575.98],u:'€',r:'Lüdtke ohne Rabatt: 5.000,00 + 20,00 = 5.020,00 € · Fjord-Import 4.575,97 € → Fjord-Import gewinnt',d:[4520.00,5020.00],de:['Den Rabatt trotz Mindestmenge abgezogen.','Das ist jetzt der höhere Bezugspreis (Lüdtke).'],
+  e:'Rabatt nur, wenn die Bedingung erfüllt ist.',s:'Ohne Mengenrabatt ist Fjord-Import mit 4.575,97 € günstiger.'},
+ {id:'k9j',t:'num',l:'p',q:'Lüdtke: 50,00 € je Lampe, 10 % Rabatt ab 200 Stück, Fracht 20,00 €, ohne Abzug. Ihr überlegt, 200 statt 150 zu bestellen. Wie hoch ist der Bezugspreis je Stück bei 200 Stück?',
+  a:45.10,u:'€',r:'200 × 50,00 = 10.000,00 − 1.000,00 = 9.000,00 + 20,00 = 9.020,00 € · : 200 = 45,10 €',d:[50.13,45.00],de:['Das ist der Stückpreis bei 150 Stück ohne Rabatt.','Fracht vergessen.'],
+  e:'Je Stück günstiger – aber 50 Lampen mehr im Lager: Kapitalbindung und Lagerrisiko (Kapitel 1).',s:'Bei 200 Stück beträgt der Bezugspreis 45,10 € je Stück.'}
+ ]},
+
+{n:10, ort:'Klimahaus Bremerhaven', titel:'Wolle ohne Siegel', modul:'Modul 10 · Qualitativer und ökologisch-sozialer Vergleich', prop:'wolle', dim:'tinte',
+ intro:'Im Klimahaus erklärt euch eine Expertin, woran man echte Island-Wolle erkennt. Das Syndikat verkauft Fälschungen: ohne Siegel, mit langen Transportwegen, unter schlechten Arbeitsbedingungen. Jetzt wählt ihr den richtigen Lieferer.',
+ clue:{grün:'Das falsche Woll-Siegel wurde mit grüner Tinte nachgemalt.', blau:'Das falsche Woll-Siegel wurde mit blauer Tinte nachgemalt.'},
+ cliff:'Euer Handy klingelt: „Wir haben einen Vertrag. Zahlen Sie bis Freitag.“',
+ tip:'Qualitativ: Qualität, Lieferzeit, Zuverlässigkeit, Service. · Ökologisch: Transportweg, Verpackung, Umweltsiegel. · Sozial: faire Löhne, keine Kinderarbeit. · Tabelle: Gewicht × Punkte, addieren, höchste Summe gewinnt.',
+ ws:['qualitativ','das Kriterium','die Zuverlässigkeit','die Termintreue','ökologisch','sozial','die Lieferkette','das Siegel','die Gewichtung','die Entscheidungsbewertungstabelle','nachhaltig'],
+ pool:[
+ {id:'k10a',t:'sort',l:'ap',q:'Welche Art Kriterium ist das? Ordnet zu.',c:['qualitativ','ökologisch (Umwelt)','sozial (Menschen)'],
+  it:[['Qualität der Ware',0],['Termintreue',0],['Zuverlässigkeit',0],['Service und Kulanz',0],['kurzer Transportweg, wenig CO₂',1],['Mehrweg-Verpackung',1],['Siegel „Blauer Engel“',1],['Bio- oder Recyclingmaterial',1],['faire Löhne',2],['keine Kinderarbeit',2],['Siegel „Fairtrade“',2],['sichere Arbeitsplätze',2]],
+  e:'Mehr als der Preis: Ware, Umwelt, Menschen.',s:'Bei der Lieferantenauswahl werden soziale Standards wie das Verbot von Kinderarbeit berücksichtigt.'},
+ {id:'k10b',t:'mc',l:'ap',q:'Wie kann der Laden dazu beitragen, dass Abfall vermieden und Ressourcen geschont werden?',
+  o:['indem er möglichst viele Produkte in Mehrwegverpackungen anbietet','indem er möglichst viele Produkte mit einem Prüfsiegel anbietet','indem er Produkte anbietet, deren Verpackung der Kunde entsorgen muss','indem er möglichst viele Produkte in Einwegverpackungen anbietet','indem das Personal beim Verkauf die Umverpackungen entfernt'],
+  e:'Mehrweg vermeidet Abfall. Ein Prüfsiegel allein spart noch keinen Müll.',s:'Durch Mehrwegverpackungen wird Abfall vermieden.'},
+ {id:'k10c',t:'mc',l:'ap',q:'In welchem Fall handelt es sich um Wertstoffrecycling?',
+  o:['Verpackungen werden einem Entsorgungssystem zugeführt und wiederverwertet.','Statt Batterien gibt es wiederaufladbare Akkus.','An der Kasse liegen Papiertüten zur freien Bedienung.','Die Ware kommt in Leihverpackungen, die an den Hersteller zurückgehen.','Kunden erhalten nur auf Wunsch eine Baumwolltasche.'],
+  e:'Recycling = wiederverwerten. Akkus und Leihverpackungen sind Wiederverwendung bzw. Vermeidung.',s:'Beim Wertstoffrecycling werden Verpackungen gesammelt und wiederverwertet.'},
+ {id:'k10d',t:'num',l:'ap',q:'Entscheidungsbewertungstabelle. Gewichte: Preis 40 %, Qualität 25 %, Lieferzeit 15 %, Umwelt und Menschen 20 %. Der regionale Woll-Lieferer bekommt: Preis 3, Qualität 5, Lieferzeit 4, Umwelt und Menschen 5 Punkte. Wie viele gewichtete Punkte erreicht er?',
+  a:405,u:'Punkte',r:'40 × 3 = 120 · 25 × 5 = 125 · 15 × 4 = 60 · 20 × 5 = 100 · Summe = 405',d:[17,100],de:['Nur die Punkte addiert – jeder Punkt wird mit dem Gewicht multipliziert.','Nur eine Zeile gerechnet.'],
+  e:'Gewicht × Punkte, alles addieren.',s:'Der Lieferer mit der höchsten Summe wird gewählt.'},
+ {id:'k10e',t:'mc',l:'ap',q:'Ergebnis der Tabelle: A (Fernost, sehr billig) 310 Punkte, B (regional, fair) 405 Punkte, C (Großhändler, schnell) 370 Punkte. Wer wird gewählt?',
+  o:['B – er hat die höchste Summe.','A – er hat beim Preis die meisten Punkte.','C – er liefert am schnellsten.','Keiner – die Tabelle entscheidet nichts.'],
+  e:'Obwohl B am teuersten ist, gewinnt B. Die Tabelle macht die Entscheidung nachvollziehbar.',s:'Der Lieferer mit der höchsten Summe der gewichteten Punkte wird gewählt.',
+  w:['… weil Qualität, Lieferzeit und Nachhaltigkeit den höheren Preis ausgleichen.','… weil regionale Lieferer immer gewinnen müssen.','… weil der Preis nicht zählt.']},
+ {id:'k10f',t:'ord',l:'ap',q:'So arbeitet ihr mit der Entscheidungsbewertungstabelle. Tippt die Schritte in der richtigen Reihenfolge an.',
+  it:['Kriterien festlegen','Kriterien gewichten (zusammen 100 %)','Jedem Lieferer Punkte geben','Gewicht × Punkte rechnen und addieren','Den Lieferer mit der höchsten Summe wählen'],
+  e:'Erst festlegen, was wichtig ist – dann bewerten.',s:'Die Entscheidungsbewertungstabelle macht die Lieferantenauswahl nachvollziehbar.'},
+ {id:'k10g',t:'mc',l:'ap',q:'Warum ist der billigste Lieferer nicht immer der beste?',
+  o:['Qualität, Lieferzeit, Zuverlässigkeit, Umwelt und Arbeitsbedingungen zählen auch – sonst drohen Reklamationen, leere Regale und Imageschaden.','Weil billige Ware verboten ist.','Weil der billigste Lieferer nie Skonto gibt.','Weil der Preis bei der Lieferantenwahl keine Rolle spielt.'],
+  e:'Der Preis ist wichtig, aber nicht alles.',s:'Der Lieferer ist zwar preisgünstig, die Qualität ist jedoch mangelhaft.'},
+ {id:'k10h',t:'mc',l:'ap',q:'Eine Kundin fragt: „Warum sind eure Island-Pullover teurer als im Discounter?“ Welche Antwort passt am besten?',
+  o:['„Unsere Pullover kommen aus fairer Produktion mit kurzen Transportwegen und sind sehr hochwertig – sie halten viele Winter.“','„Das ist halt so. Qualität kostet.“','„Der Chef will mehr verdienen.“','„Dann kaufen Sie doch beim Discounter.“'],
+  e:'Gute Antwort: freundlich, mit zwei Argumenten aus der Tabelle (Qualität, Umwelt/Menschen).',s:'Lange Transportwege führen zu langen Lieferzeiten und hohen CO₂-Emissionen.'},
+ {id:'k10i',t:'num',l:'p',q:'Die Geschäftsführung gewichtet neu: Preis 60 %, Qualität 20 %, Lieferzeit 10 %, Umwelt und Menschen 10 %. Lieferer A (Fernost) hat die Punkte Preis 5, Qualität 3, Lieferzeit 1, Umwelt 1. Wie viele gewichtete Punkte erreicht A?',
+  a:380,u:'Punkte',r:'60 × 5 = 300 · 20 × 3 = 60 · 10 × 1 = 10 · 10 × 1 = 10 · Summe = 380',d:[310,10],de:['Das war die Summe mit den alten Gewichten.','Nur die Punkte addiert.'],
+  e:'Ändern sich die Gewichte, kann ein anderer Lieferer gewinnen. Das ist eine Strategiefrage.',s:'Die Gewichtung entscheidet über das Ergebnis.'},
+ {id:'k10j',t:'mc',l:'p',q:'Mit den neuen Gewichten (Preis 60 %) haben A und C je 380 Punkte, B hat 370. Was zeigt das?',
+  o:['Das Ergebnis hängt stark von der Gewichtung ab – bei starkem Preisgewicht fällt der faire Lieferer zurück.','Die Tabelle ist falsch gerechnet.','B gewinnt trotzdem, weil Fairness immer zählt.','Der Preis darf nie mehr als 40 % gewichtet werden.'],
+  e:'Die Gewichte spiegeln die Ziele des Betriebs.',s:'Ändert der Betrieb die Gewichte, kann ein anderer Lieferer gewinnen.',
+  w:['… weil die Gewichte bestimmen, was dem Betrieb wichtig ist.','… weil die Punkte bei jeder Gewichtung neu verteilt werden.','… weil das Gesetz 40 % vorschreibt.']},
+ {id:'k10k',t:'mc',l:'p',q:'Beurteilt die Aussage: „Nachhaltige Lieferer sind teurer, also schaden sie dem Gewinn.“',
+  o:['Zu kurz gedacht: kurzfristig höhere Bezugspreise, langfristig Image, Kundenbindung, weniger Reklamationen und weniger Risiko in der Lieferkette.','Richtig: Ein höherer Bezugspreis senkt immer den Gewinn.','Falsch: Nachhaltige Lieferer sind immer billiger.','Richtig: Kunden achten nie auf Nachhaltigkeit.'],
+  e:'Große Unternehmen müssen zudem nach dem Lieferkettengesetz auf Menschenrechte und Umwelt bei ihren Lieferern achten.',s:'Nachhaltigkeit stärkt Image und Kundenbindung.'}
+ ]},
+
+{n:11, ort:'Columbuskaje', titel:'Der falsche Vertrag', modul:'Modul 11 · Bestellung und Kaufvertrag', prop:'vertrag', dim:'hand',
+ intro:'An der Columbuskaje legt ein Kreuzfahrtschiff an. Ein Anwalt des Syndikats wedelt mit Papieren: Ihr hättet einen Kaufvertrag und müsstet zahlen. Prüft die Chronik – Tag für Tag.',
+ clue:{links:'Auf dem gefälschten Vertrag sind alle Buchstaben verwischt – geschrieben mit der linken Hand.', rechts:'Auf dem gefälschten Vertrag neigen sich die Buchstaben wie bei einer rechten Schreibhand.'},
+ cliff:'Als ihr zurückkommt, stehen 200 Kisten vor dem Laden.',
+ tip:'Kaufvertrag = Antrag + Annahme. · Verbindliches Angebot + Bestellung rechtzeitig und unverändert → Vertrag am Tag der Bestellung. · Sonst ist die Bestellung der Antrag, die Auftragsbestätigung die Annahme. · Eigentum bei Eigentumsvorbehalt erst mit voller Zahlung.',
+ ws:['der Kaufvertrag','die Willenserklärung','der Antrag','die Annahme','die Bestellung','die Auftragsbestätigung','die Erfüllung','die Pflicht','der Besitz','das Eigentum'],
+ pool:[
+ {id:'k11a',t:'mc',l:'ap',q:'Wodurch entsteht ein Kaufvertrag?',
+  o:['durch zwei übereinstimmende Willenserklärungen: Antrag und Annahme','durch eine Anfrage und ein Angebot','durch die Lieferung der Ware','durch die Bezahlung'],
+  e:'Wer den Antrag macht, ist egal – Verkäufer oder Käufer. Die Anfrage gehört nie dazu.',s:'Ein Kaufvertrag entsteht durch zwei übereinstimmende Willenserklärungen.'},
+ {id:'k11b',t:'mc',l:'ap',q:'Chronik: 15.09. Anfrage · 17.09. Angebot über 20 Schlitten „solange Vorrat reicht“, Lieferung unter Eigentumsvorbehalt · 18.09. Bestellung · 19.09. Auftragsbestätigung · 25.09. Wareneingang · 10.10. Zahlung. Wann kommt der Kaufvertrag zustande?',
+  o:['19.09.','18.09.','17.09.','25.09.','10.10.'],
+  e:'Das Angebot ist wegen der Freizeichnung unverbindlich. Die Bestellung ist der Antrag, die Auftragsbestätigung die Annahme.',
+  s:'Die Bestellung ist ein verbindlicher Antrag; der Kaufvertrag entsteht erst mit der Auftragsbestätigung.',
+  w:['… weil die Bestellung wegen der Freizeichnung nur ein Antrag ist und die Auftragsbestätigung die Annahme.','… weil der Vertrag erst mit der Lieferung entsteht.','… weil jede Bestellung die Annahme ist.']},
+ {id:'k11c',t:'mc',l:'ap',q:'Gleiche Chronik (Lieferung unter Eigentumsvorbehalt, Wareneingang 25.09., Zahlung 10.10.). Wann werdet ihr Eigentümer der Schlitten?',
+  o:['10.10.','25.09.','19.09.','18.09.'],
+  e:'Mit der Lieferung bekommt ihr den Besitz. Eigentümer werdet ihr wegen des Eigentumsvorbehalts erst mit vollständiger Zahlung.',
+  s:'Eigentümerin wird die Käuferin wegen des Eigentumsvorbehalts erst mit vollständiger Zahlung.',
+  w:['… weil der Eigentumsvorbehalt erst mit der vollständigen Bezahlung erlischt.','… weil man mit der Lieferung immer Eigentümer wird.','… weil der Kaufvertrag das Eigentum überträgt.']},
+ {id:'k11d',t:'mc',l:'ap',q:'Welche rechtliche Bedeutung hat die Bestellung vom 18.09. (auf das Angebot „solange Vorrat reicht“)?',
+  o:['Sie ist verbindlich.','Sie ist nichtig.','Sie ist anfechtbar.','Sie ist schwebend unwirksam.','Sie hat keine rechtliche Bedeutung.'],
+  e:'Eine Bestellung ist immer verbindlich – mal als Annahme, mal als Antrag.',s:'Die Bestellung ist verbindlich.'},
+ {id:'k11e',t:'mc',l:'ap',q:'In einer Fachzeitschrift wird eine Vitrine für 450,00 € beworben. Ihr bestellt per E-Mail 5 Vitrinen zu 450,00 €. Was ist eure Bestellung?',
+  o:['ein verbindlicher Antrag','eine verbindliche Annahme','eine Aufforderung zur Abgabe eines Angebots','ein unverbindlicher Antrag','eine unverbindliche Annahme'],
+  e:'Die Anzeige ist kein Angebot. Also macht ihr mit der Bestellung den Antrag.',s:'Es handelt sich um einen verbindlichen Antrag.',
+  w:['… weil die Anzeige nur eine Aufforderung zur Abgabe eines Angebots war.','… weil E-Mails nie verbindlich sind.','… weil die Anzeige schon das Angebot war.']},
+ {id:'k11f',t:'sort',l:'ap',q:'Ist die Bestellung Annahme oder Antrag? Ordnet zu.',c:['Bestellung = Annahme','Bestellung = Antrag'],
+  it:[['verbindliches Angebot, Bestellung rechtzeitig und unverändert',0],['befristetes Angebot, Bestellung in der Frist, unverändert',0],['Bestellung aus dem Katalog',1],['Bestellung auf ein Angebot „Preis freibleibend“',1],['Bestellung mit 5 % mehr Rabatt als angeboten',1],['Bestellung drei Wochen nach einem Briefangebot ohne Frist',1],['Bestellung ohne vorheriges Angebot',1]],
+  e:'Nur wenn ein verbindliches Angebot rechtzeitig und unverändert angenommen wird, ist die Bestellung die Annahme.',s:'Mit der Bestellung auf ein verbindliches Angebot ist der Kaufvertrag zustande gekommen.'},
+ {id:'k11g',t:'mc',l:'ap',q:'03.11. Anfrage · 05.11. verbindliches Angebot · 06.11. Bestellung (unverändert) · 07.11. Auftragsbestätigung. Wann entsteht der Kaufvertrag?',
+  o:['06.11.','07.11.','05.11.','03.11.'],
+  e:'Verbindliches Angebot + rechtzeitige, unveränderte Bestellung = Vertrag. Die Auftragsbestätigung bestätigt nur noch.',s:'Der Kaufvertrag kommt mit der Bestellung zustande.'},
+ {id:'k11h',t:'mc',l:'ap',q:'18.11. Angebot · 19.11. Bestellung mit 5 % mehr Rabatt als angeboten · 20.11. Auftragsbestätigung. Wann entsteht der Kaufvertrag?',
+  o:['20.11.','19.11.','18.11.','gar nicht'],
+  e:'Geänderte Bestellung = neuer Antrag. Die Auftragsbestätigung ist die Annahme.',s:'Eine abgeänderte Bestellung ist ein neuer Antrag.'},
+ {id:'k11i',t:'sort',l:'ap',q:'Wer muss was? Ordnet die Pflichten aus dem Kaufvertrag zu (§ 433 BGB).',c:['Pflicht des Verkäufers','Pflicht des Käufers'],
+  it:[['die Ware rechtzeitig und mangelfrei übergeben',0],['das Eigentum an der Ware verschaffen',0],['die Ware abnehmen',1],['den Kaufpreis rechtzeitig zahlen',1]],
+  e:'Abschluss = Antrag + Annahme. Erfüllung = Lieferung und Zahlung.',s:'Der Käufer muss die Ware abnehmen und den Kaufpreis zahlen.'},
+ {id:'k11j',t:'mc',l:'ap',q:'Was gehört zur Erfüllung des Kaufvertrags?',
+  o:['Lieferung der Ware und Zahlung des Kaufpreises','Antrag und Annahme','Anfrage und Angebot','die Auftragsbestätigung'],
+  e:'Abschluss und Erfüllung sind zwei verschiedene Dinge.',s:'Erfüllung: Lieferung und Zahlung.'},
+ {id:'k11k',t:'mc',l:'p',q:'15.09. Anzeige: Vitrine „Fix 3000“ für 450,00 € · 18.09. Ihr bestellt per E-Mail 5 Vitrinen, frei Haus · 19.09. Die Loft KG ruft an: Frei Haus geht nicht, Fracht 100,00 € – ihr seid am Telefon einverstanden · 22.09. Auftragsbestätigung. Wann kam der Kaufvertrag zustande?',
+  o:['19.09.','18.09.','22.09.','15.09.'],
+  e:'Die Loft KG nimmt mit Änderung an → neuer Antrag. Ihr nehmt ihn am Telefon sofort an. Die Auftragsbestätigung bestätigt nur noch.',
+  s:'Eine Annahme mit Änderungen ist ein neuer Antrag (§ 150 Abs. 2 BGB); unter Anwesenden wird sofort angenommen (§ 147 BGB).',
+  w:['… weil die Änderung ein neuer Antrag ist und unter Anwesenden sofort angenommen wurde.','… weil nur schriftliche Bestätigungen zählen.','… weil die Anzeige schon das Angebot war.']},
+ {id:'k11l',t:'mc',l:'p',q:'Die Schlitten stehen in eurem Lager, bezahlt ist noch nicht. Lieferung unter Eigentumsvorbehalt. Was stimmt?',
+  o:['Ihr seid Besitzer, aber noch nicht Eigentümer.','Ihr seid Eigentümer, aber noch nicht Besitzer.','Ihr seid Besitzer und Eigentümer.','Ihr seid weder Besitzer noch Eigentümer.'],
+  e:'Besitz = tatsächliche Herrschaft (die Ware steht bei uns). Eigentum = rechtliche Herrschaft (wir dürfen darüber verfügen).',
+  s:'Die Käuferin ist Besitzerin; Eigentümerin wird sie wegen des Eigentumsvorbehalts erst mit vollständiger Zahlung.',
+  w:['… weil der Eigentumsvorbehalt das Eigentum bis zur Zahlung beim Lieferer lässt.','… weil Eigentum mit der Bestellung übergeht.','… weil Besitz erst mit der Zahlung entsteht.']}
+ ]},
+
+{n:12, ort:'Neuer Hafen', titel:'Zweihundert Kisten', modul:'Modul 12 · Kaufarten und Sonderfälle', prop:'kisten', dim:'weg',
+ intro:'Vor dem Laden am Neuen Hafen stehen 200 Kisten mit Wetterstationen. Niemand hat sie bestellt. Gleichzeitig muss die Ware für den Weihnachtsmarkt pünktlich kommen. Welche Regeln gelten?',
+ clue:{Boot:'Die Kisten kamen über das Wasser: Am Steg liegen Spuren von einem Motorboot.', Rad:'Die Kisten wurden mit einem Lastenrad gebracht – die Reifenspuren führen zum Deich.'},
+ cliff:'Nachts flackert im Laden der Bildschirm des Warenwirtschaftssystems.',
+ tip:'„fix“ → Fixkauf. „abrufen“ → Kauf auf Abruf. „später bestimmen“ → Spezifikationskauf. „ausprobieren und zurückgeben“ → Kauf auf Probe. · Unbestellte Ware: mitteilen, aufbewahren, zur Abholung bereitstellen.',
+ ws:['der Terminkauf','der Fixkauf','der Kauf auf Abruf','der Spezifikationskauf','der Kauf auf Probe','der Kauf nach Probe','der Kauf zur Probe','der Verbrauchsgüterkauf','der Handelskauf','der Eigentumsvorbehalt','unbestellt'],
+ pool:[
+ {id:'k12a',t:'sort',l:'ap',q:'Welche Kaufart ist das? Ordnet zu.',c:['Fixkauf','Kauf auf Abruf','Spezifikationskauf','Kauf auf Probe'],
+  it:[['Die Adventskränze müssen „am 20.11. fix“ da sein.',0],['Die Osterhasen sollen „am 15. März fix“ geliefert werden.',0],['1.000 Geschenkkartons, der Lieferer lagert sie, ihr ruft je 100 ab.',1],['Großer Warenposten beim Lieferer gelagert, Zustellung nach Bedarf.',1],['200 Pullover bestellt – die Farben sagt ihr bis Ende August.',2],['50 Pullover, die Farben werden später mitgeteilt.',2],['Die Kaffeemaschine zwei Wochen testen und dann zurückgeben dürfen.',3],['Ein Kunde darf eine Stereoanlage zwei Wochen ausprobieren.',3]],
+  e:'Signalwörter suchen: fix, abrufen, später bestimmen, ausprobieren.',s:'Es handelt sich um einen Kauf auf Abruf.'},
+ {id:'k12b',t:'mc',l:'ap',q:'Ein Großhändler schickt euch 200 Wetterstationen, die niemand bestellt hat. Wie verhaltet ihr euch richtig?',
+  o:['Mitteilen, dass ihr die Ware nicht braucht, und sie zur Abholung bereitstellen.','Annehmen, weil es eine langjährige Geschäftsbeziehung gibt.','Vom Fahrer eine Bestätigung verlangen, dass nicht bestellt wurde.','Behalten und nicht bezahlen, weil nicht bestellt wurde.','Eine Vertragsstrafe androhen.'],
+  e:'Schweigen ist keine Annahme – es entsteht kein Kaufvertrag. Unter Kaufleuten wird die Ware aber sorgfältig aufbewahrt.',
+  s:'Sie teilen mit, dass Sie die Ware nicht benötigen, und stellen sie zur Abholung bereit.',
+  w:['… weil Schweigen keine Annahme ist und die Ware sorgfältig aufbewahrt werden muss.','… weil unbestellte Ware sofort euch gehört.','… weil der Fahrer für die Ware haftet.']},
+ {id:'k12c',t:'mc',l:'ap',q:'Ein Lieferer liefert unter Eigentumsvorbehalt. Welche Absicht verfolgt er damit?',
+  o:['Er will seine Kaufpreisforderung absichern.','Er bleibt damit Besitzer der Ware.','Er darf jederzeit vom Vertrag zurücktreten.','Er will einen Weiterverkauf verhindern.','Er sichert dem Käufer die Eigentumsrechte zu.'],
+  e:'Zahlt der Käufer nicht, kann der Lieferer die Ware zurückverlangen.',s:'Mit dem Eigentumsvorbehalt sichert der Verkäufer seine Kaufpreisforderung.',
+  w:['… weil er die Ware zurückverlangen kann, wenn nicht gezahlt wird.','… weil der Käufer die Ware sonst nicht benutzen darf.','… weil Eigentumsvorbehalt immer Pflicht ist.']},
+ {id:'k12d',t:'mc',l:'ap',q:'Im Vertrag über Kaffee-Vollautomaten steht „Kauf auf Abruf“. Was bedeutet das?',
+  o:['Die gekauften Geräte werden je nach Bedarf in Teilmengen abgerufen.','Der Vertrag wird erst wirksam, wenn die Geräte geliefert sind.','Nur die Warenart steht fest, das Modell wird später bestimmt.','Der Lieferer muss sofort nach Vertragsschluss liefern.','Nicht verkaufte Geräte können zurückgegeben werden.'],
+  e:'Kauf auf Abruf senkt Lagerkosten und Kapitalbindung.',s:'Beim Kauf auf Abruf werden Teilmengen nach Bedarf abgerufen.'},
+ {id:'k12e',t:'mc',l:'ap',q:'Was trifft für den Kauf auf Probe zu?',
+  o:['Der Käufer kann die Ware innerhalb einer vereinbarten Frist zurückgeben.','Der Käufer legt fest, wann Teilmengen geliefert werden.','Der Verkäufer muss genau nach Muster liefern.','Der Käufer kauft eine kleine Menge zum Testen.','Kauf auf Probe ist ein Fernabsatzvertrag.'],
+  e:'Auf Probe = zurückgeben dürfen. Nach Probe = wie das Muster. Zur Probe = kleine Testmenge.',s:'Beim Kauf auf Probe darf der Käufer die Ware innerhalb einer Frist zurückgeben.'},
+ {id:'k12f',t:'mc',l:'ap',q:'Ihr bestellt Ringelshirts für den Sommer als Spezifikationskauf. Warum begrenzt ihr damit euer Lagerrisiko?',
+  o:['Weil eine kurzfristige Anpassung an die Wünsche der Kunden möglich ist.','Weil der Lieferer die Preise nicht mehr ändern kann.','Weil die Preise erst bei Lieferung festgelegt werden.','Weil bei der Anlieferung keine Kontrolle nötig ist.','Weil dadurch das Risiko einer mangelhaften Lieferung sinkt.'],
+  e:'Farben und Größen bestimmt ihr später – passend zu den Trends.',s:'Beim Spezifikationskauf ist eine kurzfristige Anpassung an die Kundenwünsche möglich.'},
+ {id:'k12g',t:'sort',l:'ap',q:'Wer kauft bei wem? Ordnet die Kaufart nach den Vertragspartnern zu.',c:['Verbrauchsgüterkauf','zweiseitiger Handelskauf','bürgerlicher Kauf'],
+  it:[['Der Laden verkauft einer Touristin einen Pullover.',0],['Eine Kauffrau kauft privat einen Fernseher im Warenhaus.',0],['Der Laden kauft beim Großhändler 200 Mützen.',1],['Der Laden kauft Vitrinen bei der Loft KG.',1],['Eine Privatperson verkauft ihr altes Fahrrad an den Nachbarn.',2],['Ein Rentner verkauft privat sein Sofa an eine Bekannte.',2]],
+  e:'Es zählt die Rolle beim Kauf: Wer privat kauft, ist Verbraucher – auch als Kauffrau.',s:'Ein Verbrauchsgüterkauf liegt vor, weil eine Privatperson bei einem Unternehmer kauft.'},
+ {id:'k12h',t:'mc',l:'ap',q:'Warum überwacht ihr beim Fixkauf den Liefertermin besonders genau?',
+  o:['Kommt die Ware zu spät, ist sie wertlos – ihr könnt ohne Nachfrist vom Vertrag zurücktreten.','Weil beim Fixkauf kein Skonto möglich ist.','Weil der Fixkauf erst mit der Lieferung entsteht.','Weil der Lieferer dann den Preis ändern darf.'],
+  e:'Adventskränze am 27. Dezember will niemand.',s:'Es wird ein Fixkauf vereinbart; bei Überschreiten des Termins kann sofort vom Vertrag zurückgetreten werden.'},
+ {id:'k12i',t:'mc',l:'ap',q:'„Die gelieferten Wollmützen müssen genau dem Muster entsprechen, das wir auf der Messe gesehen haben.“ Welche Kaufart ist das?',
+  o:['Kauf nach Probe','Kauf zur Probe','Kauf auf Probe','Kauf auf Abruf'],
+  e:'Nach Probe = wie das Muster.',s:'Beim Kauf nach Probe muss die Ware dem Muster entsprechen.'},
+ {id:'k12j',t:'mc',l:'p',q:'Die Adventskränze (Fixkauf zum 20.11.) kommen am 23.11. Welche Rechte habt ihr?',
+  o:['Rücktritt ohne Nachfrist (§ 376 HGB); bei Verschulden auch Schadensersatz – wer doch liefern lassen will, muss das sofort sagen.','Erst eine Nachfrist von zwei Wochen setzen, dann zurücktreten.','Die Ware muss angenommen werden, der Preis sinkt um 10 %.','Keine – eine Verspätung von drei Tagen ist normal.'],
+  e:'Beim Fixhandelskauf braucht es keine Nachfrist.',s:'Beim Fixkauf kann der Käufer ohne Nachfrist vom Vertrag zurücktreten.'},
+ {id:'k12k',t:'mc',l:'p',q:'Worin unterscheidet sich unbestellte Ware an eine Privatperson von unbestellter Ware an einen Kaufmann?',
+  o:['Die Privatperson muss sie weder bezahlen noch zurückschicken noch aufbewahren (§ 241a BGB); der Kaufmann muss sie aufbewahren und zur Abholung bereitstellen.','Beide müssen bezahlen.','Beide dürfen die Ware sofort wegwerfen.','Nur die Privatperson muss die Ware zurückschicken.'],
+  e:'Unter Kaufleuten gilt Schweigen grundsätzlich auch nicht als Annahme – aber die Ware muss sorgfältig aufbewahrt werden.',s:'Unbestellte Ware: Schweigen ist keine Annahme.'},
+ {id:'k12l',t:'mc',l:'p',q:'Ihr kauft das ausgestellte Vorführsofa aus dem Möbelhaus. Welche Kaufart nach der Bestimmung der Ware ist das?',
+  o:['Stückkauf – eine bestimmte, einmalige Sache','Gattungskauf – austauschbare Ware nach Merkmalen','Spezifikationskauf','Kauf auf Probe'],
+  e:'Kür: Gattungsware (50 Packungen Tee Sorte X) kann ersetzt werden, eine bestimmte Sache nicht.',s:'Beim Stückkauf wird eine bestimmte, einmalige Sache gekauft.'}
+ ]},
+
+{n:13, ort:'Nachts im Laden', titel:'Nachtschicht im System', modul:'Modul 13 · WWS II', prop:'monitor', dim:'tinte',
+ intro:'Mitternacht. Im dunklen Laden leuchtet nur der Bildschirm des Warenwirtschaftssystems. Jemand hat Daten verändert: falsche Mengen, falsche Artikel. Findet die Fehler, bevor die Regale leer sind.',
+ clue:{grün:'Am Bildschirm klebt ein Zettel mit dem WWS-Passwort – geschrieben in grüner Tinte.', blau:'Am Bildschirm klebt ein Zettel mit dem WWS-Passwort – geschrieben in blauer Tinte.'},
+ cliff:'Auf dem Bildschirm erscheint: „Leuchtturm. Ebbe. Kommt allein.“',
+ tip:'Soll-Bestand = laut WWS. Ist-Bestand = gezählt. · Zu viel erfasst → zu spät bestellt → leeres Regal. Zu wenig erfasst → zu früh bestellt → zu viel Ware. · Das WWS korrigiert Fehler NICHT selbst.',
+ ws:['der Soll-Bestand','der Ist-Bestand','der Bestellvorschlag','die Präsenzlücke','die Verkaufsstockung','die Renner-Penner-Liste','die Auswertung','die Schweigepflicht','der Datenschutz'],
+ pool:[
+ {id:'k13a',t:'mc',l:'ap',q:'Ihr habt 30 Wetterstationen ordnungsgemäß angenommen. Im WWS steht aber 70 als Liefermenge. Welche Auswirkung hat das?',
+  o:['Bei automatischem Bestellsystem kann es zu Verkaufsstockungen kommen.','Das WWS meldet zum richtigen Zeitpunkt die richtige Bestellmenge.','Das WWS korrigiert den Fehler automatisch.','Das WWS zeigt zum errechneten Zeitpunkt den richtigen Ist-Bestand.','Es kommt nicht zu Verkaufsstockungen, weil rechtzeitig bestellt wird.'],
+  e:'Der Soll-Bestand ist 40 Stück zu hoch. Der Meldebestand wird im WWS zu spät erreicht – das Regal ist leer, bevor bestellt wird.',
+  s:'Zu viel erfasst: Der Meldebestand wird zu spät erreicht; es drohen Präsenzlücken.',
+  w:['… weil der Soll-Bestand zu hoch ist und der Meldebestand im WWS zu spät erreicht wird.','… weil das WWS nachts selbst nachzählt.','… weil dann viel zu viel Ware bestellt wird.']},
+ {id:'k13b',t:'mc',l:'ap',q:'Statt 25 gelieferter Kinderhosen wurden nur 10 als Zugang erfasst. Welche Folge hat der Fehler?',
+  o:['Es kann zu Problemen mit der Lagerkapazität kommen, da beim Erreichen des Meldebestands bestellt wird.','Nichts, da das Regal voll ist.','Nichts, da beim Meldebestand neu bestellt wird.','Nichts, das WWS korrigiert die Eingabe automatisch.','Die Hosen müssen zurückgeschickt werden.'],
+  e:'Soll-Bestand zu niedrig → Meldebestand zu früh erreicht → es wird zu früh nachbestellt → zu viel Ware.',
+  s:'Zu wenig erfasst: Es wird zu früh bestellt; die Lagerkapazität kann knapp werden.',
+  w:['… weil das WWS zu früh eine Bestellung auslöst.','… weil zu wenig Ware bestellt wird.','… weil das WWS die Hosen löscht.']},
+ {id:'k13c',t:'mc',l:'ap',q:'Ein Wareneingang von 80 Wollmützen wurde irrtümlich bei Wollschals erfasst. Welche Auswirkung hat der Fehler?',
+  o:['Der Soll-Bestand beider Artikel stimmt nicht mit dem Ist-Bestand überein.','Der Verkaufspreis der Wollschals muss geändert werden.','Der Mindestbestand der Mützen muss gesenkt werden.','Der Bezugspreis der Wollschals sinkt.','Der Soll-Bestand der Wollschals ist zu niedrig.'],
+  e:'Bei den Schals stehen 80 zu viel, bei den Mützen 80 zu wenig.',s:'Der Soll-Bestand beider Artikel stimmt nicht mit dem Ist-Bestand überein.'},
+ {id:'k13d',t:'mc',l:'ap',q:'Ihr lasst eine Renner-Penner-Liste erstellen. Wozu dient sie?',
+  o:['Sie gibt einen Überblick über gut und weniger gut verkaufte Artikel.','Sie zeigt, welche Artikel wegen des Mindesthaltbarkeitsdatums schnell verkauft werden müssen.','Sie zeigt, welche Artikel lange geführt werden müssen.','Sie gibt Auskunft über den Zustand der Ware.','Sie bietet Bestellvorschläge an.'],
+  e:'Renner = verkauft sich gut. Penner = verkauft sich schlecht. Daraus folgen Entscheidungen für Sortiment und Einkauf.',s:'Die Renner-Penner-Liste gibt einen Überblick über gut und weniger gut verkaufte Artikel.'},
+ {id:'k13e',t:'mc',l:'ap',q:'In letzter Zeit gibt es öfter leere Regale (Präsenzlücken). Welche Maßnahme ist sinnvoll?',
+  o:['die Verkaufszahlen genau analysieren und als Grundlage für Bestellungen nutzen','den Meldebestand einfach erhöhen','verstärkt Werbung für schwer verkäufliche Ware machen','Kundenbefragungen zum Kaufverhalten durchführen','mehr Herstellermarken ins Sortiment nehmen'],
+  e:'Erst die Ursache in den Daten suchen. „Meldebestand erhöhen“ klingt gut, ist aber der Ablenker.',s:'Die Verkaufszahlen werden genau analysiert und als Grundlage für Bestellungen genutzt.',
+  w:['… weil erst die Daten zeigen, wo und warum die Lücken entstehen.','… weil ein höherer Meldebestand nie schadet.','… weil Kunden die Ursache kennen.']},
+ {id:'k13f',t:'sort',l:'ap',q:'Muss der Soll-Bestand von Hand im WWS geändert werden? Ordnet zu.',c:['ja, von Hand ändern','nein, läuft automatisch'],
+  it:[['Eine Leuchtturm-Tasse fällt herunter und zerbricht.',0],['Mangelhafte Pullover gehen an den Lieferer zurück.',0],['Ein Diebstahl wird entdeckt.',0],['Ware wird in eine andere Filiale umgelagert.',0],['Eine Kundin kauft eine Mütze an der Kasse.',1],['Der Wareneingang wird mit dem MDE-Gerät erfasst.',1]],
+  e:'Jede Warenbewegung, die nicht über Kasse oder Wareneingang läuft, muss von Hand erfasst werden.',s:'Die unverkäufliche Ware wird als Abgang erfasst; der Soll-Bestand wird geändert.'},
+ {id:'k13g',t:'mc',l:'ap',q:'Euer WWS arbeitet nach dem Bestellpunktverfahren. Welchen Vorteil bringt das?',
+  o:['Bei Erreichen des Meldebestands wird die Bestellung automatisch ausgelöst.','Es sichert einen dauerhaften Umsatzzuwachs.','Es gibt keine Präsenzlücken mehr.','Die Bestellabteilung wird überflüssig.','Der günstigste Lieferer wird automatisch gewählt.'],
+  e:'Das WWS schlägt Bestellungen vor oder löst sie aus. Ein Mensch prüft den Vorschlag.',s:'Bei Erreichen des Meldebestands wird die Bestellung automatisch ausgelöst.'},
+ {id:'k13h',t:'sort',l:'ap',q:'Soll-Bestand oder Ist-Bestand? Ordnet zu.',c:['Soll-Bestand','Ist-Bestand'],
+  it:[['Bestand laut WWS',0],['Anfangsbestand + Zugänge − Abgänge',0],['was da sein müsste',0],['tatsächlich gezählter Bestand',1],['Ergebnis der Inventur',1],['was wirklich im Regal liegt',1]],
+  e:'Weichen beide voneinander ab, wird die Ursache gesucht und der Bestand korrigiert.',s:'Der Soll-Bestand weicht vom Ist-Bestand ab; die Ursache wird geprüft.'},
+ {id:'k13i',t:'mc',l:'ap',q:'Ein Kunde fragt: „Zu welchem Preis kauft ihr die Pullover ein, und wie viel Provision bekommen Sie?“ Was antwortet ihr?',
+  o:['„Das sind interne Zahlen, die darf ich nicht weitergeben. Aber ich erkläre Ihnen gern, was den Pullover besonders macht.“','„Wir zahlen 42 € pro Stück, ich bekomme 3 %.“','„Fragen Sie doch den Lieferer.“','„Keine Ahnung.“'],
+  e:'Einkaufspreise, Konditionen und Provisionen unterliegen der Schweigepflicht.',s:'Interne Daten wie Einkaufspreise und Provisionen gehören zur Schweigepflicht.'},
+ {id:'k13j',t:'mc',l:'ap',q:'Kettenrechnung: 70 statt 30 erfasst. Welche Kette stimmt?',
+  o:['zu viel erfasst → Soll-Bestand zu hoch → zu spät bestellt → leeres Regal','zu viel erfasst → zu früh bestellt → zu viel Ware','zu viel erfasst → keine Folge','zu viel erfasst → der Verkaufspreis steigt'],
+  e:'Immer die Kette denken: falscher Bestand → falscher Bestellzeitpunkt → falsches Regal.',s:'Zu viel erfasst = zu spät bestellt. Zu wenig erfasst = zu früh bestellt.'},
+ {id:'k13k',t:'mc',l:'p',q:'Das WWS schlägt 40 Kartons Ostfriesentee vor (Meldebestand erreicht). Welcher Grund rechtfertigt es NICHT, den Vorschlag zu ändern?',
+  o:['Der Lieferer gewährt 2 % Skonto.','Eine Kältewelle ist angekündigt.','Die Hafenwoche mit vielen Touristen steht bevor.','Im Lager ist kaum noch Platz.','Ein Erfassungsfehler beim Tee ist bekannt.'],
+  e:'Wetter, Saison, Feste, Lagerplatz und bekannte Fehler ändern den Bedarf. Skonto ändert ihn nicht.',s:'Ein Mensch prüft den Bestellvorschlag des WWS.',
+  w:['… weil Skonto nichts über die benötigte Menge sagt.','… weil Skonto nur für kleine Mengen gilt.','… weil das WWS Skonto schon eingerechnet hat.']},
+ {id:'k13l',t:'mc',l:'p',q:'Wie schützt ihr das Warenwirtschaftssystem am besten gegen Computerviren?',
+  o:['Die Antivirensoftware laufend aktualisieren.','Den Rechner nachts ausschalten.','Nur noch Barzahlung annehmen.','Das Passwort gut sichtbar an den Bildschirm kleben.'],
+  e:'Laufende Updates schützen. Ein Passwort am Bildschirm – genau so kam das Phantom ins System.',s:'Gegen Computerviren helfen laufende Updates der Antivirensoftware.'}
+ ]}
+);
+
+const FINALE = {n:14, ort:'Simon-Loschen-Leuchtturm', titel:'Ebbe am Leuchtturm', modul:'Modul 14 · Training aus allen Modulen', prop:'leuchtturm',
+ intro:'Ebbe am Simon-Loschen-Leuchtturm. Oben brennt Licht – Kapitän Claasen! Die Tür hat ein Zahlenschloss mit sechs Rädern. Jede richtige Antwort dreht ein Rad. Danach entlarvt ihr das Phantom.',
+ win:'Das Schloss springt auf. Oben sitzt Kapitän Claasen, müde, aber unverletzt. „Ihr habt jede Zahl geprüft“, sagt er. „Der Laden behält die Lizenz.“',
+ lose:'Das Phantom lacht im Nebel. „Falsche Person!“ Prüft die Indizien noch einmal – ihr habt noch einen Versuch.'};
+
+/* Verzweigungen: Folge eines Fehlers im nächsten Kapitel */
+const FOLGE = {
+ 1:'Wegen der falschen Mengenplanung stapeln sich Kartons im Gang – oder ein Regal ist leer. Das Syndikat reibt sich die Hände.',
+ 2:'Ihr habt zu spät bestellt: Das Regal mit Island-Wolle ist leer, Kunden gehen zur Konkurrenz.',
+ 3:'Im Warenwirtschaftssystem stimmen Daten nicht – der Mann mit Hut nutzt das aus.',
+ 4:'Nordlicht-Import hat sich bei euch eingeschlichen. Das war ein Fehler.',
+ 5:'Das Syndikat behauptet, ihr hättet sein Angebot verbindlich angenommen.',
+ 6:'Ein Angebot mit verstecktem Kleingedruckten hat euch Geld gekostet.',
+ 7:'Eine falsche Kalkulation aus Claasens Rechenbuch ist noch im Umlauf.',
+ 8:'Ihr habt falsch gerechnet – das Syndikat freut sich über euer Geld.',
+ 9:'Ihr habt das scheinbar billigste Angebot genommen – mit teuren Folgen.',
+ 10:'Ein Karton gefälschter Wolle ist im Laden gelandet.',
+ 11:'Der Anwalt des Syndikats hat einen Fehler in eurer Chronik gefunden.',
+ 12:'Die unbestellten Kisten blockieren immer noch den Eingang.',
+ 13:'Im WWS steht noch immer eine falsche Zahl.'
+};
+
+/* ===== Grafiken (Inline-SVG, eigene Farben, unabhängig vom Theme) ===== */
+const PROPS = {
+ notiz:`<g transform="translate(250,64)"><rect x="0" y="6" width="78" height="72" rx="3" fill="#F3EBD3" transform="rotate(-6 39 42)"/><g transform="rotate(-6 39 42)" stroke="#8A7A55" stroke-width="2"><line x1="10" y1="24" x2="66" y2="24"/><line x1="10" y1="34" x2="62" y2="34"/><line x1="10" y1="44" x2="66" y2="44"/><line x1="10" y1="54" x2="48" y2="54"/></g><path d="M18 50 l14 -10 l12 6 l16 -16" stroke="#2F8A4F" stroke-width="3" fill="none" transform="rotate(-6 39 42)"/><circle cx="40" cy="10" r="5" fill="#D8542A"/></g>`,
+ regal:`<g transform="translate(244,60)"><rect x="0" y="0" width="90" height="82" fill="#3A2E25"/><rect x="4" y="4" width="82" height="74" fill="#22303A"/><rect x="4" y="28" width="82" height="4" fill="#5A4A3C"/><rect x="4" y="54" width="82" height="4" fill="#5A4A3C"/><rect x="10" y="10" width="20" height="18" fill="#C9A15A"/><rect x="34" y="14" width="16" height="14" fill="#B6874A"/><rect x="56" y="8" width="24" height="20" fill="#D9B46C"/><rect x="10" y="36" width="26" height="18" fill="#B6874A"/><rect x="60" y="40" width="18" height="14" fill="#C9A15A"/><text x="45" y="72" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="#E9603A">Meldebestand!</text></g>`,
+ kasse:`<g transform="translate(244,66)"><rect x="0" y="34" width="90" height="42" rx="4" fill="#2B3E48"/><rect x="10" y="0" width="56" height="30" rx="3" fill="#1A2A32" stroke="#56707C"/><text x="38" y="20" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="#7FE0A0">??,?? €</text><rect x="34" y="28" width="8" height="8" fill="#56707C"/><g fill="#E8EEF0"><rect x="10" y="44" width="2" height="22"/><rect x="14" y="44" width="1" height="22"/><rect x="17" y="44" width="3" height="22"/><rect x="22" y="44" width="1" height="22"/><rect x="25" y="44" width="2" height="22"/><rect x="29" y="44" width="1" height="22"/><rect x="32" y="44" width="3" height="22"/></g><rect x="50" y="44" width="30" height="22" rx="2" fill="#3E5560"/></g>`,
+ messe:`<g transform="translate(240,58)"><path d="M0 18 h96 l-8 -16 h-80z" fill="#D8542A"/><g fill="#F3EBD3"><rect x="8" y="2" width="10" height="16"/><rect x="28" y="2" width="10" height="16"/><rect x="48" y="2" width="10" height="16"/><rect x="68" y="2" width="10" height="16"/></g><rect x="6" y="18" width="84" height="64" fill="#24343D"/><rect x="14" y="48" width="68" height="34" fill="#3A4F5A"/><text x="48" y="40" text-anchor="middle" font-family="Big Shoulders Stencil Display,Arial Narrow,sans-serif" font-weight="800" font-size="20" fill="#F3EBD3">13</text></g>`,
+ brief:`<g transform="translate(246,70)"><rect x="0" y="0" width="86" height="56" rx="3" fill="#EDE4CC" transform="rotate(4 43 28)"/><path d="M0 0 l43 30 l43 -30" stroke="#A8996F" stroke-width="2" fill="none" transform="rotate(4 43 28)"/><rect x="62" y="6" width="16" height="18" fill="#D8542A" transform="rotate(4 43 28)"/><text x="40" y="48" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#6B5D3D" transform="rotate(4 43 28)">OHNE ABSENDER</text></g>`,
+ lupe:`<g transform="translate(244,62)"><rect x="0" y="6" width="74" height="76" rx="2" fill="#F3EBD3"/><g stroke="#9C8C66" stroke-width="2"><line x1="8" y1="18" x2="64" y2="18"/><line x1="8" y1="28" x2="58" y2="28"/></g><g stroke="#9C8C66" stroke-width="1"><line x1="8" y1="62" x2="64" y2="62"/><line x1="8" y1="67" x2="60" y2="67"/><line x1="8" y1="72" x2="64" y2="72"/></g><circle cx="58" cy="64" r="20" fill="rgba(200,230,240,.35)" stroke="#C9A15A" stroke-width="5"/><line x1="72" y1="78" x2="90" y2="94" stroke="#C9A15A" stroke-width="7" stroke-linecap="round"/><text x="58" y="68" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="700" fill="#B3261E">unfrei</text></g>`,
+ buch:`<g transform="translate(240,66)"><path d="M0 8 q48 -12 48 4 v66 q0 -12 -48 -4z" fill="#EFE6CC"/><path d="M96 8 q-48 -12 -48 4 v66 q0 -12 48 -4z" fill="#E6DBBB"/><g stroke="#9C8C66" stroke-width="1.5"><line x1="8" y1="22" x2="40" y2="20"/><line x1="8" y1="32" x2="40" y2="30"/><line x1="8" y1="42" x2="40" y2="40"/><line x1="56" y1="20" x2="88" y2="22"/><line x1="56" y1="30" x2="88" y2="32"/></g><path d="M58 40 l26 2" stroke="#2F8A4F" stroke-width="3"/><circle cx="76" cy="58" r="7" fill="#7A5A3A" opacity=".5"/></g>`,
+ rechnung:`<g transform="translate(250,58)"><path d="M0 0 h72 v84 l-6 -5 l-6 5 l-6 -5 l-6 5 l-6 -5 l-6 5 l-6 -5 l-6 5 l-6 -5 l-6 5 l-6 -5 l-6 5z" fill="#F3EEE0"/><text x="8" y="16" font-family="IBM Plex Mono,monospace" font-size="8" font-weight="700" fill="#24343D">RECHNUNG</text><g font-family="IBM Plex Mono,monospace" font-size="7" fill="#556570"><text x="8" y="30">Netto</text><text x="8" y="40">+19 % USt</text><text x="8" y="52">Brutto</text><text x="64" y="30" text-anchor="end">2.610,00</text><text x="64" y="40" text-anchor="end">495,90</text><text x="64" y="52" text-anchor="end">3.105,90</text></g><circle cx="48" cy="68" r="10" fill="none" stroke="#B3261E" stroke-width="2" transform="rotate(-15 48 68)"/></g>`,
+ container:`<g transform="translate(232,58)"><rect x="0" y="54" width="52" height="26" fill="#C4472A"/><rect x="52" y="54" width="52" height="26" fill="#2E6E8E"/><rect x="18" y="28" width="52" height="26" fill="#D9A23A"/><rect x="70" y="28" width="34" height="26" fill="#4D7A4A"/><rect x="34" y="2" width="52" height="26" fill="#3C5A9A"/><g stroke="rgba(0,0,0,.25)" stroke-width="1.5"><line x1="10" y1="56" x2="10" y2="78"/><line x1="20" y1="56" x2="20" y2="78"/><line x1="30" y1="56" x2="30" y2="78"/><line x1="40" y1="56" x2="40" y2="78"/><line x1="64" y1="56" x2="64" y2="78"/><line x1="76" y1="56" x2="76" y2="78"/><line x1="88" y1="56" x2="88" y2="78"/></g><text x="45" y="47" text-anchor="middle" font-family="Big Shoulders Stencil Display,Arial Narrow,sans-serif" font-weight="800" font-size="16" fill="#2A1C08">4</text></g>`,
+ wolle:`<g transform="translate(250,64)"><circle cx="38" cy="44" r="32" fill="#D8CDB8"/><g stroke="#B5A88E" stroke-width="2.5" fill="none"><path d="M10 34 q28 -20 58 2"/><path d="M8 48 q30 -16 62 4"/><path d="M14 62 q26 -10 50 2"/><path d="M26 16 q-6 28 8 58"/></g><path d="M66 30 q18 -6 20 10" stroke="#B5A88E" stroke-width="2.5" fill="none"/><g transform="translate(70,42) rotate(12)"><rect x="0" y="0" width="22" height="28" rx="3" fill="#F3EBD3" stroke="#8A7A55"/><circle cx="11" cy="14" r="7" fill="none" stroke="#2F8A4F" stroke-width="2" stroke-dasharray="3 2"/><text x="11" y="17" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8" fill="#B3261E">?</text></g></g>`,
+ vertrag:`<g transform="translate(242,62)"><rect x="8" y="4" width="76" height="76" fill="#F3EBD3"/><ellipse cx="8" cy="42" rx="8" ry="38" fill="#E2D6B5"/><ellipse cx="84" cy="42" rx="8" ry="38" fill="#E2D6B5"/><text x="46" y="20" text-anchor="middle" font-family="Big Shoulders Stencil Display,Arial Narrow,sans-serif" font-weight="800" font-size="11" fill="#24343D">KAUFVERTRAG</text><g stroke="#9C8C66" stroke-width="1.5"><line x1="18" y1="30" x2="74" y2="30"/><line x1="18" y1="38" x2="74" y2="38"/><line x1="18" y1="46" x2="66" y2="46"/></g><circle cx="62" cy="64" r="10" fill="#B3261E"/><path d="M20 66 q8 -8 14 0 t14 -2" stroke="#24343D" stroke-width="1.5" fill="none"/></g>`,
+ kisten:`<g transform="translate(236,60)"><g fill="#A87A45" stroke="#6E4E2A" stroke-width="2"><rect x="0" y="44" width="40" height="38"/><rect x="40" y="44" width="40" height="38"/><rect x="20" y="8" width="40" height="36"/><rect x="80" y="54" width="28" height="28"/></g><g stroke="#6E4E2A" stroke-width="2"><line x1="0" y1="44" x2="40" y2="82"/><line x1="40" y1="44" x2="80" y2="82"/><line x1="20" y1="8" x2="60" y2="44"/></g><text x="40" y="30" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7" font-weight="700" fill="#F3EBD3">UNBESTELLT</text></g>`,
+ monitor:`<g transform="translate(238,58)"><rect x="0" y="0" width="96" height="64" rx="4" fill="#15232B" stroke="#4E6874" stroke-width="3"/><rect x="6" y="6" width="84" height="52" fill="#0B3B2E"/><g font-family="IBM Plex Mono,monospace" font-size="7" fill="#7FE0A0"><text x="10" y="18">SOLL 70</text><text x="10" y="28">IST  30</text><text x="10" y="40" fill="#F2766B">FEHLER?</text></g><rect x="40" y="64" width="16" height="12" fill="#4E6874"/><rect x="26" y="76" width="44" height="5" fill="#4E6874"/><rect x="64" y="18" width="18" height="14" fill="#E9D27A" transform="rotate(8 73 25)"/></g>`,
+ leuchtturm:``
+};
+function scene(prop, opt){
+  opt = opt || {};
+  const beam = prop==='leuchtturm' || opt.beam;
+  return `<svg viewBox="0 0 360 150" role="img" aria-label="Hafenszene in Bremerhaven bei Nacht">
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0B1E2A"/><stop offset=".7" stop-color="#1D4352"/><stop offset="1" stop-color="#2E5B66"/></linearGradient>
+<linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#173843"/><stop offset="1" stop-color="#0B1F27"/></linearGradient>
+<linearGradient id="bm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFE7A8" stop-opacity=".55"/><stop offset="1" stop-color="#FFE7A8" stop-opacity="0"/></linearGradient></defs>
+<rect width="360" height="150" fill="url(#sky)"/>
+<g fill="#CFE3EA" opacity=".7"><circle cx="30" cy="14" r="1"/><circle cx="96" cy="22" r="1.2"/><circle cx="150" cy="10" r=".9"/><circle cx="205" cy="18" r="1"/><circle cx="330" cy="12" r="1.1"/><circle cx="300" cy="30" r=".8"/></g>
+<circle cx="316" cy="26" r="11" fill="#E8E2C8" opacity=".85"/>
+${beam?`<g class="beam"><path d="M62 40 L360 10 L360 70 Z" fill="url(#bm)"/></g>`:''}
+<!-- Sail City -->
+<path d="M178 104 L178 30 Q206 46 212 104 Z" fill="#20404D"/><path d="M178 30 L176 24" stroke="#20404D" stroke-width="2"/>
+<g fill="#E9D27A" opacity=".7"><rect x="184" y="50" width="3" height="2"/><rect x="190" y="62" width="3" height="2"/><rect x="186" y="78" width="3" height="2"/><rect x="196" y="88" width="3" height="2"/></g>
+<!-- Kräne -->
+<g stroke="#1B3743" stroke-width="3" fill="none"><path d="M334 104 V54 H300 M334 62 L314 54"/><path d="M356 104 V64 H330"/></g>
+<!-- Leuchtturm -->
+<g><rect x="54" y="46" width="16" height="58" fill="#7A3A2C"/><rect x="50" y="42" width="24" height="6" fill="#5E2C22"/><rect x="56" y="30" width="12" height="12" fill="${beam?'#FFE7A8':'#C9B98A'}"/><path d="M54 30 L62 20 L70 30 Z" fill="#5E2C22"/><rect x="58" y="60" width="4" height="7" fill="#E9D27A" opacity=".7"/><rect x="62" y="78" width="4" height="7" fill="#E9D27A" opacity=".5"/></g>
+<!-- Häuserzeile Alter Hafen -->
+<g fill="#183743"><path d="M84 104 V84 l10 -8 l10 8 V104z"/><path d="M104 104 V80 l12 -9 l12 9 V104z"/><path d="M128 104 V88 l8 -6 l8 6 V104z"/><path d="M144 104 V82 l10 -7 l10 7 V104z"/><rect x="214" y="86" width="30" height="18"/><rect x="246" y="80" width="22" height="24"/></g>
+<g fill="#E9D27A" opacity=".75"><rect x="90" y="88" width="3" height="4"/><rect x="112" y="84" width="3" height="4"/><rect x="120" y="92" width="3" height="4"/><rect x="150" y="88" width="3" height="4"/><rect x="220" y="92" width="3" height="3"/><rect x="252" y="88" width="3" height="3"/></g>
+<rect x="0" y="104" width="360" height="46" fill="url(#sea)"/>
+<!-- U-Boot -->
+<g fill="#2A3F49"><path d="M118 112 q40 -9 80 0 q-40 6 -80 0z"/><rect x="150" y="100" width="16" height="8" rx="2"/><rect x="157" y="94" width="2" height="7"/></g>
+<g stroke="#5E8C99" stroke-width="1" opacity=".55"><line x1="10" y1="118" x2="60" y2="118"/><line x1="80" y1="124" x2="150" y2="124"/><line x1="200" y1="120" x2="260" y2="120"/><line x1="30" y1="134" x2="110" y2="134"/><line x1="160" y1="138" x2="240" y2="138"/><line x1="280" y1="130" x2="350" y2="130"/></g>
+<g class="fog" opacity=".22" fill="#D7E6EA"><ellipse cx="90" cy="100" rx="120" ry="8"/><ellipse cx="290" cy="94" rx="110" ry="7"/></g>
+<rect x="226" y="138" width="134" height="12" fill="#2A2420"/>
+${PROPS[prop]||''}
+<g class="fog2" opacity=".16" fill="#D7E6EA"><ellipse cx="180" cy="128" rx="190" ry="9"/></g>
+</svg>`;
+}
+function gull(mood){
+  const eye = mood==='bad' ? '<path d="M41 22 l6 2" stroke="#10242F" stroke-width="2"/>' : '<circle cx="44" cy="22" r="2.6" fill="#10242F"/>';
+  const beak = mood==='ok' ? '<path d="M52 24 l14 -2 l-14 6z" fill="#F2B233"/><path d="M52 28 l12 4 l-12 0z" fill="#E09A20"/>' : mood==='bad' ? '<path d="M52 26 l12 4 l-12 2z" fill="#F2B233"/>' : '<path d="M52 25 l14 1 l-14 4z" fill="#F2B233"/>';
+  return `<svg viewBox="0 0 70 70" aria-hidden="true"><ellipse cx="34" cy="46" rx="22" ry="15" fill="#F4F6F6" stroke="#9FB2BA"/><path d="M16 44 q14 -10 34 -2 q-12 12 -34 2z" fill="#9FB2BA"/><path d="M14 46 l-10 4 l10 2z" fill="#40525A"/><circle cx="42" cy="26" r="13" fill="#F4F6F6" stroke="#9FB2BA"/>${eye}${beak}<path d="M30 60 v6 M38 60 v6" stroke="#F2B233" stroke-width="2"/></svg>`;
+}
+function face(id){
+  const base = (skin,hair,extra,shirt)=>`<svg viewBox="0 0 80 80" aria-hidden="true"><rect width="80" height="80" rx="14" fill="#1E3A47"/><path d="M14 80 q26 -26 52 0z" fill="${shirt}"/><circle cx="40" cy="36" r="17" fill="${skin}"/>${hair}<circle cx="34" cy="36" r="1.8" fill="#10242F"/><circle cx="46" cy="36" r="1.8" fill="#10242F"/><path d="M35 45 q5 3 10 0" stroke="#7A4A3A" stroke-width="1.6" fill="none"/>${extra}</svg>`;
+  if(id==='brandt') return base('#E8C2A0','<path d="M22 30 q18 -20 36 0 h4 q0 -5 -4 -6 q-18 -12 -36 0 q-4 1 -4 6z" fill="#3E4A52"/>','<path d="M28 46 q12 14 24 0 v6 q-12 10 -24 0z" fill="#8A6A4A"/>','#3D5A6C');
+  if(id==='thode') return base('#F0CFB0','<path d="M23 34 q0 -20 17 -20 q17 0 17 20 q-4 -10 -17 -10 q-13 0 -17 10z" fill="#B5502E"/><path d="M57 30 q10 6 6 22" stroke="#B5502E" stroke-width="6" fill="none" stroke-linecap="round"/>','','#D8542A');
+  if(id==='sievers') return base('#DDB592','<path d="M23 32 q2 -6 6 -8 M57 32 q-2 -6 -6 -8" stroke="#8C8C8C" stroke-width="3"/>','<g fill="none" stroke="#10242F" stroke-width="1.6"><circle cx="34" cy="36" r="5"/><circle cx="46" cy="36" r="5"/><line x1="39" y1="36" x2="41" y2="36"/></g><path d="M45 47 h10 v6 h-4z" fill="#5A3B26"/>','#2F5D4A');
+  return base('#C99A78','<path d="M22 36 q-2 -22 18 -22 q20 0 18 22 q-4 -12 -18 -12 q-14 0 -18 12z" fill="#2A2420"/>','<path d="M26 66 l14 8 l14 -8" stroke="#E9D27A" stroke-width="4" fill="none"/>','#5B4A7A');
+}
+const ICON = {
+  music:on=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/>${on?'<path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>':'<path d="M17 9l5 6M22 9l-5 6"/>'}</svg>`,
+  ring:full=>full?`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#F4F6F6" stroke-width="5"/><circle cx="12" cy="12" r="8.5" fill="none" stroke="#D8542A" stroke-width="5" stroke-dasharray="6.7 6.65"/></svg>`:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#8FA2AA" stroke-width="2" stroke-dasharray="3 3"/></svg>`,
+  clue:`<svg class="clue-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="M15 15l6 6"/></svg>`,
+  anf:`<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="#D8542A" stroke-width="7" stroke-dasharray="8.4 4.2"/></svg>`,
+  pro:`<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 v26 M10 30 q10 10 20 0 M8 12 h24" stroke="#C9A15A" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="20" cy="6" r="3" fill="#C9A15A"/></svg>`
+};
+
+const TE=new TextEncoder(), TD=new TextDecoder();
+function mqStr(s){const b=TE.encode(s);return [b.length>>8,b.length&255,...b];}
+function mqLen(n){const o=[];do{let d=n%128;n=Math.floor(n/128);if(n>0)d|=128;o.push(d);}while(n>0);return o;}
+function mqPacket(h,body){return new Uint8Array([h,...mqLen(body.length),...body]);}
+class MqttLink{
+  constructor(url,cid,onMsg,onStatus){this.url=url;this.cid=cid;this.onMsg=onMsg;this.onStatus=onStatus;this.subs=new Set();this.up=false;this.buf=new Uint8Array(0);this.pid=1;this.tries=0;this.connect();}
+  connect(){
+    clearTimeout(this.rt);clearInterval(this.ping);let ws;
+    try{ws=new WebSocket(this.url,["mqtt"]);}catch(e){this.retry();return;}
+    this.ws=ws;ws.binaryType="arraybuffer";
+    const guard=setTimeout(()=>{if(!this.up){try{ws.close();}catch(e){}}},9000);
+    ws.onopen=()=>{ws.send(mqPacket(0x10,[...mqStr("MQTT"),4,0x02,0,30,...mqStr(this.cid+"-"+Math.random().toString(36).slice(2,6))]));};
+    ws.onmessage=(ev)=>{const d=new Uint8Array(ev.data);const nb=new Uint8Array(this.buf.length+d.length);nb.set(this.buf);nb.set(d,this.buf.length);this.buf=nb;this.parse();};
+    ws.onclose=()=>{clearTimeout(guard);this.up=false;clearInterval(this.ping);this.onStatus();this.retry();};
+    ws.onerror=()=>{};
+  }
+  retry(){this.tries++;this.rt=setTimeout(()=>this.connect(),Math.min(15000,800*Math.pow(1.6,this.tries)));}
+  parse(){
+    while(this.buf.length>=2){
+      let mult=1,len=0,i=1,b;
+      do{if(i>=this.buf.length)return;b=this.buf[i++];len+=(b&127)*mult;mult*=128;}while(b&128);
+      if(this.buf.length<i+len)return;
+      const type=this.buf[0]>>4,flags=this.buf[0]&15,body=this.buf.subarray(i,i+len);this.buf=this.buf.slice(i+len);
+      if(type===2){if(body[1]===0){this.up=true;this.tries=0;for(const t of this.subs)this.sendSub(t);
+          this.ping=setInterval(()=>{try{this.ws.send(new Uint8Array([0xC0,0]));}catch(e){}},20000);this.onStatus(true);}else{try{this.ws.close();}catch(e){}}}
+      else if(type===3){const tl=(body[0]<<8)|body[1];const topic=TD.decode(body.subarray(2,2+tl));let p=2+tl;const qos=(flags>>1)&3;
+        if(qos>0){const id=(body[p]<<8)|body[p+1];p+=2;if(qos===1){try{this.ws.send(new Uint8Array([0x40,2,id>>8,id&255]));}catch(e){}}}
+        let payload=null;try{payload=JSON.parse(TD.decode(body.subarray(p)));}catch(e){}
+        if(payload!==null)this.onMsg(topic,payload,(flags&1)===1);}
+    }
+  }
+  sendSub(t){const id=this.pid=(this.pid%60000)+1;try{this.ws.send(mqPacket(0x82,[id>>8,id&255,...mqStr(t),0]));}catch(e){}}
+  subscribe(t){this.subs.add(t);if(this.up)this.sendSub(t);}
+  publish(t,obj,retain){if(!this.up)return false;const body=[...mqStr(t),...TE.encode(obj===null?"":JSON.stringify(obj))];
+    try{this.ws.send(mqPacket(retain?0x31:0x30,body));return true;}catch(e){return false;}}
+}
+/* Lokaler Testbetrieb: ?bc=1 verbindet nur Tabs im selben Browser (zum Ausprobieren ohne Internet) */
+class LocalLink{
+  constructor(cid,onMsg,onStatus){this.up=true;this.subs=new Set();this.bc=new BroadcastChannel("phantom-ranking");
+    this.bc.onmessage=e=>{const m=e.data;if(this.subs.has(m.t))onMsg(m.t,m.p,false);};setTimeout(()=>onStatus(true),50);}
+  subscribe(t){this.subs.add(t);}
+  publish(t,obj){this.bc.postMessage({t,p:JSON.parse(JSON.stringify(obj))});return true;}
+}
+const params=new URLSearchParams(location.search);
+const LOCAL=params.get("bc")==="1";
+const BROKERS=params.get("broker")?[params.get("broker")]:["wss://broker.hivemq.com:8884/mqtt","wss://broker.emqx.io:8084/mqtt"];
+const NS="phantom1/";
+class Net{
+  constructor(onMsg,onStatus){
+    this.cid="p"+rnd(10);this.seen=new Map();this.onMsg=onMsg;
+    const st=()=>onStatus(this.count());
+    this.links=LOCAL?[new LocalLink(this.cid,(t,p,r)=>this.recv(t,p,r),st)]:BROKERS.map(u=>new MqttLink(u,this.cid,(t,p,r)=>this.recv(t,p,r),st));
+  }
+  count(){return {up:this.links.filter(l=>l.up).length,all:this.links.length};}
+  recv(t,p,r){
+    if(p&&typeof p==="object"&&p.mid){const now=Date.now();if(this.seen.has(p.mid))return;this.seen.set(p.mid,now);
+      if(this.seen.size>3000){for(const [k,v] of this.seen){if(now-v>600000)this.seen.delete(k);}}}
+    this.onMsg(t,p,r);
+  }
+  sub(t){this.links.forEach(l=>l.subscribe(NS+t));}
+  pub(t,obj,retain){obj.mid=rnd(12);let ok=false;this.links.forEach(l=>{if(l.publish(NS+t,obj,retain))ok=true;});return ok;}
+}
+function rnd(n){const a="abcdefghijkmnpqrstuvwxyz23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(n));for(const x of r)s+=a[x%a.length];return s;}
+
+/* ===== Spiel-Logik ===== */
+const KEY='phantomGeeste_v1'+(params.get('t')||'');
+let STORE_OK=true;
+function load(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){STORE_OK=false;return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){STORE_OK=false}}
+function fresh(keepSeen){
+  return {team:'',shop:'Nordsee-Traditionen & Kolonialwaren',mode:'a',culprit:SUSPECTS[Math.floor(Math.random()*4)].id,
+    ch:{},clues:{},seen:keepSeen||{a:{},p:{}},solved:false,points:{a:0,p:0},record:{a:0,p:0},music:false,cases:0,
+    roles:false,p1:'',p2:'',room:'',tid:'t'+Math.random().toString(36).slice(2,10),debt:null};
+}
+let S=load()||fresh();
+if(!S.seen)S.seen={a:{},p:{}};
+if(!S.tid)S.tid='t'+Math.random().toString(36).slice(2,10);
+(()=>{try{const c=new URLSearchParams(location.search).get('code');if(c){S.room=c.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);save()}}catch(e){}})();
+let R=null; // laufende Runde
+const $=s=>document.querySelector(s);
+const view=()=>$('#view');
+const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const sus=id=>SUSPECTS.find(s=>s.id===id);
+const MODE={a:'Anfänger',p:'Profi'};
+const PER_CH=4;
+function fmt(n,u){
+  if(u==='€')return n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+  const s=n.toLocaleString('de-DE',{maximumFractionDigits:2});
+  return u?s+' '+u:s;
+}
+function parseNum(str){
+  let s=String(str).replace(/[€%\s]/g,'').replace(/[A-Za-zäöüÄÖÜ]/g,'');
+  if(!s)return NaN;
+  if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');
+  else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');
+  return parseFloat(s);
+}
+function poolFor(ch,mode){return ch.pool.filter(t=>t.l.includes(mode))}
+function newCount(mode){
+  let tot=0,neu=0;
+  CHAPTERS.forEach(c=>poolFor(c,mode).forEach(t=>{tot++;if(!S.seen[mode][t.id])neu++}));
+  return {tot,neu};
+}
+function chNew(c,mode){return poolFor(c,mode).filter(t=>!S.seen[mode][t.id]).length}
+function draw(ch,n,mode){
+  const pool=poolFor(ch,mode);
+  const unseen=shuffle(pool.filter(t=>!S.seen[mode][t.id]));
+  let notice='';
+  let pick=unseen.slice(0,n);
+  if(pick.length<n){
+    const rest=shuffle(pool.filter(t=>!pick.includes(t)));
+    pick=pick.concat(rest.slice(0,n-pick.length));
+    pool.forEach(t=>{delete S.seen[mode][t.id]});
+    notice='Alle Aufgaben dieses Kapitels geschafft – jetzt geht es von vorn los, gemischt.';
+  }
+  // Reihenfolge: Rechen- und Zuordnungsaufgaben nicht alle am Stück
+  return {tasks:shuffle(pick),notice};
+}
+/* ---------- Kopfleiste ---------- */
+function bar(){
+  const n=Object.keys(S.clues).length;
+  $('#bar').innerHTML=`<div class="in"><span class="brand">Das Phantom der Geeste</span>
+  <span class="chip" title="Gesammelte Indizien">${ICON.clue} ${n}/13</span>
+  <button class="iconbtn" id="musicBtn" aria-pressed="${S.music}" aria-label="Musik an oder aus" title="Musik (nur im Finale)">${ICON.music(S.music)}</button></div>`;
+  $('#musicBtn').onclick=()=>{S.music=!S.music;save();bar();if(S.music)Music.unlock();if(!S.music)Music.stop();else if(R&&R.finale&&R.phase==='q')Music.start(R.lockN||0)};
+}
+/* ---------- Start ---------- */
+function startScreen(){
+  R=null;Music.stop();
+  view().innerHTML=`<div class="scene">${scene('notiz')}</div>
+  <div class="stack" style="margin-top:18px">
+    <div><div class="eyebrow">Lernfeld 6 · Waren beschaffen · Bremerhaven</div>
+    <h1 class="hero-title">Das Phantom der Geeste<small>Sabotage am Alten Hafen</small></h1></div>
+    <p>Ihr seid das neue Sortiments-Team im Traditionsgeschäft <b>„Nordsee-Traditionen &amp; Kolonialwaren“</b> am Alten Hafen, direkt neben dem U-Boot „Wilhelm Bauer“. Eine Schmugglerbande – das <b>Geeste-Syndikat</b> – schleust gefälschte Island-Wolle und manipulierte Elektronik in die Lieferketten der Stadt. Gestern Abend ist euer Chef, Kapitän Claasen, verschwunden.</p>
+    <div class="claasen">„Sie kommen über die Weser. Die Beschaffung für die Winter-Saison darf nicht reißen, sonst verliert der Laden seine Lizenz und das Syndikat übernimmt. Vertraue niemandem, prüfe jede Zahl!“<br>– C.</div>
+    <div class="card stack">
+      <div><label class="lbl" for="team">Euer Teamname</label><input class="txt" id="team" maxlength="28" autocomplete="off" placeholder="z. B. Die Hafenfüchse" value="${esc(S.team)}"></div>
+      <div><span class="lbl">Wie wollt ihr spielen?</span>
+      <div class="modes">
+        <button class="mode" data-m="a" aria-pressed="${S.mode==='a'}">${ICON.anf}<b>Anfänger</b><span>3 Antworten, Tipp-Knopf und Wortspeicher. Rechnungen mit Auswahl.</span></button>
+        <button class="mode" data-m="p" aria-pressed="${S.mode==='p'}">${ICON.pro}<b>Profi</b><span>Alle Antworten wie in der IHK-Prüfung, Begründung wählen, Ergebnisse selbst eintippen.</span></button>
+      </div></div>
+      <button class="btn wide" id="go">Fall übernehmen</button>
+      ${STORE_OK?'<p class="muted" style="font-size:.85rem">Euer Fortschritt wird nur auf diesem Gerät gespeichert.</p>':'<p class="notice">Dieses Fenster speichert nichts. Ihr könnt spielen, aber der Fortschritt geht beim Schließen verloren.</p>'}
+    </div></div>`;
+  view().querySelectorAll('.mode').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;view().querySelectorAll('.mode').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+  $('#go').onclick=()=>{S.team=($('#team').value||'').trim()||'Team Hafen';save();akte()};
+}
+/* ---------- Fallakte ---------- */
+function akte(msg){
+  R=null;Music.stop();bar();
+  const nc=newCount(S.mode);
+  const done=CHAPTERS.filter(c=>S.ch[c.n]&&S.ch[c.n][S.mode]).length;
+  const starsTot=CHAPTERS.reduce((s,c)=>s+((S.ch[c.n]&&S.ch[c.n][S.mode])||0),0);
+  const items=CHAPTERS.map(c=>{
+    const st=(S.ch[c.n]&&S.ch[c.n][S.mode])||0;const nn=chNew(c,S.mode);
+    return `<li><button class="stop ${st?'done':''}" data-n="${c.n}"><span class="num">${c.n}</span><span class="t"><b>${esc(c.titel)}</b><small>${esc(c.ort)} · ${esc(c.modul)}</small></span><span class="r">${st?`<span class="stars" aria-label="${st} von 3 Sternen">${'★'.repeat(st)}${'☆'.repeat(3-st)}</span>`:''}${S.clues[c.n]?`<span title="Indiz gefunden">${ICON.clue}</span>`:''}${nn?`<span class="badge-new">${nn} neu</span>`:''}</span></button></li>`}).join('');
+  view().innerHTML=`<div class="scene">${scene('leuchtturm',{beam:S.solved})}</div>
+  <div class="stack" style="margin-top:16px">
+   ${msg?`<p class="notice">${esc(msg)}</p>`:''}
+   <div class="row" style="justify-content:space-between"><div><div class="eyebrow">Fallakte · ${esc(S.team)}</div><h2>${S.solved?'Fall gelöst':'Wo ermittelt ihr?'}</h2></div>
+   <button class="iconbtn" id="modeBtn">Modus: ${MODE[S.mode]}</button></div>
+   <div class="stats"><div class="stat"><b>${done}/13</b><span>Kapitel geschafft</span></div><div class="stat"><b>${starsTot}</b><span>Sterne (${MODE[S.mode]})</span></div><div class="stat"><b>${nc.neu}/${nc.tot}</b><span>Aufgaben neu für euch</span></div></div>
+   <p class="muted" style="font-size:.92rem">Jedes Kapitel passt zu einem Modul. Ihr könnt jedes Kapitel wählen. Wer ein Kapitel schafft, findet ein Indiz gegen das Phantom.</p>
+   <ol class="route">${items}<li><button class="stop fin" data-n="14"><span class="num">14</span><span class="t"><b>Ebbe am Leuchtturm</b><small>Simon-Loschen-Leuchtturm · Finale · Modul 14</small></span><span class="r">${S.solved?'<span class="stars">gelöst</span>':''}</span></button></li></ol>
+   <div class="row"><button class="btn ghost small" id="susBtn">Verdächtige und Indizien</button></div>
+   <details class="card" id="setBox" ${S.room||S.roles?'open':''}><summary><b>Teamrollen und Klassenranking</b></summary>
+    <div class="stack" style="margin-top:12px">
+     <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="rolesOn" ${S.roles?'checked':''} style="width:22px;height:22px"> <span><b>Teamrollen</b>: Eine Person entscheidet, die andere muss vorher laut begründen. Die Rollen wechseln bei jeder Frage.</span></label>
+     <div class="row" style="flex-wrap:nowrap"><input class="txt" id="p1" maxlength="16" placeholder="Name 1" value="${esc(S.p1)}" aria-label="Name Person 1"><input class="txt" id="p2" maxlength="16" placeholder="Name 2" value="${esc(S.p2)}" aria-label="Name Person 2"></div>
+     <div><label class="lbl" for="room">Klassen-Code für das Ranking am Beamer</label><div class="row" style="flex-wrap:nowrap"><input class="txt mono" id="room" maxlength="6" placeholder="z. B. K7QX2" value="${esc(S.room)}" style="text-transform:uppercase"><button class="btn small" id="roomBtn">Verbinden</button></div>
+     <p class="muted" style="font-size:.85rem;margin-top:6px" id="rankState">${S.room?rankStateText():'Den Code zeigt eure Lehrkraft an der Tafel.'}</p></div>
+    </div></details>
+   <div class="row"><button class="linkbtn" id="resetBtn">Fortschritt zurücksetzen</button></div>
+   <div id="confirmBox"></div>
+  </div>`;
+  view().querySelectorAll('.stop').forEach(b=>b.onclick=()=>{const n=+b.dataset.n;n===14?finaleIntro():chapterIntro(CHAPTERS[n-1])});
+  $('#susBtn').onclick=()=>suspectBoard(false);
+  $('#rolesOn').onchange=e=>{S.roles=e.target.checked;save()};
+  $('#p1').onchange=e=>{S.p1=e.target.value.trim();save()};$('#p2').onchange=e=>{S.p2=e.target.value.trim();save()};
+  $('#roomBtn').onclick=()=>{S.room=($('#room').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);$('#room').value=S.room;save();if(S.room)rankPub('ist dabei');$('#rankState').textContent=S.room?rankStateText():'Kein Code – das Ranking ist aus.'};
+  if(S.room&&!RANK_HELLO){RANK_HELLO=true;rankPub('ist dabei')}
+  $('#modeBtn').onclick=()=>{S.mode=S.mode==='a'?'p':'a';save();akte()};
+  $('#resetBtn').onclick=()=>{$('#confirmBox').innerHTML=`<div class="confirm"><b>Wirklich alles zurücksetzen?</b><p>Sterne, Indizien und gesehene Aufgaben auf diesem Gerät werden gelöscht. Das Phantom wird neu ausgelost.</p><div class="row"><button class="btn small" id="yes">Ja, zurücksetzen</button><button class="btn ghost small" id="no">Abbrechen</button></div></div>`;
+    $('#yes').onclick=()=>{const t=S.team,m=S.mode;S=fresh();S.team=t;S.mode=m;save();akte('Alles zurückgesetzt. Ein neuer Fall beginnt.')};$('#no').onclick=()=>{$('#confirmBox').innerHTML=''}};
+  window.scrollTo(0,0);
+}
+/* ---------- Kapitel ---------- */
+function chapterIntro(ch){
+  Music.stop();
+  view().innerHTML=`<div class="scene">${scene(ch.prop)}</div>
+  <div class="stack" style="margin-top:16px">
+   <div><div class="eyebrow">Kapitel ${ch.n} · ${esc(ch.ort)}</div><h2>${esc(ch.titel)}</h2><p class="muted" style="font-size:.9rem;margin-top:4px">${esc(ch.modul)}</p></div>
+   <p>${esc(ch.intro)}</p>
+   ${debtFor(ch)?`<div class="note stack" style="gap:6px;border-color:var(--bad);background:var(--bad-bg)"><div class="eyebrow" style="color:var(--bad)">Folge aus Kapitel ${S.debt.from}</div><p><b>${esc(FOLGE[S.debt.from])}</b></p><p style="font-size:.92rem">Die Aufgabe, die euch dort erwischt hat, kommt zuerst. Löst ihr sie, ist der Schaden behoben.</p></div>`:''}
+   <div class="card stack" style="gap:8px"><b>So läuft das Kapitel</b><p style="font-size:.95rem">${PER_CH} Entscheidungen. Ihr habt 3 Rettungsringe – bei jedem Fehler geht einer verloren. Sind alle weg, übernimmt das Syndikat und ihr startet neu.${S.mode==='p'?' Im Profi-Modus wählt ihr bei vielen Fragen zusätzlich die richtige Begründung.':''}</p></div>
+   <div class="row"><button class="btn" id="start">Ermittlung starten</button><button class="btn ghost" id="back">Zur Akte</button></div></div>`;
+  $('#start').onclick=()=>startRun(ch);$('#back').onclick=()=>akte();
+  window.scrollTo(0,0);
+}
+function debtFor(ch){
+  if(!S.debt||S.debt.from===ch.n)return null;
+  const src=CHAPTERS[S.debt.from-1];const t=src&&src.pool.find(x=>x.id===S.debt.id&&x.l.includes(S.mode));
+  return t?{t,src}:null;
+}
+function startRun(ch){
+  const d=draw(ch,PER_CH,S.mode);const db=debtFor(ch);
+  const tasks=db?[db.t].concat(d.tasks):d.tasks;
+  R={ch,tasks,i:0,lives:3,pts:0,max:0,res:[],notice:d.notice,finale:false,debtIdx:db?0:-1,debtFrom:db?db.src:null,joker:false};
+  save();task();
+}
+function header(){
+  const lives=[0,1,2].map(i=>ICON.ring(i<R.lives)).join('');
+  const dots=R.tasks.map((t,i)=>`<i class="${R.res[i]||(i===R.i?'on':'')}"></i>`).join('');
+  const label=R.finale?'Finale · Leuchtturm':(R.i===R.debtIdx?`Folge aus Kapitel ${R.debtFrom.n} · Schaden beheben`:`Kapitel ${R.ch.n} · ${esc(R.ch.titel)}`);
+  return `<div class="qhead"><span class="eyebrow">${label} · ${R.i+1}/${R.tasks.length}</span><span class="lives" aria-label="${R.lives} Rettungsringe">${lives}</span></div><div class="dots">${dots}</div>`;
+}
+function task(){
+  const t=R.tasks[R.i];R.cur={t,sel:null,step:'answer'};
+  let body='';
+  if(t.t==='mc'){
+    let opts=t.o.map((x,i)=>({x,ok:i===0}));
+    if(S.mode==='a'&&opts.length>3)opts=[opts[0]].concat(shuffle(opts.slice(1)).slice(0,2));
+    R.cur.opts=shuffle(opts);
+    body=`<div class="opts" id="opts">${R.cur.opts.map((o,i)=>`<button class="opt" data-i="${i}" aria-pressed="false"><span class="k">${'ABCDE'[i]}</span><span>${esc(o.x)}</span></button>`).join('')}</div>`;
+  }else if(t.t==='num'){
+    if(S.mode==='a'){
+      R.cur.opts=shuffle([{v:t.a,ok:true}].concat(t.d.map((v,k)=>({v,ok:false,de:t.de[k]}))));
+      body=`<div class="opts" id="opts">${R.cur.opts.map((o,i)=>`<button class="opt" data-i="${i}" aria-pressed="false"><span class="k">${'ABC'[i]}</span><span class="mono">${fmt(o.v,t.u)}</span></button>`).join('')}</div>`;
+    }else{
+      body=`<label class="lbl" for="numIn">Euer Ergebnis</label><div class="numin"><input class="txt" id="numIn" inputmode="decimal" autocomplete="off" placeholder="0,00"><span class="u">${esc(t.u)}</span></div><p class="muted" style="font-size:.85rem">Kaufmännisch auf zwei Stellen runden. Komma oder Punkt geht beide.</p>`;
+    }
+  }else if(t.t==='ord'){
+    R.cur.order=[];R.cur.items=shuffle(t.it.map((x,i)=>({x,i})));
+    body=`<p class="muted" style="font-size:.9rem">Tippt der Reihe nach an. Nochmal tippen nimmt die Nummer zurück.</p><div class="opts" id="ord">${R.cur.items.map((o,k)=>`<button class="ordbtn" data-k="${k}"><span class="k"></span><span>${esc(o.x)}</span></button>`).join('')}</div>`;
+  }else if(t.t==='sort'){
+    const n=Math.min(t.it.length,S.mode==='a'?5:7);
+    const first=t.c.map((_,ci)=>shuffle(t.it.filter(x=>x[1]===ci))[0]).filter(Boolean);
+    const rest=shuffle(t.it.filter(x=>!first.includes(x)));
+    R.cur.items=shuffle(first.concat(rest).slice(0,n));R.cur.ans={};
+    body=`<div class="stack" id="sort" style="gap:10px">${R.cur.items.map((it,k)=>`<div class="sortrow" data-k="${k}"><span>${esc(it[0])}</span><div class="cats">${t.c.map((c,ci)=>`<button class="cat" data-k="${k}" data-c="${ci}" aria-pressed="false">${esc(c)}</button>`).join('')}</div></div>`).join('')}</div>`;
+  }
+  const tipCost=S.mode==='p'?' (kostet 3 Punkte)':'';
+  view().innerHTML=`<div class="stack" style="margin-top:14px">${header()}
+   ${R.notice?`<p class="notice">${esc(R.notice)}</p>`:''}
+   ${S.roles?roleBanner():''}
+   <div class="card stack"><p class="q">${esc(t.q)}</p>${body}
+   ${S.roles?`<label class="saidrow" id="saidRow"><input type="checkbox" id="said"> <span><b>${esc(roleNames()[1])}</b> hat laut begründet: „Wir wählen …, weil …“</span></label>`:''}
+   <div id="act"><button class="btn wide" id="lock" disabled>Entscheidung festlegen</button></div></div>
+   <div class="tools" id="tools">${(!R.joker&&(t.t==='mc'||(t.t==='num'&&S.mode==='a')))?'<button class="btn ghost small" id="jokerBtn">Joker: Kollegin fragen (−3 Punkte)</button>':''}<button class="btn ghost small" id="tipBtn">Tipp aus Claasens Werkzeugkarte${tipCost}</button><button class="btn ghost small" id="wsBtn">Wortspeicher</button></div>
+   <div id="extra"></div>
+   ${R.finale?'<div class="timer" id="timer" hidden><i></i></div>':''}
+  </div>`;
+  R.notice='';
+  wireTask(t);
+  $('#tipBtn').onclick=()=>{const ch=R.finale?R.srcCh[R.i]:R.ch;if(S.mode==='p'&&!R.cur.tip){R.pen=(R.pen||0)+3}R.cur.tip=true;$('#extra').innerHTML=`<div class="tipbox"><b>Werkzeugkarte:</b> ${esc(ch.tip)}</div>`};
+  if($('#jokerBtn'))$('#jokerBtn').onclick=useJoker;
+  $('#wsBtn').onclick=()=>{const ch=R.finale?R.srcCh[R.i]:R.ch;$('#extra').innerHTML=`<div class="tipbox"><b>Wortspeicher</b><div class="ws" style="margin-top:6px">${ch.ws.map(w=>`<span>${esc(w)}</span>`).join('')}</div></div>`};
+  if(R.finale)startTimer();
+  window.scrollTo(0,0);
+}
+function wireTask(t){
+  const lock=$('#lock');R.cur.ready=false;R.cur.said=!S.roles;
+  const upd=()=>{lock.disabled=!(R.cur.ready&&R.cur.said)};R.cur.upd=upd;
+  if($('#said'))$('#said').onchange=e=>{R.cur.said=e.target.checked;upd()};
+  if(t.t==='mc'||(t.t==='num'&&S.mode==='a')){
+    $('#opts').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{R.cur.sel=+b.dataset.i;$('#opts').querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b));R.cur.ready=true;upd()});
+  }else if(t.t==='num'){
+    const inp=$('#numIn');inp.oninput=()=>{R.cur.ready=!!inp.value.trim();upd()};inp.onkeydown=e=>{if(e.key==='Enter'&&!lock.disabled)lock.click()};
+  }else if(t.t==='ord'){
+    $('#ord').querySelectorAll('.ordbtn').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;const pos=R.cur.order.indexOf(k);
+      if(pos>=0)R.cur.order.splice(pos,1);else R.cur.order.push(k);
+      $('#ord').querySelectorAll('.ordbtn').forEach(x=>{const p=R.cur.order.indexOf(+x.dataset.k);x.classList.toggle('set',p>=0);x.querySelector('.k').textContent=p>=0?p+1:''});
+      R.cur.ready=R.cur.order.length===R.cur.items.length;upd()});
+  }else if(t.t==='sort'){
+    $('#sort').querySelectorAll('.cat').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;R.cur.ans[k]=+b.dataset.c;
+      b.parentNode.querySelectorAll('.cat').forEach(x=>x.setAttribute('aria-pressed',x===b));R.cur.ready=Object.keys(R.cur.ans).length===R.cur.items.length;upd()});
+  }
+  lock.onclick=()=>evaluate(t,false);
+}
+function evaluate(t,timeout){
+  stopTimer();Music.pause();
+  let frac=0,extra='';const max=(S.mode==='p'&&t.t==='mc'&&t.w)?15:10;
+  R.max+=max;
+  const allBtns=view().querySelectorAll('.opt,.ordbtn,.cat');allBtns.forEach(b=>b.disabled=true);
+  $('#lock').remove();$('#tools').remove();if($('#saidRow'))$('#saidRow').remove();
+  if(t.t==='mc'||(t.t==='num'&&S.mode==='a')){
+    const o=R.cur.opts[R.cur.sel];frac=(!timeout&&o&&o.ok)?1:0;
+    $('#opts').querySelectorAll('.opt').forEach((b,i)=>{if(R.cur.opts[i].ok)b.classList.add('right');else if(i===R.cur.sel)b.classList.add('wrong')});
+    if(t.t==='num'&&o&&!o.ok&&o.de)extra=`<p><b>Fehlertyp:</b> ${esc(o.de)}</p>`;
+  }else if(t.t==='num'){
+    const v=parseNum($('#numIn').value);$('#numIn').disabled=true;
+    const ok=!timeout&&(Math.abs(v-t.a)<0.006||(t.acc||[]).some(a=>Math.abs(v-a)<0.006));frac=ok?1:0;
+    if(!ok){const k=t.d.findIndex(d=>Math.abs(v-d)<0.006);extra=`<p>Richtig ist: <b class="mono">${fmt(t.a,t.u)}</b>${isNaN(v)?'':` – ihr hattet <span class="mono">${fmt(v,t.u)}</span>`}.</p>${k>=0?`<p><b>Fehlertyp:</b> ${esc(t.de[k])}</p>`:''}`}
+  }else if(t.t==='ord'){
+    let c=0;R.cur.order.forEach((k,p)=>{if(R.cur.items[k].i===p)c++});frac=timeout?0:c/R.cur.items.length;
+    $('#ord').querySelectorAll('.ordbtn').forEach(b=>{const k=+b.dataset.k;const p=R.cur.order.indexOf(k);b.classList.add(p===R.cur.items[k].i?'right':'wrong')});
+    if(frac<1)extra=`<p><b>Richtige Reihenfolge:</b></p><ol style="margin:0;padding-left:22px">${t.it.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`;
+  }else if(t.t==='sort'){
+    let c=0;R.cur.items.forEach((it,k)=>{const ok=R.cur.ans[k]===it[1];if(ok)c++;const row=$('#sort').querySelector(`.sortrow[data-k="${k}"]`);row.classList.add(ok?'right':'wrong');if(!ok){row.insertAdjacentHTML('beforeend',`<small>Richtig: <b>${esc(t.c[it[1]])}</b></small>`)}});
+    frac=timeout?0:c/R.cur.items.length;
+  }
+  const verdict=frac===1?'ok':frac>=0.6?'mid':'bad';
+  S.seen[S.mode][t.id]=true;
+  R.cur.base=Math.round(10*frac);R.pts+=R.cur.base;R.cur.verdict=verdict;R.cur.extra=extra;R.cur.timeout=timeout;
+  if(verdict==='bad')R.lives--;
+  save();
+  if(S.mode==='p'&&t.t==='mc'&&t.w&&verdict==='ok'){askWhy(t)}else{feedback(t)}
+}
+function askWhy(t){
+  R.cur.why=shuffle(t.w.map((x,i)=>({x,ok:i===0})));R.cur.wsel=null;
+  $('#act').innerHTML=`<div class="stack"><div class="react">${gull('ok')}<div class="bubble">Richtig! Jetzt die Begründung – im Profi-Modus zählt beides.</div></div>
+   <p class="q">Welche Begründung passt?</p><div class="opts" id="why">${R.cur.why.map((o,i)=>`<button class="opt" data-i="${i}" aria-pressed="false"><span class="k">${i+1}</span><span>${esc(o.x)}</span></button>`).join('')}</div>
+   <button class="btn wide" id="lockW" disabled>Begründung festlegen</button></div>`;
+  $('#why').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{R.cur.wsel=+b.dataset.i;$('#why').querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#lockW').disabled=false});
+  $('#lockW').onclick=()=>{const ok=R.cur.why[R.cur.wsel].ok;$('#why').querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;if(R.cur.why[i].ok)b.classList.add('right');else if(i===R.cur.wsel)b.classList.add('wrong')});
+    if(ok){R.pts+=5}else{R.cur.verdict='mid';R.cur.extra+=`<p>Die Entscheidung stimmt, die Begründung nicht. Darum nur 10 von 15 Punkten.</p>`}
+    $('#lockW').remove();feedback(t)};
+}
+const SAY={ok:['Stark! Das Syndikat schäumt vor Wut.','Richtig – Claasen wäre stolz auf euch.','Treffer! Ihr lasst euch nicht täuschen.','Genau so. Weiter, die Spur ist heiß!'],
+  mid:['Fast. Ein Teil war richtig – lest genau nach.','Halb gewonnen. Schaut euch die Erklärung an.'],
+  bad:['Mist – das war eine Falle des Syndikats.','Daneben. Lest die Erklärung, dann klappt es beim nächsten Mal.','Das Syndikat grinst. Nicht aufgeben!']};
+function feedback(t){
+  const v=R.cur.verdict;R.res[R.i]=v;
+  const say=R.cur.timeout?'Zu langsam – die Zeit ist um.':SAY[v][Math.floor(Math.random()*SAY[v].length)];
+  const lbl={ok:'Richtig',mid:'Teilweise richtig',bad:'Leider falsch'}[v];
+  const calc=t.r?`<div class="calc">${esc(t.r)}</div>`:'';
+  const last=R.i>=R.tasks.length-1||R.lives<=0;
+  let wheel=R.finale&&v!=='bad'?'<p><b>Ein Rad am Schloss dreht sich!</b></p>':'';
+  if(!R.finale&&R.i===R.debtIdx){if(v==='ok'){R.debtFixed=true;wheel='<p><b>Schaden behoben!</b> Die Folge aus dem letzten Kapitel ist aus der Welt.</p>'}else{wheel='<p><b>Der Schaden bleibt.</b> Lest die Erklärung genau – die Aufgabe kommt wieder.</p>'}}
+  const html=`<div class="stack">
+   <div class="react">${gull(v)}<div class="bubble">${esc(say)}</div></div>
+   <div class="verdict ${v}">${lbl}</div>${wheel}
+   <div class="fach"><div class="eyebrow">Fachbegriff-Karte</div>${R.cur.extra}${calc}<p>${esc(t.e)}</p>${t.s?`<div class="ihk"><b>So steht es in der Prüfung</b>${esc(t.s)}</div>`:''}</div>
+   <button class="btn wide" id="next">${last?(R.lives<=0?'Weiter':'Zum Ergebnis'):'Weiter'}</button></div>`;
+  if(R.finale&&v!=='bad'){R.lockN=(R.lockN||0)+1}
+  $('#act').innerHTML=html;
+  // Dots aktualisieren
+  const dots=view().querySelectorAll('.dots i');if(dots[R.i]){dots[R.i].className=v}
+  const lv=view().querySelector('.lives');if(lv)lv.innerHTML=[0,1,2].map(i=>ICON.ring(i<R.lives)).join('');
+  $('#next').onclick=()=>{if(R.lives<=0)return R.finale?finaleFail():chapterFail();R.i++;if(R.i>=R.tasks.length)return R.finale?finaleBoard():chapterEnd();task();if(R.finale&&S.music)Music.start(R.lockN||0)};
+  $('#act').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function settleDebt(){
+  const bad=R.tasks.findIndex((t,i)=>i!==R.debtIdx&&R.res[i]==='bad');
+  if(bad>=0)S.debt={from:R.ch.n,id:R.tasks[bad].id};
+  else if(R.debtFixed)S.debt=null;
+  save();
+}
+function chapterFail(){
+  settleDebt();
+  view().innerHTML=`<div class="scene">${scene(R.ch.prop)}</div><div class="stack" style="margin-top:16px">
+   <div class="eyebrow">Kapitel ${R.ch.n}</div><h2>Das Syndikat war schneller</h2>
+   <div class="react">${gull('bad')}<div class="bubble">Alle Rettungsringe sind weg. Lest die Fachbegriff-Karten noch einmal und startet neu – ihr bekommt andere Aufgaben.</div></div>
+   <div class="row"><button class="btn" id="again">Kapitel neu starten</button><button class="btn ghost" id="back">Zur Akte</button></div></div>`;
+  $('#again').onclick=()=>startRun(R.ch);$('#back').onclick=()=>akte();window.scrollTo(0,0);
+}
+function chapterEnd(){
+  R.pts=Math.max(0,R.pts-(R.pen||0));R.pen=0;
+  const ch=R.ch,pct=R.max?R.pts/R.max:0,st=pct>=0.85?3:pct>=0.6?2:1;
+  S.ch[ch.n]=S.ch[ch.n]||{};const prev=S.ch[ch.n][S.mode]||0;S.ch[ch.n][S.mode]=Math.max(prev,st);
+  const firstClue=!S.clues[ch.n];S.clues[ch.n]=true;
+  S.points[S.mode]=(S.points[S.mode]||0)+R.pts;settleDebt();save();bar();rankPub(`Kapitel ${ch.n} geschafft`);
+  const val=sus(S.culprit)[ch.dim];
+  view().innerHTML=`<div class="scene">${scene(ch.prop)}</div><div class="stack" style="margin-top:16px">
+   <div class="eyebrow">Kapitel ${ch.n} geschafft</div><h2>${esc(ch.titel)}</h2>
+   <div class="score"><div class="stars" style="font-size:2rem">${'★'.repeat(st)}${'☆'.repeat(3-st)}</div><div class="big mono">${R.pts} / ${R.max}</div><div>Punkte · ${esc(S.team)} · ${MODE[S.mode]}</div></div>
+   <div class="note stack" style="gap:6px"><div class="eyebrow">${firstClue?'Neues Indiz':'Indiz (schon in der Akte)'}</div><p><b>${esc(ch.clue[val])}</b></p><p class="muted" style="font-size:.9rem">Vergleicht mit den Verdächtigen: Wer passt dazu, wer nicht?</p></div>
+   <p><i>${esc(ch.cliff)}</i></p>
+   <div class="row">${ch.n<13?`<button class="btn" id="nextCh">Weiter zu Kapitel ${ch.n+1}</button>`:`<button class="btn" id="nextCh">Zum Finale</button>`}<button class="btn ghost" id="back">Zur Akte</button><button class="btn ghost" id="sus">Verdächtige</button></div></div>`;
+  $('#nextCh').onclick=()=>ch.n<13?chapterIntro(CHAPTERS[ch.n]):finaleIntro();$('#back').onclick=()=>akte();$('#sus').onclick=()=>suspectBoard(false);
+  window.scrollTo(0,0);
+}
+function newCase(){
+  const old=S.culprit;let c=old;while(c===old)c=SUSPECTS[Math.floor(Math.random()*4)].id;
+  S.culprit=c;S.clues={};S.solved=false;S.cases=(S.cases||0)+1;save();bar();
+}
+/* ---------- Verdächtige ---------- */
+function clueItems(){
+  return CHAPTERS.map(c=>S.clues[c.n]?`<li><span class="n">K${c.n}</span><span>${esc(c.clue[sus(S.culprit)[c.dim]])}</span></li>`:`<li class="miss"><span class="n">K${c.n}</span><span>Noch kein Indiz aus „${esc(c.titel)}“.</span></li>`).join('');
+}
+function known(){ // welche Werte sind durch Indizien bekannt?
+  const k={};CHAPTERS.forEach(c=>{if(S.clues[c.n])k[c.dim]=sus(S.culprit)[c.dim]});return k;
+}
+function susCards(selectable,sel){
+  const k=known();
+  return SUSPECTS.map(s=>{const attrs=Object.keys(DIMS).map(d=>{const v=s[d];const x=S.mode==='a'&&k[d]&&k[d]!==v;return `<span class="${x?'x':''}">${DIMS[d].label}: ${DIMS[d][v]}</span>`}).join('');
+    const tag=selectable?'button':'div';
+    return `<${tag} class="suscard" ${selectable?`data-id="${s.id}" aria-pressed="${sel===s.id}"`:''}>${face(s.id)}<b>${esc(s.name)}</b><small>${esc(s.rolle)}</small><small>${esc(s.info)}</small><div class="attr">${attrs}</div></${tag}>`}).join('');
+}
+function suspectBoard(){
+  view().innerHTML=`<div class="stack" style="margin-top:16px"><div><div class="eyebrow">Claasens Akte</div><h2>Die Verdächtigen</h2></div>
+   <p style="font-size:.95rem">Claasen hat vier Personen beobachtet. Jedes Indiz verrät eine Eigenschaft des Phantoms.${S.mode==='a'?' Was nicht passt, wird durchgestrichen.':' Im Profi-Modus vergleicht ihr selbst: Wer passt zu allen Indizien?'}</p>
+   <div class="sus">${susCards(false)}</div>
+   <div class="card stack"><h3>Gefundene Indizien</h3><ul class="cluelist">${clueItems()}</ul></div>
+   <button class="btn ghost" id="back">Zur Akte</button></div>`;
+  $('#back').onclick=()=>akte();window.scrollTo(0,0);
+}
+/* ---------- Finale ---------- */
+function finaleIntro(){
+  Music.stop();
+  const n=Object.keys(S.clues).length;
+  view().innerHTML=`<div class="scene">${scene('leuchtturm',{beam:true})}</div><div class="stack" style="margin-top:16px">
+   <div><div class="eyebrow">Finale · ${esc(FINALE.ort)}</div><h2>${esc(FINALE.titel)}</h2><p class="muted" style="font-size:.9rem;margin-top:4px">${esc(FINALE.modul)}</p></div>
+   <p>${esc(FINALE.intro)}</p>
+   <div class="lock" aria-label="Zahlenschloss">${[0,1,2,3,4,5].map(()=>'<span class="wheel">?</span>').join('')}</div>
+   <div class="card stack" style="gap:8px"><b>So läuft das Finale</b><p style="font-size:.95rem">6 gemischte Aufgaben aus allen Kapiteln, 3 Rettungsringe.${S.mode==='p'?' Profi: 60 Sekunden pro Aufgabe.':''} Danach legt ihr die Indizien auf den Tisch. Ihr habt ${n} von 13 Indizien. Fehlende könnt ihr mit einer Extra-Frage nachholen.</p>
+   ${S.music?'':'<p class="muted" style="font-size:.88rem">Tipp: Oben rechts lässt sich spannende Musik einschalten. Am Handy bitte leise oder mit Kopfhörern.</p>'}</div>
+   <div class="row"><button class="btn" id="start">Zum Leuchtturm</button><button class="btn ghost" id="back">Zur Akte</button></div></div>`;
+  $('#start').onclick=startFinale;$('#back').onclick=()=>akte();window.scrollTo(0,0);
+}
+function startFinale(){
+  const chs=shuffle(CHAPTERS).slice(0,6);const tasks=[],src=[];
+  chs.forEach(c=>{const pool=poolFor(c,S.mode).filter(t=>t.t==='mc'||t.t==='num');const un=pool.filter(t=>!S.seen[S.mode][t.id]);const t=shuffle(un.length?un:pool)[0];tasks.push(t);src.push(c)});
+  R={finale:true,tasks,srcCh:src,i:0,lives:3,pts:0,max:0,res:[],lockN:0,phase:'q',accuseTries:0,debtIdx:-1,joker:false};
+  if(S.music){Music.unlock();Music.start(0)}
+  task();
+}
+let TIMER=null;
+function startTimer(){
+  if(S.mode!=='p'||!R.finale)return;const el=$('#timer');if(!el)return;el.hidden=false;const bar=el.querySelector('i');const T=60000,t0=Date.now();
+  stopTimer();TIMER=setInterval(()=>{const left=Math.max(0,T-(Date.now()-t0));bar.style.width=(left/T*100)+'%';if(left<=0){stopTimer();if($('#lock'))evaluate(R.cur.t,true)}},250);
+}
+function stopTimer(){if(TIMER){clearInterval(TIMER);TIMER=null}}
+function finaleFail(){
+  Music.stop();
+  view().innerHTML=`<div class="scene">${scene('leuchtturm')}</div><div class="stack" style="margin-top:16px"><h2>Die Flut kommt</h2>
+   <div class="react">${gull('bad')}<div class="bubble">Alle Rettungsringe sind weg, das Schloss bleibt zu. Versucht es noch einmal – mit neuen Aufgaben.</div></div>
+   <div class="row"><button class="btn" id="again">Noch einmal</button><button class="btn ghost" id="back">Zur Akte</button></div></div>`;
+  $('#again').onclick=startFinale;$('#back').onclick=()=>akte();window.scrollTo(0,0);
+}
+function finaleBoard(sel,msg){
+  Music.stop();R.phase='board';
+  const miss=CHAPTERS.filter(c=>!S.clues[c.n]);
+  view().innerHTML=`<div class="stack" style="margin-top:16px">
+   <div class="lock">${[0,1,2,3,4,5].map(i=>`<span class="wheel ${i<R.lockN?'on':''}">${i<R.lockN?(i*3+1)%10:'?'}</span>`).join('')}</div>
+   <div><div class="eyebrow">Finale · Indizien auf den Tisch</div><h2>Wer ist das Phantom?</h2></div>
+   ${msg?`<p class="notice">${esc(msg)}</p>`:''}
+   <div class="card stack"><h3>Eure Indizien</h3><ul class="cluelist">${clueItems()}</ul>
+   ${miss.length?`<div class="stack" style="gap:6px"><p style="font-size:.92rem">Indiz nachholen – eine richtige Antwort aus dem Kapitel bringt das Indiz:</p><div class="row">${miss.map(c=>`<button class="btn ghost small" data-get="${c.n}">K${c.n}</button>`).join('')}</div></div>`:''}</div>
+   <p style="font-size:.95rem">Tippt die Person an, die ihr anklagen wollt. ${S.mode==='a'?'Durchgestrichene Eigenschaften passen nicht zum Phantom.':'Vergleicht jede Eigenschaft mit den Indizien.'}</p>
+   <div class="sus" id="sus">${susCards(true,sel)}</div>
+   <div id="acc"></div></div>`;
+  view().querySelectorAll('[data-get]').forEach(b=>b.onclick=()=>extraClue(CHAPTERS[+b.dataset.get-1]));
+  view().querySelectorAll('#sus .suscard').forEach(b=>b.onclick=()=>{const id=b.dataset.id;view().querySelectorAll('#sus .suscard').forEach(x=>x.setAttribute('aria-pressed',x===b));
+    $('#acc').innerHTML=`<div class="confirm" style="border-color:var(--accent);background:var(--surface2)"><b>${esc(sus(id).name)} anklagen?</b><p style="font-size:.92rem">Seid ihr sicher? Prüft jedes Indiz.</p><div class="row"><button class="btn small" id="yes">Ja, anklagen</button><button class="btn ghost small" id="no">Noch einmal prüfen</button></div></div>`;
+    $('#yes').onclick=()=>accuse(id);$('#no').onclick=()=>{$('#acc').innerHTML=''};$('#acc').scrollIntoView({behavior:'smooth',block:'center'})});
+  window.scrollTo(0,0);
+}
+function extraClue(ch){
+  const pool=poolFor(ch,S.mode).filter(t=>t.t==='mc');const un=pool.filter(t=>!S.seen[S.mode][t.id]);const t=shuffle(un.length?un:pool)[0];
+  let opts=t.o.map((x,i)=>({x,ok:i===0}));if(S.mode==='a'&&opts.length>3)opts=[opts[0]].concat(shuffle(opts.slice(1)).slice(0,2));opts=shuffle(opts);
+  view().innerHTML=`<div class="stack" style="margin-top:16px"><div class="eyebrow">Indiz nachholen · Kapitel ${ch.n} · ${esc(ch.titel)}</div>
+   <div class="card stack"><p class="q">${esc(t.q)}</p><div class="opts" id="opts">${opts.map((o,i)=>`<button class="opt" data-i="${i}" aria-pressed="false"><span class="k">${'ABCDE'[i]}</span><span>${esc(o.x)}</span></button>`).join('')}</div><div id="act"><button class="btn wide" id="lock" disabled>Entscheidung festlegen</button></div></div></div>`;
+  let sel=null;$('#opts').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{sel=+b.dataset.i;$('#opts').querySelectorAll('.opt').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#lock').disabled=false});
+  $('#lock').onclick=()=>{const ok=opts[sel].ok;S.seen[S.mode][t.id]=true;$('#opts').querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;if(opts[i].ok)b.classList.add('right');else if(i===sel)b.classList.add('wrong')});
+    if(ok){S.clues[ch.n]=true}save();bar();
+    $('#act').innerHTML=`<div class="stack"><div class="react">${gull(ok?'ok':'bad')}<div class="bubble">${ok?'Richtig! Das Indiz liegt jetzt auf dem Tisch.':'Leider falsch. Probiert ein anderes Kapitel oder später noch einmal.'}</div></div><div class="fach"><p>${esc(t.e)}</p></div><button class="btn wide" id="back">Zurück zum Tisch</button></div>`;
+    $('#back').onclick=()=>finaleBoard(null,ok?`Neues Indiz aus Kapitel ${ch.n}.`:'')};
+  window.scrollTo(0,0);
+}
+function accuse(id){
+  if(id!==S.culprit){
+    R.accuseTries++;R.pts=Math.max(0,R.pts-10);
+    if(R.accuseTries>=2){const real=sus(S.culprit);newCase();
+      view().innerHTML=`<div class="scene">${scene('leuchtturm')}</div><div class="stack" style="margin-top:16px"><h2>Das Phantom ist entkommen</h2><p>Es war <b>${esc(real.name)}</b>. Mit mehr Indizien hättet ihr es gesehen. Ein neuer Fall beginnt: Eure Sterne bleiben, die Indizien werden neu gesammelt – und das Phantom ist vielleicht jemand anderes.</p><button class="btn" id="back">Neuen Fall beginnen</button></div>`;
+      $('#back').onclick=()=>akte();return;}
+    return finaleBoard(null,`${sus(id).name} hat ein Alibi. ${FINALE.lose}`);
+  }
+  R.pts=Math.max(0,R.pts-(R.pen||0));R.pen=0;
+  S.solved=true;S.points[S.mode]=(S.points[S.mode]||0)+R.pts+50;
+  rankPub('Fall gelöst');
+  const total=S.points[S.mode];const isRec=total>(S.record[S.mode]||0);if(isRec)S.record[S.mode]=total;save();bar();
+  const stars=CHAPTERS.reduce((s,c)=>s+((S.ch[c.n]&&S.ch[c.n][S.mode])||0),0);
+  if(S.music)Music.fanfare();
+  view().innerHTML=`<div class="scene">${scene('leuchtturm',{beam:true})}</div><div class="stack" style="margin-top:16px">
+   <div class="eyebrow">Fall gelöst</div><h2>Das Phantom ist entlarvt: ${esc(sus(id).name)}</h2>
+   <p>${esc(FINALE.win)}</p>
+   <div class="score"><div class="eyebrow">Punktekarte zum Zeigen</div><div class="big mono">${total}</div><div>Punkte · ${MODE[S.mode]}</div><div><b>${esc(S.team)}</b> · ${esc(S.shop)}</div><div class="stars" style="font-size:1.3rem">${stars} von 39 Sternen</div>${isRec?'<div><b>Neuer Rekord auf diesem Gerät!</b></div>':`<div class="muted">Rekord: ${S.record[S.mode]}</div>`}</div>
+   <div class="row"><button class="btn" id="newCase">Neuer Fall (neues Phantom)</button><button class="btn ghost" id="back">Zur Akte</button></div></div>`;
+  $('#back').onclick=()=>akte();
+  $('#newCase').onclick=()=>{newCase();akte('Neuer Fall: Das Phantom ist zurück – und es ist vielleicht jemand anderes. Eure Sterne bleiben, die Indizien sammelt ihr neu.')};
+  window.scrollTo(0,0);
+}
+/* ---------- Teamrollen ---------- */
+function roleNames(){
+  const a=S.p1||'Person 1',b=S.p2||'Person 2';const swap=((R.ch?R.ch.n:0)+R.i)%2===1;
+  return swap?[b,a]:[a,b];
+}
+function roleBanner(){const [d,w]=roleNames();return `<div class="roles"><span><small>Entscheidet</small><b>${esc(d)}</b></span><span><small>Begründet laut</small><b>${esc(w)}</b></span></div>`}
+/* ---------- Joker ---------- */
+function useJoker(){
+  if(R.joker)return;const btns=[...$('#opts').querySelectorAll('.opt')];
+  const cand=R.cur.opts.map((o,i)=>i).filter(i=>!R.cur.opts[i].ok&&!btns[i].disabled);
+  if(cand.length<2)return;const k=cand[Math.floor(Math.random()*cand.length)];
+  btns[k].disabled=true;btns[k].classList.add('gone');btns[k].setAttribute('aria-label','vom Joker ausgeblendet');
+  if(R.cur.sel===k){R.cur.sel=null;btns[k].setAttribute('aria-pressed','false');R.cur.ready=false;R.cur.upd()}
+  R.joker=true;R.pen=(R.pen||0)+3;$('#jokerBtn').remove();
+}
+/* ---------- Klassenranking (MQTT wie Popcorn-Börse; im Artifact blockiert) ---------- */
+let NET=null,RANK_UP=false,RANK_PENDING=null,RANK_HELLO=false;
+function rankStateText(){return RANK_UP?`Verbunden mit ${S.room}. Eure Punkte erscheinen an der Tafel.`:`Code ${S.room} gespeichert. Verbindung wird aufgebaut … (klappt nur mit Internet, nicht in der Vorschau)`}
+function rankTry(){if(NET&&RANK_PENDING&&S.room){if(NET.pub('r/'+S.room+'/in',RANK_PENDING))RANK_PENDING=null}}
+function rankPub(ev){
+  if(!S.room)return;
+  try{if(!NET){NET=new Net(()=>{},st=>{RANK_UP=st.up>0;const el=$('#rankState');if(el&&S.room)el.textContent=rankStateText();rankTry()})}}catch(e){NET=null;return}
+  const stars=CHAPTERS.reduce((s,c)=>s+((S.ch[c.n]&&S.ch[c.n][S.mode])||0),0);
+  const done=CHAPTERS.filter(c=>S.ch[c.n]&&S.ch[c.n][S.mode]).length;
+  RANK_PENDING={tid:S.tid+S.mode,team:S.team,mode:S.mode,pts:S.points[S.mode]||0,stars,done,clues:Object.keys(S.clues).length,solved:!!S.solved,ev,at:Date.now()};
+  rankTry();
+}
+setInterval(rankTry,3000);
+/* ---------- Musik (Web Audio, nur Finale) ---------- */
+const Music=(()=>{
+  let ctx=null,gain=null,timer=null,step=0,level=0,next=0;
+  function unlock(){try{if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;ctx=new AC();gain=ctx.createGain();gain.gain.value=0.3;gain.connect(ctx.destination)}if(ctx.state==='suspended')ctx.resume()}catch(e){}}
+  function tone(f,t,d,type,v){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+d);o.connect(g);g.connect(gain);o.start(t);o.stop(t+d+0.02)}
+  function tick(t,v){const len=0.04,b=ctx.createBuffer(1,Math.floor(ctx.sampleRate*len),ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);const s=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();f.type='highpass';f.frequency.value=6000;g.gain.value=v;s.buffer=b;s.connect(f);f.connect(g);g.connect(gain);s.start(t)}
+  const BASS=[55,55,65.4,55,49,49,58.3,49];
+  function sched(){const bpm=104+level*6,sp=60/bpm/2;while(next<ctx.currentTime+0.15){const i=step%16;if(i%2===0)tone(BASS[(step>>1)%8],next,sp*1.6,'triangle',0.35);tick(next,i%4===2?0.12:0.05);if(level>=3&&i%4===3)tone(220*Math.pow(2,(level%4)/12),next,sp*0.8,'square',0.04);if(i===0&&level>=1)tone(110,next,sp*3,'sawtooth',0.05);next+=sp;step++}}
+  function start(lv){if(!S.music)return;unlock();if(!ctx)return;level=lv||0;if(timer)return;next=ctx.currentTime+0.05;timer=setInterval(sched,40)}
+  function pause(){if(timer){clearInterval(timer);timer=null}}
+  function stop(){pause()}
+  function fanfare(){unlock();if(!ctx)return;const t=ctx.currentTime+0.05;[261.6,329.6,392,523.3].forEach((f,i)=>tone(f,t+i*0.12,0.5,'triangle',0.25));tone(523.3,t+0.5,0.9,'triangle',0.2);tone(659.3,t+0.5,0.9,'triangle',0.15)}
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
+  return {unlock,start,pause,stop,fanfare};
+})();
+/* ---------- Start ---------- */
+bar();
+if(S.team)akte();else startScreen();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deichbeat Festival-Kasse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bungee&display=swap">
+<style>
+/* Layout: eine Spalte wie ein Festival-Handy-Ticket – Armband oben, Szene, dann die Karte mit der Entscheidung. */
+:root{
+  --bg:#E8EFF1; --surface:#FFFFFF; --surface2:#F3F7F8; --ink:#15202A; --muted:#556371; --line:#D2DCE1;
+  --accent:#E4572E; --accent-ink:#FFFFFF; --teal:#1F8A8A; --gold:#E9A21F;
+  --good:#22804F; --mid:#B07A0C; --bad:#B8362A; --goodbg:#E2F2E9; --midbg:#FBF0D6; --badbg:#F8E0DC;
+  --display:"Bungee", "Arial Black", Impact, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E151B; --surface:#17212A; --surface2:#1E2A34; --ink:#E8EEF2; --muted:#9DAAB5; --line:#2C3A45;
+  --accent:#FF7448; --accent-ink:#1A0C06; --teal:#4DB8B3; --gold:#F5C25A;
+  --good:#5CC88A; --mid:#E7B04A; --bad:#F27D6D; --goodbg:#16302A; --midbg:#33290F; --badbg:#3A1D1A; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0E151B; --surface:#17212A; --surface2:#1E2A34; --ink:#E8EEF2; --muted:#9DAAB5; --line:#2C3A45;
+  --accent:#FF7448; --accent-ink:#1A0C06; --teal:#4DB8B3; --gold:#F5C25A;
+  --good:#5CC88A; --mid:#E7B04A; --bad:#F27D6D; --goodbg:#16302A; --midbg:#33290F; --badbg:#3A1D1A; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.45; margin:0}
+#app{max-width:640px; margin:0 auto; padding-inline:16px; padding-block:0 40px}
+h1,h2,h3{text-wrap:balance; margin:0}
+h1{font-family:var(--display); font-weight:400; font-size:clamp(28px,7vw,40px); line-height:1.05; letter-spacing:.01em}
+h2{font-family:var(--display); font-weight:400; font-size:clamp(21px,5.2vw,26px); line-height:1.15}
+h3{font-size:18px}
+p{margin:0}
+button{font:inherit; color:inherit}
+.stack{display:flex; flex-direction:column; gap:14px}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.muted{color:var(--muted)}
+.small{font-size:15px}
+.lbl{font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+
+/* Festival-Armband */
+.band{position:relative; margin-inline:-16px; padding:10px 16px 10px 52px; color:#fff;
+  background:repeating-linear-gradient(-45deg, #D9482A 0 10px, #E4572E 10px 20px); display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:46px}
+.band::before{content:""; position:absolute; left:14px; top:50%; width:24px; height:24px; transform:translateY(-50%); border-radius:5px; background:#F3F3F3; box-shadow:inset 0 0 0 4px #BDBDBD}
+.band .bt{font-family:var(--display); font-size:14px; letter-spacing:.06em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.band .bm{font-size:13px; font-weight:700; background:rgba(0,0,0,.22); padding:3px 9px; border-radius:99px; white-space:nowrap}
+
+/* Szene */
+.scene{margin-inline:-16px; line-height:0; border-bottom:3px solid var(--ink)}
+.scene svg{width:100%; height:auto; display:block; max-height:230px}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+@keyframes glow{0%,100%{opacity:.35}50%{opacity:.8}}
+.crowd g{animation:bob 1.6s ease-in-out infinite}
+.crowd g:nth-child(2n){animation-delay:.4s}.crowd g:nth-child(3n){animation-delay:.9s}
+.beam{animation:glow 2.4s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){ .crowd g,.beam{animation:none} *{transition:none!important} }
+
+/* HUD */
+.hud{display:grid; grid-template-columns:1fr auto; gap:6px 14px; align-items:center; padding:12px 0 4px}
+.meter{height:12px; border-radius:99px; background:var(--surface2); border:1px solid var(--line); overflow:hidden}
+.meter i{display:block; height:100%; background:linear-gradient(90deg,var(--teal),var(--gold)); transition:width .6s}
+.hud .pts{font-variant-numeric:tabular-nums; font-weight:700; text-align:right}
+.lineup{display:flex; gap:4px; padding:4px 0 10px; overflow-x:auto}
+.lineup span{flex:1 0 auto; min-width:26px; text-align:center; font-size:12px; font-weight:700; padding:3px 4px; border-radius:6px; background:var(--surface2); color:var(--muted); border:1px solid var(--line)}
+.lineup span.done{background:var(--teal); color:#fff; border-color:transparent}
+.lineup span.now{background:var(--accent); color:var(--accent-ink); border-color:transparent}
+
+/* Karten */
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:16px}
+.tag{display:inline-flex; gap:6px; align-items:center; font-weight:700; font-size:13px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent)}
+.slot{font-family:var(--display); font-size:13px; background:var(--ink); color:var(--bg); padding:3px 8px; border-radius:6px; letter-spacing:.05em}
+
+/* Buttons */
+.btn{display:inline-flex; justify-content:center; align-items:center; gap:8px; min-height:52px; padding:12px 20px; border-radius:12px; border:2px solid var(--ink);
+  background:var(--ink); color:var(--bg); font-weight:700; font-size:17px; cursor:pointer; text-align:center}
+.btn.alt{background:transparent; color:var(--ink)}
+.btn.hot{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.4; cursor:not-allowed}
+.btn:focus-visible,.opt:focus-visible,.tile:focus-visible,.chip:focus-visible,.bonl:focus-visible{outline:3px solid var(--gold); outline-offset:2px}
+.linkbtn{background:none; border:0; padding:6px 0; color:var(--muted); text-decoration:underline; cursor:pointer; font-size:15px}
+
+/* Optionen */
+.opts{display:flex; flex-direction:column; gap:10px}
+.opt{display:grid; grid-template-columns:30px 1fr; gap:10px; align-items:start; text-align:left; width:100%; padding:14px; border-radius:12px; border:2px solid var(--line); background:var(--surface); cursor:pointer; font-size:17px; line-height:1.35}
+.opt .k{width:30px; height:30px; border-radius:8px; display:grid; place-items:center; font-weight:700; background:var(--surface2); border:1px solid var(--line)}
+.opt.sel{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset}
+.opt.sel .k{background:var(--accent); color:var(--accent-ink); border-color:transparent}
+.opt.r2{border-color:var(--good); background:var(--goodbg)} .opt.r1{border-color:var(--mid); background:var(--midbg)} .opt.r0{border-color:var(--bad); background:var(--badbg)}
+.opt.gone{opacity:.35; text-decoration:line-through; pointer-events:none}
+.opt:disabled{cursor:default; color:inherit}
+
+/* Persona */
+.who{display:grid; grid-template-columns:76px 1fr; gap:12px; align-items:center}
+.who svg{width:76px; height:76px}
+.who b{display:block; font-size:18px}
+.bubble{position:relative; background:var(--surface2); border:2px solid var(--ink); border-radius:16px; padding:12px 14px; font-size:17px}
+.bubble::before{content:""; position:absolute; left:26px; top:-11px; width:18px; height:18px; background:var(--surface2); border-left:2px solid var(--ink); border-top:2px solid var(--ink); transform:rotate(45deg)}
+.sit{font-size:18px}
+.res{display:inline-flex; align-items:center; gap:8px; font-weight:700; padding:6px 12px; border-radius:99px}
+.res.r2{background:var(--goodbg); color:var(--good)} .res.r1{background:var(--midbg); color:var(--mid)} .res.r0{background:var(--badbg); color:var(--bad)}
+.term{border-left:6px solid var(--teal); background:var(--surface2); border-radius:0 12px 12px 0; padding:12px 14px}
+.term b{color:var(--teal)}
+.words{display:flex; flex-wrap:wrap; gap:6px}
+.words span{background:var(--surface2); border:1px solid var(--line); border-radius:99px; padding:3px 10px; font-size:15px}
+
+/* Kacheln Start */
+.tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px}
+.tile{display:flex; flex-direction:column; gap:4px; text-align:left; padding:14px; border-radius:12px; border:2px solid var(--line); background:var(--surface); cursor:pointer; min-height:92px}
+.tile svg{width:34px; height:34px}
+.tile b{font-size:17px} .tile span{font-size:14px; color:var(--muted)}
+.tile.on{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset}
+input[type=text]{width:100%; min-height:52px; padding:12px 14px; border-radius:12px; border:2px solid var(--line); background:var(--surface); font:inherit; color:var(--ink)}
+input[type=text]:focus{outline:3px solid var(--gold); border-color:var(--ink)}
+.prog{display:grid; gap:4px}
+.note{font-size:15px; color:var(--muted); background:var(--surface2); border-radius:10px; padding:10px 12px}
+
+/* Mini-Spiele */
+.chips{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px}
+.chip{min-height:52px; padding:10px; border-radius:12px; border:2px solid var(--line); background:var(--surface); cursor:pointer; font-weight:700; font-size:16px}
+.chip.ok{border-color:var(--good); background:var(--goodbg); color:var(--good)} .chip.no{border-color:var(--bad); background:var(--badbg); color:var(--bad)}
+.chip.amp-n{border-color:#C0392B} .chip.amp-s{border-color:#D4A017} .chip.amp-g{border-color:#2E8B57}
+.dot{display:inline-block; width:14px; height:14px; border-radius:50%; vertical-align:-2px; margin-right:6px}
+.fb{border-radius:12px; padding:10px 14px; font-size:16px}
+.fb.ok{background:var(--goodbg); color:var(--ink); border-left:6px solid var(--good)} .fb.no{background:var(--badbg); color:var(--ink); border-left:6px solid var(--bad)}
+.bon{font-family:"Courier New", ui-monospace, monospace; background:#FFFDF6; color:#222; border-radius:6px; padding:12px 8px; box-shadow:0 2px 0 #ccc; max-width:360px; margin:0 auto; width:100%}
+.bonl{display:block; width:100%; text-align:left; background:none; border:0; border-radius:4px; padding:3px 6px; font:inherit; font-size:14px; color:#222; cursor:pointer; white-space:pre-wrap}
+.bonl:hover{background:#F1ECD9}
+.bonl.ok{background:#CDEBD7} .bonl.no{background:#F6CFC9}
+.seq{display:flex; flex-direction:column; gap:8px}
+.seq .placed{padding:10px 12px; border-radius:10px; background:var(--goodbg); border-left:6px solid var(--good); font-size:16px}
+.shake{animation:shake .35s} @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.calc{display:flex; flex-direction:column; gap:12px; font-variant-numeric:tabular-nums}
+.crow{display:grid; grid-template-columns:1fr auto; gap:4px 10px; align-items:center; border-bottom:1px solid var(--line); padding-bottom:10px}
+.crow:last-child{border-bottom:0; padding-bottom:0}
+.crow .t{grid-column:1/-1}
+.calc .v{text-align:right; font-weight:700; white-space:nowrap}
+.pm{display:flex; gap:6px}
+.pm button{width:46px; min-height:44px; border-radius:10px; border:2px solid var(--line); background:var(--surface); font-weight:700; font-size:20px; cursor:pointer}
+.pm button.on{border-color:var(--accent); background:var(--accent); color:var(--accent-ink)}
+.tl{display:flex; flex-direction:column; gap:6px; border-left:4px solid var(--line); margin-left:8px; padding-left:12px}
+.tl button{display:grid; grid-template-columns:96px 1fr; gap:8px; text-align:left; padding:10px; border-radius:10px; border:2px solid var(--line); background:var(--surface); cursor:pointer; font-size:16px}
+.tl button b{font-variant-numeric:tabular-nums}
+.tl button.ok{border-color:var(--good); background:var(--goodbg)} .tl button.no{border-color:var(--bad); background:var(--badbg)}
+
+/* Auswertung */
+.score{background:var(--ink); color:var(--bg); border-radius:18px; padding:20px; display:grid; gap:10px; text-align:center}
+.score .big{font-family:var(--display); font-size:44px; line-height:1}
+.stars{display:flex; justify-content:center; gap:6px} .stars svg{width:40px; height:40px}
+.kv{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; font-size:14px}
+.kv div{background:rgba(127,127,127,.18); border-radius:10px; padding:8px 4px} .kv b{display:block; font-size:18px; font-variant-numeric:tabular-nums}
+.vs{display:grid; gap:8px}
+.vs .r{display:grid; grid-template-columns:92px 1fr 44px; gap:8px; align-items:center; font-size:15px; text-align:left}
+.ev{display:grid; gap:10px}
+.evhead{display:grid; grid-template-columns:52px 1fr; gap:12px; align-items:center}
+.evhead svg{width:52px; height:52px}
+.review{display:grid; gap:10px}
+.rv{border-left:6px solid var(--line); padding:8px 0 8px 12px; display:grid; gap:4px}
+.rv.r2{border-color:var(--good)} .rv.r1{border-color:var(--mid)} .rv.r0{border-color:var(--bad)}
+.rv .ihk{font-size:15px; background:var(--surface2); border-radius:8px; padding:8px 10px}
+details summary{cursor:pointer; font-weight:700; padding:8px 0}
+.toast{position:fixed; left:50%; bottom:calc(16px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:10px 16px; border-radius:12px; font-size:15px; max-width:90vw; z-index:9}
+.phone{background:var(--surface2); border:1px solid var(--line); border-radius:18px; padding:12px; display:grid; gap:8px}
+.vm{display:grid; grid-template-columns:44px 1fr; gap:10px; align-items:center}
+.vm .wave{height:22px; background:repeating-linear-gradient(90deg,var(--teal) 0 3px,transparent 3px 6px); border-radius:4px; opacity:.7}
+
+.mus{display:grid; place-items:center; width:36px; height:36px; border-radius:10px; border:0; background:rgba(0,0,0,.22); color:#fff; cursor:pointer; padding:0}
+.mus svg{width:22px; height:22px}
+.mus:focus-visible{outline:3px solid var(--gold); outline-offset:2px}
+</style>
+</head>
+<body>
+<main id="app" aria-live="polite"></main>
+<script>
+// ===================== DATEN TEIL 1: Kapitel 1–5 (Block A) =====================
+// s: 2 = beste Wahl, 1 = teilweise, 0 = falsch. say = Reaktion der Person, why = Begründung (Auswertung)
+// look: s Hautton 1–4, h Haarfarbe, st Frisur (kurz|lang|zopf|cap|locken|glatze|dutt), c Shirtfarbe, a Alter (k|t|e|o)
+const CH = [
+{ id:"k1", mod:1, day:"FR", time:"14:00", title:"Die Kasse steht noch nicht", topic:"Die Kasse und der Kassenbon",
+  story:"Freitag, 14 Uhr. In zwei Stunden öffnet das Deichbeat-Festival. Euer Stand steht, die Kasse noch nicht. Jana ruft an: „Ich stecke mit dem Lieferwagen im Stau. Ihr baut die Kasse auf. Ich verlasse mich auf euch!“",
+  words:["das Kassensystem","der Scanner","der Bondrucker","das Kartenterminal","die GTIN","das Warenwirtschaftssystem (WWS)","der Artikelstamm","die TSE","die Belegausgabepflicht","der Kassenbon","stornieren"],
+  decs:[
+   [ {id:"k1d1a", who:{n:"Kevin Zack", d:"Chef der Snackbude Zack nebenan", look:{s:1,h:"#C9A24A",st:"cap",c:"#8E44AD",a:"e"}},
+      sit:"Im Lieferwagen liegen eine Scannerkasse mit Verbindung zum Warenwirtschaftssystem und eine alte Kasse ohne Scanner. Kevin von nebenan ruft: „Nehmt doch eine Geldkassette, das geht am schnellsten!“",
+      q:"Womit kassiert ihr?",
+      opts:[
+       {t:"Scannerkasse mit Scanner, Bondrucker und Kartenterminal aufbauen.", s:2, say:"Hm. Sieht professionell aus. Mal sehen, ob ihr schneller seid als ich.", why:"Die Scannerkasse kassiert schnell und fehlerfrei. Jeder Verkauf wird artikelgenau erfasst, der Lagerbestand wird automatisch fortgeschrieben."},
+       {t:"Die alte Kasse nehmen und alle Preise per Hand eintippen.", s:1, say:"Ha, viel Spaß beim Tippen bei 40.000 Gästen!", why:"Das geht, ist aber langsam und es gibt Tippfehler. Es fehlen genaue Verkaufsdaten für die Nachbestellung."},
+       {t:"Geldkassette nehmen. Bons gibt es dann eben nicht.", s:0, say:"Genau so mach ich das auch. Wer braucht schon Bons?", why:"Seit 2020 gilt die Belegausgabepflicht: Jeder Kunde bekommt einen Beleg. Elektronische Kassen brauchen eine TSE."}],
+      term:"Scannerkasse (POS-System)", def:"Elektronische Kasse, die mit dem Warenwirtschaftssystem verbunden ist. POS = Point of Sale = Ort des Verkaufs.",
+      ihk:"Vorteile der Scannerkasse: schnelle und genaue Erfassung der Verkaufsdaten, genaue Fortschreibung des Lagerbestands, schnelles und fehlerfreies Kassieren.",
+      weil:["…weil jeder Verkauf artikelgenau erfasst und der Lagerbestand automatisch fortgeschrieben wird.","…weil es mit einer Scannerkasse keine Kassendifferenzen mehr geben kann.","…weil man mit einer Scannerkasse keine Inventur mehr machen muss."]},
+     {id:"k1d1b", who:{n:"Ole Brodersen", d:"Festivalleiter", look:{s:2,h:"#6B6B6B",st:"glatze",c:"#2C3E50",a:"o"}},
+      sit:"Ole Brodersen von der Festivalleitung kommt vorbei: „Wasser kostet auf dem ganzen Gelände 2,50 € statt 2,00 €. Bitte sofort ändern!“ 300 Flaschen sind schon im Kühlschrank.",
+      q:"Wie ändert ihr den Preis?",
+      opts:[
+       {t:"Den Preis einmal zentral im Artikelstamm ändern und das Preisschild am Stand tauschen.", s:2, say:"Das ging ja fix. Sehr gut!", why:"Der Scanner liest die GTIN. Die Kasse holt den Preis aus dem Artikelstamm (Price-Look-Up). Eine Änderung im System reicht."},
+       {t:"Alle 300 Flaschen mit neuen Preisetiketten bekleben.", s:1, say:"Das dauert ja ewig. Gleich ist Einlass!", why:"Das ist unnötige Arbeit. Die Kasse liest den Preis nicht vom Etikett, sondern holt ihn über die GTIN aus dem System."},
+       {t:"Nichts ändern. An der Kasse tippt ihr jedes Mal 0,50 € dazu.", s:0, say:"Und wenn ihr das vergesst? Das wird Chaos!", why:"So entstehen Fehler und falsche Verkaufsdaten. Preise werden zentral im System geändert."}],
+      term:"GTIN und Price-Look-Up (PLU)", def:"Die GTIN ist die 13-stellige Artikelnummer unter dem Strichcode. Beim Scannen holt die Kasse damit den Preis aus dem Artikelstamm.",
+      ihk:"Nutzen der GTIN: schnelleres und fehlerfreies Kassieren, bessere Bestandserfassung, zentrale Preisänderung.",
+      weil:["…weil die Kasse den Preis über die GTIN aus dem Artikelstamm holt.","…weil der Preis direkt in der GTIN steht.","…weil die TSE alle Preise automatisch anpasst."]} ],
+   [ {id:"k1d2a", who:{n:"Paul", d:"Gast, kauft eine Cola", look:{s:1,h:"#3B2A1E",st:"locken",c:"#27AE60",a:"t"}},
+      sit:"Paul kauft eine Cola. Er winkt ab: „Den Bon brauch ich nicht, schmeiß weg!“ Nebenan bei Kevin gibt es gar keine Bons: „Spart Papier!“",
+      q:"Was macht ihr mit dem Bon?",
+      opts:[
+       {t:"Den Bon trotzdem ausgeben: „Ihr Bon – Sie müssen ihn nicht mitnehmen.“", s:2, say:"Ah, okay. Dann leg ich ihn halt in den Müll da.", why:"Seit 2020 gilt die Belegausgabepflicht. Der Betrieb muss einen Beleg ausgeben (Papier oder E-Bon). Der Kunde muss ihn aber nicht mitnehmen."},
+       {t:"Wenn der Gast keinen Bon will, wird auch keiner erstellt.", s:0, say:"Cool, geht schneller.", why:"Das verstößt gegen die Belegausgabepflicht. Jeder Verkauf bekommt einen Beleg."},
+       {t:"Bons nur bei Kartenzahlung drucken, bei Bargeld nicht.", s:0, say:"Okay … komisches System.", why:"Die Belegausgabepflicht gilt für jede Zahlungsart, auch bei Bargeld."}],
+      term:"Belegausgabepflicht", def:"Seit 2020 bekommt jeder Kunde einen Beleg, auf Papier oder elektronisch (E-Bon). Er muss ihn nicht mitnehmen.",
+      ihk:"Belegausgabepflicht seit 2020: Jeder Kunde bekommt einen Beleg, auf Papier oder elektronisch (E-Bon).",
+      weil:["…weil seit 2020 jeder Kunde einen Beleg bekommt – mitnehmen muss er ihn aber nicht.","…weil der Kunde den Bon immer mitnehmen muss.","…weil auf dem Bon der Einkaufspreis des Geschäfts steht."]},
+     {id:"k1d2b", who:{n:"Lina", d:"eure Kollegin an Kasse 2", look:{s:3,h:"#1E1410",st:"zopf",c:"#E4572E",a:"t"}},
+      sit:"Lina hat aus Versehen 3 Sonnencremes statt 1 eingescannt. Der Bon ist schon gedruckt. Sie flüstert: „Ich zerreiß den einfach.“",
+      q:"Was sagt ihr Lina?",
+      opts:[
+       {t:"„Den Fehler stornieren und den falschen Bon aufbewahren.“", s:2, say:"Okay, Storno … und der Bon kommt in die Kassenschublade. Danke!", why:"Ein Tippfehler wird storniert. Der falsche Bon wird aufbewahrt, weil er für die Kassenabrechnung gebraucht wird."},
+       {t:"„Zerreiß ihn und tipp den Einkauf einfach neu.“", s:0, say:"Gut, weg damit.", why:"Ohne Storno stimmt die Kasse am Abend nicht. Die TSE hat den Vorgang gespeichert. Falsche Bons werden aufbewahrt."},
+       {t:"„Lass es so. Am Abend fällt das schon auf.“", s:0, say:"Hm, dann zahlt die Kundin aber zu viel …", why:"Die Kundin würde zu viel bezahlen. Fehler werden sofort storniert."}],
+      term:"Storno", def:"Ein falsch erfasster Artikel wird in der Kasse rückgängig gemacht. Der falsche Bon wird aufbewahrt.",
+      ihk:"Ein Tippfehler wird storniert; der falsche Bon wird aufbewahrt, weil er für die Kassenabrechnung gebraucht wird.",
+      weil:["…weil der falsche Bon für die Kassenabrechnung gebraucht wird.","…weil man Umsätze in der Kasse einfach löschen darf.","…weil die Kundin den falschen Bon behalten muss."]} ] ],
+  mini:"bon",
+  profi:[
+   {id:"p1a", q:"Seit 2020 braucht jede elektronische Kasse eine TSE. Welches Problem will der Staat damit lösen?", opts:["Niemand soll Umsätze nachträglich löschen oder ändern können – das verhindert Steuerbetrug.","Die Kasse soll schneller drucken.","Kunden sollen keinen Bon mehr brauchen."]},
+   {id:"p1b", q:"Viele Gäste lassen den Bon liegen. Welche Lösung schont die Umwelt und hält die Pflicht ein?", opts:["Einen elektronischen Bon (E-Bon) per App oder QR-Code anbieten.","Gar keine Bons mehr ausgeben.","Bons nur an Stammkunden ausgeben."]} ] },
+
+{ id:"k2", mod:2, day:"FR", time:"16:00", title:"Die Tore gehen auf", topic:"Kassieren Schritt für Schritt",
+  story:"16 Uhr. Die Tore gehen auf. In fünf Minuten steht die erste Schlange vor eurem Stand. Ole Brodersen von der Festivalleitung schaut genau hin: Nur der beste Stand darf 2027 wiederkommen.",
+  words:["die Kassieranweisung","das Wechselgeld","einzählen","die Bonrolle","der Geldscheinhalter","vorzählen","das Rückgeld","der Blickkontakt","kundenorientiert","die Kundenbindung","der Zusatzartikel"],
+  decs:[
+   [ {id:"k2d1a", who:{n:"Lina", d:"eure Kollegin", look:{s:3,h:"#1E1410",st:"zopf",c:"#E4572E",a:"t"}},
+      sit:"Noch fünf Minuten bis zum ersten Gast. Lina fragt: „Was machen wir zuerst?“",
+      q:"Was erledigt ihr vor dem Kassieren?",
+      opts:[
+       {t:"Kasse anmelden, Wechselgeld einzählen und prüfen, Ersatz-Bonrollen bereitlegen.", s:2, say:"Alles gezählt: 300 € Wechselgeld. Jetzt kann es losgehen!", why:"Das sind vorbereitende Tätigkeiten aus der Kassieranweisung. Nur mit eingezähltem Wechselgeld weiß man abends, ob die Kasse stimmt."},
+       {t:"Nur die Kasse anmelden. Das Wechselgeld zählen wir heute Abend.", s:1, say:"Okay … aber wie viel war jetzt eigentlich drin?", why:"Wenn das Wechselgeld nicht eingezählt ist, kann man eine Kassendifferenz am Abend nicht erklären."},
+       {t:"Erst mal ein Foto vom Stand für Instagram machen.", s:0, say:"Schönes Foto! Aber … wo ist die Bonrolle?", why:"Vor dem Kassieren wird der Kassenplatz vorbereitet: Kasse anmelden, Wechselgeld prüfen, Bonrollen, Ordnung."}],
+      term:"Vorbereitende Tätigkeiten", def:"Kasse anmelden · Wechselgeld holen, einzählen und prüfen · Bonrollen prüfen · Geräte testen · Tüten bereitlegen · Ordnung.",
+      ihk:"Vorbereitende Tätigkeiten: Kasse anmelden, Wechselgeld prüfen, Kassenbestand nachzählen, Ordnung und Sauberkeit prüfen, Ersatzkassenrollen bereitlegen.",
+      weil:["…weil man nur mit eingezähltem Wechselgeld abends prüfen kann, ob die Kasse stimmt.","…weil das Wechselgeld zum Umsatz des Tages zählt.","…weil man ohne Bonrolle keine Kartenzahlung annehmen darf."]},
+     {id:"k2d1b", who:{n:"Lina", d:"eure Kollegin", look:{s:3,h:"#1E1410",st:"zopf",c:"#E4572E",a:"t"}},
+      sit:"Lina legt ihr Portemonnaie neben die Kasse. „Mein Bruder kommt nachher. Den kassiere ich selbst ab, dann muss er nicht warten.“",
+      q:"Was sagt ihr Lina?",
+      opts:[
+       {t:"„Dein Portemonnaie muss weg vom Kassenplatz. Und deinen Bruder kassiert jemand anderes.“", s:2, say:"Stimmt, steht ja in der Kassieranweisung. Mach ich.", why:"Kein privates Geld im Kassenbereich, und Familienangehörige werden nicht selbst abkassiert. So gibt es keinen Streit bei Differenzen."},
+       {t:"„Portemonnaie weg, aber deinen Bruder kannst du ruhig selbst abkassieren.“", s:1, say:"Okay, das Portemonnaie kommt in den Spind.", why:"Das Portemonnaie ist richtig. Familienangehörige dürfen aber nicht selbst abkassiert werden."},
+       {t:"„Passt schon, ist doch Familie.“", s:0, say:"Super, dann bleibt alles hier liegen.", why:"Privates Geld an der Kasse führt zu Streit bei Kassendifferenzen. Familie kassiert eine andere Person ab."}],
+      term:"Kassieranweisung", def:"Regeln des Betriebs für die Kasse, z. B. Scheine prüfen, Rückgeld vorzählen, kein privates Geld, keine Familie abkassieren.",
+      ihk:"Kassieranweisung: kein privates Geld im Kassenbereich · keine Familienangehörigen selbst abkassieren · Fehler stornieren und den falschen Bon aufbewahren.",
+      weil:["…weil die Kassieranweisung privates Geld an der Kasse und das Abkassieren der eigenen Familie verbietet.","…weil Familienangehörige keinen Rabatt bekommen dürfen.","…weil privates Geld die TSE stört."]} ],
+   [ {id:"k2d2a", who:{n:"Herr Demir", d:"Gast mit 50-€-Schein", look:{s:2,h:"#2B2B2B",st:"kurz",c:"#2980B9",a:"e"}},
+      sit:"Herr Demir kauft für 13,40 € ein und gibt dir einen 50-€-Schein. Hinter ihm warten zwölf Leute.",
+      q:"Wie kassierst du?",
+      opts:[
+       {t:"Betrag nennen, Schein prüfen und Wert laut nennen, Schein in den Geldscheinhalter klemmen, 36,60 € vorzählen, dann Schein in die Kasse.", s:2, say:"Perfekt, stimmt genau. Danke!", why:"So läuft der Kassiervorgang. Der Schein bleibt sichtbar liegen, bis das Rückgeld gegeben ist. Dann gibt es keinen Streit."},
+       {t:"Schein prüfen und 36,60 € still in die Hand drücken.", s:1, say:"Äh … stimmt das jetzt? Ich zähl lieber nach.", why:"Der Betrag stimmt, aber das Rückgeld wird laut vorgezählt. So sieht der Kunde, dass alles passt."},
+       {t:"Schein sofort in die Kasse legen und schnell 36,60 € rausgeben.", s:0, say:"Moment! Ich hab Ihnen doch einen Hunderter gegeben!", why:"Liegt der Schein schon in der Kasse, kann man nicht mehr zeigen, welcher Schein gegeben wurde."}],
+      term:"Geldscheinhalter", def:"Der Schein des Kunden wird sichtbar eingeklemmt und erst nach dem Rückgeld in die Kasse gelegt.",
+      ihk:"Fehlende Schritte beim Barzahlen: Betrag nennen · Geld entgegennehmen, prüfen und den Wert nennen · Geld sichtbar ablegen · Rückgeld vorzählen.",
+      weil:["…weil man so jederzeit sieht, welcher Schein gegeben wurde – dann gibt es keinen Streit ums Rückgeld.","…weil Geldscheine im Halter nicht gefälscht sein können.","…weil der Kunde den Schein bis zum Ende zurückverlangen darf."]},
+     {id:"k2d2b", who:{n:"Frau Albers", d:"Mutter mit zwei Kindern", look:{s:1,h:"#A0522D",st:"dutt",c:"#16A085",a:"e"}},
+      sit:"Frau Albers kauft Sonnencreme und Wasser. Die Kinder quengeln, sie wirkt gestresst. Die Schlange ist lang.",
+      q:"Wie bedienst du sie?",
+      opts:[
+       {t:"Blickkontakt, freundlich grüßen, Kauf bestätigen („Gute Wahl bei der Sonne heute!“), Tüte anbieten, verabschieden.", s:2, say:"Danke, das ist lieb. Hier komm ich morgen wieder her!", why:"Die Kasse ist der erste und letzte Eindruck. Zufriedene Kunden kommen wieder (Kundenbindung) und empfehlen den Stand weiter."},
+       {t:"Freundlich grüßen und ihr noch drei Zusatzartikel anbieten.", s:1, say:"Nein danke, ich will nur schnell weiter …", why:"Freundlich ist gut. Zusatzangebote stören aber bei langer Schlange und wenn sie aufdringlich sind."},
+       {t:"Schnell scannen, Betrag sagen, nächster Kunde.", s:0, say:"Na, gemütlich ist anders.", why:"Ohne Gruß und Blickkontakt fühlt sich die Kundin nicht wohl. Das schadet dem Image."}],
+      term:"Kundenorientiertes Verhalten", def:"Begrüßung, Blickkontakt, Kauf bestätigen, Ware sorgsam behandeln, Service anbieten, sich bedanken und verabschieden.",
+      ihk:"Gründe für kundenorientiertes Verhalten: Kundenbindung, Kundenzufriedenheit, positives Image, erster und letzter Eindruck, Abheben von Mitbewerbern, Weiterempfehlung.",
+      weil:["…weil die Kasse der erste und letzte Eindruck ist und zufriedene Kunden wiederkommen.","…weil freundliche Kassenkräfte mehr Lohn bekommen.","…weil man ohne Begrüßung keinen Bon drucken darf."]} ] ],
+  mini:"ablauf",
+  profi:[
+   {id:"p2a", q:"An vielen Kassen sollen Zusatzartikel angeboten werden. Wann stören solche Angebote?", opts:["Bei langer Schlange, wenn sie aufdringlich sind oder nicht zum Einkauf passen.","Nie – Zusatzangebote freuen jeden Kunden.","Nur bei Kartenzahlung."]},
+   {id:"p2b", q:"Ein Gast kauft für 89,75 € und zahlt mit 100 €. Wie zählst du richtig vor?", opts:["„89,75 … plus 25 Cent sind 90 Euro, plus 10 Euro sind 100 Euro. Bitte, 10,25 € zurück.“","„100 minus 89,75 macht 11,25 € zurück.“","„Hier sind 10,25 €.“ – ohne Vorzählen."]} ] },
+
+{ id:"k3", mod:3, day:"FR", time:"22:00", title:"Headliner-Nacht", topic:"Bargeld und Falschgeld",
+  story:"22 Uhr. Auf der Hauptbühne spielt der Headliner. Es ist dunkel und laut. Alle wollen schnell bezahlen – und genau jetzt kommen die schwierigen Fälle.",
+  words:["das Bargeld","die Banknote","das Sicherheitsmerkmal","das Relief","das Wasserzeichen","der Sicherheitsfaden","das Hologramm","die Smaragdzahl","der Prüfstift","das Falschgeld","der Verdacht"],
+  decs:[
+   [ {id:"k3d1a", who:{n:"Junger Mann", d:"zahlt ein Wasser mit 100 €", look:{s:1,h:"#D4B26A",st:"kurz",c:"#34495E",a:"e"}},
+      sit:"Ein junger Mann zahlt ein Wasser mit einem 100-€-Schein. Der Schein fühlt sich glatt an, fast wie Kopierpapier.",
+      q:"Wie prüfst du den Schein?",
+      opts:[
+       {t:"Fühlen, gegen das Licht halten und kippen: Relief, Wasserzeichen, Sicherheitsfaden, Hologramm, Smaragdzahl.", s:2, say:"Ähm … ist irgendwas?", why:"Man prüft immer mehrere Merkmale mit Fühlen – Sehen – Kippen. Ein glattes Papier ist schon ein Warnzeichen."},
+       {t:"Nur mit dem Prüfstift drüber. Wenn der nichts zeigt, ist alles gut.", s:1, say:"Na also, passt doch.", why:"Der Prüfstift prüft nur das Papier. Man muss immer mehrere Merkmale prüfen."},
+       {t:"Im Dunkeln sieht man eh nichts. Einfach annehmen.", s:0, say:"Danke, schönen Abend noch!", why:"Gerade bei Hektik und Dunkelheit wird Falschgeld ausgegeben. Falschgeld wird ohne Ersatz eingezogen."}],
+      term:"Fühlen – Sehen – Kippen", def:"Fühlen: Papier und Relief. Sehen (gegen das Licht): Wasserzeichen, Sicherheitsfaden, Porträtfenster. Kippen: Hologramm, Smaragdzahl.",
+      ihk:"Sicherheitsmerkmale: Baumwollpapier, Relief, Sicherheitsfaden, Porträt-Wasserzeichen, Porträt-Hologramm, Porträtfenster, Smaragdzahl. Hilfsmittel: Prüfstift, UV-Lampe, Prüfgerät.",
+      weil:["…weil man immer mehrere Merkmale prüfen muss – der Prüfstift prüft nur das Papier.","…weil ein einziges Merkmal immer ausreicht.","…weil die Bank Falschgeld sofort ersetzt."]},
+     {id:"k3d1b", who:{n:"Frau Jansen", d:"Kundin mit 50-€-Schein", look:{s:2,h:"#8B5A2B",st:"lang",c:"#C0392B",a:"e"}},
+      sit:"Du prüfst den 50-€-Schein von Frau Jansen. Sie sagt laut: „Das ist ja peinlich! Was sollen die Leute hinter mir denken? Vertrauen Sie mir etwa nicht?“",
+      q:"Was sagst du?",
+      opts:[
+       {t:"„Das machen wir laut Kassieranweisung bei allen Kunden so. Das hat nichts mit Ihnen zu tun. Es dauert nur einen Moment.“", s:2, say:"Ach so, bei allen. Na gut, dann ist ja alles okay.", why:"Kunden empfinden die Prüfung manchmal als Misstrauen. Man erklärt freundlich, dass sie alle betrifft."},
+       {t:"Nichts sagen und einfach weiter prüfen.", s:1, say:"Hallo? Ich rede mit Ihnen!", why:"Die Prüfung ist richtig, aber die Kundin braucht eine freundliche Erklärung."},
+       {t:"„Bei Ihnen muss ich besonders aufpassen.“", s:0, say:"Wie bitte?! Das ist ja eine Frechheit!", why:"Das beschuldigt die Kundin. Man bleibt höflich und erklärt, dass man alle Scheine prüft."}],
+      term:"Echtheitsprüfung erklären", def:"Freundlich sagen, dass alle Scheine geprüft werden. So fühlt sich niemand beschuldigt.",
+      ihk:"„Aufgrund unserer Kassieranweisung muss ich bei allen Kunden den Schein auf Echtheit überprüfen. Das hat nichts mit Ihrer Person zu tun. Es dauert nur einen Moment.“",
+      weil:["…weil Kunden die Prüfung als Misstrauen empfinden können – man erklärt, dass sie alle betrifft.","…weil Kunden die Prüfung verweigern dürfen.","…weil man nur verdächtige Kunden prüfen soll."]} ],
+   [ {id:"k3d2a", who:{n:"Junger Mann", d:"wird nervös", look:{s:1,h:"#D4B26A",st:"kurz",c:"#34495E",a:"e"}},
+      sit:"Der Schein ist eindeutig falsch: kein Hologramm, kein Wasserzeichen. Der Mann wird nervös: „Gib her, ich zahl mit was anderem.“",
+      q:"Was tust du?",
+      opts:[
+       {t:"Ruhig bleiben, Schein nicht zurückgeben, Mann bitten zu warten, Jana anrufen.", s:2, say:"Ich … ähm … na gut, ich warte.", why:"Bei Verdacht: ruhig bleiben, Schein einbehalten, Vorgesetzte rufen, Kunden bitten zu warten. Die Polizei verständigt die Vorgesetzte."},
+       {t:"Schein zurückgeben und einen anderen verlangen.", s:0, say:"Danke, Kumpel! Tschüss!", why:"Dann gibt er den falschen Schein woanders aus. Falschgeld darf nicht zurück in Umlauf."},
+       {t:"Den Mann am Arm festhalten und laut „Betrüger!“ rufen.", s:0, say:"Lass mich los! Ich hab gar nichts gemacht!", why:"Man beschuldigt den Kunden nicht und hält ihn nicht fest. Man bleibt ruhig und holt Hilfe."}],
+      term:"Verdacht auf Falschgeld", def:"Ruhig bleiben · Schein einbehalten · Vorgesetzte rufen · Kunden bitten zu warten · sich den Kunden merken.",
+      ihk:"Maßnahmen bei Falschgeld-Verdacht: Vorgesetzten benachrichtigen · Geldschein einbehalten · Kunden bitten zu warten.",
+      weil:["…weil Falschgeld nicht zurück in Umlauf darf – wer es wissentlich weitergibt, macht sich strafbar.","…weil die Kassenkraft den Kunden festhalten muss.","…weil die Bank den falschen Schein sofort ersetzt."]},
+     {id:"k3d2b", who:{n:"Herr Kowalski", d:"Gast mit einer Tüte voller Münzen", look:{s:1,h:"#B0B0B0",st:"kurz",c:"#7F8C8D",a:"o"}},
+      sit:"Herr Kowalski kauft Snacks für 24,80 € und will mit einer Tüte Münzen zahlen – etwa 90 Stück. Hinter ihm wird es voll.",
+      q:"Was sagst du?",
+      opts:[
+       {t:"„Es tut mir leid, bei einer Zahlung muss ich höchstens 50 Münzen annehmen. Haben Sie einen Schein oder eine Karte?“", s:2, say:"Ach so, das wusste ich nicht. Dann nehm ich die Karte.", why:"Niemand muss bei einer Zahlung mehr als 50 Münzen annehmen. Freiwillig darf man mehr annehmen."},
+       {t:"Alles annehmen und zählen. Die Schlange muss eben warten.", s:1, say:"Danke, junger Mensch!", why:"Das darf man freiwillig. Bei langer Schlange ist es aber ungünstig – man muss es nicht."},
+       {t:"„Münzen nehmen wir grundsätzlich nicht.“", s:0, say:"Was? Das ist doch Geld!", why:"Münzen sind Bargeld. Ablehnen darf man nur, was über 50 Münzen hinausgeht."}],
+      term:"Münzannahme", def:"Bei einer Zahlung muss niemand mehr als 50 Münzen annehmen.",
+      ihk:"„Es tut mir leid, bei einer Zahlung darf ich höchstens 50 Münzen annehmen. Haben Sie vielleicht einen Schein oder eine Karte dabei?“",
+      weil:["…weil niemand bei einer Zahlung mehr als 50 Münzen annehmen muss.","…weil man Münzen nur bei einer Kartenstörung annehmen darf.","…weil man höchstens 20 Münzen annehmen darf."]} ] ],
+  mini:"fsk",
+  profi:[
+   {id:"p3a", q:"Bargeld kostet den Händler auch Geld. Welche Kosten sind gemeint?", opts:["Zählen und Abrechnen kostet Arbeitszeit, Transport zur Bank und Versicherung kosten Geld.","Für jede Barzahlung zahlt der Händler eine Gebühr an das Kreditkartenunternehmen.","Bargeld kostet nichts – nur Karten verursachen Kosten."]},
+   {id:"p3b", q:"Warum nennst du den Wert eines Scheins laut, sobald du ihn bekommst?", opts:["Kunde und Kassenkraft wissen beide, welcher Schein gegeben wurde – so gibt es keinen Streit ums Rückgeld.","Weil der Schein sonst nicht in die Kasse passt.","Weil das die TSE verlangt."]} ] },
+
+{ id:"k4", mod:4, day:"SA", time:"12:00", title:"40.000 Gäste und alle wollen zahlen", topic:"Karte, Handy, Gutschein",
+  story:"Samstag, 12 Uhr. Die Sonne knallt, das Gelände ist voll. Fast alle wollen mit Karte oder Handy zahlen. Jana schickt eine Sprachnachricht: „Heute zählt jede Minute an der Schlange!“",
+  words:["die girocard","die Debitkarte","die Kreditkarte","die PIN","das Kartenterminal","kontaktlos","die NFC-Funktion","das Mobile Payment","die Gebühr","der Gutschein","der Coupon","die Kundenkarte","der Datenschutz"],
+  decs:[
+   [ {id:"k4d1a", who:{n:"Ole Brodersen", d:"Festivalleiter", look:{s:2,h:"#6B6B6B",st:"glatze",c:"#2C3E50",a:"o"}},
+      sit:"Ole Brodersen fragt: „Was hängt bei euch an der Kasse? Die Leute wollen sofort sehen, wie sie zahlen können.“ Euer Terminal kann kontaktlos (NFC) und nimmt zwei Kreditkarten an.",
+      q:"Was hängt ihr an die Kasse?",
+      opts:[
+       {t:"Das Kontaktlos-Zeichen und die Symbole der beiden Kreditkarten, gut sichtbar.", s:2, say:"Sehr gut. So weiß jeder sofort Bescheid.", why:"Die Symbole zeigen: Diese Karten werden angenommen. Kartenzahlung bringt Spontankäufe, schnelle Abwicklung und kein Falschgeld."},
+       {t:"Ein Schild „Nur Bargeld“ – so spart ihr die Gebühren.", s:1, say:"Nur Bargeld? Dann gehen die Leute zum Nachbarn.", why:"Gebühren sparen ist ein Grund. Aber ohne Karte gibt es weniger Spontankäufe und längere Schlangen."},
+       {t:"Gar nichts. Wer fragt, bekommt eine Antwort.", s:0, say:"Bei der Schlange fragt doch keiner. Die gehen einfach.", why:"Kunden wollen vorher sehen, wie sie zahlen können. Die Symbole an der Kasse zeigen das."}],
+      term:"Kreditkarten-Symbole", def:"Die Symbole an der Kasse zeigen dem Kunden: Diese Kreditkarten werden hier angenommen.",
+      ihk:"Bedeutung der Symbole: Das Geschäft akzeptiert die Zahlung mit diesen Kreditkarten. Vorteile: Spontankäufe, Umsatzsteigerung, Kundenservice, Zahlungssicherheit, kein Falschgeld. Nachteile: Technik, Gebühren, späterer Zahlungseingang.",
+      weil:["…weil Kartenzahlung schnell geht, Spontankäufe bringt und es kein Falschgeld gibt – dafür zahlt der Betrieb Gebühren.","…weil Kartenzahlung für den Betrieb keine Kosten hat.","…weil das Geld bei Kartenzahlung sofort in der Kasse liegt."]},
+     {id:"k4d1b", who:{n:"Mara", d:"Gast mit Smartphone", look:{s:4,h:"#120C08",st:"locken",c:"#F39C12",a:"t"}},
+      sit:"Mara hält ihr Smartphone hoch: „Kann ich mit dem Handy zahlen?“ Euer Terminal kann NFC.",
+      q:"Was sagst du?",
+      opts:[
+       {t:"„Klar! Ich gebe den Betrag ein, Sie halten das Handy an das Lesegerät und bestätigen auf dem Handy. Den Beleg bekommen Sie gleich.“", s:2, say:"Piep – fertig! Das ging schnell.", why:"So läuft Mobile Payment in drei Schritten: Betrag nennen – Handy an das Lesegerät, auf dem Handy bestätigen – Beleg übergeben."},
+       {t:"„Geht, aber Sie müssen danach noch Ihre PIN hier eintippen.“", s:1, say:"PIN? Die weiß ich gar nicht …", why:"Beim Handy bestätigt der Kunde meist auf seinem Gerät (Fingerabdruck, Gesicht, Code)."},
+       {t:"„Nein, mit dem Handy geht das hier nicht.“", s:0, say:"Schade. Dann kauf ich drüben.", why:"Euer Terminal kann NFC. Damit ist Zahlen mit Smartphone möglich."}],
+      term:"Mobile Payment", def:"Zahlen mit Smartphone oder Smartwatch. Die Daten gehen per Funk (NFC) an das Lesegerät. Der Kunde bestätigt auf seinem Gerät.",
+      ihk:"Ablauf in 3 Schritten: In der Kasse Kartenzahlung wählen und Betrag nennen. Der Kunde hält das Smartphone an das Lesegerät und bestätigt. Beleg übergeben.",
+      weil:["…weil die Daten per Funk (NFC) übertragen werden und der Kunde auf seinem Handy bestätigt.","…weil beim Mobile Payment immer eine Unterschrift nötig ist.","…weil das Geld vom Konto des Händlers abgebucht wird."]} ],
+   [ {id:"k4d2a", who:{n:"Frau Okafor", d:"zahlt 64 € kontaktlos", look:{s:4,h:"#1A1A1A",st:"dutt",c:"#9B59B6",a:"e"}},
+      sit:"Frau Okafor zahlt 64 € kontaktlos mit Karte. Das Terminal verlangt plötzlich die PIN. Sie ist sauer: „Sonst geht das doch immer ohne!“",
+      q:"Was sagst du?",
+      opts:[
+       {t:"„Das ist normal: Über einem bestimmten Betrag fragt das Terminal zur Sicherheit nach der PIN.“", s:2, say:"Ach so. Na gut, dann tippe ich sie ein.", why:"Ohne PIN geht es meist bis 50 €. Eine PIN kann verlangt werden bei höheren Beträgen, nach mehreren Zahlungen oder per Zufall."},
+       {t:"„Dann zahlen Sie bitte bar.“", s:1, say:"Bar? Ich hab doch gar kein Bargeld dabei.", why:"Das hilft der Kundin nicht. Besser erklären, warum die PIN kommt."},
+       {t:"„Da ist wohl Ihre Karte kaputt.“", s:0, say:"Meine Karte ist nicht kaputt!", why:"Die Karte ist in Ordnung. Die PIN-Abfrage ist eine Sicherheitsfunktion."}],
+      term:"PIN beim kontaktlosen Zahlen", def:"Ohne PIN meist bis 50 €. Darüber, nach mehreren Zahlungen hintereinander oder per Zufall wird eine PIN verlangt.",
+      ihk:"Fall mit zusätzlicher PIN: Betrag über der festgelegten Höhe, mehrere Zahlungen mit derselben Karte, Zufallsabfrage.",
+      weil:["…weil ohne PIN meist nur bis 50 € gezahlt werden kann – darüber oder per Zufall fragt das Terminal zur Sicherheit.","…weil kontaktlos nur mit Kreditkarte funktioniert.","…weil die PIN immer bei der dritten Zahlung am Tag kommt."]},
+     {id:"k4d2b", who:{n:"Kevin Zack", d:"Chef der Snackbude Zack", look:{s:1,h:"#C9A24A",st:"cap",c:"#8E44AD",a:"e"}},
+      sit:"Ihr macht ein Gewinnspiel für die Nordlicht-Kundenkarte. 300 Gäste haben ihre E-Mail-Adresse angegeben. Kevin bietet euch 200 € für die Liste.",
+      q:"Was macht ihr?",
+      opts:[
+       {t:"Ablehnen: Die Daten werden vertraulich behandelt und nicht an Dritte weitergegeben.", s:2, say:"Pff. Dann eben nicht.", why:"Nach der DSGVO werden Kundendaten nur mit Einwilligung gespeichert, vertraulich behandelt und nicht ohne Zustimmung weitergegeben."},
+       {t:"Nur die Namen verkaufen, ohne E-Mail-Adressen.", s:0, say:"Na, besser als nichts!", why:"Auch Namen sind Kundendaten. Sie dürfen nicht ohne Zustimmung an Dritte gehen."},
+       {t:"Die Liste geben, wenn Kevin verspricht, sie nicht weiterzugeben.", s:0, say:"Versprochen! Ehrenwort!", why:"Kevin ist ein Dritter. Ohne Zustimmung der Kunden darf er die Daten nicht bekommen."}],
+      term:"Datenschutz (DSGVO)", def:"Kundendaten nur mit Einwilligung speichern, vertraulich behandeln, nicht an Dritte weitergeben, nur so viele wie nötig.",
+      ihk:"Gesetzlich korrekter Umgang: Kundendaten vertraulich behandeln und nicht (ohne Zustimmung) an Dritte weitergeben.",
+      weil:["…weil die DSGVO verlangt, Kundendaten vertraulich zu behandeln und nicht ohne Zustimmung an Dritte zu geben.","…weil Kundendaten nur einen Tag gespeichert werden dürfen.","…weil man Daten nur verkaufen darf, wenn es mehr als 500 € bringt."]} ] ],
+  mini:"zahlart",
+  profi:[
+   {id:"p4a", q:"Ein kleines Café will nur noch Kartenzahlung annehmen. Was ist ein Nachteil für die Kunden?", opts:["Menschen ohne Karte, Kinder und manche Ältere werden ausgeschlossen, und niemand kann anonym zahlen.","Kunden müssen dann Gebühren an das Café zahlen.","Kartenzahlung dauert immer länger als Bargeld."]},
+   {id:"p4b", q:"Eure Kundenkarte gibt 1 % Rabatt. Warum lohnt sich das trotzdem für den Betrieb?", opts:["Kunden kommen öfter wieder, und der Betrieb erfährt, wer was kauft – Sortiment und Werbung lassen sich anpassen.","Weil der Staat den Rabatt bezahlt.","Weil Kunden mit Kundenkarte keinen Bon brauchen."]},
+   {id:"p4c", q:"Eine Kundin hat 1.384 Bonuspunkte (1 Punkt = 0,01 €). Sie kauft für 42,45 € ein und verrechnet die Punkte. Wie viel zahlt sie noch?", opts:["28,61 €","29,61 €","13,84 €"]} ] },
+
+{ id:"k5", mod:5, day:"SA", time:"18:00", title:"Hitze, Schlange, Jugendliche", topic:"Besondere Situationen an der Kasse",
+  story:"Samstag, 18 Uhr. Ihr steht seit sieben Stunden an der Kasse. Es ist heiß, viele Jugendliche sind unterwegs. Nebenan verkauft Kevin alles an jeden – das kann nicht gut gehen.",
+  words:["der Jugendschutz","das Jugendschutzgesetz","volljährig","den Ausweis zeigen lassen","branntweinhaltig","die Diebstahlprävention","die Hilfestellung","zurücklegen","die Ergonomie","die Stehhilfe","die Pause","die wörtliche Rede"],
+  decs:[
+   [ {id:"k5d1a", who:{n:"Zwei Mädchen", d:"etwa 16 Jahre alt", look:{s:2,h:"#5A3825",st:"lang",c:"#E91E63",a:"t"}},
+      sit:"Zwei Mädchen, etwa 16, wollen zwei Dosen Wodka-Mix. „Die sind für meinen Bruder, der ist 20!“",
+      q:"Was sagst du?",
+      opts:[
+       {t:"Ausweis zeigen lassen. „Tut mir leid, Getränke mit Wodka darf ich erst ab 18 verkaufen – auch für deinen Bruder. Wie wär's mit unserer Limo?“", s:2, say:"Okay … dann halt zwei Limos.", why:"Jugendschutz: Branntwein und Mischgetränke mit Branntwein erst ab 18. Dass sie für jemand anderen sind, ändert nichts. Freundlich ablehnen und eine Lösung anbieten."},
+       {t:"„Ihr seht zu jung aus. Geht weg.“", s:1, say:"Boah, wie unfreundlich!", why:"Die Ablehnung ist richtig. Aber man bleibt höflich, nennt den Grund und bietet eine Lösung an."},
+       {t:"Verkaufen – der Bruder ist ja 20.", s:0, say:"Danke! Easy.", why:"Verstoß gegen das Jugendschutzgesetz. Mischgetränke mit Branntwein gibt es erst ab 18, egal für wen."}],
+      term:"Jugendschutz: Alkohol", def:"Bier, Wein, Sekt und Mischgetränke mit Bier oder Wein ab 16. Branntwein und Mischgetränke mit Branntwein ab 18.",
+      ihk:"Aspekt: Jugendschutz (1 Punkt). Ansprache in wörtlicher Rede, freundlich mit Lösung (2 Punkte).",
+      weil:["…weil Mischgetränke mit Branntwein erst ab 18 verkauft werden dürfen – auch wenn sie für jemand anderen sind.","…weil Mischgetränke mit Branntwein ab 16 erlaubt sind, wenn ein Erwachsener zustimmt.","…weil Jugendliche unter 18 gar keinen Alkohol kaufen dürfen."]},
+     {id:"k5d1b", who:{n:"Junge", d:"etwa 15 Jahre alt", look:{s:3,h:"#2A1B12",st:"kurz",c:"#3498DB",a:"t"}},
+      sit:"Ein Junge, etwa 15, will eine E-Zigarette ohne Nikotin. „Da ist doch gar kein Nikotin drin!“",
+      q:"Was sagst du?",
+      opts:[
+       {t:"„Tut mir leid, E-Zigaretten darf ich erst ab 18 verkaufen – auch ohne Nikotin. Darf ich dir ein kaltes Wasser anbieten?“", s:2, say:"Echt? Auch ohne Nikotin? Okay, dann ein Wasser.", why:"Tabakwaren und E-Zigaretten gibt es erst ab 18, auch ohne Nikotin. Freundlich erklären und eine Lösung anbieten."},
+       {t:"„Ausweis!“ – und ihn ohne Erklärung wegschicken.", s:1, say:"Was ist denn dein Problem?", why:"Die Ablehnung ist richtig, aber man erklärt höflich den Grund."},
+       {t:"Verkaufen – ohne Nikotin ist das erlaubt.", s:0, say:"Danke! Wusste ich doch.", why:"Falsch: E-Zigaretten sind mit und ohne Nikotin erst ab 18 erlaubt."}],
+      term:"Jugendschutz: Tabak", def:"Tabakwaren, E-Zigaretten und Shishas – mit und ohne Nikotin – erst ab 18 Jahren.",
+      ihk:"„Tut mir leid, Zigaretten darf ich erst an Personen ab 18 verkaufen – auch wenn sie für deinen Vater sind.“",
+      weil:["…weil Tabakwaren und E-Zigaretten erst ab 18 verkauft werden dürfen – auch ohne Nikotin.","…weil E-Zigaretten ohne Nikotin ab 16 erlaubt sind.","…weil man E-Zigaretten nur an Raucher verkaufen darf."]} ],
+   [ {id:"k5d2a", who:{n:"Herr Becker", d:"Gast mit vollem Korb", look:{s:1,h:"#7B5B3A",st:"kurz",c:"#1ABC9C",a:"e"}},
+      sit:"Das Kartenterminal hat plötzlich kein Netz. Herr Becker hat einen vollen Korb und will mit Karte zahlen.",
+      q:"Was sagst du?",
+      opts:[
+       {t:"„Es tut mir leid, unser Terminal hat gerade eine Störung. Können Sie bar zahlen? Sonst lege ich Ihnen den Einkauf gern kurz zurück.“", s:2, say:"Ich hol schnell Geld vom Automaten. Danke fürs Zurücklegen!", why:"In besonderen Situationen: höflich sagen, was los ist, und eine Lösung anbieten (Hilfestellung)."},
+       {t:"Wortlos auf ein Schild „Heute nur bar“ zeigen.", s:1, say:"Aha. Und jetzt?", why:"Die Information stimmt, aber es fehlt die freundliche Ansprache und eine Lösung."},
+       {t:"„Pech gehabt, dann eben nicht.“", s:0, say:"Unfassbar. Hier kauf ich nie wieder.", why:"Unfreundlich und ohne Lösung. So verliert der Stand Kunden."}],
+      term:"Hilfestellung / Alternative anbieten", def:"Höflich sagen, was los ist (mit Grund), und eine Lösung anbieten: bar zahlen, zurücklegen, andere Kasse.",
+      ihk:"„Es tut mir leid, unser Kartenterminal hat gerade eine Störung. Können Sie bar bezahlen? Sonst öffnet meine Kollegin gleich die Nachbarkasse.“",
+      weil:["…weil man in besonderen Situationen höflich sagt, was los ist, und eine Lösung anbietet.","…weil man bei Technikausfall den Kauf sofort abbrechen muss.","…weil der Kunde bei einer Störung nichts bezahlen muss."]},
+     {id:"k5d2b", who:{n:"Du selbst", d:"seit 7 Stunden an der Kasse", look:{s:2,h:"#4A3020",st:"kurz",c:"#E4572E",a:"t"}},
+      sit:"Du stehst seit sieben Stunden an der Kasse. Dein Rücken tut weh, die Theke ist viel zu niedrig. Kisten mit Wasser hebst du jedes Mal aufs Band.",
+      q:"Was tust du?",
+      opts:[
+       {t:"Pause machen. Danach Theke auf deine Größe einstellen, mit Stehhilfe abwechseln und schwere Kisten mit dem Handscanner erfassen.", s:2, say:"Puh, viel besser. Und ich vertippe mich nicht mehr.", why:"Pausen helfen gegen Fehler. Ein passend eingestellter Arbeitsplatz, Wechsel von Stehen und Sitzen und der Handscanner schonen den Rücken."},
+       {t:"Nur kurz strecken und weitermachen. Pausen kosten Umsatz.", s:1, say:"Geht so … der Rücken zwickt immer noch.", why:"Ausgleichsübungen sind gut, aber Pausen sind wichtig. Erwachsene haben bei mehr als 6 Stunden Arbeit mindestens 30 Minuten Pause, Jugendliche schon bei mehr als 4,5 Stunden."},
+       {t:"Durchziehen bis Mitternacht und die Kisten weiter heben.", s:0, say:"Au … ich hab mich schon zweimal vertippt.", why:"Ohne Pause steigen Fehler und Rückenschmerzen. Schwere Ware wird mit dem Handscanner erfasst."}],
+      term:"Ergonomie am Kassenplatz", def:"Stuhl und Theke auf die Körpergröße einstellen, Sitzen und Stehen wechseln, Stehhilfe, Handscanner für schwere Ware, Pausen.",
+      ihk:"Ergonomische Maßnahmen: Stuhl und Kassentisch auf die Körpergröße einstellen, damit ich aufrecht sitze. Zwischen Sitzen und Stehen wechseln und eine Stehhilfe nutzen, damit der Rücken entlastet wird.",
+      weil:["…weil Pausen helfen, konzentriert zu bleiben, und ein eingestellter Arbeitsplatz den Rücken schont.","…weil Pausen nur Jugendlichen zustehen.","…weil man an der Kasse nur sitzen darf."]},
+     {id:"k5d2c", who:{n:"Frau Lüders", d:"Gast mit Bollerwagen", look:{s:1,h:"#D9C3A0",st:"lang",c:"#2ECC71",a:"e"}},
+      sit:"Frau Lüders legt nur die Chips aufs Band. Unten in ihrem Bollerwagen liegt noch ein Karton Wasser.",
+      q:"Was sagst du?",
+      opts:[
+       {t:"„Unten im Wagen liegt noch ein Karton Wasser. Den scanne ich gleich mit, dann müssen Sie ihn nicht heben.“", s:2, say:"Oh, den hätte ich glatt vergessen. Danke!", why:"Diebstahlprävention: Den Wagen kontrollieren, damit nichts vergessen oder versteckt wird – höflich und als Service."},
+       {t:"Nichts sagen und nur die Chips kassieren.", s:0, say:"Tschüss!", why:"Der Karton wird nicht bezahlt. Der Wagen wird kontrolliert."},
+       {t:"„Sie wollen wohl das Wasser klauen?“", s:0, say:"Wie bitte?! Das ist ja unverschämt!", why:"Man beschuldigt niemanden. Man spricht es freundlich als Service an."}],
+      term:"Diebstahlprävention", def:"Einkaufswagen und Umverpackungen kontrollieren, damit nichts vergessen oder versteckt wird. Freundlich ansprechen.",
+      ihk:"Aspekt: Diebstahlprävention. „Könnten Sie bitte Ihren Korb einmal kurz anheben, damit ich sehe, ob noch etwas darunter liegt?“",
+      weil:["…weil man den Wagen kontrolliert, damit nichts vergessen oder versteckt wird – und es höflich anspricht.","…weil man Kunden mit Bollerwagen immer durchsuchen muss.","…weil Getränke nicht gescannt werden müssen."]} ] ],
+  mini:"jugend",
+  profi:[
+   {id:"p5a", q:"Ein 17-Jähriger möchte eine Flasche Wein und eine Flasche Wodka kaufen. Was darfst du verkaufen?", opts:["Nur den Wein – Wodka ist Branntwein und erst ab 18.","Beides – er ist ja fast 18.","Nichts – Alkohol gibt es erst ab 18."]},
+   {id:"p5b", q:"Ein Stand führt „Challenge 25“ ein: Ausweis von allen, die jünger als 25 aussehen. Was ist der Vorteil für die Kassenkraft?", opts:["Sie hat eine klare Regel, muss nicht schätzen und hat weniger Diskussionen.","Sie darf dann auch an 17-Jährige Wodka verkaufen.","Sie muss nie mehr einen Ausweis prüfen."]} ] },
+// ===================== DATEN TEIL 2: Kapitel 6–10 =====================
+{ id:"k6", mod:6, day:"SA", time:"23:30", title:"Kassenschluss", topic:"Kassenabrechnung",
+  story:"Samstag, 23:30 Uhr. Die Bühne ist dunkel. Jana ist endlich da – mit dem Lieferwagen. „Zeigt mir eure Abrechnung!“ Bei Kevin nebenan ist es auffällig still. Dort war vorhin das Ordnungsamt.",
+  words:["der Kassenanfangsbestand","das Wechselgeld","die Abschöpfung","der Kassenschlussbestand","die Tageslosung","der Tagesumsatz","der Kassenbericht","der Soll-Bestand","der Ist-Bestand","die Kassendifferenz","der Überschuss","der Fehlbetrag","der Kassensturz"],
+  decs:[
+   [ {id:"k6d1a", who:{n:"Lina", d:"hat den Kassenbericht geschrieben", look:{s:3,h:"#1E1410",st:"zopf",c:"#E4572E",a:"t"}},
+      sit:"Lina zeigt ihren Kassenbericht. Sie hat die Abschöpfung von 2.000 € abgezogen und das Wechselgeld von 300 € addiert.",
+      q:"Was sagt ihr Lina?",
+      opts:[
+       {t:"„Andersherum: Die Abschöpfung wird addiert, das Wechselgeld wird abgezogen.“", s:2, say:"Ach so! Die 2.000 € haben wir ja eingenommen. Ich rechne neu.", why:"Alles, was aus der Kasse genommen wurde, wird addiert. Das Wechselgeld war schon morgens drin und ist kein Umsatz – es wird abgezogen."},
+       {t:"„Nur das Wechselgeld musst du abziehen. Der Rest stimmt.“", s:1, say:"Okay … aber die Zahl ist immer noch so klein.", why:"Das Wechselgeld ist richtig korrigiert. Die Abschöpfung ist aber auch Umsatz und wird addiert."},
+       {t:"„Stimmt so. Was aus der Kasse genommen wurde, ist weg.“", s:0, say:"Dann haben wir heute ja kaum was verdient?!", why:"Die Abschöpfung ist eingenommenes Geld, das nur nicht mehr in der Kasse liegt. Sie wird addiert."}],
+      term:"Kassenbericht", def:"Kassenschlussbestand + Abschöpfungen − Wechselgeld = Tageslosung. Tageslosung + Kartenzahlungen = Tagesumsatz.",
+      ihk:"Merksatz: Alles, was aus der Kasse genommen wurde, wird addiert. Das Wechselgeld, das schon morgens drin war, wird abgezogen.",
+      weil:["…weil die Abschöpfung eingenommenes Geld ist und das Wechselgeld schon morgens in der Kasse war.","…weil das Wechselgeld zum Umsatz gehört.","…weil Kartenzahlungen von der Tageslosung abgezogen werden."]},
+     {id:"k6d1b", who:{n:"Jana Ahrens", d:"eure Chefin", look:{s:2,h:"#B5651D",st:"dutt",c:"#1F8A8A",a:"e"}},
+      sit:"Jana fragt: „Wie hoch war heute die Tageslosung?“ Lina will die Kartenzahlungen dazurechnen.",
+      q:"Was ist richtig?",
+      opts:[
+       {t:"„Tageslosung sind nur die Bareinnahmen. Bar plus Karte ist der Tagesumsatz.“", s:2, say:"Genau. Und beides will ich sehen.", why:"Tageslosung = alle Bareinnahmen eines Tages. Tagesumsatz = alle Einnahmen: bar + Karte."},
+       {t:"„Tageslosung ist das Geld, das jetzt in der Kasse liegt.“", s:0, say:"Nein, das ist der Kassenschlussbestand. Da fehlt was.", why:"In der Kasse liegt der Kassenschlussbestand. Für die Tageslosung kommt die Abschöpfung dazu, das Wechselgeld kommt weg."},
+       {t:"„Tageslosung ist alles zusammen: bar und Karte.“", s:0, say:"Das ist der Tagesumsatz. Nicht verwechseln!", why:"Bar + Karte ist der Tagesumsatz. Die Tageslosung umfasst nur das Bargeld."}],
+      term:"Tageslosung und Tagesumsatz", def:"Tageslosung = alle Bareinnahmen. Tagesumsatz = bar + Karte.",
+      ihk:"„Ermitteln Sie den Tagesumsatz! Geben Sie den Rechenweg an!“ – je 1 Punkt für das Addieren, das Subtrahieren und das Ergebnis.",
+      weil:["…weil die Tageslosung nur das Bargeld umfasst und erst mit den Kartenzahlungen der Tagesumsatz entsteht.","…weil Kartenzahlungen immer zur Tageslosung gehören.","…weil die Tageslosung das Wechselgeld für morgen ist."]} ],
+   [ {id:"k6d2a", who:{n:"Jana Ahrens", d:"eure Chefin", look:{s:2,h:"#B5651D",st:"dutt",c:"#1F8A8A",a:"e"}},
+      sit:"Laut Kasse sollen 1.230,00 € in der Kasse sein (Soll). Ihr zählt 1.235,00 € (Ist). Lina jubelt: „5 € Trinkgeld für uns!“",
+      q:"Was sagt ihr?",
+      opts:[
+       {t:"„Das ist ein Überschuss von 5 €. Den melden wir und suchen die Ursache, z. B. zu wenig Rückgeld gegeben.“", s:2, say:"Richtig. Vielleicht hat ein Gast zu wenig zurückbekommen.", why:"Ist − Soll = +5 € → Überschuss. Ursachen: zu wenig Rückgeld, Wechselgeld stimmte morgens nicht, Eingabefehler."},
+       {t:"„Das ist ein Fehlbetrag. Wir legen 5 € aus eigener Tasche dazu.“", s:0, say:"Fehlbetrag? Es ist doch zu viel Geld da!", why:"Zu viel Geld ist ein Überschuss, kein Fehlbetrag. Ein Fehlbetrag heißt: zu wenig Geld."},
+       {t:"„Super, die 5 € teilen wir uns!“", s:0, say:"Auf keinen Fall. Das Geld gehört dem Betrieb.", why:"Eine Kassendifferenz wird gemeldet. Das Geld gehört dem Betrieb, vielleicht auch einem Kunden."}],
+      term:"Kassendifferenz", def:"Ist − Soll. Plus = Überschuss (zu viel Geld). Minus = Fehlbetrag (zu wenig Geld).",
+      ihk:"5 € zu viel in der Kasse – mögliche Gründe: zu wenig Wechselgeld herausgegeben, Wechselgeld stimmte schon beim Einzählen nicht, Eingabefehler.",
+      weil:["…weil Ist minus Soll plus 5 € ergibt – zu viel Geld ist ein Überschuss, und der hat eine Ursache.","…weil ein Überschuss bedeutet, dass ein Kunde zu viel Rückgeld bekommen hat.","…weil Soll und Ist nie gleich sein können."]},
+     {id:"k6d2b", who:{n:"Kevin Zack", d:"Chef der Snackbude Zack", look:{s:1,h:"#C9A24A",st:"cap",c:"#8E44AD",a:"e"}},
+      sit:"Ole Brodersen will morgen bei allen Ständen einen Kassensturz machen. Kevin grinst: „Den sagt er doch vorher an. Dann zählen wir vorher schön nach.“",
+      q:"Was antwortet ihr?",
+      opts:[
+       {t:"„Ein Kassensturz kommt überraschend. Wir halten unsere Kasse einfach immer in Ordnung.“", s:2, say:"Überraschend? Ach du Schreck …", why:"Ein Kassensturz ist ein überraschender Soll-Ist-Vergleich während des Tages. So zeigt er den echten Stand."},
+       {t:"„Wir legen vorher Geld aus eigener Tasche nach, falls was fehlt.“", s:0, say:"Gute Idee, mach ich auch!", why:"Damit verdeckt man Fehler. Der Kassensturz soll den echten Stand zeigen."},
+       {t:"„Kassensturz heißt, die Kasse ist kaputt. Das betrifft uns nicht.“", s:0, say:"Hä? Na dann.", why:"Kassensturz bedeutet: Soll-Bestand und Ist-Bestand werden überraschend verglichen."}],
+      term:"Kassensturz", def:"Überraschender Soll-Ist-Vergleich während des Tages.",
+      ihk:"Ein Kassensturz ist ein überraschender Soll-Ist-Vergleich während des Tages.",
+      weil:["…weil ein angekündigter Kassensturz Fehler verdecken könnte – überraschend zeigt er den echten Stand.","…weil beim Kassensturz das Wechselgeld abgeholt wird.","…weil ein Kassensturz nur einmal im Jahr erlaubt ist."]} ] ],
+  mini:"bericht",
+  profi:[
+   {id:"p6a", q:"Kevin zieht seinen Leuten Fehlbeträge einfach vom Lohn ab. Was gilt?", opts:["Ohne besondere Vereinbarung haften Beschäftigte nur bei Vorsatz oder grober Fahrlässigkeit – einfach abziehen darf der Betrieb nicht.","Das ist erlaubt: Jeder Fehlbetrag geht vom Lohn ab.","Das ist erlaubt, wenn der Fehlbetrag unter 50 € liegt."]},
+   {id:"p6b", q:"Kartenzahlungen 3.150,00 €; Wechselgeld 600,00 €; Kassenbestand am Schichtende 3.450,00 €; Abschöpfung 2.000,00 €. Wie hoch ist der Tagesumsatz?", opts:["8.000,00 €","9.200,00 €","4.000,00 €"]} ] },
+
+{ id:"k7", mod:7, day:"SO", time:"11:00", title:"Familientag", topic:"Wer darf kaufen? Geschäftsfähigkeit",
+  story:"Sonntag, 11 Uhr. Familientag auf dem Deichbeat! Überall Kinder und Jugendliche. Kevins Bude bleibt heute zu – er hat gestern Ärger mit dem Ordnungsamt bekommen. Jetzt ist euer Stand allein in der Reihe.",
+  words:["die Rechtsfähigkeit","die Geschäftsfähigkeit","geschäftsunfähig","beschränkt geschäftsfähig","voll geschäftsfähig","der gesetzliche Vertreter","die Zustimmung","schwebend unwirksam","nichtig","der Taschengeldparagraf","der Botengang"],
+  decs:[
+   [ {id:"k7d1a", who:{n:"Finn", d:"6 Jahre alt", look:{s:1,h:"#E3C16F",st:"kurz",c:"#F1C40F",a:"k"}},
+      sit:"Finn, 6 Jahre, will mit seinem Taschengeld einen Leuchtstab für 3,00 € kaufen. Seine Eltern sind nicht dabei.",
+      q:"Was machst du?",
+      opts:[
+       {t:"Freundlich ablehnen: „Komm doch mit Mama oder Papa wieder, dann klappt das.“", s:2, say:"Okay … ich hol Papa!", why:"Kinder unter 7 sind geschäftsunfähig. Ihr Kauf ist nichtig – auch mit Taschengeld und bei kleinen Beträgen."},
+       {t:"Verkaufen – Taschengeld ist Taschengeld.", s:0, say:"Juhu, leuchtet!", why:"Der Taschengeldparagraf gilt erst ab 7. Der Kauf ist nichtig, die Eltern bekommen ihr Geld zurück."},
+       {t:"Verkaufen, wenn er genau passend zahlt.", s:0, say:"Hier, drei Euro!", why:"Passend zahlen ändert nichts. Unter 7 ist der Kauf nichtig."}],
+      term:"Geschäftsunfähig", def:"Kinder unter 7 Jahren. Ihr Kauf ist nichtig (von Anfang an ungültig). Ausnahme: Botengang.",
+      ihk:"„Nein, weil sie geschäftsunfähig ist.“ – Kinder unter 7: Der Kauf ist nichtig, auch mit Taschengeld.",
+      weil:["…weil Kinder unter 7 geschäftsunfähig sind – ihr Kauf ist nichtig, auch mit Taschengeld.","…weil Kinder unter 7 noch nicht rechtsfähig sind.","…weil der Taschengeldparagraf erst ab 5 € gilt."]},
+     {id:"k7d1b", who:{n:"Emma", d:"6 Jahre alt, mit Einkaufszettel", look:{s:3,h:"#2B1A10",st:"zopf",c:"#FF6F91",a:"k"}},
+      sit:"Emma, 6 Jahre, bringt einen Zettel von ihrer Mutter: „Bitte 2 Wasser und 1 Sonnencreme.“ Das Geld hat die Mutter mitgegeben. Sie wartet am Kinderkarussell.",
+      q:"Was machst du?",
+      opts:[
+       {t:"Verkaufen – das ist ein Botengang. Emma überbringt nur den Willen der Mutter.", s:2, say:"Danke! Mama winkt schon.", why:"Beim Botengang kauft eigentlich die Mutter. Das Kind überbringt nur ihre Willenserklärung. Der Kauf ist gültig."},
+       {t:"Ablehnen – unter 7 geht gar nichts.", s:1, say:"Aber Mama hat doch gesagt …", why:"Vorsichtig, aber hier unnötig: Beim Botengang ist der Kauf gültig."},
+       {t:"Verkaufen, weil Sonnencreme ein Notfall ist.", s:0, say:"Okay!", why:"Ob Notfall oder nicht, spielt keine Rolle. Gültig ist der Kauf wegen des Botengangs."}],
+      term:"Botengang", def:"Ein Kind kauft im Auftrag der Eltern ein und überbringt nur deren Willen. Der Kauf ist gültig.",
+      ihk:"Der 6-jährige Ben kauft mit Einkaufszettel und Geld seiner Mutter ein Brot → gültig (Botengang: Ben überbringt nur den Willen der Mutter).",
+      weil:["…weil das Kind beim Botengang nur den Willen der Mutter überbringt.","…weil Kinder ab 6 beschränkt geschäftsfähig sind.","…weil Sonnencreme nicht unter das Kaufrecht fällt."]} ],
+   [ {id:"k7d2a", who:{n:"Leonie", d:"14 Jahre alt", look:{s:2,h:"#6E3B1F",st:"lang",c:"#00A6A6",a:"t"}},
+      sit:"Leonie, 14, kauft ein Band-T-Shirt für 25,00 €. Sie zahlt bar von ihrem Taschengeld.",
+      q:"Was machst du?",
+      opts:[
+       {t:"Verkaufen: Taschengeldparagraf. Sie zahlt sofort und vollständig mit Geld zur freien Verfügung.", s:2, say:"Yes! Mein erstes Band-Shirt!", why:"Ab 7 ist man beschränkt geschäftsfähig. Mit Taschengeld, sofort und vollständig bezahlt, ist der Kauf gültig."},
+       {t:"Verkaufen, aber vorher die Eltern anrufen.", s:1, say:"Echt jetzt? Das ist so peinlich …", why:"Nicht nötig: Beim Taschengeldparagrafen braucht es keine Zustimmung der Eltern."},
+       {t:"Ablehnen – unter 18 nur mit Eltern.", s:0, say:"Aber das ist mein Taschengeld!", why:"Falsch: Mit dem Taschengeldparagrafen darf sie allein kaufen."}],
+      term:"Taschengeldparagraf (§ 110 BGB)", def:"Beschränkt Geschäftsfähige kaufen gültig, wenn sie sofort und vollständig mit Geld zur freien Verfügung bezahlen.",
+      ihk:"Im Rahmen des „Taschengeldparagrafen“ abgeschlossene Kaufverträge sind auch ohne Zustimmung des gesetzlichen Vertreters gültig.",
+      weil:["…weil Jugendliche ab 7 mit Taschengeld gültig kaufen, wenn sie sofort und vollständig bezahlen.","…weil man ab 14 voll geschäftsfähig ist.","…weil der Kauf schwebend unwirksam ist."]},
+     {id:"k7d2b", who:{n:"Jonas", d:"16 Jahre alt", look:{s:1,h:"#3E2A1C",st:"cap",c:"#D35400",a:"t"}},
+      sit:"Jonas, 16, will die große Bluetooth-Box für 349,00 € kaufen – bar, von seinen Ersparnissen. Seine Eltern wissen nichts davon.",
+      q:"Was machst du?",
+      opts:[
+       {t:"„Weil die Box so teuer ist, brauche ich die Zustimmung deiner Eltern. Ich lege sie dir gern bis heute Abend zurück.“", s:2, say:"Hm, okay. Ich ruf meinen Vater an.", why:"Ersparnisse für eine große Anschaffung fallen nicht unter den Taschengeldparagrafen. Ohne Zustimmung ist der Kauf schwebend unwirksam."},
+       {t:"Verkaufen – Barzahlung ist immer gültig.", s:0, say:"Läuft!", why:"Barzahlung allein reicht nicht. Sagen die Eltern Nein, ist der Kauf von Anfang an ungültig."},
+       {t:"Verkaufen und hoffen, dass die Eltern nichts merken.", s:0, say:"Die merken das eh nicht.", why:"Der Kauf ist schwebend unwirksam. Die Eltern können die Rücknahme verlangen."}],
+      term:"Schwebend unwirksam", def:"Der Kauf eines beschränkt Geschäftsfähigen gilt erst, wenn die Eltern zustimmen. Sagen sie Nein, ist er von Anfang an ungültig.",
+      ihk:"Die Eltern können die Rücknahme verlangen, da der Vertrag bis zu deren Ablehnung schwebend unwirksam war.",
+      weil:["…weil Ersparnisse für eine große Anschaffung nicht unter den Taschengeldparagrafen fallen.","…weil Barkäufe von Minderjährigen immer nichtig sind.","…weil die Eltern nur innerhalb von 8 Tagen widersprechen dürfen."]} ] ],
+  mini:"ampel",
+  profi:[
+   {id:"p7a", q:"Was ist der Unterschied zwischen Rechtsfähigkeit und Geschäftsfähigkeit?", opts:["Rechtsfähig ist jeder Mensch ab der Geburt. Geschäftsfähig ist man ab 7 beschränkt und ab 18 voll.","Rechtsfähig ist man ab 18, geschäftsfähig ab 7.","Beide Wörter bedeuten dasselbe."]},
+   {id:"p7b", q:"Simone (17) ist Auszubildende. In welchem Fall kommt KEIN gültiger Vertrag zustande?", opts:["Sie schließt ohne Wissen der Eltern einen Ratenkauf über einen Computer ab.","Sie kauft eine Monatskarte für den Weg zum Ausbildungsbetrieb.","Sie kauft auf Anweisung des Abteilungsleiters Büromaterial für den Betrieb."]},
+   {id:"p7c", q:"Ein etwa 12-jähriges Mädchen will Kopfhörer für 129,00 € bar bezahlen. Was trifft zu?", opts:["Der Kauf wäre schwebend unwirksam – ich lege die Kopfhörer zurück, bis die Eltern zustimmen.","Der Kauf ist nichtig, weil sie unter 14 ist.","Der Kauf ist gültig, weil sie bar bezahlt."]} ] },
+
+{ id:"k8", mod:8, day:"SO", time:"14:00", title:"Pannen im Büro-Zelt", topic:"Rechtsgeschäfte, Nichtigkeit, Anfechtung",
+  story:"Sonntag, 14 Uhr. Jana sitzt im Büro-Zelt und bestellt für den Abschlussabend. Dabei geht einiges schief – und auch am Stand gibt es seltsame „Geschäfte“.",
+  words:["die Willenserklärung","das Rechtsgeschäft","einseitig","zweiseitig","schlüssiges Handeln","nichtig","anfechtbar","anfechten","der Irrtum","die arglistige Täuschung","die widerrechtliche Drohung","das Scherzgeschäft","unverzüglich"],
+  decs:[
+   [ {id:"k8d1a", who:{n:"Jana Ahrens", d:"eure Chefin", look:{s:2,h:"#B5651D",st:"dutt",c:"#1F8A8A",a:"e"}},
+      sit:"Jana hat beim Getränke-Großhändler 500 Kisten Wasser bestellt. Gemeint waren 50. Sie merkt es eine Stunde später.",
+      q:"Was rät ihr Jana?",
+      opts:[
+       {t:"Sofort beim Großhändler anfechten: Sie hat sich vertippt (Irrtum in der Erklärung).", s:2, say:"Gut, ich ruf gleich an und schick eine Mail hinterher.", why:"Ein Erklärungsirrtum macht den Vertrag anfechtbar. Anfechten muss man unverzüglich, also sofort nach dem Entdecken."},
+       {t:"Bis Montag warten und dann anfechten.", s:1, say:"Montag? Bis dahin ist der Lkw schon unterwegs …", why:"Anfechtbar ja – aber unverzüglich. Wer lange wartet, verliert das Recht."},
+       {t:"Nichts tun. Bestellt ist bestellt.", s:0, say:"500 Kisten? Wo soll ich die hinstellen?!", why:"Ein Erklärungsirrtum darf angefochten werden. Man muss nicht für einen Tippfehler zahlen."}],
+      term:"Anfechtbar: Irrtum in der Erklärung", def:"Man hat sich verschrieben, vertippt oder versprochen. Der Vertrag gilt, bis man unverzüglich anficht.",
+      ihk:"Anfechtung ist berechtigt, wenn im Angebot anstatt 300,00 € versehentlich nur 30,00 € als Stückpreis angegeben wurden.",
+      weil:["…weil ein Erklärungsirrtum den Vertrag anfechtbar macht – aber nur bei unverzüglicher Anfechtung.","…weil der Vertrag wegen des Fehlers von selbst nichtig ist.","…weil man für jede Anfechtung ein Jahr Zeit hat."]},
+     {id:"k8d1b", who:{n:"Herr Peters", d:"hat eine Regenjacke gekauft", look:{s:1,h:"#8D6E63",st:"kurz",c:"#5D6D7E",a:"e"}},
+      sit:"Herr Peters hat morgens eine Regenjacke für 39 € gekauft. Jetzt scheint die Sonne. Er sagt: „Ich will den Kauf anfechten!“",
+      q:"Was antwortest du?",
+      opts:[
+       {t:"„Das ist leider kein Grund zum Anfechten – Sie haben sich nur über Ihren Grund geirrt. Ich frage meine Chefin, ob wir aus Kulanz umtauschen.“", s:2, say:"Na gut. Wäre nett, wenn's klappt.", why:"Ein Motivirrtum (Irrtum über die eigenen Gründe) ist kein Anfechtungsgrund. Ein Umtausch ist nur Kulanz."},
+       {t:"„Klar, ein Wetterirrtum ist ein Anfechtungsgrund.“", s:0, say:"Wusste ich's doch!", why:"Falsch: Ein Motivirrtum ist nicht anfechtbar."},
+       {t:"„Der Vertrag ist nichtig, weil sich das Wetter geändert hat.“", s:0, say:"Prima, dann Geld zurück!", why:"Der Vertrag ist gültig. Nichtig ist ein Vertrag z. B. mit Kindern unter 7 oder bei einem Scherzgeschäft."}],
+      term:"Motivirrtum", def:"Man irrt sich nur über seine Gründe („Ich dachte, ich brauche das noch.“). Kein Anfechtungsgrund.",
+      ihk:"Kein Anfechtungsgrund: Er hat sich nur über seinen Geschmack bzw. seine Gründe geirrt (Motivirrtum). Der Vertrag bleibt gültig. Ein Umtausch ist nur Kulanz.",
+      weil:["…weil ein Motivirrtum kein Anfechtungsgrund ist – ein Umtausch ist nur Kulanz.","…weil jeder Kauf 14 Tage lang anfechtbar ist.","…weil eine Regenjacke ein Scherzgeschäft ist."]} ],
+   [ {id:"k8d2a", who:{n:"Jana Ahrens", d:"eure Chefin", look:{s:2,h:"#B5651D",st:"dutt",c:"#1F8A8A",a:"e"}},
+      sit:"Ein Händler hat euch 50 Band-Shirts als „Original-Merch“ verkauft. Jetzt kommt heraus: Es sind Fälschungen – und er wusste es.",
+      q:"Was ist jetzt richtig?",
+      opts:[
+       {t:"Den Kaufvertrag wegen arglistiger Täuschung anfechten. Dafür habt ihr 1 Jahr ab Entdecken Zeit.", s:2, say:"Gut. Ich schreibe ihm heute noch.", why:"Bei arglistiger Täuschung ist der Vertrag anfechtbar. Frist: 1 Jahr ab Entdecken der Täuschung."},
+       {t:"Nichts tun – der Vertrag ist bei Täuschung automatisch nichtig.", s:0, say:"Automatisch? Bist du sicher?", why:"Bei Täuschung ist der Vertrag anfechtbar, nicht automatisch nichtig. Man muss aktiv anfechten."},
+       {t:"Nichts tun – gekauft ist gekauft.", s:0, say:"Dann bleiben wir auf den Fälschungen sitzen …", why:"Wer getäuscht wurde, kann anfechten. Dann ist der Vertrag von Anfang an nichtig."}],
+      term:"Arglistige Täuschung", def:"Jemand verschweigt oder lügt absichtlich. Der Vertrag ist anfechtbar – 1 Jahr ab Entdecken.",
+      ihk:"Ein Händler verkauft eine vergoldete Kette als „echte Goldkette“ → anfechtbar (arglistige Täuschung).",
+      weil:["…weil man bei arglistiger Täuschung innerhalb eines Jahres nach dem Entdecken anfechten kann.","…weil bei Täuschung eine Frist von 3 Tagen gilt.","…weil ein Vertrag mit Täuschung nichtig ist, ohne dass man etwas tun muss."]},
+     {id:"k8d2b", who:{n:"Mo", d:"Gitarrist der Band", look:{s:4,h:"#0F0F0F",st:"locken",c:"#212F3D",a:"e"}},
+      sit:"Der Gitarrist Mo lacht am Stand: „Für eine Cola verkauf ich dir meine Gitarre!“ Alle lachen mit. Lina will die Gitarre am Abend abholen.",
+      q:"Was gilt?",
+      opts:[
+       {t:"Kein Vertrag: Das war ein Scherzgeschäft. Beide wussten, dass es nicht ernst gemeint war – es ist nichtig.", s:2, say:"Haha, genau! Die Cola nehm ich aber trotzdem.", why:"Ein Scherzgeschäft ist nichtig, wenn beide wissen, dass es nicht ernst gemeint ist."},
+       {t:"Mo muss den Vertrag erst anfechten.", s:0, say:"Anfechten? Für einen Witz?", why:"Bei einem Scherzgeschäft gibt es von Anfang an keinen Vertrag. Man muss nichts anfechten."},
+       {t:"Gültig – gesagt ist gesagt.", s:0, say:"Vergiss es! Das war ein Witz!", why:"Ein Scherz ist keine ernsthafte Willenserklärung. Das Geschäft ist nichtig."}],
+      term:"Scherzgeschäft", def:"Beide wissen, dass es nicht ernst gemeint ist. Das Rechtsgeschäft ist nichtig.",
+      ihk:"Tom sagt im Spaß zu Kollegen: „Für eine Flasche Wasser gebe ich euch mein Monatsgehalt!“ → nichtig (Scherzgeschäft).",
+      weil:["…weil ein Scherzgeschäft nichtig ist, wenn beide wissen, dass es nicht ernst gemeint ist.","…weil mündliche Verträge immer nichtig sind.","…weil Musiker beschränkt geschäftsfähig sind."]} ] ],
+  mini:"gna",
+  profi:[
+   {id:"p8a", q:"Ein Online-Shop schreibt in die AGB: „Reklamationen nur innerhalb von 3 Tagen nach Lieferung.“ Gilt das gegenüber Privatkunden?", opts:["Nein – die Klausel benachteiligt Kunden unangemessen. Die gesetzliche Gewährleistung beträgt 2 Jahre.","Ja – AGB gelten immer.","Ja – wenn der Shop die Klausel fett druckt."]},
+   {id:"p8b", q:"Was ist der Unterschied zwischen nichtig und anfechtbar?", opts:["Nichtig: von Anfang an kein Vertrag. Anfechtbar: Der Vertrag gilt, bis jemand aktiv anficht.","Nichtig heißt: Man muss innerhalb eines Jahres anfechten.","Anfechtbar heißt: Der Vertrag hat nie gegolten."]} ] },
+
+{ id:"k9", mod:9, day:"SO", time:"17:00", title:"Der letzte Abend beginnt", topic:"Der Kaufvertrag",
+  story:"Sonntag, 17 Uhr. Der letzte Abend beginnt, am Stand ist richtig viel los. Nach drei Tagen sind die Preisschilder ziemlich durcheinander – und Jana braucht Nachschub.",
+  words:["der Antrag","die Annahme","das Angebot","die Bestellung","die Auftragsbestätigung","verbindlich","unverbindlich","die Freizeichnungsklausel","die Anpreisung","die Pflicht","der Verbrauchsgüterkauf","der Handelskauf"],
+  decs:[
+   [ {id:"k9d1a", who:{n:"Herr Yilmaz", d:"Gast mit Powerbank", look:{s:3,h:"#1C1C1C",st:"kurz",c:"#16A085",a:"e"}},
+      sit:"Am Stand steht auf dem Schild: Powerbank 19,99 €. Die Kasse zeigt 29,99 €. Herr Yilmaz verlangt den Preis vom Schild.",
+      q:"Was sagst du?",
+      opts:[
+       {t:"„Danke für den Hinweis! Dann bekommen Sie die Powerbank zum Preis auf dem Schild. Ich lasse das Schild gleich korrigieren.“", s:2, say:"Das ist fair. Danke!", why:"Rechtlich ist das Schild kein Angebot – der Kunde macht an der Kasse den Antrag. Kundenorientiert und üblich ist es aber, den ausgezeichneten Preis zu geben."},
+       {t:"„Das Schild ist kein verbindliches Angebot. Sie zahlen 29,99 €.“", s:1, say:"Rechtlich vielleicht. Aber nett ist das nicht.", why:"Rechtlich richtig: Ausgestellte Ware ist kein verbindliches Angebot. Kundenorientiert wäre es, den Schildpreis zu geben."},
+       {t:"„Rechtlich muss ich Ihnen den Preis auf dem Schild geben.“", s:0, say:"Na dann – her damit.", why:"Die Begründung ist falsch: Ware im Regal oder Schaufenster ist kein verbindliches Angebot."}],
+      term:"Anpreisung (kein Angebot)", def:"Schaufenster, Regal, Prospekt, Onlineshop richten sich an alle. Sie sind eine Aufforderung, ein Angebot abzugeben.",
+      ihk:"Sie können die Forderung ablehnen, da eine im Schaufenster ausgestellte Ware rechtlich ein unverbindliches Angebot ist.",
+      weil:["…weil die Ware am Stand kein verbindliches Angebot ist – den Schildpreis gibt man aus Kundenorientierung.","…weil jedes Preisschild ein verbindliches Angebot ist.","…weil der Kunde nach drei Tagen ein Recht auf den Schildpreis hat."]},
+     {id:"k9d1b", who:{n:"Ben", d:"Gast mit leerem Handy-Akku", look:{s:2,h:"#5C4033",st:"cap",c:"#E67E22",a:"e"}},
+      sit:"Ben legt ein Festival-Cap auf den Tresen. Du scannst es: „Das macht 18 Euro.“ Da merkt er: Handy-Akku leer, kein Bargeld. „Dann ist ja noch nichts gekauft.“",
+      q:"Was stimmt?",
+      opts:[
+       {t:"„Doch, der Kaufvertrag ist schon da: Sie haben das Cap hingelegt, ich habe es gescannt. Ich lege es Ihnen zurück, bis Sie Geld holen.“", s:2, say:"Ach so. Okay, ich bin in 10 Minuten zurück.", why:"Ware hinlegen = Antrag. Scannen und Preis nennen = Annahme. Zwei übereinstimmende Willenserklärungen = Kaufvertrag."},
+       {t:"„Stimmt, ein Kaufvertrag entsteht erst beim Bezahlen.“", s:0, say:"Gut, dann tschüss!", why:"Beim Bezahlen wird der Vertrag erfüllt. Zustande kommt er schon beim Scannen."},
+       {t:"„Der Vertrag war schon da, als Sie das Cap vom Ständer genommen haben.“", s:0, say:"Echt? Schon da?", why:"Das Nehmen aus dem Regal ist noch kein Antrag. Antrag ist das Hinlegen an der Kasse."}],
+      term:"Antrag und Annahme an der Kasse", def:"Antrag: Kunde legt die Ware aufs Band. Annahme: Kassenkraft scannt und nennt den Preis.",
+      ihk:"Antrag: Der Kunde legt die Ware auf das Transportband an der Kasse. Annahme: Die Kassiererin scannt die Artikel und nennt den Kaufpreis.",
+      weil:["…weil zwei übereinstimmende Willenserklärungen vorliegen: hinlegen = Antrag, scannen = Annahme.","…weil ein Kaufvertrag erst mit der Bezahlung entsteht.","…weil das Herausnehmen aus dem Regal schon der Antrag ist."]} ],
+   [ {id:"k9d2a", who:{n:"Jana Ahrens", d:"bestellt Regencapes nach", look:{s:2,h:"#B5651D",st:"dutt",c:"#1F8A8A",a:"e"}},
+      sit:"Jana bestellt Regencapes: 10.08. Anfrage · 11.08. Angebot „solange der Vorrat reicht“ · 12.08. Bestellung · 13.08. Auftragsbestätigung · 14.08. Lieferung · 30.08. Zahlung.",
+      q:"An welchem Tag ist der Kaufvertrag zustande gekommen?",
+      opts:[
+       {t:"Am 13.08. – mit der Auftragsbestätigung.", s:2, say:"Richtig. Das Angebot war ja unverbindlich.", why:"„Solange der Vorrat reicht“ macht das Angebot unverbindlich. Die Bestellung ist der Antrag, die Auftragsbestätigung die Annahme."},
+       {t:"Am 12.08. – mit der Bestellung.", s:0, say:"Fast. Aber war das Angebot verbindlich?", why:"Das wäre richtig bei einem verbindlichen Angebot. „Solange der Vorrat reicht“ ist eine Freizeichnungsklausel."},
+       {t:"Am 14.08. – mit der Lieferung.", s:0, say:"Lieferung? Da war der Vertrag längst da.", why:"Lieferung und Zahlung sind nie das Datum des Kaufvertrags."}],
+      term:"Freizeichnungsklausel", def:"„freibleibend“, „unverbindlich“, „solange der Vorrat reicht“: Das Angebot ist unverbindlich. Erst die Auftragsbestätigung macht den Vertrag.",
+      ihk:"Datumsaufgabe: 1. Antrag suchen (ist das Angebot verbindlich?). 2. Annahme suchen. 3. Das Datum der Annahme ist der Tag des Kaufvertrags.",
+      weil:["…weil „solange der Vorrat reicht“ das Angebot unverbindlich macht: Bestellung = Antrag, Auftragsbestätigung = Annahme.","…weil ein Kaufvertrag immer mit der Lieferung entsteht.","…weil die Anfrage schon der Antrag ist."]},
+     {id:"k9d2b", who:{n:"Jana Ahrens", d:"eure Chefin", look:{s:2,h:"#B5651D",st:"dutt",c:"#1F8A8A",a:"e"}},
+      sit:"Der Vertrag mit dem Großhändler steht. Jana fragt: „Was müssen wir als Käufer jetzt noch tun?“",
+      q:"Was sind die Pflichten des Käufers?",
+      opts:[
+       {t:"Die Ware abnehmen und den Kaufpreis bezahlen.", s:2, say:"Genau. Und der Großhändler liefert mangelfrei.", why:"Der Käufer muss den Kaufpreis bezahlen und die Ware abnehmen."},
+       {t:"Nur bezahlen. Abnehmen muss man nichts.", s:1, say:"Und wer nimmt den Lkw in Empfang?", why:"Bezahlen ist richtig. Die zweite Pflicht ist: die Ware abnehmen."},
+       {t:"Die Ware mangelfrei und rechtzeitig übergeben.", s:0, say:"Das ist doch Sache des Großhändlers!", why:"Das ist eine Pflicht des Verkäufers, nicht des Käufers."}],
+      term:"Pflichten aus dem Kaufvertrag", def:"Verkäufer: Ware mangelfrei und rechtzeitig übergeben, Eigentum verschaffen, Kaufpreis annehmen. Käufer: Kaufpreis bezahlen, Ware abnehmen.",
+      ihk:"Pflichten des Käufers: den Kaufpreis bezahlen, die Ware abnehmen.",
+      weil:["…weil der Käufer zwei Pflichten hat: Kaufpreis bezahlen und Ware abnehmen.","…weil der Käufer dem Verkäufer das Eigentum verschaffen muss.","…weil der Käufer die Ware rechtzeitig übergeben muss."]},
+     {id:"k9d2c", who:{n:"Frau Nowak", d:"kauft ein Regencape", look:{s:1,h:"#C7A27C",st:"lang",c:"#AF7AC5",a:"o"}},
+      sit:"Frau Nowak, eine Rentnerin, kauft bei euch ein Regencape. Lina fragt: „Was ist das eigentlich für ein Kaufvertrag?“",
+      q:"Was antwortet ihr?",
+      opts:[
+       {t:"Einseitiger Handelskauf (Verbrauchsgüterkauf): Ein Unternehmen verkauft an eine Privatperson.", s:2, say:"Ich bin ganz privat hier, ja!", why:"Verkauft ein Unternehmen an eine Privatperson, ist das ein einseitiger Handelskauf (Verbrauchsgüterkauf)."},
+       {t:"Zweiseitiger Handelskauf.", s:0, say:"Ich bin doch keine Firma!", why:"Zweiseitiger Handelskauf: Beide sind Unternehmen (Kaufleute)."},
+       {t:"Bürgerlicher Kauf.", s:0, say:"Hm, ihr seid doch ein Geschäft, oder?", why:"Bürgerlicher Kauf: Privatperson kauft von Privatperson, z. B. Flohmarkt."}],
+      term:"Arten des Kaufvertrags", def:"Bürgerlicher Kauf: privat ↔ privat. Einseitiger Handelskauf: Unternehmen → Privatperson. Zweiseitiger Handelskauf: Unternehmen ↔ Unternehmen.",
+      ihk:"Einseitiger Handelskauf, weil Frau Müller eine Privatperson ist.",
+      weil:["…weil ein Unternehmen an eine Privatperson verkauft.","…weil beide Seiten Kaufleute sind.","…weil auf Festivals immer der bürgerliche Kauf gilt."]} ] ],
+  mini:"zeit",
+  profi:[
+   {id:"p9a", q:"Max (19) bietet Arne in der Pause seinen Laptop für 200 € an. Arne will überlegen. Nachmittags verkauft Max an Hannes. Am nächsten Tag sagt Arne: „Ich nehme ihn!“ Muss Max an Arne liefern?", opts:["Nein – ein mündlicher Antrag unter Anwesenden kann nur sofort angenommen werden.","Ja – ein Antrag gilt immer 14 Tage.","Ja – Arne wurde zuerst gefragt."]},
+   {id:"p9b", q:"Ein Angebot ist ohne Einschränkung. Ihr bestellt aber mit 10 % statt 5 % Rabatt. Der Lieferant bestätigt die 10 %. Wann entsteht der Kaufvertrag?", opts:["Mit der Auftragsbestätigung – die abweichende Bestellung ist ein neuer Antrag.","Mit der Bestellung, weil ein Angebot vorlag.","Mit der Lieferung."]} ] },
+
+{ id:"k10", mod:10, day:"SO", time:"23:00", title:"Abbau und Entscheidung", topic:"Besitz und Eigentum",
+  story:"Sonntag, 23 Uhr. Der letzte Song ist gespielt. Abbau! Jetzt muss geklärt werden, was wem gehört. Und dann verkündet Ole Brodersen, welcher Stand 2027 wiederkommen darf.",
+  words:["der Besitz","der Besitzer","das Eigentum","der Eigentümer","die tatsächliche Herrschaft","die rechtliche Herrschaft","die Einigung","die Übergabe","der Eigentumsvorbehalt","die Rate","der Teilzahlungskauf"],
+  decs:[
+   [ {id:"k10d1a", who:{n:"Lina", d:"packt den Lieferwagen", look:{s:3,h:"#1E1410",st:"zopf",c:"#E4572E",a:"t"}},
+      sit:"Lina will die gemietete Kühltruhe mit ins Lager nach Bremerhaven nehmen: „Die steht seit drei Tagen bei uns. Also gehört sie uns.“",
+      q:"Was sagt ihr?",
+      opts:[
+       {t:"„Nein. Wir sind nur Besitzer. Eigentümer bleibt der Vermieter – die Truhe geht zurück.“", s:2, say:"Stimmt, gemietet heißt nicht gekauft.", why:"Besitz = tatsächliche Herrschaft (wer hat die Sache?). Eigentum = rechtliche Herrschaft (wem gehört sie?). Beim Mieten fallen beide auseinander."},
+       {t:"„Wir sind Eigentümer, der Vermieter ist Besitzer.“", s:0, say:"Hä? Dann dürfen wir sie mitnehmen?", why:"Genau andersherum: Ihr habt die Truhe (Besitzer), sie gehört dem Vermieter (Eigentümer)."},
+       {t:"„Stimmt. Wer etwas drei Tage hat, wird Eigentümer.“", s:0, say:"Super, ab in den Wagen!", why:"Durch Haben wird man nicht Eigentümer. Eigentum geht durch Einigung und Übergabe über."}],
+      term:"Besitz und Eigentum", def:"Besitz = tatsächliche Herrschaft: Wer hat die Sache? Eigentum = rechtliche Herrschaft: Wem gehört die Sache?",
+      ihk:"Eigentum ist die rechtliche Herrschaft, Besitz ist die tatsächliche Herrschaft.",
+      weil:["…weil Besitz die tatsächliche und Eigentum die rechtliche Herrschaft über eine Sache ist.","…weil Eigentum die tatsächliche und Besitz die rechtliche Herrschaft ist.","…weil Eigentum nur durch Eintragung ins Grundbuch übergeht."]},
+     {id:"k10d1b", who:{n:"Kevin Zack", d:"hat einen „Tipp“", look:{s:1,h:"#C9A24A",st:"cap",c:"#8E44AD",a:"e"}},
+      sit:"Beim Abbau habt ihr einem Fremden ein fast neues Lastenrad für 150 € abgekauft. Jetzt kommt raus: Es war gestohlen. Kevin sagt: „Egal, ihr habt bezahlt. Also gehört es euch.“",
+      q:"Was stimmt?",
+      opts:[
+       {t:"„Nein. An gestohlenen Sachen kann man kein Eigentum erwerben – auch wenn man nichts wusste. Das Rad geht zurück.“", s:2, say:"Hm. Dann sind die 150 € wohl weg.", why:"An gestohlenen Sachen erwirbt man kein Eigentum, auch nicht gutgläubig. Eigentümer bleibt die bestohlene Person."},
+       {t:"„Wir haben bezahlt, also sind wir Eigentümer.“", s:0, say:"Sag ich doch!", why:"Bezahlen reicht nicht. Bei gestohlenen Sachen bleibt der Bestohlene Eigentümer."},
+       {t:"„Wir sind Eigentümer, weil wir vom Diebstahl nichts wussten.“", s:0, say:"Genau, ihr seid ja unschuldig.", why:"Auch wer nichts wusste, wird an gestohlenen Sachen nicht Eigentümer."}],
+      term:"Gestohlene Sachen", def:"An gestohlenen Sachen kann man kein Eigentum erwerben – auch nicht, wenn man nichts vom Diebstahl wusste.",
+      ihk:"Janine kauft auf einem Flohmarkt ein silbernes Armband, ohne zu wissen, dass es gestohlen ist → Das Eigentum geht nicht über.",
+      weil:["…weil man an gestohlenen Sachen kein Eigentum erwerben kann – auch nicht gutgläubig.","…weil man durch Bezahlen immer Eigentümer wird.","…weil Fahrräder unbewegliche Sachen sind."]} ],
+   [ {id:"k10d2a", who:{n:"Herr Brandt", d:"Merch-Lieferant", look:{s:1,h:"#9E9E9E",st:"kurz",c:"#424949",a:"o"}},
+      sit:"Herr Brandt hat euch die Band-Shirts „unter Eigentumsvorbehalt“ geliefert. Die Rechnung ist noch nicht bezahlt. Er fragt: „Wem gehören die Shirts im Moment?“",
+      q:"Was ist richtig?",
+      opts:[
+       {t:"„Wir sind Besitzer. Sie bleiben Eigentümer, bis die Rechnung ganz bezahlt ist.“", s:2, say:"Ganz genau. Und ich freu mich auf die Zahlung.", why:"Mit Eigentumsvorbehalt: Der Käufer ist Besitzer, der Verkäufer bleibt Eigentümer bis zur vollständigen Zahlung."},
+       {t:"„Wir sind Besitzer und Eigentümer, weil die Shirts geliefert wurden.“", s:1, say:"Ohne Vorbehalt ja – aber wir haben einen vereinbart!", why:"Das wäre richtig ohne Eigentumsvorbehalt (Einigung + Übergabe). Mit Vorbehalt bleibt der Lieferant Eigentümer."},
+       {t:"„Sie sind Besitzer und Eigentümer.“", s:0, say:"Besitzer? Die Shirts liegen doch bei euch!", why:"Ihr habt die Shirts – also seid ihr Besitzer. Der Lieferant ist nur Eigentümer."}],
+      term:"Eigentumsvorbehalt", def:"„Die Ware bleibt bis zur vollständigen Bezahlung unser Eigentum.“ Käufer = Besitzer, Verkäufer = Eigentümer.",
+      ihk:"Herr Meier ist Besitzer. Die Kaufhaus Hansa GmbH ist Eigentümer bis zur Zahlung der letzten Rate.",
+      weil:["…weil der Verkäufer mit dem Eigentumsvorbehalt seine Kaufpreisforderung absichert.","…weil man schon mit der ersten Rate Eigentümer wird.","…weil sonst kein gültiger Kaufvertrag zustande kommt."]},
+     {id:"k10d2b", who:{n:"Jana Ahrens", d:"prüft die Rechnungen", look:{s:2,h:"#B5651D",st:"dutt",c:"#1F8A8A",a:"e"}},
+      sit:"Die Gartenstühle für den Stand: 18.07. Lieferung mit Rechnung · 10.08. Zahlung. In den AGB steht: „Die Ware bleibt bis zur vollständigen Bezahlung unser Eigentum.“",
+      q:"Seit wann gehören euch die Stühle?",
+      opts:[
+       {t:"Seit dem 10.08. – mit der vollständigen Zahlung.", s:2, say:"Richtig. Der Eigentumsvorbehalt gilt bis zur Zahlung.", why:"Mit Eigentumsvorbehalt geht das Eigentum am Tag der vollständigen Zahlung über."},
+       {t:"Seit dem 18.07. – mit der Lieferung.", s:1, say:"Ohne Vorbehalt stimmt das. Lies die AGB!", why:"Ohne Eigentumsvorbehalt wäre es der Tag der Lieferung (Einigung + Übergabe)."},
+       {t:"Gar nicht – die Stühle bleiben immer Eigentum des Lieferanten.", s:0, say:"Wir haben doch bezahlt!", why:"Nach der vollständigen Zahlung wird der Käufer Eigentümer."}],
+      term:"Datum des Eigentumsübergangs", def:"Ohne Eigentumsvorbehalt: Tag der Lieferung. Mit Eigentumsvorbehalt: Tag der vollständigen Zahlung.",
+      ihk:"Zu welchem Zeitpunkt wird die Kaufhaus Hansa GmbH Eigentümerin? – Bei Lieferung unter Eigentumsvorbehalt: am Tag des Zahlungseingangs.",
+      weil:["…weil mit Eigentumsvorbehalt das Eigentum erst mit der vollständigen Zahlung übergeht.","…weil das Eigentum immer am Tag der Bestellung übergeht.","…weil bewegliche Sachen nur beim Notar übergehen."]} ] ],
+  mini:"besitz",
+  profi:[
+   {id:"p10a", q:"Ein Bäcker kauft Mehl unter Eigentumsvorbehalt und backt daraus Brot. Schützt der Eigentumsvorbehalt den Lieferanten noch?", opts:["Nein – durch das Backen entsteht eine neue Sache, der Eigentumsvorbehalt erlischt.","Ja – der Lieferant wird Eigentümer des Brotes.","Ja – bis das Brot verkauft ist."]},
+   {id:"p10b", q:"Ein Lieferant gibt euch Kaffeeautomaten in Kommission: Ihr bezahlt nur, was ihr verkauft. Wer ist was bei der Lieferung?", opts:["Ihr seid Besitzer, der Lieferant bleibt Eigentümer.","Ihr seid Eigentümer, weil ihr die Geräte im eigenen Namen verkauft.","Die späteren Kunden sind schon Eigentümer."]} ] }
+];
+// ===================== DATEN TEIL 3: Mini-Spiele und Ereignisse =====================
+// Kassenbon (k1): Zeilen mit Schlüssel; Fragen ziehen 4 davon
+const BON = {
+ lines:[
+  {k:"anschrift", t:["NORDLICHT MARKT · Pop-up-Store","Deichbeat-Festival, Stand 14 · Nordholz"]},
+  {k:"stnr", t:["USt-IdNr. DE 999 999 999"]},
+  {k:"datum", t:["Fr 14.08.2026 · 16:42 Uhr"]},
+  {k:"gtin", t:["4012345000017"]},
+  {k:"x1", t:["Sonnencreme 50 ml       8,99 € A"]},
+  {k:"artikel", t:["Brezel"]},
+  {k:"ep", t:["  2 Stk × 2,20 €"]},
+  {k:"gp", t:["                        4,40 € B"]},
+  {k:"summe", t:["SUMME                  13,39 €"]},
+  {k:"zahl", t:["Bar gegeben            20,00 €"]},
+  {k:"rueck", t:["Rückgeld                 6,61 €"]},
+  {k:"ust", t:["A 19 %  netto 7,55  USt 1,44","B  7 %  netto 4,11  USt 0,29"]},
+  {k:"bon", t:["Bon 0417 · Kasse 1 · Lina"]},
+  {k:"tse", t:["TSE-Transaktion 88231 · Signatur 7F3A…"]}],
+ q:{anschrift:"Name und Anschrift des Geschäfts", stnr:"Umsatzsteuer-Identifikationsnummer", datum:"Datum und Uhrzeit", gtin:"Artikelnummer (GTIN)", artikel:"Artikelbezeichnung", ep:"Menge und Einzelpreis", gp:"Gesamtpreis je Artikel", summe:"Summe (Gesamtbetrag)", zahl:"Zahlungsart", rueck:"Rückgeld", ust:"Umsatzsteuer (Steuersatz, Netto, Steuerbetrag)", bon:"Bon- und Kassennummer", tse:"TSE-Angaben (Schutz gegen Manipulation)"},
+ not:"Auf dem Bon steht nie der Einkaufspreis, den das Geschäft selbst bezahlt hat."
+};
+// Kassiervorgang (k2) – Reihenfolge aus dem Lösungsblatt
+const ABLAUF = ["Die Artikel erfassen (scannen).","Die Kaufsumme ermitteln.","Den Betrag laut und deutlich nennen – ggf. nach der Kundenkarte fragen.","Den Geldschein annehmen, den Wert laut nennen und auf Echtheit prüfen.","Den Geldschein sichtbar in den Geldscheinhalter klemmen.","Das Rückgeld nennen und vorzählen.","Den Geldschein in die Kasse legen und die Kasse schließen.","Bon und Ware übergeben und sich verabschieden."];
+// Fühlen – Sehen – Kippen (k3)
+const FSK = [
+ {id:"f1", t:"Das Papier fühlt sich fest und griffig an, nicht glatt wie Kopierpapier.", a:"Fühlen"},
+ {id:"f2", t:"Schrift und Ränder sind erhaben – man kann sie ertasten (Relief).", a:"Fühlen"},
+ {id:"f3", t:"Gegen das Licht erscheint ein Porträt als Wasserzeichen.", a:"Sehen"},
+ {id:"f4", t:"Gegen das Licht sieht man einen dunklen Streifen mit „€“ und dem Wert (Sicherheitsfaden).", a:"Sehen"},
+ {id:"f5", t:"Im Hologrammstreifen wird gegen das Licht ein Porträtfenster durchsichtig.", a:"Sehen"},
+ {id:"f6", t:"Die Wertzahl unten links wechselt die Farbe von Smaragdgrün zu Tiefblau.", a:"Kippen"},
+ {id:"f7", t:"Auf dem silbernen Streifen erscheinen Wertzahl, €-Symbol und ein Porträt (Hologramm).", a:"Kippen"}];
+// Zahlungsarten (k4)
+const ZAHL = [
+ {id:"z1", t:"Das Geld wird sofort vom Girokonto abgebucht. Der Kunde gibt meist seine PIN ein.", a:"girocard"},
+ {id:"z2", t:"Die Umsätze werden gesammelt und später abgerechnet. Der Händler zahlt eine Gebühr an das Kartenunternehmen.", a:"Kreditkarte"},
+ {id:"z3", t:"Der Kunde hält die Karte nur an das Lesegerät. Bis 50 € meist ohne PIN.", a:"kontaktlos (NFC)"},
+ {id:"z4", t:"Der Kunde bestätigt mit Fingerabdruck oder Gesichtserkennung auf seinem Handy.", a:"Mobile Payment"},
+ {id:"z5", t:"Der Kunde hat ihn geschenkt bekommen und kauft bis zu seinem Wert ein.", a:"Gutschein"},
+ {id:"z6", t:"Der Kunde sammelt Punkte und bekommt Rabatte. Der Betrieb erfährt viel über das Kaufverhalten.", a:"Kundenkarte"},
+ {id:"z7", t:"Der Kunde bekommt damit 15 % Rabatt auf einen Artikel.", a:"Coupon"}];
+// Jugendschutz (k5): ok = verkaufen erlaubt
+const JUG = [
+ {id:"j1", w:"Bier", age:16, ok:true, why:"Bier ab 16."},
+ {id:"j2", w:"Wein", age:17, ok:true, why:"Wein ab 16."},
+ {id:"j3", w:"Sekt", age:16, ok:true, why:"Sekt ab 16."},
+ {id:"j4", w:"Radler (Bier mit Limo)", age:16, ok:true, why:"Mischgetränke mit Bier ab 16."},
+ {id:"j5", w:"Wodka-Mix", age:17, ok:false, why:"Mischgetränke mit Branntwein erst ab 18."},
+ {id:"j6", w:"Likör", age:17, ok:false, why:"Likör ist Branntwein – erst ab 18."},
+ {id:"j7", w:"Bier", age:15, ok:false, why:"Bier erst ab 16."},
+ {id:"j8", w:"Pralinen mit Alkohol", age:15, ok:false, why:"Lebensmittel mit Branntwein erst ab 18."},
+ {id:"j9", w:"Zigaretten", age:17, ok:false, why:"Tabakwaren erst ab 18."},
+ {id:"j10", w:"E-Zigarette ohne Nikotin", age:16, ok:false, why:"E-Zigaretten erst ab 18 – auch ohne Nikotin."},
+ {id:"j11", w:"Shisha-Tabak", age:18, ok:true, why:"Tabakwaren ab 18 – die Person ist 18."},
+ {id:"j12", w:"Feuerwerk (Kategorie F2)", age:17, ok:false, why:"Silvesterfeuerwerk erst ab 18."},
+ {id:"j13", w:"Pralinen mit Alkohol", age:19, ok:true, why:"Ab 18 erlaubt."}];
+// Kassenbericht (k6) wird zufällig erzeugt
+// Geschäftsfähigkeits-Ampel (k7): n = nichtig, s = schwebend unwirksam, g = gültig
+const AMPEL = [
+ {id:"a1", t:"Die 5-jährige Mila kauft vom Taschengeld einen Lolli für 0,50 €.", a:"n", why:"Unter 7: geschäftsunfähig – egal, wie billig."},
+ {id:"a2", t:"Der 6-jährige Ben kauft mit Einkaufszettel und Geld seiner Mutter ein Brot.", a:"g", why:"Botengang: Ben überbringt nur den Willen der Mutter."},
+ {id:"a3", t:"Die 13-jährige Ayla kauft vom Taschengeld ein Buch für 12,90 € und zahlt bar.", a:"g", why:"Taschengeldparagraf: sofort mit Taschengeld bezahlt."},
+ {id:"a4", t:"Der 16-jährige Tim kauft ohne Wissen der Eltern eine Spielkonsole für 499 € auf Raten.", a:"s", why:"Ratenkauf ohne Zustimmung – kein Taschengeldparagraf."},
+ {id:"a5", t:"Die 15-jährige Sara bekommt von ihrer Tante ein Fahrrad geschenkt.", a:"g", why:"Nur ein rechtlicher Vorteil."},
+ {id:"a6", t:"Der 18-jährige Noah kauft ein gebrauchtes Auto für 4.000 €.", a:"g", why:"Ab 18 voll geschäftsfähig."},
+ {id:"a7", t:"Der 16-jährige Alexander kauft ohne Zustimmung von Ersparnissen ein Smart-TV für 898 € bar.", a:"s", why:"Ersparnisse für eine große Anschaffung – kein Taschengeldparagraf."},
+ {id:"a8", t:"Die 17-jährige Auszubildende Simone kauft eine Monatskarte für den Weg zum Betrieb.", a:"g", why:"Arbeitsverhältnis mit Erlaubnis der Eltern."},
+ {id:"a9", t:"Die 14-jährige Lea kauft vom Taschengeld ein T-Shirt für 14,80 € und zahlt bar.", a:"g", why:"Taschengeldparagraf."},
+ {id:"a10", t:"Die 15-jährige Ella kauft einen E-Roller. Die Eltern verweigern die Zustimmung.", a:"n", why:"Die Eltern sagen Nein – damit ist der Kauf von Anfang an ungültig."},
+ {id:"a11", t:"Die 5-jährige Vanessa kauft vom Taschengeld eine Tafel Schokolade.", a:"n", why:"Unter 7: geschäftsunfähig."},
+ {id:"a12", t:"Der 17-jährige Paul kauft ohne Wissen der Eltern einen Handyvertrag.", a:"s", why:"Handyvertrag: kein Taschengeldparagraf, Eltern müssen zustimmen."}];
+// gültig / nichtig / anfechtbar (k8)
+const GNA = [
+ {id:"g1", t:"Der 6-jährige Emil kauft vom Taschengeld Buntstifte.", a:"nichtig", why:"Geschäftsunfähig."},
+ {id:"g2", t:"Eine Verkäuferin tippt im Angebot 100 Kugelschreiber statt 10 und merkt es sofort.", a:"anfechtbar", why:"Erklärungsirrtum (vertippt)."},
+ {id:"g3", t:"Ein Händler verkauft eine vergoldete Kette als „echte Goldkette“.", a:"anfechtbar", why:"Arglistige Täuschung."},
+ {id:"g4", t:"Die 17-jährige Jana kauft vom Taschengeld Kosmetik für 19,89 € und zahlt bar.", a:"gültig", why:"Taschengeldparagraf."},
+ {id:"g5", t:"Tom sagt im Spaß: „Für eine Flasche Wasser gebe ich euch mein Monatsgehalt!“", a:"nichtig", why:"Scherzgeschäft."},
+ {id:"g6", t:"Frau Kaya kauft Weihnachtsdeko. Später sagt ihr Mann, dass er schon welche gekauft hat.", a:"gültig", why:"Motivirrtum – nicht anfechtbar."},
+ {id:"g7", t:"Zwei Nachbarn verkaufen ein Grundstück per Handschlag.", a:"nichtig", why:"Formvorschrift nicht beachtet (Notar fehlt)."},
+ {id:"g8", t:"Ein Kunde unterschreibt einen Vertrag, weil ihm mit Schlägen gedroht wird.", a:"anfechtbar", why:"Widerrechtliche Drohung."},
+ {id:"g9", t:"Der 9-jährige Moritz kauft von seinem 6-jährigen Freund einen Modellbausatz für 4 €.", a:"nichtig", why:"Der Verkäufer ist unter 7 – geschäftsunfähig."},
+ {id:"g10", t:"Die 20-jährige Carmen bestellt für ihren Betrieb versehentlich 200 statt 20 Packungen Christbaumschmuck.", a:"anfechtbar", why:"Erklärungsirrtum."},
+ {id:"g11", t:"Der 18-jährige Elias kündigt seinen Ausbildungsvertrag schriftlich.", a:"gültig", why:"Volljährig – einseitiges Rechtsgeschäft."},
+ {id:"g12", t:"Jemand kauft Drogen.", a:"nichtig", why:"Verstoß gegen ein Gesetz."}];
+// Zeitstrahl (k9): Datum des Kaufvertrags antippen
+const ZEIT = [
+ {id:"t1", steps:[["09.03.2026","Anfrage über 20 Schlitten"],["11.03.2026","Angebot: 29,00 € netto, „solange der Vorrat reicht“"],["12.03.2026","Bestellung"],["16.03.2026","Auftragsbestätigung"],["24.03.2026","Wareneingang"],["09.04.2026","Zahlungseingang"]], a:3, why:"„Solange der Vorrat reicht“ = unverbindlich. Bestellung = Antrag, Auftragsbestätigung = Annahme."},
+ {id:"t2", steps:[["03.02.2026","Anfrage über Verkaufstresen"],["05.02.2026","Angebot ohne Einschränkung: 3 Tresen zu je 850 €, 5 % Rabatt"],["07.02.2026","Bestellung genau zu diesen Bedingungen"],["09.02.2026","Auftragsbestätigung"],["16.02.2026","Lieferung"],["02.03.2026","Zahlung"]], a:2, why:"Verbindliches Angebot = Antrag. Die unveränderte Bestellung ist die Annahme."},
+ {id:"t3", steps:[["03.02.2026","Anfrage über Verkaufstresen"],["05.02.2026","Angebot: 3 Tresen zu je 850 €, „Preis freibleibend“"],["07.02.2026","Bestellung"],["09.02.2026","Auftragsbestätigung"],["16.02.2026","Lieferung"],["02.03.2026","Zahlung"]], a:3, why:"„Freibleibend“ = unverbindlich. Erst die Auftragsbestätigung nimmt die Bestellung an."},
+ {id:"t4", steps:[["15.09.2025","Anzeige in einer Fachzeitschrift: Vitrine zu 450 €"],["18.09.2025","Bestellung von 5 Vitrinen, Lieferung frei Haus"],["19.09.2025","Lieferant am Telefon: frei Haus geht nicht, bietet 100 € Frachtpauschale – ihr sagt sofort Ja"],["22.09.2025","Auftragsbestätigung"],["01.10.2025","Lieferung"],["13.11.2025","Zahlungseingang"]], a:2, why:"Die Anzeige ist kein Angebot. Der Lieferant ändert die Bestellung (neuer Antrag). Ihr nehmt am Telefon an."},
+ {id:"t5", steps:[["15.09.2022","Anfrage über 20 Schlitten"],["17.09.2022","Angebot „solange Vorrat reicht“"],["18.09.2022","Bestellung"],["19.09.2022","Auftragsbestätigung"],["25.09.2022","Wareneingang"],["10.10.2022","Zahlungseingang"]], a:3, why:"Unverbindliches Angebot: Die Auftragsbestätigung ist die Annahme."},
+ {id:"t6", steps:[["03.02.2026","Anfrage über Verkaufstresen"],["05.02.2026","Angebot ohne Einschränkung mit 5 % Rabatt"],["07.02.2026","Bestellung – aber mit 10 % Rabatt"],["09.02.2026","Lieferant bestätigt die 10 %"],["16.02.2026","Lieferung"],["02.03.2026","Zahlung"]], a:3, why:"Die Bestellung weicht vom Angebot ab – sie ist ein neuer Antrag. Die Bestätigung ist die Annahme."}];
+// Besitz und Eigentum (k10): p = zwei Personen, b = Index Besitzer, e = Index Eigentümer
+const BESITZ = [
+ {id:"b1", t:"Lena leiht sich das Fahrrad ihres Bruders für eine Woche.", p:["Lena","ihr Bruder"], b:0, e:1},
+ {id:"b2", t:"Herr Kraus wohnt zur Miete in einer Wohnung von Frau Sommer.", p:["Herr Kraus","Frau Sommer"], b:0, e:1},
+ {id:"b3", t:"Ein Dieb hat ein Handy gestohlen.", p:["der Dieb","die bestohlene Person"], b:0, e:1},
+ {id:"b4", t:"Eine Kundin hat eine Hose bar bezahlt und mitgenommen.", p:["die Kundin","das Geschäft"], b:0, e:0},
+ {id:"b5", t:"Herr Meier hat einen Fernseher auf Raten mit Eigentumsvorbehalt gekauft. Zwei Raten fehlen noch.", p:["Herr Meier","das Geschäft"], b:0, e:1},
+ {id:"b6", t:"Ein Kunde gibt seine Jacke an der Garderobe eines Restaurants ab.", p:["das Restaurant","der Kunde"], b:0, e:1},
+ {id:"b7", t:"Eine Frau hat Cans gestohlenes E-Bike auf dem Flohmarkt gekauft.", p:["die Frau","Can"], b:0, e:1},
+ {id:"b8", t:"Euer Stand hat die Kühltruhe für das Festival gemietet.", p:["euer Stand","der Vermieter"], b:0, e:1}];
+// Ereignisse: req = Kapitel, dessen Entscheidungen geprüft werden (beide gut = good)
+const EVENTS = [
+ {id:"ev1", req:"k1", title:"Besuch vom Finanzamt", text:"Zwei Prüferinnen vom Finanzamt schauen sich überraschend die Kassen auf dem Gelände an.", good:"Eure Kasse arbeitet sauber: Jeder Gast bekommt einen Bon, Fehler sind storniert. Die Prüferinnen nicken zufrieden.", bad:"Bei euch fehlen Bons oder ein Fehler ist nicht sauber storniert. Ihr müsst lange erklären, die Schlange wächst."},
+ {id:"ev2", req:"k2", title:"Testkauf der Festivalleitung", text:"Ole Brodersen schickt einen Testkäufer an alle Stände. Niemand weiß, wer es ist.", good:"Freundlich gegrüßt, Rückgeld vorgezählt, Schein im Halter: Der Testkäufer gibt euch die Bestnote.", bad:"Der Testkäufer notiert: unfreundlich oder unordentlich kassiert. Das gibt Minuspunkte bei Ole."},
+ {id:"ev3", req:"k3", title:"Warnung der Polizei", text:"Die Polizei warnt alle Stände: Auf dem Gelände sind falsche 50er und 100er unterwegs.", good:"Ihr prüft jeden Schein mit Fühlen – Sehen – Kippen. Bei euch kommt kein Falschgeld in die Kasse.", bad:"Ein falscher Schein ist in eurer Kasse gelandet. Er wird ohne Ersatz eingezogen."},
+ {id:"ev4", req:"k4", title:"Ansturm nach dem Headliner", text:"Nach dem Konzert stehen 2.000 Leute gleichzeitig an den Ständen.", good:"Kontaktlos und mit dem Handy geht es blitzschnell. Eure Schlange ist die kürzeste.", bad:"Es hakt beim Bezahlen. Viele Gäste geben auf und gehen weiter."},
+ {id:"ev5", req:"k5", title:"Testkauf vom Ordnungsamt", text:"Das Ordnungsamt schickt eine 16-Jährige zum Testkauf: Sie will Wodka-Mix und Zigaretten.", good:"Ihr lasst euch den Ausweis zeigen und verkauft nichts davon. Das Ordnungsamt lobt euren Stand. Kevin nebenan bekommt dagegen Ärger.", bad:"Es gibt eine Verwarnung vom Ordnungsamt. Ole Brodersen ist gar nicht begeistert."},
+ {id:"ev6", req:"k5", title:"Hitzewelle", text:"34 Grad im Schatten. Am Stand gibt es keinen Schatten.", good:"Ihr macht Pausen, trinkt genug und bleibt freundlich. Fehler an der Kasse: null.", bad:"Ohne Pausen werdet ihr müde. Es gibt Tippfehler und genervte Gäste."},
+ {id:"ev7", req:"k6", title:"Kassensturz um Mitternacht", text:"Ole Brodersen steht plötzlich mit einer Liste am Stand: „Kassensturz! Bitte zählen.“", good:"Soll und Ist passen, die Abrechnung ist richtig. Ole macht einen grünen Haken.", bad:"Eure Abrechnung hat Fehler. Ole muss zweimal nachrechnen lassen."},
+ {id:"ev8", req:"k7", title:"Ein Vater kommt zurück", text:"Ein Vater steht am Stand: „Mein Kind hat hier heute etwas gekauft. Darf es das überhaupt?“", good:"Ihr habt bei den Kindern und Jugendlichen alles richtig gemacht. Der Vater bedankt sich.", bad:"Ein Kauf war ungültig. Ihr müsst das Geld zurückgeben, und der Vater ist sauer."},
+ {id:"ev9", req:"k8", title:"Mail vom Großhändler", text:"Der Großhändler schreibt: Er will alle Bestellungen vom Wochenende klären.", good:"Ihr wisst, was gültig, nichtig und anfechtbar ist. In zehn Minuten ist alles geklärt.", bad:"Ihr seid unsicher. Jana muss alles noch einmal prüfen – das kostet den ganzen Montag."},
+ {id:"ev10", req:"k9", title:"Ein Influencer filmt", text:"Ein Influencer mit 200.000 Followern filmt eure Kasse und stellt Fragen zu Preisen und Verträgen.", good:"Ihr bleibt freundlich und kennt die Rechtslage. Das Video wird ein Lob für euren Stand.", bad:"Ihr wirkt unsicher. Im Video sieht euer Stand nicht gut aus."},
+ {id:"ev11", req:"k10", title:"Der Lieferant kommt", text:"Herr Brandt, der Merch-Lieferant, steht beim Abbau am Stand und will wissen, was mit seinen Sachen ist.", good:"Ihr wisst genau, was euch gehört und was nicht. Herr Brandt will nächstes Jahr wieder liefern.", bad:"Es gibt Streit, wem was gehört. Herr Brandt ist verärgert."}];
+// Wann kommen Ereignisse? nach Kapitel x, Pool aus diesen Kapiteln
+const SLOTS = [{after:"k3", from:["k1","k2","k3"]},{after:"k6", from:["k4","k5","k6"]},{after:"k8", from:["k7","k8"]},{after:"k10", from:["k9","k10"]}];
+const ROUTES = {
+ all:{name:"Das ganze Festival", sub:"Fr bis So · Modul 1–10 · ca. 45 Min.", ids:["k1","k2","k3","k4","k5","k6","k7","k8","k9","k10"]},
+ A:{name:"Fr + Sa: Kasse", sub:"Modul 1–6 · ca. 25 Min.", ids:["k1","k2","k3","k4","k5","k6"]},
+ B:{name:"Sonntag: Recht", sub:"Modul 7–10 · ca. 20 Min.", ids:["k7","k8","k9","k10"]},
+ W:{name:"Wiederholen", sub:"nur eure Fehler", ids:[]}
+};
+// Kundengespräch in wörtlicher Rede (k3, k5): a = Aspekt, s = drei Satzteile, jeweils Index 0 richtig
+const ASPEKTE = ["Jugendschutz","Diebstahlprävention","Hilfestellung","Echtheitsprüfung freundlich erklären","Münzannahme (höchstens 50 Münzen)"];
+const TALK = [
+ {id:"t1", ch:"k3", sit:"Du prüfst einen 100-€-Schein. Der Kunde sagt laut: „Das ist ja peinlich. Vertrauen Sie mir etwa nicht?“", a:"Echtheitsprüfung freundlich erklären",
+  s:[["„Aufgrund unserer Kassieranweisung","„Weil Sie so nervös wirken,","„Weil der Chef das will,"],["prüfe ich bei allen Kunden den Schein.","muss ich Ihren Schein besonders genau prüfen.","darf ich Ihren Schein nicht annehmen."],["Das hat nichts mit Ihnen zu tun und dauert nur einen Moment.“","Warten Sie halt.“","Gehen Sie doch zur Bank.“"]]},
+ {id:"t2", ch:"k3", sit:"Ein Kunde will 24,80 € mit etwa 90 Münzen bezahlen. Hinter ihm wird es voll.", a:"Münzannahme (höchstens 50 Münzen)",
+  s:[["„Es tut mir leid,","„Nee, echt nicht,","„Sind Sie verrückt?"],["bei einer Zahlung muss ich höchstens 50 Münzen annehmen.","Münzen nehmen wir grundsätzlich nicht.","Münzen zählen nur bis 10 Stück."],["Haben Sie vielleicht einen Schein oder eine Karte dabei?“","Dann gehen Sie eben woanders hin.“","Zählen Sie das bitte draußen.“"]]},
+ {id:"t3", ch:"k5", sit:"Ein 12-jähriges Mädchen möchte alkoholhaltige Pralinen für ihren Vater zum Geburtstag kaufen.", a:"Jugendschutz",
+  s:[["„Es tut mir leid,","„Spinnst du?","„Na klar,"],["aber diese Pralinen darf ich dir erst verkaufen, wenn du 18 bist.","aber Pralinen mit Alkohol gibt es erst ab 16.","für deinen Papa geht das schon."],["Such dir doch eine Sorte ohne Alkohol aus – die freuen deinen Papa bestimmt auch.“","Tschüss.“","Dann zahl bitte schnell bar.“"]]},
+ {id:"t4", ch:"k5", sit:"Eine Kundin hat ihren Korb so in den Einkaufswagen gestellt, dass du den Wagen nicht ganz sehen kannst.", a:"Diebstahlprävention",
+  s:[["„Könnten Sie bitte","„Zeigen Sie mir sofort","„Ich weiß genau, dass Sie"],["Ihren Korb einmal kurz anheben,","Ihre Taschen und Jacken,","etwas versteckt haben,"],["damit ich sehe, ob noch etwas darunterliegt?“","sonst rufe ich die Polizei!“","stimmt's?“"]]},
+ {id:"t5", ch:"k5", sit:"Ein älterer Herr sucht in seiner Geldbörse verzweifelt nach den richtigen Münzen. Hinter ihm wird die Schlange lang.", a:"Hilfestellung",
+  s:[["„Lassen Sie sich ruhig Zeit.","„Beeilung bitte,","„Hallo, geht's noch?"],["Darf ich Ihnen beim Zählen behilflich sein?","hinter Ihnen warten Leute.","Das dauert ja ewig."],["Meine Kollegin öffnet gleich noch eine Kasse.“","Nächstes Mal bitte mit Karte!“","Ich habe nicht ewig Zeit.“"]]},
+ {id:"t6", ch:"k5", sit:"Ein 15-Jähriger möchte eine Packung Zigaretten für seinen Vater kaufen.", a:"Jugendschutz",
+  s:[["„Tut mir leid,","„Vergiss es,","„Klar,"],["Zigaretten darf ich erst an Personen ab 18 verkaufen –","Zigaretten gibt es erst ab 16 –","für deinen Vater geht das schon –"],["auch wenn sie für deinen Vater sind.“","und jetzt geh bitte.“","aber nur eine Packung.“"]]}];
+// ===================== SPIEL =====================
+const KEY = "lf3-festivalkasse-v1";
+const ZACK_RUF = 48; // Ruf der Snackbude Zack (Ordnungsamt-Ärger)
+let STORE = null, NOSTORE = false;
+function loadStore(){ try{ const r = localStorage.getItem(KEY); STORE = r ? JSON.parse(r) : {}; }catch(e){ NOSTORE = true; STORE = {}; }
+  STORE.seen = STORE.seen || {}; STORE.rec = STORE.rec || {}; STORE.played = STORE.played || 0; }
+function saveStore(){ if(NOSTORE) return; try{ localStorage.setItem(KEY, JSON.stringify(STORE)); }catch(e){ NOSTORE = true; } }
+loadStore();
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let RNG = Math.random, CHAL = false;
+function seedRng(str){ let h = 1779033703 ^ str.length; for(let i=0;i<str.length;i++){ h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h<<13 | h>>>19; } let a = h>>>0;
+  return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a>>>15, 1 | a); t = t + Math.imul(t ^ t>>>7, 61 | t) ^ t; return ((t ^ t>>>14)>>>0) / 4294967296; }; }
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(RNG()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const fmt = n => n.toLocaleString("de-DE",{minimumFractionDigits:2, maximumFractionDigits:2});
+const CHM = Object.fromEntries(CH.map(c => [c.id, c]));
+let toastT = null;
+function toast(t){ let el = $(".toast"); if(!el){ el = document.createElement("div"); el.className="toast"; el.setAttribute("role","status"); document.body.appendChild(el); }
+  el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=>{ el.hidden = true; }, 2600); }
+
+// Ziehen ohne Wiederholung: zuerst Ungesehenes
+function pick(pool, n, key){
+  if(CHAL) return shuffle(pool).slice(0, n);
+  const seen = STORE.seen[key] || []; let fresh = pool.filter(x => !seen.includes(x.id));
+  if(fresh.length < n){ if(seen.length) toast("Alle Fälle hier geschafft – jetzt geht es gemischt von vorn los."); STORE.seen[key] = seen.filter(id => fresh.some(f=>f.id===id)); fresh = fresh.concat(shuffle(pool.filter(x => !fresh.includes(x)))); }
+  else fresh = shuffle(fresh);
+  return fresh.slice(0, n);
+}
+function markSeen(key, id){ STORE.seen[key] = STORE.seen[key] || []; if(!STORE.seen[key].includes(id)) STORE.seen[key].push(id); if(key.startsWith("d-")){ STORE.ever = STORE.ever || []; if(!STORE.ever.includes(id)) STORE.ever.push(id); } saveStore(); }
+function decVariantsTotal(){ let n=0; CH.forEach(c=>c.decs.forEach(v=>n+=v.length)); return n; }
+function decVariantsSeen(){ const e = STORE.ever || []; let n=0; CH.forEach(c=>c.decs.forEach(v=>{ n += v.filter(x=>e.includes(x.id)).length; })); return n; }
+
+// ---------- Zustand ----------
+let S = null; let ui = {};
+let pre = { team:"", route:"all", mode:"anf", code:"" }; var CODE = "";
+function wrongIds(){ return STORE.wrong || []; }
+function wrongChapters(){ const w = wrongIds(); return CH.filter(c => c.decs.some(v => v.some(x => w.includes(x.id)))).map(c => c.id); }
+function trackWrong(id, ok){ STORE.wrong = STORE.wrong || []; const i = STORE.wrong.indexOf(id); if(ok && i>=0) STORE.wrong.splice(i,1); if(!ok && i<0) STORE.wrong.push(id); saveStore(); }
+function newGame(){
+  const W = pre.route==="W";
+  const ids = W ? wrongChapters() : ROUTES[pre.route].ids;
+  if(!ids.length){ pre.route = "all"; toast("Keine Fehler mehr zum Wiederholen – stark!"); render(); return; }
+  const code = W ? "" : (pre.code||"").trim().toUpperCase();
+  CHAL = !!code; RNG = CHAL ? seedRng(code+"|"+pre.route+"|"+pre.mode) : Math.random;
+  S = { team: pre.team.trim() || "Team Deich", route: pre.route, mode: pre.mode, code, ids, idx:0, step:"story",
+        ruf:60, pts:0, max:0, jokers: pre.mode==="anf" ? 3 : 0, log:[], minis:[], prof:[], evs:[], talks:[], cur:{}, mini:{}, pq:{}, tk:{}, evp:{} };
+  // Alle Inhalte vorab ziehen (bei Challenge-Code für alle Teams gleich)
+  const w = wrongIds();
+  ids.forEach(id => { const c = CHM[id];
+    S.cur[id] = c.decs.map((v,i) => { const ww = W ? v.filter(x => w.includes(x.id)) : []; return ww.length ? shuffle(ww)[0] : pick(v,1,"d-"+id+"-"+i)[0]; });
+    S.mini[id] = drawMini(c.mini, pre.mode);
+    S.pq[id] = pick(c.profi, 1, "p-"+id)[0];
+    const tp = TALK.filter(t => t.ch===id); if(tp.length) S.tk[id] = pick(tp, 1, "talk")[0]; });
+  SLOTS.forEach(sl => { const from = sl.from.filter(id => ids.includes(id)); if(from.length && ids.includes(sl.after)) S.evp[sl.after] = pick(EVENTS.filter(e => from.includes(e.req)), 1, "ev")[0]; });
+  RNG = Math.random; CHAL = false;
+  ui = {}; window.scrollTo(0,0); render();
+}
+const chap = () => CHM[S.ids[S.idx]];
+function addRuf(d){ S.ruf = Math.max(0, Math.min(100, S.ruf + d)); }
+
+// ---------- SVG: Gesichter ----------
+const SKIN = {1:"#F3D2B5",2:"#DDAA82",3:"#B47A50",4:"#7A4D2E"};
+function face(look, mood){
+  const sk = SKIN[look.s]||SKIN[2], h = look.h, c = look.c, kid = look.a==="k", old = look.a==="o";
+  const hy = kid ? 6 : 0; // Kinder: Kopf etwas tiefer
+  let hair = "";
+  switch(look.st){
+    case "lang": hair = `<path d="M18 ${44+hy} Q16 ${14+hy} 40 ${12+hy} Q64 ${14+hy} 62 ${44+hy} L62 ${60+hy} L56 ${60+hy} L56 ${34+hy} Q40 ${22+hy} 24 ${34+hy} L24 ${60+hy} L18 ${60+hy} Z" fill="${h}"/>`; break;
+    case "zopf": hair = `<path d="M20 ${36+hy} Q20 ${13+hy} 40 ${13+hy} Q60 ${13+hy} 60 ${36+hy} Q50 ${22+hy} 40 ${24+hy} Q28 ${22+hy} 20 ${36+hy} Z" fill="${h}"/><circle cx="63" cy="${30+hy}" r="7" fill="${h}"/>`; break;
+    case "dutt": hair = `<circle cx="40" cy="${10+hy}" r="8" fill="${h}"/><path d="M20 ${36+hy} Q20 ${14+hy} 40 ${14+hy} Q60 ${14+hy} 60 ${36+hy} Q52 ${22+hy} 40 ${22+hy} Q28 ${22+hy} 20 ${36+hy} Z" fill="${h}"/>`; break;
+    case "locken": hair = `<g fill="${h}"><circle cx="24" cy="${26+hy}" r="8"/><circle cx="33" cy="${17+hy}" r="9"/><circle cx="46" cy="${16+hy}" r="9"/><circle cx="56" cy="${24+hy}" r="8"/><circle cx="60" cy="${34+hy}" r="5"/><circle cx="20" cy="${35+hy}" r="5"/></g>`; break;
+    case "cap": hair = `<path d="M19 ${30+hy} Q20 ${12+hy} 40 ${12+hy} Q60 ${12+hy} 61 ${30+hy} Z" fill="${c}"/><rect x="38" y="${27+hy}" width="30" height="5" rx="2.5" fill="${c}"/><path d="M20 ${30+hy} L20 ${38+hy}" stroke="${h}" stroke-width="4"/>`; break;
+    case "glatze": hair = `<path d="M19 ${40+hy} Q18 ${30+hy} 22 ${28+hy}" stroke="${h}" stroke-width="5" fill="none"/><path d="M61 ${40+hy} Q62 ${30+hy} 58 ${28+hy}" stroke="${h}" stroke-width="5" fill="none"/>`; break;
+    default: hair = `<path d="M20 ${34+hy} Q19 ${13+hy} 40 ${13+hy} Q61 ${13+hy} 60 ${34+hy} Q56 ${22+hy} 40 ${21+hy} Q26 ${22+hy} 20 ${34+hy} Z" fill="${h}"/>`;
+  }
+  const ey = 37+hy, my = 49+hy;
+  let mouth = mood===2 ? `<path d="M32 ${my} Q40 ${my+8} 48 ${my}" stroke="#3A2218" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
+    : mood===0 ? `<path d="M32 ${my+5} Q40 ${my-2} 48 ${my+5}" stroke="#3A2218" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
+    : `<path d="M33 ${my+2} L47 ${my+2}" stroke="#3A2218" stroke-width="2.6" stroke-linecap="round"/>`;
+  const brows = mood===0 ? `<path d="M28 ${ey-8} L36 ${ey-5}M52 ${ey-8} L44 ${ey-5}" stroke="#3A2218" stroke-width="2.4" stroke-linecap="round"/>` : `<path d="M28 ${ey-7} Q32 ${ey-9} 36 ${ey-7}M44 ${ey-7} Q48 ${ey-9} 52 ${ey-7}" stroke="#3A2218" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  const glasses = old ? `<g stroke="#2B2B2B" stroke-width="1.8" fill="none"><circle cx="32" cy="${ey}" r="6"/><circle cx="48" cy="${ey}" r="6"/><path d="M38 ${ey} L42 ${ey}"/></g>` : "";
+  const cheeks = kid || mood===2 ? `<circle cx="27" cy="${ey+8}" r="3.4" fill="#E88A7A" opacity=".45"/><circle cx="53" cy="${ey+8}" r="3.4" fill="#E88A7A" opacity=".45"/>` : "";
+  return `<svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="39" fill="var(--surface2)" stroke="var(--line)"/>
+   <path d="M14 80 Q14 ${62+hy} 40 ${62+hy} Q66 ${62+hy} 66 80 Z" fill="${c}"/>
+   <rect x="35" y="${54+hy}" width="10" height="9" fill="${sk}"/>
+   <ellipse cx="40" cy="${38+hy}" rx="19" ry="21" fill="${sk}"/>${hair}
+   <circle cx="32" cy="${ey}" r="2.4" fill="#22160F"/><circle cx="48" cy="${ey}" r="2.4" fill="#22160F"/>${brows}${glasses}${cheeks}${mouth}</svg>`;
+}
+
+// ---------- SVG: Szene ----------
+function sky(time){ const h = parseInt(time,10);
+  if(h>=21 || h<5) return ["#0B1633","#24305E", true];
+  if(h>=17) return ["#F08A4B","#F7C873", false];
+  return ["#5FA8D8","#BFE3F2", false]; }
+function scene(){
+  const c = S ? (chap() || CHM[S.ids[S.ids.length-1]]) : CHM.k4; const [s1,s2,night] = sky(c.time);
+  const done = id => S && S.log.some(l => l.ch===id);
+  const good = id => S && S.log.filter(l=>l.ch===id).length===2 && S.log.filter(l=>l.ch===id).every(l=>l.s===2);
+  const ruf = S ? S.ruf : 70; const n = Math.round(ruf/9);
+  const term = !S || S.route==="B" || S.idx >= S.ids.indexOf("k4");
+  const ausweis = S && (good("k5") || S.route==="B");
+  const zackZu = c.day==="SO";
+  let crowd = ""; const cols=["#E4572E","#1F8A8A","#F2B134","#8E44AD","#2E86C1","#27AE60","#D35400","#C0392B","#16A085","#7D3C98","#F39C12","#2C3E50"];
+  for(let i=0;i<n;i++){ const x = 120 + (i%6)*22 + (i>5?11:0), y = 146 + (i>5?10:0); crowd += `<g><circle cx="${x}" cy="${y-14}" r="6" fill="${SKIN[(i%4)+1]}"/><path d="M${x-8} ${y+6} Q${x-8} ${y-7} ${x} ${y-7} Q${x+8} ${y-7} ${x+8} ${y+6} Z" fill="${cols[i%cols.length]}"/></g>`; }
+  const stars = night ? `<g fill="#fff" opacity=".8"><circle cx="40" cy="20" r="1.2"/><circle cx="90" cy="34" r="1"/><circle cx="210" cy="16" r="1.3"/><circle cx="300" cy="28" r="1"/><circle cx="360" cy="14" r="1.2"/></g><circle cx="340" cy="34" r="12" fill="#F4F1DE"/>`
+    : (parseInt(c.time,10)>=17 ? `<circle cx="148" cy="34" r="15" fill="#FFE07A"/>` : `<circle cx="345" cy="30" r="15" fill="#FFE07A"/>`);
+  const beams = night ? `<g class="beam"><path d="M58 52 L10 0 L40 0 Z" fill="#7FD6FF" opacity=".35"/><path d="M84 52 L120 0 L150 0 Z" fill="#FF9DE2" opacity=".35"/></g>` : "";
+  const bulbs = night ? Array.from({length:9},(_,i)=>`<circle cx="${176+i*16}" cy="${66+Math.sin(i)*2}" r="2.4" fill="#FFE07A"/>`).join("") : "";
+  return `<svg viewBox="0 0 400 170" role="img" aria-label="Euer Festivalstand ${c.day} ${c.time} Uhr">
+  <defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s1}"/><stop offset="1" stop-color="${s2}"/></linearGradient>
+  <pattern id="st" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="8" height="16" fill="#E4572E"/><rect x="8" width="8" height="16" fill="#FBF5EC"/></pattern>
+  <pattern id="sz" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="8" height="16" fill="#7D3C98"/><rect x="8" width="8" height="16" fill="#E8DAEF"/></pattern></defs>
+  <rect width="400" height="170" fill="url(#sk)"/>${stars}${beams}
+  <path d="M0 112 Q100 90 200 104 T400 98 L400 170 L0 170 Z" fill="${night?"#1F4D36":"#5DA06A"}"/>
+  <g><rect x="20" y="52" width="104" height="54" fill="${night?"#1B1B24":"#2E2E3A"}"/><path d="M14 52 L130 52 L120 40 L24 40 Z" fill="#3D3D4D"/>
+   <rect x="30" y="62" width="84" height="36" fill="${night?"#3A2E6E":"#45455A"}"/><text x="72" y="49" text-anchor="middle" font-family="Bungee, Arial Black, sans-serif" font-size="8" fill="#F2B134">DEICHBEAT</text>
+   <rect x="20" y="104" width="104" height="6" fill="#222"/></g>
+  <g><path d="M160 70 L172 54 L328 54 L340 70 Z" fill="url(#st)"/><path d="M160 70 L340 70" stroke="#B83E1F" stroke-width="2"/>
+   <rect x="168" y="70" width="164" height="38" fill="${night?"#2B3A44":"#F2EDE4"}" opacity=".9"/>${bulbs}
+   <rect x="200" y="40" width="100" height="16" rx="3" fill="#15202A"/><text x="250" y="51.5" text-anchor="middle" font-family="Bungee, Arial Black, sans-serif" font-size="9" fill="#FFFFFF">NORDLICHT</text>
+   <rect x="166" y="104" width="168" height="26" fill="#C9935F"/><rect x="166" y="104" width="168" height="5" fill="#A8743F"/>
+   <rect x="234" y="86" width="30" height="18" rx="2" fill="#2C3E50"/><rect x="238" y="89" width="22" height="9" fill="#7FD6FF"/>
+   ${term ? `<rect x="272" y="92" width="11" height="14" rx="2" fill="#111"/><rect x="274" y="94" width="7" height="4" fill="#9AE6B4"/><path d="M286 94 q3 3 0 6 M289 92 q5 5 0 10" stroke="#fff" stroke-width="1.2" fill="none"/>` : ""}
+   ${ausweis ? `<rect x="178" y="80" width="40" height="18" rx="3" fill="#C0392B"/><text x="198" y="92.5" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="8" fill="#fff">AB 18 · ID</text>` : ""}
+   <rect x="300" y="84" width="22" height="20" fill="#3498DB" opacity=".85"/><rect x="304" y="78" width="6" height="8" fill="#2ECC71"/><rect x="312" y="80" width="6" height="6" fill="#F1C40F"/>
+  </g>
+  <g transform="translate(350 0)"><path d="M-2 82 L6 70 L42 70 L48 82 Z" fill="url(#sz)"/><rect x="0" y="82" width="46" height="40" fill="${night?"#2A2233":"#EFE6F3"}"/>
+   <text x="23" y="79" text-anchor="middle" font-family="Bungee, Arial Black, sans-serif" font-size="7" fill="${night?"#FFFFFF":"#4A235A"}">ZACK</text>
+   ${zackZu ? `<g transform="rotate(-8 23 100)"><rect x="-1" y="92" width="48" height="14" fill="#B8362A"/><text x="23" y="102" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="7" fill="#fff">GESCHLOSSEN</text></g>` : ""}</g>
+  <g class="crowd">${crowd}</g>
+  <rect x="0" y="166" width="400" height="4" fill="#15202A"/>
+  </svg>`;
+}
+
+// ---------- Symbole ----------
+const IC = {
+ all:`<svg viewBox="0 0 34 34" aria-hidden="true"><rect x="3" y="7" width="28" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M3 13h28M10 4v6M24 4v6" stroke="currentColor" stroke-width="2.4"/><circle cx="11" cy="20" r="2" fill="currentColor"/><circle cx="17" cy="20" r="2" fill="currentColor"/><circle cx="23" cy="20" r="2" fill="currentColor"/></svg>`,
+ A:`<svg viewBox="0 0 34 34" aria-hidden="true"><rect x="4" y="12" width="26" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2.4"/><rect x="9" y="5" width="16" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M10 22h14" stroke="currentColor" stroke-width="2.4"/></svg>`,
+ B:`<svg viewBox="0 0 34 34" aria-hidden="true"><path d="M17 4v26M8 30h18M6 10h22" stroke="currentColor" stroke-width="2.4" fill="none"/><path d="M6 10l-4 9h8zM28 10l-4 9h8z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>`,
+ anf:`<svg viewBox="0 0 34 34" aria-hidden="true"><path d="M17 4a9 9 0 0 1 5 16.5V25h-10v-4.5A9 9 0 0 1 17 4z" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M13 29h8" stroke="currentColor" stroke-width="2.4"/></svg>`,
+ pro:`<svg viewBox="0 0 34 34" aria-hidden="true"><path d="M17 3l4 8.5 9 1.2-6.6 6.2 1.7 9.1L17 23.6 8.9 28l1.7-9.1L4 12.7l9-1.2z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>`,
+ star:(on)=>`<svg viewBox="0 0 34 34" aria-hidden="true"><path d="M17 3l4 8.5 9 1.2-6.6 6.2 1.7 9.1L17 23.6 8.9 28l1.7-9.1L4 12.7l9-1.2z" fill="${on?"#F2B134":"none"}" stroke="#F2B134" stroke-width="2.2" stroke-linejoin="round"/></svg>`,
+ spk:(on)=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>${on?`<path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>`:`<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`}</svg>`,
+ W:`<svg viewBox="0 0 34 34" aria-hidden="true"><path d="M27 17a10 10 0 1 1-3-7.1" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M25 4v6h-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ ev:`<svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="var(--accent)"/><path d="M26 12v18" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="26" cy="38" r="3.4" fill="#fff"/></svg>`
+};
+
+// ---------- Rendering ----------
+function bandHtml(){ const m = S ? (S.mode==="pro"?"Profi":"Anfänger") : "Lernfeld 3";
+  return `<header class="band"><span class="bt">DEICHBEAT 2026 · ${S?esc(S.team):"14.–16. AUG · NORDHOLZ"}</span><span class="row" style="gap:8px;flex-wrap:nowrap"><button class="mus" data-act="music" aria-pressed="${MUS.on}" aria-label="Musik ${MUS.on?"aus":"an"}schalten">${IC.spk(MUS.on)}</button><span class="bm">${m}</span></span></header>`; }
+function hudHtml(){
+  const lu = S.ids.map((id,i)=>`<span class="${i<S.idx?"done":i===S.idx?"now":""}" title="${CHM[id].day} ${CHM[id].time}">M${CHM[id].mod}</span>`).join("");
+  return `<div class="hud"><div><div class="lbl" id="rufl">Festival-Ruf ${S.ruf}</div><div class="meter" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${S.ruf}" aria-labelledby="rufl"><i style="width:${S.ruf}%"></i></div></div>
+   <div class="pts"><div class="lbl">Punkte</div>${Math.round(S.pts)}</div></div><div class="lineup">${lu}</div>`;
+}
+function render(){
+  const app = $("#app"); let h = bandHtml();
+  if(!S){ h += startHtml(); app.innerHTML = h; return; }
+  if(S.step!=="final") h += `<div class="scene">${scene()}</div>` + (S.step==="story"?"":hudHtml());
+  else h += `<div class="scene">${scene()}</div>`;
+  h += ({story:storyHtml, chap:chapHtml, dec:decHtml, mini:miniHtml, talk:talkHtml, profi:profiHtml, event:eventHtml, final:finalHtml})[S.step]();
+  app.innerHTML = h;
+  const f = app.querySelector("[data-focus]"); if(f) f.focus({preventScroll:true});
+  musicSync();
+}
+// ---------- Musik (Web Audio, eigene Bausteine, Standard aus) ----------
+const MUS = { on:false, ac:null, master:null, timer:null, step:0, next:0, fanfare:false }; MUS.on = !!STORE.music;
+function audioInit(){ if(MUS.ac) { if(MUS.ac.state==="suspended") MUS.ac.resume(); return; }
+  try{ const AC = window.AudioContext || window.webkitAudioContext; MUS.ac = new AC(); MUS.master = MUS.ac.createGain(); MUS.master.gain.value = 0.3; MUS.master.connect(MUS.ac.destination); }catch(e){ MUS.ac = null; } }
+function tone(f, t, d, type, vol){ const ac = MUS.ac, o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t+d); o.connect(g); g.connect(MUS.master); o.start(t); o.stop(t+d+0.02); }
+function kick(t){ const ac = MUS.ac, o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(45, t+0.12); g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.18); o.connect(g); g.connect(MUS.master); o.start(t); o.stop(t+0.2); }
+function noise(t, d, vol, hp){ const ac = MUS.ac, b = ac.createBuffer(1, Math.floor(ac.sampleRate*d), ac.sampleRate), x = b.getChannelData(0); for(let i=0;i<x.length;i++) x[i] = Math.random()*2-1;
+  const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = b; f.type = "highpass"; f.frequency.value = hp; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t+d); s.connect(f); f.connect(g); g.connect(MUS.master); s.start(t); }
+const midi = n => 440*Math.pow(2,(n-69)/12);
+const BASS = [45,0,45,57,0,45,0,52, 48,0,48,55,0,47,0,43];
+function tick(){ const ac = MUS.ac; if(!ac) return; const sp = 60/124/4;
+  const hot = ui.m && ui.m.n && ui.m.i >= ui.m.n-1;
+  while(MUS.next < ac.currentTime + 0.15){ const st = MUS.step % 16, t = MUS.next;
+    if(st%4===0) kick(t);
+    if(st===4 || st===12) noise(t, 0.12, 0.35, 1200);
+    if(st%2===1 || hot) noise(t, 0.04, hot?0.16:0.12, 7000);
+    if(BASS[st]) tone(midi(BASS[st] + (hot?12:0)), t, sp*1.6, "sawtooth", 0.12);
+    if(hot && st%4===2) tone(midi(69 + [0,3,7,10][(MUS.step>>2)%4]), t, sp, "square", 0.05);
+    MUS.next += sp; MUS.step++; } }
+function musicStart(){ if(MUS.timer || !MUS.ac) return; MUS.next = MUS.ac.currentTime + 0.05; MUS.step = 0; MUS.timer = setInterval(tick, 40); }
+function musicStop(){ if(MUS.timer){ clearInterval(MUS.timer); MUS.timer = null; } }
+function fanfare(){ if(!MUS.ac) return; const t = MUS.ac.currentTime + 0.05; [57,61,64,69].forEach((n,i)=> tone(midi(n), t+i*0.13, 0.25, "square", 0.12)); [57,61,64,69].forEach(n => tone(midi(n), t+0.6, 1.1, "triangle", 0.12)); kick(t+0.6); }
+function musicSync(){ const want = MUS.on && !document.hidden && S && S.step==="mini" && ui.m && !ui.m.done && !ui.fb;
+  if(want){ audioInit(); musicStart(); } else musicStop();
+  if(MUS.on && S && S.step==="final" && !MUS.fanfare){ MUS.fanfare = true; audioInit(); fanfare(); }
+  if(S && S.step!=="final") MUS.fanfare = false; }
+document.addEventListener("visibilitychange", musicSync);
+
+// ---------- Start ----------
+function startHtml(){
+  const tot = decVariantsTotal(), seen = decVariantsSeen();
+  const recs = ["anf","pro"].map(m => { const r = STORE.rec[m]; return `<div class="small">${m==="anf"?"Anfänger":"Profi"}: ${r!=null ? `Rekord ${r} %` : "noch nicht gespielt"}</div>`; }).join("");
+  const tile = (grp,k,name,sub,icon) => `<button class="tile ${pre[grp]===k?"on":""}" data-act="pre" data-g="${grp}" data-v="${k}" aria-pressed="${pre[grp]===k}">${icon}<b>${name}</b><span>${sub}</span></button>`;
+  return `<div class="scene">${scene()}</div>
+  <div class="stack" style="padding-top:18px">
+   <div class="stack" style="gap:8px"><span class="tag">Lernfeld 3 · Modul 1–10 · Kasse und Recht</span>
+    <h1>Festival-Kasse Deichbeat</h1>
+    <p>Drei Tage Festival in Nordholz, 40.000 Gäste – und ihr führt die Kasse im Pop-up-Store vom Nordlicht Markt aus Bremerhaven. Nur der Stand mit dem besten Ruf darf 2027 wiederkommen.</p></div>
+   <div class="card stack"><label class="lbl" for="team">Euer Teamname</label>
+    <input type="text" id="team" maxlength="24" placeholder="z. B. Kasse Nord" value="${esc(pre.team)}" autocomplete="off">
+    <span class="lbl">Strecke</span>
+    <div class="tiles">${tile("route","all",ROUTES.all.name,ROUTES.all.sub,IC.all)}${tile("route","A",ROUTES.A.name,ROUTES.A.sub,IC.A)}${tile("route","B",ROUTES.B.name,ROUTES.B.sub,IC.B)}${wrongIds().length ? tile("route","W","Wiederholen", wrongIds().length + " Situation" + (wrongIds().length>1?"en":"") + ", die ihr noch nicht richtig hattet", IC.W) : ""}</div>
+    <span class="lbl">Modus</span>
+    <div class="tiles">${tile("mode","anf","Anfänger","3 Tipp-Joker · Wortspeicher · einfache Fälle",IC.anf)}${tile("mode","pro","Profi","Zu jeder Entscheidung die Begründung wählen · Profi-Fragen · keine Joker",IC.pro)}</div>
+    ${pre.route!=="W" ? `<details ${pre.code?"open":""}><summary>Klassen-Challenge (freiwillig)</summary><div class="stack" style="gap:8px"><p class="small">Mit demselben Code, derselben Strecke und demselben Modus bekommen alle Teams dieselben Fälle und Zwischenfälle. So könnt ihr fair vergleichen.</p>
+     <div class="row"><input type="text" id="code" maxlength="12" placeholder="Code, z. B. KASSE7" value="${esc(pre.code)}" autocomplete="off" style="flex:1 1 160px"><button class="btn alt" data-act="daycode">Tagescode</button></div></div></details>` : ""}
+    <button class="btn hot wide" data-act="start">${pre.route==="W"?"Fehler wiederholen":"Festival starten"}</button></div>
+   <div class="card prog"><span class="lbl">Euer Fortschritt auf diesem Gerät</span>
+    <div class="small">Neue Fälle für euch: <b>${tot-seen} von ${tot}</b></div>
+    <div class="meter"><i style="width:${Math.round(seen/tot*100)}%"></i></div>${recs}
+    ${NOSTORE ? `<p class="note">Speichern ist in diesem Browser nicht möglich. Das Spiel läuft trotzdem, merkt sich aber nichts.</p>` : `<p class="note">Gespeichert wird nur auf diesem Gerät.</p>`}
+    ${ui.reset ? `<div class="row"><span class="small">Wirklich alles zurücksetzen?</span><button class="btn alt" data-act="reset" data-v="yes">Ja, zurücksetzen</button><button class="btn alt" data-act="reset" data-v="no">Nein</button></div>` : `<button class="linkbtn" data-act="reset" data-v="ask">Fortschritt zurücksetzen</button>`}
+   </div></div>`;
+}
+function storyHtml(){
+  const B = S.route==="B";
+  return `<div class="stack" style="padding-top:16px">
+   <span class="tag">${B?"Sonntag, 10:30 Uhr":"Freitag, 13:45 Uhr"}</span><h2>${B?"Der letzte Festivaltag":"Willkommen am Deich"}</h2>
+   <div class="phone"><span class="lbl">Sprachnachricht von Jana Ahrens, Filialleiterin</span>
+    <div class="vm">${face({s:2,h:"#B5651D",st:"dutt",c:"#1F8A8A",a:"e"},2)}<div class="wave"></div></div>
+    <p>${S.route==="W" ? "„Hallo " + esc(S.team) + "! Heute spielt ihr nur die Situationen, die beim letzten Mal noch nicht geklappt haben. Zeigt Ole, dass ihr dazugelernt habt!“" : B ? "„Hallo " + esc(S.team) + "! Freitag und Samstag liefen super. Heute ist Familientag, und heute geht es um Recht: Wer darf was kaufen? Welche Verträge gelten? Ole Brodersen entscheidet heute Abend, wer 2027 wiederkommt.“"
+      : "„Hallo " + esc(S.team) + "! Ich stecke mit dem Lieferwagen im Stau auf der A27. Ihr müsst den Stand allein starten. Ole Brodersen von der Festivalleitung beobachtet alle Stände. Nur der beste darf 2027 wiederkommen. Und passt auf Kevin von der Snackbude Zack nebenan auf – der nimmt es mit den Regeln nicht so genau.“"}</p></div>
+   <div class="card stack small"><p><b>So spielt ihr:</b> Ihr trefft gemeinsam Entscheidungen. Die Gäste reagieren sofort. Gute Entscheidungen bringen Punkte und Festival-Ruf.</p>
+   ${S.mode==="pro" ? `<p><b>Profi:</b> Nach jeder Entscheidung wählt ihr die richtige Begründung. Punkte gibt es nur, wenn beides stimmt.</p>` : `<p><b>Anfänger:</b> Ihr habt 3 Tipp-Joker. Ein Joker streicht eine falsche Antwort (kostet 2 Punkte). Im Wortspeicher stehen die Fachbegriffe.</p>`}
+   <p>Am Ende seht ihr zu jeder Entscheidung, wie es in der Prüfung steht.</p></div>
+   <button class="btn hot wide" data-act="go" data-focus>Los geht's</button></div>`;
+}
+function chapHtml(){ const c = chap();
+  return `<div class="stack"><div class="row"><span class="slot">${c.day} ${c.time}</span><span class="tag">Modul ${c.mod} · ${esc(c.topic)}</span></div>
+   <h2>${esc(c.title)}</h2><p class="sit">${esc(c.story)}</p>
+   <button class="btn hot wide" data-act="tochap" data-focus>Zur ersten Situation</button></div>`;
+}
+
+// ---------- Entscheidung ----------
+function curDec(){ return S.cur[chap().id][ui.d||0]; }
+function decHtml(){
+  const c = chap(), d = curDec(); ui.d = ui.d||0;
+  if(!ui.order) ui.order = shuffle([0,1,2]);
+  const keys = "ABC"; let h = `<div class="stack"><div class="row"><span class="slot">${c.day} ${c.time}</span><span class="tag">Modul ${c.mod} · Situation ${ui.d+1} von 2</span></div>`;
+  const mood = ui.locked ? d.opts[ui.sel].s : 1;
+  h += `<div class="who">${face(d.who.look, mood)}<div><b>${esc(d.who.n)}</b><span class="muted small">${esc(d.who.d)}</span></div></div>`;
+  if(ui.locked) h += `<div class="bubble">„${esc(d.opts[ui.sel].say)}“</div>`;
+  h += `<p class="sit">${esc(d.sit)}</p><h3>${esc(d.q)}</h3><div class="opts" role="group" aria-label="Antworten">`;
+  ui.order.forEach((oi, k) => { const o = d.opts[oi];
+    let cls = "opt"; if(ui.sel===oi) cls += " sel"; if(ui.locked && (ui.sel===oi || o.s===2)) cls += " r"+o.s; if(ui.gone && ui.gone.includes(oi)) cls += " gone";
+    h += `<button class="${cls}" data-act="sel" data-v="${oi}" ${ui.locked?"disabled":""}><span class="k">${keys[k]}</span><span>${esc(o.t)}</span></button>`; });
+  h += `</div>`;
+  if(!ui.locked){
+    h += `<button class="btn hot wide" data-act="lock" ${ui.sel==null?"disabled":""}>Entscheidung festlegen</button>`;
+    if(S.mode==="anf") h += `<div class="row"><button class="btn alt" data-act="joker" ${S.jokers<1||(ui.gone&&ui.gone.length)?"disabled":""}>Tipp-Joker (${S.jokers})</button><button class="btn alt" data-act="words">Wortspeicher</button></div>${ui.words?`<div class="words">${c.words.map(w=>`<span>${esc(w)}</span>`).join("")}</div>`:""}`;
+  } else {
+    const o = d.opts[ui.sel];
+    const lab = o.s===2 ? "Top-Entscheidung" : o.s===1 ? "Teilweise richtig" : "Daneben";
+    h += `<div><span class="res r${o.s}">${o.s===2?"✓":o.s===1?"~":"✗"} ${lab}</span></div>`;
+    if(S.mode==="pro" && !ui.weilDone){
+      if(!ui.weilOrder) ui.weilOrder = shuffle([0,1,2]);
+      const best = d.opts.find(x=>x.s===2);
+      h += `<div class="card stack"><span class="lbl">Profi: Begründung wählen</span><p>Die beste Lösung ist: <b>${esc(best.t)}</b></p><p>Warum? Wählt den passenden „weil“-Satz.</p><div class="opts">`;
+      ui.weilOrder.forEach((wi,k)=>{ h += `<button class="opt" data-act="weil" data-v="${wi}"><span class="k">${k+1}</span><span>${esc(d.weil[wi])}</span></button>`; });
+      h += `</div></div>`;
+    } else {
+      if(S.mode==="pro"){ const ok = ui.weil===0; h += `<div class="fb ${ok?"ok":"no"}">${ok?"Begründung richtig.":"Begründung falsch. Richtig ist: "+esc(d.weil[0])}${(o.s===2&&!ok)?" Ohne richtige Begründung gibt es keine Punkte.":""}</div>`; }
+      h += `<div class="term"><b>${esc(d.term)}</b><br>${esc(d.def)}</div><p class="small"><b>Darum:</b> ${esc(o.why)}</p>
+        <button class="btn hot wide" data-act="next" data-focus>Weiter</button>`;
+    }
+  }
+  return h + `</div>`;
+}
+function lockDec(){
+  const c = chap(), d = curDec(), o = d.opts[ui.sel]; ui.locked = true;
+  markSeen("d-"+c.id+"-"+ui.d, d.id);
+  addRuf(o.s===2?4:o.s===1?0:-5);
+  if(S.mode==="anf"){ S.pts += o.s*5; S.max += 10; S.log.push({ch:c.id, d, sel:ui.sel, s:o.s}); trackWrong(d.id, o.s===2); }
+}
+function finishWeil(wi){
+  const c = chap(), d = curDec(), o = d.opts[ui.sel]; ui.weil = wi; ui.weilDone = true;
+  const ok = wi===0; S.pts += ok ? o.s*5 : 0; S.max += 10; S.log.push({ch:c.id, d, sel:ui.sel, s:o.s, weilOk:ok}); trackWrong(d.id, o.s===2 && ok);
+}
+
+// ---------- Mini-Spiele ----------
+const MINI_TITLE = {bon:"Bon-Detektive", ablauf:"Kassieren in der richtigen Reihenfolge", fsk:"Echt oder falsch? Fühlen – Sehen – Kippen", zahlart:"Welche Zahlungsart ist das?", jugend:"Jugendschutz-Check", bericht:"Der Kassenbericht", ampel:"Die Geschäftsfähigkeits-Ampel", gna:"Gültig, nichtig oder anfechtbar?", zeit:"Wann ist der Kaufvertrag da?", besitz:"Besitzer oder Eigentümer?"};
+function drawMini(t, mode){ const pro = mode==="pro"; const m = {};
+  if(t==="bon"){ const easy = ["anschrift","datum","artikel","summe","zahl","rueck","bon"], hard = ["stnr","gtin","ust","tse","ep","gp"];
+    const e = shuffle(easy), hd = shuffle(hard); m.items = pro ? shuffle([hd[0],hd[1],hd[2],e[0]]) : shuffle([e[0],e[1],e[2],hd[0]]); m.n = 4; }
+  if(t==="ablauf"){ m.items = shuffle(ABLAUF.map((x,i)=>i)); m.placed = pro ? [] : [0]; m.n = 1; }
+  if(t==="fsk"){ m.items = pick(FSK, pro?5:4, "m-fsk"); m.n = m.items.length; }
+  if(t==="zahlart"){ m.items = pick(ZAHL, 5, "m-zahl"); m.n = 5; m.zo = m.items.map(it => shuffle([it.a].concat(shuffle(ZAHL.filter(z=>z.a!==it.a).map(z=>z.a)).slice(0,3)))); }
+  if(t==="jugend"){ let it = pick(JUG, 5, "m-jug"); if(it.filter(x=>x.ok).length<2){ const ok = shuffle(JUG.filter(x=>x.ok && !it.includes(x))); it[it.findIndex(x=>!x.ok)] = ok[0]; } m.items = shuffle(it); m.n = 5; }
+  if(t==="bericht"){ const r = (a,b,st)=> Math.round((a + Math.floor(RNG()*((b-a)/st+1))*st)*100)/100;
+    m.v = { end:r(1200,3600,0.1), absch:[1000,1500,2000][Math.floor(RNG()*3)], wg:[200,250,300,400][Math.floor(RNG()*4)], card:r(1800,4800,0.1) }; m.n = 1; }
+  if(t==="ampel"){ m.items = pick(AMPEL, 5, "m-ampel"); m.n = 5; }
+  if(t==="gna"){ m.items = pick(GNA, 5, "m-gna"); m.n = 5; }
+  if(t==="zeit"){ m.items = pick(ZEIT, 2, "m-zeit"); m.n = 2; }
+  if(t==="besitz"){ m.items = pick(BESITZ, 4, "m-besitz"); m.n = 4; }
+  return m;
+}
+function initMini(){
+  const c = chap(); const m = Object.assign({t:c.mini, i:0, got:0, done:false, err:0, pickB:null, pickE:null}, JSON.parse(JSON.stringify(S.mini[c.id])));
+  if(m.t==="bericht"){ m.sign = {absch:null, wg:null}; m.stage = 0; }
+  ui.m = m;
+}
+function miniPts(){ const m = ui.m; if(m.t==="ablauf") return Math.max(0, 10 - m.err*(S.mode==="pro"?2:1)); if(m.t==="bericht") return m.got; return Math.round(m.got/m.n*10*10)/10; }
+function miniHtml(){
+  const c = chap(); if(!ui.m) initMini(); const m = ui.m;
+  let h = `<div class="stack"><div class="row"><span class="slot">${c.day} ${c.time}</span><span class="tag">Mini-Spiel · bis zu 10 Punkte</span></div><h2>${MINI_TITLE[m.t]}</h2>`;
+  if(m.done){ const p = miniPts();
+    return h + `<div class="card stack"><p class="sit">Geschafft! <b>${p} von 10 Punkten</b>.</p>${m.t==="bon"?`<p class="small muted">${BON.not}</p>`:""}<button class="btn hot wide" data-act="minidone" data-focus>Weiter</button></div></div>`; }
+  const fb = ui.fb ? `<div class="fb ${ui.fb.ok?"ok":"no"}">${ui.fb.html}</div><button class="btn hot wide" data-act="mnext" data-focus>Weiter</button>` : "";
+  const lock = !!ui.fb;
+  if(m.t==="bon"){ const k = m.items[m.i];
+    h += `<p>Lina hält euch einen Bon hin. <b>Tippt auf die Zeile mit: ${BON.q[k]}</b> <span class="muted">(${m.i+1}/${m.n})</span></p><div class="bon">`;
+    BON.lines.forEach(l => { const cls = ui.fb && l.k===k ? "ok" : ui.fb && ui.fb.tap===l.k ? "no" : ""; h += `<button class="bonl ${cls}" data-act="bon" data-v="${l.k}" ${lock?"disabled":""}>${l.t.map(esc).join("\n")}</button>`; });
+    h += `</div>` + fb; }
+  if(m.t==="ablauf"){
+    h += `<p>Ein Gast zahlt bar. Tippt die Schritte in der richtigen Reihenfolge an. ${S.mode==="anf"?"Der erste Schritt liegt schon.":""} Fehler: ${m.err}</p><div class="seq">`;
+    m.placed.forEach((x,i)=>{ h += `<div class="placed">${i+1}. ${esc(ABLAUF[x])}</div>`; });
+    h += `</div><div class="opts">`;
+    m.items.filter(x=>!m.placed.includes(x)).forEach(x => { h += `<button class="opt ${ui.wrong===x?"shake r0":""}" data-act="abl" data-v="${x}"><span class="k">?</span><span>${esc(ABLAUF[x])}</span></button>`; });
+    h += `</div>`; }
+  if(m.t==="fsk"){ const it = m.items[m.i];
+    h += `<p class="small muted">${m.i+1}/${m.n}</p><div class="card sit">${esc(it.t)}</div><div class="chips">${["Fühlen","Sehen","Kippen"].map(x=>`<button class="chip ${lock&&x===it.a?"ok":lock&&ui.fb.tap===x?"no":""}" data-act="ans" data-v="${x}" ${lock?"disabled":""}>${x}</button>`).join("")}</div>` + fb; }
+  if(m.t==="zahlart"){ const it = m.items[m.i];
+    ui.zo = m.zo[m.i];
+    h += `<p class="small muted">${m.i+1}/${m.n}</p><div class="card sit">${esc(it.t)}</div><div class="chips">${ui.zo.map(x=>`<button class="chip ${lock&&x===it.a?"ok":lock&&ui.fb.tap===x?"no":""}" data-act="ans" data-v="${esc(x)}" ${lock?"disabled":""}>${esc(x)}</button>`).join("")}</div>` + fb; }
+  if(m.t==="jugend"){ const it = m.items[m.i];
+    h += `<p class="small muted">${m.i+1}/${m.n}</p><div class="card sit"><b>${esc(it.w)}</b><br>Der Ausweis zeigt: <b>${it.age} Jahre</b></div><div class="chips">
+      <button class="chip ${lock&&it.ok?"ok":lock&&ui.fb.tap==="ja"?"no":""}" data-act="ans" data-v="ja" ${lock?"disabled":""}>Verkaufen</button>
+      <button class="chip ${lock&&!it.ok?"ok":lock&&ui.fb.tap==="nein"?"no":""}" data-act="ans" data-v="nein" ${lock?"disabled":""}>Nicht verkaufen</button></div>`;
+    if(S.mode==="anf" && !lock) h += ui.hint ? `<div class="term small"><b>Tafel an der Kasse</b><br>ab 16: Bier, Wein, Sekt, Mischgetränke mit Bier oder Wein<br>ab 18: Branntwein (Schnaps, Wodka, Likör) und Mischgetränke damit, Lebensmittel mit Branntwein, Tabak, E-Zigaretten (auch ohne Nikotin), Feuerwerk F2</div>` : `<button class="linkbtn" data-act="hint">Altersregeln anzeigen</button>`;
+    h += fb; }
+  if(m.t==="bericht") h += berichtHtml(m);
+  if(m.t==="ampel"){ const it = m.items[m.i]; const L = {n:["#C0392B","Rot · nichtig"], s:["#D4A017","Gelb · schwebend unwirksam"], g:["#2E8B57","Grün · gültig"]};
+    h += `<p class="small muted">${m.i+1}/${m.n}</p><div class="card sit">${esc(it.t)}</div><div class="chips">${["n","s","g"].map(k=>`<button class="chip amp-${k} ${lock&&k===it.a?"ok":lock&&ui.fb.tap===k?"no":""}" data-act="ans" data-v="${k}" ${lock?"disabled":""}><span class="dot" style="background:${L[k][0]}"></span>${L[k][1]}</button>`).join("")}</div>` + fb; }
+  if(m.t==="gna"){ const it = m.items[m.i];
+    h += `<p class="small muted">${m.i+1}/${m.n}</p><div class="card sit">${esc(it.t)}</div><div class="chips">${["gültig","nichtig","anfechtbar"].map(k=>`<button class="chip ${lock&&k===it.a?"ok":lock&&ui.fb.tap===k?"no":""}" data-act="ans" data-v="${k}" ${lock?"disabled":""}>${k}</button>`).join("")}</div>` + fb; }
+  if(m.t==="zeit"){ const it = m.items[m.i];
+    h += `<p>Tippt auf den Tag, an dem der <b>Kaufvertrag zustande kommt</b>. <span class="muted">(${m.i+1}/${m.n})</span></p><div class="tl">${it.steps.map((s,i)=>`<button class="${lock&&i===it.a?"ok":lock&&ui.fb.tap===i?"no":""}" data-act="ans" data-v="${i}" ${lock?"disabled":""}><b>${s[0]}</b><span>${esc(s[1])}</span></button>`).join("")}</div>`;
+    if(S.mode==="anf" && !lock) h += `<p class="note">Tipp: Erst prüfen, ob das Angebot verbindlich ist. Lieferung und Zahlung sind nie der Tag des Kaufvertrags.</p>`;
+    h += fb; }
+  if(m.t==="besitz"){ const it = m.items[m.i];
+    const row = (lab, key, sel, right) => `<div class="stack" style="gap:6px"><span class="lbl">${lab}</span><div class="chips">${it.p.map((p,i)=>`<button class="chip ${lock?(i===right?"ok":sel===i?"no":""):sel===i?"ok":""}" data-act="bes" data-g="${key}" data-v="${i}" ${lock?"disabled":""}>${esc(p)}</button>`).join("")}</div></div>`;
+    h += `<p class="small muted">${m.i+1}/${m.n}</p><div class="card sit">${esc(it.t)}</div>${row("Wer hat die Sache? (Besitzer)","b",m.pickB,it.b)}${row("Wem gehört die Sache? (Eigentümer)","e",m.pickE,it.e)}`;
+    if(!lock) h += `<button class="btn hot wide" data-act="beschk" ${m.pickB==null||m.pickE==null?"disabled":""}>Prüfen</button>`;
+    h += fb; }
+  return h + `</div>`;
+}
+function berichtHtml(m){ const v = m.v, pro = S.mode==="pro";
+  const los = Math.round((v.end + v.absch - v.wg)*100)/100, ums = Math.round((los + v.card)*100)/100; m.los = los; m.ums = ums;
+  const pm = (k) => m.stage>0 ? `<b class="v">${m.sign[k]==="+"?"plus":"minus"}</b>` : `<div class="pm"><button class="${m.sign[k]==="+"?"on":""}" data-act="sign" data-g="${k}" data-v="+" aria-label="plus">+</button><button class="${m.sign[k]==="-"?"on":""}" data-act="sign" data-g="${k}" data-v="-" aria-label="minus">−</button></div>`;
+  const row = (t, mid, val) => `<div class="crow"><span class="t">${t}</span>${mid||"<span></span>"}<span class="v">${fmt(val)} €</span></div>`;
+  let h = `<p>Kasse 1, Samstag 23:30 Uhr. Rechnet die Tageslosung und den Tagesumsatz aus.</p><div class="card calc">`
+   + row("Kassenschlussbestand (gezählt)", "", v.end) + row("Abschöpfung (mittags aus der Kasse genommen)", pm("absch"), v.absch)
+   + row("Wechselgeld (morgens eingezählt)", pm("wg"), v.wg) + row("Kartenzahlungen", "", v.card) + `</div>`;
+  if(m.stage===0){ h += `<p>Schritt 1: Wird der Betrag <b>addiert (+)</b> oder <b>abgezogen (−)</b>?</p><button class="btn hot wide" data-act="signchk" ${!m.sign.absch||!m.sign.wg?"disabled":""}>Prüfen</button>`; }
+  else {
+    if(m.stage>=1) h += `<div class="fb ${m.signOk?"ok":"no"}">${m.signOk?"Richtig!":"Nicht ganz."} Abschöpfung <b>+</b> (eingenommenes Geld, nur nicht mehr in der Kasse), Wechselgeld <b>−</b> (war schon morgens drin).</div>`;
+    if(!pro || m.stage>=2) h += `<p class="note">Tageslosung = ${fmt(v.end)} + ${fmt(v.absch)} − ${fmt(v.wg)}</p>`;
+    if(m.stage===1) h += `<label class="lbl" for="in1">Schritt 2: Tageslosung in €</label><input type="text" id="in1" inputmode="decimal" placeholder="z. B. 2.345,60"><button class="btn hot wide" data-act="calc" data-v="1">Prüfen</button>`;
+    if(m.stage>=2) h += `<div class="fb ${m.losOk?"ok":"no"}">Tageslosung: <b>${fmt(los)} €</b> ${m.losOk?"– stimmt!":"– so wäre es richtig."}</div>`;
+    if(m.stage===2) h += `<label class="lbl" for="in2">Schritt 3: Tagesumsatz in €</label>${!pro?`<p class="note">Tagesumsatz = Tageslosung + Kartenzahlungen</p>`:""}<input type="text" id="in2" inputmode="decimal" placeholder="z. B. 6.789,10"><button class="btn hot wide" data-act="calc" data-v="2">Prüfen</button>`;
+    if(m.stage>=3){ h += `<div class="fb ${m.umsOk?"ok":"no"}">Tagesumsatz: ${fmt(los)} + ${fmt(v.card)} = <b>${fmt(ums)} €</b> ${m.umsOk?"– stimmt!":"– so wäre es richtig."}</div><button class="btn hot wide" data-act="bdone" data-focus>Weiter</button>`; }
+  }
+  return h;
+}
+const parseNum = s => { s = String(s||"").replace(/\s|€/g,""); if(s.includes(",")) s = s.replace(/\./g,"").replace(",","."); else if(/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g,""); const n = parseFloat(s); return isNaN(n)?null:n; };
+function answerMini(v){ const m = ui.m, it = m.items[m.i]; let ok = false, html = "";
+  if(m.t==="fsk"){ ok = v===it.a; html = (ok?"Richtig: ":"Das prüft man durch ") + `<b>${it.a}</b>.`; }
+  if(m.t==="zahlart"){ ok = v===it.a; html = (ok?"Richtig: ":"Gemeint ist: ") + `<b>${esc(it.a)}</b>.`; }
+  if(m.t==="jugend"){ ok = (v==="ja")===it.ok; html = (ok?"Richtig. ":"Falsch. ") + esc(it.why); }
+  if(m.t==="ampel"){ ok = v===it.a; const L={n:"nichtig",s:"schwebend unwirksam",g:"gültig"}; html = (ok?"Richtig: ":"Richtig wäre: ") + `<b>${L[it.a]}</b>. ${esc(it.why)}`; }
+  if(m.t==="gna"){ ok = v===it.a; html = (ok?"Richtig: ":"Richtig wäre: ") + `<b>${it.a}</b>. ${esc(it.why)}`; }
+  if(m.t==="zeit"){ const i = +v; ok = i===it.a; html = (ok?"Richtig: ":"Der Kaufvertrag kommt am ") + `<b>${it.steps[it.a][0]}</b>${ok?"":" zustande"}. ${esc(it.why)}`; v = i; }
+  if(m.t==="bon"){ ok = v===it; html = ok ? "Richtig gefunden!" : "Die grün markierte Zeile ist richtig."; }
+  if(ok) m.got++;
+  if(m.t!=="bon") markSeen("m-"+({fsk:"fsk",zahlart:"zahl",jugend:"jug",ampel:"ampel",gna:"gna",zeit:"zeit"})[m.t], it.id);
+  ui.fb = {ok, html, tap:v};
+}
+function nextMiniItem(){ const m = ui.m; ui.fb = null; ui.zo = null; ui.hint = false; m.i++; m.pickB = null; m.pickE = null; if(m.i>=m.n) m.done = true; }
+function finishMini(){ const p = miniPts(); S.pts += p; S.max += 10; S.minis.push({ch:chap().id, t:ui.m.t, p}); if(p>=8) addRuf(3); else if(p<4) addRuf(-2); }
+
+// ---------- Kundengespräch ----------
+function afterMini(){ if(S.tk[chap().id]){ S.step = "talk"; ui = {}; } else afterTalk(); }
+function afterTalk(){ if(S.mode==="pro"){ S.step = "profi"; ui = {}; } else advanceChapter(); }
+function talkHtml(){ const c = chap(), t = S.tk[c.id];
+  if(!ui.tasp){ ui.tasp = shuffle([t.a].concat(shuffle(ASPEKTE.filter(a=>a!==t.a)).slice(0,2))); ui.tord = t.s.map(() => shuffle([0,1,2])); ui.ts = [null,null,null]; }
+  const done = !!ui.tres; const labs = ["Höflich anfangen","Grund nennen","Lösung anbieten"];
+  let h = `<div class="stack"><div class="row"><span class="slot">${c.day} ${c.time}</span><span class="tag">Kundengespräch · 3 Punkte wie in der Prüfung</span></div><h2>Was sagst du?</h2><p class="sit">${esc(t.sit)}</p>
+   <span class="lbl">1 · Worauf musst du achten? (1 Punkt)</span><div class="chips">${ui.tasp.map(a=>`<button class="chip ${done?(a===t.a?"ok":ui.ta===a?"no":""):ui.ta===a?"ok":""}" data-act="tasp" data-v="${esc(a)}" ${done?"disabled":""}>${esc(a)}</button>`).join("")}</div>
+   <span class="lbl">2 · Baue deinen Satz in wörtlicher Rede (2 Punkte)</span>`;
+  t.s.forEach((sl,k) => { h += `<div class="stack" style="gap:6px"><span class="small muted">${labs[k]}</span><div class="opts">${ui.tord[k].map((oi,j)=>{ let cls="opt"; if(done){ if(oi===0) cls+=" r2"; else if(ui.ts[k]===oi) cls+=" r0"; } else if(ui.ts[k]===oi) cls+=" sel"; return `<button class="${cls}" data-act="tsl" data-g="${k}" data-v="${oi}" ${done?"disabled":""}><span class="k">${"ABC"[j]}</span><span>${esc(sl[oi])}</span></button>`; }).join("")}</div></div>`; });
+  if(!done){ const sel = ui.ts.map((x,k)=> x==null ? "…" : t.s[k][x]).join(" "); h += `<div class="bubble">${esc(sel)}</div><button class="btn hot wide" data-act="tchk" ${ui.ta==null||ui.ts.includes(null)?"disabled":""}>Prüfen</button>`; }
+  else { const r = ui.tres; h += `<div class="fb ${r.p===3?"ok":"no"}">Aspekt: <b>${esc(t.a)}</b> ${r.asp?"✓":"✗"} · Ansprache: ${r.rs} von 2 Punkten<br>So bekommst du volle Punkte: <b>${esc(t.s.map(x=>x[0]).join(" "))}</b></div><button class="btn hot wide" data-act="tnext" data-focus>Weiter</button>`; }
+  return h + `</div>`;
+}
+function checkTalk(){ const t = S.tk[chap().id]; const asp = ui.ta===t.a; const right = ui.ts.filter(x=>x===0).length; const rs = right===3?2:right===2?1:0; const p = (asp?1:0)+rs;
+  ui.tres = {asp, rs, p}; S.pts += p; S.max += 3; S.talks.push({ch:chap().id, t, p}); markSeen("talk", t.id); if(p===3) addRuf(2); }
+
+// ---------- Profi-Frage ----------
+function profiHtml(){ const c = chap();
+  if(!ui.pq){ ui.pq = S.pq[c.id]; ui.po = shuffle([0,1,2]); }
+  const q = ui.pq; let h = `<div class="stack"><div class="row"><span class="slot">${c.day} ${c.time}</span><span class="tag">Für Profis · 5 Punkte</span></div><h2>Ole fragt nach</h2><div class="who">${face({s:2,h:"#6B6B6B",st:"glatze",c:"#2C3E50",a:"o"}, ui.pa==null?1:ui.pa===0?2:0)}<div><b>Ole Brodersen</b><span class="muted small">Festivalleiter</span></div></div><p class="sit">${esc(q.q)}</p><div class="opts">`;
+  ui.po.forEach((oi,k)=>{ let cls="opt"; if(ui.pa!=null){ if(oi===0) cls+=" r2"; else if(oi===ui.pa) cls+=" r0"; } h += `<button class="${cls}" data-act="pans" data-v="${oi}" ${ui.pa!=null?"disabled":""}><span class="k">${"ABC"[k]}</span><span>${esc(q.opts[oi])}</span></button>`; });
+  h += `</div>`;
+  if(ui.pa!=null) h += `<div class="fb ${ui.pa===0?"ok":"no"}">${ui.pa===0?"Stark! Das war eine Profi-Frage.":"Nicht ganz. Die grüne Antwort ist richtig."}</div><button class="btn hot wide" data-act="pnext" data-focus>Weiter</button>`;
+  return h + `</div>`;
+}
+
+// ---------- Ereignis ----------
+function eventFor(){ return S.evp[chap().id] || null; }
+function eventHtml(){ const e = ui.ev; const logs = S.log.filter(l=>l.ch===e.req); const good = logs.length && logs.every(l=>l.s===2 && (S.mode==="anf" || l.weilOk!==false));
+  if(ui.evApplied==null){ ui.evApplied = good; addRuf(good?7:-6); markSeen("ev", e.id); S.evs.push({e, good}); }
+  return `<div class="stack ev"><div class="evhead">${IC.ev}<div><span class="tag">Zwischenfall</span><h2>${esc(e.title)}</h2></div></div>
+   <p class="sit">${esc(e.text)}</p><div class="fb ${good?"ok":"no"}"><b>${good?"Gut vorbereitet!":"Das rächt sich jetzt."}</b> ${esc(good?e.good:e.bad)} <b>Ruf ${good?"+7":"−6"}</b></div>
+   <p class="small muted">Das Ereignis prüft eure Entscheidungen aus Modul ${CHM[e.req].mod}.</p>
+   <button class="btn hot wide" data-act="evnext" data-focus>Weiter</button></div>`; }
+
+// ---------- Ablauf ----------
+function advanceChapter(){
+  const ev = ui.evDone ? null : eventFor(); if(ev){ const keep = {ev, evDone:true}; ui = keep; S.step = "event"; return; }
+  S.idx++; ui = {};
+  if(S.idx >= S.ids.length){ finishGame(); return; }
+  S.step = "chap";
+}
+function finishGame(){ S.step = "final"; const pct = Math.round(S.pts / Math.max(1,S.max) * 100); S.pct = pct;
+  const k = S.mode; const old = STORE.rec[k]; S.newRec = S.route!=="W" && (old==null || pct>old); if(S.newRec) STORE.rec[k] = pct; STORE.played++; saveStore(); }
+
+// ---------- Auswertung ----------
+function finalHtml(){
+  const pct = S.pct, stars = pct>=80?3:pct>=55?2:1, r = S.ruf;
+  const verdict = r>=75 ? ["Platz an der Hauptbühne 2027!","Ole Brodersen gibt euch den besten Platz auf dem ganzen Gelände. Jana ist sprachlos."]
+    : r>ZACK_RUF ? ["Ihr dürft 2027 wiederkommen.","Ole ist zufrieden. Euer Stand war besser als die Snackbude Zack – an ein paar Stellen geht aber noch mehr."]
+    : ["Diesmal nicht.","Ole sagt: „Zu viele Pannen.“ Spielt noch eine Runde und zeigt, dass ihr es besser könnt."];
+  let h = `<div class="stack" style="padding-top:16px"><div class="score"><span class="lbl" style="color:inherit;opacity:.8">Punktekarte · ${esc(S.team)}</span>
+   <div class="stars">${IC.star(stars>=1)}${IC.star(stars>=2)}${IC.star(stars>=3)}</div><div class="big">${Math.round(S.pts)} / ${S.max}</div>
+   <div>${pct} % · ${S.mode==="pro"?"Profi":"Anfänger"} · ${ROUTES[S.route].name}${S.code?" · Challenge "+esc(S.code):""}${S.newRec?" · neuer Rekord!":""}</div>
+   <div class="kv"><div><b>${r}</b>Festival-Ruf</div><div><b>${S.log.filter(l=>l.s===2).length}/${S.log.length}</b>Top-Entscheidungen</div><div><b>${S.evs.filter(e=>e.good).length}/${S.evs.length}</b>Zwischenfälle</div></div></div>
+   <div class="card stack"><span class="tag">Sonntag, 23:59 Uhr · Ole Brodersen verkündet</span><h2>${verdict[0]}</h2><p>${verdict[1]}</p>
+    <div class="vs"><div class="r"><b>${esc(S.team)}</b><div class="meter"><i style="width:${r}%"></i></div><span>${r}</span></div>
+    <div class="r"><b>Snackbude Zack</b><div class="meter"><i style="width:${ZACK_RUF}%;background:#8E44AD"></i></div><span>${ZACK_RUF}</span></div></div></div>
+   <div class="row"><button class="btn hot" data-act="again">Nochmal mit neuen Fällen</button><button class="btn alt" data-act="menu">Andere Strecke oder anderer Modus</button></div>
+   <h2>So steht es in der Prüfung</h2><p class="small muted">Zu jeder Entscheidung: eure Wahl, die Begründung und der Satz wie in der IHK-Prüfung.</p>`;
+  S.ids.forEach(id => { const c = CHM[id]; const ls = S.log.filter(l=>l.ch===id); const mi = S.minis.find(x=>x.ch===id); const pr = S.prof.find(x=>x.ch===id);
+    h += `<details ${ls.some(l=>l.s<2||l.weilOk===false)?"open":""} class="card"><summary>Modul ${c.mod} · ${esc(c.topic)} ${ls.map(l=>l.s===2&&l.weilOk!==false?"✓":l.s===1?"~":"✗").join(" ")}</summary><div class="review">`;
+    ls.forEach(l => { const o = l.d.opts[l.sel], best = l.d.opts.find(x=>x.s===2);
+      h += `<div class="rv r${o.s}"><b>${esc(l.d.q)}</b><span>Eure Wahl: ${esc(o.t)}</span><span class="small">${esc(o.why)}</span>${o.s<2?`<span class="small"><b>Besser:</b> ${esc(best.t)}</span>`:""}${l.weilOk===false?`<span class="small"><b>Richtige Begründung:</b> ${esc(l.d.weil[0])}</span>`:""}<div class="ihk"><b>So steht es in der Prüfung:</b> ${esc(l.d.ihk)}</div></div>`; });
+    if(mi) h += `<p class="small">Mini-Spiel „${MINI_TITLE[mi.t]}“: ${mi.p} von 10 Punkten</p>`;
+    if(pr) h += `<p class="small">Profi-Frage: ${pr.ok?"richtig":"falsch"} – ${esc(pr.q.opts[0])}</p>`;
+    const tk = S.talks.find(x=>x.ch===id); if(tk) h += `<div class="rv ${tk.p===3?"r2":tk.p>0?"r1":"r0"}"><b>Kundengespräch: ${tk.p} von 3 Punkten</b><span class="small">${esc(tk.t.sit)}</span><div class="ihk"><b>So steht es in der Prüfung:</b> Aspekt: ${esc(tk.t.a)} (1 Punkt) · ${esc(tk.t.s.map(x=>x[0]).join(" "))} (2 Punkte)</div></div>`;
+    h += `</div></details>`; });
+  return h + `</div>`;
+}
+
+// ---------- Klicks ----------
+const ACT = {
+  pre(b){ keepTeam(); pre[b.dataset.g] = b.dataset.v; render(); },
+  daycode(){ keepTeam(); const d = new Date(); pre.code = "DB" + String(d.getDate()).padStart(2,"0") + String(d.getMonth()+1).padStart(2,"0"); render(); },
+  music(){ MUS.on = !MUS.on; STORE.music = MUS.on; saveStore(); if(MUS.on){ audioInit(); toast("Musik an – Handy leise stellen oder Kopfhörer nutzen."); } render(); },
+  start(){ keepTeam(); newGame(); },
+  reset(b){ if(b.dataset.v==="ask") ui.reset = true; else if(b.dataset.v==="yes"){ STORE = {seen:{}, rec:{}, played:0, ever:[]}; saveStore(); ui.reset = false; toast("Fortschritt zurückgesetzt."); } else ui.reset = false; render(); },
+  go(){ S.step = "chap"; ui = {}; render(); toTop(); },
+  tochap(){ S.step = "dec"; ui = {d:0}; render(); toTop(); },
+  sel(b){ if(ui.locked) return; ui.sel = +b.dataset.v; render(); },
+  lock(){ if(ui.sel==null) return; lockDec(); render(); },
+  joker(){ const d = curDec(); const bad = d.opts.map((o,i)=>[o,i]).filter(([o,i])=>o.s===0 && i!==ui.sel); if(!bad.length || S.jokers<1) return; ui.gone = [bad[Math.floor(Math.random()*bad.length)][1]]; S.jokers--; S.pts -= 2; toast("Eine falsche Antwort ist gestrichen. (−2 Punkte)"); render(); },
+  words(){ ui.words = !ui.words; render(); },
+  weil(b){ finishWeil(+b.dataset.v); render(); },
+  next(){ if((ui.d||0)===0){ ui = {d:1}; render(); toTop(); } else { S.step = "mini"; ui = {}; render(); toTop(); } },
+  bon(b){ if(ui.fb) return; answerMini(b.dataset.v); render(); },
+  ans(b){ if(ui.fb) return; answerMini(b.dataset.v); render(); },
+  mnext(){ nextMiniItem(); render(); },
+  hint(){ ui.hint = true; render(); },
+  abl(b){ const m = ui.m, x = +b.dataset.v; const want = m.placed.length; if(x===want){ m.placed.push(x); ui.wrong = null; if(m.placed.length===ABLAUF.length){ m.got = 1; m.done = true; } } else { m.err++; ui.wrong = x; } render(); },
+  sign(b){ ui.m.sign[b.dataset.g] = b.dataset.v; render(); },
+  signchk(){ const m = ui.m; m.signOk = m.sign.absch==="+" && m.sign.wg==="-"; m.got += (m.sign.absch==="+"?2:0) + (m.sign.wg==="-"?2:0); m.stage = 1; render(); },
+  calc(b){ const m = ui.m, st = +b.dataset.v; const val = parseNum($("#in"+st) && $("#in"+st).value); if(val==null){ toast("Bitte eine Zahl eingeben, z. B. 2.345,60"); return; }
+    if(st===1){ m.losOk = Math.abs(val-m.los)<0.005; if(m.losOk) m.got += 3; m.stage = 2; } else { m.umsOk = Math.abs(val-m.ums)<0.005; if(m.umsOk) m.got += 3; m.stage = 3; } render(); },
+  bdone(){ ACT.minidone(); },
+  bes(b){ const m = ui.m; if(b.dataset.g==="b") m.pickB = +b.dataset.v; else m.pickE = +b.dataset.v; render(); },
+  beschk(){ const m = ui.m, it = m.items[m.i]; const okB = m.pickB===it.b, okE = m.pickE===it.e; m.got += (okB?0.5:0) + (okE?0.5:0); markSeen("m-besitz", it.id);
+    ui.fb = {ok: okB&&okE, html: `Besitzer: <b>${esc(it.p[it.b])}</b> (hat die Sache) · Eigentümer: <b>${esc(it.p[it.e])}</b> (ihm gehört sie).`}; render(); },
+  minidone(){ finishMini(); afterMini(); render(); toTop(); },
+  tasp(b){ ui.ta = b.dataset.v; render(); },
+  tsl(b){ ui.ts = ui.ts || [null,null,null]; ui.ts[+b.dataset.g] = +b.dataset.v; render(); },
+  tchk(){ checkTalk(); render(); },
+  tnext(){ afterTalk(); render(); toTop(); },
+  pans(b){ ui.pa = +b.dataset.v; const ok = ui.pa===0; markSeen("p-"+chap().id, ui.pq.id); S.prof.push({ch:chap().id, q:ui.pq, ok}); S.max += 5; if(ok){ S.pts += 5; addRuf(2); } render(); },
+  pnext(){ advanceChapter(); render(); toTop(); },
+  evnext(){ ui.evDone = true; advanceChapter(); render(); toTop(); },
+  again(){ pre = {team:S.team, route:S.route, mode:S.mode, code:S.code||""}; newGame(); },
+  menu(){ pre = {team:S.team, route:S.route, mode:S.mode, code:S.code||""}; S = null; ui = {}; render(); toTop(); }
+};
+function keepTeam(){ const t = $("#team"); if(t) pre.team = t.value; const c = $("#code"); if(c) pre.code = c.value; }
+function toTop(){ window.scrollTo({top:0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}); }
+document.addEventListener("click", e => { const b = e.target.closest("[data-act]"); if(!b || b.disabled) return; const f = ACT[b.dataset.act]; if(f) f(b); });
+document.addEventListener("input", e => { if(e.target.id==="team") pre.team = e.target.value; if(e.target.id==="code") pre.code = e.target.value; });
+document.addEventListener("keydown", e => { if(e.key==="Enter" && e.target.id && /^in[12]$/.test(e.target.id)){ const b = e.target.parentElement.querySelector('[data-act="calc"]'); if(b) b.click(); } });
+render();
+</script>
+</body>
+</html>

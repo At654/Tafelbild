@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escape Room LF 3 – Kassensturz</title>
+<style>
+:root{--blau:#1F4E79;--hell:#EAF1F8;--rosa:#E5B8B7;--gruen:#2E6B45;--rot:#C00000;--grau:#F2F2F2}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}
+header{background:var(--blau);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header h1{font-size:20px;margin:0}#uhr{font-size:22px;font-weight:bold;font-variant-numeric:tabular-nums}
+main{max-width:980px;margin:0 auto;padding:16px}
+.story{background:var(--hell);border-left:5px solid var(--blau);padding:12px 16px;border-radius:4px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin:18px 0}
+.tile{border:2px solid var(--blau);border-radius:8px;padding:14px;cursor:pointer;background:#fff;min-height:110px;position:relative}
+.tile:hover{background:var(--hell)}.tile h3{margin:0 0 4px;color:var(--blau)}.tile small{color:#595959}
+.tile.done{border-color:var(--gruen);background:#E2EFDA}.badge{position:absolute;right:12px;top:10px;font-size:30px;font-weight:bold;color:var(--gruen)}
+.station{display:none;border:2px solid var(--blau);border-radius:8px;padding:16px;margin-top:10px}
+.q{margin:12px 0;padding:10px;border-radius:6px;background:var(--grau)}.q.ok{background:#E2EFDA}.q.bad{background:#F8D7D7}
+.q p{margin:0 0 6px;font-weight:bold}label{display:block;padding:3px 0;cursor:pointer}
+input[type=number],input[type=text]{font-size:18px;padding:6px;width:140px}
+button{background:var(--blau);color:#fff;border:0;border-radius:5px;padding:9px 16px;font-size:15px;cursor:pointer;margin:6px 6px 0 0}
+button.sec{background:#fff;color:var(--blau);border:1px solid var(--blau)}
+.msg{margin-top:10px;font-weight:bold}.tipp{display:none;margin-top:8px;padding:8px;background:#FFF2CC;border-radius:5px}
+#tresor{border:3px dashed #595959;border-radius:10px;padding:16px;text-align:center;margin-top:20px}
+#code{font-size:28px;letter-spacing:8px;width:220px;text-align:center}
+#code-slots{font-size:26px;letter-spacing:10px;margin:6px 0;color:var(--gruen);font-weight:bold}
+#ende{display:none;background:#E2EFDA;border:3px solid var(--gruen);border-radius:10px;padding:18px;margin-top:16px;text-align:center}
+@media print{header{background:#fff;color:#000}}
+</style></head><body>
+<header><h1>Escape Room LF 3 · Kassensturz</h1><div>⏱ <span id="uhr">45:00</span></div></header>
+<main>
+<div class="story"><b>Es ist 20 Uhr in der Kaufhaus Hansa GmbH.</b> Die Filialleitung hat einen <b>Kassensturz</b> angekündigt – aber das Wechselgeld für morgen liegt im Kassentresor, und niemand kennt den Code. Die Kassenaufsicht hat ihn auf sechs Aufgaben verteilt: Jede gelöste Station verrät eine Ziffer. Ihr habt <b>45 Minuten</b>. Tipps gibt es – aber jeder Tipp kostet <b>2 Minuten</b>. <br><i>Zahlen ohne €-Zeichen eingeben, Komma oder Punkt ist egal (z. B. 12,98). Taschenrechner und Rezeptkarten sind erlaubt.</i></div>
+<div class="grid" id="grid"></div>
+<div class="station" id="station"></div>
+<div id="tresor"><h2>🔒 Der Kassentresor</h2><div>Eure Ziffern (Station 1 bis 6):</div><div id="code-slots">_ _ _ _ _ _</div>
+<input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="······"> <button onclick="oeffnen()">Tresor öffnen</button><div class="msg" id="tmsg"></div></div>
+<div id="ende"><h2>🎉 Der Kassentresor ist offen!</h2><p>Das Wechselgeld ist da – der Kassensturz kann kommen. Eure Zeit: <b id="zeit"></b> · Genutzte Tipps: <b id="ntipps"></b></p>
+<p>Zeigt diesen Bildschirm eurer Lehrkraft.</p></div>
+</main>
+<script>
+const ST=[{"t": "Dreisatz und Grundpreis", "m": "Module 11 und 12", "z": 3, "h": "Grundpreis = Preis : Menge in kg. Lose Ware = Preis je kg × Menge in kg. Prämie = alte Prämie : alter Umsatz × neuer Umsatz.", "f": [["Eine 500-g-Packung Kaffee kostet 6,49 €. Grundpreis je kg in €? (Zahl mit Komma)", null, 12.98], ["300 g Käse zu 18,90 € je kg kosten … € (Zahl)", null, 5.67], ["Für 2.500 € Umsatz gibt es 50 € Prämie. Prämie bei 3.400 € Umsatz in €? (Zahl)", null, 68.0], ["Welche Aufgabe löst du mit dem Dreisatz über die 1?", ["6 Tassen kosten 53,40 €. Was kosten 8 Tassen?", "Wie viel Prozent ist der Rabatt?", "Wie hoch ist die Umsatzsteuer?", "Wie viele Kunden kamen je Stunde?"], 0]]}, {"t": "Rabatt und Skonto", "m": "Modul 13 und 15", "z": 7, "h": "Zu zahlen = Preis : 100 × (100 − p). Zwei Rabatte nacheinander: der zweite vom neuen Preis.", "f": [["74,90 € mit 20 % Rabatt. Zu zahlen in €? (Zahl)", null, 59.92], ["Rechnung 1.600 € mit 3 % Skonto. Überweisung in €? (Zahl)", null, 1552.0], ["125 € −20 %, danach noch −10 %. Neuer Preis in €? (Zahl)", null, 90.0], ["Ein Kunde legt einen 15-%-Coupon vor. Womit rechnest du den Zahlbetrag?", ["Preis : 100 × 85", "Preis : 100 × 15", "Preis : 115 × 100", "Preis − 15"], 0]]}, {"t": "Prozentsatz und Grundwert", "m": "Modul 14", "z": 1, "h": "p = Differenz × 100 : alter Preis. Preis vorher = neuer Preis : (100 − p) × 100.", "f": [["Ein Preis sinkt von 49,90 € auf 39,92 €. Um wie viel Prozent? (Zahl)", null, 20], ["Kasse 2 hat 1.350 € von 5.400 € Tagesumsatz. Anteil in %? (Zahl)", null, 25], ["Nach 25 % Rabatt kostet eine Hose 44,97 €. Preis vorher in €? (Zahl)", null, 59.96], ["Welcher Preis ist bei „Um wie viel Prozent reduziert?“ der Grundwert?", ["der neue Preis", "der alte Preis", "die Differenz", "der Rabatt"], 1]]}, {"t": "Umsatzsteuer", "m": "Modul 15", "z": 9, "h": "USt heraus: brutto : 119 × 19 (7 %: : 107 × 7). netto = brutto : 119 × 100. brutto = netto : 100 × 119.", "f": [["Wie viel Euro USt (19 %) stecken in 59,50 €? (Zahl)", null, 9.5], ["Ein Buch kostet 107,00 € brutto (7 %). Nettopreis in €? (Zahl)", null, 100], ["Nettopreis 80 €, dazu 19 % USt. Bruttopreis in €? (Zahl)", null, 95.2], ["Welche Rechnung für die USt aus 119 € ist FALSCH?", ["119 × 19 %", "119 : 119 × 19", "brutto − netto", "119 : 1,19 = 100, dann 119 − 100"], 0]]}, {"t": "Durchschnitt und Verteilung", "m": "Module 16 und 17", "z": 4, "h": "Kunden je Stunde = Kunden : Stunden. Gewogen = Summe (Menge × Preis) : Summe der Mengen. Verteilung = Kosten : Summe der Anteile × Anteil.", "f": [["1.767 Kunden, geöffnet 09:00–13:30 und 15:00–20:00. Kunden je Stunde? (Zahl)", null, 186], ["10 Paar Socken zu 4 € und 30 Paar zu 6 €. Durchschnittspreis in €? (Zahl)", null, 5.5], ["2.400 € Kosten nach Fläche: 500, 300 und 400 m². Anteil der 300 m² in €? (Zahl)", null, 600.0], ["Umsatz netto 2.448 € bei 144 Kunden. Umsatz je Kunde in €? (Zahl)", null, 17.0]]}, {"t": "Der Kassensturz", "m": "Modul 6 und 18", "z": 5, "h": "Tagesumsatz = Kassenbestand + Abschöpfung − Wechselgeld + Karte. Differenz = Ist − Soll. Karte gehört nie in den Bargeld-Soll.", "f": [["Kassenbestand 1.980,50 € · Abschöpfung 1.500 € · Wechselgeld 250 € · Karte 2.114,30 €. Tagesumsatz in €? (Zahl)", null, 5344.8], ["30 Artikel zu 12,95 € verkauft, 100 € Wechselgeld, Ist 478,50 €. Kassendifferenz in €? (Zahl mit Minus)", null, -10.0], ["Abends sind 5 € ZU VIEL in der Kasse. Was kann die Ursache sein?", ["Einem Kunden wurde zu wenig Wechselgeld gegeben.", "Einem Kunden wurde zu viel Wechselgeld gegeben.", "Es wurde etwas gestohlen.", "Die Abschöpfung wurde doppelt gezählt."], 0], ["Soll 620 € · Barumsatz 3.400 € · Rückgabe bar 20 € · Entnahme 3.000 €. Mit wie viel Euro wurde die Kasse eröffnet? (Zahl)", null, 240.0]]}];
+let t0=Date.now(),strafe=0,tipps=0,fertig=false;const gel=ST.map(()=>false);
+function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function rest(){return 45*60-Math.floor((Date.now()-t0)/1000)-strafe}
+setInterval(()=>{if(!fertig){document.getElementById('uhr').textContent=fmt(rest())}},500);
+const ORD={};function ord(i,j,n){const key=i+'_'+j;if(!ORD[key]){const a=[...Array(n).keys()];for(let x=n-1;x>0;x--){const y=Math.floor(Math.random()*(x+1));[a[x],a[y]]=[a[y],a[x]]}ORD[key]=a}return ORD[key]}
+function grid(){const g=document.getElementById('grid');g.innerHTML='';ST.forEach((s,i)=>{const d=document.createElement('div');d.className='tile'+(gel[i]?' done':'');
+ d.innerHTML='<h3>Station '+(i+1)+': '+s.t+'</h3><small>'+s.m+'</small>'+(gel[i]?'<div class="badge">'+s.z+'</div>':'');d.onclick=()=>zeige(i);g.appendChild(d)});
+ document.getElementById('code-slots').textContent=ST.map((s,i)=>gel[i]?s.z:'_').join(' ')}
+function zeige(i){const s=ST[i],box=document.getElementById('station');let h='<h2>Station '+(i+1)+': '+s.t+'</h2>';
+ s.f.forEach((q,j)=>{h+='<div class="q" id="q'+i+'_'+j+'"><p>'+(j+1)+'. '+q[0]+'</p>';
+  if(q[1]){ord(i,j,q[1].length).forEach(k=>{h+='<label><input type="radio" name="r'+i+'_'+j+'" value="'+k+'"> '+q[1][k]+'</label>'})}
+  else{h+='<input type="text" inputmode="decimal" id="n'+i+'_'+j+'">'}h+='</div>'});
+ h+='<button onclick="pruefe('+i+')">Prüfen</button><button class="sec" onclick="tipp('+i+')">Tipp (+2 Min.)</button><button class="sec" onclick="zu()">Zurück zur Übersicht</button>';
+ h+='<div class="tipp" id="tipp'+i+'">💡 '+s.h+'</div><div class="msg" id="msg'+i+'"></div>';box.innerHTML=h;box.style.display='block';box.scrollIntoView({behavior:'smooth'})}
+function zu(){document.getElementById('station').style.display='none';window.scrollTo({top:0,behavior:'smooth'})}
+function tipp(i){const e=document.getElementById('tipp'+i);if(e.style.display!=='block'){e.style.display='block';strafe+=120;tipps++}}
+function pruefe(i){const s=ST[i];let ok=0;s.f.forEach((q,j)=>{let a;if(q[1]){const r=document.querySelector('input[name="r'+i+'_'+j+'"]:checked');a=r?parseInt(r.value):-1}
+ else{a=parseFloat((document.getElementById('n'+i+'_'+j).value||'').replace(',','.'))}
+ const r=(a===q[2]);document.getElementById('q'+i+'_'+j).className='q '+(r?'ok':'bad');if(r)ok++});
+ const m=document.getElementById('msg'+i);
+ if(ok===s.f.length){gel[i]=true;m.innerHTML='✅ Alles richtig! Eure Ziffer für den Tresor: <span style="font-size:28px;color:#2E6B45">'+s.z+'</span>';grid()}
+ else{m.textContent=ok+' von '+s.f.length+' richtig. Die roten Aufgaben noch einmal prüfen – schaut in euren Unterlagen nach.'}}
+function oeffnen(){const c=document.getElementById('code').value.trim();const m=document.getElementById('tmsg');
+ if(c==='371945'){fertig=true;const used=45*60-rest();document.getElementById('zeit').textContent=fmt(used)+' Min. (inkl. Tipps)';document.getElementById('ntipps').textContent=tipps;
+  document.getElementById('ende').style.display='block';m.textContent='';document.getElementById('ende').scrollIntoView({behavior:'smooth'})}
+ else{m.textContent='❌ Der Tresor bleibt zu. Prüft eure Ziffern!';strafe+=30}}
+grid();
+</script></body></html>
