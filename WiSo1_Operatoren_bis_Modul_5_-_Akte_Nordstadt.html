@@ -1,0 +1,1579 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Akte Nordstadt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Atkinson+Hyperlegible:wght@400;700&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+/* Layout: eine Spalte wie eine Ermittlungsakte – oben Statusleiste, darunter Pinnwand-Szene, darunter die aktuelle Akte im Aktendeckel */
+:root{
+  --bg:#e4ebf0; --surface:#fbfcfd; --surface2:#eef3f6; --ink:#172636; --muted:#4b5c6c; --line:#c3cfd8;
+  --navy:#1f4767; --on-navy:#ffffff; --manila:#efd9a0; --manila2:#e3c77f; --on-manila:#3a2b06;
+  --stamp:#bf3328; --evid:#1f7a4b; --signal:#ffe066; --on-signal:#2b2300; --opbg:#cfe3f5; --on-op:#0f2d47;
+  --good:#1f7a4b; --bad:#bf3328; --mid:#9a6a00; --good-bg:#def2e6; --bad-bg:#fbe2df; --mid-bg:#faefd2;
+  --display:"Alfa Slab One","Rockwell","Georgia",serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"Courier Prime","Courier New",ui-monospace,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1620; --surface:#15212d; --surface2:#1b2a38; --ink:#e3ebf2; --muted:#a2b3c3; --line:#2e4152;
+  --navy:#78b0dc; --on-navy:#07131d; --manila:#c9ae68; --manila2:#b39550; --on-manila:#1f1602;
+  --stamp:#f2806f; --evid:#62cf92; --signal:#e9c84a; --on-signal:#211a00; --opbg:#1f3b55; --on-op:#d8ebfb;
+  --good:#62cf92; --bad:#f2806f; --mid:#e9c25a; --good-bg:#16352a; --bad-bg:#41211d; --mid-bg:#3a3018; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1620; --surface:#15212d; --surface2:#1b2a38; --ink:#e3ebf2; --muted:#a2b3c3; --line:#2e4152;
+  --navy:#78b0dc; --on-navy:#07131d; --manila:#c9ae68; --manila2:#b39550; --on-manila:#1f1602;
+  --stamp:#f2806f; --evid:#62cf92; --signal:#e9c84a; --on-signal:#211a00; --opbg:#1f3b55; --on-op:#d8ebfb;
+  --good:#62cf92; --bad:#f2806f; --mid:#e9c25a; --good-bg:#16352a; --bad-bg:#41211d; --mid-bg:#3a3018; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--body);font-size:17px;line-height:1.5;padding-inline:16px;padding-block:0 48px}
+.wrap{max-width:820px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.12;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.2rem,8vw,3.4rem);letter-spacing:.01em}
+h2{font-size:clamp(1.35rem,4.6vw,1.8rem)}
+h3{font-size:1.15rem}
+p{margin:0}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--signal);outline-offset:2px;border-radius:8px}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+
+/* Statusleiste */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin-inline:-16px;padding:8px 16px 6px;background:var(--surface);border-bottom:2px solid var(--ink);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.brand{font-family:var(--display);font-size:1.15rem;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.brand svg{width:26px;height:26px}
+.sp{flex:1}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;background:var(--surface2);border:1.5px solid var(--line);font-weight:700;font-size:.85rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill.pts{background:var(--navy);color:var(--on-navy);border-color:transparent}
+.pill.alarm{border-color:var(--stamp);color:var(--stamp)}
+.pill svg{width:14px;height:14px}
+.iconbtn{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--line);background:var(--surface2);border-radius:999px;padding:3px 10px;font-weight:700;font-size:.85rem;cursor:pointer;min-height:32px}
+.iconbtn svg{width:16px;height:16px}
+.iconbtn[aria-pressed="true"]{background:var(--navy);color:var(--on-navy);border-color:transparent}
+.steps{display:flex;gap:3px;width:100%}
+.steps i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.steps i.ok{background:var(--evid)}
+.steps i.no{background:var(--stamp)}
+.steps i.mini{background:var(--navy);opacity:.55}
+.steps i.now{background:var(--signal);outline:1.5px solid var(--ink)}
+
+main{padding-top:16px;display:grid;gap:16px;overflow-x:clip;overflow-clip-margin:10px}
+.card{background:var(--surface);border:2px solid var(--ink);border-radius:var(--r);padding:18px;box-shadow:4px 4px 0 var(--ink);min-width:0}
+.eyebrow{font-family:var(--mono);font-weight:700;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--navy)}
+.lead{color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stack{display:grid;gap:12px}
+.btn{border:2px solid var(--ink);background:var(--navy);color:var(--on-navy);font-weight:700;font-size:1.05rem;padding:12px 20px;border-radius:12px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:transform .08s;min-height:48px}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.sig{background:var(--signal);color:var(--on-signal)}
+.btn.ghost{background:var(--surface);color:var(--ink)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.wide{width:100%}
+
+/* Szene */
+.scene{border:2px solid var(--ink);border-radius:var(--r);overflow:hidden;background:#1d3a52;box-shadow:4px 4px 0 var(--ink)}
+.scene svg{display:block;width:100%;height:auto}
+
+/* Akte */
+.akte{position:relative;background:var(--manila);color:var(--on-manila);border:2px solid var(--ink);border-radius:4px 14px 14px 14px;padding:18px;box-shadow:4px 4px 0 var(--ink);margin-top:22px;min-width:0}
+.akte::before{content:attr(data-tab);position:absolute;left:-2px;top:-26px;height:26px;padding:3px 14px 0;background:var(--manila2);border:2px solid var(--ink);border-bottom:none;border-radius:10px 10px 0 0;font-family:var(--mono);font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;max-width:calc(100% - 20px);overflow:hidden;text-overflow:ellipsis}
+.akte h2{color:var(--on-manila)}
+.akte .story{font-size:1.05rem}
+.sheet{background:var(--surface);color:var(--ink);border:1.5px solid var(--ink);border-radius:10px;padding:14px;min-width:0}
+.q{font-weight:700;font-size:1.1rem;line-height:1.55}
+.q .w{border-radius:4px;padding:0 1px}
+.q button.w{border:none;background:none;padding:0 2px;cursor:pointer;font-weight:700;border-bottom:2px dotted var(--line)}
+.q button.w.on{background:var(--signal);color:var(--on-signal);border-bottom-color:transparent}
+.hl-op{background:var(--opbg);color:var(--on-op);border-radius:4px;padding:0 3px}
+.hl-sig{background:var(--signal);color:var(--on-signal);border-radius:4px;padding:0 3px}
+.q .miss{outline:2px dashed var(--stamp);outline-offset:1px}
+.q .wrongtap{text-decoration:line-through;text-decoration-color:var(--stamp)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:.85rem}
+.persona-mini{display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:center}
+.persona-mini svg{width:52px;height:52px}
+
+.opts{display:grid;gap:10px}
+.opt{position:relative;text-align:left;border:2px solid var(--line);background:var(--surface2);border-radius:12px;padding:12px 14px;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;min-height:52px;min-width:0}
+.opt:hover:not([disabled]){border-color:var(--navy)}
+.opt .k{font-family:var(--mono);font-weight:700;display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--surface);border:1.5px solid var(--line)}
+.opt.sel{border-color:var(--navy);background:var(--surface);box-shadow:0 0 0 3px var(--navy) inset}
+.opt.sel .k{background:var(--navy);color:var(--on-navy);border-color:transparent}
+.opt[disabled]{cursor:default}
+.opt.right{border-color:var(--good);background:var(--good-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.inp{font:inherit;font-family:var(--mono);font-size:1.25rem;padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:100%;max-width:260px}
+.inp:focus{border-color:var(--navy);outline:none}
+
+.bet{display:grid;gap:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:2px solid var(--line);background:var(--surface2);border-radius:999px;padding:6px 14px;font-weight:700;cursor:pointer;min-height:40px}
+.chip[aria-pressed="true"]{background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
+.chip small{font-weight:400;opacity:.85}
+
+.stamp{position:absolute;right:12px;top:-20px;font-family:var(--display);font-size:1.2rem;letter-spacing:.06em;padding:2px 12px;border:4px solid currentColor;border-radius:8px;transform:rotate(-8deg);opacity:.92;pointer-events:none;background:color-mix(in srgb,var(--manila) 70%,transparent)}
+.stamp.ok{color:var(--good)} .stamp.no{color:var(--bad)}
+@media (prefers-reduced-motion:no-preference){.stamp{animation:thump .35s ease-out}}
+@keyframes thump{0%{transform:rotate(-8deg) scale(2.2);opacity:0}70%{transform:rotate(-8deg) scale(.95);opacity:1}100%{transform:rotate(-8deg) scale(1)}}
+
+.react{display:grid;grid-template-columns:68px 1fr;gap:12px;align-items:center;border-radius:12px;padding:12px;border:2px solid var(--line);background:var(--surface2)}
+.react svg{width:68px;height:68px}
+.bubble{font-weight:700;font-size:1.08rem;line-height:1.3}
+.term{border-left:6px solid var(--navy);padding:10px 12px;background:var(--surface2);border-radius:0 10px 10px 0}
+.term b{color:var(--navy)}
+.clue{display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;border:2px dashed var(--evid);background:var(--good-bg)}
+.clue svg{width:40px;height:40px}
+.warn{padding:10px 12px;border-radius:10px;border:2px dashed var(--stamp);background:var(--bad-bg)}
+.joker{padding:10px 12px;border-radius:10px;border:2px solid var(--navy);background:var(--surface2)}
+
+/* Start */
+.hero{display:grid;gap:14px}
+.field{display:grid;gap:4px}
+.field label{font-weight:700;font-size:.95rem}
+.field input{padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--surface);font-size:1.05rem}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.mode{text-align:left;border:2px solid var(--line);background:var(--surface2);border-radius:12px;padding:14px;cursor:pointer;display:grid;gap:4px;min-width:0}
+.mode.sel{border-color:var(--navy);box-shadow:0 0 0 3px var(--navy) inset;background:var(--surface)}
+.mode[disabled]{opacity:.55;cursor:not-allowed}
+.mode .t{font-family:var(--display);font-size:1.25rem}
+.lock{font-size:.85rem;font-weight:700;color:var(--stamp)}
+
+/* Personenkarte */
+.flipwrap{perspective:900px;max-width:340px;margin:0 auto;width:100%}
+.flip{position:relative;transform-style:preserve-3d;transition:transform .7s;min-height:300px}
+.flip.turned{transform:rotateY(180deg)}
+@media (prefers-reduced-motion:reduce){.flip{transition:none}}
+.face{position:absolute;inset:0;backface-visibility:hidden;border:2px solid var(--ink);border-radius:var(--r);box-shadow:4px 4px 0 var(--ink);display:grid;place-items:center;padding:16px}
+.face.front{background:var(--navy);color:var(--on-navy)}
+.face.back{background:var(--surface);transform:rotateY(180deg);align-content:start;gap:8px;justify-items:center;text-align:center}
+.face.back svg.pf{width:120px;height:120px}
+.facts{display:grid;gap:4px;width:100%;text-align:left;font-size:.95rem}
+.facts div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding-bottom:2px}
+.facts b{text-align:right}
+
+/* Mini-Spiele */
+.cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cat{border:2px solid var(--ink);background:var(--surface2);border-radius:12px;padding:12px 8px;font-weight:700;cursor:pointer;min-height:56px;display:grid;gap:2px;justify-items:center;text-align:center}
+.cat small{font-weight:400;color:var(--muted);font-size:.8rem}
+.cat[disabled]{cursor:default;opacity:.6}
+.cat.right{background:var(--good-bg);border-color:var(--good);opacity:1}
+.cat.wrong{background:var(--bad-bg);border-color:var(--bad);opacity:1}
+.item{font-size:1.15rem;font-weight:700;padding:14px;border:2px dashed var(--ink);border-radius:12px;background:var(--surface);text-align:center}
+.timer{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums}
+.timer.low{color:var(--stamp)}
+.contract{border:2px solid var(--ink);border-radius:8px;background:var(--surface);overflow:hidden}
+.contract h3{font-family:var(--mono);font-weight:700;text-align:center;padding:10px;border-bottom:2px solid var(--ink);font-size:1rem;letter-spacing:.04em}
+.crow{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr);gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;width:100%;background:none;border-left:none;border-right:none;border-top:none;cursor:pointer;font-size:.97rem}
+.crow:last-child{border-bottom:none}
+.crow .lab{overflow-wrap:anywhere;font-family:var(--mono);font-weight:700;font-size:.85rem;color:var(--muted)}
+.crow.flag{background:var(--mid-bg);box-shadow:inset 5px 0 0 var(--mid)}
+.crow.found{background:var(--good-bg);box-shadow:inset 5px 0 0 var(--good)}
+.crow.missed{background:var(--bad-bg);box-shadow:inset 5px 0 0 var(--bad)}
+.crow.false{background:var(--mid-bg);box-shadow:inset 5px 0 0 var(--mid)}
+.crow .why{grid-column:1/-1;font-size:.9rem;font-weight:700}
+.crow[disabled]{cursor:default}
+.calc{display:grid;gap:10px;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--surface2)}
+
+/* Finale */
+.suspects{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.sus{text-align:left;border:2px solid var(--ink);background:var(--surface);border-radius:12px;padding:12px;cursor:pointer;display:grid;gap:6px;min-width:0}
+.sus svg{width:76px;height:76px}
+.sus.sel{box-shadow:0 0 0 4px var(--stamp) inset}
+.sus.out{opacity:.5}
+.sus ul{margin:0;padding-left:18px;font-size:.92rem}
+.cluelist{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.cluelist li{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:start;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1.5px solid var(--line)}
+.cluelist li span.n{font-family:var(--mono);font-weight:700;color:var(--evid)}
+
+/* Auswertung */
+.scorecard{background:var(--navy);color:var(--on-navy);border:2px solid var(--ink);border-radius:var(--r);padding:20px;box-shadow:4px 4px 0 var(--ink);display:grid;gap:10px;text-align:center}
+.scorecard .big{font-family:var(--display);font-size:clamp(2.6rem,12vw,4rem);line-height:1;font-variant-numeric:tabular-nums}
+.stars{display:flex;gap:6px;justify-content:center}
+.stars svg{width:38px;height:38px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{background:var(--surface2);border:1.5px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:2px}
+.kpi b{font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.bars{display:grid;gap:8px}
+.barrow{display:grid;grid-template-columns:minmax(0,8.5em) 1fr 3.2em;gap:8px;align-items:center;font-size:.92rem}
+.track{height:14px;border-radius:7px;background:var(--surface2);border:1.5px solid var(--line);overflow:hidden}
+.track i{display:block;height:100%;background:var(--evid)}
+.track i.lowv{background:var(--stamp)}
+.track i.midv{background:var(--mid)}
+.review{display:grid;gap:10px}
+.rv{border:2px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:6px;background:var(--surface)}
+.rv.ok{border-left:8px solid var(--good)} .rv.no{border-left:8px solid var(--bad)}
+.rv .h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.rv .mark{font-family:var(--display);font-size:1.2rem}
+.rv .ihk{font-size:.95rem;background:var(--surface2);border-radius:8px;padding:8px 10px}
+.rv .ihk b{color:var(--navy)}
+details{border:2px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--surface)}
+details summary{cursor:pointer;font-weight:700}
+.gloss{display:grid;gap:8px;margin-top:10px}
+.gloss div{border-bottom:1px dashed var(--line);padding-bottom:6px}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,20,30,.55);display:grid;place-items:center;padding:16px}
+.overlay .card{max-width:560px;width:100%;max-height:85vh;overflow:auto}
+.note{font-size:.85rem;color:var(--muted)}
+@media (max-width:480px){
+  .card,.akte{padding:14px}
+  .cats{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .crow{grid-template-columns:minmax(0,1fr)}
+  .barrow{grid-template-columns:minmax(0,6.5em) 1fr 3em}
+}
+</style>
+</head><body>
+
+<div class="wrap">
+  <div class="bar" id="bar"></div>
+  <main id="app" aria-live="polite"></main>
+</div>
+<div id="ov"></div>
+<script>
+/* ===================== DATEN ===================== */
+const AREAS={
+  op:{name:"Operatoren",short:"Op",mod:"Einschub Operatoren"},
+  m1:{name:"Modul 1 · Das duale System",short:"M1",mod:"Modul 1"},
+  m2:{name:"Modul 2 · Der Ausbildungsvertrag",short:"M2",mod:"Modul 2"},
+  m3:{name:"Modul 3 · Rechte und Pflichten",short:"M3",mod:"Modul 3"},
+  m4p:{name:"Modul 4 · Probezeit und Ende",short:"M4",mod:"Modul 4"},
+  m4k:{name:"Modul 4 · Kündigung",short:"M4",mod:"Modul 4"},
+  m5:{name:"Modul 5 · Prüfung und Weiterbildung",short:"M5",mod:"Modul 5"}
+};
+/* Reihenfolge der 8 Akten = Zeitleiste der Ausbildung */
+const SLOTS=[
+  {a:"m1",when:"1. Tag"},
+  {a:"m2",when:"Vertragsunterschrift"},
+  {a:"op",when:"1. Berufsschultag"},
+  {a:"m3",when:"Woche 3"},
+  {a:"m3",when:"Woche 6"},
+  {a:"m4p",when:"Monat 3"},
+  {a:"m4k",when:"Monat 7"},
+  {a:"m5",when:"Ende des 1. Jahres"}
+];
+
+const PERSONAS=[
+  {n:"Emre Yilmaz",a:16,g:"m",vb:"Hauptschulabschluss",verk:false,start:[2026,8,1],skin:"#c99a6e",hair:"#1f1712",hs:"short",shirt:"#2f6f9f"},
+  {n:"Lena Kowalski",a:17,g:"w",vb:"Realschulabschluss",verk:false,start:[2026,8,1],skin:"#f1c9a5",hair:"#c58b3c",hs:"long",shirt:"#c0504d"},
+  {n:"Sara Becker",a:19,g:"w",vb:"Abitur",verk:true,start:[2026,9,1],skin:"#e8b98f",hair:"#3a2516",hs:"bun",shirt:"#3b8a6e"},
+  {n:"Mia Hoffmann",a:17,g:"w",vb:"Hauptschulabschluss",verk:false,start:[2026,8,15],skin:"#f3d2b5",hair:"#5a3a22",hs:"pony",shirt:"#7a4fa0"},
+  {n:"Kofi Mensah",a:21,g:"m",vb:"Ausbildung zum Fachlageristen",verk:true,start:[2026,10,1],skin:"#7a4b2a",hair:"#120c08",hs:"curly",shirt:"#d08a2c"},
+  {n:"Jonas Petersen",a:18,g:"m",vb:"Realschulabschluss",verk:false,start:[2026,9,15],skin:"#f0c8a8",hair:"#d9b56a",hs:"short",shirt:"#3d5a80"}
+];
+
+/* Hilfen für Datumsrechnung (UTC, ohne Sommerzeit-Probleme) */
+const D=(y,m,d)=>new Date(Date.UTC(y,m-1,d));
+const fd=(dt)=>String(dt.getUTCDate()).padStart(2,"0")+"."+String(dt.getUTCMonth()+1).padStart(2,"0")+"."+dt.getUTCFullYear();
+const addDays=(dt,n)=>new Date(dt.getTime()+n*864e5);
+const probEnde=(s,months)=>D(s[0],s[1]+months,s[2]-1);
+const eur=(x)=>x.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+
+/* Pflichten für die parametrische Akte */
+const PFLICHTEN=[
+  ["Werkzeuge und Kasse pfleglich behandeln","Azubi"],["den Ausbildungsnachweis regelmäßig durchsehen","Betrieb"],
+  ["über Geschäftsgeheimnisse schweigen","Azubi"],["für die Berufsschule freistellen","Betrieb"],
+  ["den Weisungen der Ausbilderin folgen","Azubi"],["Ausbildungsmittel kostenlos zur Verfügung stellen","Betrieb"],
+  ["am Berufsschulunterricht teilnehmen","Azubi"],["nur Aufgaben geben, die der Ausbildung dienen","Betrieb"],
+  ["die Ausbildungsvergütung zahlen","Betrieb"],["den Ausbildungsnachweis führen","Azubi"],
+  ["die Ordnung im Betrieb beachten","Azubi"],["ein Zeugnis ausstellen","Betrieb"]
+];
+const MUSS=["die Dauer der Probezeit","die Höhe der Vergütung","die Dauer des Urlaubs","den Hinweis auf geltende Tarifverträge","die Form des Ausbildungsnachweises","Beginn und Dauer der Ausbildung","die tägliche Ausbildungszeit"];
+const MUSSNICHT=["die Kleidervorschriften im Laden","die Handynummer der Ausbilderin","den Stundenplan der Berufsschule","die Prüfungstermine der IHK","den Lehrplan der Berufsschule"];
+const OPS=[["nennen","I"],["angeben","I"],["beschreiben","I"],["erklären","II"],["erläutern","II"],["prüfen","II"],["berechnen","II"],["zuordnen","II"],["ermitteln","II"],["begründen","III"],["beurteilen","III"],["Stellung nehmen","III"],["bewerten","III"]];
+const STUFEN={I:"Stufe I – Wiedergeben: Stichworte, so viele wie verlangt",II:"Stufe II – Anwenden: mit „weil“, Beispiel oder Rechenweg",III:"Stufe III – Beurteilen: beide Seiten und ein eigenes Urteil"};
+
+/* ===== Akten-Karten =====
+ o: [Text, richtig(1/0), Begründung, "p" = nur Profi]
+ qb: Frage Basis · qp: Frage Profi ({{Operator}}, [[Signalwort]])
+ make(p,R): passt die Karte an den gezogenen Azubi an */
+const CARDS=[
+/* ---------- Operatoren ---------- */
+{a:"op",id:"op-nennen",t:"Zu viel geschrieben?",s:"In der Berufsschule übt die Klasse mit einer alten Prüfungsaufgabe: „Nennen Sie zwei Pflichten des Auszubildenden.“ Der Saboteur hat einen falschen Lösungszettel verteilt.",
+ qb:"Welche Antwort bekommt [[volle Punkte]]?",qp:"{{Entscheiden Sie}}, welche Antwort [[volle Punkte]] bekommt!",
+ o:[["Weisungen befolgen; Berufsschule besuchen.",1,"„Nennen“ heißt: Stichworte, genau so viele wie verlangt. Zwei Pflichten – volle Punkte."],
+    ["Der Azubi muss vieles tun, weil das im Gesetz steht und weil es wichtig ist.",0,"Viel Text, aber keine einzige Pflicht genannt."],
+    ["Weisungen befolgen.",0,"Nur eine Pflicht. Verlangt waren zwei."],
+    ["Weisungen befolgen; Berufsschule besuchen; Vergütung zahlen.",0,"Vergütung zahlen ist eine Pflicht des Betriebs – und es waren nur zwei verlangt.","p"],
+    ["Lernen.",0,"Nur ein Stichwort, und zu ungenau.","p"]],
+ f:["nennen","Stufe I: Stichworte ohne Begründung – genau so viele, wie verlangt sind."],
+ ihk:"„Nennen“ = kurz, ohne Begründung, genau so viele wie verlangt.",src:"Operatorenkarte · Einschub Operatoren S. 2",hint:"Stufe I: nennen = Stichworte. Zählt die verlangte Anzahl!"},
+{a:"op",id:"op-erlaeutern",t:"Die Lernpflicht",s:"Auf dem Übungsblatt steht: „Erläutern Sie die Lernpflicht des Auszubildenden.“ Zwei Azubis haben verschieden geantwortet.",
+ qb:"Welche Antwort passt zum Operator [[erläutern]]?",qp:"{{Entscheiden Sie}}, welche Antwort zum Operator [[erläutern]] passt!",
+ o:[["Der Azubi muss sich bemühen, das Ausbildungsziel zu erreichen, zum Beispiel Aufgaben sorgfältig ausführen und die Berufsschule besuchen.",1,"Erläutern = erklären und ein Beispiel geben. Beides ist da."],
+    ["Lernen.",0,"Nur ein Stichwort. Das wäre höchstens „nennen“."],
+    ["Lernpflicht, Sorgfaltspflicht, Schweigepflicht.",0,"Das ist eine Aufzählung (nennen), keine Erläuterung."],
+    ["Ich finde die Lernpflicht gut, weil man sonst nichts lernt.",0,"Das ist eine eigene Meinung (Stufe III) – erklärt wird die Pflicht nicht.","p"]],
+ f:["erläutern","Stufe II: erklären mit „weil/deshalb“ und einem Beispiel."],
+ ihk:"„Erläutern“ = erklären und an einem Beispiel zeigen.",src:"Einschub Operatoren, Aufgabe 4.1",hint:"Erläutern = Erklärung + Beispiel."},
+{a:"op",id:"op-pruefen",t:"Vier Schritte",s:"Aufgabe: „Lea (19) ist seit drei Wochen Auszubildende und will ohne Angabe von Gründen kündigen. Prüfen Sie, ob sie das darf.“",
+ qb:"Welche Antwort ist eine richtige [[Prüfung]]?",qp:"{{Entscheiden Sie}}, welche Antwort den Operator [[prüfen]] erfüllt!",
+ o:[["Frage: Darf Lea ohne Grund kündigen? Regel: § 22 BBiG – in der Probezeit jederzeit ohne Frist und ohne Grund. Anwenden: Drei Wochen – sie ist in der Probezeit. Ergebnis: Ja.",1,"Prüfen = Regel auf den Fall anwenden: Frage, Regel, Anwenden, Ergebnis."],
+    ["Ja.",0,"Nur das Ergebnis. Dafür gibt es höchstens einen Punkt."],
+    ["Mindestens einen Monat, höchstens vier Monate.",0,"Das nennt nur die Dauer der Probezeit. Lea wird nicht geprüft."],
+    ["Einerseits ist Freiheit gut, andererseits ist Kündigen schlecht. Ich finde …",0,"Das ist „beurteilen“ (Stufe III), keine Prüfung.","p"]],
+ f:["prüfen","Stufe II: Regel auf den Fall anwenden – Frage, Regel, Anwenden, Ergebnis."],
+ ihk:"In der Prüfung trägst du nur eine Kennziffer ein – die Denkarbeit bleibt: jede Antwort an der Regel prüfen.",src:"Einschub Operatoren, Aufgabe 1 · Wortgeländer Rechtsfall",hint:"Prüfen = vier Schritte: Frage – Regel – Anwenden – Ergebnis."},
+{a:"op",id:"op-beurteilen",t:"Immer vier Monate?",s:"Aufgabe: „Beurteilen Sie, ob ein Betrieb die Probezeit immer auf vier Monate festlegen sollte.“",
+ qb:"Welche Antwort [[beurteilt]] richtig?",qp:"{{Entscheiden Sie}}, welche Antwort den Operator [[beurteilen]] erfüllt!",
+ o:[["Einerseits haben beide Seiten länger Zeit, sich kennenzulernen. Andererseits bleibt der Azubi vier Monate unsicher. Ich finde vier Monate nur sinnvoll, wenn …, weil …",1,"Beurteilen = beide Seiten abwägen und ein begründetes Urteil."],
+    ["Vier Monate.",0,"Das ist nur eine Zahl (nennen)."],
+    ["Weil das Gesetz es erlaubt.",0,"Nur eine Seite, kein eigenes Urteil."],
+    ["Betrieb und Azubi sollen prüfen, ob es passt. Deshalb gibt es eine Probezeit.",0,"Das erklärt den Sinn der Probezeit (Stufe II), beurteilt aber nicht.","p"]],
+ f:["beurteilen","Stufe III: „Einerseits … andererseits … Ich halte … für …, weil …“"],
+ ihk:"„Beurteilen“ = beide Seiten und ein eigenes, begründetes Urteil.",src:"Einschub Operatoren, Aufgabe 1",hint:"Stufe III: beide Seiten + Urteil mit „weil“."},
+{a:"op",id:"op-nicht",t:"Die Falle „nicht“",s:"Die Nordstadt-Kauf GmbH will mit {N} einen Ausbildungsvertrag abschließen.",
+ qb:"Welche Angabe muss im Vertrag [[nicht]] enthalten sein?",qp:"{{Entscheiden Sie}}, welche Angabe im Vertrag nach dem Berufsbildungsgesetz [[nicht]] enthalten sein muss!",
+ o:[["Termine der Blockwochen in der Berufsschule",1,"Die Blockwochen der Berufsschule gehören nicht in den Vertrag. Das „nicht“ war die Falle."],
+    ["Dauer der Probezeit",0,"Muss rein – es ist eine Mindestangabe."],
+    ["Ausbildungsvergütung",0,"Muss rein – es ist eine Mindestangabe."],
+    ["Ausbildungsberuf",0,"Muss rein.","p"],["Dauer des jährlichen Urlaubs",0,"Muss rein.","p"]],
+ f:["Signalwort „nicht“","Verneinte Fragen: Gesucht ist die Ausnahme – die eine Antwort, die nicht passt."],
+ ihk:"Die Termine der Blockwochen stehen nicht im Vertrag.",src:"Einschub Operatoren, Aufgabe 2",hint:"Erst den letzten Satz lesen – „nicht“ markieren!"},
+{a:"op",id:"op-stufe",t:"Welche Stufe?",s:"Die Klasse baut eine Operatoren-Treppe an die Tafel. Der Saboteur hat eine Karte vertauscht.",
+ make:(p,R)=>{const op=R.pick(OPS);const all=["I","II","III"];return{
+  qb:`Auf welche Stufe gehört der Operator [[${op[0]}]]?`,qp:`{{Ordnen Sie}} den Operator [[${op[0]}]] der richtigen Stufe zu!`,
+  o:all.map(s=>[STUFEN[s],s===op[1]?1:0,s===op[1]?`„${op[0]}“ gehört auf Stufe ${op[1]}.`:`„${op[0]}“ gehört nicht auf Stufe ${s}, sondern auf Stufe ${op[1]}.`]),noshuffle:true,
+  ihk:`„${op[0]}“ = ${STUFEN[op[1]]}.`}},
+ f:["Operatoren-Treppe","I Wiedergeben · II Anwenden · III Beurteilen. Je höher die Stufe, desto mehr schreibst du."],
+ src:"Einschub Operatoren · Operatorenkarte",hint:"I = wiedergeben, II = anwenden, III = beurteilen."},
+{a:"op",id:"op-zuerst",t:"Was zuerst?",s:"{N} bekommt die Probeklausur. Frau Demir rät: „Lies nicht einfach von oben nach unten.“",
+ qb:"Was machst du [[zuerst]]?",qp:"{{Geben Sie an}}, was Sie beim Lesen einer Prüfungsaufgabe [[zuerst]] tun!",
+ o:[["Den letzten Satz lesen: Was wird gefragt?",1,"Schritt 1 der vier Leseschritte: erst die Frage, dann die Situation."],
+    ["Die Situation ganz genau lesen.",0,"Das ist Schritt 3. Erst muss klar sein, was gefragt ist."],
+    ["Sofort die Antworten anschauen.",0,"Dann fällt man leicht auf Ablenker herein."],
+    ["Alle Zahlen im Text markieren.",0,"Markiert wird in Schritt 2 – Operator und Signalwörter, nicht alle Zahlen.","p"],
+    ["Die Lösung raten und später prüfen.",0,"Raten kostet Punkte.","p"]],
+ f:["Vier Schritte beim Lesen","1 letzter Satz · 2 Operator und Signalwörter markieren · 3 Situation lesen · 4 lösen und prüfen."],
+ ihk:"Signalwörter markieren: nicht, 2, spätestens, frühestens, mindestens, höchstens, Alter, Datum.",src:"Einschub Operatoren S. 2 · Kasten „Vier Schritte beim Lesen“",hint:"Schritt 1: letzter Satz."},
+{a:"op",id:"op-kennziffer",t:"Was trage ich ein?",s:"In der WiSo-Abschlussprüfung steht: „Prüfen Sie, welche Vereinbarung nicht zulässig wäre!“",
+ qb:"Was trägst du im Lösungsbogen ein?",qp:"{{Stellen Sie fest}}, was Sie bei dieser Aufgabe [[in den Lösungsbogen]] eintragen!",
+ o:[["Eine Kennziffer.",1,"In der WiSo-Prüfung trägst du fast nur Kennziffern oder Zahlen ein. Gedacht wird trotzdem in vier Schritten."],
+    ["Einen Text mit den vier Schritten.",0,"Das wäre in einer offenen Aufgabe richtig. WiSo hat Ankreuzaufgaben."],
+    ["Zwei Kennziffern.",0,"Zwei nur, wenn „Welche 2 …“ in der Aufgabe steht."],
+    ["Nichts – „prüfen“ gibt es nur mündlich.",0,"Falsch. „Prüfen Sie“ steht oft in der schriftlichen Prüfung.","p"]],
+ f:["Kennziffer","Die Nummer der richtigen Antwort. „Welche 2 …“ = zwei Kennziffern."],
+ ihk:"„Geben Sie an“, „Stellen Sie fest“, „Entscheiden Sie“, „Prüfen Sie“ → eine Kennziffer.",src:"Einschub Operatoren S. 2 · Tabelle „Operatoren in der Abschlussprüfung“",hint:"WiSo = Ankreuzaufgaben, 60 Minuten."},
+{a:"op",id:"op-ihk-nennen",t:"Zwei Aufgaben der IHK",s:"Aufgabe im Test: „Nennen Sie zwei Aufgaben der IHK in der Berufsausbildung.“",
+ qb:"Welche Antwort holt [[beide Punkte]]?",qp:"{{Entscheiden Sie}}, welche Antwort [[beide Punkte]] holt!",
+ o:[["Verträge eintragen; Prüfungen abnehmen.",1,"Zwei Stichworte, zwei richtige Aufgaben."],
+    ["Die IHK überwacht die Ausbildung, weil der Staat das so will und weil das sehr wichtig ist.",0,"Viel Text, aber nur eine Aufgabe genannt."],
+    ["Die IHK.",0,"Keine Aufgabe genannt."],
+    ["Vergütung zahlen; Prüfungen abnehmen.",0,"Die Vergütung zahlt der Betrieb.","p"]],
+ f:["nennen","Lange Sätze bringen keine Extrapunkte. Es zählt, ob die verlangte Zahl richtig genannt ist."],
+ ihk:"Nennen = zwei Stichworte; wer viel schreibt, aber nur eine Aufgabe nennt, verliert Punkte.",src:"Einschub Operatoren, Aufgabe 4.2",hint:"Zählen: zwei verlangt = zwei Stichworte."},
+{a:"op",id:"op-welche2",only:"p",type:"multi",t:"Welche 2?",s:"{N} möchte eine Berufsausbildung beginnen.",
+ qp:"{{Geben Sie an}}, welche [[2]] Regelungen Sie [[im Berufsbildungsgesetz]] finden!",
+ o:[["Besteht ein Azubi die Abschlussprüfung nicht, verlängert sich die Ausbildung auf sein Verlangen bis zur Wiederholungsprüfung.",1,"Steht im BBiG (§ 21 Abs. 3)."],
+    ["Der Ausbildungsvertrag wird in das Verzeichnis der Berufsausbildungsverhältnisse bei der IHK eingetragen.",1,"Steht im BBiG (Eintragung bei der IHK)."],
+    ["Die Probezeit beträgt höchstens 2 Monate und darf nie verlängert werden.",0,"Bis zu vier Monate."],
+    ["Über die Zulassung zur Abschlussprüfung entscheidet die Berufsschule.",0,"Das entscheidet die IHK."],
+    ["Eine Probezeit entfällt, wenn vorher ein Schnupperpraktikum gemacht wurde.",0,"Jede Ausbildung beginnt mit einer Probezeit."]],
+ f:["Signalwort „2“","Genau zwei Kennziffern ankreuzen – jede ist 1,5 Punkte wert."],
+ ihk:"Richtig sind die Verlängerung auf Verlangen und die Eintragung des Vertrags.",src:"Modul 4",hint:"Genau zwei ankreuzen. Jede Aussage an der Regel prüfen."},
+
+/* ---------- Modul 1 ---------- */
+{a:"m1",id:"m1-ausbildender",t:"Wer ist wer?",s:"Den Vertrag von {N} hat Geschäftsführerin Kerstin Ahlers für die Nordstadt-Kauf GmbH unterschrieben. Im Laden zeigt Abteilungsleiterin Sevgi Demir, wie man Ware annimmt.",
+ qb:"Wer ist der [[Ausbildende]]?",qp:"{{Geben Sie an}}, wer der [[Ausbildende]] ist!",
+ o:[["die Nordstadt-Kauf GmbH",1,"Ausbildender ist der Betrieb, der den Vertrag schließt."],
+    ["Sevgi Demir",0,"Frau Demir ist die Ausbilderin – die Person, die etwas beibringt."],
+    ["Kerstin Ahlers persönlich",0,"Sie unterschreibt nur für die GmbH."],
+    ["die IHK",0,"Die IHK ist die zuständige Stelle, nicht Vertragspartner.","p"],
+    ["{N}",0,"{N} ist der oder die Auszubildende.","p"]],
+ f:["Ausbildender – Ausbilder","Ausbildender = der Betrieb (Vertragspartner). Ausbilder = die Person, die ausbildet."],
+ ihk:"Achtung, nicht verwechseln: Ausbildender ist der Betrieb – Ausbilder ist die Person.",src:"Lehrbuch S. 14 · Modul 1, „Wer ist wer?“",hint:"Wer schließt den Vertrag? Das ist der Ausbildende."},
+{a:"m1",id:"m1-ausbilder",t:"Die Ausbilderin",s:"Abteilungsleiterin Sevgi Demir hat die Ausbildereignungsprüfung bestanden. Sie zeigt {N} jeden Tag, wie man Kundinnen berät.",
+ qb:"Welche Rolle hat Frau Demir?",qp:"{{Ordnen Sie}} Frau Demir die richtige [[Rolle]] zu!",
+ o:[["Ausbilderin",1,"Sie ist vom Betrieb beauftragt und fachlich geeignet."],
+    ["Ausbildende",0,"Ausbildender ist der Betrieb."],
+    ["Ausbildungsberaterin",0,"Ausbildungsberater arbeiten bei der IHK."],
+    ["Prüferin im Prüfungsausschuss",0,"Der Prüfungsausschuss gehört zur IHK.","p"]],
+ f:["Ausbilder/in","Die Person, die der Betrieb mit der Ausbildung beauftragt. Sie muss persönlich und fachlich geeignet sein."],
+ ihk:"Ausbilder müssen persönlich und fachlich geeignet sein.",src:"Lehrbuch S. 14 · Modul 1, Aufgabe 2",hint:"Ausbilder = Person, die dir etwas beibringt."},
+{a:"m1",id:"m1-lernorte",t:"Berufsschule egal?",s:"{N} sagt: „Die Berufsschule ist doch egal. Was ich brauche, lerne ich im Laden.“ Der Saboteur nickt zustimmend.",
+ qb:"Was antwortet ihr?",qp:"{{Entscheiden Sie}}, welche Antwort [[stimmt]]!",
+ o:[["Falsch. Die Prüfung prüft Praxis und Theorie, und der Betrieb muss für die Schule freistellen.",1,"Duales System: zwei Lernorte. Drei Prüfungsbereiche sind schriftlich, darunter WiSo."],
+    ["Stimmt. Die Prüfung macht ja der Betrieb.",0,"Die Prüfung nimmt der Prüfungsausschuss der IHK ab."],
+    ["Stimmt. Ab 18 muss man nicht mehr hin.",0,"Die Teilnahme an der Berufsschule ist eine Pflicht des Azubis – egal wie alt."],
+    ["Stimmt, wenn der Chef es erlaubt.",0,"Der Betrieb muss zum Schulbesuch anhalten (§ 14 BBiG).","p"]],
+ f:["duales System","Zwei Lernorte: Betrieb (Praxis) und Berufsschule (Theorie). Lateinisch duo = zwei."],
+ ihk:"Duale Ausbildung = Ausbildung im Betrieb und in der Berufsschule.",src:"Lehrbuch S. 14–15 · Modul 1, Aufgabe 6.1",hint:"Dual = zwei Lernorte."},
+{a:"m1",id:"m1-zustaendig",t:"Wer gibt Auskunft?",s:"{N} soll im Lager Aufgaben erledigen, die im Ausbildungsplan nicht vorkommen. {N} möchte wissen, ob das erlaubt ist.",
+ qb:"Welche Stelle ist [[rechtlich zuständig]]?",qp:"Welche Stelle ist für die Auskunft [[rechtlich zuständig]]?",
+ o:[["die Industrie- und Handelskammer",1,"Die IHK ist die zuständige Stelle für Berufe in Handel und Industrie."],
+    ["die Krankenkasse",0,"Die Krankenkasse ist für Gesundheit zuständig."],
+    ["die Gewerbeaufsichtsbehörde",0,"Sie überwacht z. B. den Arbeitsschutz, nicht die Ausbildungsinhalte."],
+    ["das Berufsinformationszentrum (BIZ)",0,"Das BIZ hilft bei der Berufswahl.","p"],
+    ["der Einzelhandelsverband",0,"Das ist ein Arbeitgeberverband.","p"]],
+ f:["zuständige Stelle","Für Handel und Industrie die IHK – in Bremerhaven die Handelskammer Bremen."],
+ ihk:"Zuständig ist die IHK.",src:"Lehrbuch S. 15 · Einschub Operatoren 3.1",hint:"Zuständig für die Ausbildung = die Kammer."},
+{a:"m1",id:"m1-plan",t:"Nur Regale",s:"{N} räumt seit acht Wochen nur Regale ein. Der Saboteur sagt: „Das ist eben Ausbildung.“",
+ qb:"Wo steht, was {N} in dieser Zeit lernen soll?",qp:"{{Nennen Sie}} das Dokument, in dem {N} nachsehen kann, was [[in dieser Zeit]] gelernt werden soll!",
+ o:[["im betrieblichen Ausbildungsplan",1,"Der Betrieb setzt den Ausbildungsrahmenplan für sich um: Was lernst du wann?"],
+    ["im Rahmenlehrplan",0,"Der regelt den Unterricht in der Berufsschule."],
+    ["im Stundenplan der Berufsschule",0,"Der zeigt nur die Schulstunden."],
+    ["im Berufsbildungsgesetz",0,"Das gilt für alle Berufe, nicht für deinen Betrieb.","p"]],
+ f:["Ausbildungsplan","Der Plan deines Betriebs: Was lernst du wann in welcher Abteilung?"],
+ ihk:"Der Ausbildungsplan beruht auf dem Ausbildungsrahmenplan aus der Ausbildungsordnung.",src:"Lehrbuch S. 15 · Modul 1, „Wer regelt was?“",hint:"Betrieb → Ausbildungsplan. Schule → Rahmenlehrplan."},
+{a:"m1",id:"m1-laender",t:"Wer regelt die Schule?",s:"In der Pause fragt {N}: „Wer bestimmt eigentlich, was wir in der Berufsschule lernen?“",
+ qb:"Wer regelt den Unterricht in der Berufsschule?",qp:"{{Geben Sie an}}, wer den Unterricht [[in der Berufsschule]] regelt!",
+ o:[["die Länder gemeinsam, mit dem Rahmenlehrplan",1,"Schule ist Ländersache. Die Kultusministerkonferenz beschließt den Rahmenlehrplan."],
+    ["der Bund, mit dem Berufsbildungsgesetz",0,"Der Bund regelt die Ausbildung im Betrieb."],
+    ["der Betrieb, mit dem Ausbildungsplan",0,"Der Ausbildungsplan gilt für den Betrieb."],
+    ["die IHK, mit der Prüfungsordnung",0,"Die IHK nimmt Prüfungen ab, sie macht keinen Unterricht.","p"]],
+ f:["Rahmenlehrplan","Regelt den Unterricht in Lernfeldern. Beschlossen von den Ländern (Kultusministerkonferenz)."],
+ ihk:"Merke: Der Bund regelt den Betrieb, die Länder regeln die Berufsschule.",src:"Lehrbuch S. 15 · Modul 1, „Wer regelt was?“",hint:"Bund → Betrieb. Länder → Schule."},
+{a:"m1",id:"m1-ordnung",t:"Zwei Jahre – woher?",s:"{N} fragt: „Wo steht eigentlich, dass meine Ausbildung zwei Jahre dauert?“",
+ qb:"Wo ist die Dauer für den Beruf festgelegt?",qp:"{{Geben Sie an}}, wo die Ausbildungsdauer [[für den Beruf Verkäufer]] festgelegt ist!",
+ o:[["in der Ausbildungsordnung",1,"Für jeden Beruf gibt es eine eigene Ausbildungsordnung mit Bezeichnung, Dauer, Berufsbild, Rahmenplan und Prüfungsanforderungen."],
+    ["im Rahmenlehrplan",0,"Der regelt die Berufsschule."],
+    ["im betrieblichen Ausbildungsplan",0,"Der Betrieb kann die Dauer nicht selbst festlegen."],
+    ["im Tarifvertrag",0,"Tarifverträge regeln z. B. Lohn und Urlaub (Modul 8).","p"]],
+ f:["Ausbildungsordnung","Verordnung des Bundes für einen Beruf: Bezeichnung, Dauer, Berufsbild, Ausbildungsrahmenplan, Prüfungsanforderungen."],
+ ihk:"Die Ausbildungsordnung legt die Dauer fest – für Verkäufer zwei Jahre.",src:"Lehrbuch S. 15 · Modul 1, Aufgabe 4",hint:"Ein Beruf – eine Ausbildungsordnung."},
+{a:"m1",id:"m1-dual",t:"Der Fachbegriff",s:"{N} lernt gleichzeitig im Betrieb und in der Berufsschule.",
+ qb:"Wie heißt diese Regelung?",qp:"{{Geben Sie}} den [[Fachbegriff]] für diese Regelung [[an]]!",
+ o:[["duale Ausbildung",1,"Zwei Lernorte: Betrieb und Berufsschule."],
+    ["Berufsgrundbildung",0,"Das ist ein Grundbildungsjahr, nicht die Regelung mit zwei Lernorten."],
+    ["überbetriebliche Ausbildung",0,"Das sind Kurse außerhalb des Betriebs."],
+    ["Rahmenausbildung",0,"Diesen Fachbegriff gibt es so nicht.","p"],["Berufsfortbildung",0,"Fortbildung kommt nach der Ausbildung.","p"]],
+ f:["duale Ausbildung","Ausbildung an zwei Lernorten – Betrieb und Berufsschule."],
+ ihk:"Die Regelung heißt duale Ausbildung.",src:"Lehrbuch S. 14 · Modul 5",hint:"duo = zwei."},
+{a:"m1",id:"m1-ihknicht",t:"Was macht die IHK nicht?",s:"Der Saboteur behauptet: „Die IHK ist für alles zuständig – auch für dein Geld.“",
+ qb:"Welche Aufgabe hat die IHK [[nicht]]?",qp:"{{Entscheiden Sie}}, welche Aufgabe die IHK [[nicht]] hat!",
+ o:[["Sie zahlt die Ausbildungsvergütung.",1,"Die Vergütung zahlt der Betrieb."],
+    ["Sie trägt Ausbildungsverträge in ein Verzeichnis ein.",0,"Das ist eine Aufgabe der IHK."],
+    ["Sie nimmt mit einem Prüfungsausschuss die Prüfungen ab.",0,"Das ist eine Aufgabe der IHK."],
+    ["Sie berät Azubis und Betriebe durch Ausbildungsberater.",0,"Das ist eine Aufgabe der IHK.","p"],
+    ["Sie prüft, ob ein Betrieb ausbilden darf.",0,"Das ist eine Aufgabe der IHK.","p"]],
+ f:["Aufgaben der IHK","eintragen, beraten, überwachen, prüfen, Eignung des Betriebs prüfen."],
+ ihk:"Die IHK prüft die Eignung, trägt Verträge ein, berät, überwacht und prüft.",src:"Lehrbuch S. 15 · Modul 1, „Die zuständige Stelle“",hint:"Geld kommt vom Betrieb."},
+{a:"m1",id:"m1-nachteil",t:"Vorteil oder Nachteil?",s:"In der Teamsitzung sollen Vor- und Nachteile des dualen Systems an die Wand.",
+ qb:"Welche Aussage ist ein [[Nachteil]]?",qp:"{{Entscheiden Sie}}, welche Aussage einen [[Nachteil]] des dualen Systems beschreibt!",
+ o:[["Wie gut die Ausbildung ist, hängt stark vom einzelnen Betrieb ab.",1,"Das ist ein Nachteil."],
+    ["Man verdient schon während der Ausbildung Geld.",0,"Das ist ein Vorteil für Azubis."],
+    ["Theorie und Praxis wechseln sich ab.",0,"Das ist ein Vorteil für Azubis."],
+    ["Der Abschluss ist in ganz Deutschland anerkannt.",0,"Das ist ein Vorteil.","p"],
+    ["Der Betrieb kennt seine künftigen Fachkräfte schon.",0,"Das ist ein Vorteil für Betriebe.","p"]],
+ f:["Vor- und Nachteile","Vorteil: Geld verdienen, Praxis + Theorie, anerkannter Abschluss. Nachteil: Qualität hängt vom Betrieb ab, Kosten für Betriebe."],
+ ihk:"Vorteile und Nachteile des dualen Systems unterscheiden können.",src:"Lehrbuch S. 14–15 · Modul 1, Aufgabe 7",hint:"Nachteil = etwas, das schlecht sein kann."},
+
+/* ---------- Modul 2 ---------- */
+{a:"m2",id:"m2-eltern",t:"Wer unterschreibt?",s:"{N} ist {A} Jahre alt. Der Ausbildungsvertrag ist fertig. Der Saboteur hat die Unterschriftenzeile gelöscht.",
+ qb:"Wer muss dem Vertrag zustimmen?",qp:"{{Prüfen Sie}}, wer dem Vertrag [[zustimmen muss]]!",
+ make:(p)=>({o:[
+   ["{N} und die gesetzlichen Vertreter (meist die Eltern)",p.minor?1:0,p.minor?"{N} ist noch nicht 18. Die Eltern müssen zustimmen.":"{N} ist schon volljährig. Die Eltern müssen nicht zustimmen."],
+   ["{N} allein – die Eltern müssen nicht zustimmen",p.minor?0:1,p.minor?"{N} ist erst {A}. Ohne Zustimmung der Eltern geht es nicht.":"Richtig: Mit {A} Jahren entscheidet {N} allein."],
+   ["die Berufsschule",0,"Die Schule ist kein Vertragspartner."],
+   ["die IHK muss vorher zustimmen",0,"Die IHK trägt den Vertrag ein – zustimmen muss sie nicht.","p"]]}),
+ f:["gesetzliche Vertreter","Ist der Azubi unter 18, müssen die Eltern dem Vertrag zustimmen."],
+ ihk:"Der Vertrag wird zwischen Betrieb und Azubi geschlossen; bei Minderjährigen müssen die gesetzlichen Vertreter zustimmen.",src:"Lehrbuch S. 16 · Broschüre Kap. II.1",hint:"Unter 18? Dann die Eltern."},
+{a:"m2",id:"m2-probezeit",t:"Die Probezeit-Klausel",s:"Im Vertrag von {N} steht: „{X}“",
+ make:(p,R)=>{const x=R.pick([["Die Probezeit beträgt 6 Monate.","long"],["Die Probezeit beträgt 5 Monate.","long"],["Die Probezeit beträgt 4 Monate.","ok"],["Die Probezeit beträgt 2 Monate.","ok"],["Eine Probezeit gibt es nicht, weil {N} vorher ein Praktikum gemacht hat.","none"]]);
+  return{s:"Im Vertrag von {N} steht: „"+x[0]+"“",
+  o:[["Zulässig.",x[1]==="ok"?1:0,x[1]==="ok"?"Die Probezeit liegt zwischen einem und vier Monaten.":"Nicht zulässig – die Probezeit muss zwischen einem und vier Monaten liegen."],
+     ["Nicht zulässig – höchstens vier Monate.",x[1]==="long"?1:0,x[1]==="long"?"Richtig: mehr als vier Monate sind verboten.":x[1]==="ok"?"Die Klausel liegt im erlaubten Rahmen.":"Hier ist nicht die Höchstdauer das Problem."],
+     ["Nicht zulässig – mindestens ein Monat.",x[1]==="none"?1:0,x[1]==="none"?"Richtig: Jede Ausbildung beginnt mit mindestens einem Monat Probezeit. Ein Praktikum ändert das nicht.":"Hier ist nicht die Mindestdauer das Problem."],
+     ["Nicht zulässig – höchstens drei Monate.",0,"Erlaubt sind bis zu vier Monate.","p"]],noshuffle:true}},
+ qb:"Ist die Klausel zulässig?",qp:"{{Prüfen Sie}}, ob die Klausel [[zulässig]] ist!",
+ f:["Probezeit (§ 20 BBiG)","Mindestens einen Monat, höchstens vier Monate."],
+ ihk:"Nach § 20 BBiG dauert die Probezeit mindestens einen Monat und höchstens vier Monate.",src:"Lehrbuch S. 18 · Modul 2, Aufgabe 2",hint:"1 bis 4 Monate."},
+{a:"m2",id:"m2-textform",t:"Vertrag per E-Mail",s:"Die Nordstadt-Kauf GmbH schickt {N} den Vertrag als PDF per E-Mail. {N} kann ihn speichern und ausdrucken. Der Saboteur ruft: „Ungültig! Ohne Papier gilt nichts!“",
+ qb:"Hat der Saboteur recht?",qp:"{{Prüfen Sie}}, ob der Vertrag in dieser [[Form]] reicht!",
+ o:[["Nein. Seit August 2024 genügt die Textform.",1,"Der Vertrag darf als Datei kommen, wenn {N} ihn speichern und ausdrucken kann."],
+    ["Ja. Alle müssen auf Papier unterschreiben.",0,"Das war die alte Regel. Im Lehrbuch (S. 16) steht sie noch – die Broschüre 2025 ist aktuell."],
+    ["Ja. Den Vertrag muss die IHK schreiben.",0,"Den Vertrag schreibt der Betrieb; die IHK trägt ihn ein."],
+    ["Nein. Ein mündlicher Vertrag reicht immer.",0,"Der wesentliche Inhalt muss in Textform festgehalten werden.","p"]],
+ f:["Textform","Seit 01.08.2024 reicht für den Ausbildungsvertrag eine Datei, z. B. per E-Mail."],
+ ihk:"Der Betrieb muss den Inhalt unverzüglich, spätestens vor Beginn der Ausbildung, in Textform festhalten.",src:"Broschüre „Ausbildung & Beruf“ Kap. II.1 (Lehrbuch S. 16 ist veraltet)",hint:"Neue Regel seit 2024: Textform."},
+{a:"m2",id:"m2-muss",t:"Muss das rein?",s:"Der Saboteur hat die Checkliste für den Vertrag durcheinandergebracht.",
+ make:(p,R)=>{const m=R.pick(MUSS);const n=R.shuffle(MUSSNICHT.slice()).slice(0,4);return{
+  o:[[m,1,"Das ist eine Mindestangabe im Vertrag."]].concat(n.map((x,i)=>[x,0,"Muss nicht in den Vertrag.",i>1?"p":undefined]))}},
+ qb:"Welche Angabe [[muss]] in den Vertrag?",qp:"{{Entscheiden Sie}}, welche Angabe [[mindestens]] im Vertrag stehen muss!",
+ f:["Mindestangaben","z. B. Beginn und Dauer, Probezeit, Vergütung, Urlaub, tägliche Ausbildungszeit, Ausbildungsnachweis, Tarifverträge."],
+ ihk:"Was in den Vertrag muss, steht in der Liste der Mindestangaben (§ 11 BBiG).",src:"Lehrbuch S. 16 · Broschüre Kap. II.1",hint:"Mindestangaben: Dauer, Probezeit, Geld, Urlaub, Zeit, Nachweis, Tarif."},
+{a:"m2",id:"m2-mussnicht",t:"Was gehört nicht rein?",s:"{N} liest den Entwurf. Eine Angabe ist überflüssig.",
+ make:(p,R)=>{const n=R.pick(MUSSNICHT);const m=R.shuffle(MUSS.slice()).slice(0,4);return{
+  o:[[n,1,"Das muss nicht in den Vertrag."]].concat(m.map((x,i)=>[x,0,"Das ist eine Mindestangabe – sie muss rein.",i>1?"p":undefined]))}},
+ qb:"Welche Angabe muss [[nicht]] in den Vertrag?",qp:"{{Entscheiden Sie}}, welche Angabe [[nicht]] im Vertrag stehen muss!",
+ f:["Signalwort „nicht“","Gesucht ist die Ausnahme."],
+ ihk:"Stundenplan, Lehrplan oder Prüfungstermine stehen nicht im Vertrag.",src:"Lehrbuch S. 16 · Modul 2, Aufgabe 3",hint:"„nicht“ – gesucht ist die Ausnahme."},
+{a:"m2",id:"m2-gebuehr",t:"30 € im Monat",s:"Im Vertrag steht: „{N} zahlt für Schulungsmaterial eine Ausbildungsgebühr von 30 € im Monat.“",
+ qb:"Gilt diese Vereinbarung?",qp:"{{Prüfen Sie}}, ob die Vereinbarung [[wirksam]] ist!",
+ o:[["Nein, sie ist nichtig – eine Gebühr für die Ausbildung ist verboten.",1,"§ 12 BBiG: Eine Entschädigung für die Ausbildung darf nicht verlangt werden. Ausbildungsmittel sind kostenlos."],
+    ["Ja, weil {N} unterschrieben hat.",0,"Nichtige Vereinbarungen gelten nicht – auch nicht mit Unterschrift."],
+    ["Ja, wenn es weniger als 50 € sind.",0,"Jede Ausbildungsgebühr ist verboten."],
+    ["Ja, wenn die Eltern zustimmen.",0,"Auch die Eltern können das nicht erlauben.","p"]],
+ f:["nichtig","Gilt nicht, auch wenn beide unterschrieben haben: Ausbildungsgebühr, Vertragsstrafe, Pflicht zum Bleiben."],
+ ihk:"Nichtig sind z. B. eine Gebühr für die Ausbildung und Vertragsstrafen (§ 12 BBiG).",src:"Lehrbuch S. 16–17 · Modul 2, „Das darf nicht drinstehen“",hint:"Ausbildung kostet den Azubi nichts."},
+{a:"m2",id:"m2-bleiben",t:"Zwei Jahre bleiben?",s:"In den Vertrag von {N} sollen mehrere Vereinbarungen aufgenommen werden.",
+ qb:"Welche Vereinbarung ist [[nicht zulässig]]?",qp:"{{Prüfen Sie}}, welche Vereinbarung [[nicht zulässig]] wäre!",
+ o:[["{N} muss nach der Ausbildung mindestens 3 Jahre im Betrieb arbeiten.",1,"Nichtig (§ 12 BBiG). Erlaubt wäre das nur in den letzten sechs Monaten der Ausbildung."],
+    ["{N} muss über Betriebsgeheimnisse schweigen.",0,"Das ist eine Pflicht des Azubis."],
+    ["{N} muss den Ausbildungsnachweis regelmäßig führen.",0,"Das ist eine Pflicht des Azubis."],
+    ["Die Vergütung wird spätestens am letzten Arbeitstag des Monats gezahlt.",0,"Das ist die gesetzliche Regel.","p"],
+    ["{N} hat Anspruch auf Weiterbeschäftigung nach der Ausbildung.",0,"Eine Zusage des Betriebs ist erlaubt.","p"]],
+ f:["Weiterarbeitspflicht","Eine Pflicht, nach der Ausbildung zu bleiben, ist nichtig – außer sie wird in den letzten sechs Monaten vereinbart."],
+ ihk:"Die Pflicht zum Bleiben ist nichtig.",src:"Lehrbuch S. 17 · Modul 2",hint:"„nicht zulässig“ – suche die verbotene Klausel."},
+{a:"m2",id:"m2-strafe",t:"Strafe bei Abbruch",s:"Im Entwurf steht: „Bricht {N} die Ausbildung ab, zahlt {N} 500 € Strafe.“",
+ qb:"Ist diese Klausel erlaubt?",qp:"{{Prüfen Sie}}, ob die Klausel [[zulässig]] ist!",
+ o:[["Nein, Vertragsstrafen sind nichtig.",1,"§ 12 BBiG: Vertragsstrafen gelten nicht."],
+    ["Ja, sonst würden alle abbrechen.",0,"Das Gesetz verbietet Vertragsstrafen."],
+    ["Ja, aber nur nach der Probezeit.",0,"Eine Vertragsstrafe ist immer nichtig."],
+    ["Ja, wenn {N} volljährig ist.",0,"Das Alter spielt hier keine Rolle.","p"]],
+ f:["Vertragsstrafe","Nichtig (§ 12 BBiG) – gilt nicht, auch nicht mit Unterschrift."],
+ ihk:"Nichtig: Gebühr, Vertragsstrafe, Pflicht zum Bleiben nach der Ausbildung.",src:"Lehrbuch S. 17 · Modul 2",hint:"Strafen im Ausbildungsvertrag? Nichtig."},
+{a:"m2",id:"m2-eintrag",t:"Warum eintragen?",s:"Der Betrieb meldet den Vertrag von {N} bei der IHK an. Der Saboteur: „Reine Bürokratie!“",
+ qb:"Wozu dient die Eintragung bei der IHK?",qp:"{{Erklären Sie}}: Wozu dient die [[Eintragung]] bei der IHK?",
+ o:[["Die IHK kann überwachen und beraten – und ohne Eintragung keine Zulassung zur Prüfung.",1,"Genau das ist der Zweck."],
+    ["Damit die IHK die Vergütung zahlt.",0,"Die Vergütung zahlt der Betrieb."],
+    ["Damit die Berufsschule den Stundenplan macht.",0,"Der Stundenplan hat damit nichts zu tun."],
+    ["Damit der Vertrag geheim bleibt.",0,"Es geht um Überwachung und Beratung.","p"]],
+ f:["Eintragung","Verzeichnis der Berufsausbildungsverhältnisse bei der IHK. Eingetragen wird nur, was BBiG und Ausbildungsordnung entspricht."],
+ ihk:"Ohne Eintragung keine Zulassung zur Abschlussprüfung.",src:"Lehrbuch S. 17 · Modul 2, „Die Eintragung bei der IHK“",hint:"Überwachen, beraten, Prüfungszulassung."},
+{a:"m2",id:"m2-teil",t:"Teil des Vertrags",s:"Welche Angabe gehört nach dem Berufsbildungsgesetz in den Ausbildungsvertrag von {N}?",
+ qb:"Was ist Teil des Vertrags?",qp:"{{Geben Sie an}}, was nach dem [[Berufsbildungsgesetz]] Teil des Vertrags ist!",
+ o:[["die sachliche und zeitliche Gliederung der Ausbildung (Ausbildungsplan)",1,"Die sachliche und zeitliche Gliederung gehört zum Vertrag."],
+    ["die Termine der Zwischen- und Abschlussprüfung",0,"Die legt die IHK fest."],
+    ["der Stundenplan der Berufsschule",0,"Den macht die Schule."],
+    ["der Lehrplan der Berufsschule",0,"Den regeln die Länder.","p"],
+    ["die Dauer der täglichen Ruhepausen",0,"Pausen regelt das Gesetz.","p"]],
+ f:["sachliche und zeitliche Gliederung","= der betriebliche Ausbildungsplan, er gehört zum Vertrag."],
+ ihk:"Zum Vertrag gehört der Ausbildungsplan des Betriebs.",src:"Modul 2",hint:"Was kommt vom Betrieb?"},
+{a:"m2",id:"m2-geschenk",only:"p",t:"Ohne Eltern?",s:"Eine 16-jährige Schülerin will ohne ihre Eltern etwas abschließen.",
+ qp:"{{Prüfen Sie}}, welches Rechtsgeschäft sie [[ohne Zustimmung]] der gesetzlichen Vertreter wirksam abschließen kann!",
+ o:[["Annahme eines teuren Smartphones als Geschenk",1,"Ein Geschenk bringt nur einen rechtlichen Vorteil."],
+    ["Abschluss eines Ausbildungsvertrages",0,"Er bringt auch Pflichten – die Eltern müssen zustimmen."],
+    ["Kauf eines E-Scooters auf Raten",0,"Pflicht zur Zahlung – Zustimmung nötig."],
+    ["Abschluss eines Handyvertrags mit 24 Monaten Laufzeit",0,"Pflicht zur Zahlung – Zustimmung nötig."],
+    ["Kauf und Anmeldung eines Mopeds",0,"Pflichten und Kosten – Zustimmung nötig."]],
+ f:["beschränkt geschäftsfähig","Mit 7 bis 17 Jahren. Ohne Zustimmung nur Geschäfte mit rein rechtlichem Vorteil."],
+ ihk:"Ohne Eltern geht nur das Geschenk.",src:"Modul 2 · Für Profis 6.1",hint:"Nur reiner Vorteil geht ohne Eltern."},
+{a:"m2",id:"m2-schema",only:"p",type:"order",t:"Vier Schritte",s:"Im Vertrag von {N} steht: „Die Probezeit beträgt 6 Monate.“ Bringt die Prüfung in die richtige Reihenfolge.",
+ qp:"{{Prüfen Sie}} im [[Vier-Schritte-Schema]], ob die Klausel zulässig ist!",
+ steps:["Problem: Es ist zu prüfen, ob eine Probezeit von sechs Monaten erlaubt ist.","Regel: Nach § 20 BBiG dauert die Probezeit mindestens einen und höchstens vier Monate.","Anwenden: Sechs Monate sind mehr als vier Monate.","Ergebnis: Die Klausel ist nicht zulässig."],
+ f:["Vier-Schritte-Schema","Problem – Regel – Anwenden – Ergebnis. So bekommst du bei „prüfen“ volle Punkte."],
+ ihk:"Prüfen = Regel auf den Fall anwenden und ein Ergebnis formulieren.",src:"Modul 2, Aufgabe 2 · Wortgeländer Rechtsfall",hint:"Erst das Problem, zum Schluss das Ergebnis."},
+
+/* ---------- Modul 3 ---------- */
+{a:"m3",id:"m3-nachweis",t:"Nachweis zu Hause?",s:"Die Chefin sagt zu {N}: „Den Ausbildungsnachweis schreibst du zu Hause. Im Laden ist dafür keine Zeit.“",
+ qb:"Muss {N} das hinnehmen?",qp:"{{Prüfen Sie}}, ob {N} den Nachweis [[in der Freizeit]] schreiben muss!",
+ o:[["Nein. Der Betrieb muss Zeit geben, den Nachweis im Betrieb zu schreiben.",1,"§ 14 Abs. 2 BBiG: Gelegenheit am Arbeitsplatz geben."],
+    ["Ja. Der Nachweis ist Privatsache.",0,"Den Nachweis zu führen ist Teil der Ausbildung."],
+    ["Ja, wenn {N} dafür Geld bekommt.",0,"Der Betrieb muss die Zeit im Betrieb geben."],
+    ["Nein. Den Nachweis muss die Chefin schreiben.",0,"{N} führt den Nachweis, der Betrieb sieht ihn durch.","p"]],
+ f:["Ausbildungsnachweis","{N} führt ihn, der Betrieb gibt Zeit dafür und sieht ihn durch. Ohne Nachweis keine Zulassung zur Prüfung."],
+ ihk:"Nach § 14 Abs. 2 BBiG muss der Betrieb Gelegenheit geben, den Nachweis am Arbeitsplatz zu führen.",src:"Lehrbuch S. 18 · Modul 3, Aufgabe 2",hint:"Nachweis = Ausbildungszeit."},
+{a:"m3",id:"m3-auto",t:"Das Auto vom Chef",s:"Der Filialleiter sagt zu {N}: „Wasch bitte jeden Morgen meinen Privatwagen auf dem Parkplatz.“",
+ qb:"Muss {N} das tun?",qp:"{{Prüfen Sie}}, ob {N} den [[Privatwagen]] waschen muss!",
+ o:[["Nein. Azubis dürfen nur Aufgaben bekommen, die der Ausbildung dienen.",1,"§ 14 Abs. 3 BBiG: Autowaschen hat mit dem Beruf Verkäufer nichts zu tun."],
+    ["Ja. Weisungen muss man immer befolgen.",0,"Nur Weisungen, die zur Ausbildung gehören."],
+    ["Ja, wenn es nur zehn Minuten dauert.",0,"Auch kurze ausbildungsfremde Arbeiten sind nicht erlaubt."],
+    ["Nur wenn {N} volljährig ist.",0,"Das Alter spielt keine Rolle.","p"]],
+ f:["ausbildungsfremd","Arbeiten, die nichts mit dem Beruf zu tun haben, darf der Betrieb nicht verlangen."],
+ ihk:"Nach § 14 Abs. 3 BBiG dürfen Azubis nur Aufgaben bekommen, die dem Ausbildungszweck dienen.",src:"Lehrbuch S. 18 · Modul 3, Aufgabe 4",hint:"Dient es der Ausbildung?"},
+{a:"m3",id:"m3-schweigen",t:"Umsatz auf Instagram",s:"Kevin, ein anderer Azubi, postet auf Instagram, wie viel Umsatz die Filiale im Dezember gemacht hat. Der Chef mahnt ihn ab.",
+ qb:"Ist die Abmahnung berechtigt?",qp:"{{Prüfen Sie}}, ob die Abmahnung [[zu Recht]] erfolgt!",
+ o:[["Ja. Kevin hat seine Schweigepflicht verletzt.",1,"§ 13 BBiG: Betriebs- und Geschäftsgeheimnisse bleiben geheim."],
+    ["Nein. Social Media ist Privatsache.",0,"Umsatzzahlen sind Geschäftsgeheimnisse."],
+    ["Nein. Azubis haben keine Schweigepflicht.",0,"Doch – das ist eine Pflicht des Azubis."],
+    ["Nur wenn Kevin volljährig ist.",0,"Die Pflicht gilt unabhängig vom Alter.","p"]],
+ f:["Schweigepflicht","Pflicht des Azubis: über Betriebs- und Geschäftsgeheimnisse schweigen."],
+ ihk:"Pflichten des Azubis (§ 13 BBiG): u. a. Schweigepflicht über Betriebs- und Geschäftsgeheimnisse.",src:"Lehrbuch S. 18 · Modul 3, Aufgabe 5a",hint:"Umsatz = Geschäftsgeheimnis."},
+{a:"m3",id:"m3-krank",t:"Krank – halbes Geld?",s:"{N} ist drei Wochen krankgeschrieben. Der Chef will für diese Zeit nur die halbe Vergütung zahlen.",
+ qb:"Darf er das?",qp:"{{Prüfen Sie}}, ob der Chef die Vergütung [[kürzen]] darf!",
+ o:[["Nein. Die Vergütung wird bis zu sechs Wochen weitergezahlt.",1,"§ 19 BBiG und Entgeltfortzahlungsgesetz."],
+    ["Ja, bei Krankheit gibt es immer weniger.",0,"Bis zu sechs Wochen läuft die volle Vergütung weiter."],
+    ["Ja, aber nur in der Probezeit.",0,"Die Regel gilt auch in der Probezeit."],
+    ["Nein, die Vergütung läuft unbegrenzt weiter.",0,"Sie läuft bis zu sechs Wochen.","p"]],
+ f:["Fortzahlung bei Krankheit","Bei Krankheit wird die Vergütung bis zu sechs Wochen weitergezahlt."],
+ ihk:"Bei Krankheit läuft die Vergütung bis zu sechs Wochen weiter.",src:"Modul 3, „Die Vergütung“ · Aufgabe 5b",hint:"Sechs Wochen."},
+{a:"m3",id:"m3-schultag",t:"Nach der Schule in den Laden?",s:"{N} ({A}) hat dienstags Berufsschule von 8:00 bis 13:15 Uhr – sechs Unterrichtsstunden. Es ist der einzige lange Schultag. Danach soll {N} noch vier Stunden in den Laden.",
+ qb:"Muss {N} danach noch arbeiten?",qp:"{{Prüfen Sie}}, ob {N} [[nach dem Unterricht]] noch in den Betrieb muss!",
+ o:[["Nein. Ein Schultag mit mehr als fünf Stunden zählt einmal pro Woche als voller Arbeitstag.",1,"§ 15 BBiG – das gilt für alle Azubis, egal wie alt."],
+    ["Ja. Schule ist keine Arbeit.",0,"Die Schulzeit wird angerechnet."],
+    ["Nur wenn {N} unter 18 ist, darf {N} nach Hause.",0,"Die Regel gilt für alle Azubis, egal wie alt."],
+    ["Ja, aber nur zwei Stunden.",0,"Der Tag zählt als voller Arbeitstag.","p"]],
+ f:["Freistellung für die Berufsschule","Einmal pro Woche zählt ein Schultag mit mehr als fünf Unterrichtsstunden (je 45 Min.) als voller Arbeitstag."],
+ ihk:"Freistellung nach § 15 BBiG – gilt für alle Azubis.",src:"Modul 3, „Freistellung für die Berufsschule“ · Aufgabe 5c",hint:"Mehr als fünf Stunden = voller Arbeitstag."},
+{a:"m3",id:"m3-ueberstunden",t:"Heiligabend länger",s:"{N} bleibt an Heiligabend zwei Stunden länger. Der Chef sagt: „Das ist bei Azubis unbezahlt.“",
+ qb:"Stimmt das?",qp:"{{Prüfen Sie}}, ob die Mehrarbeit [[unbezahlt]] bleiben darf!",
+ o:[["Nein. Mehrarbeit wird bezahlt oder mit Freizeit ausgeglichen.",1,"§ 17 Abs. 7 BBiG."],
+    ["Ja. Azubis lernen ja dabei.",0,"Auch Azubis bekommen Mehrarbeit ausgeglichen."],
+    ["Ja, an Feiertagen gelten andere Regeln.",0,"Mehrarbeit wird immer ausgeglichen."],
+    ["Nur bei Volljährigen wird bezahlt.",0,"Die Regel gilt für alle Azubis.","p"]],
+ f:["Überstunden","Werden besonders vergütet oder durch Freizeit ausgeglichen."],
+ ihk:"Arbeit über die vereinbarte tägliche Ausbildungszeit hinaus wird besonders vergütet oder durch Freizeit ausgeglichen.",src:"Modul 3, Aufgabe 5d",hint:"Mehrarbeit = Geld oder Freizeit."},
+{a:"m3",id:"m3-wessen",t:"Wessen Pflicht?",s:"Der Saboteur hat die Pflichten-Tafel im Pausenraum vertauscht.",
+ make:(p,R)=>{const x=R.pick(PFLICHTEN);return{
+  qb:`Wessen Pflicht ist das: [[${x[0]}]]?`,qp:`{{Ordnen Sie}} die Pflicht [[${x[0]}]] zu!`,
+  o:[["Pflicht des Azubis",x[1]==="Azubi"?1:0,x[1]==="Azubi"?"Das ist eine Pflicht des Azubis (§ 13 BBiG).":"Das ist eine Pflicht des Betriebs (§§ 14–19 BBiG)."],
+     ["Pflicht des Betriebs",x[1]==="Betrieb"?1:0,x[1]==="Betrieb"?"Das ist eine Pflicht des Betriebs (§§ 14–19 BBiG).":"Das ist eine Pflicht des Azubis (§ 13 BBiG)."],
+     ["Pflicht der IHK",0,"Die IHK überwacht, ist aber nicht Vertragspartner."]],noshuffle:true,
+  ihk:`„${x[0]}“ ist eine Pflicht des ${x[1]==="Azubi"?"Azubis":"Betriebs"}.`}},
+ f:["Pflicht und Recht","Was für die eine Seite eine Pflicht ist, ist für die andere Seite ein Recht."],
+ src:"Lehrbuch S. 18 · Modul 3, Tabelle „Wer muss was?“",hint:"Azubi: lernen, sorgfältig, schweigen. Betrieb: ausbilden, zahlen, freistellen."},
+{a:"m3",id:"m3-schule",t:"Keine Schule vor Weihnachten",s:"{N} arbeitet in der Spielwarenabteilung.",
+ qb:"In welchem Fall [[verstößt]] der Abteilungsleiter gegen das Gesetz?",qp:"{{Entscheiden Sie}}, in welchem Fall der Abteilungsleiter [[gegen die gesetzlichen Vorschriften verstößt]]!",
+ o:[["Er verweigert {N} vor Weihnachten den Berufsschulunterricht.",1,"Der Betrieb muss für die Berufsschule freistellen (§ 15 BBiG)."],
+    ["Er verweigert {N} die Fahrt zur Spielwarenmesse.",0,"Auf eine Messefahrt gibt es keinen Anspruch."],
+    ["Er setzt {N} nach gründlicher Einweisung an der Kasse ein.",0,"Das ist sinnvoll und erlaubt."],
+    ["Er beschäftigt {N} an 5 Werktagen je 8 Stunden.",0,"Das ist erlaubt.","p"],
+    ["{N} darf auf seine Anweisung am verkaufsoffenen Sonntag nicht arbeiten.",0,"Das ist kein Verstoß.","p"]],
+ f:["Freistellung","Der Betrieb muss für Berufsschule und Prüfungen freistellen – auch im Weihnachtsgeschäft."],
+ ihk:"Verstoß: Die Berufsschule wird verweigert.",src:"Modul 3",hint:"Berufsschule geht vor."},
+{a:"m3",id:"m3-pruefungstag",t:"Der Tag vor der Prüfung",s:"Lena Brandt (17) schreibt am 12. Mai die schriftliche Abschlussprüfung. Am 11. Mai möchte sie frei haben.",
+ qb:"Was gilt?",qp:"{{Prüfen Sie}}, ob der Betrieb sie [[freistellen muss]]!",
+ o:[["Der Betrieb muss freistellen – unabhängig vom Alter.",1,"§ 15 BBiG: Frei ist der Arbeitstag direkt vor der schriftlichen Abschlussprüfung, für alle Azubis."],
+    ["Der Betrieb muss freistellen, weil sie minderjährig ist.",0,"Das Alter ist nicht der Grund."],
+    ["Der Betrieb muss freistellen, zieht aber einen Urlaubstag ab.",0,"Ein Urlaubstag wird nicht angerechnet."],
+    ["Der Betrieb muss freistellen, darf aber die Vergütung kürzen.",0,"Die Vergütung läuft weiter.","p"],
+    ["Nur wenn der Prüfungstag ein Berufsschultag ist.",0,"Das spielt keine Rolle.","p"]],
+ f:["Freistellung vor der Prüfung","Der Arbeitstag vor der schriftlichen Abschlussprüfung ist frei – für alle Azubis."],
+ ihk:"Der Betrieb muss freistellen – unabhängig vom Alter.",src:"Modul 3",hint:"Gilt für alle – egal wie alt."},
+{a:"m3",id:"m3-vor9",t:"Vor der Schule arbeiten?",s:"Die Berufsschule beginnt um 8:30 Uhr. Der Chef sagt zu {N}: „Komm vorher von 7 bis 8 Uhr in den Laden.“",
+ qb:"Darf der Chef das verlangen?",qp:"{{Prüfen Sie}}, ob {N} [[vor dem Unterricht]] arbeiten muss!",
+ o:[["Nein. Vor einem Unterricht, der vor 9 Uhr beginnt, darf der Betrieb nicht beschäftigen.",1,"§ 15 BBiG."],
+    ["Ja, eine Stunde ist erlaubt.",0,"Vor 9-Uhr-Unterricht ist keine Arbeit erlaubt."],
+    ["Ja, wenn {N} pünktlich in der Schule ist.",0,"Der Betrieb darf vorher gar nicht beschäftigen."],
+    ["Nur Volljährige dürfen vorher arbeiten.",0,"Die Regel steht im BBiG und gilt für alle Azubis.","p"]],
+ f:["Unterricht vor 9 Uhr","Beginnt der Unterricht vor 9 Uhr, darf der Betrieb vorher nicht beschäftigen."],
+ ihk:"Freistellung für die Berufsschule nach § 15 BBiG.",src:"Modul 3, „Freistellung für die Berufsschule“",hint:"Vor 9 Uhr Schule = vorher keine Arbeit."},
+{a:"m3",id:"m3-mindest",t:"Wie viel Geld?",s:"{N} hat {S} angefangen. Der Saboteur hat die Gehaltsabrechnung manipuliert.",
+ make:(p,R)=>{const y=R.pick([1,2]);return{
+  qb:`Wie viel muss {N} im [[${y}. Ausbildungsjahr]] mindestens bekommen?`,qp:`{{Ermitteln Sie}} die Mindestvergütung im [[${y}. Ausbildungsjahr]] (Beginn 2026)!`,
+  o:y===1?[["724 €",1,"Mindestvergütung 1. Jahr bei Beginn 2026."],["585 €",0,"Das ist der alte Wert von 2022 aus dem Lehrbuch."],["was im Vertrag steht, egal wie wenig",0,"Die Mindestvergütung darf nicht unterschritten werden."],["854 €",0,"Das ist das 2. Jahr.","p"]]
+         :[["854 €",1,"724 € + 18 % = 854 €."],["724 €",0,"Das ist das 1. Jahr."],["977 €",0,"Das ist das 3. Jahr (+35 %)."],["742 €",0,"Falsch gerechnet: +18 % von 724 € sind 130 €.","p"]],
+  ihk:"Mindestvergütung bei Beginn 2026: 724 € · 854 € · 977 €. Gilt ein Tarifvertrag, zählt meist der höhere Tariflohn."}},
+ f:["Mindestvergütung","Steigt im 2. Jahr um 18 %, im 3. Jahr um 35 %. In der Prüfung rechnest du mit dem abgedruckten Auszug."],
+ src:"Modul 3, Tabelle „Die Vergütung“ (Lehrbuch S. 18 nennt noch 585 €)",hint:"Beginn 2026: 724 €, +18 %, +35 %."},
+{a:"m3",id:"m3-zahltag",t:"Wann kommt das Geld?",s:"Am 10. des Folgemonats hat {N} immer noch kein Geld. Der Chef sagt: „Kommt, wenn ich Zeit habe.“",
+ qb:"Wann muss die Vergütung [[spätestens]] gezahlt werden?",qp:"{{Geben Sie an}}, wann die Vergütung [[spätestens]] gezahlt werden muss!",
+ o:[["am letzten Arbeitstag des Monats",1,"§ 18 BBiG."],
+    ["am 15. des Folgemonats",0,"Zu spät."],
+    ["wenn der Chef Zeit hat",0,"Es gibt einen festen Termin."],
+    ["am ersten Arbeitstag des nächsten Monats",0,"Spätestens am letzten Arbeitstag des laufenden Monats.","p"]],
+ f:["Fälligkeit","Die Vergütung wird spätestens am letzten Arbeitstag des Monats gezahlt."],
+ ihk:"Gezahlt wird spätestens am letzten Arbeitstag des Monats.",src:"Modul 3, „Die Vergütung“",hint:"Signalwort „spätestens“."},
+{a:"m3",id:"m3-anteil",only:"p",type:"num",t:"Der erste Monat",s:"{N} fängt am {T}.08.2026 an und bekommt die Mindestvergütung von 724 €. Für einzelne Tage wird der Monat mit 30 Tagen gerechnet.",
+ make:(p,R)=>{const t=R.pick([10,15,20]);const days=31-t+1;const v=Math.round(724/30*days*100)/100;return{
+  s:`{N} fängt am ${t}.08.2026 an und bekommt die Mindestvergütung von 724 €. Für einzelne Tage wird der Monat mit 30 Tagen gerechnet (§ 18 BBiG).`,
+  qp:`{{Berechnen Sie}} die Vergütung für [[August]] in Euro!`,num:v,unit:"€",
+  sol:`724 € : 30 × ${days} Tage = ${eur(v)}`,ihk:`724 € : 30 × ${days} Tage (vom ${t}. bis 31.08.) = ${eur(v)}.`}},
+ f:["anteilige Vergütung","Monat = 30 Tage. Vergütung : 30 × Anzahl der Tage."],
+ src:"Modul 3, Aufgabe 6.3",hint:"Tage zählen: vom Starttag bis zum 31. – beide mitzählen."},
+
+/* ---------- Modul 4 Probezeit / Ende ---------- */
+{a:"m4p",id:"m4-ende",type:"date",t:"Wann endet die Probezeit?",s:"",
+ make:(p,R)=>{const m=R.pick([2,3,4]);const e=probEnde(p.start,m);const s=D(p.start[0],p.start[1],p.start[2]);
+  const cand=[addDays(e,1),probEnde(p.start,m+1),probEnde(p.start,m-1),addDays(e,-1)].map(fd);
+  const wrong=[...new Set(cand)].filter(x=>x!==fd(e)).map(x=>({x}));wrong.forEach(w=>w.toString=function(){return this.x});
+  return{s:`{N} beginnt die Ausbildung am ${fd(s)}. Im Vertrag steht eine Probezeit von ${m} Monaten. Der Saboteur will {N} am Tag nach der Probezeit noch „schnell ohne Grund“ kündigen.`,
+  qb:`Mit Ablauf welchen Tages [[endet]] die Probezeit?`,qp:`{{Tragen Sie}} das Datum ein, mit dessen Ablauf die Probezeit [[endet]] (TT.MM.JJJJ)!`,
+  date:fd(e),o:[[fd(e),1,`${m} Monate ab dem ${fd(s)}: Die Probezeit endet mit Ablauf des ${fd(e)}.`]].concat(wrong.slice(0,2).map(x=>[x.x,0,`Nicht ganz: Die Probezeit endet mit Ablauf des ${fd(e)}.`])),
+  ihk:`Beginn ${fd(s)} + ${m} Monate → endet mit Ablauf des ${fd(e)}.`}},
+ f:["Probezeit berechnen","Beginnt die Ausbildung am Ersten, endet die Probezeit am letzten Tag des letzten Monats. Mitten im Monat: am Tag davor."],
+ src:"Lehrbuch S. 18 · Modul 4, Aufgabe 2 und 3",hint:"Beginn am 1.? Ende am Monatsletzten. Beginn am 15.? Ende am 14."},
+{a:"m4p",id:"m4-sinn",t:"Wozu Probezeit?",s:"Der Saboteur erzählt: „Die Probezeit gibt es nur, damit der Betrieb Geld spart.“",
+ qb:"Wozu gibt es die Probezeit wirklich?",qp:"{{Erklären Sie}}, [[warum]] es eine Probezeit gibt!",
+ o:[["Beide Seiten prüfen, ob Beruf und Betrieb passen.",1,"Deshalb kann in dieser Zeit ohne Frist gekündigt werden."],
+    ["Damit der Betrieb weniger zahlen muss.",0,"Die Vergütung ist auch in der Probezeit voll."],
+    ["Damit {N} noch nicht zur Berufsschule muss.",0,"Die Berufsschule gilt ab dem ersten Tag."],
+    ["Damit nur der Betrieb kündigen kann.",0,"Beide Seiten dürfen in der Probezeit kündigen.","p"]],
+ f:["Probezeit","1 bis 4 Monate. Beide Seiten prüfen: Passt es?"],
+ ihk:"Betrieb und Azubi sollen prüfen können, ob Beruf und Zusammenarbeit passen.",src:"Lehrbuch S. 18 · Modul 4",hint:"Kennenlernen auf beiden Seiten."},
+{a:"m4p",id:"m4-bestanden",t:"Bestanden – und dann?",s:"",
+ make:(p,R)=>{const ve=D(p.start[0],p.start[1]+24,p.start[2]-1);const ex=D(ve.getUTCFullYear(),6,R.int(15,26));return{
+  s:`Der Vertrag von {N} läuft bis ${fd(ve)}. Die letzte Prüfung ist am ${fd(ex)}. Dort gibt der Prüfungsausschuss bekannt: bestanden!`,
+  qb:"Wann [[endet]] die Ausbildung?",qp:"{{Geben Sie an}}, wann das Ausbildungsverhältnis [[endet]]!",
+  o:[[`am ${fd(ex)} mit der Bekanntgabe des Ergebnisses`,1,"§ 21 Abs. 2 BBiG: Bei Bestehen vor Vertragsende endet die Ausbildung mit der Bekanntgabe."],
+     [`am ${fd(ve)}, wie im Vertrag`,0,"Das gilt nur, wenn die Prüfung nicht vorher bestanden ist."],
+     ["wenn das IHK-Zeugnis per Post kommt",0,"Entscheidend ist die Bekanntgabe des Ergebnisses."],
+     ["am Tag der schriftlichen Prüfung im April",0,"Es zählt die letzte Prüfung.","p"]],
+  ihk:`Endet mit der Bekanntgabe des Ergebnisses durch den Prüfungsausschuss – hier am ${fd(ex)}.`}},
+ f:["Ende der Ausbildung","Normal: Datum im Vertrag. Vorher bestanden: Tag der Bekanntgabe."],
+ src:"Lehrbuch S. 19 · Modul 4, Tabelle „Wann endet die Ausbildung?“",hint:"Bestanden vor Vertragsende? Dann zählt die Bekanntgabe."},
+{a:"m4p",id:"m4-fruehestens",type:"date",t:"Ab wann übernommen?",s:"",
+ make:(p,R)=>{const ve=D(p.start[0],p.start[1]+24,p.start[2]-1);const ex=D(ve.getUTCFullYear(),R.pick([1,6]),R.int(18,24));const nx=addDays(ex,1);return{
+  s:`{N} macht die Prüfung vorzeitig. Die mündliche und damit letzte Prüfung ist am ${fd(ex)}. {N} besteht alle Prüfungsteile.`,
+  qb:"Ab wann kann {N} [[frühestens]] als Fachkraft übernommen werden?",qp:"{{Geben Sie}} das Datum (TT.MM.JJJJ) [[an]], zu dem {N} [[frühestens]] übernommen werden kann!",
+  date:fd(nx),o:[[fd(nx),1,`Die Ausbildung endet am ${fd(ex)} mit der Bekanntgabe. Am Tag danach beginnt das Arbeitsverhältnis.`],[fd(ex),0,`Am ${fd(ex)} endet noch die Ausbildung. Übernahme ab dem Tag danach.`],[fd(ve),0,"Das Vertragsende spielt keine Rolle, wenn vorher bestanden ist."]],
+  ihk:`Letzte Prüfung + 1 Tag = ${fd(nx)}.`}},
+ f:["frühestens","Signalwort: der erste mögliche Tag. Hier: der Tag nach der Bekanntgabe."],
+ src:"Modul 5 · Einschub Operatoren, Training 1",hint:"Ende = Bekanntgabe. Neuer Job = Tag danach."},
+{a:"m4p",id:"m4-nichtbestanden",t:"Nicht bestanden",s:"{N} hat die Abschlussprüfung nicht bestanden und möchte es noch einmal versuchen. Der Saboteur: „Pech gehabt, Vertrag ist vorbei.“",
+ qb:"Was gilt?",qp:"{{Prüfen Sie}}, was nach dem [[Nichtbestehen]] gilt!",
+ o:[["Auf Verlangen von {N} verlängert sich die Ausbildung bis zur Wiederholungsprüfung, höchstens um ein Jahr.",1,"§ 21 Abs. 3 BBiG."],
+    ["Die Ausbildung endet sofort.",0,"{N} kann die Verlängerung verlangen."],
+    ["Der Betrieb entscheidet allein, ob verlängert wird.",0,"Es reicht, dass {N} es verlangt."],
+    ["Die Ausbildung verlängert sich automatisch um zwei Jahre.",0,"Höchstens um ein Jahr – und nur auf Verlangen.","p"]],
+ f:["Verlängerung","Nicht bestanden → auf Verlangen bis zur Wiederholungsprüfung, höchstens ein Jahr."],
+ ihk:"Ein Azubi, der nicht besteht, wird auf Verlangen bis zur nächsten Wiederholungsprüfung weiterbeschäftigt.",src:"Lehrbuch S. 19 · Modul 4, Aufgabe 4.2",hint:"Auf Verlangen des Azubis."},
+{a:"m4p",id:"m4-weiter",t:"Einfach weitergearbeitet",s:"{N} besteht die letzte Prüfung und kommt am nächsten Tag einfach wieder zur Arbeit. Keiner sagt etwas.",
+ qb:"Was ist jetzt entstanden?",qp:"{{Stellen Sie fest}}, was [[ohne Vereinbarung]] entstanden ist!",
+ o:[["ein unbefristetes Arbeitsverhältnis",1,"§ 24 BBiG."],
+    ["nichts – das zählt nicht",0,"Wer weiterarbeitet, ohne dass etwas vereinbart ist, ist unbefristet angestellt."],
+    ["eine Verlängerung der Ausbildung",0,"Die Ausbildung ist mit dem Bestehen vorbei."],
+    ["ein befristetes Arbeitsverhältnis für sechs Monate",0,"Es entsteht ein unbefristetes.","p"]],
+ f:["Weiterbeschäftigung","Weiterarbeiten ohne Vereinbarung = unbefristetes Arbeitsverhältnis (§ 24 BBiG)."],
+ ihk:"Es entsteht ein unbefristetes Arbeitsverhältnis (§ 24 BBiG).",src:"Lehrbuch S. 20 · Modul 4, Aufgabe 4.3",hint:"Weiterarbeit = unbefristet."},
+{a:"m4p",id:"m4-winterkg",t:"Neuer Job am 21. August?",s:"Der Vertrag von Jana Berger endet am 31. August. Sie hat schon einen Arbeitsvertrag bei der Nordlicht KG „sofort nach bestandener Prüfung“. Am 20. August besteht sie.",
+ qb:"Wann kann sie [[frühestens]] bei der Nordlicht KG anfangen?",qp:"{{Prüfen Sie}}, wann sie [[frühestens]] bei der Nordlicht KG anfangen kann!",
+ o:[["am 21. August",1,"Die Ausbildung endet mit der Bekanntgabe am 20. August."],
+    ["am 1. September",0,"Das Vertragsdatum zählt nicht, wenn sie vorher besteht."],
+    ["erst, wenn die Nordstadt-Kauf GmbH zustimmt",0,"Eine Zustimmung ist nicht nötig."],
+    ["am 21. August, aber bis zum IHK-Zeugnis als Azubi bezahlt",0,"Sie ist ab dem 21. August keine Auszubildende mehr.","p"]],
+ f:["Bekanntgabe","Mit der Bekanntgabe des Ergebnisses endet die Ausbildung."],
+ ihk:"Frühestens am 21. August.",src:"Modul 4",hint:"Bekanntgabe + 1 Tag."},
+{a:"m4p",id:"m4-krankprobe",t:"Krank in der Probezeit",s:"",
+ make:(p,R)=>{const w=R.pick([2,3,6,7]);const yes=w*7>40;return{
+  s:`{N} hat vier Monate Probezeit. Im Vertrag steht: Wird die Ausbildung um mehr als ein Drittel der Probezeit unterbrochen, verlängert sie sich. {N} ist ${w} Wochen krank.`,
+  qb:"Verlängert sich die Probezeit?",qp:`{{Prüfen Sie}}, ob sich die Probezeit [[verlängert]]!`,
+  o:[[`Ja, um die ${w} Wochen.`,yes?1:0,yes?`${w} Wochen = ${w*7} Tage. Das ist mehr als ein Drittel (etwa 40 Tage).`:`${w} Wochen = ${w*7} Tage. Das ist weniger als ein Drittel (etwa 40 Tage).`],
+     ["Nein, sie bleibt bei vier Monaten.",yes?0:1,yes?`${w*7} Tage sind mehr als ein Drittel von vier Monaten.`:`${w*7} Tage sind weniger als ein Drittel – keine Verlängerung.`],
+     ["Nein, Krankheit zählt nie.",0,"Steht die Klausel im Vertrag, kann Krankheit die Probezeit verlängern."],
+     ["Ja, immer um vier Monate.",0,"Wenn, dann um die Dauer der Unterbrechung.","p"]],noshuffle:true,
+  ihk:`Ein Drittel von vier Monaten ≈ 40 Tage. ${w} Wochen = ${w*7} Tage → ${yes?"Verlängerung um "+w*7+" Tage":"keine Verlängerung"}.`}},
+ f:["Verlängerung der Probezeit","Nur wenn es im Vertrag steht und die Unterbrechung länger als ein Drittel der Probezeit dauert."],
+ src:"Modul 4, Aufgabe 3.3",hint:"Ein Drittel von 4 Monaten ≈ 40 Tage."},
+{a:"m4p",id:"m4-zeugnisqual",t:"Zeugnis mit Noten?",s:"Frau Schreiber hat ihre Ausbildung beendet und möchte ein Zeugnis mit Angaben zu Verhalten und Leistung.",
+ qb:"Hat sie ein Recht auf ein [[qualifiziertes]] Zeugnis?",qp:"{{Prüfen Sie}}, ob sie ein Recht auf ein [[qualifiziertes]] Zeugnis hat!",
+ o:[["Ja, wenn sie es verlangt.",1,"§ 16 Abs. 2 BBiG – kostenlos."],
+    ["Ja, wenn sie die Kosten selbst trägt.",0,"Das Zeugnis ist kostenlos."],
+    ["Nein, das IHK-Prüfungszeugnis reicht.",0,"Der Betrieb muss ein Zeugnis ausstellen."],
+    ["Ja, weil der Manteltarifvertrag das regelt.",0,"Der Anspruch steht im BBiG.","p"],
+    ["Nein, über die Ausbildungszeit gibt es keine Zeugnisse.",0,"Doch – das Ausbildungszeugnis ist Pflicht.","p"]],
+ f:["qualifiziertes Zeugnis","Einfaches Zeugnis + Angaben zu Verhalten und Leistung – auf Verlangen des Azubis."],
+ ihk:"Ja, wenn sie es verlangt.",src:"Lehrbuch S. 20 · Modul 4",hint:"Auf Verlangen."},
+
+/* ---------- Modul 4 Kündigung ---------- */
+{a:"m4k",id:"k-whatsapp",t:"Kündigung per WhatsApp",s:"{N} ist im siebten Monat. Abends kommt eine WhatsApp vom Filialleiter: „Du bist gekündigt. Wegen Diebstahls am Montag.“",
+ qb:"Ist die Kündigung [[wirksam]]?",qp:"{{Prüfen Sie}}, ob die Kündigung [[wirksam]] ist!",
+ o:[["Unwirksam – sie ist nicht schriftlich mit Unterschrift.",1,"§ 22 Abs. 3 BBiG: Jede Kündigung muss schriftlich sein. WhatsApp reicht nicht."],
+    ["Wirksam – Diebstahl ist ein wichtiger Grund.",0,"Der Grund wäre wichtig, aber die Form stimmt nicht."],
+    ["Unwirksam – im siebten Monat darf man nie kündigen.",0,"Aus wichtigem Grund geht es – aber schriftlich."],
+    ["Wirksam – Nachrichten gelten wie Briefe.",0,"E-Mail oder WhatsApp reichen nicht.","p"]],
+ f:["Schriftform","Jede Kündigung: Papier mit Unterschrift. Nach der Probezeit mit Gründen."],
+ ihk:"Jede Kündigung muss schriftlich sein (§ 22 Abs. 3 BBiG).",src:"Lehrbuch S. 19 · Modul 4, Fall-Rallye 1",hint:"Erste Frage im Entscheidungsbaum: schriftlich?"},
+{a:"m4k",id:"k-probe",t:"Kündigung in der Probezeit",s:"",
+ make:(p)=>({s:`{N} ist in der dritten Woche. Der Betrieb kündigt schriftlich mit Unterschrift, ohne Grund.${p.minor?" Der Brief geht auch an die Eltern.":""}`}),
+ qb:"Ist die Kündigung [[wirksam]]?",qp:"{{Prüfen Sie}}, ob die Kündigung [[wirksam]] ist!",
+ o:[["Wirksam – in der Probezeit geht es ohne Frist und ohne Grund.",1,"§ 22 Abs. 1 BBiG."],
+    ["Unwirksam – es fehlt der Grund.",0,"In der Probezeit braucht man keinen Grund."],
+    ["Unwirksam – es fehlt eine Frist von vier Wochen.",0,"In der Probezeit gibt es keine Frist."],
+    ["Wirksam – aber erst nach vier Wochen.",0,"In der Probezeit: jederzeit, ohne Frist.","p"]],
+ f:["Kündigung in der Probezeit","Beide Seiten: jederzeit, ohne Frist, ohne Grund – aber schriftlich."],
+ ihk:"In der Probezeit kann jederzeit ohne Frist und ohne Grund gekündigt werden.",src:"Lehrbuch S. 19 · Modul 4, Fall-Rallye 2",hint:"Probezeit = ohne Frist, ohne Grund."},
+{a:"m4k",id:"k-wenig",t:"Zu wenig Arbeit",s:"{N} ist im zehnten Monat. Der Betrieb kündigt schriftlich: „Im Januar ist zu wenig zu tun.“",
+ qb:"Ist die Kündigung [[wirksam]]?",qp:"{{Prüfen Sie}}, ob die Kündigung [[wirksam]] ist!",
+ o:[["Unwirksam – wenig Arbeit ist kein wichtiger Grund.",1,"Nach der Probezeit kann der Betrieb nur aus wichtigem Grund kündigen."],
+    ["Wirksam – der Grund steht ja drin.",0,"Der Grund muss ein wichtiger Grund sein."],
+    ["Wirksam – mit vier Wochen Frist.",0,"Die Frist gilt nur für den Azubi bei Berufswechsel oder Aufgabe."],
+    ["Unwirksam – nach der Probezeit kann nie gekündigt werden.",0,"Aus wichtigem Grund schon.","p"]],
+ f:["wichtiger Grund","Nach der Probezeit kann der Betrieb nur fristlos aus wichtigem Grund kündigen, z. B. Diebstahl."],
+ ihk:"Nach der Probezeit: nur aus wichtigem Grund, fristlos, innerhalb von zwei Wochen.",src:"Lehrbuch S. 19 · Modul 4, Fall-Rallye 3",hint:"Ist das ein wichtiger Grund?"},
+{a:"m4k",id:"k-diebstahl",t:"Griff in die Kasse",s:"Im neunten Monat wird {N} am Montag dabei erwischt, wie Geld aus der Kasse verschwindet. Am Freitag kommt die schriftliche, fristlose Kündigung mit Begründung.",
+ qb:"Ist die Kündigung [[wirksam]]?",qp:"{{Prüfen Sie}}, ob die Kündigung [[wirksam]] ist!",
+ o:[["Wirksam – wichtiger Grund, schriftlich, mit Grund, innerhalb von zwei Wochen.",1,"Alle Bedingungen sind erfüllt."],
+    ["Unwirksam – es fehlt eine Frist.",0,"Aus wichtigem Grund wird fristlos gekündigt."],
+    ["Unwirksam – nach der Probezeit kann der Betrieb nie kündigen.",0,"Aus wichtigem Grund schon."],
+    ["Unwirksam – zuerst muss die IHK zustimmen.",0,"Die IHK muss nicht zustimmen.","p"]],
+ f:["fristlose Kündigung","Wichtiger Grund + schriftlich + Gründe genannt + spätestens zwei Wochen nach Bekanntwerden."],
+ ihk:"Diebstahl ist ein wichtiger Grund; fristlos wirksam, wenn innerhalb von zwei Wochen gekündigt wird.",src:"Modul 4, Fall-Rallye 4",hint:"Grund? Form? Zwei Wochen?"},
+{a:"m4k",id:"k-spaet",t:"Zu spät gekündigt",s:"Im achten Monat beleidigt {N} eine Kundin schwer. Der Chef weiß es sofort. Erst fünf Wochen später kündigt er schriftlich mit Begründung.",
+ qb:"Ist die Kündigung [[wirksam]]?",qp:"{{Prüfen Sie}}, ob die Kündigung [[wirksam]] ist!",
+ o:[["Unwirksam – sie kommt zu spät.",1,"§ 22 Abs. 4 BBiG: spätestens zwei Wochen, nachdem der Grund bekannt wurde."],
+    ["Wirksam – der Grund ist wichtig.",0,"Der Grund wäre wichtig, aber die Zwei-Wochen-Frist ist vorbei."],
+    ["Wirksam – Beleidigung verjährt nie.",0,"Nach zwei Wochen ist die Kündigung ausgeschlossen."],
+    ["Unwirksam – Beleidigung ist nie ein Grund.",0,"Eine schwere Beleidigung kann ein wichtiger Grund sein.","p"]],
+ f:["Zwei-Wochen-Frist","Fristlos kündigen nur bis zwei Wochen nach Bekanntwerden des Grundes."],
+ ihk:"Die Kündigung muss spätestens zwei Wochen nach Bekanntwerden des Grundes erfolgen.",src:"Modul 4, Fall-Rallye 5",hint:"Zwei Wochen nach Bekanntwerden."},
+{a:"m4k",id:"k-beruf",t:"Ein anderer Beruf",s:"",
+ make:(p,R)=>{const knows=!p.minor||R.pick([true,false]);const ok=knows;return{
+  s:`{N} ({A}) ist im siebten Monat und will Erzieher/in werden. {N} kündigt schriftlich mit vier Wochen Frist und nennt den Grund.`+(p.minor?(knows?" Die Eltern haben schriftlich eingewilligt.":" Die Eltern wissen nichts davon."):""),
+  o:[["Wirksam – Berufswechsel mit vier Wochen Frist ist erlaubt.",ok?1:0,ok?"§ 22 Abs. 2 Nr. 2 BBiG.":"Der Grund stimmt, aber {N} ist minderjährig: Ohne Einwilligung der Eltern ist die Kündigung unwirksam."],
+     ["Unwirksam – nach der Probezeit darf nur der Betrieb kündigen.",0,"Der Azubi darf mit vier Wochen Frist kündigen, wenn er den Beruf wechselt."],
+     ["Unwirksam – {N} ist minderjährig und die Eltern haben nicht eingewilligt.",ok?0:1,ok?(p.minor?"Die Eltern haben eingewilligt.":"{N} ist volljährig."):"Richtig: Bei Minderjährigen müssen die Eltern kündigen oder einwilligen."],
+     ["Unwirksam – es braucht sechs Wochen Frist zum Quartalsende.",0,"Die Frist beträgt vier Wochen.","p"]],noshuffle:true}},
+ qb:"Ist die Kündigung [[wirksam]]?",qp:"{{Prüfen Sie}}, ob die Kündigung [[wirksam]] ist!",
+ f:["Kündigung durch den Azubi","Nach der Probezeit mit vier Wochen Frist bei Berufswechsel oder Aufgabe der Ausbildung. Minderjährige: Eltern müssen kündigen oder einwilligen."],
+ ihk:"Nach der Probezeit kann der Azubi beim Wechsel in einen anderen Ausbildungsberuf kündigen.",src:"Lehrbuch S. 19 · Modul 4, Fall-Rallye 6 · Für Profis 10.1",hint:"Berufswechsel = 4 Wochen Frist. Unter 18? Eltern!"},
+{a:"m4k",id:"k-betrieb",t:"Gleicher Beruf, anderer Laden",s:"{N} ist im achten Monat. Ein anderer Laden zahlt mehr. {N} kündigt schriftlich mit vier Wochen Frist, um dort Verkäufer/in weiterzulernen.",
+ qb:"Ist die Kündigung [[wirksam]]?",qp:"{{Prüfen Sie}}, ob die Kündigung [[wirksam]] ist!",
+ o:[["Unwirksam – ein Betriebswechsel im selben Beruf ist kein Kündigungsgrund. Möglich ist nur ein Aufhebungsvertrag.",1,"Die Kündigung mit Frist gibt es nur bei Berufswechsel oder Aufgabe der Ausbildung."],
+    ["Wirksam – vier Wochen Frist reichen immer.",0,"Nur bei Berufswechsel oder Aufgabe der Ausbildung."],
+    ["Wirksam – mehr Geld ist ein wichtiger Grund.",0,"Mehr Geld ist kein wichtiger Grund."],
+    ["Unwirksam – {N} müsste sechs Wochen warten.",0,"Das Problem ist der Grund, nicht die Frist.","p"]],
+ f:["Aufhebungsvertrag","Beide sind einverstanden, die Ausbildung zu beenden – jederzeit möglich."],
+ ihk:"Ein Betriebswechsel im selben Beruf ist kein Grund für die Kündigung mit Frist.",src:"Modul 4, Fall-Rallye 7",hint:"Gleicher Beruf? Dann nur Aufhebungsvertrag."},
+{a:"m4k",id:"k-beleidigung",t:"Der Chef brüllt",s:"Der Abteilungsleiter beleidigt {N} seit Wochen schwer vor Kunden. {N} kündigt schriftlich, fristlos, mit Begründung – drei Tage nach der letzten Beleidigung.",
+ qb:"Ist die Kündigung [[wirksam]]?",qp:"{{Prüfen Sie}}, ob die Kündigung [[wirksam]] ist!",
+ o:[["Wirksam – schwere, wiederholte Beleidigung ist ein wichtiger Grund, auch für den Azubi.",1,"Fall-Rallye 8: Auch der Azubi darf aus wichtigem Grund fristlos kündigen."],
+    ["Unwirksam – nur der Betrieb darf fristlos kündigen.",0,"Beide Seiten dürfen aus wichtigem Grund fristlos kündigen."],
+    ["Unwirksam – {N} muss vier Wochen Frist einhalten.",0,"Bei wichtigem Grund: fristlos."],
+    ["Wirksam – aber nur mit Zustimmung der IHK.",0,"Die IHK muss nicht zustimmen.","p"]],
+ f:["fristlos aus wichtigem Grund","Gilt für beide Seiten."],
+ ihk:"Nach der Probezeit: beide Seiten nur aus wichtigem Grund, fristlos.",src:"Modul 4, Fall-Rallye 8",hint:"Wichtiger Grund gilt für beide Seiten."},
+{a:"m4k",id:"k-original",t:"Wann darf der Azubi gehen?",s:"Im Vertrag von {N} sind 3 Monate Probezeit vereinbart.",
+ qb:"In welchem Fall kann {N} [[nach der Probezeit]] kündigen?",qp:"In welchem Fall ist [[auch nach Ablauf der Probezeit]] eine Beendigung durch {N} möglich?",
+ o:[["bei einem Wechsel in einen anderen Ausbildungsberuf",1,"Kündigung mit vier Wochen Frist (§ 22 Abs. 2 Nr. 2 BBiG)."],
+    ["bei schlechten Noten in der Berufsschule",0,"Kein Kündigungsgrund."],
+    ["bei nicht zufriedenstellender Vergütung",0,"Kein Kündigungsgrund."],
+    ["bei einem Wechsel der Ausbilder",0,"Kein Kündigungsgrund.","p"],
+    ["bei Kündigung 6 Wochen zum Quartalsende",0,"Diese Frist gibt es bei Azubis nicht.","p"]],
+ f:["Berufswechsel","Der Azubi darf nach der Probezeit mit vier Wochen Frist kündigen."],
+ ihk:"Nach der Probezeit: Kündigung mit vier Wochen Frist bei Berufswechsel.",src:"Modul 4",hint:"Anderer Beruf = vier Wochen."},
+{a:"m4k",id:"k-aufhebung",t:"Einvernehmlich",s:"{N} und die Nordstadt-Kauf GmbH sind sich einig: Die Ausbildung soll im fünften Monat enden. Beide unterschreiben.",
+ qb:"Wie heißt das?",qp:"{{Geben Sie}} den [[Fachbegriff]] [[an]]!",
+ o:[["Aufhebungsvertrag",1,"Beide sind einverstanden – geht jederzeit."],
+    ["fristlose Kündigung",0,"Eine Kündigung kommt nur von einer Seite."],
+    ["Probezeitkündigung",0,"Die Probezeit ist im fünften Monat vorbei."],
+    ["Abmahnung",0,"Eine Abmahnung beendet nichts.","p"]],
+ f:["Aufhebungsvertrag","Beide Seiten beenden die Ausbildung gemeinsam – jederzeit."],
+ ihk:"Aufhebungsvertrag: Beide sind einverstanden, das Ausbildungsverhältnis zu beenden.",src:"Modul 4, Tabelle „Die Kündigung“",hint:"Beide einig = Vertrag."},
+{a:"m4k",id:"k-gruende",t:"Ohne Gründe",s:"{N} ist im neunten Monat. Der Betrieb kündigt fristlos, schriftlich mit Unterschrift. Im Brief steht nur: „Wir beenden die Ausbildung.“",
+ qb:"Ist die Kündigung [[wirksam]]?",qp:"{{Prüfen Sie}}, ob die Kündigung [[wirksam]] ist!",
+ o:[["Unwirksam – nach der Probezeit müssen die Gründe in der Kündigung stehen.",1,"§ 22 Abs. 3 BBiG."],
+    ["Wirksam – schriftlich ist sie ja.",0,"Nach der Probezeit gehören die Gründe hinein."],
+    ["Wirksam – Gründe muss man nie angeben.",0,"Nur in der Probezeit nicht."],
+    ["Unwirksam – fristlose Kündigungen gibt es nicht.",0,"Doch, aus wichtigem Grund.","p"]],
+ f:["Gründe angeben","Nach der Probezeit müssen die Gründe in der Kündigung stehen."],
+ ihk:"Nach der Probezeit müssen die Kündigungsgründe angegeben werden.",src:"Modul 4, „Die Kündigung“",hint:"Nach der Probezeit: Gründe rein."},
+
+/* ---------- Modul 5 ---------- */
+{a:"m5",id:"m5-note",type:"num",t:"Das Gesamtergebnis",s:"",
+ make:(p,R)=>{const v=R.int(10,18)*5,w=R.int(8,18)*5,s=R.int(10,19)*5,f=R.int(10,19)*5;const tot=Math.round((v*.25+w*.15+s*.10+f*.5)*100)/100;
+  const avg=Math.round((v+w+s+f)/4*100)/100;const eq=Math.round((v*.25+w*.25+s*.25+f*.25)*100)/100;const sw=Math.round((v*.5+w*.15+s*.10+f*.25)*100)/100;
+  const opts=[[String(tot).replace(".",",")+" Punkte",1,`${v}×0,25 + ${w}×0,15 + ${s}×0,10 + ${f}×0,50 = ${String(tot).replace(".",",")}`],
+    [String(sw).replace(".",",")+" Punkte",0,"Vertauscht: Das Fachgespräch zählt 50 %, Verkauf und Werbemaßnahmen 25 %."]];
+  opts.push([String(avg).replace(".",",")+" Punkte",0,"Das ist der einfache Durchschnitt. Die Bereiche zählen aber verschieden viel."]);
+  opts.push([String(Math.round((tot+7.5)*100)/100).replace(".",",")+" Punkte",0,"Falsch gerechnet: Prüft jede Multiplikation einzeln.","p"]);
+  const seen=new Set();for(let k=0;k<opts.length;k++){if(seen.has(opts[k][0])){const x=Math.round((tot+(k+1)*4.25)*100)/100;opts[k]=[String(x).replace(".",",")+" Punkte",0,opts[k][2],opts[k][3]]}seen.add(opts[k][0])}
+  return{s:`{N} hat in der Abschlussprüfung (von 100): Verkauf und Werbemaßnahmen ${v}, Warenwirtschaft und Kalkulation ${w}, WiSo ${s}, Fachgespräch ${f}.`,
+  qb:"Wie viele Punkte hat {N} [[insgesamt]]?",qp:"{{Berechnen Sie}} das [[Gesamtergebnis]] in Punkten!",num:tot,unit:"Punkte",o:opts,
+  sol:`${v}×0,25 + ${w}×0,15 + ${s}×0,10 + ${f}×0,50 = ${String(tot).replace(".",",")}`,ihk:`Gewichtung: Verkauf 25 % · WaWi 15 % · WiSo 10 % · Fachgespräch 50 %. Ergebnis: ${String(tot).replace(".",",")} Punkte.`}},
+ f:["Gewichtung","Das Fachgespräch zählt so viel wie alle drei schriftlichen Bereiche zusammen."],
+ src:"Modul 5, Aufgabe 2 und 3",hint:"25 % · 15 % · 10 % · 50 %."},
+{a:"m5",id:"m5-anteil",t:"Was zählt am meisten?",s:"{N} plant die Prüfungsvorbereitung. Der Saboteur flüstert: „WiSo ist am wichtigsten.“",
+ qb:"Welcher Teil zählt [[am meisten]]?",qp:"{{Geben Sie an}}, welcher Prüfungsbereich [[am stärksten]] gewichtet wird!",
+ o:[["das fallbezogene Fachgespräch – 50 %",1,"Es zählt so viel wie alle schriftlichen Teile zusammen."],
+    ["Wirtschafts- und Sozialkunde – 10 %",0,"WiSo zählt 10 %."],
+    ["Warenwirtschaft und Kalkulation – 15 %",0,"WaWi zählt 15 %."],
+    ["Verkauf und Werbemaßnahmen – 25 %",0,"Verkauf zählt 25 %.","p"]],
+ f:["Prüfungsbereiche","Verkauf und Werbemaßnahmen 25 % · WaWi 15 % · WiSo 10 % · Fachgespräch 50 %."],
+ ihk:"WiSo: schriftlich, Ankreuzaufgaben, 60 Minuten, 10 % der Note.",src:"Modul 5, Tabelle „Prüfungsbereiche“",hint:"Das Mündliche ist die Hälfte."},
+{a:"m5",id:"m5-zwischen",t:"Die Zwischenprüfung",s:"Post von der IHK: Die Zwischenprüfung ist im September 2027. Der Saboteur: „Kannst du schwänzen, zählt eh nicht.“",
+ qb:"Was stimmt?",qp:"{{Entscheiden Sie}}, welche Aussage zur Zwischenprüfung [[stimmt]]!",
+ o:[["Sie zählt nicht zur Note, ist aber Pflicht für die Zulassung zur Abschlussprüfung.",1,"Wer nicht teilnimmt, wird nicht zugelassen."],
+    ["Sie zählt zur Hälfte zur Abschlussnote.",0,"Sie zählt gar nicht zur Note."],
+    ["Man kann sie freiwillig weglassen.",0,"Die Teilnahme ist Voraussetzung für die Zulassung."],
+    ["Sie ersetzt die schriftliche Abschlussprüfung.",0,"Sie zeigt nur, wo du stehst.","p"]],
+ f:["Zwischenprüfung","Zeigt den Stand. Zählt nicht zur Note. Teilnahme ist Pflicht für die Zulassung."],
+ ihk:"Zulassung: Vertrag eingetragen, Ausbildungszeit (fast) um, Zwischenprüfung mitgemacht, Nachweise vorgelegt.",src:"Modul 5, „Die Prüfungen deines Jahrgangs“ · Arbeitsheft S. 12",hint:"Zählt nicht – muss aber sein."},
+{a:"m5",id:"m5-zulassung",t:"Zugelassen?",s:"{N} bereitet die Anmeldung zur Abschlussprüfung vor. Der Saboteur hat eine falsche Liste ans Brett gehängt.",
+ qb:"Was brauchst du für die Zulassung [[nicht]]?",qp:"{{Entscheiden Sie}}, was für die Zulassung [[nicht]] nötig ist!",
+ o:[["eine selbst bezahlte Prüfungsgebühr",1,"Die Prüfungen sind für Azubis kostenlos."],
+    ["einen bei der IHK eingetragenen Vertrag",0,"Das ist nötig."],
+    ["die Teilnahme an der Zwischenprüfung",0,"Das ist nötig."],
+    ["die vorgelegten Ausbildungsnachweise",0,"Das ist nötig.","p"]],
+ f:["Zulassung","Eintragung, Ausbildungszeit, Zwischenprüfung, Ausbildungsnachweise."],
+ ihk:"Ohne Ausbildungsnachweise keine Zulassung zur Abschlussprüfung.",src:"Modul 5, „Zum Nachlesen“",hint:"Prüfung kostet Azubis nichts."},
+{a:"m5",id:"m5-verkuerzen",t:"Schneller fertig?",s:"{N} hat {VB} und möchte die Ausbildung schneller abschließen.",
+ make:(p)=>({o:p.verk?[
+   ["Verkürzung: {N} und der Betrieb stellen gemeinsam einen Antrag bei der IHK.",1,"Mit Abitur oder einer früheren Ausbildung ist eine Verkürzung möglich (§ 8 BBiG)."],
+   ["Das geht nicht – zwei Jahre sind Pflicht.",0,"Verkürzung und vorzeitige Zulassung sind möglich."],
+   ["{N} beantragt allein bei der Berufsschule.",0,"Der Antrag geht an die IHK – Betrieb und Azubi gemeinsam."],
+   ["Der Betrieb entscheidet allein.",0,"Die IHK entscheidet auf Antrag.","p"]]:[
+   ["Mit guten Leistungen: vorzeitige Zulassung – an unserer Schule ab Schnitt 2,5, Antrag bis 30.06.2027.",1,"Bei guten Leistungen kann die IHK früher zulassen (§ 45 BBiG)."],
+   ["Das geht nicht – zwei Jahre sind Pflicht.",0,"Mit guten Leistungen geht es schneller."],
+   ["Nur mit Abitur.",0,"Auch mit guten Noten ist eine vorzeitige Zulassung möglich."],
+   ["{N} meldet sich einfach selbst bei der Prüfung an.",0,"Die IHK entscheidet; Betrieb und Schule werden angehört.","p"]]}),
+ qb:"Welcher Weg passt?",qp:"{{Prüfen Sie}}, welcher Weg zu [[{N}]] passt!",
+ f:["Verkürzung – vorzeitige Zulassung","Verkürzung: gemeinsamer Antrag (z. B. Abitur). Vorzeitige Zulassung: gute Leistungen, die IHK entscheidet."],
+ ihk:"Verkürzung (§ 8 BBiG) und vorzeitige Zulassung (§ 45 BBiG) unterscheiden.",src:"Modul 5, „Schneller fertig“ · Broschüre Kap. III.1",hint:"Vorbildung → Verkürzung. Gute Noten → vorzeitige Zulassung."},
+{a:"m5",id:"m5-werentscheidet",t:"Wer entscheidet?",s:"{N} hat sehr gute Noten und will früher zur Prüfung. Der Saboteur: „Ohne Ja vom Chef läuft da gar nichts.“",
+ qb:"Wer [[entscheidet]] über die vorzeitige Zulassung?",qp:"{{Stellen Sie fest}}, wer über die vorzeitige Zulassung [[entscheidet]]!",
+ o:[["die IHK – Betrieb und Berufsschule werden angehört",1,"§ 45 BBiG."],
+    ["der Betrieb muss zustimmen",0,"Der Betrieb wird nur angehört."],
+    ["die Berufsschule",0,"Die Schule wird nur angehört."],
+    ["{N} allein",0,"Die IHK entscheidet.","p"]],
+ f:["vorzeitige Zulassung","Die IHK entscheidet, Betrieb und Schule werden angehört."],
+ ihk:"Für eine vorzeitige Zulassung muss der Betrieb nicht zustimmen – er wird angehört.",src:"Modul 5, Aufgabe 4f",hint:"Wer nimmt die Prüfung ab?"},
+{a:"m5",id:"m5-wiederholen",t:"Noch ein Versuch",s:"{N} ist durchgefallen. Der Saboteur: „Eine Chance, und die ist weg.“",
+ qb:"Wie oft darf man die Abschlussprüfung [[wiederholen]]?",qp:"{{Geben Sie an}}, wie oft die Abschlussprüfung [[wiederholt]] werden darf!",
+ o:[["zweimal",1,"Wer nicht besteht, darf zweimal wiederholen."],["gar nicht",0,"Man darf wiederholen."],["einmal",0,"Zweimal."],["beliebig oft",0,"Zweimal.","p"]],
+ f:["Wiederholung","Die Abschlussprüfung darf zweimal wiederholt werden."],
+ ihk:"Eine nicht bestandene Abschlussprüfung darf man zweimal wiederholen.",src:"Modul 5, „Zum Nachlesen“",hint:"Zwei weitere Versuche."},
+{a:"m5",id:"m5-fortbildung",t:"Welche Fortbildung?",s:"Die Nordstadt-Kauf GmbH plant die Weiterbildung im Team.",
+ make:(p,R)=>{const x=R.pick([["Die Filiale bekommt ein neues Kassensystem. Alle machen einen Kurs.","Anpassungsfortbildung"],["Frau Demir will Handelsfachwirtin werden und legt dafür eine IHK-Prüfung ab.","Aufstiegsfortbildung"],["Ein Kollege lernt ganz neu den Beruf Pflegefachmann.","Umschulung"]]);
+  const all=["Anpassungsfortbildung","Aufstiegsfortbildung","Umschulung"];const why={Anpassungsfortbildung:"Kurse, um auf dem neuesten Stand zu bleiben.",Aufstiegsfortbildung:"Eine IHK-Prüfung, die eine Stufe höher bringt.",Umschulung:"Ausbildung in einem ganz neuen Beruf."};
+  return{s:x[0],qb:"Welche Art von Weiterbildung ist das?",qp:"{{Ordnen Sie}} die Maßnahme der richtigen [[Art]] zu!",
+  o:all.map(a=>[a,a===x[1]?1:0,a===x[1]?why[a]:`${a} = ${why[a]} Hier passt: ${x[1]}.`]),noshuffle:true,ihk:`${x[1]}: ${why[x[1]]}`}},
+ f:["Weiterbildung","Anpassung (auf dem neuesten Stand) · Aufstieg (eine Stufe höher) · Umschulung (neuer Beruf)."],
+ src:"Modul 5, „Nach der Ausbildung“",hint:"Neu im Beruf? Höher? Ganz anderer Beruf?"},
+{a:"m5",id:"m5-karriere",t:"Die Karriereleiter",s:"",
+ make:(p,R)=>{const x=R.pick([["Aylin will in fünf Jahren eine Filiale leiten.","Aufstiegsfortbildung zur Handelsfachwirtin (nach Berufserfahrung)"],["Ben will mehr über Einkauf und Personal lernen.","drittes Ausbildungsjahr zum Kaufmann im Einzelhandel"],["Jana möchte später selbst Azubis ausbilden.","Ausbildereignungsprüfung bei der IHK"]]);
+  const all=["Aufstiegsfortbildung zur Handelsfachwirtin (nach Berufserfahrung)","drittes Ausbildungsjahr zum Kaufmann im Einzelhandel","Ausbildereignungsprüfung bei der IHK","Umschulung zum Koch"];
+  return{s:x[0]+" Der Saboteur gibt einen falschen Tipp.",qb:"Welcher Weg [[passt]]?",qp:"{{Ordnen Sie}} den [[passenden Weg]] zu!",
+  o:all.map((a,i)=>[a,a===x[1]?1:0,a===x[1]?"Passt zum Ziel.":"Passt nicht zu diesem Ziel.",i===3?"p":undefined]),ihk:`${x[0]} → ${x[1]}.`}},
+ f:["Karriereleiter","Verkäufer/in → Kaufmann/-frau im Einzelhandel → Handelsfachwirt/in → Betriebswirt/in."],
+ src:"Modul 5, Aufgabe 5",hint:"Was ist das Ziel?"},
+{a:"m5",id:"m5-bafoeg",t:"Wer zahlt die Fortbildung?",s:"{N} träumt von der Fortbildung zur Handelsfachwirtin. Der Saboteur: „Das Aufstiegs-BAföG musst du komplett zurückzahlen.“",
+ qb:"Stimmt das?",qp:"{{Prüfen Sie}}, ob die Aussage [[stimmt]]!",
+ o:[["Nein. Ein Teil ist Zuschuss, und bei bestandener Prüfung wird noch ein Teil erlassen.",1,"Die Hälfte der Gebühren ist Zuschuss; wer besteht, bekommt vom Darlehen noch einmal die Hälfte erlassen."],
+    ["Ja, alles ist ein Kredit.",0,"Ein Teil ist Zuschuss."],
+    ["Nein, man bekommt alles geschenkt.",0,"Ein Teil ist ein günstiges Darlehen."],
+    ["Ja, aber nur, wenn man besteht.",0,"Wer besteht, muss sogar weniger zurückzahlen.","p"]],
+ f:["Aufstiegs-BAföG","Hilft bei Fortbildungen: Zuschuss + günstiges Darlehen, Teilerlass bei Bestehen."],
+ ihk:"Das Aufstiegs-BAföG muss man nicht komplett zurückzahlen.",src:"Modul 5, „Nach der Ausbildung“ · Aufgabe 4h",hint:"Zuschuss + Darlehen."},
+{a:"m5",id:"m5-wiso",t:"So kommt WiSo dran",s:"{N} fragt: „Wie sieht die WiSo-Prüfung eigentlich aus?“",
+ qb:"Was stimmt?",qp:"{{Beschreiben Sie}} den Prüfungsbereich [[WiSo]] – welche Aussage stimmt?",
+ o:[["schriftlich, Ankreuzaufgaben, 60 Minuten, 10 % der Note",1,"So steht es in der Übersicht der Prüfungsbereiche."],
+    ["mündlich, 20 Minuten, 50 %",0,"Das ist das Fachgespräch."],
+    ["schriftlich, offene Aufgaben, 90 Minuten",0,"Das ist Verkauf und Werbemaßnahmen."],
+    ["schriftlich, mit Rechenaufgaben, 15 %",0,"Das ist Warenwirtschaft und Kalkulation.","p"]],
+ f:["WiSo-Prüfung","Ankreuzaufgaben, 60 Minuten, 10 %. Fast nur Kennziffern."],
+ ihk:"WiSo: schriftlich, Ankreuzaufgaben, 60 Minuten, 10 %.",src:"Modul 5, Tabelle „Prüfungsbereiche“",hint:"WiSo = ankreuzen."}
+];
+
+/* Mini-Spiel 1: Wer macht was? (Modul 1) */
+const WHO=[
+ ["{N} lernt, wie man eine Kasse abrechnet.","Betrieb"],["{N} bekommt jeden Monat die Vergütung.","Betrieb"],["Frau Demir zeigt, wie man Ware lagert.","Betrieb"],["Der Ausbildungsplan für die Filiale wird geschrieben.","Betrieb"],["Der Ausbildungsnachweis wird durchgesehen.","Betrieb"],
+ ["{N} schreibt eine Klausur über das Berufsbildungsgesetz.","Berufsschule"],["{N} hat Unterricht in Englisch und WiSo.","Berufsschule"],["{N} lernt in Lernfeld 2 das Verkaufsgespräch.","Berufsschule"],["{N} bekommt ein Zeugnis über die Noten in den Lernfeldern.","Berufsschule"],
+ ["Der Vertrag wird ins Verzeichnis eingetragen.","IHK"],["Ein Prüfungsausschuss nimmt die Abschlussprüfung ab.","IHK"],["Ein Ausbildungsberater prüft, ob richtig ausgebildet wird.","IHK"],["Es wird geprüft, ob der Betrieb ausbilden darf.","IHK"],
+ ["Das Berufsbildungsgesetz wird beschlossen.","Bund / Länder"],["Die Ausbildungsordnung für Verkäufer wird erlassen.","Bund / Länder"],["Der Rahmenlehrplan wird in der Kultusministerkonferenz beschlossen.","Bund / Länder"]
+];
+const WHO_WHY={"Betrieb":"Im Betrieb lernst du die Praxis; er zahlt und bildet aus.","Berufsschule":"In der Berufsschule lernst du die Theorie und Allgemeinbildung.","IHK":"Die IHK ist die zuständige Stelle: eintragen, beraten, überwachen, prüfen.","Bund / Länder":"Der Bund regelt BBiG und Ausbildungsordnung, die Länder den Rahmenlehrplan."};
+const WHO_CATS=[["Betrieb","Praxis"],["Berufsschule","Theorie"],["IHK","zuständige Stelle"],["Bund / Länder","Gesetze und Pläne"]];
+
+/* Zufallsereignisse */
+const EVENTS=[
+ {id:"beraterin",t:"Unangemeldeter Besuch",s:"Ausbildungsberaterin Frau Okafor von der Kammer steht plötzlich im Laden. Sie schaut sich eure Akte aus Modul 1 an.",kind:"check",area:"m1",
+  good:"Sie bestätigt eure Lösung und verrät euch eine Beobachtung.",bad:"Sie findet einen Fehler in eurer Akte. Der Saboteur nutzt die Unruhe."},
+ {id:"stromausfall",t:"Stromausfall",s:"Mitten am Tag fällt im ganzen Laden der Strom aus. Im Dunkeln hört man Schritte im Lager.",kind:"streak",
+  good:"Ihr habt bisher sauber gearbeitet und behaltet den Überblick. Bonus!",bad:"Ihr seid noch unsicher. Der Saboteur nutzt das Chaos."},
+ {id:"zettel",t:"Ein Zettel unter der Tür",s:"Am Morgen liegt ein gefalteter Zettel unter der Tür zum Pausenraum. Keine Unterschrift.",kind:"clue"},
+ {id:"sturm",t:"Sturmflut-Warnung",s:"Bremerhaven gibt Sturmflut-Warnung. Der Laden schließt früher, alle gehen nach Hause. Auch der Saboteur kann heute nichts tun.",kind:"calm"},
+ {id:"insta",t:"Ein Foto im Netz",s:"Ein Kollege will ein Foto der Umsatzliste in die Klassengruppe posten. „Ist doch nur für die Klasse.“",kind:"quiz",
+  q:"Darf er das?",o:[["Nein – Umsatzzahlen sind Geschäftsgeheimnisse. Schweigepflicht!",1],["Ja – in einer privaten Gruppe ist das erlaubt.",0]],why:"Die Schweigepflicht (§ 13 BBiG) gilt auch in privaten Gruppen."},
+ {id:"lagerchef",t:"Ein komischer Auftrag",s:"Frau Demir ist krank. Ihre Vertretung aus einer anderen Filiale sagt zu {N}: „Hol mir mal Zigaretten vom Kiosk und bring meine Wäsche zur Reinigung.“",kind:"quiz",
+  q:"Muss {N} das machen?",o:[["Nein – das dient nicht dem Ausbildungszweck.",1],["Ja – Weisungen muss man immer befolgen.",0]],why:"Nur Aufgaben, die der Ausbildung dienen (§ 14 Abs. 3 BBiG)."},
+ {id:"post",t:"Post von der Kammer",s:"Ein Brief kommt an: Termin der Zwischenprüfung. {N} fragt: „Muss ich da wirklich hin, wenn es nicht zählt?“",kind:"quiz",
+  q:"Was sagt ihr?",o:[["Ja – sonst gibt es keine Zulassung zur Abschlussprüfung.",1],["Nein – sie zählt ja nicht zur Note.",0]],why:"Die Teilnahme an der Zwischenprüfung ist Voraussetzung für die Zulassung."},
+ {id:"eltern",t:"Anruf der Eltern",s:"Die Eltern von {N} rufen an. Sie haben den Vertrag gelesen und wollen wissen, ob alles stimmt. Ihr zeigt euren Prüfbericht aus dem Vertrags-Detektiv.",kind:"vertrag",
+  good:"Die Eltern sind beruhigt. Sie erinnern sich an etwas Wichtiges.",bad:"Ihr habt zu viele Fehler übersehen. Die Eltern sind sauer – der Saboteur lacht."},
+ {id:"kaffee",t:"Kaffeemaschine kaputt",s:"Die Kaffeemaschine im Pausenraum ist kaputt. Ihr kocht Tee für alle. Das Team mag euch – und erzählt mehr.",kind:"bonus"},
+ {id:"pruefungstag",t:"Der Tag vor der Prüfung",s:"Ein Azubi aus dem 2. Jahr hat morgen die schriftliche Prüfung. Der Chef will ihn heute noch an der Kasse.",kind:"quiz",
+  q:"Darf der Chef das?",o:[["Nein – der Arbeitstag vor der schriftlichen Prüfung ist frei.",1],["Ja – nur Minderjährige bekommen frei.",0]],why:"§ 15 BBiG: freigestellt am Arbeitstag vor der schriftlichen Abschlussprüfung – für alle."}
+];
+
+/* Verdächtige */
+const SUSPECTS=[
+ {n:"Holger Brandt",r:"neuer Filialleiter",mot:"Er wollte statt Azubis billige Aushilfen einstellen.",skin:"#e9c3a0",hair:"#6b6b6b",hs:"bald",shirt:"#2b3a4a",acc:"tie"},
+ {n:"Jessica Krull",r:"Unternehmensberaterin",mot:"Sie hatte der Geschäftsführung versprochen, die „teure Ausbildung“ abzuschaffen.",skin:"#f2cfb2",hair:"#1c1c1c",hs:"bob",shirt:"#7a2e3b",acc:"glasses"},
+ {n:"Dennis Ahlers",r:"Neffe der Geschäftsführerin",mot:"Er wollte Frau Demir schlecht aussehen lassen und selbst Abteilungsleiter werden.",skin:"#f0c9a6",hair:"#a0522d",hs:"short",shirt:"#4a6b3a",acc:"cap"},
+ {n:"Bernd Wiese",r:"Lagerchef",mot:"Er findet, Azubis stören nur im Lager, und wollte sie loswerden.",skin:"#d9a77f",hair:"#3b2a1a",hs:"beard",shirt:"#5a5a2a",acc:"vest"},
+ {n:"Tanja Riedel",r:"Filialleiterin der Konkurrenz",mot:"Sie wollte die Azubis frustrieren und dann für den eigenen Laden abwerben.",skin:"#c48a62",hair:"#2a1a10",hs:"long",shirt:"#2f5f7f",acc:"earring"}
+];
+const TRAITS=[
+ {k:"Schuhe",v:["Turnschuhe","Lederschuhe","Gummistiefel","Sicherheitsschuhe"]},
+ {k:"Schlüssel",v:["Lagerschlüssel","Büroschlüssel","Kassenschlüssel","Hofschlüssel"]},
+ {k:"Stift",v:["grüne Tinte","blaue Tinte","rote Tinte","schwarze Tinte"]}
+];
+const CLUE_SRC=["Fußspur im Lager","Zeugin an der Kasse","Notiz im Papierkorb","Kamera am Hinterausgang","Kaffeebecher im Büro","Schlüsselbrett","Tintenfleck am Vertrag","Anruf einer Kollegin"];
+
+/* Für Profis (Auswertung) */
+const PROFIS=[
+ {q:"Die Ausbildung im Betrieb regelt der Bund, die Berufsschule regeln die Länder. Erkläre, woran das liegt (Grundgesetz Art. 30, 70, 74).",a:"Schulwesen ist Ländersache (Art. 30, 70 GG – Kulturhoheit der Länder). Die betriebliche Ausbildung gehört zum Recht der Wirtschaft und zum Arbeitsrecht (Art. 74 Abs. 1 Nr. 11 und 12 GG). Deshalb hat der Bund das BBiG erlassen – und Bund und Länder müssen ihre Pläne abstimmen.",m:"Modul 1, 9.1"},
+ {q:"Ein Kioskinhaber ohne kaufmännische Ausbildung will eine Verkäuferin ausbilden. Prüfe, ob er ausbilden darf (§§ 27–30 BBiG).",a:"Einstellen darf, wer persönlich geeignet ist (§ 28 Abs. 1). Ist er fachlich nicht geeignet, muss er einen fachlich geeigneten Ausbilder bestellen (§ 28 Abs. 2). Außerdem muss der Kiosk als Ausbildungsstätte geeignet sein (§ 27) – das prüft die IHK.",m:"Modul 1, 9.3"},
+ {q:"Emre (16) hat den Vertrag unterschrieben, seine Eltern wissen nichts. Prüfe mit §§ 106–108 BGB, ob der Vertrag wirksam ist.",a:"Emre ist beschränkt geschäftsfähig (§ 106). Der Vertrag bringt auch Pflichten, also braucht er die Einwilligung (§ 107). Ohne sie ist der Vertrag schwebend unwirksam – wirksam erst, wenn die Eltern genehmigen (§ 108).",m:"Modul 2, 6.1"},
+ {q:"Für den Vertrag reicht die Textform, eine Kündigung muss schriftlich mit Unterschrift sein. Begründe, warum der Gesetzgeber unterscheidet.",a:"Der Vertrag soll informieren und nachweisen – das geht auch digital. Die Kündigung beendet die Ausbildung: Die Schriftform schützt vor übereilten Entscheidungen und ist ein sicherer Beweis.",m:"Modul 2, 6.2"},
+ {q:"Jana sagt: „Ausbildungsmittel sind kostenlos – also muss der Betrieb mein Berufsschulbuch zahlen.“ Beurteile mit § 14 Abs. 1 Nr. 3 BBiG.",a:"Jana hat nicht recht. Ausbildungsmittel sind Werkzeuge und Werkstoffe für Betrieb und Prüfung. Lernmittel für die Berufsschule gehören nicht dazu (Bundesarbeitsgericht 2002). Viele Betriebe zahlen freiwillig.",m:"Modul 3, 8.1"},
+ {q:"Tom hat zwei Schultage mit je sechs Stunden (8:00–13:15). Seine tägliche Ausbildungszeit ist 8 Stunden. Erläutere die Anrechnung.",a:"Nur ein Tag pro Woche zählt als voller Arbeitstag (8 Std.). Beim zweiten zählt nur die Unterrichtszeit mit Pausen (5 Std. 15 Min.); danach darf der Betrieb ihn noch bis zur täglichen Ausbildungszeit beschäftigen. Für Minderjährige gelten strengere Regeln (Modul 6).",m:"Modul 3, 8.2"},
+ {q:"Nele (17) kündigt im siebten Monat schriftlich, weil sie Erzieherin werden will. Die Eltern wissen nichts. Prüfe die Wirksamkeit.",a:"Der Grund stimmt (Berufswechsel, vier Wochen Frist). Aber eine Kündigung ist ein einseitiges Rechtsgeschäft und braucht die vorherige Einwilligung der Eltern (§ 111 BGB). Ohne sie: unwirksam.",m:"Modul 4, 10.1"},
+ {q:"Ein Arbeitsverhältnis kann der Arbeitgeber mit Frist auch ohne wichtigen Grund kündigen, ein Ausbildungsverhältnis nach der Probezeit nicht. Begründe.",a:"Die Ausbildung ist auf den Abschluss angelegt. Der Azubi verlässt sich darauf und kann nicht einfach woanders weitermachen. Der Betrieb hatte in der Probezeit Zeit zu prüfen.",m:"Modul 4, 10.3"},
+ {q:"Verkürzung und Anrechnung machen die Ausbildung kürzer. Erläutere, warum sich nur die Anrechnung auf die Vergütung auswirkt.",a:"Bei der Anrechnung gilt die Zeit als schon zurückgelegt: Man steigt z. B. im 2. Jahr ein und bekommt sofort die Vergütung des 2. Jahres. Bei der Verkürzung beginnt man im 1. Jahr und ist nur früher fertig.",m:"Modul 5, 7.1"},
+ {q:"In der Prüfung steht „Prüfen Sie …“, obwohl man nur eine Ziffer einträgt. Erläutere, warum die IHK diesen Operator trotzdem verwendet.",a:"Die Denkarbeit ist dieselbe: Jede Antwort muss an der Regel gemessen werden. Wer rät, fällt auf Ablenker herein. Vorbereitung: zu jeder Antwort die Regel nennen können.",m:"Einschub Operatoren, 6.2"}
+];
+
+const GLOSS=[
+ ["Ausbildender","der Betrieb, der den Vertrag schließt"],["Ausbilder/in","die Person, die dich ausbildet"],["zuständige Stelle","die IHK – trägt ein, berät, überwacht, prüft"],
+ ["Berufsbildungsgesetz (BBiG)","Gesetz des Bundes für alle Ausbildungsberufe"],["Ausbildungsordnung","Regeln für einen Beruf: Dauer, Inhalte, Prüfung"],["Rahmenlehrplan","Plan für den Unterricht in der Berufsschule (Länder)"],
+ ["Ausbildungsplan","Plan deines Betriebs: was du wann lernst"],["Textform","z. B. Datei per E-Mail – reicht für den Vertrag"],["nichtig","gilt nicht, auch mit Unterschrift"],
+ ["Probezeit","1 bis 4 Monate; Kündigung ohne Frist und Grund"],["wichtiger Grund","schwerer Verstoß, z. B. Diebstahl"],["fristlos","sofort, ohne Kündigungsfrist"],
+ ["Aufhebungsvertrag","beide beenden die Ausbildung gemeinsam"],["qualifiziertes Zeugnis","mit Angaben zu Verhalten und Leistung"],["Freistellung","frei für Berufsschule und Prüfung"],
+ ["Operator","das Verb in der Aufgabe: nennen, erklären, prüfen …"],["Signalwort","Falle in der Frage: nicht, 2, spätestens, frühestens"],["Kennziffer","Nummer der richtigen Antwort"],
+ ["Verkürzung","kürzere Ausbildung, gemeinsamer Antrag bei der IHK"],["vorzeitige Zulassung","bei guten Leistungen früher zur Prüfung"],["Aufstiegsfortbildung","IHK-Prüfung eine Stufe höher, z. B. Handelsfachwirt/in"]
+];
+/* ===================== ENGINE ===================== */
+const KEY="akteNordstadt.v1", META="akteNordstadt.meta.v1";
+const $=(s)=>document.querySelector(s);
+const esc=(t)=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function hashStr(s){let h=1779033703^s.length;for(let i=0;i<s.length;i++){h=Math.imul(h^s.charCodeAt(i),3432918353);h=h<<13|h>>>19}return h>>>0}
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function mkR(seed){const r=mulberry(seed);const R={r,int:(a,b)=>a+Math.floor(r()*(b-a+1)),pick:(a)=>a[Math.floor(r()*a.length)],shuffle:(a)=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}};return R}
+const rnd=mkR((Math.random()*2**31)|0);
+function loadJ(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
+function saveJ(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let M=Object.assign({rec:{b:0,p:0},unlock:false,music:false,starsB:0},loadJ(META)||{});
+function saveMeta(){saveJ(META,M)}
+
+let S=null;
+function save(){if(S)saveJ(KEY,S)}
+
+/* ---------- Personas ---------- */
+function persona(i){const p=Object.assign({},PERSONAS[i]);p.minor=p.a<18;p.idx=i;return p}
+function fill(str,p){if(str==null)return str;return String(str).replace(/\{N\}/g,p.n.split(" ")[0]).replace(/\{A\}/g,p.a).replace(/\{S\}/g,"am "+fd(D(p.start[0],p.start[1],p.start[2]))).replace(/\{VB\}/g,p.vb)}
+
+/* ---------- Karten instanziieren ---------- */
+function inst(card,p,R,mode){
+  const b=Object.assign({},card);if(card.make)Object.assign(b,card.make(p,R));
+  let type=b.type||"mc";
+  if(mode==="b"&&(type==="num"||type==="date"))type="mc";
+  const q=mode==="p"?(b.qp||b.qb):(b.qb||b.qp);
+  let opts=[],steps=null;
+  if(type==="order"){steps=b.steps.map((t,i)=>({t:fill(t,p),i}));R.shuffle(steps)}
+  else if(b.o){
+    let all=b.o.map(o=>({t:o[0],ok:!!o[1],why:o[2],p:o[3]==="p"}));
+    if(mode==="b"){
+      const right=all.filter(o=>o.ok),wrong=R.shuffle(all.filter(o=>!o.ok&&!o.p));
+      let pick=right.concat(wrong.slice(0,Math.max(0,3-right.length)));
+      if(pick.length<3)pick=pick.concat(R.shuffle(all.filter(o=>!o.ok&&o.p)).slice(0,3-pick.length));
+      opts=b.noshuffle?all.filter(o=>pick.includes(o)):R.shuffle(pick);
+    }else{opts=b.noshuffle?all.slice(0,5):R.shuffle(all.slice(0,5))}
+    opts=opts.map(o=>({t:fill(o.t,p),ok:o.ok,why:fill(o.why,p)}));
+  }
+  return{id:b.id,a:b.a,t:fill(b.t,p),s:fill(b.s,p),q:fill(q,p),type,opts,steps,date:b.date||null,num:b.num??null,unit:b.unit||"",sol:fill(b.sol||"",p),
+    f:[fill(b.f[0],p),fill(b.f[1],p)],ihk:fill(b.ihk,p),src:b.src,hint:fill(b.hint,p)};
+}
+function pool(area,mode){return CARDS.filter(c=>c.a===area&&!(mode==="b"&&c.only==="p")&&!(mode==="p"&&c.only==="b"))}
+
+/* ---------- Neues Spiel ---------- */
+const CODEWORDS=["HAFEN","KRAN","MOEWE","DEICH","KUTTER","FAEHRE","DOCK","BOJE"];
+function newCode(){return rnd.pick(CODEWORDS)+"-"+rnd.int(10,99)}
+function newGame(team,mode,code){
+  code=(code||"").trim().toUpperCase()||newCode();
+  const R=mkR(hashStr(code+"|"+mode));
+  const p=persona(R.int(0,PERSONAS.length-1));
+  const used=new Set(),deck=[],reserve={};
+  SLOTS.forEach(sl=>{const c=R.pick(pool(sl.a,mode).filter(c=>!used.has(c.id)));used.add(c.id);deck.push(inst(c,p,R,mode))});
+  Object.keys(AREAS).forEach(a=>{let pl=pool(a,mode).filter(c=>!used.has(c.id));if(!pl.length)pl=pool(a,mode).filter(c=>c.make);if(!pl.length)pl=pool(a,mode);reserve[a]=inst(R.pick(pl),p,R,mode)});
+  // Verdächtige und Spuren
+  const sus=R.shuffle(SUSPECTS.map((s,i)=>i)).slice(0,3);const culprit=sus[0];
+  const dims=R.shuffle([0,1,2]);const elim=[ "Y","X",R.pick(["X","Y"]) ];
+  const traits={};sus.forEach(i=>traits[i]=[null,null,null]);
+  const [C,X,Y]=sus;
+  dims.forEach((d,j)=>{const vals=R.shuffle(TRAITS[d].v.slice());const same=vals[0],diff=vals[1];
+    traits[C][d]=same; if(elim[j]==="Y"){traits[X][d]=same;traits[Y][d]=diff}else{traits[Y][d]=same;traits[X][d]=diff}});
+  const srcs=R.shuffle(CLUE_SRC.slice());
+  const clues=[];for(let k=0;k<9;k++){const j=k%3;const d=dims[j];const other=elim[j]==="Y"?Y:X;
+    clues.push({src:srcs[k%srcs.length],txt:clueText(d,mode==="p"?traits[other][d]:traits[C][d],mode==="p")})}
+  const order=R.shuffle(sus.slice());
+  const ev=R.pick(EVENTS).id;
+  const who=R.shuffle(WHO.slice()).slice(0,mode==="p"?10:8).map(w=>({t:fill(w[0],p),c:w[1]}));
+  const vertrag=makeContract(p,R,mode);
+  const calc=makeCalc(p,R,mode);
+  S={v:1,screen:"persona",team:team||"Team Hafen",mode,code,pi:p.idx,deck,reserve,step:0,ans:[],pts:0,alarm:0,clues:0,joker:mode==="p"?1:3,
+     sus:order,culprit,traits,cluelist:clues,event:{id:ev},who:{items:who,i:0,res:[],fb:null,time:mode==="p"?80:null},
+     vertrag,calc,cur:null,wdh:null,finale:{sel:null,done:false},flipped:false,log:[],maxAkten:0,profiIdx:R.int(0,PROFIS.length-1)};
+  save();
+}
+function clueText(d,v,neg){
+  if(d===0)return neg?`Der Täter trug keine ${v}.`:`Der Täter trug ${v}.`;
+  if(d===1)return neg?`Der Täter hatte keinen ${v}.`:`Der Täter hatte einen ${v}.`;
+  const dv=v.replace(/e Tinte$/,"er Tinte");return neg?`Der Täter schrieb nicht mit ${dv}.`:`Der Täter schrieb mit ${dv}.`;
+}
+const FLOW=[{k:"akte",i:0},{k:"akte",i:1},{k:"who"},{k:"akte",i:2},{k:"vertrag"},{k:"akte",i:3},{k:"akte",i:4},{k:"event"},{k:"akte",i:5},{k:"calc"},{k:"akte",i:6},{k:"akte",i:7},{k:"wdh"},{k:"finale"}];
+
+/* ---------- Vertrag erzeugen ---------- */
+function makeContract(p,R,mode){
+  const fn=p.n.split(" ")[0];const s=D(p.start[0],p.start[1],p.start[2]);const e=D(p.start[0],p.start[1]+24,p.start[2]-1);
+  const birthY=2026-p.a-(p.start[1]>3?0:1);
+  const rows=[
+   {lab:"Ausbildender",val:"Nordstadt-Kauf GmbH, Bremerhaven, vertreten durch Geschäftsführerin Kerstin Ahlers"},
+   {lab:"Auszubildende/r",val:`${p.n}, geboren am 12.03.${birthY}`},
+   {lab:"Gesetzliche Vertreter",val:p.minor?"Eltern – Zustimmung liegt unterschrieben bei":"entfällt – volljährig"},
+   {lab:"Ausbildungsberuf",val:"Verkäufer/in nach der Ausbildungsordnung für den Einzelhandel"},
+   {lab:"Beginn und Dauer",val:`Beginn ${fd(s)} · Dauer 24 Monate · Ende ${fd(e)}`},
+   {lab:"Probezeit",val:`${R.pick([3,4])} Monate`},
+   {lab:"Tägliche Ausbildungszeit",val:"8 Stunden, höchstens 5 Tage pro Woche"},
+   {lab:"Vergütung",val:"nach Tarifvertrag, mindestens 724 € im 1. Jahr"},
+   {lab:"Ausbildungsnachweis",val:"elektronisch, während der Ausbildungszeit"},
+   {lab:"Kündigung",val:"nach den Vorschriften des Berufsbildungsgesetzes"},
+   {lab:"Tarifverträge",val:"Es gelten die Tarifverträge für den Einzelhandel im Land Bremen."},
+   {lab:"Sonstiges 1",val:`${fn} beachtet die Hausordnung der Filiale.`},
+   {lab:"Sonstiges 2",val:`Die Nordstadt-Kauf GmbH bietet ${fn} nach bestandener Prüfung eine Übernahme an.`}
+  ];
+  const ERR=[
+   {row:4,val:`Beginn ${fd(s)} · Dauer 36 Monate · Ende ${fd(D(p.start[0],p.start[1]+36,p.start[2]-1))}`,why:"Verkäufer dauert laut Ausbildungsordnung 24 Monate."},
+   {row:5,val:"6 Monate",why:"Probezeit höchstens vier Monate (§ 20 BBiG)."},
+   {row:5,val:`keine – ${fn} hat vorher ein Praktikum gemacht`,why:"Probezeit mindestens ein Monat, auch nach einem Praktikum (§ 20 BBiG)."},
+   {row:7,val:"wird nach Leistung festgelegt",why:"Die Höhe muss im Vertrag stehen, mindestens 724 € (§§ 11, 17 BBiG)."},
+   {row:7,val:"450 € im Monat",why:"Unter der Mindestvergütung von 724 € (§ 17 BBiG)."},
+   {row:8,val:`schreibt ${fn} zu Hause in der Freizeit`,why:"Der Betrieb muss Zeit im Betrieb geben (§ 14 Abs. 2 BBiG) – Vorgriff auf Modul 3."},
+   {row:9,val:"Der Betrieb kann jederzeit per WhatsApp kündigen.",why:"Kündigung nur schriftlich, nach der Probezeit nur aus wichtigem Grund (§ 22 BBiG)."},
+   {row:11,val:`${fn} zahlt für Schulungsmaterial 30 € im Monat.`,why:"Nichtig – Ausbildungsgebühr verboten (§ 12 BBiG)."},
+   {row:12,val:`${fn} muss nach der Ausbildung mindestens 2 Jahre im Betrieb bleiben.`,why:"Nichtig – nur in den letzten sechs Monaten der Ausbildung erlaubt (§ 12 BBiG)."},
+   {row:11,val:`Bricht ${fn} die Ausbildung ab, zahlt ${fn} 500 € Strafe.`,why:"Nichtig – Vertragsstrafen sind verboten (§ 12 BBiG)."}
+  ];
+  if(p.minor)ERR.push({row:2,val:"– (nicht unterschrieben)",why:`${fn} ist minderjährig – die Eltern müssen zustimmen (§ 11 BBiG, §§ 107, 108 BGB).`});
+  const n=mode==="p"?R.pick([3,4,5]):3;const used=new Set();const errs=[];
+  R.shuffle(ERR).forEach(x=>{if(errs.length<n&&!used.has(x.row)){used.add(x.row);errs.push(x)}});
+  errs.forEach(x=>{rows[x.row]=Object.assign({},rows[x.row],{val:x.val,err:true,why:x.why})});
+  return{rows,flags:[],checked:false,n};
+}
+/* ---------- Probezeit-Rechner ---------- */
+function makeCalc(p,R,mode){
+  const starts=[[2026,8,1],[2026,8,15],[2026,9,1],[2026,9,15],[2026,10,1],[2027,2,1]];
+  const tasks=[];
+  for(let k=0;k<2;k++){
+    const st=k===0?p.start:R.pick(starts.filter(x=>x.join()!==p.start.join()));
+    const m=k===1&&mode==="p"?4:R.pick([1,2,3,4]);
+    let end=probEnde(st,m);let ill=null;
+    if(k===1&&mode==="p"){const w=R.pick([6,7]);ill=w;end=addDays(end,w*7)}
+    const s=D(st[0],st[1],st[2]);
+    const wrong=[addDays(probEnde(st,m),1),D(st[0],st[1]+m,st[2]),probEnde(st,m+1)].filter(x=>fd(x)!==fd(end)).map(fd);
+    const opts=R.shuffle([fd(end)].concat([...new Set(wrong)].slice(0,2)));
+    const who=k===0?p.n.split(" ")[0]:R.pick(["Ali","Nele","Can","Jana","Tom"]);
+    tasks.push({who,start:fd(s),m,ill,ans:fd(end),opts,base:fd(probEnde(st,m))});
+  }
+  return{tasks,i:0,res:[],fb:null,time:mode==="p"?150:null};
+}
+
+/* ---------- Musik (Web Audio, standardmäßig aus) ---------- */
+const Music={ctx:null,master:null,timer:null,step:0,next:0,tempo:112,mode:null,
+  ensure(){if(this.ctx)return true;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;this.ctx=new AC();this.master=this.ctx.createGain();this.master.gain.value=0.22;this.master.connect(this.ctx.destination);return true}catch(e){return false}},
+  note(f,t,d,type,v){const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+d);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+d+0.02)},
+  hat(t,v){const b=this.ctx.createBuffer(1,this.ctx.sampleRate*0.04,this.ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);const s=this.ctx.createBufferSource();s.buffer=b;const f=this.ctx.createBiquadFilter();f.type="highpass";f.frequency.value=6000;const g=this.ctx.createGain();g.gain.value=v;s.connect(f);f.connect(g);g.connect(this.master);s.start(t)},
+  start(mode){if(!M.music||document.hidden)return;if(!this.ensure())return;if(this.ctx.state==="suspended")this.ctx.resume();if(this.timer&&this.mode===mode)return;this.stop();this.mode=mode;this.tempo=mode==="finale"?132:116;this.step=0;this.next=this.ctx.currentTime+0.05;
+    const bass=[55,55,65.41,55,49,49,41.2,49],arp=[220,261.63,329.63,261.63,196,246.94,293.66,246.94];
+    this.timer=setInterval(()=>{const sp=60/this.tempo/2;while(this.next<this.ctx.currentTime+0.12){const st=this.step%16,bar=Math.floor(this.step/16)%8;
+      if(st%2===0)this.note(bass[bar],this.next,sp*1.6,"triangle",0.5);
+      if(st%4===2)this.hat(this.next,0.25);if(st%2===1)this.hat(this.next,0.08);
+      if(this.mode==="finale"&&st%4===0)this.note(arp[(bar+st/4)%8]*2,this.next,sp*0.9,"square",0.05);
+      if(this.mode!=="finale"&&st===8)this.note(arp[bar],this.next,sp*1.5,"square",0.04);
+      this.next+=sp;this.step++;if(this.step%64===0&&this.tempo<150)this.tempo+=4}},40)},
+  stop(){if(this.timer){clearInterval(this.timer);this.timer=null}this.mode=null},
+  tusch(){if(!M.music||!this.ensure())return;if(this.ctx.state==="suspended")this.ctx.resume();const t=this.ctx.currentTime+0.05;[[261.63,0],[329.63,0.12],[392,0.24],[523.25,0.36]].forEach(([f,d])=>this.note(f,t+d,0.5,"square",0.08));this.note(130.81,t+0.36,0.9,"triangle",0.4)}
+};
+document.addEventListener("visibilitychange",()=>{if(document.hidden)Music.stop();else syncMusic()});
+function syncMusic(){if(!S||!M.music){Music.stop();return}const st=S.screen==="play"?FLOW[S.step]:null;
+  if(st&&(st.k==="who"||st.k==="vertrag"||st.k==="calc"))Music.start("mini");else if(st&&st.k==="finale"&&!S.finale.done)Music.start("finale");else Music.stop()}
+
+/* ---------- SVG-Grafiken ---------- */
+function face(o,mood,extra){
+  const hair=o.hair,sk=o.skin;let h="";
+  if(o.hs==="long")h=`<path d="M22 46 Q20 18 50 16 Q80 18 78 46 L80 80 L70 80 L70 44 Q50 34 30 44 L30 80 L20 80 Z" fill="${hair}"/>`;
+  else if(o.hs==="bun")h=`<circle cx="50" cy="13" r="9" fill="${hair}"/><path d="M26 44 Q26 20 50 20 Q74 20 74 44 Q62 32 50 34 Q38 32 26 44Z" fill="${hair}"/>`;
+  else if(o.hs==="pony")h=`<path d="M25 46 Q24 19 50 18 Q76 19 75 46 Q70 30 50 32 Q36 30 25 46Z" fill="${hair}"/><path d="M72 30 Q86 36 80 58 Q76 44 70 40Z" fill="${hair}"/>`;
+  else if(o.hs==="curly")h=`<g fill="${hair}"><circle cx="34" cy="26" r="9"/><circle cx="46" cy="21" r="10"/><circle cx="59" cy="22" r="10"/><circle cx="69" cy="30" r="8"/><circle cx="29" cy="35" r="7"/></g>`;
+  else if(o.hs==="bald")h=`<path d="M26 44 Q24 34 30 30 L30 42Z M74 44 Q76 34 70 30 L70 42Z" fill="${hair}"/>`;
+  else if(o.hs==="bob")h=`<path d="M24 52 Q20 18 50 17 Q80 18 76 52 L68 52 Q70 32 50 31 Q30 32 32 52Z" fill="${hair}"/>`;
+  else if(o.hs==="beard")h=`<path d="M27 42 Q27 21 50 20 Q73 21 73 42 Q62 31 50 33 Q38 31 27 42Z" fill="${hair}"/><path d="M32 52 Q34 74 50 76 Q66 74 68 52 Q60 64 50 64 Q40 64 32 52Z" fill="${hair}"/>`;
+  else h=`<path d="M27 42 Q27 20 50 19 Q73 20 73 42 Q62 30 50 32 Q38 30 27 42Z" fill="${hair}"/>`;
+  const mouth=mood==="happy"?`<path d="M40 60 Q50 69 60 60" stroke="#3a1f14" stroke-width="3" fill="none" stroke-linecap="round"/>`:mood==="sad"?`<path d="M40 65 Q50 57 60 65" stroke="#3a1f14" stroke-width="3" fill="none" stroke-linecap="round"/>`:`<path d="M42 62 L58 62" stroke="#3a1f14" stroke-width="3" stroke-linecap="round"/>`;
+  const brows=mood==="sad"?`<path d="M34 38 L44 41 M56 41 L66 38" stroke="#2a1a10" stroke-width="2.5" stroke-linecap="round"/>`:`<path d="M34 39 L43 38 M57 38 L66 39" stroke="#2a1a10" stroke-width="2.5" stroke-linecap="round"/>`;
+  let acc="";const a=extra||o.acc;
+  if(a==="glasses")acc=`<g fill="none" stroke="#1b1b1b" stroke-width="2.5"><circle cx="40" cy="47" r="7"/><circle cx="60" cy="47" r="7"/><path d="M47 47 L53 47"/></g>`;
+  if(a==="cap")acc=`<path d="M25 36 Q27 16 50 16 Q73 16 75 36 Z" fill="#c23b22"/><path d="M60 34 L88 36 L74 40 Z" fill="#9a2c18"/>`;
+  if(a==="earring")acc=`<circle cx="25" cy="58" r="3" fill="#e2b33c"/><circle cx="75" cy="58" r="3" fill="#e2b33c"/>`;
+  const neck=a==="tie"?`<path d="M47 82 L53 82 L55 98 L50 100 L45 98Z" fill="#b8322a"/>`:a==="vest"?`<path d="M30 86 L44 100 L30 100Z M70 86 L56 100 L70 100Z" fill="#e9a23b"/>`:"";
+  return`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="49" fill="#d7e6ef"/><path d="M18 100 Q20 78 50 76 Q80 78 82 100Z" fill="${o.shirt}"/>${neck}<ellipse cx="50" cy="48" rx="24" ry="27" fill="${sk}"/><circle cx="26" cy="50" r="4" fill="${sk}"/><circle cx="74" cy="50" r="4" fill="${sk}"/>${h}${brows}<circle cx="41" cy="47" r="3" fill="#1d1d1d"/><circle cx="59" cy="47" r="3" fill="#1d1d1d"/>${mouth}${acc}</svg>`;
+}
+function scene(){
+  const res=S?S.ans.slice(0,8):[];const alarm=S?S.alarm:0;const clues=S?S.clues:0;
+  const notes=[];for(let i=0;i<8;i++){const x=388+(i%4)*60,y=46+Math.floor(i/4)*64;const r=res[i];
+    if(r)notes.push(`<g transform="translate(${x} ${y}) rotate(${(i*7%9)-4})"><rect x="-22" y="-20" width="44" height="44" rx="3" fill="${r.ok?"#fff8d6":"#f6d3cf"}" stroke="#4a3a20" stroke-width="1.2"/><circle cx="0" cy="-16" r="4" fill="${r.ok?"#2f9e5b":"#c63a2c"}"/>${r.ok?`<path d="M-9 4 L-2 11 L11 -5" stroke="#2f9e5b" stroke-width="4" fill="none" stroke-linecap="round"/>`:`<path d="M-8 -3 L8 13 M8 -3 L-8 13" stroke="#c63a2c" stroke-width="4" stroke-linecap="round"/>`}</g>`);
+    else notes.push(`<rect x="${x-20}" y="${y-18}" width="40" height="40" rx="3" fill="none" stroke="#8a6a3c" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${x}" y="${y+8}" text-anchor="middle" font-family="Courier Prime,monospace" font-size="16" font-weight="700" fill="#8a6a3c">${i+1}</text>`)}
+  const strings=[];const okIdx=res.map((r,i)=>r&&r.ok?i:-1).filter(i=>i>=0);
+  for(let k=1;k<okIdx.length;k++){const a=okIdx[k-1],b=okIdx[k];strings.push(`<path d="M${388+(a%4)*60} ${30+Math.floor(a/4)*64} L${388+(b%4)*60} ${30+Math.floor(b/4)*64}" stroke="#c63a2c" stroke-width="1.6" fill="none"/>`)}
+  const sx=290-alarm*30;const glow=alarm>0?`<circle cx="612" cy="26" r="${10+alarm*3}" fill="#ff4a3a" opacity="${0.15+alarm*0.12}"/>`:"";
+  return`<svg viewBox="0 0 640 200" role="img" aria-label="Pinnwand mit ${clues} Beweisen, Alarmstufe ${alarm}">
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14304a"/><stop offset="1" stop-color="#2d5a7c"/></linearGradient></defs>
+  <rect width="640" height="200" fill="url(#sky)"/>
+  <circle cx="300" cy="34" r="14" fill="#f4e7b8"/><circle cx="306" cy="30" r="13" fill="#1d3d5a"/>
+  <g fill="#0f2235"><rect x="200" y="70" width="8" height="90"/><path d="M204 72 L330 72 L330 78 L204 80Z"/><path d="M300 78 L300 120" stroke="#0f2235" stroke-width="2"/><rect x="292" y="120" width="16" height="10"/></g>
+  <rect x="0" y="160" width="640" height="40" fill="#163248"/><path d="M0 172 Q40 166 80 172 T160 172 T240 172 T320 172" stroke="#3f7aa3" stroke-width="2" fill="none"/>
+  <g><rect x="16" y="70" width="168" height="92" fill="#e9e1cf" stroke="#0f2235" stroke-width="2"/><rect x="16" y="58" width="168" height="18" fill="#1f4767"/>
+   <text x="100" y="71.5" text-anchor="middle" font-family="Alfa Slab One,Georgia,serif" font-size="12" fill="#ffe066">NORDSTADT-KAUF</text>
+   <rect x="28" y="88" width="56" height="40" fill="${alarm>2?"#f2a03a":"#ffe7a3"}" stroke="#0f2235" stroke-width="2"/><rect x="96" y="88" width="34" height="74" fill="#5b7f99" stroke="#0f2235" stroke-width="2"/><rect x="140" y="88" width="34" height="40" fill="#ffe7a3" stroke="#0f2235" stroke-width="2"/>
+   <path d="M28 128 L84 128" stroke="#c0504d" stroke-width="5"/></g>
+  <g transform="translate(${sx} 0)" opacity="${alarm>0?0.95:0.55}"><ellipse cx="0" cy="161" rx="14" ry="3" fill="#000" opacity=".35"/><path d="M-10 160 L-8 122 Q-12 104 0 102 Q12 104 8 122 L10 160 L3 160 L1 134 L-1 134 L-3 160Z" fill="#081521"/><circle cx="0" cy="94" r="9" fill="#081521"/><path d="M-14 89 L14 89 L9 84 L-9 84Z" fill="#081521"/>${alarm>=3?`<circle cx="-3" cy="94" r="1.6" fill="#ffe066"/><circle cx="3" cy="94" r="1.6" fill="#ffe066"/>`:""}</g>
+  <rect x="352" y="8" width="252" height="146" rx="6" fill="#b98a52" stroke="#4a3a20" stroke-width="3"/><rect x="358" y="14" width="240" height="134" rx="3" fill="#c99b62"/>
+  ${strings.join("")}${notes.join("")}
+  <rect x="352" y="158" width="252" height="22" rx="4" fill="#0f2235"/><text x="478" y="173.5" text-anchor="middle" font-family="Courier Prime,monospace" font-size="13" font-weight="700" fill="#e9eef2">BEWEISE ${clues} · ALARM ${alarm}/5</text>
+  ${glow}<circle cx="612" cy="26" r="9" fill="${alarm>=4?"#ff4a3a":alarm>=2?"#f2a03a":"#5c7a8e"}" stroke="#0f2235" stroke-width="2"/><rect x="606" y="35" width="12" height="6" fill="#0f2235"/>
+  </svg>`;
+}
+const ICON={
+  file:`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h7l2 2h9v11H3z" fill="#efd9a0" stroke="currentColor" stroke-width="1.8"/></svg>`,
+  book:`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg>`,
+  sound:`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8a5 5 0 0 1 0 8M18.5 5.5a8.5 8.5 0 0 1 0 13"/></svg>`,
+  mute:`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>`,
+  star:(on)=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21.1l1.4-7L2 9.3l7-.8z" fill="${on?"#ffe066":"none"}" stroke="${on?"#ffe066":"currentColor"}" stroke-width="1.6"/></svg>`,
+  pin:`<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="6" y="8" width="28" height="28" rx="2" fill="#fff8d6" stroke="#4a3a20"/><circle cx="20" cy="10" r="4" fill="#2f9e5b"/><path d="M12 22h16M12 28h10" stroke="#4a3a20" stroke-width="2"/></svg>`,
+  shadow:`<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M14 38 L15 22 Q12 14 20 13 Q28 14 25 22 L26 38Z" fill="#081521"/><circle cx="20" cy="9" r="6" fill="#081521"/></svg>`
+};
+
+/* ---------- Statusleiste ---------- */
+function renderBar(){
+  const b=$("#bar");
+  let steps="";
+  if(S&&S.screen==="play"){steps=`<div class="steps" aria-hidden="true">${FLOW.map((f,i)=>{let c="";if(i<S.step){if(f.k==="akte"){const r=S.ans[f.i];c=r?(r.ok?"ok":"no"):""}else c="mini"}if(i===S.step)c="now";return`<i class="${c}"></i>`}).join("")}</div>`}
+  b.innerHTML=`<span class="brand">${ICON.file}Akte Nordstadt</span><span class="sp"></span>
+   ${S&&S.screen!=="start"?`<span class="pill pts" title="Punkte">${S.pts} P.</span><span class="pill" title="Beweise">${ICON.pin} ${S.clues}</span><span class="pill alarm" title="Alarmstufe">Alarm ${S.alarm}/5</span>`:""}
+   <button class="iconbtn" data-act="gloss" type="button">${ICON.book}<span>Wörter</span></button>
+   <button class="iconbtn" data-act="music" type="button" aria-pressed="${M.music}" aria-label="Musik an oder aus">${M.music?ICON.sound:ICON.mute}<span>Musik</span></button>${steps}`;
+}
+
+/* ---------- Bildschirme ---------- */
+function render(){if(S&&S.pts<0)S.pts=0;renderBar();const app=$("#app");
+  if(!S||S.screen==="start")app.innerHTML=startView();
+  else if(S.screen==="persona")app.innerHTML=personaView();
+  else if(S.screen==="play")app.innerHTML=playView();
+  else if(S.screen==="result")app.innerHTML=resultView();
+  syncMusic();save();
+}
+let draft={team:"",code:"",mode:"b",teacher:""};
+function startView(){
+  const resume=loadJ(KEY);const canResume=resume&&resume.screen&&resume.screen!=="result"&&resume.screen!=="start";
+  const prof=M.unlock;
+  return`<section class="hero">
+   <div class="scene">${scene()}</div>
+   <div class="card stack">
+    <p class="eyebrow">WiSo · Einschub Operatoren bis Modul 5</p>
+    <h1>Akte Nordstadt</h1>
+    <p>Bremerhaven, Montagmorgen. Bei der Nordstadt-Kauf GmbH fängt der neue Azubi-Jahrgang an. Doch jemand sabotiert die Ausbildung: falsche Verträge, verbotene Aufträge, Kündigungen per WhatsApp.</p>
+    <p><b>Ihr seid Azubi-Lotsen.</b> Ihr begleitet eine neue Auszubildende oder einen neuen Auszubildenden durch das erste Jahr. Jede richtige Entscheidung bringt ein Beweisstück. Jede falsche bringt den Saboteur näher. Am Ende überführt ihr den Täter.</p>
+    ${canResume?`<button class="btn sig wide" data-act="resume" type="button">Gespeicherte Akte fortsetzen (${esc(resume.team)})</button>`:""}
+   </div>
+   <div class="card stack">
+    <div class="field"><label for="team">Teamname</label><input id="team" maxlength="24" placeholder="z. B. Team Möwe" value="${esc(draft.team)}" autocomplete="off"></div>
+    <div><p class="eyebrow" style="margin-bottom:8px">Modus</p>
+    <div class="modes">
+     <button type="button" class="mode ${draft.mode==="b"?"sel":""}" data-act="mode" data-m="b"><span class="t">Basis</span><span>3 Antworten, Signalwörter sind schon markiert, 3 Buch-Joker.</span><span class="note">Rekord auf diesem Gerät: ${M.rec.b} P.</span></button>
+     <button type="button" class="mode ${draft.mode==="p"?"sel":""}" data-act="mode" data-m="p" ${prof?"":"disabled"}><span class="t">Profi</span><span>Prüfungsformat mit Kennziffern, selbst markieren, Daten eintippen, 1 Joker.</span>${prof?`<span class="note">Rekord auf diesem Gerät: ${M.rec.p} P.</span>`:`<span class="lock">Gesperrt – frei ab 3 Sternen im Basis-Modus</span>`}</button>
+    </div></div>
+    <div class="field"><label for="code">Klassen-Code (freiwillig)</label><input id="code" maxlength="14" placeholder="leer lassen = neuer Fall" value="${esc(draft.code)}" autocomplete="off"><span class="note">Gleicher Code = gleicher Fall. So könnt ihr eure Ergebnisse vergleichen.</span></div>
+    <button class="btn wide" data-act="new" type="button">Fall übernehmen</button>
+    <details><summary>Für die Lehrkraft</summary><div class="stack" style="margin-top:10px">
+     <div class="field"><label for="teacher">Code für Profi-Modus</label><input id="teacher" maxlength="12" autocomplete="off" value="${esc(draft.teacher)}"></div>
+     <button class="btn ghost" data-act="unlock" type="button">Profi freischalten</button>
+     <p class="note">Spielstände und Rekorde bleiben nur auf diesem Gerät gespeichert.</p></div></details>
+   </div></section>`;
+}
+function personaView(){const p=persona(S.pi);const s=D(p.start[0],p.start[1],p.start[2]);
+  return`<section class="card stack">
+   <p class="eyebrow">Fall ${esc(S.code)} · ${S.mode==="p"?"Profi":"Basis"}</p>
+   <h2>Wen begleitet ihr?</h2>
+   <p class="lead">Dreht die Karte um. Achtung: Alter und Vorbildung können die richtige Antwort verändern.</p>
+   <div class="flipwrap"><div class="flip ${S.flipped?"turned":""}">
+    <button class="face front" data-act="flip" type="button" aria-label="Karte umdrehen"><div class="stack" style="justify-items:center;text-align:center">${ICON.shadow.replace('viewBox','style="width:90px;height:90px" viewBox')}<span style="font-family:var(--display);font-size:1.4rem">Akte ziehen</span><span>antippen</span></div></button>
+    <div class="face back">${face(p,"happy").replace("<svg",'<svg class="pf"')}
+     <h2>${esc(p.n)}</h2>
+     <div class="facts"><div><span>Alter</span><b>${p.a} Jahre${p.minor?" · minderjährig":""}</b></div><div><span>Vorbildung</span><b>${esc(p.vb)}</b></div><div><span>Beginn</span><b>${fd(s)}</b></div><div><span>Beruf</span><b>Verkäufer/in, 2 Jahre</b></div></div>
+    </div></div></div>
+   ${S.flipped?`<button class="btn wide" data-act="go" type="button">Ermittlung starten</button>`:""}
+  </section>`;
+}
+
+/* --- Frage-Text in Abschnitte zerlegen --- */
+function parseQ(q){const segs=[];const re=/\{\{(.+?)\}\}|\[\[(.+?)\]\]/g;let last=0,m,g=0;
+  while((m=re.exec(q))){if(m.index>last)segs.push({t:q.slice(last,m.index),k:null});segs.push({t:m[1]||m[2],k:m[1]?"op":"sig",g:g++});last=re.lastIndex}
+  if(last<q.length)segs.push({t:q.slice(last),k:null});return{segs,groups:g}}
+function qWords(q){const{segs}=parseQ(q);const words=[];segs.forEach(s=>{s.t.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w)){words.push({sp:w});return}if(!s.k&&/^[^0-9A-Za-zÄÖÜäöüß]+$/.test(w)){words.push({sp:w});return}words.push({t:w,k:s.k,g:s.g})})});return words}
+function qHTML(q,mode,cur){
+  if(mode==="b"||!cur||cur.phase!=="mark"&&!cur.mark){const{segs}=parseQ(q);return segs.map(s=>s.k?`<span class="hl-${s.k}">${esc(s.t)}</span>`:esc(s.t)).join("")}
+  const words=qWords(q);let idx=0;
+  if(cur.phase==="mark")return words.map(w=>{if(w.sp)return w.sp;const i=idx++;return`<button type="button" class="w ${cur.taps.includes(i)?"on":""}" data-act="tap" data-w="${i}">${esc(w.t)}</button>`}).join("");
+  // nach dem Markieren: Auflösung
+  const found=new Set();words.filter(w=>!w.sp).forEach((w,i)=>{if(cur.taps.includes(i)&&w.k)found.add(w.g)});
+  return words.map(w=>{if(w.sp)return w.sp;const i=idx++;let c="";if(w.k){c="hl-"+w.k+(found.has(w.g)?"":" miss")}else if(cur.taps.includes(i))c="wrongtap";return c?`<span class="${c}">${esc(w.t)}</span>`:esc(w.t)}).join("");
+}
+
+function curCard(){const st=FLOW[S.step];if(st.k==="akte")return S.deck[st.i];if(st.k==="wdh")return S.wdh&&S.wdh.card;return null}
+function startCur(card){const hasMarks=/\{\{|\[\[/.test(card.q);S.cur={phase:S.mode==="p"&&hasMarks?"mark":"choose",taps:[],mark:null,sel:[],order:[],input:"",bet:0,joker:false,done:false,res:null}}
+
+function playView(){const st=FLOW[S.step];
+  if(st.k==="akte"||st.k==="wdh")return akteView(st);
+  if(st.k==="who")return whoView();
+  if(st.k==="vertrag")return vertragView();
+  if(st.k==="calc")return calcView();
+  if(st.k==="event")return eventView();
+  if(st.k==="finale")return finaleView();
+  return"";
+}
+function akteView(st){
+  const isW=st.k==="wdh";const c=curCard();if(!c)return"";if(!S.cur)startCur(c);const cur=S.cur;const p=persona(S.pi);
+  const n=isW?"W":(st.i+1);const slot=isW?{when:"Wiederholung"}:SLOTS[st.i];
+  const tab=`Akte ${n}${isW?"":"/8"} · ${AREAS[c.a].short} · ${slot.when}`;
+  let body="";
+  // Frage
+  const qPart=`<div class="sheet stack">
+    <p class="q">${qHTML(c.q,S.mode,cur)}</p>
+    ${S.mode==="b"&&/\{\{|\[\[/.test(c.q)?`<div class="legend"><span><span class="hl-op">blau</span> = Operator</span><span><span class="hl-sig">gelb</span> = Signalwort</span></div>`:""}
+    ${cur.phase==="mark"?`<p class="small muted">Profi-Schritt 1: Tippt den Operator und alle Signalwörter an. Dann „Markierung prüfen“.</p><button class="btn ghost" data-act="markcheck" type="button">Markierung prüfen</button>`:""}
+    ${cur.mark?`<p class="small"><b>Markier-Check:</b> ${cur.mark.found} von ${cur.mark.total} gefunden${cur.mark.wrong?`, ${cur.mark.wrong} Wort zu viel`:""} · +${cur.mark.pts} P. <span class="muted">(gestrichelt = übersehen)</span></p>`:""}
+  </div>`;
+  let answer="";
+  if(cur.phase!=="mark"){
+    const locked=cur.done;
+    if(c.type==="mc"||c.type==="multi"){
+      answer=`<div class="opts" role="group" aria-label="Antworten">${c.opts.map((o,i)=>{let cl=cur.sel.includes(i)?"sel":"";if(locked){/* Lösung erst in der Auswertung */}
+        return`<button type="button" class="opt ${cl}" data-act="pick" data-i="${i}" ${locked?"disabled":""}><span class="k">${S.mode==="p"?i+1:"ABCDE"[i]}</span><span>${esc(o.t)}</span></button>`}).join("")}</div>
+        ${c.type==="multi"?`<p class="small muted">Genau 2 Kennziffern wählen.</p>`:""}`;
+    }else if(c.type==="order"){
+      answer=`<p class="small muted">Tippt die Schritte in der richtigen Reihenfolge an.</p><div class="opts">${c.steps.map((s,i)=>{const pos=cur.order.indexOf(i);return`<button type="button" class="opt ${pos>=0?"sel":""}" data-act="ord" data-i="${i}" ${locked?"disabled":""}><span class="k">${pos>=0?pos+1:"·"}</span><span>${esc(s.t)}</span></button>`}).join("")}</div>${!locked&&cur.order.length?`<button class="btn ghost" data-act="ordreset" type="button">Reihenfolge löschen</button>`:""}`;
+    }else if(c.type==="date"||c.type==="num"){
+      answer=`<div class="field"><label for="ans">${c.type==="date"?"Datum (TT.MM.JJJJ)":"Ergebnis"+(c.unit?" in "+c.unit:"")}</label><input id="ans" class="inp" inputmode="${c.type==="date"?"numeric":"decimal"}" autocomplete="off" value="${esc(cur.input)}" ${locked?"disabled":""} placeholder="${c.type==="date"?"TT.MM.JJJJ":"z. B. 410,27"}"></div>`;
+    }
+    if(!locked){
+      answer+=`<div class="bet"><p class="small"><b>Wie sicher seid ihr?</b> Wer sicher ist und recht hat, bekommt mehr. Wer sicher ist und falsch liegt, verliert.</p>
+       <div class="chips">${[[1,"unsicher","±0"],[2,"ziemlich sicher","±5"],[3,"ganz sicher","±10"]].map(([v,l,s])=>`<button type="button" class="chip" data-act="bet" data-v="${v}" aria-pressed="${cur.bet===v}" ${cur.joker&&v>1?"disabled":""}>${l} <small>${s}</small></button>`).join("")}</div></div>
+       ${cur.joker?`<div class="joker small"><b>Buch-Joker:</b> ${esc(c.hint)}<br><span class="muted">Nachlesen: ${esc(c.src)}</span><br><span class="muted">Mit Joker zählt nur „unsicher“.</span></div>`:S.joker>0?`<button class="btn ghost" data-act="joker" type="button">${ICON.book.replace('viewBox','style="width:18px;height:18px;vertical-align:-3px" viewBox')} Buch-Joker (${S.joker} übrig)</button>`:`<p class="small muted">Keine Joker mehr.</p>`}
+       <button class="btn wide" data-act="lock" type="button" ${canLock(c,cur)?"":"disabled"}>Entscheidung festlegen</button>`;
+    }
+  }
+  let after="";
+  if(cur.done){const r=cur.res;const moods=r.ok?"happy":"sad";
+    const lines=r.ok?["Danke! Jetzt weiß ich, was gilt.","Super, das hilft mir echt.","Puh – gut, dass ihr aufgepasst habt.","Alles klar, so mache ich das."]:["Hm … sind wir da reingefallen?","Das fühlt sich falsch an …","Der Saboteur grinst. Kein gutes Zeichen."];
+    after=`<div class="react">${face(p,moods)}<p class="bubble">${esc(lines[(S.step+S.pts)%lines.length])}</p></div>
+     ${r.clue?`<div class="clue">${ICON.pin}<div><b>Beweisstück ${S.clues}: ${esc(r.clue.src)}</b><br>${esc(r.clue.txt)}</div></div>`:""}
+     ${!r.ok?`<div class="warn"><b>Alarmstufe ${S.alarm}/5.</b> Der Saboteur kommt näher. Die Begründung seht ihr in der Auswertung${isW?"":" – und vielleicht bekommt ihr eine zweite Chance"}.</div>`:""}
+     <div class="term"><b>${esc(c.f[0])}</b><br>${esc(c.f[1])}</div>
+     <p class="small">${r.pts>=0?"+":""}${r.pts} Punkte${r.bet>1?` (Sicherheit ${r.bet})`:""}</p>
+     <button class="btn wide" data-act="next" type="button">Weiter</button>`}
+  return`${S.step<2?`<div class="scene">${scene()}</div>`:""}
+  <section class="akte" data-tab="${esc(tab)}">${cur.done?`<span class="stamp ${cur.res.ok?"ok":"no"}">${cur.res.ok?"RICHTIG":"FALSCH"}</span>`:""}
+   <div class="stack">
+    ${isW?`<p class="eyebrow" style="color:var(--on-manila)">Zweite Chance – gleiches Thema, neuer Fall</p>`:""}
+    <h2>${esc(c.t)}</h2>
+    ${c.s?`<p class="story">${esc(c.s)}</p>`:""}
+    ${qPart}${answer}${after}
+   </div></section>
+   ${S.step>=2?`<div class="scene">${scene()}</div>`:""}`;
+}
+function canLock(c,cur){if(!cur.bet)return false;
+  if(c.type==="mc")return cur.sel.length===1;if(c.type==="multi")return cur.sel.length===2;
+  if(c.type==="order")return cur.order.length===c.steps.length;
+  if(c.type==="date")return /^\s*\d{1,2}\.\d{1,2}\.(\d{2}|\d{4})\s*$/.test(cur.input);
+  if(c.type==="num")return /\d/.test(cur.input);return false}
+function normDate(s){const m=s.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);if(!m)return"";let y=m[3];if(y.length===2)y="20"+y;return m[1].padStart(2,"0")+"."+m[2].padStart(2,"0")+"."+y}
+function judge(c,cur){
+  if(c.type==="mc")return c.opts[cur.sel[0]].ok;
+  if(c.type==="multi")return cur.sel.every(i=>c.opts[i].ok)&&cur.sel.length===2;
+  if(c.type==="order")return cur.order.every((si,k)=>c.steps[si].i===k);
+  if(c.type==="date")return normDate(cur.input)===c.date;
+  if(c.type==="num"){const v=parseFloat(cur.input.replace(/\s|€/g,"").replace(/\.(?=\d{3}\b)/g,"").replace(",","."));return Math.abs(v-c.num)<0.015}
+}
+function lockAkte(){const st=FLOW[S.step];const c=curCard(),cur=S.cur;const ok=judge(c,cur);
+  const bet=cur.joker?1:cur.bet;let pts=ok?10+5*(bet-1):-5*(bet-1);if(st.k==="wdh")pts=ok?5+5*(bet-1):-5*(bet-1);
+  if(cur.mark)pts+=cur.mark.pts;
+  let clue=null;if(ok){clue=giveClue()}else{S.alarm=Math.min(5,S.alarm+1)}
+  S.pts+=pts;cur.done=true;cur.res={ok,pts,bet,clue};
+  const rec={id:c.id,a:c.a,ok,bet,joker:cur.joker,pts,sel:cur.sel.slice(),order:cur.order.slice(),input:cur.input,wdh:st.k==="wdh"};
+  if(st.k==="akte")S.ans[st.i]=rec;else S.wdh.res=rec;
+}
+function giveClue(){if(S.clues>=S.cluelist.length)return null;const c=S.cluelist[S.clues];S.clues++;return c}
+
+/* --- Mini-Spiel 1 --- */
+let tick=null;
+function startTimer(obj,onEnd){stopTimer();if(obj.time==null)return;tick=setInterval(()=>{if(document.hidden)return;obj.time=Math.max(0,obj.time-1);const el=$("#timer");if(el){el.textContent=obj.time+" s";el.classList.toggle("low",obj.time<=15)}if(obj.time<=0){stopTimer();onEnd();render()}},1000)}
+function stopTimer(){if(tick){clearInterval(tick);tick=null}}
+function whoView(){const W=S.who;const done=W.i>=W.items.length||W.over;
+  if(!done&&W.time!=null&&!tick)setTimeout(()=>startTimer(W,()=>{W.over=true}),0);
+  if(done){stopTimer();const ok=W.res.filter(r=>r.ok).length;
+    return`<section class="card stack"><p class="eyebrow">Mini-Spiel 1 · Modul 1</p><h2>Wer macht was? – Ergebnis</h2>
+    <p><b>${ok} von ${W.items.length}</b> richtig zugeordnet · +${ok*2} Punkte${W.over&&W.res.length<W.items.length?` · Zeit abgelaufen (${W.items.length-W.res.length} nicht geschafft)`:""}</p>
+    <div class="term"><b>Merke</b><br>Der Bund regelt die Ausbildung im Betrieb, die Länder regeln die Berufsschule. Die IHK trägt ein, berät, überwacht und prüft.</div>
+    <button class="btn wide" data-act="next" type="button">Weiter</button></section>`}
+  const it=W.items[W.i];const fb=W.fb;
+  return`<section class="card stack"><div class="row"><p class="eyebrow">Mini-Spiel 1 · Modul 1</p><span class="sp"></span>${W.time!=null?`<span class="pill">Zeit <span id="timer" class="timer ${W.time<=15?"low":""}">${W.time} s</span></span>`:""}<span class="pill">${W.i+1}/${W.items.length}</span></div>
+   <h2>Wer macht was?</h2><p class="lead">Der Saboteur hat die Zuständigkeiten durcheinandergewirbelt. Ordnet zu.</p>
+   <div class="item">${esc(it.t)}</div>
+   <div class="cats">${WHO_CATS.map(([c,s])=>{let cl="";if(fb){if(c===it.c)cl="right";else if(c===fb.pick)cl="wrong"}return`<button type="button" class="cat ${cl}" data-act="who" data-c="${esc(c)}" ${fb?"disabled":""}>${esc(c)}<small>${esc(s)}</small></button>`}).join("")}</div>
+   ${fb?`<p class="${fb.ok?"m3":"m0"}"><b>${fb.ok?"Richtig.":"Nicht ganz – richtig ist: "+esc(it.c)+"."}</b> ${esc(WHO_WHY[it.c])}</p><button class="btn wide" data-act="whonext" type="button">Nächste Karte</button>`:""}
+  </section>`;
+}
+/* --- Mini-Spiel 2 --- */
+function vertragView(){const V=S.vertrag;const p=persona(S.pi);
+  const rows=V.rows.map((r,i)=>{let cl="";if(V.checked){if(r.err&&V.flags.includes(i))cl="found";else if(r.err)cl="missed";else if(V.flags.includes(i))cl="false"}else if(V.flags.includes(i))cl="flag";
+    const why=V.checked&&(r.err||V.flags.includes(i))?`<span class="why">${r.err?(V.flags.includes(i)?"Gefunden! ":"Übersehen: ")+esc(r.why):"Fehlalarm – diese Zeile ist in Ordnung."}</span>`:"";
+    return`<button type="button" class="crow ${cl}" data-act="flagrow" data-i="${i}" ${V.checked?"disabled":""} aria-pressed="${V.flags.includes(i)}"><span class="lab">${esc(r.lab)}</span><span>${esc(r.val)}</span>${why}</button>`}).join("");
+  let res="";if(V.checked){const f=V.rows.filter((r,i)=>r.err&&V.flags.includes(i)).length,fa=V.flags.filter(i=>!V.rows[i].err).length;
+    res=`<p><b>${f} von ${V.n} Fehlern gefunden</b>${fa?` · ${fa} Fehlalarm${fa>1?"e":""}`:""} · ${V.pts>=0?"+":""}${V.pts} Punkte</p><button class="btn wide" data-act="next" type="button">Weiter</button>`}
+  return`<section class="card stack"><p class="eyebrow">Mini-Spiel 2 · Modul 2</p><h2>Vertrags-Detektive</h2>
+   <p class="lead">Der Saboteur hat den Vertrag von ${esc(p.n)} manipuliert. Tippt alle Zeilen an, die gegen das Gesetz verstoßen. ${S.mode==="p"?"Wie viele Fehler es sind, verrät euch keiner.":`Es sind <b>${V.n} Fehler</b> versteckt.`}</p>
+   <div class="contract"><h3>BERUFSAUSBILDUNGSVERTRAG (Auszug)</h3>${rows}</div>
+   ${V.checked?res:`<p class="small muted">Markiert: ${V.flags.length}. Fehlalarme kosten Punkte.</p><button class="btn wide" data-act="vcheck" type="button" ${V.flags.length?"":"disabled"}>Vertrag prüfen</button>`}
+  </section>`;
+}
+/* --- Mini-Spiel 3 --- */
+function calcView(){const C=S.calc;const done=C.i>=C.tasks.length||C.over;
+  if(!done&&C.time!=null&&!tick)setTimeout(()=>startTimer(C,()=>{C.over=true}),0);
+  if(done){stopTimer();const ok=C.res.filter(r=>r.ok).length;return`<section class="card stack"><p class="eyebrow">Mini-Spiel 3 · Modul 4</p><h2>Probezeit-Rechner – Ergebnis</h2>
+    <p><b>${ok} von ${C.tasks.length}</b> richtig · +${ok*5} Punkte${C.over&&C.res.length<C.tasks.length?" · Zeit abgelaufen":""}</p>
+    <div class="term"><b>Trick</b><br>Beginn am Ersten → Ende am letzten Tag des letzten Monats. Beginn mitten im Monat → Ende am Tag davor.</div>
+    <button class="btn wide" data-act="next" type="button">Weiter</button></section>`}
+  const t=C.tasks[C.i];const fb=C.fb;
+  const txt=`${t.who} beginnt am ${t.start}. Die Probezeit beträgt ${t.m} Monat${t.m>1?"e":""}.`+(t.ill?` ${t.who} ist in der Probezeit ${t.ill} Wochen krank. Im Vertrag steht die Verlängerungsklausel.`:"");
+  return`<section class="card stack"><div class="row"><p class="eyebrow">Mini-Spiel 3 · Modul 4</p><span class="sp"></span>${C.time!=null?`<span class="pill">Zeit <span id="timer" class="timer ${C.time<=15?"low":""}">${C.time} s</span></span>`:""}<span class="pill">${C.i+1}/${C.tasks.length}</span></div>
+   <h2>Probezeit-Rechner</h2><p class="lead">Der Saboteur will genau am ersten Tag nach der Probezeit „ohne Grund“ kündigen. Rechnet nach!</p>
+   <div class="calc"><p><b>${esc(txt)}</b></p><p>Mit Ablauf welchen Tages endet die Probezeit?</p>
+   ${S.mode==="p"?`<div class="field"><label for="cin">Datum (TT.MM.JJJJ)</label><input id="cin" class="inp" inputmode="numeric" autocomplete="off" ${fb?"disabled":""} value="${esc(C.input||"")}" placeholder="TT.MM.JJJJ"></div>${fb?"":`<button class="btn" data-act="cgo" type="button">Prüfen</button>`}`
+     :`<div class="opts">${t.opts.map(o=>`<button type="button" class="opt ${fb?(o===t.ans?"right":fb.pick===o?"wrong":""):""}" data-act="cpick" data-v="${o}" ${fb?"disabled":""}><span class="k">${ICON.file.replace('viewBox','style="width:18px;height:18px" viewBox')}</span><span class="mono">${o}</span></button>`).join("")}</div>`}
+   </div>
+   ${fb?`<p class="${fb.ok?"m3":"m0"}"><b>${fb.ok?"Richtig!":"Nicht ganz."}</b> ${t.ill?`Ohne Krankheit: ${t.base}. ${t.ill} Wochen = ${t.ill*7} Tage, mehr als ein Drittel (≈ 40 Tage) → verlängert bis ${t.ans}.`:`Die Probezeit endet mit Ablauf des ${t.ans}.`}</p><button class="btn wide" data-act="cnext" type="button">Weiter</button>`:""}
+  </section>`;
+}
+/* --- Zufallsereignis --- */
+function eventView(){const E=S.event;const ev=EVENTS.find(e=>e.id===E.id);const p=persona(S.pi);const fn=s=>esc(fill(s,p));
+  let body="";
+  if(ev.kind==="quiz"&&!E.done){body=`<p><b>${fn(ev.q)}</b></p><div class="opts">${ev.o.map((o,i)=>`<button type="button" class="opt" data-act="evq" data-i="${i}"><span class="k">${"AB"[i]}</span><span>${fn(o[0])}</span></button>`).join("")}</div>`}
+  else if(!E.done){body=`<button class="btn wide" data-act="evgo" type="button">Was passiert?</button>`}
+  else{body=`<div class="${E.good?"clue":"warn"}">${E.good?ICON.pin:""}<div>${E.msg}</div></div><button class="btn wide" data-act="next" type="button">Weiter</button>`}
+  return`<section class="card stack"><p class="eyebrow">Zufallsereignis</p><h2>${esc(ev.t)}</h2><p>${fn(ev.s)}</p>${body}</section><div class="scene">${scene()}</div>`;
+}
+function resolveEvent(qi){const E=S.event;const ev=EVENTS.find(e=>e.id===E.id);let good=false,msg="";
+  const addClue=()=>{const c=giveClue();return c?`<b>Beweisstück ${S.clues}: ${esc(c.src)}</b><br>${esc(c.txt)}`:"Ihr habt schon alle Beweise."};
+  if(ev.kind==="quiz"){good=!!ev.o[qi][1];if(good){S.pts+=5;msg=`<b>Richtig! +5 Punkte.</b> ${esc(ev.why)}<br>${addClue()}`}else{S.alarm=Math.min(5,S.alarm+1);msg=`<b>Leider falsch.</b> ${esc(ev.why)} Alarmstufe steigt.`}}
+  else if(ev.kind==="check"){const r=S.ans[SLOTS.findIndex(s=>s.a===ev.area)];good=r&&r.ok;if(good)msg=esc(ev.good)+"<br>"+addClue();else{S.alarm=Math.min(5,S.alarm+1);msg=esc(ev.bad)}}
+  else if(ev.kind==="streak"){const n=S.ans.filter(r=>r&&r.ok).length;good=n>=3;if(good){S.pts+=5;msg=esc(ev.good)+" +5 Punkte."}else{S.alarm=Math.min(5,S.alarm+1);msg=esc(ev.bad)}}
+  else if(ev.kind==="clue"){good=true;msg=addClue()}
+  else if(ev.kind==="calm"){good=true;S.alarm=Math.max(0,S.alarm-1);msg="Ruhiger Abend. Alarmstufe sinkt um 1."}
+  else if(ev.kind==="bonus"){good=true;S.pts+=3;msg="+3 Punkte für Teamgeist."}
+  else if(ev.kind==="vertrag"){const V=S.vertrag;const f=V.rows.filter((r,i)=>r.err&&V.flags.includes(i)).length;good=f>=Math.ceil(V.n/2);if(good)msg=esc(ev.good)+"<br>"+addClue();else{S.alarm=Math.min(5,S.alarm+1);msg=esc(ev.bad)}}
+  E.done=true;E.good=good;E.msg=msg;
+}
+/* --- Finale --- */
+function finaleView(){const F=S.finale;
+  if(!F.started){F.started=true;if(S.alarm>=4&&S.clues>0){S.clues--;F.lost=true}}
+  const got=S.cluelist.slice(0,S.clues);
+  const cards=S.sus.map(i=>{const s=SUSPECTS[i];const t=S.traits[i];let cl=F.sel===i?"sel":"";if(F.done&&i!==S.culprit)cl+=" out";
+    return`<button type="button" class="sus ${cl}" data-act="accuse" data-i="${i}" ${F.done?"disabled":""}><div class="row">${face(s,F.done&&i===S.culprit?"sad":"neutral")}<div><b>${esc(s.n)}</b><br><span class="small muted">${esc(s.r)}</span></div></div>
+     <ul>${TRAITS.map((tr,d)=>`<li>${tr.k}: ${esc(t[d])}</li>`).join("")}</ul></button>`}).join("");
+  let end="";
+  if(F.done){const s=SUSPECTS[S.culprit];const p=persona(S.pi);end=F.right?`<div class="clue">${ICON.pin}<div><b>Überführt! +25 Punkte.</b><br>${esc(s.n)} (${esc(s.r)}) war es. ${esc(s.mot)} Geschäftsführerin Kerstin Ahlers räumt auf. ${esc(p.n.split(" ")[0])} kann in Ruhe weiterlernen.</div></div>`
+    :`<div class="warn"><b>Falsche Spur.</b> Es war ${esc(s.n)} (${esc(s.r)}). ${esc(s.mot)} Mit mehr Beweisen hättet ihr es sicher gewusst.</div>`;
+    end+=`<button class="btn wide sig" data-act="toresult" type="button">Zur Auswertung</button>`}
+  return`<section class="card stack"><p class="eyebrow">Finale</p><h2>Wer ist der Saboteur?</h2>
+   <p>Alle Spuren hängen an der Pinnwand. Drei Personen kommen in Frage. Kombiniert eure Beweise und klagt eine Person an.</p>
+   ${F.lost?`<div class="warn">Alarmstufe ${S.alarm}: Der Saboteur hat in der Nacht ein Beweisstück von der Pinnwand gerissen.</div>`:""}
+   <div><p class="eyebrow" style="margin-bottom:6px">Eure Beweise (${got.length})</p>${got.length?`<ul class="cluelist">${got.map((c,i)=>`<li><span class="n">${i+1}</span><span><b>${esc(c.src)}:</b> ${esc(c.txt)}</span></li>`).join("")}</ul>`:`<p class="muted">Keine Beweise – ihr müsst raten.</p>`}</div>
+   <div class="suspects">${cards}</div>
+   ${F.done?end:`<button class="btn wide" data-act="accusego" type="button" ${F.sel==null?"disabled":""}>Anklagen</button>`}
+  </section>`;
+}
+
+/* --- Auswertung --- */
+function stats(){const ak=S.ans.filter(Boolean);const okA=ak.filter(r=>r.ok).length;
+  const W=S.who,V=S.vertrag,C=S.calc;const whoOk=W.res.filter(r=>r.ok).length,vOk=V.rows.filter((r,i)=>r.err&&V.flags.includes(i)).length,cOk=C.res.filter(r=>r.ok).length;
+  const wOk=S.wdh&&S.wdh.res&&S.wdh.res.ok?1:0,wN=S.wdh&&S.wdh.res?1:0;
+  const tot=8+W.items.length+V.n+C.tasks.length+wN,good=okA+whoOk+vOk+cOk+wOk;const q=good/tot;
+  const stars=q>=.8?3:q>=.6?2:1;
+  const sure=ak.filter(r=>r.bet===3),sureOk=sure.filter(r=>r.ok).length;
+  const per={};Object.keys(AREAS).forEach(a=>per[a]={n:0,ok:0});ak.forEach(r=>{per[r.a].n++;if(r.ok)per[r.a].ok++});
+  per.m1.n+=W.items.length;per.m1.ok+=whoOk;per.m2.n+=V.n;per.m2.ok+=vOk;per.m4p.n+=C.tasks.length;per.m4p.ok+=cOk;
+  if(S.wdh&&S.wdh.res){per[S.wdh.card.a].n++;if(S.wdh.res.ok)per[S.wdh.card.a].ok++}
+  return{okA,whoOk,vOk,cOk,q,stars,sure:sure.length,sureOk,per,good,tot}}
+function optText(c,r){if(c.type==="mc"||c.type==="multi")return r.sel.map(i=>c.opts[i].t).join(" + ");if(c.type==="order")return r.order.map(i=>i+1).join(" → ")+" (eure Reihenfolge)";return r.input}
+function rightText(c){if(c.type==="mc"||c.type==="multi")return c.opts.filter(o=>o.ok).map(o=>o.t).join(" + ");if(c.type==="order")return c.steps.slice().sort((a,b)=>a.i-b.i).map(s=>s.t).join(" → ");if(c.type==="date")return c.date;return c.sol||String(c.num).replace(".",",")}
+function whyText(c,r){if(c.type==="mc"){const o=c.opts[r.sel[0]];return o.why}if(c.type==="multi")return r.ok?"Beide Kennziffern stimmen.":r.sel.map(i=>c.opts[i]).filter(o=>!o.ok).map(o=>o.t+": "+o.why).join(" ");if(c.type==="order")return r.ok?"Problem – Regel – Anwenden – Ergebnis.":"Die Reihenfolge ist immer: Problem – Regel – Anwenden – Ergebnis.";if(c.type==="date")return r.ok?"Richtig gerechnet.":"Richtig wäre: "+c.date+".";return r.ok?"Richtig gerechnet: "+c.sol:"Rechenweg: "+c.sol}
+function resultView(){const st=stats();const p=persona(S.pi);const items=S.deck.map((c,i)=>[c,S.ans[i]]);if(S.wdh&&S.wdh.res)items.push([S.wdh.card,S.wdh.res]);
+  const pr=PROFIS[S.profiIdx%PROFIS.length];
+  return`<section class="scorecard" aria-label="Punktekarte">
+    <p class="eyebrow" style="color:inherit;opacity:.85">Fall ${esc(S.code)} · ${S.mode==="p"?"Profi":"Basis"}</p>
+    <p style="font-family:var(--display);font-size:1.4rem">${esc(S.team)}</p>
+    <div class="big">${S.pts} Punkte</div>
+    <div class="stars">${[1,2,3].map(k=>ICON.star(k<=st.stars)).join("")}</div>
+    <p>${S.finale.right?"Saboteur überführt":"Saboteur entkommen"} · begleitet: ${esc(p.n)} (${p.a})</p>
+    <p class="small" style="opacity:.85">${S.newRec?"Neuer Rekord auf diesem Gerät!":"Rekord auf diesem Gerät: "+M.rec[S.mode]+" P."}</p>
+   </section>
+   <section class="card stack"><h2>Eure Bilanz</h2>
+    <div class="kpis"><div class="kpi"><span class="small muted">Akten richtig</span><b>${st.okA}/8</b></div><div class="kpi"><span class="small muted">Fachquote</span><b>${Math.round(st.q*100)} %</b></div><div class="kpi"><span class="small muted">Beweise</span><b>${S.clues}</b></div><div class="kpi"><span class="small muted">„Ganz sicher“ und richtig</span><b>${st.sureOk}/${st.sure}</b></div></div>
+    <p class="small">${st.sure===0?"Ihr habt nie „ganz sicher“ gewählt. Traut euch – wer die Regel kennt, darf sicher sein.":st.sureOk===st.sure?"Wenn ihr sicher wart, lagt ihr richtig. Gute Selbsteinschätzung!":"Manchmal wart ihr „ganz sicher“ und lagt falsch. Schaut euch genau diese Akten unten an."}</p>
+    <div class="bars">${Object.keys(AREAS).map(a=>{const v=st.per[a];if(!v.n)return"";const q=v.ok/v.n;return`<div class="barrow"><span>${esc(AREAS[a].short)} ${a==="m4k"?"Kündigung":a==="m4p"?"Probezeit":""}</span><span class="track"><i class="${q<.5?"lowv":q<.8?"midv":""}" style="width:${Math.round(q*100)}%"></i></span><span class="mono">${v.ok}/${v.n}</span></div>`}).join("")}</div>
+    <p class="note">Rot = dort nachlernen: im Modul die Seite „Zum Nachlesen“ und die Übungsaufgaben.</p>
+   </section>
+   <section class="card stack"><h2>Alle Akten mit Begründung</h2><div class="review">
+    ${items.map(([c,r],k)=>r?`<article class="rv ${r.ok?"ok":"no"}"><div class="h"><span class="mark ${r.ok?"m3":"m0"}">${r.ok?"✓":"✗"}</span><b>${r.wdh?"Zweite Chance":"Akte "+(k+1)} · ${esc(AREAS[c.a].short)} · ${esc(c.t)}</b></div>
+     <p class="small"><b>Eure Antwort:</b> ${esc(optText(c,r))}</p>
+     <p class="small">${esc(whyText(c,r))}</p>
+     ${!r.ok?`<p class="small"><b>Besser:</b> ${esc(rightText(c))}</p>`:""}
+     <p class="ihk"><b>So steht es in der Prüfung:</b> ${esc(c.ihk)}<br><span class="muted">Nachlesen: ${esc(c.src)}</span></p></article>`:"").join("")}
+   </div></section>
+   <section class="card stack"><h2>Prüfungstipp WiSo</h2>
+    <p>Die WiSo-Prüfung hat Ankreuzaufgaben (60 Minuten, 10 % der Note). Lies zuerst den letzten Satz, markiere Operator und Signalwörter (<span class="hl-sig">nicht</span>, <span class="hl-sig">2</span>, <span class="hl-sig">spätestens</span>, <span class="hl-sig">frühestens</span>) und prüfe jede Antwort an der Regel.</p>
+   </section>
+   <details class="card"><summary>Für Profis: ${esc(pr.m)}</summary><div class="stack" style="margin-top:10px"><p><b>${esc(pr.q)}</b></p><details><summary>Lösung zeigen</summary><p style="margin-top:8px">${esc(pr.a)}</p></details></div></details>
+   <section class="card stack"><h2>Noch eine Akte?</h2>
+    <button class="btn wide" data-act="again-new" type="button">Neuer Fall (andere Person, andere Akten)</button>
+    <button class="btn ghost wide" data-act="again-same" type="button">Gleichen Fall besser lösen (Code ${esc(S.code)})</button>
+    <button class="btn ghost wide" data-act="again-mode" type="button">${S.mode==="p"?"Zum Basis-Modus":"Zum Profi-Modus"}${S.mode==="b"&&!M.unlock?" (noch gesperrt)":""}</button>
+    <button class="btn ghost wide" data-act="home" type="button">Zum Start</button>
+   </section>`;
+}
+function finishGame(){const st=stats();S.screen="result";S.newRec=S.pts>(M.rec[S.mode]||0);if(S.newRec)M.rec[S.mode]=S.pts;
+  if(S.mode==="b"&&st.stars>=3)M.unlock=true;saveMeta();Music.stop();Music.tusch()}
+
+/* ---------- Ablauf ---------- */
+function advance(){stopTimer();S.cur=null;S.step++;
+  while(S.step<FLOW.length){const st=FLOW[S.step];
+    if(st.k==="wdh"){const wrong=S.ans.findIndex(r=>r&&!r.ok);if(wrong<0){S.step++;continue}
+      if(!S.wdh){S.wdh={card:S.reserve[S.deck[wrong].a],res:null}}}
+    break}
+  window.scrollTo(0,0);render()}
+
+/* ---------- Aktionen ---------- */
+const A={
+  gloss(){const ov=$("#ov");ov.innerHTML=`<div class="overlay" data-act="close"><div class="card" role="dialog" aria-modal="true" aria-label="Wortspeicher" data-stop="1"><div class="row"><h2>Wortspeicher</h2><span class="sp"></span><button class="btn ghost" data-act="close" type="button">Schließen</button></div><div class="gloss">${GLOSS.map(g=>`<div><b>${esc(g[0])}</b><br><span class="small">${esc(g[1])}</span></div>`).join("")}</div></div></div>`},
+  close(el,ev){if(ev&&ev.target.closest("[data-stop]")&&!ev.target.closest("button[data-act=close]"))return;$("#ov").innerHTML=""},
+  music(){M.music=!M.music;saveMeta();if(M.music){Music.ensure();if(Music.ctx&&Music.ctx.state==="suspended")Music.ctx.resume()}else Music.stop();renderBar();syncMusic()},
+  mode(el){if(el.disabled)return;draft.mode=el.dataset.m;render()},
+  unlock(){if((draft.teacher||"").trim().toUpperCase()==="LOTSE"){M.unlock=true;saveMeta();draft.mode="p"}render()},
+  new(){newGame(draft.team.trim(),draft.mode==="p"&&M.unlock?"p":"b",draft.code);render()},
+  resume(){S=loadJ(KEY);render()},
+  flip(){S.flipped=true;render()},
+  go(){S.screen="play";S.step=0;S.cur=null;render()},
+  tap(el){const i=+el.dataset.w;const t=S.cur.taps;const k=t.indexOf(i);if(k>=0)t.splice(k,1);else t.push(i);render()},
+  markcheck(){const c=curCard();const words=qWords(c.q).filter(w=>!w.sp);const groups=new Set(words.filter(w=>w.k).map(w=>w.g));const found=new Set();let wrong=0;
+    S.cur.taps.forEach(i=>{const w=words[i];if(w&&w.k)found.add(w.g);else wrong++});const pts=Math.max(0,found.size-wrong);
+    S.cur.mark={found:found.size,total:groups.size,wrong,pts};S.cur.phase="choose";render()},
+  pick(el){const c=curCard();const i=+el.dataset.i;const s=S.cur.sel;if(c.type==="multi"){const k=s.indexOf(i);if(k>=0)s.splice(k,1);else if(s.length<2)s.push(i)}else S.cur.sel=[i];render()},
+  ord(el){const i=+el.dataset.i;const o=S.cur.order;if(!o.includes(i))o.push(i);render()},
+  ordreset(){S.cur.order=[];render()},
+  bet(el){if(el.disabled)return;S.cur.bet=+el.dataset.v;render()},
+  joker(){if(S.joker<=0)return;S.joker--;S.cur.joker=true;S.cur.bet=1;render()},
+  lock(){const c=curCard();if(!canLock(c,S.cur))return;lockAkte();render();const r=document.querySelector(".react");if(r)r.scrollIntoView({block:"center",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})},
+  next(){if(FLOW[S.step].k==="vertrag"&&!S.vertrag.checked)return;advance()},
+  who(el){const W=S.who;if(W.fb)return;const it=W.items[W.i];const ok=el.dataset.c===it.c;W.res.push({ok});if(ok)S.pts+=2;W.fb={ok,pick:el.dataset.c};render()},
+  whonext(){const W=S.who;W.fb=null;W.i++;render()},
+  flagrow(el){const V=S.vertrag;const i=+el.dataset.i;const k=V.flags.indexOf(i);if(k>=0)V.flags.splice(k,1);else V.flags.push(i);render()},
+  vcheck(){const V=S.vertrag;V.checked=true;const f=V.rows.filter((r,i)=>r.err&&V.flags.includes(i)).length,fa=V.flags.filter(i=>!V.rows[i].err).length;V.pts=Math.max(0,f*3-fa*2);S.pts+=V.pts;render()},
+  cpick(el){const C=S.calc;if(C.fb)return;const t=C.tasks[C.i];const ok=el.dataset.v===t.ans;C.res.push({ok});if(ok)S.pts+=5;C.fb={ok,pick:el.dataset.v};render()},
+  cgo(){const C=S.calc;if(C.fb)return;const t=C.tasks[C.i];const v=normDate(C.input||"");const ok=v===t.ans;C.res.push({ok,input:C.input});if(ok)S.pts+=5;C.fb={ok,pick:v};render()},
+  cnext(){const C=S.calc;C.fb=null;C.input="";C.i++;render()},
+  evgo(){resolveEvent();render()},
+  evq(el){resolveEvent(+el.dataset.i);render()},
+  accuse(el){if(S.finale.done)return;S.finale.sel=+el.dataset.i;render()},
+  accusego(){const F=S.finale;if(F.sel==null)return;F.done=true;F.right=F.sel===S.culprit;if(F.right)S.pts+=25;Music.stop();render()},
+  toresult(){finishGame();window.scrollTo(0,0);render()},
+  "again-new"(){const m=S.mode,t=S.team;newGame(t,m,"");render()},
+  "again-same"(){const m=S.mode,t=S.team,c=S.code;newGame(t,m,c);render()},
+  "again-mode"(){if(S.mode==="b"&&!M.unlock){draft.team=S.team;S=null;try{localStorage.removeItem(KEY)}catch(e){}render();return}const m=S.mode==="p"?"b":"p",t=S.team;newGame(t,m,"");render()},
+  home(){draft.team=S?S.team:"";S=null;try{localStorage.removeItem(KEY)}catch(e){}render()}
+};
+document.addEventListener("click",ev=>{const el=ev.target.closest("[data-act]");if(!el)return;if(el.disabled)return;
+  if(Music.ctx&&Music.ctx.state==="suspended"&&M.music)Music.ctx.resume();
+  const f=A[el.dataset.act];if(f)f(el,ev)});
+document.addEventListener("input",ev=>{const t=ev.target;
+  if(t.id==="team")draft.team=t.value;else if(t.id==="code")draft.code=t.value;else if(t.id==="teacher")draft.teacher=t.value;
+  else if(t.id==="ans"&&S&&S.cur){S.cur.input=t.value;const b=document.querySelector('[data-act="lock"]');if(b)b.disabled=!canLock(curCard(),S.cur);save()}
+  else if(t.id==="cin"&&S){S.calc.input=t.value}});
+document.addEventListener("keydown",ev=>{if(ev.key==="Escape")$("#ov").innerHTML="";if(ev.key==="Enter"&&ev.target.id==="cin")A.cgo()});
+
+/* Start */
+(function boot(){const hot=window.claude&&window.claude.hot;
+  try{hot&&hot.snapshot&&hot.snapshot(()=>({S,draft}))}catch(e){}
+  const start=(d)=>{if(d&&d.S){S=d.S;draft=d.draft||draft}render()};
+  if(hot&&hot.ready)hot.ready(start);else start(hot&&hot.data||{});
+})();
+</script></body></html>

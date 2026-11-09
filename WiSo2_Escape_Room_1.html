@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escape Room 1 – Unfall im Lager</title>
+<style>
+:root{--blau:#1F4E79;--hell:#EAF1F8;--rosa:#E5B8B7;--gruen:#2E6B45;--rot:#C00000;--grau:#F2F2F2}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}
+header{background:var(--blau);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header h1{font-size:20px;margin:0}#uhr{font-size:22px;font-weight:bold;font-variant-numeric:tabular-nums}
+main{max-width:980px;margin:0 auto;padding:16px}
+.story{background:var(--hell);border-left:5px solid var(--blau);padding:12px 16px;border-radius:4px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin:18px 0}
+.tile{border:2px solid var(--blau);border-radius:8px;padding:14px;cursor:pointer;background:#fff;min-height:110px;position:relative}
+.tile:hover{background:var(--hell)}.tile h3{margin:0 0 4px;color:var(--blau)}.tile small{color:#595959}
+.tile.done{border-color:var(--gruen);background:#E2EFDA}.badge{position:absolute;right:12px;top:10px;font-size:30px;font-weight:bold;color:var(--gruen)}
+.station{display:none;border:2px solid var(--blau);border-radius:8px;padding:16px;margin-top:10px}
+.q{margin:12px 0;padding:10px;border-radius:6px;background:var(--grau)}.q.ok{background:#E2EFDA}.q.bad{background:#F8D7D7}
+.q p{margin:0 0 6px;font-weight:bold}label{display:block;padding:3px 0;cursor:pointer}
+input[type=number],input[type=text]{font-size:18px;padding:6px;width:140px}
+button{background:var(--blau);color:#fff;border:0;border-radius:5px;padding:9px 16px;font-size:15px;cursor:pointer;margin:6px 6px 0 0}
+button.sec{background:#fff;color:var(--blau);border:1px solid var(--blau)}
+.msg{margin-top:10px;font-weight:bold}.tipp{display:none;margin-top:8px;padding:8px;background:#FFF2CC;border-radius:5px}
+#tresor{border:3px dashed #595959;border-radius:10px;padding:16px;text-align:center;margin-top:20px}
+#code{font-size:28px;letter-spacing:8px;width:220px;text-align:center}
+#code-slots{font-size:26px;letter-spacing:10px;margin:6px 0;color:var(--gruen);font-weight:bold}
+#ende{display:none;background:#E2EFDA;border:3px solid var(--gruen);border-radius:10px;padding:18px;margin-top:16px;text-align:center}
+@media print{header{background:#fff;color:#000}}
+</style></head><body>
+<header><h1>Escape Room 1 · Unfall im Lager</h1><div>⏱ <span id="uhr">35:00</span></div></header>
+<main>
+<div class="story"><b>Montag, 10:15 Uhr, Getränkelager der Nordstadt-Kauf GmbH.</b> Azubi Lea ist von einer Kiste gestürzt – das Handgelenk ist gebrochen. Der D-Arzt schreibt sie vier Wochen krank.
+Die Unfallanzeige muss innerhalb von drei Tagen an die Berufsgenossenschaft. Aber das Formular liegt im Tresor des Personalbüros – und die Personalchefin ist im Urlaub.
+Sie hat einen Zettel mit sechs Aufgaben hinterlassen: Jede gelöste Station verrät eine Ziffer des Codes. Ihr habt <b>35 Minuten</b>. Tipps gibt es – aber jeder Tipp kostet <b>2 Minuten</b>.</div>
+<div class="grid" id="grid"></div>
+<div class="station" id="station"></div>
+<div id="tresor"><h2>🔒 Der Tresor</h2><div>Eure Ziffern (Station 1 bis 6):</div><div id="code-slots">_ _ _ _ _ _</div>
+<input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="······"> <button onclick="oeffnen()">Tresor öffnen</button><div class="msg" id="tmsg"></div></div>
+<div id="ende"><h2>🎉 Der Tresor ist offen!</h2><p>Die Unterlagen für die Betriebsversammlung sind gerettet. Eure Zeit: <b id="zeit"></b> · Genutzte Tipps: <b id="ntipps"></b></p>
+<p>Zeigt diesen Bildschirm eurer Lehrkraft.</p></div>
+</main>
+<script>
+const ST=[{"t": "Fünf Zweige", "m": "Modul 1", "z": 5, "h": "KRAPU: Kranken, Renten, Arbeitslosen, Pflege, Unfall. Nur die Unfallversicherung zahlt der Arbeitgeber allein; das Geld sammelt die Krankenkasse ein.", "f": [["Wer meldet Lea bei der Sozialversicherung an?", ["Lea selbst", "der Arbeitgeber bei der Krankenkasse", "die Berufsschule", "die IHK"], 1], ["Wer ist Träger der Arbeitslosenversicherung?", ["die Krankenkasse", "die Deutsche Rentenversicherung", "die Bundesagentur für Arbeit", "die Berufsgenossenschaft"], 2], ["„Einer für alle, alle für einen“ heißt …", ["Äquivalenzprinzip", "Solidaritätsprinzip", "Günstigkeitsprinzip", "Umlageverfahren"], 1], ["Wie viele Zweige hat die gesetzliche Sozialversicherung? (Zahl)", null, 5]]}, {"t": "Krank – und dann?", "m": "Modul 2", "z": 2, "h": "Erst 6 Wochen der Betrieb, dann die Krankenkasse: 70 % vom Brutto, höchstens 90 % vom Netto. Die Pflegekasse sitzt bei der Krankenkasse.", "f": [["Wer zahlt Leas Gehalt in den ersten Wochen ihrer Krankheit?", ["die Krankenkasse", "die Berufsgenossenschaft", "der Betrieb", "die Agentur für Arbeit"], 2], ["Wer legt den Pflegegrad fest?", ["die Hausärztin", "der Medizinische Dienst", "der Betriebsrat", "die Familie"], 1], ["Wer zahlt den Zuschlag für Kinderlose in der Pflegeversicherung?", ["der Arbeitgeber", "der Arbeitnehmer allein", "beide je zur Hälfte", "der Staat"], 1], ["Ab der wievielten Woche zahlt die Krankenkasse Krankengeld? (Zahl)", null, 7]]}, {"t": "Die Rentenkasse", "m": "Modul 3", "z": 8, "h": "Reha vor Rente! Die drei Säulen: gesetzlich, betrieblich, privat. Die Regelaltersgrenze kennt ihr aus dem Einstieg.", "f": [["Welche Leistung zahlt die Deutsche Rentenversicherung?", ["Krankengeld", "eine Kur, damit man arbeitsfähig bleibt", "Arbeitslosengeld", "Elterngeld"], 1], ["Eine Betriebsrente gehört zur …", ["ersten Säule", "zweiten Säule", "dritten Säule", "Grundsicherung"], 1], ["Der Generationenvertrag bedeutet …", ["Jeder spart für sich.", "Die Arbeitenden zahlen die heutigen Renten.", "Der Staat zahlt alles.", "Kinder zahlen die Rente ihrer Eltern direkt."], 1], ["Mit wie vielen Jahren geht ihr nach heutigem Recht regulär in Rente? (Zahl)", null, 67]]}, {"t": "Bei der Agentur", "m": "Modul 4", "z": 1, "h": "Spätestens 3 Monate vorher arbeitsuchend melden. Eigene Kündigung = 12 Wochen Sperrzeit. Grundsicherung kommt aus Steuern.", "f": [["Tim wird nach der Ausbildung nicht übernommen. Wann muss er sich spätestens melden?", ["am letzten Tag", "3 Monate vor dem Ende", "1 Jahr vorher", "gar nicht"], 1], ["Jana kündigt selbst ohne wichtigen Grund. Was droht?", ["nichts", "eine Sperrzeit", "eine Geldstrafe", "die Kündigung der Krankenkasse"], 1], ["Woraus wird die Grundsicherung bezahlt?", ["aus ALV-Beiträgen", "aus Steuern", "aus der Rentenkasse", "vom Arbeitgeber"], 1], ["Wie viel Prozent des pauschalierten Nettos beträgt das Arbeitslosengeld ohne Kind? (Zahl)", null, 60]]}, {"t": "Der Unfall", "m": "Modul 5", "z": 6, "h": "Arbeitsunfall, Wegeunfall, Berufskrankheit – zuständig ist die Berufsgenossenschaft. Unfallanzeige ab mehr als 3 Tagen Arbeitsunfähigkeit.", "f": [["Lea stürzt im Lager von einer Kiste. Wem muss der Unfall gemeldet werden?", ["der Bundesagentur für Arbeit", "dem TÜV", "der Berufsgenossenschaft", "dem Einzelhandelsverband"], 2], ["Welcher Unfall ist versichert?", ["Sturz beim Einkauf nach Feierabend", "Unfall auf dem direkten Weg zur Berufsschule", "Fußball am Wochenende", "Schnitt beim Apfelschälen in der Pause"], 1], ["Lea kann ihren Beruf nach dem Unfall nicht mehr ausüben. Wer zahlt die Umschulung?", ["der Arbeitgeber", "die Berufsgenossenschaft", "die private Unfallversicherung", "der Einzelhandelsverband"], 1], ["Ab wie vielen Tagen Arbeitsunfähigkeit muss der Betrieb eine Unfallanzeige schicken? „Mehr als … Tage“ (Zahl)", null, 3]]}, {"t": "Die Gehaltsabrechnung", "m": "Modul 6", "z": 4, "h": "Beitrag = Brutto × Arbeitnehmersatz : 100. Auf Cent runden. Die Unfallversicherung taucht auf der Abrechnung nicht auf.", "f": [["Welcher Beitrag wird NICHT vom Gehalt abgezogen?", ["Krankenversicherung", "Rentenversicherung", "Unfallversicherung", "Arbeitslosenversicherung"], 2], ["Was ist das Nettogehalt?", ["Brutto plus Arbeitgeberanteil", "Brutto minus Steuern und Sozialversicherung", "der Arbeitgeberanteil", "die Lohnsteuer"], 1], ["Lea verdient 1.200 € brutto. Ihr Rentenversicherungsbeitrag (9,3 %) beträgt …", ["11,16 €", "111,60 €", "223,20 €", "120,00 €"], 1], ["Das Gehalt steigt um 200 €. Wie viel Euro mehr Rentenbeitrag (9,3 %) werden abgezogen? Gib nur die Euro vor dem Komma an. (Zahl)", null, 18]]}];
+let t0=Date.now(),strafe=0,tipps=0,fertig=false;const gel=ST.map(()=>false);
+function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function rest(){return 45*60-Math.floor((Date.now()-t0)/1000)-strafe}
+setInterval(()=>{if(!fertig){document.getElementById('uhr').textContent=fmt(rest())}},500);
+const ORD={};function ord(i,j,n){const key=i+'_'+j;if(!ORD[key]){const a=[...Array(n).keys()];for(let x=n-1;x>0;x--){const y=Math.floor(Math.random()*(x+1));[a[x],a[y]]=[a[y],a[x]]}ORD[key]=a}return ORD[key]}
+function grid(){const g=document.getElementById('grid');g.innerHTML='';ST.forEach((s,i)=>{const d=document.createElement('div');d.className='tile'+(gel[i]?' done':'');
+ d.innerHTML='<h3>Station '+(i+1)+': '+s.t+'</h3><small>'+s.m+'</small>'+(gel[i]?'<div class="badge">'+s.z+'</div>':'');d.onclick=()=>zeige(i);g.appendChild(d)});
+ document.getElementById('code-slots').textContent=ST.map((s,i)=>gel[i]?s.z:'_').join(' ')}
+function zeige(i){const s=ST[i],box=document.getElementById('station');let h='<h2>Station '+(i+1)+': '+s.t+'</h2>';
+ s.f.forEach((q,j)=>{h+='<div class="q" id="q'+i+'_'+j+'"><p>'+(j+1)+'. '+q[0]+'</p>';
+  if(q[1]){ord(i,j,q[1].length).forEach(k=>{h+='<label><input type="radio" name="r'+i+'_'+j+'" value="'+k+'"> '+q[1][k]+'</label>'})}
+  else{h+='<input type="number" id="n'+i+'_'+j+'">'}h+='</div>'});
+ h+='<button onclick="pruefe('+i+')">Prüfen</button><button class="sec" onclick="tipp('+i+')">Tipp (+2 Min.)</button><button class="sec" onclick="zu()">Zurück zur Übersicht</button>';
+ h+='<div class="tipp" id="tipp'+i+'">💡 '+s.h+'</div><div class="msg" id="msg'+i+'"></div>';box.innerHTML=h;box.style.display='block';box.scrollIntoView({behavior:'smooth'})}
+function zu(){document.getElementById('station').style.display='none';window.scrollTo({top:0,behavior:'smooth'})}
+function tipp(i){const e=document.getElementById('tipp'+i);if(e.style.display!=='block'){e.style.display='block';strafe+=120;tipps++}}
+function pruefe(i){const s=ST[i];let ok=0;s.f.forEach((q,j)=>{let a;if(q[1]){const r=document.querySelector('input[name="r'+i+'_'+j+'"]:checked');a=r?parseInt(r.value):-1}
+ else{a=parseFloat((document.getElementById('n'+i+'_'+j).value||'').replace(',','.'))}
+ const r=(a===q[2]);document.getElementById('q'+i+'_'+j).className='q '+(r?'ok':'bad');if(r)ok++});
+ const m=document.getElementById('msg'+i);
+ if(ok===s.f.length){gel[i]=true;m.innerHTML='✅ Alles richtig! Eure Ziffer für den Tresor: <span style="font-size:28px;color:#2E6B45">'+s.z+'</span>';grid()}
+ else{m.textContent=ok+' von '+s.f.length+' richtig. Die roten Aufgaben noch einmal prüfen – schaut in euren Unterlagen nach.'}}
+function oeffnen(){const c=document.getElementById('code').value.trim();const m=document.getElementById('tmsg');
+ if(c==='528164'){fertig=true;const used=45*60-rest();document.getElementById('zeit').textContent=fmt(used)+' Min. (inkl. Tipps)';document.getElementById('ntipps').textContent=tipps;
+  document.getElementById('ende').style.display='block';m.textContent='';document.getElementById('ende').scrollIntoView({behavior:'smooth'})}
+ else{m.textContent='❌ Der Tresor bleibt zu. Prüft eure Ziffern!';strafe+=30}}
+grid();
+</script></body></html>

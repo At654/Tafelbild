@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escape Room B – Der Tresor im Betriebsratsbüro</title>
+<style>
+:root{--blau:#1F4E79;--hell:#EAF1F8;--rosa:#E5B8B7;--gruen:#2E6B45;--rot:#C00000;--grau:#F2F2F2}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}
+header{background:var(--blau);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header h1{font-size:20px;margin:0}#uhr{font-size:22px;font-weight:bold;font-variant-numeric:tabular-nums}
+main{max-width:980px;margin:0 auto;padding:16px}
+.story{background:var(--hell);border-left:5px solid var(--blau);padding:12px 16px;border-radius:4px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin:18px 0}
+.tile{border:2px solid var(--blau);border-radius:8px;padding:14px;cursor:pointer;background:#fff;min-height:110px;position:relative}
+.tile:hover{background:var(--hell)}.tile h3{margin:0 0 4px;color:var(--blau)}.tile small{color:#595959}
+.tile.done{border-color:var(--gruen);background:#E2EFDA}.badge{position:absolute;right:12px;top:10px;font-size:30px;font-weight:bold;color:var(--gruen)}
+.station{display:none;border:2px solid var(--blau);border-radius:8px;padding:16px;margin-top:10px}
+.q{margin:12px 0;padding:10px;border-radius:6px;background:var(--grau)}.q.ok{background:#E2EFDA}.q.bad{background:#F8D7D7}
+.q p{margin:0 0 6px;font-weight:bold}label{display:block;padding:3px 0;cursor:pointer}
+input[type=number],input[type=text]{font-size:18px;padding:6px;width:140px}
+button{background:var(--blau);color:#fff;border:0;border-radius:5px;padding:9px 16px;font-size:15px;cursor:pointer;margin:6px 6px 0 0}
+button.sec{background:#fff;color:var(--blau);border:1px solid var(--blau)}
+.msg{margin-top:10px;font-weight:bold}.tipp{display:none;margin-top:8px;padding:8px;background:#FFF2CC;border-radius:5px}
+#tresor{border:3px dashed #595959;border-radius:10px;padding:16px;text-align:center;margin-top:20px}
+#code{font-size:28px;letter-spacing:8px;width:220px;text-align:center}
+#code-slots{font-size:26px;letter-spacing:10px;margin:6px 0;color:var(--gruen);font-weight:bold}
+#ende{display:none;background:#E2EFDA;border:3px solid var(--gruen);border-radius:10px;padding:18px;margin-top:16px;text-align:center}
+@media print{header{background:#fff;color:#000}}
+</style></head><body>
+<header><h1>Escape Room B · Der Tresor im Betriebsratsbüro</h1><div>⏱ <span id="uhr">45:00</span></div></header>
+<main>
+<div class="story"><b>Es ist Mittwochabend in der Nordstadt-Kauf GmbH.</b> Morgen früh ist Betriebsversammlung – aber der Betriebsratsvorsitzende ist krank, und die Unterlagen liegen im Tresor.
+Den sechsstelligen Code kennt nur er. Er hat euch sechs Aufgaben hinterlassen: Jede gelöste Station verrät eine Ziffer. Ihr habt <b>45 Minuten</b>.
+Tipps gibt es – aber jeder Tipp kostet <b>2 Minuten</b>.</div>
+<div class="grid" id="grid"></div>
+<div class="station" id="station"></div>
+<div id="tresor"><h2>🔒 Der Tresor</h2><div>Eure Ziffern (Station 1 bis 6):</div><div id="code-slots">_ _ _ _ _ _</div>
+<input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="······"> <button onclick="oeffnen()">Tresor öffnen</button><div class="msg" id="tmsg"></div></div>
+<div id="ende"><h2>🎉 Der Tresor ist offen!</h2><p>Die Unterlagen für die Betriebsversammlung sind gerettet. Eure Zeit: <b id="zeit"></b> · Genutzte Tipps: <b id="ntipps"></b></p>
+<p>Zeigt diesen Bildschirm eurer Lehrkraft.</p></div>
+</main>
+<script>
+const ST=[{"t": "Der Tarifvertrag", "m": "Modul 8", "z": 6, "h": "Denkt an den Tarifvertrag als „kollektiven Arbeitsvertrag“ – und ans Günstigkeitsprinzip: Es gilt das Bessere für die Beschäftigten.", "f": [["Wer schließt einen Tarifvertrag ab?", ["Betriebsrat und Arbeitgeber", "Gewerkschaft und Arbeitgeberverband", "IHK und Betrieb", "Staat und Gewerkschaft"], 1], ["Was regelt der Manteltarifvertrag?", ["die Höhe der Gehälter", "Arbeitszeit, Urlaub und Kündigungsfristen", "die Pausen in einer Filiale", "den Beginn eines Arbeitsverhältnisses"], 1], ["Tarifautonomie bedeutet …", ["Der Staat legt die Löhne fest.", "Die Tarifpartner verhandeln ohne den Staat.", "Jeder Tarifvertrag gilt für alle.", "Streiks sind verboten."], 1], ["Jonas ist tarifgebunden. Im Arbeitsvertrag stehen 30 Werktage Urlaub, im Tarifvertrag 36. Wie viele Werktage bekommt er mehr, als im Vertrag steht? (Zahl)", null, 6]]}, {"t": "Tarifverhandlung und Streik", "m": "Modul 9", "z": 7, "h": "Die Reihenfolge: Forderung – Verhandlung – Warnstreik – Scheitern/Schlichtung – Urabstimmung – Streik. Für den Streik braucht es drei Viertel der Stimmen.", "f": [["Solange ein Tarifvertrag läuft, herrscht …", ["Friedenspflicht", "Streikpflicht", "Aussperrung", "Schlichtung"], 0], ["Was ist ein Warnstreik?", ["ein kurzer Streik während der Verhandlungen", "ein langer Streik nach der Urabstimmung", "eine Aussperrung", "eine Demonstration der Arbeitgeber"], 0], ["Welches Kampfmittel haben die Arbeitgeber?", ["die Aussperrung", "die Urabstimmung", "das Streikgeld", "den Warnstreik"], 0], ["Wie viel Prozent der aufgerufenen Mitglieder müssen in der Urabstimmung mindestens für den Streik stimmen? (Zahl)", null, 75]]}, {"t": "Die Betriebsratswahl", "m": "Modul 10", "z": 3, "h": "Wählen ab 16, gewählt werden ab 18 und nach 6 Monaten. Die Tabelle: 5–20 → 1, 21–50 → 3, 51–100 → 5.", "f": [["Ab welchem Alter darf man den Betriebsrat mitwählen?", ["ab 14", "ab 16", "ab 18", "ab 21"], 1], ["Wer kann in den Betriebsrat gewählt werden?", ["alle ab 16", "Wahlberechtigte ab 18, die mindestens 6 Monate im Betrieb sind", "nur Gewerkschaftsmitglieder", "nur Abteilungsleiter"], 1], ["Für wie viele Jahre wird der Betriebsrat gewählt?", ["2", "4", "5", "6"], 1], ["Wie viele Mitglieder hat der Betriebsrat in einer Filiale mit 26 wahlberechtigten Beschäftigten? (Zahl)", null, 3]]}, {"t": "Die Rechte-Treppe", "m": "Modul 10", "z": 4, "h": "Soziale Angelegenheiten wie Arbeitszeit, Urlaub und Zeiterfassung: Mitbestimmung. Personelle Einzelmaßnahmen wie Einstellung: Zustimmungsverweigerung. Pläne und Umbau: Information.", "f": [["Die Arbeitszeit soll digital mit einer App erfasst werden. Welches Recht hat der Betriebsrat?", ["Information", "Beratung", "Zustimmungsverweigerung", "Mitbestimmung"], 3], ["Die Filiale soll umgebaut werden. Welches Recht hat der Betriebsrat mindestens?", ["Information", "Mitbestimmung", "Veto", "gar keins"], 0], ["Eine neue Verkäuferin soll eingestellt werden. Welches Recht hat der Betriebsrat?", ["Information", "Beratung", "Widerspruch/Zustimmungsverweigerung", "gar keins"], 2], ["Arbeitgeber und Betriebsrat einigen sich nicht über den Urlaubsplan. Wer entscheidet?", ["der Arbeitgeber allein", "die Gewerkschaft", "die Einigungsstelle", "die IHK"], 2]]}, {"t": "JAV, Vereinbarung, Versammlung", "m": "Modul 11", "z": 2, "h": "Betriebsvereinbarung = Arbeitgeber + Betriebsrat. Löhne gehören in den Tarifvertrag. Die JAV wird halb so lange gewählt wie der Betriebsrat.", "f": [["Wer schließt eine Betriebsvereinbarung ab?", ["Gewerkschaft und Arbeitgeberverband", "Arbeitgeber und Betriebsrat", "JAV und Berufsschule", "IHK und Betrieb"], 1], ["Wie oft muss der Betriebsrat eine Betriebsversammlung einberufen?", ["einmal im Jahr", "einmal in jedem Kalendervierteljahr", "jeden Monat", "nur bei Streik"], 1], ["Was darf NICHT in einer Betriebsvereinbarung stehen?", ["Regeln zu Pausen", "eine Handyordnung", "die Höhe der Tariflöhne", "die Urlaubsplanung"], 2], ["Für wie viele Jahre wird die Jugend- und Auszubildendenvertretung gewählt? (Zahl)", null, 2]]}, {"t": "Rechte des Einzelnen", "m": "Modul 12", "z": 4, "h": "Die Rechte aus §§ 81–84 BetrVG: Unterrichtung, Anhörung, Einsicht in die Personalakte, Beschwerde – in jedem Betrieb.", "f": [["Darf Lena ihre Personalakte lesen, obwohl es in ihrem Betrieb keinen Betriebsrat gibt?", ["Nein", "Ja", "Nur ab 50 Beschäftigten", "Nur mit einem Anwalt"], 1], ["Tom versteht seine Gehaltsabrechnung nicht. Welches Recht hilft ihm?", ["Beschwerderecht", "Recht auf Anhörung – Erläuterung des Entgelts", "Streikrecht", "Mitbestimmungsrecht"], 1], ["Was gilt für eine Beschwerde nach § 84 BetrVG?", ["Sie darf keine Nachteile bringen.", "Sie kostet eine Gebühr.", "Sie geht nur schriftlich.", "Sie muss vom Betriebsrat genehmigt werden."], 0], ["Wie viele unmittelbare Rechte der Mitarbeiter nennt das Lehrbuch auf S. 35? (Zahl)", null, 4]]}];
+let t0=Date.now(),strafe=0,tipps=0,fertig=false;const gel=ST.map(()=>false);
+function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function rest(){return 45*60-Math.floor((Date.now()-t0)/1000)-strafe}
+setInterval(()=>{if(!fertig){document.getElementById('uhr').textContent=fmt(rest())}},500);
+const ORD={};function ord(i,j,n){const key=i+'_'+j;if(!ORD[key]){const a=[...Array(n).keys()];for(let x=n-1;x>0;x--){const y=Math.floor(Math.random()*(x+1));[a[x],a[y]]=[a[y],a[x]]}ORD[key]=a}return ORD[key]}
+function grid(){const g=document.getElementById('grid');g.innerHTML='';ST.forEach((s,i)=>{const d=document.createElement('div');d.className='tile'+(gel[i]?' done':'');
+ d.innerHTML='<h3>Station '+(i+1)+': '+s.t+'</h3><small>'+s.m+'</small>'+(gel[i]?'<div class="badge">'+s.z+'</div>':'');d.onclick=()=>zeige(i);g.appendChild(d)});
+ document.getElementById('code-slots').textContent=ST.map((s,i)=>gel[i]?s.z:'_').join(' ')}
+function zeige(i){const s=ST[i],box=document.getElementById('station');let h='<h2>Station '+(i+1)+': '+s.t+'</h2>';
+ s.f.forEach((q,j)=>{h+='<div class="q" id="q'+i+'_'+j+'"><p>'+(j+1)+'. '+q[0]+'</p>';
+  if(q[1]){ord(i,j,q[1].length).forEach(k=>{h+='<label><input type="radio" name="r'+i+'_'+j+'" value="'+k+'"> '+q[1][k]+'</label>'})}
+  else{h+='<input type="number" id="n'+i+'_'+j+'">'}h+='</div>'});
+ h+='<button onclick="pruefe('+i+')">Prüfen</button><button class="sec" onclick="tipp('+i+')">Tipp (+2 Min.)</button><button class="sec" onclick="zu()">Zurück zur Übersicht</button>';
+ h+='<div class="tipp" id="tipp'+i+'">💡 '+s.h+'</div><div class="msg" id="msg'+i+'"></div>';box.innerHTML=h;box.style.display='block';box.scrollIntoView({behavior:'smooth'})}
+function zu(){document.getElementById('station').style.display='none';window.scrollTo({top:0,behavior:'smooth'})}
+function tipp(i){const e=document.getElementById('tipp'+i);if(e.style.display!=='block'){e.style.display='block';strafe+=120;tipps++}}
+function pruefe(i){const s=ST[i];let ok=0;s.f.forEach((q,j)=>{let a;if(q[1]){const r=document.querySelector('input[name="r'+i+'_'+j+'"]:checked');a=r?parseInt(r.value):-1}
+ else{a=parseFloat((document.getElementById('n'+i+'_'+j).value||'').replace(',','.'))}
+ const r=(a===q[2]);document.getElementById('q'+i+'_'+j).className='q '+(r?'ok':'bad');if(r)ok++});
+ const m=document.getElementById('msg'+i);
+ if(ok===s.f.length){gel[i]=true;m.innerHTML='✅ Alles richtig! Eure Ziffer für den Tresor: <span style="font-size:28px;color:#2E6B45">'+s.z+'</span>';grid()}
+ else{m.textContent=ok+' von '+s.f.length+' richtig. Die roten Aufgaben noch einmal prüfen – schaut in euren Unterlagen nach.'}}
+function oeffnen(){const c=document.getElementById('code').value.trim();const m=document.getElementById('tmsg');
+ if(c==='673424'){fertig=true;const used=45*60-rest();document.getElementById('zeit').textContent=fmt(used)+' Min. (inkl. Tipps)';document.getElementById('ntipps').textContent=tipps;
+  document.getElementById('ende').style.display='block';m.textContent='';document.getElementById('ende').scrollIntoView({behavior:'smooth'})}
+ else{m.textContent='❌ Der Tresor bleibt zu. Prüft eure Ziffern!';strafe+=30}}
+grid();
+</script></body></html>
