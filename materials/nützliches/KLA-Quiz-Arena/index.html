@@ -1977,7 +1977,7 @@ function tafelApp(){
       <button data-act="music" title="Spannungsmusik an/aus">${mus?"Musik an":"Musik aus"}</button>${mus?` <input type="range" min="0" max="1" step="0.05" value="${Music.vol()}" data-act="vol" style="width:90px;vertical-align:middle">`:""} <button data-act="full">Vollbild</button>`;
     if(G)drawQR($("qrSmall"),joinUrl());}
   function render(){renderHead();const M=$("tMain");
-    if(view==="home")rHome(M);else if(view==="edit")rEdit(M);else if(view==="report")rReport(M);
+    if(view==="home")rHome(M);else if(view==="gen")rGen(M);else if(view==="edit")rEdit(M);else if(view==="report")rReport(M);
     else if(!G)rHome(M);else if(G.ph==="lobby")rLobby(M);else if(G.ph==="rank")rRank(M);else if(G.ph==="end")rEnd(M);else if(G.ph==="self")rSelf(M);else rQuestion(M);
     if(G&&G.pa)M.insertAdjacentHTML("beforeend",`<div class="paused"><div>Pause<br><button class="pri" data-act="pause">Weiter</button></div></div>`);}
   const av=(a,cls)=>`<span class="${cls||""}" style="display:inline-flex">${avOf(a)}</span>`;
@@ -1987,12 +1987,12 @@ function tafelApp(){
   function rHome(M){
     M.innerHTML=`<div class="row"><h2 class="big grow" style="margin:0">Quiz-Arena der KLA Bremerhaven</h2></div>
     <p class="muted">Live-Quiz für Beamer und Handys. Auf dem Handy können Schüler ihre Sprache wählen.</p>
-    <div class="ctrl"><button class="pri" data-act="demo">Demo-Quiz spielen</button><button data-act="import">Quiz importieren (.json)</button><button data-act="newquiz">Neues Quiz erstellen</button>
+    <div class="ctrl"><button class="pri" data-act="demo">Demo-Quiz spielen</button><button class="pri" data-act="gen-open">Quiz aus Material erstellen</button><button data-act="import">Quiz importieren (.json)</button><button data-act="newquiz">Neues Quiz erstellen</button>
     ${G?`<button data-act="resume" class="pri">Laufendes Spiel fortsetzen (${h(Q?Q.title:"")})</button>`:""}</div>
     <input type="file" id="impf" accept=".json,application/json" class="hide">
     <div class="libgrid">${lib.map(qz=>`<div class="box"><h3>${h(qz.title)}</h3><div class="muted">${qz.qs.length} Fragen · Sprachen: ${langCover(qz).map(l=>l.toUpperCase()).join(", ")||"nur Deutsch"}</div>
       <div class="ctrl" style="margin-top:10px"><button class="pri" data-act="play" data-id="${h(qz.id)}">Spielen</button><button data-act="edit" data-id="${h(qz.id)}">Bearbeiten</button><button data-act="export" data-id="${h(qz.id)}">Exportieren</button><button class="danger" data-act="del" data-id="${h(qz.id)}">Löschen</button></div></div>`).join("")}</div>
-    ${lib.length?"":`<p class="muted" style="margin-top:20px">Noch kein Quiz gespeichert. Starte mit dem Demo-Quiz oder importiere eine Quiz-Datei, die Claude aus deinem Dokument erstellt hat.</p>`}`;}
+    ${lib.length?"":`<p class="muted" style="margin-top:20px">Noch kein Quiz gespeichert. Starte mit dem Demo-Quiz oder erstelle ein Quiz aus deinem Arbeitsblatt („Quiz aus Material erstellen“).</p>`}`;}
 
   /* ---------- Lobby ---------- */
   function seg(k,opts,cur){return `<div class="seg">${opts.map(([v,t])=>`<button data-act="set" data-k="${k}" data-v="${v}" class="${String(cur)===String(v)?"on":""}">${t}</button>`).join("")}</div>`;}
@@ -2162,13 +2162,15 @@ function tafelApp(){
     case "music":Music.toggle();if(!Music.enabled())Music.stop();else if(G&&G.ph==="q"&&G.qDur>0)Music.start();renderHead();break;
     case "vol":Music.setVol(+el.value);break;
     case "full":{const e=document.documentElement;if(document.fullscreenElement)document.exitFullscreen();else if(e.requestFullscreen)e.requestFullscreen();break;}
-    default:if(a.startsWith("ed-"))editAct(a,d,el);
+    default:if(a.startsWith("gen-"))genAct(a,d,el);else if(a.startsWith("ed-"))editAct(a,d,el);
     }}
   const root=$("tafel");let lastEv=null;
   root.addEventListener("click",e=>{lastEv=e;const b=e.target.closest("[data-act]");if(!b||b.tagName==="INPUT"||b.tagName==="SELECT"||b.tagName==="TEXTAREA")return;act(b.dataset.act,b.dataset,b);});
-  root.addEventListener("input",e=>{const t=e.target;if(t.dataset&&t.dataset.act==="vol")Music.setVol(+t.value);else if(t.dataset&&t.dataset.act&&t.dataset.act.startsWith("ed-")&&(t.type==="text"||t.tagName==="TEXTAREA"||t.type==="number"))editAct(t.dataset.act,t.dataset,t,true);});
+  root.addEventListener("input",e=>{const t=e.target;if(t.dataset&&t.dataset.gen){GEN[t.dataset.gen]=t.type==="number"?+t.value:t.value;return;}if(t.dataset&&t.dataset.act==="vol")Music.setVol(+t.value);else if(t.dataset&&t.dataset.act&&t.dataset.act.startsWith("ed-")&&(t.type==="text"||t.tagName==="TEXTAREA"||t.type==="number"))editAct(t.dataset.act,t.dataset,t,true);});
   root.addEventListener("change",e=>{const t=e.target;
     if(t.id==="impf"&&t.files[0]){const f=t.files[0],r=new FileReader();r.onload=()=>{try{const qz=sanitizeQuiz(JSON.parse(r.result));qz.id="quiz-"+rnd(5);lib.push(qz);if(saveLib()){render();window.alert("Quiz „"+qz.title+"“ mit "+qz.qs.length+" Fragen importiert.");}}catch(err){window.alert("Import nicht möglich: "+err.message);}};r.readAsText(f);t.value="";}
+    else if(t.dataset&&t.dataset.act==="gen-profi"){genAct("gen-profi",t.dataset,t);}
+    else if(t.id==="genf"){genFiles(t.files);t.value="";}
     else if(t.id==="tUrl"){const s=settings();s.url=t.value;store(SETK,s);render();}
     else if(t.dataset&&t.dataset.act&&t.dataset.act.startsWith("ed-")&&!(t.type==="text"||t.type==="number"||t.tagName==="TEXTAREA")){editAct(t.dataset.act,t.dataset,t,false);}});
 
@@ -2281,6 +2283,108 @@ function tafelApp(){
       if(i%3===2)saveLib();}
     saveLib();E.busy=n+" Bilder eingefügt. Bitte kurz prüfen und unpassende tauschen.";render();}
 
+
+  /* ---------- Quiz aus Material: Auftrag für Claude erstellen, Antwort einlesen ---------- */
+  const GEN={title:"",text:"",files:[],langs:[],n:15,profi:1,note:"",prompt:"",reply:"",msg:"",ok:null,qid:null};
+  const GL=[["ru","Russisch"],["uk","Ukrainisch"],["pt","Portugiesisch"],["es","Spanisch"],["ar","Arabisch"],["tr","Türkisch"],["vi","Vietnamesisch"],["ti","Tigrinya"]];
+  function htmlToText(src){try{const d=new DOMParser().parseFromString(src,"text/html");d.querySelectorAll("script,style,noscript").forEach(n=>n.remove());return (d.body?d.body.textContent:src).replace(/[ \t\r]+/g," ").replace(/\n\s*\n+/g,"\n").trim();}catch(e){return src;}}
+  function genFiles(fl){
+    Array.from(fl).forEach(f=>{
+      const nm=f.name,ext=(nm.split(".").pop()||"").toLowerCase();
+      if(["pdf","png","jpg","jpeg","heic","webp","gif"].includes(ext)){GEN.files.push({n:nm,att:1});if(!GEN.title)GEN.title=nm.replace(/\.[^.]+$/,"");render();return;}
+      if(!["txt","md","csv","html","htm"].includes(ext)){GEN.msg="„"+nm+"“ kann ich nicht lesen. Bitte PDF, Foto, Text oder HTML nehmen (Word: als PDF speichern).";render();return;}
+      const r=new FileReader();r.onload=()=>{let t=String(r.result||"");if(ext==="html"||ext==="htm")t=htmlToText(t);
+        GEN.text+=(GEN.text?"\n\n":"")+t;GEN.files.push({n:nm,att:0});if(!GEN.title)GEN.title=nm.replace(/\.[^.]+$/,"");GEN.msg="";render();};r.readAsText(f);});}
+  function rGen(M){
+    const att=GEN.files.filter(f=>f.att),over=GEN.text.length>40000;
+    M.innerHTML=`<div class="row"><h2 class="big grow" style="margin:0">Quiz aus Material erstellen</h2><button data-act="home">Zurück zur Startseite</button></div>
+    <p class="muted">So geht es: 1. Material und Sprachen wählen, 2. den fertigen Auftrag kopieren und bei Claude im Chat einfügen (PDF oder Foto dort anhängen), 3. Claudes Antwort hier einfügen. Fragen, Antworten und Erklärungen werden übersetzt, Schüler wählen ihre Sprache dann am Handy.</p>
+    <div class="box"><h3>1. Material</h3>
+      <div class="ctrl"><label class="btnlike" style="cursor:pointer"><input type="file" id="genf" multiple accept=".pdf,.png,.jpg,.jpeg,.heic,.webp,.txt,.md,.csv,.html,.htm" style="display:none"><span class="pri" style="display:inline-block;padding:.6em 1em;border-radius:10px;background:var(--brand);color:#fff;font-weight:700">Datei wählen (PDF, Foto, Text, HTML)</span></label></div>
+      ${GEN.files.length?`<div class="muted" style="margin-top:8px">Gewählt: ${GEN.files.map(f=>h(f.n)+(f.att?" (im Chat anhängen)":" (Text übernommen)")).join(" · ")}</div>`:""}
+      ${att.length?`<div style="margin-top:8px;padding:8px 10px;border-left:6px solid var(--brand);background:var(--surface);border-radius:8px">PDF und Fotos kann die Arena nicht selbst lesen. Hänge sie bitte im Schritt 2 direkt bei Claude im Chat an. Der Auftrag verweist darauf.</div>`:""}
+      ${GEN.msg&&!GEN.ok?`<div style="color:var(--bad);font-weight:700;margin-top:8px">${h(GEN.msg)}</div>`:""}
+      <label style="margin-top:10px">Oder Text hier einfügen</label>
+      <textarea data-gen="text" rows="6" style="width:100%" placeholder="Text aus Arbeitsblatt, Lehrbuch, Tafelbild …">${h(GEN.text)}</textarea>
+      ${over?`<div style="color:var(--bad);margin-top:6px">Der Text ist sehr lang (${GEN.text.length} Zeichen). Besser nur das Wichtige verwenden oder die Datei im Chat anhängen.</div>`:""}
+      <label style="margin-top:10px">Titel des Quiz</label><input data-gen="title" value="${h(GEN.title)}" style="width:100%" placeholder="z. B. LF 2 Modul 6: Fragetechnik"></div>
+    <div class="box"><h3>2. Sprachen und Umfang</h3>
+      <p class="muted" style="margin:0 0 6px">Übersetzen in (Deutsch ist immer dabei). Wenn du nichts wählst, fragt Claude dich im Chat:</p>
+      <div class="lang" style="margin-top:0">${GL.map(([k,n])=>`<button data-act="gen-lang" data-v="${k}" class="${GEN.langs.includes(k)?"on":""}">${n}</button>`).join("")}</div>
+      <div class="row" style="margin-top:10px;gap:14px;flex-wrap:wrap"><label style="margin:0">Anzahl Fragen <input type="number" data-gen="n" min="5" max="40" value="${GEN.n}" style="width:5em"></label>
+      <label style="margin:0;font-weight:400"><input type="checkbox" data-act="gen-profi" ${GEN.profi?"checked":""} style="width:auto"> mit PROFI-Fragen für starke Schüler (Begründen, Weiterdenken)</label></div>
+      <label style="margin-top:10px">Besondere Wünsche (optional)</label><input data-gen="note" value="${h(GEN.note)}" style="width:100%" placeholder="z. B. mehr Rechenaufgaben, nur Kapitel 2, einfachere Sprache"></div>
+    <div class="box"><h3>3. Auftrag an Claude</h3>
+      <div class="ctrl"><button class="pri" data-act="gen-make">Auftrag erstellen</button>${GEN.prompt?`<button data-act="gen-copy" class="pri">Auftrag kopieren</button>`:""}</div>
+      ${GEN.prompt?`<textarea id="genp" readonly rows="8" style="width:100%;margin-top:8px;font-size:.85rem">${h(GEN.prompt)}</textarea>`:""}</div>
+    <div class="box"><h3>4. Claudes Antwort einfügen</h3>
+      <textarea data-gen="reply" rows="6" style="width:100%" placeholder="Hier die komplette Antwort von Claude einfügen (der JSON-Block reicht). Oder die .json-Datei auf der Startseite importieren.">${h(GEN.reply)}</textarea>
+      <div class="ctrl" style="margin-top:8px"><button class="pri" data-act="gen-import">Quiz übernehmen</button></div>
+      ${GEN.msg&&GEN.ok?`<div style="margin-top:10px"><b>${h(GEN.msg)}</b>${GEN.qid?`<div class="ctrl" style="margin-top:8px"><button class="pri" data-act="play" data-id="${h(GEN.qid)}">Spielen</button><button data-act="edit" data-id="${h(GEN.qid)}">Prüfen und bearbeiten</button></div>`:""}</div>`:""}</div>`;}
+  function genPrompt(){
+    const names=Object.fromEntries(GL),L=GEN.langs.filter(l=>names[l]),keys=["de",...L];
+    const prof=GEN.profi?Math.max(1,Math.round(GEN.n*0.15)):0,n=Math.max(5,Math.min(40,+GEN.n||15));
+    const ex=s=>"{"+keys.map(k=>`"${k}":"${s}"`).join(",")+"}";
+    return `Erstelle aus dem Material unten ein Quiz für die KLA Quiz-Arena (meine Kahoot-Alternative) im JSON-Format.
+
+ZIELGRUPPE
+Berufsschule, Verkäufer/-innen im Einzelhandel. Überwiegend leistungsschwache Klassen, viele Schüler sind noch nicht lange in Deutschland. Einfache Sprache, kurze Sätze, Fachbegriffe aus dem Material verwenden. Keine Fangfragen.
+
+TITEL: ${GEN.title||"(bitte passenden Titel wählen)"}
+ANZAHL: ${n} Fragen${prof?`, davon ${prof} PROFI-Fragen (Begründen, Weiterdenken; Frage beginnt mit „PROFI:“; pts:2)`:""}.
+${GEN.note?"WÜNSCHE: "+GEN.note+"\n":""}
+SPRACHEN
+${L.length?`Deutsch plus ${L.map(l=>names[l]+" ("+l+")").join(", ")}. Übersetze ALLES: Fragetexte, jede Antwortoption, Erklärungen (x), Zuordnungspaare, Info-Texte. Keine Frage und keine Option darf in einer Sprache fehlen, sonst steht sie am Handy auf Deutsch. Deutsche Fachbegriffe, die in der Praxis deutsch bleiben, bei der ersten Nennung in Klammern dahinter behalten. Sätze in wörtlicher Rede (Kundenansprache) bleiben auf Deutsch und werden nur ergänzend erklärt.`:`FRAGE MICH ZUERST in welche Sprachen übersetzt werden soll (zur Auswahl: ${GL.map(x=>x[1]+" ("+x[0]+")").join(", ")}) und warte auf meine Antwort. Übersetze dann ALLES: Fragetexte, jede Antwortoption, Erklärungen (x), Zuordnungspaare, Info-Texte, vollständig, sonst steht es am Handy auf Deutsch.`}
+
+AUFBAU
+Beginne mit einer Info-Folie (ty "info"). Mische die Fragetypen: überwiegend mc und tf, dazu wenn es inhaltlich passt match, puzzle, short, num, und am Ende eine Umfrage (poll), Wortwolke (cloud), offene Frage (open) oder ein Brainstorming (brain). Zwei bis drei normale Fragen bekommen pts:2 (doppelte Punkte). Jede Frage mit Erklärung (x), die nach der Antwort angezeigt wird (ein bis zwei kurze Sätze). Nur Inhalte aus dem Material, keine erfundenen Fakten.
+
+JSON-FORMAT (gib genau dieses Format aus, nur gültiges JSON)
+{"v":1,"title":"…","qs":[ Fragen ]}
+Jeder Text ist ein Objekt mit Sprachschlüsseln: ${ex("…")}
+Fragetypen (ty):
+- info: {"ty":"info","q":TEXT,"body":TEXT,"time":0}
+- mc: {"ty":"mc","q":TEXT,"o":[{"t":TEXT,"ok":1},{"t":TEXT,"ok":0},…],"time":20,"x":TEXT}  (2 bis 4 Optionen, genau eine richtige; mehrere richtige nur mit "multi":1)
+- tf: {"ty":"tf","q":TEXT,"ok":1,"time":15,"x":TEXT}  (ok 1 = richtig, 0 = falsch)
+- puzzle: {"ty":"puzzle","q":TEXT,"o":[{"t":TEXT},…],"time":45}  (3 bis 5 Schritte, in der RICHTIGEN Reihenfolge notiert)
+- short: {"ty":"short","q":TEXT,"acc":["Antwort","andere erlaubte Schreibweise"],"time":30,"x":TEXT}  (Einwortantwort, alle akzeptierten Schreibweisen)
+- num: {"ty":"num","q":TEXT,"ans":59.5,"tol":0.01,"time":60,"x":TEXT}
+- match: {"ty":"match","q":TEXT,"pr":[{"l":TEXT,"r":TEXT},…],"time":60}  (3 bis 4 Paare)
+- poll: {"ty":"poll","q":TEXT,"o":[{"t":TEXT},…],"time":20}  (Umfrage, keine richtige Antwort)
+- cloud: {"ty":"cloud","q":TEXT,"max":3,"time":45}   open: {"ty":"open","q":TEXT,"time":90}   brain: {"ty":"brain","q":TEXT,"max":3,"time":120}
+Zusatzfelder: "pts":2 für doppelte Punkte, "kw":"Suchwort für ein passendes Bild (deutsch, ein bis zwei Wörter)".
+Erlaubte Zeiten (time, Sekunden): 5, 10, 20, 30, 45, 60, 90, 120, 240.
+
+AUSGABE
+1. Das komplette Quiz als EIN JSON-Codeblock.
+2. Speichere es zusätzlich als Datei „${(GEN.title||"Quiz").replace(/[^\wäöüÄÖÜß -]/g,"").trim()}.json“, wenn du Dateien erzeugen kannst.
+3. Darunter kurz: welche Fragen PROFI sind und welche Übersetzungen ich von Muttersprachlern prüfen lassen sollte.
+
+MATERIAL
+${GEN.text.trim()?`<<<\n${GEN.text.trim().slice(0,40000)}\n>>>`:"Siehe angehängte Datei(en) in dieser Nachricht."}${GEN.text.trim()&&GEN.files.some(f=>f.att)?"\nZusätzlich: siehe angehängte Datei(en).":""}`;}
+  function genCopy(){const ta=$("genp");if(!ta)return;const done=()=>{GEN.msg="Auftrag kopiert. Jetzt bei Claude im Chat einfügen.";GEN.ok=false;};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value).then(()=>{window.alert("Auftrag kopiert. Jetzt bei Claude im Chat einfügen (PDF oder Foto dort anhängen).");}).catch(()=>{ta.select();document.execCommand("copy");window.alert("Auftrag kopiert.");});}
+    else{ta.select();try{document.execCommand("copy");window.alert("Auftrag kopiert. Jetzt bei Claude im Chat einfügen.");}catch(e){window.alert("Bitte den Text im Feld markieren und selbst kopieren.");}}}
+  function genImport(){
+    const t=String(GEN.reply||"").replace(/```(?:json)?/gi,"");const i=t.indexOf("{"),j=t.lastIndexOf("}");
+    GEN.ok=false;GEN.qid=null;
+    if(i<0||j<=i){GEN.msg="Ich finde kein Quiz in dem Text. Bitte Claudes komplette Antwort einfügen.";render();return;}
+    try{const qz=sanitizeQuiz(JSON.parse(t.slice(i,j+1)));qz.id="quiz-"+rnd(5);if(GEN.title&&(!qz.title||qz.title==="Quiz ohne Titel"))qz.title=GEN.title;
+      lib.push(qz);if(!saveLib())return;
+      const pr=problems(qz),lc=langCover(qz).map(l=>l.toUpperCase());
+      GEN.msg="„"+qz.title+"“ mit "+qz.qs.length+" Fragen übernommen. Sprachen: Deutsch"+(lc.length?", "+lc.join(", "):" (keine vollständige Übersetzung erkannt)")+"."+(pr.length?" Bitte prüfen: "+pr.slice(0,3).join(" · "):"");
+      GEN.ok=true;GEN.qid=qz.id;GEN.reply="";
+    }catch(e){GEN.msg="Das Quiz konnte nicht gelesen werden: "+e.message+" (Tipp: Claude bitten, nur gültiges JSON zu liefern.)";}
+    render();}
+  function genAct(a,d,el){
+    switch(a){
+    case "gen-open":view="gen";render();break;
+    case "gen-lang":{const k=d.v,i=GEN.langs.indexOf(k);if(i>=0)GEN.langs.splice(i,1);else GEN.langs.push(k);GEN.prompt="";render();break;}
+    case "gen-profi":GEN.profi=el.checked?1:0;GEN.prompt="";render();break;
+    case "gen-make":if(!GEN.text.trim()&&!GEN.files.some(f=>f.att)){GEN.msg="Bitte zuerst Material wählen oder Text einfügen.";GEN.ok=false;render();break;}GEN.msg="";GEN.prompt=genPrompt();render();break;
+    case "gen-copy":genCopy();break;
+    case "gen-import":genImport();break;}}
+
   sub();render();
   if(G&&G.ph==="lobby")G.pa=false;
   if(G){pubQz();pubState();Object.keys(G.pl).forEach(markP);}
@@ -2311,6 +2415,7 @@ function phoneApp(){
   const net=new Net(onMsg,c=>{if(c.up){net.sub(roomCode+"/st");net.sub(roomCode+"/qz");net.sub(roomCode+"/p/"+P.pid);}draw();});
   net.sub(roomCode+"/st");net.sub(roomCode+"/qz");net.sub(roomCode+"/p/"+P.pid);
   const l=()=>P.l,T=k=>tr(P.l,k);
+  const availLangs=()=>{if(!QZ||!QZ.qs)return LANGS;return LANGS.filter(([k])=>k==='de'||QZ.qs.some(q=>hasTr(q.q,k)||(q.ty==='info'&&hasTr(q.body,k))));};
 
   function onMsg(t,p){
     if(!p||typeof p!=="object")return;
@@ -2339,8 +2444,8 @@ function phoneApp(){
   const plain=o=>h(tx(o,P.l));
   function top(){const ok=M&&M.ok;
     return `<div class="ptop"><div class="me">${ok?`${avOf(P.a)}<span>${h(M.n||P.n)}</span>${M.tn?`<span class="pill" style="background:${TEAMS.find(t=>t[0]===M.tn)?TEAMS.find(t=>t[0]===M.tn)[1]:"#666"};${M.tn==="Gelb"?"color:#1a1200":""}">${h(M.tn)}</span>`:""}`:`<span>${h(T("join"))}</span>`}</div>
-    <div class="row">${ok?`<span class="pts">${M.pts||0}</span>`:""}<button id="bLang" style="padding:.3em .7em">${LANGS.find(x=>x[0]===P.l)[1]}</button></div></div>
-    ${J.langOpen?`<div class="box" style="margin-bottom:10px"><div class="lang">${LANGS.map(([k,n])=>`<button data-lang="${k}" class="${k===P.l?"on":""}">${n}</button>`).join("")}</div>${P.l!=="de"?`<label style="font-weight:400"><input type="checkbox" id="cDe" style="width:auto" ${P.de?"checked":""}> ${h(T("showDe"))}</label>`:""}</div>`:""}`;}
+    <div class="row">${ok?`<span class="pts">${M.pts||0}</span>`:""}<button id="bLang" style="padding:.3em .7em">${(LANGS.find(x=>x[0]===P.l)||LANGS[0])[1]}</button></div></div>
+    ${J.langOpen?`<div class="box" style="margin-bottom:10px"><div class="lang">${availLangs().map(([k,n])=>`<button data-lang="${k}" class="${k===P.l?"on":""}">${n}</button>`).join("")}</div>${P.l!=="de"?`<label style="font-weight:400"><input type="checkbox" id="cDe" style="width:auto" ${P.de?"checked":""}> ${h(T("showDe"))}</label>`:""}</div>`:""}`;}
   function qHead(q,i){const img=IMG[i];
     return `<div class="pq" dir="auto">${h(tx(q.q,P.l))}</div>${P.de&&P.l!=="de"&&hasTr(q.q,P.l)?`<div class="pq2" dir="ltr">${h(tx(q.q,"de"))}</div>`:""}${q.hi?(img?`<img class="pimg" src="${img}" alt="">`:`<div class="muted" style="text-align:center;padding:14px">…</div>`):""}`;}
   const timerBar=()=>{const q=curQ();return q&&q.time>0?`<div class="ptimer"><i id="tbar"></i></div>`:"";};
@@ -2348,7 +2453,7 @@ function phoneApp(){
   /* ---------- Bildschirme ---------- */
   function vJoin(){
     const an=P.a.split(".");const a=+an[0]||0,c=+an[1]||0;
-    return `<h2 style="margin-top:6px">${h(T("join"))}</h2><div class="lang">${LANGS.map(([k,n])=>`<button data-lang="${k}" class="${k===P.l?"on":""}">${n}</button>`).join("")}</div>
+    return `<h2 style="margin-top:6px">${h(T("join"))}</h2><div class="lang">${availLangs().map(([k,n])=>`<button data-lang="${k}" class="${k===P.l?"on":""}">${n}</button>`).join("")}</div>
     <label>${h(T("nick"))}</label><div class="row"><input id="iNick" maxlength="16" value="${h(P.n)}" autocomplete="off" style="flex:1" ${S&&S.cfg&&S.cfg.rn?"readonly":""}><button id="bRnd">${h(T("rnd"))}</button></div>
     ${(J.err||(M&&M.rj))?`<div style="color:var(--bad);font-weight:700;margin-top:6px">${h(T("badname"))}</div>`:""}
     <label>${h(T("pick"))}</label><div class="avg">${ANIMALS.map((_,i)=>`<button data-an="${i}" class="${i===a?"on":""}">${animalSVG(i,c)}</button>`).join("")}</div>
@@ -2437,7 +2542,7 @@ function phoneApp(){
     if(S&&S.ph==="q"&&!self()&&S.pa===false){}
     const v=currentView();
     root.dir=P.l==="ar"?"rtl":"ltr";root.lang=P.l;
-    const key=v.k+"|"+P.l+"|"+P.de+"|"+J.langOpen+"|"+(M&&M.tn)+"|"+(net.count().up?1:0);
+    const key=v.k+"|"+P.l+"|"+P.de+"|"+J.langOpen+"|"+(M&&M.tn)+"|"+(net.count().up?1:0)+"|"+(QZ?QZ.v:0);
     if(key===lastKey)return;lastKey=key;
     root.innerHTML=top()+v.html+(net.count().up?"":`<div class="banner">${h(T("offline"))}</div>`);
     bind(v);tickBar();}
