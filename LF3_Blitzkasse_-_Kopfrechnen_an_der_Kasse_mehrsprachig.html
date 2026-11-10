@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blitzkasse</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: links die Kundenszene mit Kassenbon, rechts die Kasse mit Leuchtanzeige und Tastenfeld; am Handy untereinander. */
+:root{
+  --bg:#e4eaed; --surface:#ffffff; --surface-2:#eef2f4; --ink:#16212a; --muted:#56656f; --line:#cbd5db;
+  --accent:#0d7f70; --accent-ink:#ffffff; --accent-soft:#d5efe9;
+  --lcd-bg:#0d191e; --lcd-fg:#56f0d3; --lcd-dim:#2b5d55; --lcd-warn:#ffb54a;
+  --good:#1f7f45; --good-bg:#e1f3e7; --bad:#b93434; --bad-bg:#fae5e3;
+  --receipt:#ffffff; --receipt-ink:#2a2e31; --receipt-mut:#7a8085;
+  --key:#ffffff; --key-ink:#16212a; --key-shadow:#b4c0c7; --key-op:#dfe7ea;
+  --m5:#a7b3ad; --m10:#e08a7c; --m20:#86a6e4; --m50:#eeb062; --gold:#d8b54e; --gold-2:#b8932f; --silver:#c9cfd3; --copper:#c98557; --copper-2:#a3633a; --money-ink:#1c1c1c;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-lcd:"VT323",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --f-bon:"Courier Prime","Courier New",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1418; --surface:#172027; --surface-2:#1e2931; --ink:#e3eaee; --muted:#95a5b0; --line:#2b3943;
+  --accent:#3cc6ae; --accent-ink:#05201b; --accent-soft:#163a34;
+  --good:#5fd08d; --good-bg:#14301f; --bad:#ff8c84; --bad-bg:#3a1b1b;
+  --receipt:#ecece6; --receipt-ink:#23272a; --receipt-mut:#6d7377;
+  --key:#232f38; --key-ink:#e3eaee; --key-shadow:#070b0e; --key-op:#2c3a45;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1418; --surface:#172027; --surface-2:#1e2931; --ink:#e3eaee; --muted:#95a5b0; --line:#2b3943;
+  --accent:#3cc6ae; --accent-ink:#05201b; --accent-soft:#163a34;
+  --good:#5fd08d; --good-bg:#14301f; --bad:#ff8c84; --bad-bg:#3a1b1b;
+  --receipt:#ecece6; --receipt-ink:#23272a; --receipt-mut:#6d7377;
+  --key:#232f38; --key-ink:#e3eaee; --key-shadow:#070b0e; --key-op:#2c3a45;
+  color-scheme:dark}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible+span,label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.app{max-width:1020px;margin:0 auto;padding-block:14px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-bottom:14px}
+.brand{font-family:var(--f-lcd);font-size:2.2rem;line-height:1;letter-spacing:.02em;display:flex;align-items:baseline;gap:10px}
+.brand small{font-family:var(--f-body);font-size:.85rem;color:var(--muted);letter-spacing:0}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.9rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat b{font-size:1.05rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.eyebrow{font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+/* Start */
+#start{display:grid;gap:16px}
+@media (min-width:800px){#start{grid-template-columns:1.25fr 1fr;align-items:start}}
+.hero h1{font-size:clamp(1.6rem,4.5vw,2.3rem);line-height:1.15;margin:4px 0 8px}
+.hero p{margin:0 0 14px;max-width:60ch;color:var(--muted)}
+.group{display:grid;gap:8px;margin-top:16px}
+.levels{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:420px){.levels{grid-template-columns:1fr}}
+.opt{position:relative;display:block;border:2px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;background:var(--surface-2)}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt b{display:block}
+.opt span{font-size:.88rem;color:var(--muted)}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;background:var(--surface-2);font-size:.95rem}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip::before{content:"";width:14px;height:14px;border-radius:4px;border:2px solid var(--muted)}
+.chip:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.chip:has(input:checked)::before{background:var(--accent);border-color:var(--accent)}
+.btn{border:0;border-radius:12px;padding:13px 20px;font-weight:700;font-size:1.05rem;background:var(--accent);color:var(--accent-ink);box-shadow:0 3px 0 var(--key-shadow)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--key-shadow)}
+.btn.ghost{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.startrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:20px}
+.hint{font-size:.88rem;color:var(--muted)}
+.rules{display:grid;gap:12px}
+.rules ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.best{font-variant-numeric:tabular-nums}
+
+/* Leuchtanzeige */
+.lcd{background:var(--lcd-bg);border-radius:12px;padding:10px 14px 8px;color:var(--lcd-fg);font-family:var(--f-lcd);box-shadow:inset 0 0 0 2px #00000040,inset 0 8px 20px #00000055}
+.lcd .lab{font-size:1.15rem;color:var(--lcd-dim);letter-spacing:.06em;text-transform:uppercase;display:flex;justify-content:space-between;gap:8px}
+.lcd .val{font-size:clamp(2.8rem,10vw,3.6rem);line-height:1;text-align:right;font-variant-numeric:tabular-nums;text-shadow:0 0 12px #56f0d355;min-height:1em;overflow-wrap:anywhere}
+.lcd .val .cur{font-size:.6em;margin-left:.2em}
+.lcd .val.empty{color:var(--lcd-dim);text-shadow:none}
+.timer{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:8px;border:1px solid var(--line)}
+.timer i{display:block;height:100%;width:100%;background:var(--accent);transition:width .1s linear}
+.timer.low i{background:var(--lcd-warn)}
+.tnote{font-size:.82rem;color:var(--muted);min-height:1.2em;margin-top:2px}
+
+/* Spiel */
+#game{display:grid;gap:16px}
+@media (min-width:780px){#game{grid-template-columns:1fr 1fr;align-items:start}}
+.scene{display:grid;gap:14px;min-width:0}
+.cust{display:flex;gap:12px;align-items:flex-start}
+.ava{flex:0 0 52px;height:52px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:1.1rem;color:#fff}
+.bubble{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px;min-width:0}
+.bubble::before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;background:var(--surface);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg)}
+.bubble .who{font-size:.8rem;color:var(--muted);font-weight:700}
+.receipt{background:var(--receipt);color:var(--receipt-ink);font-family:var(--f-bon);padding:16px 18px 6px;border-radius:4px 4px 0 0;box-shadow:0 1px 0 var(--line);font-size:1rem;max-width:420px;width:100%;justify-self:center}
+.receipt .head{text-align:center;font-size:.88rem;color:var(--receipt-mut);border-bottom:1px dashed var(--receipt-mut);padding-bottom:8px;margin-bottom:8px;line-height:1.35}
+.receipt .head b{color:var(--receipt-ink);font-size:1.05rem;letter-spacing:.12em}
+.row{display:flex;justify-content:space-between;gap:12px;padding:2px 0;font-variant-numeric:tabular-nums}
+.row span:first-child{min-width:0;overflow-wrap:anywhere}
+.row span:last-child{white-space:nowrap}
+.row.b{font-weight:700;border-top:1px dashed var(--receipt-mut);margin-top:6px;padding-top:6px;font-size:1.1rem}
+.row.q span:last-child{background:var(--receipt-ink);color:var(--receipt);padding:0 6px;border-radius:3px}
+.row.promo{color:#b0283a}
+.tear{height:9px;max-width:420px;width:100%;justify-self:center;margin-top:-14px;background:radial-gradient(circle at 6px 0,var(--receipt) 6px,transparent 6.5px) 0 0/12px 9px repeat-x}
+.mcq{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.mcq h3{font-size:1.15rem;line-height:1.35}
+.register{display:grid;gap:12px;min-width:0}
+.task{font-weight:700;font-size:1.05rem}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.key{height:58px;border:0;border-radius:12px;background:var(--key);color:var(--key-ink);font-size:1.6rem;font-weight:700;box-shadow:0 3px 0 var(--key-shadow),inset 0 0 0 1px var(--line);font-variant-numeric:tabular-nums}
+.key:active{transform:translateY(2px);box-shadow:0 1px 0 var(--key-shadow),inset 0 0 0 1px var(--line)}
+.key.op{background:var(--key-op);font-size:1.15rem}
+.key.ok{grid-column:span 2;background:var(--accent);color:var(--accent-ink);font-size:1.25rem}
+.coins{display:grid;gap:10px}
+.tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px}
+.money{border:0;background:none;padding:2px;display:grid;place-items:center;min-height:56px}
+.bill{width:66px;height:38px;border-radius:5px;display:grid;place-items:center;font-weight:700;color:var(--money-ink);font-size:.95rem;box-shadow:0 2px 0 #00000030,inset 0 0 0 2px #ffffff55}
+.coin{border-radius:50%;display:grid;place-items:center;font-weight:700;color:var(--money-ink);box-shadow:0 2px 0 #00000035,inset 0 0 0 3px #ffffff40;font-size:.8rem}
+.money:active .bill,.money:active .coin{transform:scale(.94)}
+.counter{display:grid;gap:6px;min-height:72px;background:var(--surface);border:2px dashed var(--line);border-radius:12px;padding:10px}
+.counter .lay{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.counter .empty{color:var(--muted);font-size:.9rem}
+.counter .money{min-height:0}
+.coinbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.coinsum{font-variant-numeric:tabular-nums;font-weight:700}
+.opts{display:grid;gap:8px;margin-top:12px}
+.opts button{text-align:left;border:2px solid var(--line);background:var(--surface-2);border-radius:12px;padding:12px 14px;font-size:1rem}
+.opts button:hover{border-color:var(--accent)}
+.fb{border-radius:14px;padding:16px;border:2px solid var(--line);background:var(--surface);display:grid;gap:8px}
+.fb.ok{border-color:var(--good);background:var(--good-bg)}
+.fb.no{border-color:var(--bad);background:var(--bad-bg)}
+.fb h3{font-size:1.3rem}
+.fb.ok h3{color:var(--good)}
+.fb.no h3{color:var(--bad)}
+.fb ol{margin:0;padding-left:22px;display:grid;gap:3px;font-variant-numeric:tabular-nums}
+.fb .pts{font-family:var(--f-lcd);font-size:1.6rem;line-height:1}
+.fb .btn{justify-self:start;margin-top:4px}
+.pop{animation:pop .35s ease}
+@keyframes pop{from{transform:scale(.97);opacity:.6}to{transform:none;opacity:1}}
+
+/* Schichtbericht */
+#end{display:grid;gap:16px}
+@media (min-width:800px){#end{grid-template-columns:minmax(0,420px) 1fr;align-items:start}}
+.rank{font-family:var(--f-lcd);font-size:2.4rem;line-height:1;color:var(--accent)}
+.review{display:grid;gap:12px}
+.review .item{border-left:4px solid var(--bad);padding:6px 0 6px 12px}
+.review ol{margin:4px 0 0;padding-left:20px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">BLITZKASSE <small>Kopfrechnen an der Kasse</small></div>
+    <div class="stats" id="stats" hidden>
+      <span class="stat">Kunde <b id="sNr">1</b>/<span id="sOf">10</span></span>
+      <span class="stat">Punkte <b id="sPts">0</b></span>
+      <span class="stat">Serie <b id="sStreak">0</b></span>
+    </div>
+  </header>
+
+  <!-- START -->
+  <section id="start">
+    <div class="card hero">
+      <div class="eyebrow">Lernfeld 3 · Kassieren</div>
+      <h1>Deine Schicht an Kasse 3 beginnt.</h1>
+      <p>Zehn Kunden stehen an. Rechne Rückgeld, Summen und Rabatte im Kopf und gib das Wechselgeld passend heraus. Wer schnell und richtig rechnet, sammelt mehr Punkte.</p>
+
+      <div class="group">
+        <div class="eyebrow">Stufe</div>
+        <div class="levels">
+          <label class="opt"><input type="radio" name="lvl" id="lvlBasis" value="basis" checked><b>Azubi</b><span>Runde Beträge, Scheine bis 50 €, Rabatte 10 / 20 / 25 / 50 %</span></label>
+          <label class="opt"><input type="radio" name="lvl" id="lvlProfi" value="profi"><b>Kassenprofi</b><span>Krumme Cent-Beträge, Skonto, Doppel-Rabatt und Profi-Fragen zum Begründen</span></label>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="eyebrow">Aufgaben</div>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="tChange" value="change" checked>Rückgeld</label>
+          <label class="chip"><input type="checkbox" id="tSum" value="sum" checked>Summe</label>
+          <label class="chip"><input type="checkbox" id="tDiscount" value="discount" checked>Rabatt &amp; Aktion</label>
+          <label class="chip"><input type="checkbox" id="tCoins" value="coins" checked>Geld herausgeben</label>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="eyebrow">Zeit</div>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="tTimer" checked>Mit Zeitbonus (ohne Haken: in Ruhe üben)</label>
+        </div>
+      </div>
+
+      <div class="startrow">
+        <button class="btn" id="btnStart">Schicht starten</button>
+        <span class="hint" id="startHint">Tastatur geht auch: Zahlen, Komma, Enter.</span>
+      </div>
+    </div>
+
+    <aside class="rules">
+      <div class="lcd" aria-hidden="true">
+        <div class="lab"><span>Rückgeld</span><span>Kasse 3</span></div>
+        <div class="val">6,30<span class="cur">€</span></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:8px">So läuft die Schicht</h3>
+        <ul>
+          <li>10 Kunden pro Schicht.</li>
+          <li>Richtig: 100 Punkte. Schnell: bis zu 50 Punkte extra.</li>
+          <li>Ab 3 Richtigen hintereinander gibt es Serien-Punkte.</li>
+          <li>Beim Geldherausgeben zählt auch: möglichst wenige Scheine und Münzen.</li>
+          <li>Nach jeder Antwort siehst du den schnellen Rechenweg.</li>
+        </ul>
+        <p class="hint best" id="bestLine" style="margin:10px 0 0"></p>
+      </div>
+    </aside>
+  </section>
+
+  <!-- SPIEL -->
+  <section id="game" hidden>
+    <div class="scene">
+      <div class="cust">
+        <div class="ava" id="ava">FY</div>
+        <div class="bubble"><div class="who" id="who">Frau Yilmaz</div><div id="speech">…</div></div>
+      </div>
+      <div id="bonWrap">
+        <div class="receipt" id="receipt"></div>
+        <div class="tear"></div>
+      </div>
+      <div class="mcq" id="mcq" hidden>
+        <div class="eyebrow">Profi-Frage · Begründen</div>
+        <h3 id="mcqQ" style="margin-top:6px"></h3>
+      </div>
+    </div>
+
+    <div class="register">
+      <div class="task" id="task"></div>
+      <div class="lcd">
+        <div class="lab"><span id="lcdLab">Betrag</span><span id="lcdSide"></span></div>
+        <div class="val" id="lcdVal"></div>
+      </div>
+      <div id="timerBox"><div class="timer" id="timer"><i id="timerBar"></i></div><div class="tnote" id="tnote"></div></div>
+
+      <div class="pad" id="pad">
+        <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+        <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+        <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+        <button class="key" data-k=",">,</button><button class="key" data-k="0">0</button><button class="key op" data-k="back" aria-label="Letzte Ziffer löschen">⌫</button>
+        <button class="key op" data-k="clear">C</button><button class="key ok" data-k="ok">Fertig</button>
+      </div>
+
+      <div class="coins" id="coins" hidden>
+        <div class="tray" id="tray"></div>
+        <div class="counter"><div class="eyebrow">Auf dem Tresen (antippen = zurücknehmen)</div><div class="lay" id="lay"></div></div>
+        <div class="coinbar">
+          <span class="coinsum" id="coinSum">0,00 € · 0 Teile</span>
+          <span style="display:flex;gap:8px"><button class="btn ghost" id="coinClear">Alles zurück</button><button class="btn" id="coinGive">Geld geben</button></span>
+        </div>
+      </div>
+
+      <div class="opts" id="opts" hidden></div>
+
+      <div class="fb" id="fb" hidden></div>
+    </div>
+  </section>
+
+  <!-- ENDE -->
+  <section id="end" hidden>
+    <div>
+      <div class="receipt" id="report"></div>
+      <div class="tear" style="margin-top:0"></div>
+    </div>
+    <div class="card" style="display:grid;gap:14px">
+      <div>
+        <div class="eyebrow">Dein Titel</div>
+        <div class="rank" id="rank"></div>
+        <p id="rankText" style="margin:6px 0 0"></p>
+      </div>
+      <div class="review" id="review"></div>
+      <div class="startrow" style="margin-top:0">
+        <button class="btn" id="btnAgain">Neue Schicht</button>
+        <button class="btn ghost" id="btnHome">Einstellungen ändern</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const fmtN=c=>{const neg=c<0;c=Math.abs(Math.round(c));return (neg?"−":"")+Math.floor(c/100)+","+String(c%100).padStart(2,"0");};
+const fmt=c=>fmtN(c)+" €";
+const ctTxt=c=>c>=100?fmt(c):c+" ct";
+
+const PRODUCTS=[["Milch",119],["Brötchen",45],["Butter",229],["Kaffee",699],["Schokolade",149],["Duschgel",295],["Zahnpasta",195],["Socken 3er-Pack",799],["Batterien",499],["Kaugummi",99],["Apfelsaft",179],["Ladekabel",999],["Notizbuch",350],["Bananen",180],["Chips",199],["Mascara",895],["Shampoo",345],["Eis am Stiel",250],["Duftkerze",420],["Postkarte",120],["Tiefkühlpizza",289],["Mineralwasser",65],["Haargel",315],["Müsli",379]];
+const BIG=["Jacke","Jeans","Sneaker","Rucksack","Kopfhörer","Pullover","Kaffeemaschine","Sporttasche","Winterstiefel","Bluetooth-Box","Bettwäsche","Wasserkocher"];
+const SMALL=["Duschgel","Schokolade","Chips","Zahnpasta","Shampoo","Müsliriegel","Teelichter","Taschentücher","Energydrink","Handcreme"];
+const NAMES=["Frau Yilmaz","Herr Becker","Mia","Herr Nowak","Oma Hilde","Frau Schulz","Jonas","Herr Okafor","Frau Petrović","Lena","Herr Wagner","Frau Kaya","Herr Lindqvist","Selin","Frau Meyer","Herr Haddad"];
+const AVA=["#2f7d6d","#7a5bb5","#c0603a","#3a6fb0","#a04a6e","#5b7d2a","#8a6a1f","#2c6f8f"];
+const DENOMS=[5000,2000,1000,500,200,100,50,20,10,5,2,1];
+
+const MC=[
+ {q:"Erst 20 % Rabatt, dann an der Kasse noch 10 % auf den neuen Preis. Wie viel spart die Kundin insgesamt?",o:["28 %","30 %","32 %"],why:"Die 10 % werden vom schon reduzierten Preis gerechnet. Beispiel 100 €: minus 20 % = 80 €. Davon 10 % = 8 €, also 72 €. Gespart: 28 €, das sind 28 %."},
+ {q:"Der Einkauf kostet 13,70 €. Der Kunde gibt 20,20 €. Warum macht er das?",o:["Er bekommt glatter zurück: 6,50 € statt 6,30 €","Er hat sich verzählt – die 20 ct gibt man sofort zurück","Er möchte Trinkgeld geben"],why:"6,30 € wären 5 € + 1 € + 20 ct + 10 ct (4 Teile). 6,50 € sind 5 € + 1 € + 50 ct (3 Teile). Der Kunde wird Kleingeld los und bekommt weniger Münzen zurück."},
+ {q:"6 Flaschen kosten je 4,99 €. Welcher Rechenweg ist im Kopf am schnellsten?",o:["6 × 5 € = 30 €, minus 6 ct = 29,94 €","6 × 4 € + 6 × 0,99 €","4,99 + 4,99 + 4,99 + 4,99 + 4,99 + 4,99"],why:"Mit dem runden Preis rechnen und die Cent danach abziehen: 6 × 5 € = 30 €. Pro Flasche 1 ct zu viel, also 6 ct weniger: 29,94 €."},
+ {q:"Warum kann man 25 % Rabatt mit „Preis ÷ 4“ ausrechnen?",o:["Weil 25 % ein Viertel von 100 % sind","Weil 4 × 25 = 100 ist – das ist nur ein Zufall","Das klappt nur bei runden Preisen"],why:"100 % ist der ganze Preis. 25 % ist ein Viertel davon. Ein Viertel heißt: durch 4 teilen. Das gilt für jeden Preis."},
+ {q:"Aktion „3 für 2“. Wie viel Prozent spart der Kunde, wenn er genau 3 Stück kauft?",o:["etwa 33 %","50 %","etwa 66 %"],why:"Er bezahlt 2 von 3 Teilen. 1 von 3 Teilen ist gratis. 1/3 sind etwa 33,3 %."},
+ {q:"Eine Ware kostet 80 €. Sie wird 25 % teurer. Danach gibt es 25 % Rabatt. Was kostet sie jetzt?",o:["75 €","80 €","85 €"],why:"80 € + 25 % = 80 € + 20 € = 100 €. Der Rabatt wird vom neuen Preis gerechnet: 25 % von 100 € = 25 €. 100 € − 25 € = 75 €."},
+ {q:"Sie sollen 3 % Skonto von 400 € ausrechnen. Welcher Weg ist richtig?",o:["1 % = 4 €, also 3 % = 12 €","400 € ÷ 3 = 133,33 €","400 € − 3 € = 397 €"],why:"1 % ist der hundertste Teil: 400 € ÷ 100 = 4 €. 3 % sind dreimal so viel: 12 €."},
+ {q:"Rückgeld 7,90 €. Welche Stückelung ist am besten?",o:["5 € + 2 € + 50 ct + 20 ct + 20 ct","5 € + 1 € + 1 € + 50 ct + 20 ct + 20 ct","2 € + 2 € + 2 € + 1 € + 50 ct + 20 ct + 10 ct + 10 ct"],why:"Immer mit dem größten Schein oder der größten Münze beginnen, die noch passt. So brauchst du die wenigsten Teile: hier 5 Stück."},
+ {q:"Die Kasse ist ausgefallen. Einkauf 47,80 €, der Kunde zahlt mit 100 €. Sie geben 52,20 € zurück. Wie prüfen Sie das schnell?",o:["47,80 € + 52,20 € muss 100 € ergeben","52,20 € − 47,80 € muss 0 ergeben","100 € ÷ 2 muss 52,20 € ergeben"],why:"Probe durch Zusammenzählen: Einkauf + Rückgeld = gegebenes Geld. 47,80 € + 52,20 € = 100,00 €. Stimmt."}
+];
+
+/* ---------- Aufgaben-Generatoren ---------- */
+function changeScenario(lv,plain){
+  if(lv==="basis"){
+    const total=rnd(2,19)*100+rnd(0,9)*10;
+    const bills=[500,1000,2000,5000];let i=bills.findIndex(b=>b>total);if(i<bills.length-1&&Math.random()<.3)i++;
+    const paid=bills[i];return{total,paid,speech:`Ich zahle mit einem ${paid/100}-Euro-Schein.`};
+  }
+  const total=rnd(150,8999);
+  if(!plain&&total%100&&Math.random()<.45){
+    const bill=[1000,2000,5000,10000].find(b=>b>total);const paid=bill+total%100;
+    return{total,paid,trick:true,speech:`Hier sind ${fmt(paid)} – dann bekomme ich glatter zurück.`};
+  }
+  const bills=[1000,2000,5000,10000];let i=bills.findIndex(b=>b>total);if(i<bills.length-1&&Math.random()<.3)i++;
+  const paid=bills[i];return{total,paid,speech:`Ich zahle mit einem ${paid/100}-Euro-Schein.`};
+}
+function ergSteps(total,paid){
+  const st=[];let cur=total;const up=Math.ceil(total/100)*100;
+  if(up>cur&&up<=paid){st.push(`Von ${fmt(cur)} bis ${fmt(up)} fehlen ${ctTxt(up-cur)}.`);cur=up;}
+  const pe=Math.floor(paid/100)*100;
+  if(pe>cur){st.push(`Von ${fmt(cur)} bis ${fmt(pe)} fehlen ${fmt(pe-cur)}.`);cur=pe;}
+  if(paid>cur)st.push(`Dazu kommen ${ctTxt(paid-cur)}, die der Kunde extra gegeben hat.`);
+  st.push(`Zusammen: ${fmt(paid-total)} Rückgeld.`);return st;
+}
+function genChange(lv){
+  const s=changeScenario(lv,false);const ans=s.paid-s.total;
+  let intro="Ergänzen wie an der Kasse – vom Preis hochzählen:",steps=ergSteps(s.total,s.paid);
+  if(s.trick){intro="Trick erkennen:";steps=[`Die Cent sind gleich (,${String(s.total%100).padStart(2,"0")}). Sie heben sich auf.`,`Rechne nur mit den Euro: ${Math.floor(s.paid/100)} − ${Math.floor(s.total/100)} = ${ans/100}.`,`Rückgeld: ${fmt(ans)}.`];}
+  return{type:"change",kind:"Rückgeld",speech:s.speech,lines:[["Summe",fmt(s.total),"b"],["Gegeben",fmt(s.paid)],["Rückgeld","?","q"]],ask:n=>`Wie viel Rückgeld bekommt ${n}?`,lab:"Rückgeld",answer:ans,intro,steps};
+}
+function genSum(lv){
+  const n=lv==="basis"?rnd(2,3):rnd(3,4);
+  const items=shuffle(PRODUCTS).slice(0,n).map(([name,price])=>({name,price,q:(lv==="profi"&&Math.random()<.45)?rnd(2,4):1}));
+  const sum=items.reduce((a,it)=>a+it.q*it.price,0);
+  const lines=items.map(it=>[it.name,it.q>1?`${it.q} × ${fmtN(it.price)}`:fmtN(it.price)]);
+  lines.push(["SUMME","?","b q"]);
+  let round=0,corr=0;const parts=[];
+  items.forEach(it=>{const r=Math.ceil(it.price/10)*10,d=r-it.price,pre=it.q>1?it.q+" × ":"";
+    if(d>0&&d<=5){parts.push(`${pre}${fmtN(it.price)} → ${pre}${fmtN(r)} (${it.q*d} ct zu viel)`);round+=it.q*r;corr+=it.q*d;}
+    else{parts.push(`${pre}${fmtN(it.price)}${it.q>1?" = "+fmtN(it.q*it.price):""} bleibt so`);round+=it.q*it.price;}});
+  let intro,steps;
+  if(corr>0){intro="Mit glatten Preisen rechnen, dann die Cent abziehen:";steps=[...parts,`Glatte Summe: ${fmt(round)}`,`${fmt(round)} − ${corr} ct = ${fmt(sum)}`];}
+  else{const E=items.reduce((a,it)=>a+it.q*Math.floor(it.price/100)*100,0),C=sum-E;intro="Erst die Euro, dann die Cent:";steps=[`Euro zusammen: ${E/100} €`,`Cent zusammen: ${C} ct`,`Summe: ${fmt(sum)}`];}
+  return{type:"sum",kind:"Summe",speech:pick(["Das wär's, danke.","Einmal das hier, bitte.","Nur die paar Sachen.","Ich hab's ein bisschen eilig!","Was macht das zusammen?"]),lines,ask:()=>"Wie viel kostet der Einkauf zusammen?",lab:"Summe",answer:sum,intro,steps};
+}
+function genDiscount(lv){
+  const base={type:"discount",kind:"Rabatt",lab:"Zu zahlen",ask:n=>`Wie viel muss ${n} bezahlen?`};
+  if(lv==="basis"){
+    if(Math.random()<.3){const name=pick(SMALL),p=rnd(8,45)*10,pay=2*p;
+      return{...base,kind:"3 für 2",speech:`Ich nehme drei Mal ${name}. Da ist doch die Aktion, oder?`,lines:[[`3 × ${name}`,`je ${fmtN(p)}`],["Aktion 3 für 2","","promo"],["SUMME","?","b q"]],intro:"Bei „3 für 2“ ist ein Teil gratis:",steps:[`Der Kunde bezahlt nur 2 Stück.`,`2 × ${fmt(p)} = ${fmt(pay)}`],answer:pay};}
+    const pc=pick([10,20,25,50]);const eur=pc===25?4*rnd(3,20):5*rnd(2,24);const price=eur*100,disc=price*pc/100,pay=price-disc;
+    const st={10:[`10 % = Preis ÷ 10 = ${fmt(disc)}`],20:[`10 % = Preis ÷ 10 = ${fmt(price/10)}`,`20 % = 2 × ${fmt(price/10)} = ${fmt(disc)}`],25:[`25 % = ein Viertel = Preis ÷ 4 = ${fmt(disc)}`],50:[`50 % = die Hälfte = ${fmt(disc)}`]}[pc];
+    const name=pick(BIG);
+    return{...base,speech:`Ich nehme das hier: ${name}. Das ist doch heute reduziert, oder?`,lines:[[name,fmtN(price)],[`Rabatt ${pc} %`,"− ?","promo"],["SUMME","?","b q"]],intro:"Erst den Rabatt, dann abziehen:",steps:[...st,`${fmt(price)} − ${fmt(disc)} = ${fmt(pay)}`],answer:pay};
+  }
+  const v=pick(["pct","pct","skonto","chain","half","3for2"]);
+  if(v==="3for2"){const name=pick(SMALL),p=rnd(60,349),k=pick([4,5,6]),free=Math.floor(k/3),pay=(k-free)*p;
+    return{...base,kind:"3 für 2",speech:`Ich nehme ${k} Stück ${name}. Gilt die Aktion?`,lines:[[`${k} × ${name}`,`je ${fmtN(p)}`],["Aktion 3 für 2","","promo"],["SUMME","?","b q"]],intro:"Bei „3 für 2“ ist jedes dritte Teil gratis:",steps:[`${k} Stück: ${free} davon gratis, bezahlt werden ${k-free}.`,`${k-free} × ${fmt(p)} = ${fmt(pay)}`],answer:pay};}
+  if(v==="skonto"){const pc=pick([2,3]),eur=rnd(150,690),price=eur*100,one=eur,disc=pc*one,pay=price-disc;
+    return{...base,kind:"Skonto",speech:`Ich zahle die Rechnung sofort bar. Da gibt es doch ${pc} % Skonto?`,lines:[["Rechnung Möbel-Lieferung",fmtN(price)],[`Skonto ${pc} %`,"− ?","promo"],["ZU ZAHLEN","?","b q"]],intro:"Über 1 % rechnen:",steps:[`1 % = Preis ÷ 100 = ${fmt(one)}`,`${pc} % = ${pc} × ${fmt(one)} = ${fmt(disc)}`,`${fmt(price)} − ${fmt(disc)} = ${fmt(pay)}`],answer:pay};}
+  if(v==="chain"){const eur=rnd(3,25)*10,price=eur*100,a=price*80/100,b=a/10,pay=a-b;const name=pick(BIG);
+    return{...base,kind:"Doppel-Rabatt",speech:`Ich nehme das hier: ${name}. Das ist 20 % reduziert – und ich habe noch einen 10-%-Gutschein!`,lines:[[name,fmtN(price)],["Rabatt 20 %","− ?","promo"],["Gutschein 10 % auf Rest","− ?","promo"],["SUMME","?","b q"]],intro:"Schritt für Schritt – der Gutschein gilt für den neuen Preis:",steps:[`20 % von ${fmt(price)} = ${fmt(price/5)} → ${fmt(a)}`,`10 % von ${fmt(a)} = ${fmt(b)}`,`${fmt(a)} − ${fmt(b)} = ${fmt(pay)}`,"Achtung: Das sind nicht 30 %, sondern 28 % Ersparnis."],answer:pay};}
+  if(v==="half"){const eur=rnd(15,89),price=eur*100,half=price/2,pay=price+half;const name=pick(["T-Shirt","Jeans","Bluse","Mütze","Hemd"]);
+    return{...base,kind:"2. Teil −50 %",speech:`Ich nehme zwei Mal ${name}. Das zweite ist doch halb so teuer?`,lines:[[`2 × ${name}`,`je ${fmtN(price)}`],["2. Teil −50 %","","promo"],["SUMME","?","b q"]],intro:"Ein Teil voll, eins zum halben Preis:",steps:[`1. Teil: ${fmt(price)}`,`2. Teil: ${fmt(price)} ÷ 2 = ${fmt(half)}`,`${fmt(price)} + ${fmt(half)} = ${fmt(pay)}`],answer:pay};}
+  const pc=pick([15,30,40,75,5]);const eur=rnd(12,180),price=eur*100,disc=price*pc/100,pay=price-disc,ten=price/10;
+  const st={15:[`10 % = ${fmt(ten)}`,`5 % = die Hälfte davon = ${fmt(ten/2)}`,`15 % = ${fmt(ten)} + ${fmt(ten/2)} = ${fmt(disc)}`],
+    30:[`10 % = ${fmt(ten)}`,`30 % = 3 × ${fmt(ten)} = ${fmt(disc)}`],40:[`10 % = ${fmt(ten)}`,`40 % = 4 × ${fmt(ten)} = ${fmt(disc)}`],
+    5:[`10 % = ${fmt(ten)}`,`5 % = die Hälfte = ${fmt(disc)}`],75:[`25 % = Preis ÷ 4 = ${fmt(price/4)}`,`75 % = 3 × ${fmt(price/4)} = ${fmt(disc)}`,`Schneller: Der Kunde zahlt nur 25 % = ${fmt(price/4)}`]}[pc];
+  const name=pick(BIG);
+  return{...base,speech:`Ich nehme das hier: ${name}. Heute gibt es ${pc} % darauf, stimmt's?`,lines:[[name,fmtN(price)],[`Rabatt ${pc} %`,"− ?","promo"],["SUMME","?","b q"]],intro:"Über 10 % (oder 25 %) rechnen:",steps:[...st,`${fmt(price)} − ${fmt(disc)} = ${fmt(pay)}`],answer:pay};
+}
+function greedy(a){const out=[];for(const d of DENOMS){while(a>=d){out.push(d);a-=d;}}return out;}
+const dName=d=>d>=100?(d/100)+" €":d+" ct";
+function genCoins(lv){
+  const s=changeScenario(lv,true);const amt=s.paid-s.total;const best=greedy(amt);
+  return{type:"coins",kind:"Geld herausgeben",speech:s.speech,lines:[["Summe",fmt(s.total)],["Gegeben",fmt(s.paid)],["Rückgeld",fmt(amt),"b"]],ask:()=>"Lege das Rückgeld hin – mit möglichst wenigen Scheinen und Münzen.",lab:"Rückgeld",answer:amt,best,intro:"Immer mit dem größten Schein oder der größten Münze anfangen, die noch passt:",steps:[best.map(dName).join(" + "),`Das sind ${best.length} Teile.`]};
+}
+function genMC(q){const order=shuffle([0,1,2]);return{type:"mc",kind:"Profi-Frage",speech:"Kurze Frage an Sie, bevor der nächste Kunde kommt.",who:"Filialleiterin Frau Brandt",q:q.q,opts:order.map(i=>q.o[i]),correct:order.indexOf(0),answerTxt:q.o[0],intro:"Begründung:",steps:[q.why],lab:"Profi-Frage"};}
+
+/* ---------- Zustand ---------- */
+const S={lvl:"basis",types:[],timer:true,tasks:[],i:0,score:0,streak:0,best:0,log:[],input:"",lay:[],t0:0,dur:40,tick:null,phase:"idle",name:""};
+const GEN={change:genChange,sum:genSum,discount:genDiscount,coins:genCoins};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+function readSettings(){
+  S.lvl=$("#lvlProfi").checked?"profi":"basis";
+  S.types=["tChange","tSum","tDiscount","tCoins"].filter(id=>$("#"+id).checked).map(id=>$("#"+id).value);
+  S.timer=$("#tTimer").checked;
+}
+function updateStartUi(){
+  readSettings();$("#btnStart").disabled=!S.types.length;
+  $("#startHint").textContent=S.types.length?"Tastatur geht auch: Zahlen, Komma, Enter.":"Wähle mindestens eine Aufgabenart.";
+  const b1=store.get("blitzkasse-best-basis"),b2=store.get("blitzkasse-best-profi");
+  $("#bestLine").textContent=(b1||b2)?`Dein Rekord: Azubi ${b1||"–"} · Kassenprofi ${b2||"–"} Punkte`:"Noch kein Rekord auf diesem Gerät.";
+}
+document.querySelectorAll("#start input").forEach(el=>el.addEventListener("change",updateStartUi));
+
+function buildTasks(){
+  const out=[];let pool=[];
+  const nMC=S.lvl==="profi"?3:0,n=10-nMC;
+  while(out.length<n){if(!pool.length)pool=shuffle(S.types);out.push(GEN[pool.pop()](S.lvl));}
+  if(nMC){const qs=shuffle(MC).slice(0,nMC);[3,6,9].forEach((pos,k)=>out.splice(pos,0,genMC(qs[k])));}
+  const names=shuffle(NAMES);
+  out.forEach((t,k)=>{t.name=t.who||names[k%names.length];});
+  return out;
+}
+
+function show(id){["#start","#game","#end"].forEach(s=>$(s).hidden=s!==id);$("#stats").hidden=id!=="#game";window.scrollTo({top:0});}
+function startShift(){readSettings();if(!S.types.length)return;S.tasks=buildTasks();S.i=0;S.score=0;S.streak=0;S.log=[];show("#game");showTask();}
+
+function initials(n){const p=n.replace(/^(Frau|Herr|Oma|Filialleiterin)\s+/,"").split(/\s+/);return (n.startsWith("Oma")?"O":"")+p.map(x=>x[0]).join("").slice(0,2);}
+function stamp(){const d=new Date();return d.toLocaleDateString("de-DE")+"  "+d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});}
+
+function showTask(){
+  const t=S.tasks[S.i];S.phase="answer";S.input="";S.lay=[];
+  $("#sNr").textContent=S.i+1;$("#sOf").textContent=S.tasks.length;$("#sPts").textContent=S.score;$("#sStreak").textContent=S.streak;
+  $("#who").textContent=t.name;$("#speech").textContent=t.speech;
+  const ava=$("#ava");ava.textContent=initials(t.name);ava.style.background=AVA[(S.i*3)%AVA.length];
+  const isMC=t.type==="mc";
+  $("#bonWrap").hidden=isMC;$("#mcq").hidden=!isMC;
+  if(isMC){$("#mcqQ").textContent=t.q;}
+  else{
+    let h=`<div class="head"><b>BLITZKASSE</b><br>Filiale Hafenstraße · Kasse 3<br>Bon ${String(1000+rnd(1,8999))}  ${stamp()}</div>`;
+    t.lines.forEach(([a,b,c])=>{h+=`<div class="row ${c||""}"><span>${a}</span><span>${b}</span></div>`;});
+    $("#receipt").innerHTML=h;
+  }
+  $("#task").textContent=isMC?"Wähle die richtige Antwort.":t.ask(t.name);
+  $("#lcdLab").textContent=t.lab;$("#lcdSide").textContent=t.kind;
+  $("#pad").hidden=t.type==="coins"||isMC;$("#coins").hidden=t.type!=="coins";$("#opts").hidden=!isMC;$("#fb").hidden=true;
+  if(isMC){$("#opts").innerHTML=t.opts.map((o,k)=>`<button data-o="${k}"><b>${"ABC"[k]}</b>  ${o}</button>`).join("");}
+  if(t.type==="coins")buildTray();
+  renderLcd();
+  S.dur=(S.lvl==="profi"?30:40)+(t.type==="coins"?15:0)+(isMC?10:0);
+  $("#timerBox").hidden=!S.timer;
+  clearInterval(S.tick);S.t0=performance.now();
+  if(S.timer){S.tick=setInterval(updTimer,100);updTimer();}
+}
+function frac(){if(!S.timer)return 0;return Math.max(0,1-(performance.now()-S.t0)/1000/S.dur);}
+function updTimer(){const f=frac();$("#timerBar").style.width=(f*100)+"%";$("#timer").classList.toggle("low",f<.3);
+  $("#tnote").textContent=f>0?`Zeitbonus: +${Math.round(f*50)}`:"Der Kunde wird ungeduldig – kein Zeitbonus mehr. Rechne trotzdem in Ruhe zu Ende.";
+  if(f<=0)clearInterval(S.tick);}
+
+function renderLcd(){
+  const t=S.tasks[S.i],v=$("#lcdVal");
+  if(t.type==="coins"){v.classList.remove("empty");v.innerHTML=`${fmtN(t.answer)}<span class="cur">€</span>`;return;}
+  if(t.type==="mc"){v.classList.add("empty");v.innerHTML="A · B · C";return;}
+  if(!S.input){v.classList.add("empty");v.innerHTML=`0,00<span class="cur">€</span>`;}
+  else{v.classList.remove("empty");v.innerHTML=`${S.input}<span class="cur">€</span>`;}
+}
+function keyIn(k){
+  if(S.phase!=="answer")return;const t=S.tasks[S.i];if(t.type!=="change"&&t.type!=="sum"&&t.type!=="discount")return;
+  if(k==="clear")S.input="";
+  else if(k==="back")S.input=S.input.slice(0,-1);
+  else if(k==="ok"){submitNum();return;}
+  else if(k===","){if(!S.input.includes(","))S.input=(S.input||"0")+",";}
+  else if(/^\d$/.test(k)){const parts=S.input.split(",");if(parts.length===2&&parts[1].length>=2)return;if(parts[0].length>=4&&parts.length===1)return;S.input=(S.input==="0"?"":S.input)+k;}
+  renderLcd();
+}
+function parseInput(s){if(!s)return null;const [e,c=""]=s.split(",");return parseInt(e||"0",10)*100+parseInt((c+"00").slice(0,2),10);}
+function submitNum(){const t=S.tasks[S.i];const v=parseInput(S.input);if(v===null){$("#tnote").textContent="Tippe zuerst einen Betrag ein.";return;}
+  resolve(v===t.answer,{given:fmt(v),right:fmt(t.answer)});}
+
+/* Münzen */
+function moneyEl(d,small){
+  if(d>=500){const c={5000:"--m50",2000:"--m20",1000:"--m10",500:"--m5"}[d];return `<span class="bill" style="background:var(${c})${small?";width:52px;height:30px;font-size:.8rem":""}">${d/100} €</span>`;}
+  const sz={200:46,100:43,50:42,20:38,10:34,5:36,2:32,1:28}[d]*(small?.8:1);
+  let bg;if(d===200)bg="radial-gradient(circle,var(--gold) 52%,var(--silver) 54%)";else if(d===100)bg="radial-gradient(circle,var(--silver) 52%,var(--gold) 54%)";else if(d>=10)bg="radial-gradient(circle at 35% 30%,var(--gold),var(--gold-2))";else bg="radial-gradient(circle at 35% 30%,var(--copper),var(--copper-2))";
+  return `<span class="coin" style="width:${sz}px;height:${sz}px;background:${bg};font-size:${small?.68:.78}rem">${d>=100?d/100+"€":d}</span>`;
+}
+function buildTray(){$("#tray").innerHTML=DENOMS.map(d=>`<button class="money" data-d="${d}" aria-label="${dName(d)} hinlegen">${moneyEl(d)}</button>`).join("");renderLay();}
+function renderLay(){
+  const sum=S.lay.reduce((a,b)=>a+b,0);
+  $("#lay").innerHTML=S.lay.length?S.lay.map((d,k)=>`<button class="money" data-r="${k}" aria-label="${dName(d)} zurücknehmen">${moneyEl(d,true)}</button>`).join(""):`<span class="empty">Tippe oben auf Scheine und Münzen.</span>`;
+  $("#coinSum").textContent=`${fmt(sum)} · ${S.lay.length} ${S.lay.length===1?"Teil":"Teile"}`;
+}
+$("#tray").addEventListener("click",e=>{const b=e.target.closest("[data-d]");if(!b||S.phase!=="answer")return;S.lay.push(+b.dataset.d);S.lay.sort((a,b)=>b-a);renderLay();});
+$("#lay").addEventListener("click",e=>{const b=e.target.closest("[data-r]");if(!b||S.phase!=="answer")return;S.lay.splice(+b.dataset.r,1);renderLay();});
+$("#coinClear").addEventListener("click",()=>{if(S.phase!=="answer")return;S.lay=[];renderLay();});
+$("#coinGive").addEventListener("click",()=>{
+  if(S.phase!=="answer")return;const t=S.tasks[S.i];const sum=S.lay.reduce((a,b)=>a+b,0);
+  if(!S.lay.length){$("#tnote").textContent="Lege zuerst Geld auf den Tresen.";return;}
+  const ok=sum===t.answer,min=ok&&S.lay.length===t.best.length;
+  const tl=n=>n===1?"1 Teil":n+" Teilen";resolve(ok,{given:`${fmt(sum)} in ${tl(S.lay.length)}`,right:`${fmt(t.answer)} in ${tl(t.best.length)}`,partial:ok&&!min});
+});
+
+/* MC */
+$("#opts").addEventListener("click",e=>{const b=e.target.closest("[data-o]");if(!b||S.phase!=="answer")return;const t=S.tasks[S.i];const k=+b.dataset.o;
+  resolve(k===t.correct,{given:t.opts[k],right:t.answerTxt});});
+
+/* Auswertung */
+function resolve(ok,info){
+  S.phase="feedback";clearInterval(S.tick);const t=S.tasks[S.i];const f=frac();let pts=0;
+  if(ok){S.streak++;const bonus=Math.round(f*50),serie=S.streak>=3?Math.min(S.streak-2,5)*10:0;pts=info.partial?60+Math.round(bonus/2):100+bonus+serie;}
+  else S.streak=0;
+  S.score+=pts;S.log.push({t,ok,partial:!!info.partial,pts,given:info.given,right:info.right});
+  $("#sPts").textContent=S.score;$("#sStreak").textContent=S.streak;
+  const fb=$("#fb");fb.className="fb pop "+(ok?"ok":"no");
+  let head;
+  if(ok&&info.partial)head=`<h3>Betrag stimmt!</h3><div>Aber es geht mit weniger Teilen: ${t.best.length} statt ${S.lay.length}.</div>`;
+  else if(ok)head=`<h3>${pick(["Richtig!","Stimmt genau!","Sauber gerechnet!","Perfekt!"])}</h3>`;
+  else head=`<h3>Leider nicht richtig.</h3><div>Deine Antwort: ${info.given}<br><b>Richtig: ${info.right}</b></div>`;
+  const last=S.i===S.tasks.length-1;
+  fb.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap">${head.split("</h3>")[0]}</h3><span class="pts">+${pts}</span></div>${head.split("</h3>")[1]||""}
+    <div><b>${t.intro}</b><ol>${t.steps.map(s=>`<li>${s}</li>`).join("")}</ol></div>
+    <button class="btn" id="btnNext">${last?"Schicht beenden":"Nächster Kunde"}</button>`;
+  fb.hidden=false;$("#pad").hidden=true;$("#coins").hidden=true;$("#opts").hidden=true;
+  $("#tnote").textContent="";
+  $("#btnNext").addEventListener("click",next);$("#btnNext").focus({preventScroll:true});
+  if(window.matchMedia("(max-width:779px)").matches)fb.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function next(){if(S.phase!=="feedback")return;S.i++;if(S.i>=S.tasks.length)finish();else{showTask();window.scrollTo({top:0,behavior:"smooth"});}}
+
+function finish(){
+  S.phase="end";const right=S.log.filter(l=>l.ok).length,n=S.log.length;
+  const key="blitzkasse-best-"+S.lvl;const old=parseInt(store.get(key)||"0",10);const rec=S.score>old;if(rec)store.set(key,String(S.score));
+  let h=`<div class="head"><b>SCHICHTBERICHT</b><br>Filiale Hafenstraße · Kasse 3<br>${stamp()} · ${S.lvl==="profi"?"Kassenprofi":"Azubi"}</div>`;
+  S.log.forEach((l,k)=>{h+=`<div class="row"><span>${String(k+1).padStart(2,"0")} ${l.t.kind}</span><span>${l.ok?(l.partial?"fast ✓":"✓"):"✗"} ${String(l.pts).padStart(4," ")}</span></div>`;});
+  h+=`<div class="row b"><span>PUNKTE</span><span>${S.score}</span></div><div class="row"><span>Richtig</span><span>${right} von ${n}</span></div>`;
+  h+=`<div class="row"><span>Rekord</span><span>${rec?"NEU! ":""}${Math.max(old,S.score)}</span></div><div class="head" style="border:0;border-top:1px dashed var(--receipt-mut);margin:8px 0 0;padding-top:8px">Vielen Dank für Ihren Einsatz!</div>`;
+  $("#report").innerHTML=h;
+  const q=right/n;let r,txt;
+  if(q===1){r="Kassen-Legende";txt="Alles richtig. Du bist bereit für den Samstag vor Weihnachten.";}
+  else if(q>=.8){r="Kassen-Ass";txt="Sehr sicher an der Kasse. Schau dir die Fehler unten kurz an.";}
+  else if(q>=.5){r="Kassen-Azubi";txt="Gute Grundlage. Mit den Rechenwegen unten wirst du schneller.";}
+  else{r="Kassen-Neuling";txt="Noch etwas wackelig. Spiel ohne Zeitbonus und lies die Rechenwege in Ruhe.";}
+  $("#rank").textContent=r;$("#rankText").textContent=txt+(S.lvl==="basis"&&q>=.8?" Probier als Nächstes die Stufe Kassenprofi.":"");
+  const wrong=S.log.filter(l=>!l.ok||l.partial);
+  $("#review").innerHTML=wrong.length?`<div class="eyebrow">Das schauen wir uns nochmal an</div>`+wrong.map(l=>`<div class="item"><b>${l.t.kind}${l.t.type==="mc"?": "+l.t.q:""}</b><div>Deine Antwort: ${l.given} · Richtig: ${l.right}</div><div class="hint">${l.t.intro}</div><ol>${l.t.steps.map(s=>`<li>${s}</li>`).join("")}</ol></div>`).join(""):`<div class="eyebrow">Keine Fehler in dieser Schicht</div>`;
+  show("#end");
+}
+
+/* Bedienung */
+$("#pad").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(b)keyIn(b.dataset.k);});
+document.addEventListener("keydown",e=>{
+  if($("#game").hidden)return;
+  if(S.phase==="feedback"&&e.key==="Enter"){e.preventDefault();next();return;}
+  if(S.phase!=="answer")return;const t=S.tasks[S.i];
+  if(t.type==="mc"){const k={"a":0,"b":1,"c":2,"1":0,"2":1,"3":2}[e.key.toLowerCase()];if(k!==undefined){resolve(k===t.correct,{given:t.opts[k],right:t.answerTxt});}return;}
+  if(t.type==="coins")return;
+  if(/^\d$/.test(e.key))keyIn(e.key);
+  else if(e.key===","||e.key===".")keyIn(",");
+  else if(e.key==="Backspace"){e.preventDefault();keyIn("back");}
+  else if(e.key==="Escape")keyIn("clear");
+  else if(e.key==="Enter"){e.preventDefault();keyIn("ok");}
+});
+$("#btnStart").addEventListener("click",startShift);
+$("#btnAgain").addEventListener("click",startShift);
+$("#btnHome").addEventListener("click",()=>{S.phase="idle";updateStartUi();show("#start");});
+updateStartUi();
+})();
+</script>
+<script>window.UB_CONFIG={"mode": true};</script>
+<script id="uebersetzungen">window.UB_I18N={"Kopfrechnen an der Kasse":{"tr":"Kasada zihinden hesap","vi":"Tính nhẩm ở quầy thu ngân","ar":"الحساب الذهني عند صندوق الدفع"},"Kunde {1}/{2}":{"tr":"Müşteri {1}/{2}","vi":"Khách hàng {1}/{2}","ar":"الزبون {1}/{2}"},"Punkte {1}":{"tr":"Puan {1}","vi":"Điểm {1}","ar":"النقاط {1}"},"Serie {1}":{"tr":"Seri {1}","vi":"Chuỗi {1}","ar":"السلسلة {1}"},"Lernfeld 3 · Kassieren":{"tr":"Öğrenme alanı 3 · Kasada ödeme almak","vi":"Lĩnh vực học tập 3 · Thu tiền","ar":"مجال التعلّم 3 · تحصيل المبلغ"},"Deine Schicht an Kasse 3 beginnt.":{"tr":"Kasa 3'teki vardiyanız başlıyor.","vi":"Ca làm của bạn ở quầy thu ngân 3 bắt đầu.","ar":"تبدأ ورديتك عند الصندوق 3."},"Zehn Kunden stehen an. Rechne Rückgeld, Summen und Rabatte im Kopf und gib das Wechselgeld passend heraus. Wer schnell und richtig rechnet, sammelt mehr Punkte.":{"tr":"On müşteri sırada bekliyor. Para üstünü (Rückgeld), toplamları ve indirimleri zihninizden hesaplayın ve bozuk parayı doğru verin. Hızlı ve doğru hesaplayan daha çok puan toplar.","vi":"Mười khách hàng đang xếp hàng. Hãy tính nhẩm tiền thối lại, tổng tiền và giảm giá, rồi đưa tiền thối đúng. Ai tính nhanh và đúng sẽ được nhiều điểm hơn.","ar":"عشرة زبائن ينتظرون. احسب الباقي (Rückgeld) والمجاميع والخصومات في ذهنك وأعطِ الفكّة بشكل صحيح. من يحسب بسرعة وبشكل صحيح يجمع نقاطاً أكثر."},"Stufe":{"tr":"Seviye","vi":"Cấp","ar":"المستوى"},"Azubi":{"tr":"Çırak","vi":"Học viên học nghề","ar":"متدرّب/ة"},"Runde Beträge, Scheine bis 50 €, Rabatte 10 / 20 / 25 / 50 %":{"tr":"Yuvarlak tutarlar, 50 €'ya kadar banknotlar, indirimler 10 / 20 / 25 / 50 %","vi":"Số tiền tròn, tờ tiền đến 50 €, giảm giá 10 / 20 / 25 / 50 %","ar":"مبالغ صحيحة، أوراق نقدية حتى 50 €، خصومات 10 / 20 / 25 / 50 %"},"Kassenprofi":{"tr":"Kasa uzmanı","vi":"Chuyên gia thu ngân","ar":"محترف الصندوق"},"Krumme Cent-Beträge, Skonto, Doppel-Rabatt und Profi-Fragen zum Begründen":{"tr":"Düzensiz sent tutarları, Skonto (peşin ödeme iskontosu), çifte indirim ve gerekçelendirme gerektiren uzman soruları","vi":"Số tiền lẻ cent, chiết khấu thanh toán sớm (Skonto), giảm giá hai lần và câu hỏi chuyên gia cần giải thích","ar":"مبالغ سنتات غير مستديرة، خصم الدفع الفوري (Skonto)، خصم مزدوج وأسئلة احترافية مع التعليل"},"Aufgaben":{"tr":"Görevler","vi":"Bài tập","ar":"المسائل"},"Rückgeld":{"tr":"Para üstü","vi":"Tiền thối lại","ar":"الباقي (المبلغ المردود)"},"Summe":{"tr":"Toplam","vi":"Tổng","ar":"المجموع"},"Rabatt & Aktion":{"tr":"İndirim ve kampanya","vi":"Giảm giá & khuyến mãi","ar":"الخصم والعرض"},"Geld herausgeben":{"tr":"Para vermek","vi":"Đưa tiền thối","ar":"إعطاء النقود"},"Zeit":{"tr":"Süre","vi":"Thời gian","ar":"الوقت"},"Mit Zeitbonus (ohne Haken: in Ruhe üben)":{"tr":"Zaman bonuslu (işaret yoksa: rahatça alıştırma yap)","vi":"Có thưởng thời gian (bỏ dấu tích: luyện tập thong thả)","ar":"مع مكافأة الوقت (بدون علامة: تدرّب بهدوء)"},"Schicht starten":{"tr":"Vardiyayı başlat","vi":"Bắt đầu ca làm","ar":"ابدأ الوردية"},"Tastatur geht auch: Zahlen, Komma, Enter.":{"tr":"Klavye de olur: rakamlar, virgül, Enter.","vi":"Cũng có thể dùng bàn phím: số, dấu phẩy, Enter.","ar":"يمكنك أيضاً استخدام لوحة المفاتيح: الأرقام والفاصلة وEnter."},"Wähle mindestens eine Aufgabenart.":{"tr":"En az bir görev türü seç.","vi":"Hãy chọn ít nhất một loại bài tập.","ar":"اختر نوعاً واحداً على الأقل من المسائل."},"Kasse 3":{"tr":"Kasa 3","vi":"Quầy 3","ar":"الصندوق 3"},"So läuft die Schicht":{"tr":"Vardiya böyle işler","vi":"Ca làm diễn ra như thế nào","ar":"هكذا تسير الوردية"},"10 Kunden pro Schicht.":{"tr":"Vardiya başına 10 müşteri.","vi":"10 khách hàng mỗi ca.","ar":"10 زبائن في كل وردية."},"Richtig: 100 Punkte. Schnell: bis zu 50 Punkte extra.":{"tr":"Doğru: 100 puan. Hızlı: 50 puana kadar ekstra.","vi":"Đúng: 100 điểm. Nhanh: thêm tối đa 50 điểm.","ar":"الإجابة الصحيحة: 100 نقطة. السرعة: حتى 50 نقطة إضافية."},"Ab 3 Richtigen hintereinander gibt es Serien-Punkte.":{"tr":"Arka arkaya 3 doğrudan sonra seri puanı verilir.","vi":"Từ 3 câu đúng liên tiếp trở lên sẽ có điểm chuỗi.","ar":"بعد 3 إجابات صحيحة متتالية تحصل على نقاط السلسلة."},"Beim Geldherausgeben zählt auch: möglichst wenige Scheine und Münzen.":{"tr":"Para verirken şu da önemli: mümkün olduğunca az banknot ve madeni para.","vi":"Khi đưa tiền thối cũng được tính: dùng càng ít tờ tiền và đồng xu càng tốt.","ar":"عند إعطاء النقود يُحسب أيضاً: أقل عدد ممكن من الأوراق والعملات المعدنية."},"Nach jeder Antwort siehst du den schnellen Rechenweg.":{"tr":"Her cevaptan sonra hızlı hesap yolunu görürsün.","vi":"Sau mỗi câu trả lời, bạn sẽ thấy cách tính nhanh.","ar":"بعد كل إجابة ترى طريقة الحساب السريعة."},"Dein Rekord: Azubi {1} · Kassenprofi {2} Punkte":{"tr":"Rekorun: Çırak {1} · Kasa uzmanı {2} puan","vi":"Kỷ lục của bạn: Học viên học nghề {1} · Chuyên gia thu ngân {2} điểm","ar":"رقمك القياسي: متدرّب/ة {1} · محترف الصندوق {2} نقطة"},"Noch kein Rekord auf diesem Gerät.":{"tr":"Bu cihazda henüz rekor yok.","vi":"Chưa có kỷ lục trên thiết bị này.","ar":"لا يوجد رقم قياسي على هذا الجهاز بعد."},"Profi-Frage · Begründen":{"tr":"Uzman sorusu · Gerekçelendir","vi":"Câu hỏi chuyên gia · Giải thích","ar":"سؤال احترافي · التعليل"},"Betrag":{"tr":"Tutar","vi":"Số tiền","ar":"المبلغ"},"Fertig":{"tr":"Bitti","vi":"Xong","ar":"تم"},"Auf dem Tresen (antippen = zurücknehmen)":{"tr":"Tezgâhta (dokun = geri al)","vi":"Trên quầy (chạm = lấy lại)","ar":"على الطاولة (اضغط = استرجاع)"},"Alles zurück":{"tr":"Hepsini geri al","vi":"Lấy lại tất cả","ar":"إرجاع الكل"},"Geld geben":{"tr":"Para ver","vi":"Đưa tiền","ar":"أعطِ النقود"},"Dein Titel":{"tr":"Unvanın","vi":"Danh hiệu của bạn","ar":"لقبك"},"Neue Schicht":{"tr":"Yeni vardiya","vi":"Ca làm mới","ar":"وردية جديدة"},"Einstellungen ändern":{"tr":"Ayarları değiştir","vi":"Thay đổi cài đặt","ar":"تغيير الإعدادات"},"Letzte Ziffer löschen":{"tr":"Son rakamı sil","vi":"Xóa chữ số cuối","ar":"حذف الرقم الأخير"},"Gegeben":{"tr":"Verilen","vi":"Khách đưa","ar":"المُعطى"},"Zu zahlen":{"tr":"Ödenecek","vi":"Phải trả","ar":"المطلوب دفعه"},"SUMME":{"tr":"TOPLAM","vi":"TỔNG","ar":"المجموع"},"ZU ZAHLEN":{"tr":"ÖDENECEK","vi":"PHẢI TRẢ","ar":"المطلوب دفعه"},"Aktion 3 für 2":{"tr":"Kampanya: 3 al 2 öde","vi":"Khuyến mãi 3 für 2 (mua ba, trả tiền hai)","ar":"عرض 3 بسعر 2"},"3 für 2":{"tr":"3 al 2 öde","vi":"3 für 2 (mua ba, trả tiền hai)","ar":"3 بسعر 2"},"Rabatt":{"tr":"İndirim","vi":"Giảm giá","ar":"خصم"},"Doppel-Rabatt":{"tr":"Çifte indirim","vi":"Giảm giá hai lần","ar":"خصم مزدوج"},"Skonto":{"tr":"Peşin ödeme iskontosu","vi":"Chiết khấu thanh toán sớm","ar":"خصم الدفع الفوري"},"2. Teil −50 %":{"tr":"2. parça −50 %","vi":"Món thứ 2 giảm 50 %","ar":"القطعة 2 −50 %"},"Rabatt {1} %":{"tr":"İndirim {1} %","vi":"Giảm giá {1} %","ar":"خصم {1} %"},"Skonto {1} %":{"tr":"Skonto (peşin ödeme iskontosu) {1} %","vi":"Chiết khấu thanh toán sớm {1} %","ar":"خصم الدفع الفوري {1} %"},"Rabatt 20 %":{"tr":"İndirim 20 %","vi":"Giảm giá 20 %","ar":"خصم 20 %"},"Gutschein 10 % auf Rest":{"tr":"Kalan tutara 10 % hediye çeki","vi":"Phiếu giảm giá 10 % trên phần còn lại","ar":"قسيمة 10 % على الباقي"},"Rechnung Möbel-Lieferung":{"tr":"Mobilya teslimatı faturası","vi":"Hóa đơn giao đồ nội thất","ar":"فاتورة توصيل الأثاث"},"PUNKTE":{"tr":"PUAN","vi":"ĐIỂM","ar":"النقاط"},"Richtig":{"tr":"Doğru","vi":"Đúng","ar":"صحيح"},"Rekord":{"tr":"Rekor","vi":"Kỷ lục","ar":"الرقم القياسي"},"Rekord {1}":{"tr":"Rekor {1}","vi":"Kỷ lục {1}","ar":"الرقم القياسي {1}"},"Profi-Frage":{"tr":"Uzman sorusu","vi":"Câu hỏi chuyên gia","ar":"سؤال احترافي"},"Wähle die richtige Antwort.":{"tr":"Doğru cevabı seç.","vi":"Hãy chọn câu trả lời đúng.","ar":"اختر الإجابة الصحيحة."},"Kurze Frage an Sie, bevor der nächste Kunde kommt.":{"tr":"Sonraki müşteri gelmeden size kısa bir soru.","vi":"Một câu hỏi ngắn cho bạn trước khi khách tiếp theo đến.","ar":"سؤال قصير لكم قبل أن يأتي الزبون التالي."},"Filialleiterin Frau Brandt":{"tr":"Şube müdürü Frau Brandt","vi":"Trưởng chi nhánh bà Brandt","ar":"مديرة الفرع السيدة Brandt"},"Wie viel Rückgeld bekommt {1}?":{"tr":"{1} ne kadar para üstü (Rückgeld) alır?","vi":"{1} nhận được bao nhiêu tiền thối lại?","ar":"كم الباقي (Rückgeld) الذي يحصل عليه {1}؟"},"Wie viel muss {1} bezahlen?":{"tr":"{1} ne kadar ödemeli?","vi":"{1} phải trả bao nhiêu tiền?","ar":"كم يجب أن يدفع {1}؟"},"Wie viel kostet der Einkauf zusammen?":{"tr":"Alışveriş toplam kaç para tutuyor?","vi":"Tổng cộng lần mua hàng này giá bao nhiêu?","ar":"كم تبلغ تكلفة المشتريات معاً؟"},"Lege das Rückgeld hin – mit möglichst wenigen Scheinen und Münzen.":{"tr":"Para üstünü koy – mümkün olduğunca az banknot ve madeni parayla.","vi":"Hãy đặt tiền thối lại ra – dùng càng ít tờ tiền và đồng xu càng tốt.","ar":"ضع الباقي – بأقل عدد ممكن من الأوراق والعملات المعدنية."},"Ich zahle mit einem {1}-Euro-Schein.":{"tr":"{1} euroluk banknotla ödüyorum.","vi":"Tôi trả bằng tờ {1} euro.","ar":"سأدفع بورقة نقدية من فئة {1} يورو."},"Hier sind {1} – dann bekomme ich glatter zurück.":{"tr":"Buyurun {1} – o zaman daha düzgün para üstü alırım.","vi":"Đây là {1} – như vậy tôi sẽ được thối tiền tròn hơn.","ar":"تفضّل {1} – هكذا أحصل على باقٍ أسهل."},"Das wär's, danke.":{"tr":"Bu kadar, teşekkürler.","vi":"Vậy thôi, cảm ơn.","ar":"هذا كل شيء، شكراً."},"Einmal das hier, bitte.":{"tr":"Şunu alayım, lütfen.","vi":"Cho tôi món này, làm ơn.","ar":"هذا فقط، من فضلك."},"Nur die paar Sachen.":{"tr":"Sadece şu birkaç şey.","vi":"Chỉ vài món này thôi.","ar":"فقط هذه الأشياء القليلة."},"Ich hab's ein bisschen eilig!":{"tr":"Biraz acelem var!","vi":"Tôi hơi vội!","ar":"أنا مستعجل قليلاً!"},"Was macht das zusammen?":{"tr":"Hepsi ne tutuyor?","vi":"Tổng cộng là bao nhiêu?","ar":"كم المجموع؟"},"Ich nehme drei Mal {1}. Da ist doch die Aktion, oder?":{"tr":"Üç tane {1} alıyorum. Kampanya var, değil mi?","vi":"Tôi lấy ba cái {1}. Có khuyến mãi mà, đúng không?","ar":"سآخذ ثلاث قطع من {1}. هناك عرض، أليس كذلك؟"},"Ich nehme das hier: {1}. Das ist doch heute reduziert, oder?":{"tr":"Şunu alıyorum: {1}. Bugün indirimde, değil mi?","vi":"Tôi lấy món này: {1}. Hôm nay được giảm giá, đúng không?","ar":"سآخذ هذا: {1}. هو مخفّض اليوم، أليس كذلك؟"},"Ich nehme {1} Stück {2}. Gilt die Aktion?":{"tr":"{1} adet {2} alıyorum. Kampanya geçerli mi?","vi":"Tôi lấy {1} cái {2}. Khuyến mãi có áp dụng không?","ar":"سآخذ {1} قطعة من {2}. هل العرض ساري؟"},"Ich zahle die Rechnung sofort bar. Da gibt es doch {1} % Skonto?":{"tr":"Faturayı hemen nakit ödüyorum. Bunda % {1} Skonto (peşin ödeme iskontosu) var, değil mi?","vi":"Tôi trả tiền mặt ngay hóa đơn này. Vậy có {1} % Skonto (chiết khấu thanh toán sớm) đúng không?","ar":"سأدفع الفاتورة نقداً فوراً. هناك Skonto (خصم الدفع الفوري) بنسبة {1} %، أليس كذلك؟"},"Ich nehme das hier: {1}. Das ist 20 % reduziert – und ich habe noch einen 10-%-Gutschein!":{"tr":"Şunu alıyorum: {1}. 20 % indirimli – ve bir de 10 %'luk hediye çekim var!","vi":"Tôi lấy món này: {1}. Được giảm 20 % – và tôi còn có phiếu giảm giá 10 %!","ar":"سآخذ هذا: {1}. عليه خصم 20 % – ومعي أيضاً قسيمة خصم 10 %!"},"Ich nehme zwei Mal {1}. Das zweite ist doch halb so teuer?":{"tr":"İki tane {1} alıyorum. İkincisi yarı fiyat, değil mi?","vi":"Tôi lấy hai cái {1}. Cái thứ hai chỉ bằng nửa giá, đúng không?","ar":"سآخذ قطعتين من {1}. القطعة الثانية بنصف السعر، أليس كذلك؟"},"Ich nehme das hier: {1}. Heute gibt es {2} % darauf, stimmt's?":{"tr":"Şunu alıyorum: {1}. Bugün buna % {2} var, doğru mu?","vi":"Tôi lấy món này: {1}. Hôm nay được giảm {2} %, đúng không?","ar":"سآخذ هذا: {1}. اليوم عليه {2} %، صحيح؟"},"Betrag stimmt!":{"tr":"Tutar doğru!","vi":"Số tiền đúng!","ar":"المبلغ صحيح!"},"Aber es geht mit weniger Teilen: {1} statt {2}.":{"tr":"Ama daha az parçayla da olur: {2} yerine {1}.","vi":"Nhưng có thể dùng ít tờ/xu hơn: {1} thay vì {2}.","ar":"لكن يمكن بعدد أقل من القطع: {1} بدلاً من {2}."},"Leider nicht richtig.":{"tr":"Maalesef doğru değil.","vi":"Rất tiếc, chưa đúng.","ar":"للأسف غير صحيح."},"Deine Antwort: {1} Richtig: {2}":{"tr":"Cevabın: {1} Doğru: {2}","vi":"Câu trả lời của bạn: {1} Đúng: {2}","ar":"إجابتك: {1} الصحيح: {2}"},"Richtig: {1}":{"tr":"Doğru: {1}","vi":"Đúng: {1}","ar":"الصحيح: {1}"},"Deine Antwort: {1} · Richtig: {2}":{"tr":"Cevabın: {1} · Doğru: {2}","vi":"Câu trả lời của bạn: {1} · Đúng: {2}","ar":"إجابتك: {1} · الصحيح: {2}"},"Richtig!":{"tr":"Doğru!","vi":"Đúng rồi!","ar":"صحيح!"},"Stimmt genau!":{"tr":"Tam isabet!","vi":"Chính xác!","ar":"صحيح تماماً!"},"Sauber gerechnet!":{"tr":"Temiz hesap!","vi":"Tính chuẩn lắm!","ar":"حساب نظيف!"},"Perfekt!":{"tr":"Mükemmel!","vi":"Hoàn hảo!","ar":"ممتاز!"},"Nächster Kunde":{"tr":"Sonraki müşteri","vi":"Khách hàng tiếp theo","ar":"الزبون التالي"},"Schicht beenden":{"tr":"Vardiyayı bitir","vi":"Kết thúc ca làm","ar":"إنهاء الوردية"},"Tippe zuerst einen Betrag ein.":{"tr":"Önce bir tutar gir.","vi":"Hãy nhập một số tiền trước.","ar":"اكتب مبلغاً أولاً."},"Tippe oben auf Scheine und Münzen.":{"tr":"Yukarıdan banknotlara ve madeni paralara dokun.","vi":"Hãy chạm vào tờ tiền và đồng xu ở phía trên.","ar":"اضغط في الأعلى على الأوراق والعملات المعدنية."},"Lege zuerst Geld auf den Tresen.":{"tr":"Önce tezgâha para koy.","vi":"Hãy đặt tiền lên quầy trước.","ar":"ضع النقود على الطاولة أولاً."},"Zeitbonus: +{1}":{"tr":"Zaman bonusu: +{1}","vi":"Thưởng thời gian: +{1}","ar":"مكافأة الوقت: +{1}"},"Der Kunde wird ungeduldig – kein Zeitbonus mehr. Rechne trotzdem in Ruhe zu Ende.":{"tr":"Müşteri sabırsızlanıyor – artık zaman bonusu yok. Yine de rahatça hesabı bitir.","vi":"Khách hàng đang mất kiên nhẫn – không còn thưởng thời gian. Dù vậy hãy cứ tính xong thong thả.","ar":"الزبون يفقد صبره – لا توجد مكافأة وقت بعد الآن. أكمل الحساب بهدوء على أي حال."},"{1} in 1 Teil":{"tr":"{1} 1 parçada","vi":"{1} trong 1 tờ/xu","ar":"{1} في 1 قطعة"},"{1} in {2} Teilen":{"tr":"{1} {2} parçada","vi":"{1} trong {2} tờ/xu","ar":"{1} في {2} قطع"},"{1} · {2} Teile":{"tr":"{1} · {2} parça","vi":"{1} · {2} tờ/xu","ar":"{1} · {2} قطع"},"{1} · 1 Teil":{"tr":"{1} · 1 parça","vi":"{1} · 1 tờ/xu","ar":"{1} · 1 قطعة"},"Ergänzen wie an der Kasse – vom Preis hochzählen:":{"tr":"Kasada olduğu gibi tamamla – fiyattan yukarı doğru say:","vi":"Bổ sung như ở quầy thu ngân – đếm lên từ giá tiền:","ar":"أكمل كما في الصندوق – عدّ صعوداً من السعر:"},"Von {1} bis {2} fehlen {3}.":{"tr":"{1} ile {2} arasında {3} eksik.","vi":"Từ {1} đến {2} còn thiếu {3}.","ar":"من {1} إلى {2} ينقص {3}."},"Dazu kommen {1}, die der Kunde extra gegeben hat.":{"tr":"Buna müşterinin fazladan verdiği {1} eklenir.","vi":"Thêm vào đó là {1} mà khách đã đưa thêm.","ar":"يُضاف إليها {1} التي أعطاها الزبون زيادة."},"Zusammen: {1} Rückgeld.":{"tr":"Toplam: {1} para üstü.","vi":"Tổng cộng: tiền thối lại {1}.","ar":"المجموع: {1} باقي."},"Trick erkennen:":{"tr":"Püf noktasını fark et:","vi":"Nhận ra mẹo:","ar":"اكتشف الحيلة:"},"Die Cent sind gleich (,{1}). Sie heben sich auf.":{"tr":"Sent kısımları aynı (,{1}). Birbirini götürürler.","vi":"Phần cent giống nhau (,{1}). Chúng triệt tiêu nhau.","ar":"السنتات متساوية (,{1}). فهي تلغي بعضها."},"Rechne nur mit den Euro: {1} − {2} = {3}.":{"tr":"Sadece euro ile hesapla: {1} − {2} = {3}.","vi":"Chỉ tính với phần euro: {1} − {2} = {3}.","ar":"احسب باليورو فقط: {1} − {2} = {3}."},"Rückgeld: {1}.":{"tr":"Para üstü: {1}.","vi":"Tiền thối lại: {1}.","ar":"الباقي: {1}."},"Mit glatten Preisen rechnen, dann die Cent abziehen:":{"tr":"Yuvarlak fiyatlarla hesapla, sonra sentleri çıkar:","vi":"Tính với giá tròn, rồi trừ phần cent:","ar":"احسب بأسعار مستديرة، ثم اطرح السنتات:"},"{1} → {2} ({3} ct zu viel)":{"tr":"{1} → {2} ({3} ct fazla)","vi":"{1} → {2} (thừa {3} ct)","ar":"{1} → {2} ({3} ct زيادة)"},"{1} bleibt so":{"tr":"{1} aynen kalır","vi":"{1} giữ nguyên","ar":"{1} يبقى كما هو"},"Glatte Summe: {1}":{"tr":"Yuvarlak toplam: {1}","vi":"Tổng tròn: {1}","ar":"المجموع المستدير: {1}"},"Erst die Euro, dann die Cent:":{"tr":"Önce euro, sonra sent:","vi":"Tính euro trước, rồi đến cent:","ar":"أولاً اليورو، ثم السنتات:"},"Euro zusammen: {1} €":{"tr":"Euro toplamı: {1} €","vi":"Tổng euro: {1} €","ar":"مجموع اليورو: {1} €"},"Cent zusammen: {1} ct":{"tr":"Sent toplamı: {1} ct","vi":"Tổng cent: {1} ct","ar":"مجموع السنتات: {1} ct"},"Summe: {1}":{"tr":"Toplam: {1}","vi":"Tổng: {1}","ar":"المجموع: {1}"},"Bei „3 für 2“ ist ein Teil gratis:":{"tr":"„3 al 2 öde“ kampanyasında bir parça bedavadır:","vi":"Với „3 für 2“ (mua ba, trả tiền hai) có một món miễn phí:","ar":"في عرض „3 بسعر 2“ قطعة واحدة مجانية:"},"Der Kunde bezahlt nur 2 Stück.":{"tr":"Müşteri sadece 2 adet öder.","vi":"Khách hàng chỉ trả tiền cho 2 cái.","ar":"الزبون يدفع ثمن 2 قطعة فقط."},"Bei „3 für 2“ ist jedes dritte Teil gratis:":{"tr":"„3 al 2 öde“ kampanyasında her üçüncü parça bedavadır:","vi":"Với „3 für 2“ (mua ba, trả tiền hai) cứ món thứ ba là miễn phí:","ar":"في عرض „3 بسعر 2“ كل قطعة ثالثة مجانية:"},"{1} Stück: {2} davon gratis, bezahlt werden {3}.":{"tr":"{1} adet: bunun {2} tanesi bedava, {3} tanesi ödenir.","vi":"{1} cái: {2} cái miễn phí, trả tiền cho {3} cái.","ar":"{1} قطعة: {2} منها مجانية، ويُدفع ثمن {3}."},"Erst den Rabatt, dann abziehen:":{"tr":"Önce indirimi hesapla, sonra çıkar:","vi":"Tính giảm giá trước, rồi trừ đi:","ar":"أولاً احسب الخصم، ثم اطرحه:"},"10 % = Preis ÷ 10 = {1}":{"tr":"10 % = Fiyat ÷ 10 = {1}","vi":"10 % = giá ÷ 10 = {1}","ar":"10 % = السعر ÷ 10 = {1}"},"25 % = ein Viertel = Preis ÷ 4 = {1}":{"tr":"25 % = dörtte bir = Fiyat ÷ 4 = {1}","vi":"25 % = một phần tư = giá ÷ 4 = {1}","ar":"25 % = ربع = السعر ÷ 4 = {1}"},"50 % = die Hälfte = {1}":{"tr":"50 % = yarısı = {1}","vi":"50 % = một nửa = {1}","ar":"50 % = النصف = {1}"},"Über 1 % rechnen:":{"tr":"1 % üzerinden hesapla:","vi":"Tính qua 1 %:","ar":"احسب عبر 1 %:"},"1 % = Preis ÷ 100 = {1}":{"tr":"1 % = Fiyat ÷ 100 = {1}","vi":"1 % = giá ÷ 100 = {1}","ar":"1 % = السعر ÷ 100 = {1}"},"Schritt für Schritt – der Gutschein gilt für den neuen Preis:":{"tr":"Adım adım – hediye çeki (Gutschein) yeni fiyat için geçerlidir:","vi":"Từng bước một – phiếu giảm giá áp dụng cho giá mới:","ar":"خطوة بخطوة – القسيمة تُطبَّق على السعر الجديد:"},"20 % von {1} = {2} → {3}":{"tr":"{1} tutarının 20 %'si = {2} → {3}","vi":"20 % của {1} = {2} → {3}","ar":"20 % من {1} = {2} → {3}"},"10 % von {1} = {2}":{"tr":"{1} tutarının 10 %'u = {2}","vi":"10 % của {1} = {2}","ar":"10 % من {1} = {2}"},"Achtung: Das sind nicht 30 %, sondern 28 % Ersparnis.":{"tr":"Dikkat: Bu 30 % değil, 28 % tasarruftur.","vi":"Chú ý: Đó không phải là tiết kiệm 30 %, mà là 28 %.","ar":"انتبه: هذا ليس 30 %، بل توفير 28 %."},"Ein Teil voll, eins zum halben Preis:":{"tr":"Bir parça tam fiyat, biri yarı fiyat:","vi":"Một món giá đầy đủ, một món nửa giá:","ar":"قطعة بالسعر الكامل وقطعة بنصف السعر:"},"1. Teil: {1}":{"tr":"1. parça: {1}","vi":"Món 1: {1}","ar":"القطعة 1: {1}"},"2. Teil: {1} ÷ 2 = {2}":{"tr":"2. parça: {1} ÷ 2 = {2}","vi":"Món 2: {1} ÷ 2 = {2}","ar":"القطعة 2: {1} ÷ 2 = {2}"},"5 % = die Hälfte davon = {1}":{"tr":"5 % = bunun yarısı = {1}","vi":"5 % = một nửa của số đó = {1}","ar":"5 % = نصف ذلك = {1}"},"5 % = die Hälfte = {1}":{"tr":"5 % = yarısı = {1}","vi":"5 % = một nửa = {1}","ar":"5 % = النصف = {1}"},"25 % = Preis ÷ 4 = {1}":{"tr":"25 % = Fiyat ÷ 4 = {1}","vi":"25 % = giá ÷ 4 = {1}","ar":"25 % = السعر ÷ 4 = {1}"},"Schneller: Der Kunde zahlt nur 25 % = {1}":{"tr":"Daha hızlı: Müşteri sadece 25 % öder = {1}","vi":"Nhanh hơn: Khách hàng chỉ trả 25 % = {1}","ar":"أسرع: الزبون يدفع 25 % فقط = {1}"},"Über 10 % (oder 25 %) rechnen:":{"tr":"10 % (veya 25 %) üzerinden hesapla:","vi":"Tính qua 10 % (hoặc 25 %):","ar":"احسب عبر 10 % (أو 25 %):"},"Immer mit dem größten Schein oder der größten Münze anfangen, die noch passt:":{"tr":"Her zaman uyan en büyük banknot veya madeni parayla başla:","vi":"Luôn bắt đầu với tờ tiền hoặc đồng xu lớn nhất còn phù hợp:","ar":"ابدأ دائماً بأكبر ورقة نقدية أو عملة معدنية تناسب المبلغ:"},"Das sind {1} Teile.":{"tr":"Bu {1} parça.","vi":"Đó là {1} tờ/xu.","ar":"هذه {1} قطع."},"Das sind 1 Teile.":{"tr":"Bu 1 parça.","vi":"Đó là 1 tờ/xu.","ar":"هذه 1 قطعة."},"Begründung:":{"tr":"Gerekçe:","vi":"Giải thích:","ar":"التعليل:"},"Vielen Dank für Ihren Einsatz!":{"tr":"Çabanız için çok teşekkürler!","vi":"Cảm ơn bạn rất nhiều vì sự nỗ lực!","ar":"شكراً جزيلاً على جهدكم!"},"Kassen-Legende":{"tr":"Kassen-Legende (Kasa Efsanesi)","vi":"Kassen-Legende (Huyền thoại thu ngân)","ar":"أسطورة الصندوق (Kassen-Legende)"},"Kassen-Ass":{"tr":"Kasa ustası","vi":"Kassen-Ass (Cao thủ thu ngân)","ar":"بطل الصندوق"},"Kassen-Azubi":{"tr":"Kasa çırağı","vi":"Kassen-Azubi (Học viên thu ngân)","ar":"متدرّب الصندوق"},"Kassen-Neuling":{"tr":"Kasada acemi","vi":"Kassen-Neuling (Người mới thu ngân)","ar":"مبتدئ الصندوق"},"Alles richtig. Du bist bereit für den Samstag vor Weihnachten.":{"tr":"Hepsi doğru. Noel'den önceki cumartesiye hazırsın.","vi":"Tất cả đều đúng. Bạn đã sẵn sàng cho ngày thứ Bảy trước Giáng sinh.","ar":"كل شيء صحيح. أنت جاهز ليوم السبت قبل عيد الميلاد."},"Sehr sicher an der Kasse. Schau dir die Fehler unten kurz an.":{"tr":"Kasada çok emin. Aşağıdaki hatalara kısaca bak.","vi":"Rất vững ở quầy thu ngân. Hãy xem nhanh các lỗi ở bên dưới.","ar":"واثق جداً عند الصندوق. ألقِ نظرة سريعة على الأخطاء في الأسفل."},"Gute Grundlage. Mit den Rechenwegen unten wirst du schneller.":{"tr":"İyi bir temel. Aşağıdaki hesap yollarıyla daha hızlı olacaksın.","vi":"Nền tảng tốt. Với các cách tính ở bên dưới bạn sẽ nhanh hơn.","ar":"أساس جيد. مع طرق الحساب في الأسفل ستصبح أسرع."},"Noch etwas wackelig. Spiel ohne Zeitbonus und lies die Rechenwege in Ruhe.":{"tr":"Biraz daha sallantılı. Zaman bonusu olmadan oyna ve hesap yollarını rahatça oku.","vi":"Vẫn còn hơi yếu. Hãy chơi không có thưởng thời gian và đọc các cách tính thong thả.","ar":"ما زلت غير ثابت قليلاً. العب بدون مكافأة الوقت واقرأ طرق الحساب بهدوء."},"Probier als Nächstes die Stufe Kassenprofi.":{"tr":"Sıradaki adımda Kasa uzmanı seviyesini dene.","vi":"Lần tới hãy thử cấp độ Chuyên gia thu ngân.","ar":"جرّب المستوى التالي: محترف الصندوق."},"Das schauen wir uns nochmal an":{"tr":"Buna bir kez daha bakalım","vi":"Chúng ta sẽ xem lại phần này","ar":"سننظر في هذا مرة أخرى"},"Keine Fehler in dieser Schicht":{"tr":"Bu vardiyada hata yok","vi":"Không có lỗi nào trong ca làm này","ar":"لا أخطاء في هذه الوردية"},"Profi-Frage: {1}":{"tr":"Uzman sorusu: {1}","vi":"Câu hỏi chuyên gia: {1}","ar":"سؤال احترافي: {1}"},"Rückgeld: {1}":{"tr":"Para üstü: {1}","vi":"Tiền thối lại: {1}","ar":"الباقي: {1}"},"{1} von {2}":{"tr":"{2} içinden {1}","vi":"{1} trên {2}","ar":"{1} من {2}"},"NEU! {1}":{"tr":"YENİ! {1}","vi":"MỚI! {1}","ar":"جديد! {1}"},"Milch":{"tr":"Süt","vi":"Sữa","ar":"حليب"},"Brötchen":{"tr":"Ekmek (Brötchen)","vi":"Bánh mì nhỏ","ar":"خبز صغير"},"Butter":{"tr":"Tereyağı","vi":"Bơ","ar":"زبدة"},"Kaffee":{"tr":"Kahve","vi":"Cà phê","ar":"قهوة"},"Schokolade":{"tr":"Çikolata","vi":"Sô-cô-la","ar":"شوكولاتة"},"Duschgel":{"tr":"Duş jeli","vi":"Sữa tắm","ar":"جل استحمام"},"Zahnpasta":{"tr":"Diş macunu","vi":"Kem đánh răng","ar":"معجون أسنان"},"Socken 3er-Pack":{"tr":"Çorap 3'lü paket","vi":"Tất (gói 3 đôi)","ar":"جوارب (عبوة من 3)"},"Batterien":{"tr":"Piller","vi":"Pin","ar":"بطاريات"},"Kaugummi":{"tr":"Sakız","vi":"Kẹo cao su","ar":"علكة"},"Apfelsaft":{"tr":"Elma suyu","vi":"Nước ép táo","ar":"عصير تفاح"},"Ladekabel":{"tr":"Şarj kablosu","vi":"Dây sạc","ar":"كابل شحن"},"Notizbuch":{"tr":"Not defteri","vi":"Sổ tay","ar":"دفتر ملاحظات"},"Bananen":{"tr":"Muz","vi":"Chuối","ar":"موز"},"Chips":{"tr":"Cips","vi":"Khoai tây chiên lát","ar":"رقائق البطاطس"},"Mascara":{"tr":"Rimel","vi":"Mascara","ar":"ماسكارا"},"Shampoo":{"tr":"Şampuan","vi":"Dầu gội","ar":"شامبو"},"Eis am Stiel":{"tr":"Çubuk dondurma","vi":"Kem que","ar":"مثلجات على عود"},"Duftkerze":{"tr":"Kokulu mum","vi":"Nến thơm","ar":"شمعة عطرية"},"Postkarte":{"tr":"Kartpostal","vi":"Bưu thiếp","ar":"بطاقة بريدية"},"Tiefkühlpizza":{"tr":"Dondurulmuş pizza","vi":"Pizza đông lạnh","ar":"بيتزا مجمّدة"},"Mineralwasser":{"tr":"Maden suyu","vi":"Nước khoáng","ar":"مياه معدنية"},"Haargel":{"tr":"Saç jölesi","vi":"Gel vuốt tóc","ar":"جل شعر"},"Müsli":{"tr":"Müsli","vi":"Ngũ cốc muesli","ar":"موسلي"},"Jacke":{"tr":"Ceket","vi":"Áo khoác","ar":"جاكيت"},"Jeans":{"tr":"Kot pantolon","vi":"Quần jeans","ar":"بنطلون جينز"},"Sneaker":{"tr":"Spor ayakkabı","vi":"Giày sneaker","ar":"حذاء رياضي"},"Rucksack":{"tr":"Sırt çantası","vi":"Ba lô","ar":"حقيبة ظهر"},"Kopfhörer":{"tr":"Kulaklık","vi":"Tai nghe","ar":"سماعات رأس"},"Pullover":{"tr":"Kazak","vi":"Áo len chui đầu","ar":"بلوفر"},"Kaffeemaschine":{"tr":"Kahve makinesi","vi":"Máy pha cà phê","ar":"آلة صنع القهوة"},"Sporttasche":{"tr":"Spor çantası","vi":"Túi thể thao","ar":"حقيبة رياضية"},"Winterstiefel":{"tr":"Kışlık bot","vi":"Ủng mùa đông","ar":"حذاء شتوي"},"Bluetooth-Box":{"tr":"Bluetooth hoparlör","vi":"Loa Bluetooth","ar":"مكبّر صوت بلوتوث"},"Bettwäsche":{"tr":"Nevresim takımı","vi":"Bộ ga gối","ar":"مفروشات السرير"},"Wasserkocher":{"tr":"Su ısıtıcısı","vi":"Ấm đun nước điện","ar":"غلّاية ماء"},"Müsliriegel":{"tr":"Müsli bar","vi":"Thanh ngũ cốc","ar":"ألواح موسلي"},"Teelichter":{"tr":"Küçük mumlar","vi":"Nến tealight","ar":"شموع صغيرة"},"Taschentücher":{"tr":"Kâğıt mendil","vi":"Khăn giấy","ar":"مناديل ورقية"},"Energydrink":{"tr":"Enerji içeceği","vi":"Nước tăng lực","ar":"مشروب طاقة"},"Handcreme":{"tr":"El kremi","vi":"Kem dưỡng da tay","ar":"كريم لليدين"},"T-Shirt":{"tr":"Tişört","vi":"Áo phông","ar":"تي شيرت"},"Bluse":{"tr":"Bluz","vi":"Áo sơ mi nữ","ar":"بلوزة"},"Mütze":{"tr":"Bere","vi":"Mũ len","ar":"قبعة"},"Hemd":{"tr":"Gömlek","vi":"Áo sơ mi","ar":"قميص"},"Erst 20 % Rabatt, dann an der Kasse noch 10 % auf den neuen Preis. Wie viel spart die Kundin insgesamt?":{"tr":"Önce 20 % indirim (Rabatt), sonra kasada yeni fiyata bir de 10 %. Müşteri toplam ne kadar tasarruf eder?","vi":"Trước tiên giảm giá 20 %, sau đó ở quầy thu ngân giảm thêm 10 % trên giá mới. Tổng cộng khách hàng nữ tiết kiệm được bao nhiêu?","ar":"أولاً خصم 20 %، ثم عند الصندوق 10 % أخرى على السعر الجديد. كم توفّر الزبونة في المجموع؟"},"Der Einkauf kostet 13,70 €. Der Kunde gibt 20,20 €. Warum macht er das?":{"tr":"Alışveriş 13,70 € tutuyor. Müşteri 20,20 € veriyor. Bunu neden yapıyor?","vi":"Lần mua hàng giá 13,70 €. Khách đưa 20,20 €. Tại sao khách làm vậy?","ar":"المشتريات تكلّف 13,70 €. الزبون يعطي 20,20 €. لماذا يفعل ذلك؟"},"6 Flaschen kosten je 4,99 €. Welcher Rechenweg ist im Kopf am schnellsten?":{"tr":"6 şişe tanesi 4,99 €. Zihinden en hızlı hesap yolu hangisi?","vi":"6 chai, mỗi chai giá 4,99 €. Cách tính nào nhanh nhất khi tính nhẩm?","ar":"6 زجاجات سعر الواحدة 4,99 €. ما طريقة الحساب الأسرع في الذهن؟"},"Warum kann man 25 % Rabatt mit „Preis ÷ 4“ ausrechnen?":{"tr":"25 % indirim neden „Fiyat ÷ 4“ ile hesaplanabilir?","vi":"Tại sao có thể tính giảm giá 25 % bằng „giá ÷ 4“?","ar":"لماذا يمكن حساب خصم 25 % بـ „السعر ÷ 4“؟"},"Aktion „3 für 2“. Wie viel Prozent spart der Kunde, wenn er genau 3 Stück kauft?":{"tr":"„3 al 2 öde“ kampanyası. Müşteri tam 3 adet alırsa yüzde kaç tasarruf eder?","vi":"Khuyến mãi „3 für 2“ (mua ba, trả tiền hai). Khách hàng tiết kiệm được bao nhiêu phần trăm nếu mua đúng 3 cái?","ar":"عرض „3 بسعر 2“. كم بالمئة يوفّر الزبون إذا اشترى 3 قطع بالضبط؟"},"Eine Ware kostet 80 €. Sie wird 25 % teurer. Danach gibt es 25 % Rabatt. Was kostet sie jetzt?":{"tr":"Bir ürün 80 €. Fiyatı 25 % artıyor. Sonra 25 % indirim yapılıyor. Şimdi ne kadar?","vi":"Một món hàng giá 80 €. Giá tăng 25 %. Sau đó giảm giá 25 %. Bây giờ nó giá bao nhiêu?","ar":"سعر سلعة 80 €. ارتفع سعرها 25 %. بعد ذلك يوجد خصم 25 %. كم سعرها الآن؟"},"Sie sollen 3 % Skonto von 400 € ausrechnen. Welcher Weg ist richtig?":{"tr":"400 €'nun 3 % Skonto (peşin ödeme iskontosu) tutarını hesaplayacaksınız. Hangi yol doğru?","vi":"Bạn cần tính 3 % Skonto (chiết khấu thanh toán sớm) của 400 €. Cách nào đúng?","ar":"عليك حساب Skonto (خصم الدفع الفوري) بنسبة 3 % من 400 €. أي طريقة صحيحة؟"},"Rückgeld 7,90 €. Welche Stückelung ist am besten?":{"tr":"Para üstü (Rückgeld) 7,90 €. Hangi banknot-bozuk para dağılımı en iyisi?","vi":"Tiền thối lại 7,90 €. Cách chia tờ tiền và đồng xu nào là tốt nhất?","ar":"الباقي (Rückgeld) 7,90 €. ما أفضل تقسيم للأوراق والعملات؟"},"Die Kasse ist ausgefallen. Einkauf 47,80 €, der Kunde zahlt mit 100 €. Sie geben 52,20 € zurück. Wie prüfen Sie das schnell?":{"tr":"Kasa arızalandı. Alışveriş 47,80 €, müşteri 100 € ile ödüyor. 52,20 € geri veriyorsunuz. Bunu nasıl hızlıca kontrol edersiniz?","vi":"Máy tính tiền bị hỏng. Mua hàng 47,80 €, khách trả bằng 100 €. Bạn thối lại 52,20 €. Bạn kiểm tra nhanh như thế nào?","ar":"الصندوق متعطّل. المشتريات 47,80 €، والزبون يدفع بـ 100 €. أنت تعيد 52,20 €. كيف تتحقق من ذلك بسرعة؟"},"Die 10 % werden vom schon reduzierten Preis gerechnet. Beispiel 100 €: minus 20 % = 80 €. Davon 10 % = 8 €, also 72 €. Gespart: 28 €, das sind 28 %.":{"tr":"10 % zaten indirimli fiyat üzerinden hesaplanır. Örnek 100 €: eksi 20 % = 80 €. Bunun 10 %'u = 8 €, yani 72 €. Tasarruf: 28 €, bu da 28 %.","vi":"10 % được tính trên giá đã giảm. Ví dụ 100 €: trừ 20 % = 80 €. 10 % của số đó = 8 €, tức là 72 €. Tiết kiệm: 28 €, tức là 28 %.","ar":"الـ 10 % تُحسب من السعر المخفّض أصلاً. مثال 100 €: ناقص 20 % = 80 €. منها 10 % = 8 €، إذن 72 €. التوفير: 28 €، أي 28 %."},"6,30 € wären 5 € + 1 € + 20 ct + 10 ct (4 Teile). 6,50 € sind 5 € + 1 € + 50 ct (3 Teile). Der Kunde wird Kleingeld los und bekommt weniger Münzen zurück.":{"tr":"6,30 € şöyle olurdu: 5 € + 1 € + 20 ct + 10 ct (4 parça). 6,50 € ise 5 € + 1 € + 50 ct (3 parça). Müşteri bozuk paralarından kurtulur ve daha az madeni para geri alır.","vi":"6,30 € sẽ là 5 € + 1 € + 20 ct + 10 ct (4 tờ/xu). 6,50 € là 5 € + 1 € + 50 ct (3 tờ/xu). Khách hàng bớt được tiền xu lẻ và nhận lại ít đồng xu hơn.","ar":"6,30 € ستكون 5 € + 1 € + 20 ct + 10 ct (4 قطع). 6,50 € هي 5 € + 1 € + 50 ct (3 قطع). الزبون يتخلص من الفكّة ويأخذ عملات معدنية أقل."},"Mit dem runden Preis rechnen und die Cent danach abziehen: 6 × 5 € = 30 €. Pro Flasche 1 ct zu viel, also 6 ct weniger: 29,94 €.":{"tr":"Yuvarlak fiyatla hesapla, sentleri sonra çıkar: 6 × 5 € = 30 €. Şişe başına 1 ct fazla, yani 6 ct eksik: 29,94 €.","vi":"Tính với giá tròn rồi trừ phần cent sau: 6 × 5 € = 30 €. Mỗi chai thừa 1 ct, vậy bớt 6 ct: 29,94 €.","ar":"احسب بالسعر المستدير ثم اطرح السنتات: 6 × 5 € = 30 €. لكل زجاجة 1 ct زيادة، إذن ينقص 6 ct: 29,94 €."},"100 % ist der ganze Preis. 25 % ist ein Viertel davon. Ein Viertel heißt: durch 4 teilen. Das gilt für jeden Preis.":{"tr":"100 % fiyatın tamamıdır. 25 % bunun dörtte biridir. Dörtte bir demek: 4'e bölmek. Bu her fiyat için geçerlidir.","vi":"100 % là toàn bộ giá. 25 % là một phần tư của nó. Một phần tư nghĩa là: chia cho 4. Điều này đúng với mọi giá.","ar":"100 % هو السعر كله. 25 % هو ربعه. الربع يعني: القسمة على 4. وهذا ينطبق على أي سعر."},"Er bezahlt 2 von 3 Teilen. 1 von 3 Teilen ist gratis. 1/3 sind etwa 33,3 %.":{"tr":"3 parçanın 2'sini öder. 3 parçanın 1'i bedava. 1/3 yaklaşık 33,3 %.","vi":"Khách trả tiền cho 2 trong 3 món. 1 trong 3 món là miễn phí. 1/3 là khoảng 33,3 %.","ar":"هو يدفع ثمن 2 من 3 قطع. 1 من 3 قطع مجانية. 1/3 تساوي تقريباً 33,3 %."},"80 € + 25 % = 80 € + 20 € = 100 €. Der Rabatt wird vom neuen Preis gerechnet: 25 % von 100 € = 25 €. 100 € − 25 € = 75 €.":{"tr":"80 € + 25 % = 80 € + 20 € = 100 €. İndirim yeni fiyat üzerinden hesaplanır: 100 €'nun 25 %'i = 25 €. 100 € − 25 € = 75 €.","vi":"80 € + 25 % = 80 € + 20 € = 100 €. Giảm giá được tính trên giá mới: 25 % của 100 € = 25 €. 100 € − 25 € = 75 €.","ar":"80 € + 25 % = 80 € + 20 € = 100 €. الخصم يُحسب من السعر الجديد: 25 % من 100 € = 25 €. 100 € − 25 € = 75 €."},"1 % ist der hundertste Teil: 400 € ÷ 100 = 4 €. 3 % sind dreimal so viel: 12 €.":{"tr":"1 % yüzde birdir: 400 € ÷ 100 = 4 €. 3 % bunun üç katıdır: 12 €.","vi":"1 % là một phần trăm: 400 € ÷ 100 = 4 €. 3 % gấp ba lần: 12 €.","ar":"1 % هو الجزء المئوي: 400 € ÷ 100 = 4 €. 3 % هي ثلاثة أضعاف ذلك: 12 €."},"Immer mit dem größten Schein oder der größten Münze beginnen, die noch passt. So brauchst du die wenigsten Teile: hier 5 Stück.":{"tr":"Her zaman uyan en büyük banknot veya madeni parayla başla. Böylece en az parça gerekir: burada 5 adet.","vi":"Luôn bắt đầu với tờ tiền hoặc đồng xu lớn nhất còn phù hợp. Như vậy bạn cần ít tờ/xu nhất: ở đây là 5 cái.","ar":"ابدأ دائماً بأكبر ورقة نقدية أو عملة معدنية تناسب المبلغ. هكذا تحتاج أقل عدد من القطع: هنا 5 قطع."},"Probe durch Zusammenzählen: Einkauf + Rückgeld = gegebenes Geld. 47,80 € + 52,20 € = 100,00 €. Stimmt.":{"tr":"Toplayarak doğrulama: Alışveriş + para üstü = verilen para. 47,80 € + 52,20 € = 100,00 €. Doğru.","vi":"Kiểm tra bằng cách cộng: tiền mua hàng + tiền thối lại = tiền khách đưa. 47,80 € + 52,20 € = 100,00 €. Đúng.","ar":"التحقق بالجمع: المشتريات + الباقي = النقود المُعطاة. 47,80 € + 52,20 € = 100,00 €. صحيح."},"28 %":{"tr":"28 %","vi":"28 %","ar":"28 %"},"30 %":{"tr":"30 %","vi":"30 %","ar":"30 %"},"32 %":{"tr":"32 %","vi":"32 %","ar":"32 %"},"Er bekommt glatter zurück: 6,50 € statt 6,30 €":{"tr":"Daha düzgün para üstü alır: 6,30 € yerine 6,50 €","vi":"Khách được thối tiền tròn hơn: 6,50 € thay vì 6,30 €","ar":"يحصل على باقٍ أسهل: 6,50 € بدلاً من 6,30 €"},"Er hat sich verzählt – die 20 ct gibt man sofort zurück":{"tr":"Yanlış saymış – 20 ct hemen geri verilir","vi":"Khách đếm nhầm – 20 ct phải trả lại ngay","ar":"أخطأ في العدّ – الـ 20 ct تُعاد فوراً"},"Er möchte Trinkgeld geben":{"tr":"Bahşiş vermek istiyor","vi":"Khách muốn cho tiền boa","ar":"يريد أن يعطي بقشيشاً"},"6 × 5 € = 30 €, minus 6 ct = 29,94 €":{"tr":"6 × 5 € = 30 €, eksi 6 ct = 29,94 €","vi":"6 × 5 € = 30 €, trừ 6 ct = 29,94 €","ar":"6 × 5 € = 30 €، ناقص 6 ct = 29,94 €"},"6 × 4 € + 6 × 0,99 €":{"tr":"6 × 4 € + 6 × 0,99 €","vi":"6 × 4 € + 6 × 0,99 €","ar":"6 × 4 € + 6 × 0,99 €"},"4,99 + 4,99 + 4,99 + 4,99 + 4,99 + 4,99":{"tr":"4,99 + 4,99 + 4,99 + 4,99 + 4,99 + 4,99","vi":"4,99 + 4,99 + 4,99 + 4,99 + 4,99 + 4,99","ar":"4,99 + 4,99 + 4,99 + 4,99 + 4,99 + 4,99"},"Weil 25 % ein Viertel von 100 % sind":{"tr":"Çünkü 25 %, 100 %'ün dörtte biridir","vi":"Vì 25 % là một phần tư của 100 %","ar":"لأن 25 % هو ربع الـ 100 %"},"Weil 4 × 25 = 100 ist – das ist nur ein Zufall":{"tr":"Çünkü 4 × 25 = 100 – bu sadece bir tesadüf","vi":"Vì 4 × 25 = 100 – đó chỉ là ngẫu nhiên","ar":"لأن 4 × 25 = 100 – هذه مجرد صدفة"},"Das klappt nur bei runden Preisen":{"tr":"Bu sadece yuvarlak fiyatlarda işe yarar","vi":"Cách này chỉ dùng được với giá tròn","ar":"هذا ينجح فقط مع الأسعار المستديرة"},"etwa 33 %":{"tr":"yaklaşık 33 %","vi":"khoảng 33 %","ar":"حوالي 33 %"},"50 %":{"tr":"50 %","vi":"50 %","ar":"50 %"},"etwa 66 %":{"tr":"yaklaşık 66 %","vi":"khoảng 66 %","ar":"حوالي 66 %"},"75 €":{"tr":"75 €","vi":"75 €","ar":"75 €"},"80 €":{"tr":"80 €","vi":"80 €","ar":"80 €"},"85 €":{"tr":"85 €","vi":"85 €","ar":"85 €"},"1 % = 4 €, also 3 % = 12 €":{"tr":"1 % = 4 €, yani 3 % = 12 €","vi":"1 % = 4 €, vậy 3 % = 12 €","ar":"1 % = 4 €، إذن 3 % = 12 €"},"400 € ÷ 3 = 133,33 €":{"tr":"400 € ÷ 3 = 133,33 €","vi":"400 € ÷ 3 = 133,33 €","ar":"400 € ÷ 3 = 133,33 €"},"400 € − 3 € = 397 €":{"tr":"400 € − 3 € = 397 €","vi":"400 € − 3 € = 397 €","ar":"400 € − 3 € = 397 €"},"5 € + 2 € + 50 ct + 20 ct + 20 ct":{"tr":"5 € + 2 € + 50 ct + 20 ct + 20 ct","vi":"5 € + 2 € + 50 ct + 20 ct + 20 ct","ar":"5 € + 2 € + 50 ct + 20 ct + 20 ct"},"5 € + 1 € + 1 € + 50 ct + 20 ct + 20 ct":{"tr":"5 € + 1 € + 1 € + 50 ct + 20 ct + 20 ct","vi":"5 € + 1 € + 1 € + 50 ct + 20 ct + 20 ct","ar":"5 € + 1 € + 1 € + 50 ct + 20 ct + 20 ct"},"2 € + 2 € + 2 € + 1 € + 50 ct + 20 ct + 10 ct + 10 ct":{"tr":"2 € + 2 € + 2 € + 1 € + 50 ct + 20 ct + 10 ct + 10 ct","vi":"2 € + 2 € + 2 € + 1 € + 50 ct + 20 ct + 10 ct + 10 ct","ar":"2 € + 2 € + 2 € + 1 € + 50 ct + 20 ct + 10 ct + 10 ct"},"47,80 € + 52,20 € muss 100 € ergeben":{"tr":"47,80 € + 52,20 € toplamı 100 € etmeli","vi":"47,80 € + 52,20 € phải ra 100 €","ar":"47,80 € + 52,20 € يجب أن يساوي 100 €"},"52,20 € − 47,80 € muss 0 ergeben":{"tr":"52,20 € − 47,80 € sonucu 0 etmeli","vi":"52,20 € − 47,80 € phải ra 0","ar":"52,20 € − 47,80 € يجب أن يساوي 0"},"100 € ÷ 2 muss 52,20 € ergeben":{"tr":"100 € ÷ 2 sonucu 52,20 € etmeli","vi":"100 € ÷ 2 phải ra 52,20 €","ar":"100 € ÷ 2 يجب أن يساوي 52,20 €"},"je {1}":{"tr":"birimi {1}","vi":"mỗi cái {1}","ar":"للواحد {1}"}};</script>
+<script>/* UB-Engine – Übersetzung zum Antippen (DE | TR | VI | AR)
+   Keine externen Abhängigkeiten, nur Systemschriften. Speichert nur die Sprachwahl (kein Name, keine Ergebnisse).
+   Daten: window.UB_I18N = { "deutscher Text": {tr:"…", vi:"…", ar:"…"}, … }
+   Vorlagen mit Platzhaltern: "Wie viel Rückgeld bekommt {1}?" -> {1} wird mit dem echten Wert gefüllt.
+   Konfiguration: window.UB_CONFIG = { mode:true|false, hint:"pdf"|"app", pdf:"Pfad zur PDF" } */
+(function () {
+  'use strict';
+  var CFG = window.UB_CONFIG || {};
+  var DATA = window.UB_I18N || {};
+  var LANGS = ['de', 'tr', 'vi', 'ar'];
+  var NAMES = { de: 'Deutsch', tr: 'Türkçe', vi: 'Tiếng Việt', ar: 'العربية' };
+  var SKEY = 'ub_lang';
+  var T = {
+    hintPdf: { tr: 'Cümleye dokun (bilgisayarda: üzerine gel), çeviriyi gör.', vi: 'Chạm vào câu (trên máy tính: rê chuột) để xem bản dịch.', ar: 'المس الجملة (على الكمبيوتر: مرّر المؤشر) لترى الترجمة.' },
+    hintApp: { tr: 'Metne dokun: çeviriyi gör. Düğmeler için: uzun bas ya da 👆 aç.', vi: 'Chạm vào chữ để xem bản dịch. Với nút bấm: nhấn giữ hoặc bật 👆.', ar: 'المس النص لترى الترجمة. للأزرار: اضغط مطولاً أو فعّل 👆.' },
+    mode: { de: 'Lesemodus: Antippen übersetzt nur (Knöpfe sind gesperrt)', tr: 'Okuma modu: dokunma yalnızca çevirir (düğmeler kilitli)', vi: 'Chế độ đọc: chạm chỉ để dịch (nút bị khóa)', ar: 'وضع القراءة: اللمس للترجمة فقط (الأزرار مقفلة)' },
+    none: { tr: '(Bu metin için çeviri yok)', vi: '(Chưa có bản dịch cho đoạn này)', ar: '(لا توجد ترجمة لهذا النص)' }
+  };
+
+  function textOf(el) {
+    var out = '';
+    (function w(n) { for (var c = n.firstChild; c; c = c.nextSibling) { if (c.nodeType === 3) out += c.nodeValue; else if (c.nodeType === 1) { if (c.tagName === 'BR') out += ' '; else w(c); } } })(el);
+    return out;
+  }
+  function norm(s) { return String(s).replace(/\s+/g, ' ').trim(); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+
+  /* ---------- Wörterbuch ---------- */
+  var EX = Object.create(null), TPL = [];
+  Object.keys(DATA).forEach(function (key) {
+    var v = DATA[key], k = norm(key);
+    if (/\{\d+\}/.test(k)) {
+      var parts = k.split(/\{\d+\}/), nums = (k.match(/\{(\d+)\}/g) || []).map(function (x) { return parseInt(x.slice(1), 10); });
+      var re = new RegExp('^' + parts.map(function (p) { return p.replace(/[.*+?^$()|[\]\\{}]/g, '\\$&'); }).join('(.+?)') + '$');
+      TPL.push({ re: re, nums: nums, v: v, len: k.length });
+    } else EX[k] = v;
+  });
+  TPL.sort(function (a, b) { return b.len - a.len; });
+  var CACHE = {}, CN = 0;
+  function compose(k, lang) {   // Satz aus mehreren bekannten Teilen (z. B. Gesprächsbausteine) mit „…“ für leere Felder
+    if (!/^[„…]/.test(k)) return null;
+    var w = k.split(' '), memo = {};
+    function go(i) {
+      if (i === w.length) return [];
+      if (memo[i] !== undefined) return memo[i];
+      for (var j = w.length; j > i; j--) {
+        var p = w.slice(i, j).join(' '), e = EX[p], t = p === '…' ? '…' : (e && e[lang]);
+        if (t) { var rest = go(j); if (rest) { memo[i] = [t].concat(rest); return memo[i]; } }
+      }
+      memo[i] = null; return null;
+    }
+    var r = go(0); return r && r.length > 1 ? r.join(' ') : null;
+  }
+  var PLAIN = /^[\d\s.,:;+\-−–×÷=%€/()?!„“"…]*$/;
+
+  function tr(text, lang, depth) {
+    var k = norm(text), ck = lang + '|' + k;
+    if (ck in CACHE) return CACHE[ck];
+    var r = null, e = EX[k];
+    if (e && e[lang]) r = e[lang];
+    else if (!(depth > 2)) {
+      for (var i = 0; i < TPL.length && r === null; i++) {
+        var t = TPL[i], m = t.re.exec(k);
+        if (m && t.v[lang]) {
+          var cap = {};
+          t.nums.forEach(function (n, j) { cap[n] = m[j + 1]; });
+          r = t.v[lang].replace(/\{(\d+)\}/g, function (_, n) {
+            var c = cap[n]; if (c === undefined) return '';
+            if (PLAIN.test(c)) return c;
+            var x = tr(c, lang, (depth || 0) + 1);
+            if (!x) return c;
+            return c.length > 32 ? x : c + ' (' + x + ')';
+          });
+        }
+      }
+    }
+    if (r === null && !(depth > 2) && /^[A-C?]/.test(k) && k.length > 8 && /^[A-C?][A-ZÄÖÜa-zäöü„(0-9]/.test(k)) r = tr(k.slice(1), lang, (depth || 0) + 2);   // Buchstabe/Fragezeichen ohne Leerzeichen davor
+    if (r === null && !(depth > 2)) {                      // Markierungen ✓ ✗ ~ am Ende
+      var m3 = /^(.*[^\s✓✗~])\s+((?:[✓✗~]\s?)+)$/.exec(k);
+      if (m3) { var x3 = tr(m3[1], lang, (depth || 0) + 1); if (x3) r = x3 + ' ' + m3[2]; }
+    }
+    if (r === null && !(depth > 2)) r = compose(k, lang);
+    if (r === null) {
+      var m2 = /^(\S{1,3})\s+(.{3,})$/.exec(k);       // z. B. Knopf "A  Antworttext"
+      if (m2 && !(depth > 2)) r = tr(m2[2], lang, (depth || 0) + 1);
+    }
+    if (CN++ > 6000) { CACHE = {}; CN = 0; }
+    CACHE[ck] = r;
+    return r;
+  }
+
+  /* ---------- Sprache ---------- */
+  var lang = 'de';
+  var saved = store(SKEY);
+  if (saved && LANGS.indexOf(saved) >= 0) lang = saved;
+  var qm = /[?&]lang=(de|tr|vi|ar)\b/.exec(location.search);   // Sprach-Buttons im Dashboard: ...html?lang=tr
+  if (qm) { lang = qm[1]; store(SKEY, lang); }
+  var readMode = false;
+
+  /* ---------- Oberfläche ---------- */
+  var css = '#ub-bar{position:fixed;z-index:2147483000;top:6px;right:6px;display:flex;gap:3px;align-items:center;padding:3px 5px;border-radius:999px;background:rgba(27,42,56,.92);color:#fff;font:600 13px/1 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;box-shadow:0 1px 6px rgba(0,0,0,.3);direction:ltr}' +
+    '#ub-bar button{all:unset;box-sizing:border-box;cursor:pointer;min-width:34px;height:30px;padding:0 7px;border-radius:999px;text-align:center;line-height:30px;font:600 13px/30px system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:#fff;-webkit-tap-highlight-color:transparent}' +
+    '#ub-bar button[aria-pressed=true]{background:#fff;color:#1b2a38}#ub-bar button:focus-visible{outline:2px solid #ffd54a;outline-offset:1px}' +
+    '#ub-bar .g{padding:0 3px 0 4px;font-size:15px}#ub-mode{display:none}#ub-bar.l #ub-mode{display:block}' +
+    '#ub-hint{position:fixed;z-index:2147482999;top:46px;right:6px;max-width:min(88vw,340px);padding:8px 11px;border-radius:10px;background:#fff8d6;color:#222;border:1px solid #e0c85a;font:14px/1.35 system-ui,-apple-system,"Segoe UI","Noto Sans",Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.25);display:none}' +
+    '#ub-tip{position:absolute;z-index:2147483001;max-width:min(92vw,440px);padding:10px 13px;border-radius:10px;background:#1b2a38;color:#fff;font:17px/1.45 system-ui,-apple-system,"Segoe UI","Noto Sans",Arial,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.4);pointer-events:none;display:none}' +
+    '#ub-tip[dir=rtl]{text-align:right;font-family:"Geeza Pro","Segoe UI","Noto Naskh Arabic",Tahoma,Arial,sans-serif;font-size:19px}#ub-tip.none{opacity:.85;font-size:14px}' +
+    '#ub-tip .de{display:block;font-size:12px;opacity:.7;margin-bottom:4px;direction:ltr;text-align:left}' +
+    'body.ub-on [data-ub]:not(button):not(a){text-decoration:underline dotted rgba(80,110,160,.8);text-underline-offset:3px;text-decoration-thickness:1.5px}' +
+    'body.ub-on [data-ub]:not(button):not(a):hover{background:rgba(255,213,74,.28)}' +
+    'body.ub-read{cursor:help}body.ub-read #ub-mode{}' +
+    '@media print{#ub-bar,#ub-tip,#ub-hint{display:none!important}body.ub-on [data-ub]{text-decoration:none!important}}';
+  if (CFG.mode) css += 'body{padding-top:44px!important}';   // Apps: Leiste verdeckt nichts
+  var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+
+  var bar = document.createElement('div'); bar.id = 'ub-bar'; bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', 'Sprache / Language');
+  var h = '<span class="g" aria-hidden="true">🌐</span>';
+  LANGS.forEach(function (l) { h += '<button type="button" data-l="' + l + '" aria-pressed="false" title="' + NAMES[l] + '">' + l.toUpperCase() + '</button>'; });
+  if (CFG.mode) { h += '<button type="button" id="ub-mode" aria-pressed="false" title="Lesemodus">👆</button>'; bar.className = 'l'; }
+  bar.innerHTML = h;
+  var hint = document.createElement('div'); hint.id = 'ub-hint'; hint.setAttribute('role', 'status');
+  var tip = document.createElement('div'); tip.id = 'ub-tip'; tip.setAttribute('role', 'tooltip');
+  function mount() { document.body.appendChild(bar); document.body.appendChild(hint); document.body.appendChild(tip); apply(true); }
+
+  function latinRuns(s) { // deutsche Wörter/Zahlen im arabischen Text links-nach-rechts einbetten
+    return esc(s).replace(/([A-Za-zÄÖÜäöüß0-9€%][A-Za-zÄÖÜäöüß0-9€%.,:;+\-−×÷=\/'’]*(?: [A-Za-zÄÖÜäöüß0-9€%][A-Za-zÄÖÜäöüß0-9€%.,:;+\-−×÷=\/'’]*)*)/g, '<bdi dir="ltr">$1</bdi>');
+  }
+
+  /* ---------- Markieren ---------- */
+  var INL = { B: 1, I: 1, EM: 1, STRONG: 1, SPAN: 1, SMALL: 1, BR: 1, A: 1, CODE: 1, SUB: 1, SUP: 1, U: 1, MARK: 1, ABBR: 1, BDI: 1, S: 1, INPUT: 1, IMG: 1 };
+  var SKIP = { SCRIPT: 1, STYLE: 1, SVG: 1, TEXTAREA: 1, SELECT: 1, OPTION: 1, NOSCRIPT: 1, CANVAS: 1, TITLE: 1, HEAD: 1 };
+  function leafish(el) {
+    for (var c = el.firstElementChild; c; c = c.nextElementSibling) if (!INL[c.tagName.toUpperCase()] || (c.firstElementChild && !leafish(c))) return false;
+    return true;
+  }
+  function ownText(el) { for (var c = el.firstChild; c; c = c.nextSibling) if (c.nodeType === 3 && /\S/.test(c.nodeValue)) return true; return false; }
+  var NOOP = function () {};   // iOS-Safari: Elemente ohne Handler bekommen sonst kein click-Ereignis
+  function markEl(el) {
+    if (el.id === 'ub-bar' || el.id === 'ub-tip' || el.id === 'ub-hint') return;
+    if (SKIP[el.tagName.toUpperCase()] || el.closest && el.closest('#ub-bar,#ub-tip,#ub-hint,svg')) return;
+    if (!leafish(el)) return;
+    var t = textOf(el); if (!t || t.length < 2 || !/[A-Za-zÄÖÜäöüß]/.test(t)) return;
+    var r = tr(t, lang);
+    if (r !== null) { el.setAttribute('data-ub', '1'); if (!el.onclick) el.onclick = NOOP; }
+    else if (el.hasAttribute('data-ub')) el.removeAttribute('data-ub');
+    else if (CFG.debug && ownText(el)) (window.__ubMissing = window.__ubMissing || {})[norm(t)] = 1;
+  }
+  function markTree(root) {
+    if (lang === 'de') return;
+    if (root.nodeType !== 1) return;
+    markEl(root);
+    var all = root.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) markEl(all[i]);
+  }
+  function unmarkAll() { var a = document.querySelectorAll('[data-ub]'); for (var i = 0; i < a.length; i++) a[i].removeAttribute('data-ub'); }
+
+  var pend = [], timer = null;
+  function queue(n) { pend.push(n); if (!timer) timer = setTimeout(flush, 120); }
+  function flush() {
+    timer = null; var p = pend; pend = [];
+    if (lang === 'de') return;
+    var seen = [];
+    p.forEach(function (n) {
+      var e = n.nodeType === 1 ? n : n.parentElement; if (!e || seen.indexOf(e) >= 0) return; seen.push(e);
+      if (!document.body.contains(e)) return;
+      markTree(e);
+      var up = e.parentElement; if (up && up !== document.body) markEl(up);
+    });
+  }
+  var mo = new MutationObserver(function (ms) {
+    for (var i = 0; i < ms.length; i++) {
+      var m = ms[i];
+      if (m.type === 'characterData') queue(m.target);
+      else for (var j = 0; j < m.addedNodes.length; j++) { var n = m.addedNodes[j]; if (n.id === 'ub-tip' || n.id === 'ub-bar' || n.id === 'ub-hint') continue; queue(n); }
+      if (m.type === 'childList' && m.target.nodeType === 1 && m.addedNodes.length === 0 && m.removedNodes.length) queue(m.target);
+    }
+  });
+
+  /* ---------- Tooltip ---------- */
+  var tipEl = null, tipTimer = null;
+  function hideTip() { tip.style.display = 'none'; tipEl = null; clearTimeout(tipTimer); }
+  function findMarked(t) {
+    for (var e = t && t.nodeType === 3 ? t.parentElement : t; e && e !== document.body && e !== document.documentElement; e = e.parentElement) if (e.hasAttribute && e.hasAttribute('data-ub')) return e;
+    return null;
+  }
+  function showTip(el) {
+    if (lang === 'de') return;
+    if (tipEl === el && tip.style.display === 'block') { hideTip(); return; }
+    var de = norm(textOf(el)), r = tr(de, lang);
+    tip.className = r === null ? 'none' : '';
+    if (r === null) { r = (T.none[lang] || ''); }
+    tip.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr'); tip.setAttribute('lang', lang);
+    tip.innerHTML = '<span class="de">' + esc(de.length > 90 ? de.slice(0, 88) + '…' : de) + '</span>' + (lang === 'ar' ? latinRuns(r) : esc(r));
+    tip.style.display = 'block'; tip.style.left = '0px'; tip.style.top = '0px';
+    var rc = el.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight, sx = window.pageXOffset, sy = window.pageYOffset, vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    var x = rc.left; if (lang === 'ar') x = rc.right - tw; x = Math.max(6, Math.min(x, vw - tw - 6));
+    var y = rc.bottom + 6; if (y + th > vh - 6 && rc.top - th - 6 > 6) y = rc.top - th - 6; else if (y + th > vh - 6) y = Math.max(6, vh - th - 6);
+    tip.style.left = (x + sx) + 'px'; tip.style.top = (y + sy) + 'px';
+    tipEl = el; clearTimeout(tipTimer); tipTimer = setTimeout(hideTip, Math.min(16000, 4000 + r.length * 80));
+  }
+
+  /* ---------- Ereignisse ---------- */
+  var hoverOK = window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches;
+  function interactive(el) {
+    for (var e = el; e && e !== document.body; e = e.parentElement) {
+      var tg = e.tagName.toUpperCase();
+      if (/^(BUTTON|A|INPUT|SELECT|TEXTAREA|LABEL|SUMMARY)$/.test(tg) || e.getAttribute('role') === 'button' || e.hasAttribute('data-act') || e.hasAttribute('onclick') || (typeof e.onclick === 'function' && e.onclick !== NOOP)) return true;
+      try { if (getComputedStyle(e).cursor === 'pointer') return true; } catch (x) {}
+    }
+    return false;
+  }
+  var suppress = false, lpTimer = null, hoverTimer = null;
+  window.addEventListener('click', function (ev) {
+    if (ev.target.closest && ev.target.closest('#ub-bar')) return;
+    if (suppress) { suppress = false; ev.preventDefault(); ev.stopPropagation(); return; }
+    if (lang === 'de') return;
+    var m = findMarked(ev.target);
+    if (readMode) {   // Lesemodus: nichts im Spiel auslösen, nur übersetzen
+      ev.preventDefault(); ev.stopPropagation();
+      m = m || (ev.target.querySelector && ev.target.querySelector('[data-ub]'));
+      if (m) showTip(m); else hideTip();
+      return;
+    }
+    if (!m) { hideTip(); return; }
+    if (!interactive(m)) showTip(m); else hideTip();
+  }, true);
+  window.addEventListener('touchstart', function (ev) {
+    if (lang === 'de' || readMode) return;
+    var m = findMarked(ev.target); if (!m || !interactive(m)) return;
+    clearTimeout(lpTimer);
+    lpTimer = setTimeout(function () { suppress = true; showTip(m); setTimeout(function () { suppress = false; }, 900); }, 520);
+  }, { passive: true, capture: true });
+  ['touchend', 'touchmove', 'touchcancel'].forEach(function (n) { window.addEventListener(n, function () { clearTimeout(lpTimer); }, { passive: true, capture: true }); });
+  window.addEventListener('contextmenu', function (ev) { if (lang !== 'de' && findMarked(ev.target) && 'ontouchstart' in window) ev.preventDefault(); }, true);
+  if (hoverOK) {
+    window.addEventListener('mouseover', function (ev) {
+      if (lang === 'de') return; var m = findMarked(ev.target); clearTimeout(hoverTimer);
+      if (!m) return;
+      hoverTimer = setTimeout(function () { showTip(m); }, interactive(m) ? 550 : 200);
+    }, true);
+    window.addEventListener('mouseout', function (ev) { clearTimeout(hoverTimer); if (findMarked(ev.target)) hideTip(); }, true);
+  }
+  window.addEventListener('scroll', hideTip, { passive: true });
+  window.addEventListener('keydown', function (e) { if (e.key === 'Escape') hideTip(); });
+
+  /* ---------- Sprache umschalten ---------- */
+  var hintT = null;
+  function apply(init) {
+    document.body.classList.toggle('ub-on', lang !== 'de');
+    var b = bar.querySelectorAll('button[data-l]');
+    for (var i = 0; i < b.length; i++) b[i].setAttribute('aria-pressed', b[i].getAttribute('data-l') === lang ? 'true' : 'false');
+    hideTip(); unmarkAll();
+    if (lang !== 'de') {
+      markTree(document.body);
+      if (!init) {
+        var k = CFG.hint === 'pdf' ? T.hintPdf : T.hintApp;
+        hint.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr'); hint.setAttribute('lang', lang);
+        hint.textContent = k[lang]; hint.style.display = 'block'; clearTimeout(hintT); hintT = setTimeout(function () { hint.style.display = 'none'; }, 6500);
+      }
+    } else { hint.style.display = 'none'; readMode = false; document.body.classList.remove('ub-read'); var mb = document.getElementById('ub-mode'); if (mb) mb.setAttribute('aria-pressed', 'false'); }
+    document.documentElement.setAttribute('data-ub-lang', lang);
+  }
+  bar.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button'); if (!b) return;
+    if (b.id === 'ub-mode') {
+      readMode = !readMode; b.setAttribute('aria-pressed', readMode ? 'true' : 'false'); document.body.classList.toggle('ub-read', readMode);
+      if (lang === 'de') { lang = 'tr'; store(SKEY, lang); apply(); }
+      b.title = T.mode[lang] || T.mode.de;
+      if (readMode) { hint.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr'); hint.textContent = T.mode[lang] || T.mode.de; hint.style.display = 'block'; clearTimeout(hintT); hintT = setTimeout(function () { hint.style.display = 'none'; }, 4500); } else hint.style.display = 'none';
+      return;
+    }
+    var l = b.getAttribute('data-l'); if (!l) return;
+    lang = l; store(SKEY, lang); apply();
+  });
+
+  /* Debug / Qualitätscheck: ?debug=1 sammelt nicht übersetzte Texte in window.__ubMissing */
+  if (/[?&]ubdebug=1/.test(location.search)) CFG.debug = true;
+  window.UB = { tr: tr, setLang: function (l) { lang = l; store(SKEY, l); apply(); }, lang: function () { return lang; }, missing: function () { return Object.keys(window.__ubMissing || {}); } };
+
+  function start() { mount(); mo.observe(document.body, { childList: true, subtree: true, characterData: true }); }
+  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body>
+</html>

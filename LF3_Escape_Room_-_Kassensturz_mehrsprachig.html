@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escape Room LF 3 – Kassensturz</title>
+<style>
+:root{--blau:#1F4E79;--hell:#EAF1F8;--rosa:#E5B8B7;--gruen:#2E6B45;--rot:#C00000;--grau:#F2F2F2}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}
+header{background:var(--blau);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header h1{font-size:20px;margin:0}#uhr{font-size:22px;font-weight:bold;font-variant-numeric:tabular-nums}
+main{max-width:980px;margin:0 auto;padding:16px}
+.story{background:var(--hell);border-left:5px solid var(--blau);padding:12px 16px;border-radius:4px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin:18px 0}
+.tile{border:2px solid var(--blau);border-radius:8px;padding:14px;cursor:pointer;background:#fff;min-height:110px;position:relative}
+.tile:hover{background:var(--hell)}.tile h3{margin:0 0 4px;color:var(--blau)}.tile small{color:#595959}
+.tile.done{border-color:var(--gruen);background:#E2EFDA}.badge{position:absolute;right:12px;top:10px;font-size:30px;font-weight:bold;color:var(--gruen)}
+.station{display:none;border:2px solid var(--blau);border-radius:8px;padding:16px;margin-top:10px}
+.q{margin:12px 0;padding:10px;border-radius:6px;background:var(--grau)}.q.ok{background:#E2EFDA}.q.bad{background:#F8D7D7}
+.q p{margin:0 0 6px;font-weight:bold}label{display:block;padding:3px 0;cursor:pointer}
+input[type=number],input[type=text]{font-size:18px;padding:6px;width:140px}
+button{background:var(--blau);color:#fff;border:0;border-radius:5px;padding:9px 16px;font-size:15px;cursor:pointer;margin:6px 6px 0 0}
+button.sec{background:#fff;color:var(--blau);border:1px solid var(--blau)}
+.msg{margin-top:10px;font-weight:bold}.tipp{display:none;margin-top:8px;padding:8px;background:#FFF2CC;border-radius:5px}
+#tresor{border:3px dashed #595959;border-radius:10px;padding:16px;text-align:center;margin-top:20px}
+#code{font-size:28px;letter-spacing:8px;width:220px;text-align:center}
+#code-slots{font-size:26px;letter-spacing:10px;margin:6px 0;color:var(--gruen);font-weight:bold}
+#ende{display:none;background:#E2EFDA;border:3px solid var(--gruen);border-radius:10px;padding:18px;margin-top:16px;text-align:center}
+@media print{header{background:#fff;color:#000}}
+</style></head><body>
+<header><h1>Escape Room LF 3 · Kassensturz</h1><div>⏱ <span id="uhr">45:00</span></div></header>
+<main>
+<div class="story"><b>Es ist 20 Uhr in der Kaufhaus Hansa GmbH.</b> Die Filialleitung hat einen <b>Kassensturz</b> angekündigt – aber das Wechselgeld für morgen liegt im Kassentresor, und niemand kennt den Code. Die Kassenaufsicht hat ihn auf sechs Aufgaben verteilt: Jede gelöste Station verrät eine Ziffer. Ihr habt <b>45 Minuten</b>. Tipps gibt es – aber jeder Tipp kostet <b>2 Minuten</b>. <br><i>Zahlen ohne €-Zeichen eingeben, Komma oder Punkt ist egal (z. B. 12,98). Taschenrechner und Rezeptkarten sind erlaubt.</i></div>
+<div class="grid" id="grid"></div>
+<div class="station" id="station"></div>
+<div id="tresor"><h2>🔒 Der Kassentresor</h2><div>Eure Ziffern (Station 1 bis 6):</div><div id="code-slots">_ _ _ _ _ _</div>
+<input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="······"> <button onclick="oeffnen()">Tresor öffnen</button><div class="msg" id="tmsg"></div></div>
+<div id="ende"><h2>🎉 Der Kassentresor ist offen!</h2><p>Das Wechselgeld ist da – der Kassensturz kann kommen. Eure Zeit: <b id="zeit"></b> · Genutzte Tipps: <b id="ntipps"></b></p>
+<p>Zeigt diesen Bildschirm eurer Lehrkraft.</p></div>
+</main>
+<script>
+const ST=[{"t": "Dreisatz und Grundpreis", "m": "Module 11 und 12", "z": 3, "h": "Grundpreis = Preis : Menge in kg. Lose Ware = Preis je kg × Menge in kg. Prämie = alte Prämie : alter Umsatz × neuer Umsatz.", "f": [["Eine 500-g-Packung Kaffee kostet 6,49 €. Grundpreis je kg in €? (Zahl mit Komma)", null, 12.98], ["300 g Käse zu 18,90 € je kg kosten … € (Zahl)", null, 5.67], ["Für 2.500 € Umsatz gibt es 50 € Prämie. Prämie bei 3.400 € Umsatz in €? (Zahl)", null, 68.0], ["Welche Aufgabe löst du mit dem Dreisatz über die 1?", ["6 Tassen kosten 53,40 €. Was kosten 8 Tassen?", "Wie viel Prozent ist der Rabatt?", "Wie hoch ist die Umsatzsteuer?", "Wie viele Kunden kamen je Stunde?"], 0]]}, {"t": "Rabatt und Skonto", "m": "Modul 13 und 15", "z": 7, "h": "Zu zahlen = Preis : 100 × (100 − p). Zwei Rabatte nacheinander: der zweite vom neuen Preis.", "f": [["74,90 € mit 20 % Rabatt. Zu zahlen in €? (Zahl)", null, 59.92], ["Rechnung 1.600 € mit 3 % Skonto. Überweisung in €? (Zahl)", null, 1552.0], ["125 € −20 %, danach noch −10 %. Neuer Preis in €? (Zahl)", null, 90.0], ["Ein Kunde legt einen 15-%-Coupon vor. Womit rechnest du den Zahlbetrag?", ["Preis : 100 × 85", "Preis : 100 × 15", "Preis : 115 × 100", "Preis − 15"], 0]]}, {"t": "Prozentsatz und Grundwert", "m": "Modul 14", "z": 1, "h": "p = Differenz × 100 : alter Preis. Preis vorher = neuer Preis : (100 − p) × 100.", "f": [["Ein Preis sinkt von 49,90 € auf 39,92 €. Um wie viel Prozent? (Zahl)", null, 20], ["Kasse 2 hat 1.350 € von 5.400 € Tagesumsatz. Anteil in %? (Zahl)", null, 25], ["Nach 25 % Rabatt kostet eine Hose 44,97 €. Preis vorher in €? (Zahl)", null, 59.96], ["Welcher Preis ist bei „Um wie viel Prozent reduziert?“ der Grundwert?", ["der neue Preis", "der alte Preis", "die Differenz", "der Rabatt"], 1]]}, {"t": "Umsatzsteuer", "m": "Modul 15", "z": 9, "h": "USt heraus: brutto : 119 × 19 (7 %: : 107 × 7). netto = brutto : 119 × 100. brutto = netto : 100 × 119.", "f": [["Wie viel Euro USt (19 %) stecken in 59,50 €? (Zahl)", null, 9.5], ["Ein Buch kostet 107,00 € brutto (7 %). Nettopreis in €? (Zahl)", null, 100], ["Nettopreis 80 €, dazu 19 % USt. Bruttopreis in €? (Zahl)", null, 95.2], ["Welche Rechnung für die USt aus 119 € ist FALSCH?", ["119 × 19 %", "119 : 119 × 19", "brutto − netto", "119 : 1,19 = 100, dann 119 − 100"], 0]]}, {"t": "Durchschnitt und Verteilung", "m": "Module 16 und 17", "z": 4, "h": "Kunden je Stunde = Kunden : Stunden. Gewogen = Summe (Menge × Preis) : Summe der Mengen. Verteilung = Kosten : Summe der Anteile × Anteil.", "f": [["1.767 Kunden, geöffnet 09:00–13:30 und 15:00–20:00. Kunden je Stunde? (Zahl)", null, 186], ["10 Paar Socken zu 4 € und 30 Paar zu 6 €. Durchschnittspreis in €? (Zahl)", null, 5.5], ["2.400 € Kosten nach Fläche: 500, 300 und 400 m². Anteil der 300 m² in €? (Zahl)", null, 600.0], ["Umsatz netto 2.448 € bei 144 Kunden. Umsatz je Kunde in €? (Zahl)", null, 17.0]]}, {"t": "Der Kassensturz", "m": "Modul 6 und 18", "z": 5, "h": "Tagesumsatz = Kassenbestand + Abschöpfung − Wechselgeld + Karte. Differenz = Ist − Soll. Karte gehört nie in den Bargeld-Soll.", "f": [["Kassenbestand 1.980,50 € · Abschöpfung 1.500 € · Wechselgeld 250 € · Karte 2.114,30 €. Tagesumsatz in €? (Zahl)", null, 5344.8], ["30 Artikel zu 12,95 € verkauft, 100 € Wechselgeld, Ist 478,50 €. Kassendifferenz in €? (Zahl mit Minus)", null, -10.0], ["Abends sind 5 € ZU VIEL in der Kasse. Was kann die Ursache sein?", ["Einem Kunden wurde zu wenig Wechselgeld gegeben.", "Einem Kunden wurde zu viel Wechselgeld gegeben.", "Es wurde etwas gestohlen.", "Die Abschöpfung wurde doppelt gezählt."], 0], ["Soll 620 € · Barumsatz 3.400 € · Rückgabe bar 20 € · Entnahme 3.000 €. Mit wie viel Euro wurde die Kasse eröffnet? (Zahl)", null, 240.0]]}];
+let t0=Date.now(),strafe=0,tipps=0,fertig=false;const gel=ST.map(()=>false);
+function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function rest(){return 45*60-Math.floor((Date.now()-t0)/1000)-strafe}
+setInterval(()=>{if(!fertig){document.getElementById('uhr').textContent=fmt(rest())}},500);
+const ORD={};function ord(i,j,n){const key=i+'_'+j;if(!ORD[key]){const a=[...Array(n).keys()];for(let x=n-1;x>0;x--){const y=Math.floor(Math.random()*(x+1));[a[x],a[y]]=[a[y],a[x]]}ORD[key]=a}return ORD[key]}
+function grid(){const g=document.getElementById('grid');g.innerHTML='';ST.forEach((s,i)=>{const d=document.createElement('div');d.className='tile'+(gel[i]?' done':'');
+ d.innerHTML='<h3>Station '+(i+1)+': '+s.t+'</h3><small>'+s.m+'</small>'+(gel[i]?'<div class="badge">'+s.z+'</div>':'');d.onclick=()=>zeige(i);g.appendChild(d)});
+ document.getElementById('code-slots').textContent=ST.map((s,i)=>gel[i]?s.z:'_').join(' ')}
+function zeige(i){const s=ST[i],box=document.getElementById('station');let h='<h2>Station '+(i+1)+': '+s.t+'</h2>';
+ s.f.forEach((q,j)=>{h+='<div class="q" id="q'+i+'_'+j+'"><p>'+(j+1)+'. '+q[0]+'</p>';
+  if(q[1]){ord(i,j,q[1].length).forEach(k=>{h+='<label><input type="radio" name="r'+i+'_'+j+'" value="'+k+'"> '+q[1][k]+'</label>'})}
+  else{h+='<input type="text" inputmode="decimal" id="n'+i+'_'+j+'">'}h+='</div>'});
+ h+='<button onclick="pruefe('+i+')">Prüfen</button><button class="sec" onclick="tipp('+i+')">Tipp (+2 Min.)</button><button class="sec" onclick="zu()">Zurück zur Übersicht</button>';
+ h+='<div class="tipp" id="tipp'+i+'">💡 '+s.h+'</div><div class="msg" id="msg'+i+'"></div>';box.innerHTML=h;box.style.display='block';box.scrollIntoView({behavior:'smooth'})}
+function zu(){document.getElementById('station').style.display='none';window.scrollTo({top:0,behavior:'smooth'})}
+function tipp(i){const e=document.getElementById('tipp'+i);if(e.style.display!=='block'){e.style.display='block';strafe+=120;tipps++}}
+function pruefe(i){const s=ST[i];let ok=0;s.f.forEach((q,j)=>{let a;if(q[1]){const r=document.querySelector('input[name="r'+i+'_'+j+'"]:checked');a=r?parseInt(r.value):-1}
+ else{a=parseFloat((document.getElementById('n'+i+'_'+j).value||'').replace(',','.'))}
+ const r=(a===q[2]);document.getElementById('q'+i+'_'+j).className='q '+(r?'ok':'bad');if(r)ok++});
+ const m=document.getElementById('msg'+i);
+ if(ok===s.f.length){gel[i]=true;m.innerHTML='✅ Alles richtig! Eure Ziffer für den Tresor: <span style="font-size:28px;color:#2E6B45">'+s.z+'</span>';grid()}
+ else{m.textContent=ok+' von '+s.f.length+' richtig. Die roten Aufgaben noch einmal prüfen – schaut in euren Unterlagen nach.'}}
+function oeffnen(){const c=document.getElementById('code').value.trim();const m=document.getElementById('tmsg');
+ if(c==='371945'){fertig=true;const used=45*60-rest();document.getElementById('zeit').textContent=fmt(used)+' Min. (inkl. Tipps)';document.getElementById('ntipps').textContent=tipps;
+  document.getElementById('ende').style.display='block';m.textContent='';document.getElementById('ende').scrollIntoView({behavior:'smooth'})}
+ else{m.textContent='❌ Der Tresor bleibt zu. Prüft eure Ziffern!';strafe+=30}}
+grid();
+</script><script>window.UB_CONFIG={"mode": true};</script>
+<script id="uebersetzungen">window.UB_I18N={"Escape Room LF 3 · Kassensturz":{"tr":"Kaçış odası LF 3 · Kassensturz (kasa sayımı)","vi":"Phòng thoát hiểm LF 3 · Kassensturz (kiểm kê quỹ đột xuất)","ar":"غرفة الهروب LF 3 · جرد الصندوق المفاجئ (Kassensturz)"},"Es ist 20 Uhr in der Kaufhaus Hansa GmbH. Die Filialleitung hat einen Kassensturz angekündigt – aber das Wechselgeld für morgen liegt im Kassentresor, und niemand kennt den Code. Die Kassenaufsicht hat ihn auf sechs Aufgaben verteilt: Jede gelöste Station verrät eine Ziffer. Ihr habt 45 Minuten. Tipps gibt es – aber jeder Tipp kostet 2 Minuten. Zahlen ohne €-Zeichen eingeben, Komma oder Punkt ist egal (z. B. 12,98). Taschenrechner und Rezeptkarten sind erlaubt.":{"tr":"Saat 20, Kaufhaus Hansa GmbH'de. Şube müdürlüğü bir Kassensturz (sürpriz kasa kontrolü) duyurdu – ama yarının bozuk parası çelik kasada duruyor ve kimse şifreyi bilmiyor. Kasa sorumlusu şifreyi altı göreve dağıttı: Çözülen her istasyon bir rakam verir. 45 dakikanız var. İpuçları var – ama her ipucu 2 dakika tutar. Sayıları € işareti olmadan girin, virgül veya nokta fark etmez (örn. 12,98). Hesap makinesi ve formül kartları serbesttir.","vi":"Bây giờ là 20 giờ tại Kaufhaus Hansa GmbH. Ban quản lý chi nhánh đã báo sẽ có Kassensturz (kiểm kê quỹ đột xuất) – nhưng tiền lẻ để thối (Wechselgeld) cho ngày mai nằm trong két của quầy thu ngân, và không ai biết mã. Người giám sát quầy thu ngân đã chia mã thành sáu bài tập: Mỗi trạm giải xong sẽ cho biết một chữ số. Các bạn có 45 phút. Có gợi ý – nhưng mỗi gợi ý tốn 2 phút. Nhập số không có ký hiệu €, dấu phẩy hay dấu chấm đều được (ví dụ 12,98). Được phép dùng máy tính cầm tay và thẻ công thức (Rezeptkarten).","ar":"الساعة 20 Uhr في Kaufhaus Hansa GmbH. أعلنت إدارة الفرع عن جرد الصندوق المفاجئ (Kassensturz) – لكن الفكّة (Wechselgeld) لليوم التالي موجودة في خزنة الصندوق، ولا أحد يعرف الرمز. وزّعت مشرفة الصندوق الرمز على ست مهام: كل محطة تُحلّ تكشف رقمًا. لديكم 45 دقيقة. هناك تلميحات – لكن كل تلميح يكلّف 2 دقيقة. أدخلوا الأرقام بدون علامة €، والفاصلة أو النقطة سواء (مثلًا 12,98). الآلة الحاسبة وبطاقات الوصفة الحسابية مسموحة."},"Es ist 20 Uhr in der Kaufhaus Hansa GmbH.":{"tr":"Saat 20, Kaufhaus Hansa GmbH'de.","vi":"Bây giờ là 20 giờ tại Kaufhaus Hansa GmbH.","ar":"الساعة 20 Uhr في Kaufhaus Hansa GmbH."},"Kassensturz":{"tr":"Kasa sayımı","vi":"Kiểm kê quỹ đột xuất (Kassensturz)","ar":"جرد الصندوق المفاجئ"},"45 Minuten":{"tr":"45 dakika","vi":"45 phút","ar":"45 دقيقة"},"2 Minuten":{"tr":"2 dakika","vi":"2 phút","ar":"2 دقيقة"},"Zahlen ohne €-Zeichen eingeben, Komma oder Punkt ist egal (z. B. 12,98). Taschenrechner und Rezeptkarten sind erlaubt.":{"tr":"Sayıları € işareti olmadan girin, virgül veya nokta fark etmez (örn. 12,98). Hesap makinesi ve formül kartları serbesttir.","vi":"Nhập số không có ký hiệu €, dấu phẩy hay dấu chấm đều được (ví dụ 12,98). Được phép dùng máy tính cầm tay và thẻ công thức (Rezeptkarten).","ar":"أدخلوا الأرقام بدون علامة €، والفاصلة أو النقطة سواء (مثلًا 12,98). الآلة الحاسبة وبطاقات الوصفة الحسابية مسموحة."},"🔒 Der Kassentresor":{"tr":"🔒 Çelik kasa","vi":"🔒 Két của quầy thu ngân","ar":"🔒 خزنة الصندوق"},"Eure Ziffern (Station 1 bis 6):":{"tr":"Rakamlarınız (istasyon 1 ile 6):","vi":"Các chữ số của các bạn (trạm 1 đến 6):","ar":"أرقامكم (المحطة 1 إلى 6):"},"Tresor öffnen":{"tr":"Kasayı aç","vi":"Mở két","ar":"افتح الخزنة"},"🎉 Der Kassentresor ist offen!":{"tr":"🎉 Çelik kasa açıldı!","vi":"🎉 Két của quầy thu ngân đã mở!","ar":"🎉 خزنة الصندوق مفتوحة!"},"Das Wechselgeld ist da – der Kassensturz kann kommen. Eure Zeit: · Genutzte Tipps:":{"tr":"Bozuk para burada – kasa sayımı gelebilir. Süreniz: · Kullanılan ipuçları:","vi":"Tiền lẻ để thối đã có – có thể kiểm kê quỹ đột xuất rồi. Thời gian của các bạn: · Số gợi ý đã dùng:","ar":"الفكّة موجودة – يمكن أن يأتي الجرد المفاجئ. وقتكم: · التلميحات المستخدمة:"},"Zeigt diesen Bildschirm eurer Lehrkraft.":{"tr":"Bu ekranı öğretmeninize gösterin.","vi":"Hãy cho giáo viên xem màn hình này.","ar":"اعرضوا هذه الشاشة على المعلم/ة."},"Eine 500-g-Packung Kaffee kostet 6,49 €. Grundpreis je kg in €? (Zahl mit Komma)":{"tr":"500 g'lık bir paket kahve 6,49 €. kg başına birim fiyat (€)? (virgüllü sayı)","vi":"Một gói cà phê 500 g giá 6,49 €. Giá theo đơn vị (Grundpreis) mỗi kg tính bằng €? (Số có dấu phẩy)","ar":"عبوة قهوة 500 g تكلّف 6,49 €. سعر الوحدة (Grundpreis) لكل kg بالـ €؟ (رقم مع فاصلة)"},"300 g Käse zu 18,90 € je kg kosten … € (Zahl)":{"tr":"kg'ı 18,90 € olan 300 g peynir … € eder (sayı)","vi":"300 g phô mai giá 18,90 € mỗi kg giá … € (số)","ar":"300 g جبن بسعر 18,90 € للكيلوغرام تكلّف … € (رقم)"},"Für 2.500 € Umsatz gibt es 50 € Prämie. Prämie bei 3.400 € Umsatz in €? (Zahl)":{"tr":"2.500 € ciroya 50 € prim verilir. 3.400 € cirodaki prim (€)? (sayı)","vi":"Doanh thu 2.500 € được thưởng (Prämie) 50 €. Tiền thưởng khi doanh thu 3.400 € tính bằng €? (Số)","ar":"لمبيعات 2.500 € هناك مكافأة (Prämie) 50 €. المكافأة عند مبيعات 3.400 € بالـ €؟ (رقم)"},"Welche Aufgabe löst du mit dem Dreisatz über die 1?":{"tr":"Hangi soruyu 1'e inerek Dreisatz (üçlü orantı) ile çözersin?","vi":"Bài nào bạn giải bằng quy tắc tam suất (Dreisatz) qua số 1?","ar":"أي مسألة تحلّها بقاعدة الثلاثة (Dreisatz) عبر الـ 1؟"},"Wie hoch ist die Umsatzsteuer?":{"tr":"Katma değer vergisi (Umsatzsteuer) ne kadar?","vi":"Thuế giá trị gia tăng (Umsatzsteuer) là bao nhiêu?","ar":"كم تبلغ ضريبة القيمة المضافة (Umsatzsteuer)؟"},"6 Tassen kosten 53,40 €. Was kosten 8 Tassen?":{"tr":"6 fincan 53,40 €. 8 fincan kaç €?","vi":"6 cái cốc giá 53,40 €. 8 cái cốc giá bao nhiêu?","ar":"6 أكواب تكلّف 53,40 €. كم تكلّف 8 أكواب؟"},"Wie viel Prozent ist der Rabatt?":{"tr":"İndirim yüzde kaç?","vi":"Giảm giá là bao nhiêu phần trăm?","ar":"كم بالمئة الخصم (Rabatt)؟"},"Wie viele Kunden kamen je Stunde?":{"tr":"Saatte kaç müşteri geldi?","vi":"Mỗi giờ có bao nhiêu khách?","ar":"كم عميلًا جاء في الساعة؟"},"Prüfen":{"tr":"Kontrol et","vi":"Kiểm tra","ar":"تحقّق"},"Tipp (+2 Min.)":{"tr":"İpucu (+2 dk.)","vi":"Gợi ý (+2 phút)","ar":"تلميح (+2 دقيقة)"},"Zurück zur Übersicht":{"tr":"Genel bakışa dön","vi":"Quay lại trang tổng quan","ar":"العودة إلى الصفحة الرئيسية"},"💡 Grundpreis = Preis : Menge in kg. Lose Ware = Preis je kg × Menge in kg. Prämie = alte Prämie : alter Umsatz × neuer Umsatz.":{"tr":"💡 Birim fiyat = fiyat : kg cinsinden miktar. Açık mal = kg fiyatı × kg cinsinden miktar. Prim = eski prim : eski ciro × yeni ciro.","vi":"💡 Giá theo đơn vị (Grundpreis) = giá : lượng tính bằng kg. Hàng bán theo cân = giá mỗi kg × lượng tính bằng kg. Tiền thưởng = tiền thưởng cũ : doanh thu cũ × doanh thu mới.","ar":"💡 سعر الوحدة = السعر : الكمية بالـ kg. البضاعة السائبة = السعر لكل kg × الكمية بالـ kg. المكافأة = المكافأة القديمة : المبيعات القديمة × المبيعات الجديدة."},"74,90 € mit 20 % Rabatt. Zu zahlen in €? (Zahl)":{"tr":"74,90 € ve 20 % indirim. Ödenecek tutar (€)? (sayı)","vi":"74,90 € với giảm giá 20 %. Số tiền phải trả tính bằng €? (Số)","ar":"74,90 € مع خصم (Rabatt) 20 %. المبلغ المستحق بالـ €؟ (رقم)"},"Rechnung 1.600 € mit 3 % Skonto. Überweisung in €? (Zahl)":{"tr":"Fatura 1.600 € ve 3 % Skonto (peşin ödeme iskontosu). Havale tutarı (€)? (sayı)","vi":"Hóa đơn 1.600 € với chiết khấu thanh toán sớm (Skonto) 3 %. Số tiền chuyển khoản tính bằng €? (Số)","ar":"فاتورة 1.600 € مع خصم الدفع الفوري (Skonto) 3 %. مبلغ التحويل بالـ €؟ (رقم)"},"125 € −20 %, danach noch −10 %. Neuer Preis in €? (Zahl)":{"tr":"125 € −20 %, sonra bir de −10 %. Yeni fiyat (€)? (sayı)","vi":"125 € −20 %, sau đó −10 %. Giá mới tính bằng €? (Số)","ar":"125 € −20 %، ثم −10 %. السعر الجديد بالـ €؟ (رقم)"},"Ein Kunde legt einen 15-%-Coupon vor. Womit rechnest du den Zahlbetrag?":{"tr":"Bir müşteri 15 %'lik kupon sunuyor. Ödenecek tutarı neyle hesaplarsın?","vi":"Một khách đưa phiếu giảm giá (Coupon) 15 %. Bạn tính số tiền phải trả bằng cách nào?","ar":"عميل يقدّم قسيمة خصم (Coupon) 15 %. بماذا تحسب المبلغ المستحق؟"},"Preis : 115 × 100":{"tr":"Fiyat : 115 × 100","vi":"Preis : 115 × 100","ar":"السعر : 115 × 100"},"Preis − 15":{"tr":"Fiyat − 15","vi":"Preis − 15","ar":"السعر − 15"},"Preis : 100 × 15":{"tr":"Fiyat : 100 × 15","vi":"Preis : 100 × 15","ar":"السعر : 100 × 15"},"Preis : 100 × 85":{"tr":"Fiyat : 100 × 85","vi":"Preis : 100 × 85","ar":"السعر : 100 × 85"},"💡 Zu zahlen = Preis : 100 × (100 − p). Zwei Rabatte nacheinander: der zweite vom neuen Preis.":{"tr":"💡 Ödenecek tutar = fiyat : 100 × (100 − p). Art arda iki indirim: ikincisi yeni fiyattan.","vi":"💡 Số tiền phải trả = giá : 100 × (100 − p). Hai lần giảm giá liên tiếp: lần thứ hai tính từ giá mới.","ar":"💡 المبلغ المستحق = السعر : 100 × (100 − p). خصمان متتاليان: الثاني من السعر الجديد."},"Ein Preis sinkt von 49,90 € auf 39,92 €. Um wie viel Prozent? (Zahl)":{"tr":"Bir fiyat 49,90 €'dan 39,92 €'ya düşüyor. Yüzde kaç oranında? (sayı)","vi":"Giá giảm từ 49,90 € xuống 39,92 €. Giảm bao nhiêu phần trăm? (Số)","ar":"ينخفض سعر من 49,90 € إلى 39,92 €. بكم بالمئة؟ (رقم)"},"Kasse 2 hat 1.350 € von 5.400 € Tagesumsatz. Anteil in %? (Zahl)":{"tr":"Kasa 2, 5.400 € günlük cironun 1.350 €'sunu yaptı. Pay % olarak? (sayı)","vi":"Quầy 2 có 1.350 € trên 5.400 € doanh thu trong ngày. Phần tính bằng %? (Số)","ar":"الصندوق 2 لديه 1.350 € من أصل 5.400 € مبيعات اليوم. الحصة بالـ %؟ (رقم)"},"Nach 25 % Rabatt kostet eine Hose 44,97 €. Preis vorher in €? (Zahl)":{"tr":"25 % indirimden sonra bir pantolon 44,97 €. Önceki fiyat (€)? (sayı)","vi":"Sau khi giảm giá 25 % một chiếc quần giá 44,97 €. Giá trước đó tính bằng €? (Số)","ar":"بعد خصم 25 % يكلّف البنطلون 44,97 €. السعر قبل الخصم بالـ €؟ (رقم)"},"Welcher Preis ist bei „Um wie viel Prozent reduziert?“ der Grundwert?":{"tr":"„Yüzde kaç düşürüldü?“ sorusunda hangi fiyat Grundwert (ana değer) olur?","vi":"Với câu hỏi „Giảm bao nhiêu phần trăm?“ thì giá nào là giá trị gốc (Grundwert)?","ar":"أي سعر هو القيمة الأساسية (Grundwert) في „بكم بالمئة انخفض السعر؟“"},"der neue Preis":{"tr":"yeni fiyat","vi":"giá mới","ar":"السعر الجديد"},"die Differenz":{"tr":"fark","vi":"chênh lệch","ar":"الفرق"},"der Rabatt":{"tr":"indirim","vi":"tiền giảm giá","ar":"الخصم"},"der alte Preis":{"tr":"eski fiyat","vi":"giá cũ","ar":"السعر القديم"},"💡 p = Differenz × 100 : alter Preis. Preis vorher = neuer Preis : (100 − p) × 100.":{"tr":"💡 p = fark × 100 : eski fiyat. Önceki fiyat = yeni fiyat : (100 − p) × 100.","vi":"💡 p = chênh lệch × 100 : giá cũ. Giá trước đó = giá mới : (100 − p) × 100.","ar":"💡 p = الفرق × 100 : السعر القديم. السعر قبل الخصم = السعر الجديد : (100 − p) × 100."},"Wie viel Euro USt (19 %) stecken in 59,50 €? (Zahl)":{"tr":"59,50 €'nun içinde kaç euro KDV (19 %) var? (sayı)","vi":"Trong 59,50 € có bao nhiêu euro thuế giá trị gia tăng (USt) 19 %? (Số)","ar":"كم يورو ضريبة قيمة مضافة (USt) 19 % موجودة في 59,50 €؟ (رقم)"},"Ein Buch kostet 107,00 € brutto (7 %). Nettopreis in €? (Zahl)":{"tr":"Bir kitap brüt 107,00 € (7 %). Net fiyat (€)? (sayı)","vi":"Một cuốn sách giá 107,00 € đã gồm thuế (brutto) (7 %). Giá chưa thuế (netto) tính bằng €? (Số)","ar":"كتاب يكلّف 107,00 € إجمالي (brutto) (7 %). السعر الصافي (netto) بالـ €؟ (رقم)"},"Nettopreis 80 €, dazu 19 % USt. Bruttopreis in €? (Zahl)":{"tr":"Net fiyat 80 €, buna 19 % KDV. Brüt fiyat (€)? (sayı)","vi":"Giá chưa thuế (netto) 80 €, cộng thêm 19 % USt. Giá đã gồm thuế (brutto) tính bằng €? (Số)","ar":"السعر الصافي 80 €، يُضاف 19 % ضريبة. السعر الإجمالي بالـ €؟ (رقم)"},"Welche Rechnung für die USt aus 119 € ist FALSCH?":{"tr":"119 €'dan KDV için hangi hesap YANLIŞ?","vi":"Cách tính nào cho USt từ 119 € là SAI?","ar":"أي عملية حساب لضريبة القيمة المضافة من 119 € هي خاطئة؟"},"119 : 1,19 = 100, dann 119 − 100":{"tr":"119 : 1,19 = 100, sonra 119 − 100","vi":"119 : 1,19 = 100, sau đó 119 − 100","ar":"119 : 1,19 = 100، ثم 119 − 100"},"brutto − netto":{"tr":"brüt − net","vi":"brutto − netto","ar":"الإجمالي − الصافي"},"💡 USt heraus: brutto : 119 × 19 (7 %: : 107 × 7). netto = brutto : 119 × 100. brutto = netto : 100 × 119.":{"tr":"💡 KDV'yi ayır: brüt : 119 × 19 (7 %: : 107 × 7). net = brüt : 119 × 100. brüt = net : 100 × 119.","vi":"💡 Tách USt ra: brutto : 119 × 19 (7 %: : 107 × 7). netto = brutto : 119 × 100. brutto = netto : 100 × 119.","ar":"💡 استخراج الضريبة: الإجمالي : 119 × 19 (لـ 7 %: : 107 × 7). الصافي = الإجمالي : 119 × 100. الإجمالي = الصافي : 100 × 119."},"1.767 Kunden, geöffnet 09:00–13:30 und 15:00–20:00. Kunden je Stunde? (Zahl)":{"tr":"1.767 müşteri, 09:00–13:30 ve 15:00–20:00 arası açık. Saatte kaç müşteri? (sayı)","vi":"1.767 khách, mở cửa 09:00–13:30 và 15:00–20:00. Mỗi giờ bao nhiêu khách? (Số)","ar":"1.767 عميلًا، مفتوح من 09:00–13:30 ومن 15:00–20:00. كم عميلًا في الساعة؟ (رقم)"},"10 Paar Socken zu 4 € und 30 Paar zu 6 €. Durchschnittspreis in €? (Zahl)":{"tr":"4 €'luk 10 çift çorap ve 6 €'luk 30 çift. Ortalama fiyat (€)? (sayı)","vi":"10 đôi tất giá 4 € và 30 đôi giá 6 €. Giá trung bình tính bằng €? (Số)","ar":"10 أزواج جوارب بسعر 4 € و 30 زوجًا بسعر 6 €. متوسط السعر (Durchschnittspreis) بالـ €؟ (رقم)"},"2.400 € Kosten nach Fläche: 500, 300 und 400 m². Anteil der 300 m² in €? (Zahl)":{"tr":"2.400 € masraf alana göre: 500, 300 ve 400 m². 300 m²'nin payı (€)? (sayı)","vi":"Chi phí 2.400 € chia theo diện tích: 500, 300 và 400 m². Phần của 300 m² tính bằng €? (Số)","ar":"تكاليف 2.400 € حسب المساحة: 500 و 300 و 400 m². حصة الـ 300 m² بالـ €؟ (رقم)"},"Umsatz netto 2.448 € bei 144 Kunden. Umsatz je Kunde in €? (Zahl)":{"tr":"144 müşteride net ciro 2.448 €. Müşteri başına ciro (€)? (sayı)","vi":"Doanh thu chưa thuế (netto) 2.448 € với 144 khách. Doanh thu mỗi khách tính bằng €? (Số)","ar":"مبيعات صافية (netto) 2.448 € مع 144 عميلًا. المبيعات لكل عميل بالـ €؟ (رقم)"},"💡 Kunden je Stunde = Kunden : Stunden. Gewogen = Summe (Menge × Preis) : Summe der Mengen. Verteilung = Kosten : Summe der Anteile × Anteil.":{"tr":"💡 Saatte müşteri = müşteri : saat. Ağırlıklı = toplam (miktar × fiyat) : miktarların toplamı. Dağıtım = masraf : payların toplamı × pay.","vi":"💡 Khách mỗi giờ = khách : giờ. Có trọng số (gewogen) = tổng (lượng × giá) : tổng các lượng. Phân bổ = chi phí : tổng các phần × phần.","ar":"💡 العملاء في الساعة = العملاء : الساعات. المرجّح = مجموع (الكمية × السعر) : مجموع الكميات. التوزيع = التكاليف : مجموع الأجزاء × الجزء."},"Kassenbestand 1.980,50 € · Abschöpfung 1.500 € · Wechselgeld 250 € · Karte 2.114,30 €. Tagesumsatz in €? (Zahl)":{"tr":"Kasa mevcudu 1.980,50 € · kasadan ara para çekme (Abschöpfung) 1.500 € · bozuk para (Wechselgeld) 250 € · kart 2.114,30 €. Günlük ciro (€)? (sayı)","vi":"Số dư quỹ 1.980,50 € · rút bớt giữa ca (Abschöpfung) 1.500 € · tiền lẻ để thối (Wechselgeld) 250 € · thẻ 2.114,30 €. Doanh thu trong ngày (Tagesumsatz) tính bằng €? (Số)","ar":"رصيد الصندوق 1.980,50 € · سحب من الصندوق (Abschöpfung) 1.500 € · فكّة (Wechselgeld) 250 € · بطاقة 2.114,30 €. مبيعات اليوم (Tagesumsatz) بالـ €؟ (رقم)"},"30 Artikel zu 12,95 € verkauft, 100 € Wechselgeld, Ist 478,50 €. Kassendifferenz in €? (Zahl mit Minus)":{"tr":"12,95 €'luk 30 ürün satıldı, 100 € bozuk para, Ist (fiili) 478,50 €. Kasa farkı (€)? (eksi işaretli sayı)","vi":"Bán 30 mặt hàng giá 12,95 €, tiền lẻ để thối (Wechselgeld) 100 €, thực tế (Ist) 478,50 €. Chênh lệch quỹ (Kassendifferenz) tính bằng €? (Số có dấu trừ)","ar":"بيع 30 قطعة بسعر 12,95 €، فكّة 100 €، الفعلي (Ist) 478,50 €. فرق الصندوق (Kassendifferenz) بالـ €؟ (رقم مع علامة ناقص)"},"Abends sind 5 € ZU VIEL in der Kasse. Was kann die Ursache sein?":{"tr":"Akşam kasada 5 € FAZLA var. Sebep ne olabilir?","vi":"Buổi tối trong quỹ THỪA 5 €. Nguyên nhân có thể là gì?","ar":"في المساء يوجد 5 € زيادة في الصندوق. ما السبب المحتمل؟"},"Einem Kunden wurde zu wenig Wechselgeld gegeben.":{"tr":"Bir müşteriye eksik para üstü verildi.","vi":"Đã thối thiếu tiền lẻ cho một khách.","ar":"أُعطي عميل باقيًا أقل من اللازم."},"Es wurde etwas gestohlen.":{"tr":"Bir şey çalındı.","vi":"Có thứ bị lấy cắp.","ar":"سُرق شيء."},"Die Abschöpfung wurde doppelt gezählt.":{"tr":"Kasadan ara para çekme iki kez sayıldı.","vi":"Khoản rút bớt giữa ca (Abschöpfung) bị đếm hai lần.","ar":"حُسب السحب من الصندوق مرتين."},"Einem Kunden wurde zu viel Wechselgeld gegeben.":{"tr":"Bir müşteriye fazla para üstü verildi.","vi":"Đã thối thừa tiền lẻ cho một khách.","ar":"أُعطي عميل باقيًا أكثر من اللازم."},"Soll 620 € · Barumsatz 3.400 € · Rückgabe bar 20 € · Entnahme 3.000 €. Mit wie viel Euro wurde die Kasse eröffnet? (Zahl)":{"tr":"Soll (olması gereken) 620 € · Nakit satış 3.400 € · Nakit iade 20 € · Kasadan çekilen 3.000 €. Kasa kaç euro ile açıldı? (Sayı)","vi":"Soll (số dư theo sổ sách) 620 € · Doanh thu tiền mặt 3.400 € · Trả lại bằng tiền mặt 20 € · Rút ra 3.000 €. Quầy thu ngân được mở với bao nhiêu euro? (Nhập số)","ar":"الرصيد المطلوب (Soll) 620 € · المبيعات النقدية 3.400 € · إرجاع نقدي 20 € · المبلغ المسحوب 3.000 €. بكم يورو تم فتح الصندوق؟ (رقم)"},"💡 Tagesumsatz = Kassenbestand + Abschöpfung − Wechselgeld + Karte. Differenz = Ist − Soll. Karte gehört nie in den Bargeld-Soll.":{"tr":"💡 Günlük ciro (Tagesumsatz) = Kasa mevcudu + kasadan ara para çekme (Abschöpfung) − bozuk para (Wechselgeld) + Kart. Fark = Ist (fiili) − Soll (olması gereken). Kart ödemesi asla nakit Soll tutarına girmez.","vi":"💡 Tagesumsatz (doanh thu trong ngày) = số dư quỹ + tiền rút bớt − tiền lẻ để thối + thẻ. Chênh lệch = Ist (thực tế) − Soll (sổ sách). Tiền thẻ không bao giờ tính vào Soll tiền mặt.","ar":"💡 Tagesumsatz (مبيعات اليوم) = رصيد الصندوق + السحب (Abschöpfung) − الفكّة + البطاقة. الفرق = الفعلي − المطلوب. البطاقة لا تدخل أبداً في المبلغ النقدي المطلوب."},"Dreisatz und Grundpreis":{"tr":"Üçlü orantı ve birim fiyat","vi":"Quy tắc tam suất và giá theo đơn vị","ar":"قاعدة الثلاثة (Dreisatz) وسعر الوحدة (Grundpreis)"},"Rabatt und Skonto":{"tr":"İndirim ve Skonto (peşin ödeme iskontosu)","vi":"Giảm giá và chiết khấu thanh toán sớm","ar":"الخصم (Rabatt) والخصم عند الدفع الفوري (Skonto)"},"Prozentsatz und Grundwert":{"tr":"Yüzde oranı ve ana değer","vi":"Tỷ lệ phần trăm và giá trị gốc","ar":"معدل النسبة (Prozentsatz) والقيمة الأساسية (Grundwert)"},"Umsatzsteuer":{"tr":"Katma değer vergisi (KDV)","vi":"Thuế giá trị gia tăng (VAT)","ar":"ضريبة القيمة المضافة (Umsatzsteuer)"},"119 × 19 %":{"tr":"119 × 19 %","vi":"119 × 19 %","ar":"119 × 19 %"},"119 : 119 × 19":{"tr":"119 : 119 × 19","vi":"119 : 119 × 19","ar":"119 : 119 × 19"},"Durchschnitt und Verteilung":{"tr":"Ortalama ve dağıtım","vi":"Trung bình và tính phân bổ","ar":"المتوسط (Durchschnitt) والتوزيع"},"Der Kassensturz":{"tr":"Kasa sayımı (sürpriz kasa kontrolü)","vi":"Kassensturz (kiểm kê quỹ đột xuất)","ar":"جرد الصندوق المفاجئ (Kassensturz)"},"Station {1}: {2}":{"tr":"İstasyon {1}: {2}","vi":"Trạm {1}: {2}","ar":"المحطة {1}: {2}"},"Module {1} und {2}":{"tr":"Modül {1} ve {2}","vi":"Mô-đun {1} và {2}","ar":"الوحدتان {1} و{2}"},"Modul {1} und {2}":{"tr":"Modül {1} ve {2}","vi":"Mô-đun {1} và {2}","ar":"الوحدتان {1} و{2}"},"Modul {1}":{"tr":"Modül {1}","vi":"Mô-đun {1}","ar":"الوحدة {1}"},"{1} von {2} richtig. Die roten Aufgaben noch einmal prüfen – schaut in euren Unterlagen nach.":{"tr":"{2} sorudan {1} tanesi doğru. Kırmızı soruları bir kez daha kontrol edin – notlarınıza bakın.","vi":"Đúng {1} trên {2}. Hãy kiểm tra lại các bài màu đỏ – xem lại tài liệu của các bạn.","ar":"{1} من {2} صحيحة. راجعوا المسائل الحمراء مرة أخرى – انظروا في أوراقكم."},"✅ Alles richtig! Eure Ziffer für den Tresor: {1}":{"tr":"✅ Hepsi doğru! Çelik kasa (Tresor) için rakamınız: {1}","vi":"✅ Tất cả đều đúng! Chữ số của các bạn cho két sắt: {1}","ar":"✅ كل شيء صحيح! رقمكم للخزنة: {1}"},"Das Wechselgeld ist da – der Kassensturz kann kommen. Eure Zeit: {1} · Genutzte Tipps: {2}":{"tr":"Bozuk para (Wechselgeld) hazır – Kassensturz (sürpriz kasa kontrolü) gelebilir. Süreniz: {1} · Kullanılan ipuçları: {2}","vi":"Tiền lẻ để thối đã sẵn sàng – kiểm kê quỹ đột xuất có thể đến. Thời gian của các bạn: {1} · Số gợi ý đã dùng: {2}","ar":"الفكّة جاهزة – يمكن أن يأتي جرد الصندوق. وقتكم: {1} · التلميحات المستخدمة: {2}"},"❌ Der Tresor bleibt zu. Prüft eure Ziffern!":{"tr":"❌ Kasa kapalı kalıyor. Rakamlarınızı kontrol edin!","vi":"❌ Két sắt vẫn đóng. Hãy kiểm tra lại các chữ số!","ar":"❌ الخزنة تبقى مغلقة. راجعوا أرقامكم!"},"{1} Min. (inkl. Tipps)":{"tr":"{1} dk. (ipuçları dahil)","vi":"{1} phút (gồm cả gợi ý)","ar":"{1} دقيقة (مع التلميحات)"}};</script>
+<script>/* UB-Engine – Übersetzung zum Antippen (DE | TR | VI | AR)
+   Keine externen Abhängigkeiten, nur Systemschriften. Speichert nur die Sprachwahl (kein Name, keine Ergebnisse).
+   Daten: window.UB_I18N = { "deutscher Text": {tr:"…", vi:"…", ar:"…"}, … }
+   Vorlagen mit Platzhaltern: "Wie viel Rückgeld bekommt {1}?" -> {1} wird mit dem echten Wert gefüllt.
+   Konfiguration: window.UB_CONFIG = { mode:true|false, hint:"pdf"|"app", pdf:"Pfad zur PDF" } */
+(function () {
+  'use strict';
+  var CFG = window.UB_CONFIG || {};
+  var DATA = window.UB_I18N || {};
+  var LANGS = ['de', 'tr', 'vi', 'ar'];
+  var NAMES = { de: 'Deutsch', tr: 'Türkçe', vi: 'Tiếng Việt', ar: 'العربية' };
+  var SKEY = 'ub_lang';
+  var T = {
+    hintPdf: { tr: 'Cümleye dokun (bilgisayarda: üzerine gel), çeviriyi gör.', vi: 'Chạm vào câu (trên máy tính: rê chuột) để xem bản dịch.', ar: 'المس الجملة (على الكمبيوتر: مرّر المؤشر) لترى الترجمة.' },
+    hintApp: { tr: 'Metne dokun: çeviriyi gör. Düğmeler için: uzun bas ya da 👆 aç.', vi: 'Chạm vào chữ để xem bản dịch. Với nút bấm: nhấn giữ hoặc bật 👆.', ar: 'المس النص لترى الترجمة. للأزرار: اضغط مطولاً أو فعّل 👆.' },
+    mode: { de: 'Lesemodus: Antippen übersetzt nur (Knöpfe sind gesperrt)', tr: 'Okuma modu: dokunma yalnızca çevirir (düğmeler kilitli)', vi: 'Chế độ đọc: chạm chỉ để dịch (nút bị khóa)', ar: 'وضع القراءة: اللمس للترجمة فقط (الأزرار مقفلة)' },
+    none: { tr: '(Bu metin için çeviri yok)', vi: '(Chưa có bản dịch cho đoạn này)', ar: '(لا توجد ترجمة لهذا النص)' }
+  };
+
+  function textOf(el) {
+    var out = '';
+    (function w(n) { for (var c = n.firstChild; c; c = c.nextSibling) { if (c.nodeType === 3) out += c.nodeValue; else if (c.nodeType === 1) { if (c.tagName === 'BR') out += ' '; else w(c); } } })(el);
+    return out;
+  }
+  function norm(s) { return String(s).replace(/\s+/g, ' ').trim(); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+
+  /* ---------- Wörterbuch ---------- */
+  var EX = Object.create(null), TPL = [];
+  Object.keys(DATA).forEach(function (key) {
+    var v = DATA[key], k = norm(key);
+    if (/\{\d+\}/.test(k)) {
+      var parts = k.split(/\{\d+\}/), nums = (k.match(/\{(\d+)\}/g) || []).map(function (x) { return parseInt(x.slice(1), 10); });
+      var re = new RegExp('^' + parts.map(function (p) { return p.replace(/[.*+?^$()|[\]\\{}]/g, '\\$&'); }).join('(.+?)') + '$');
+      TPL.push({ re: re, nums: nums, v: v, len: k.length });
+    } else EX[k] = v;
+  });
+  TPL.sort(function (a, b) { return b.len - a.len; });
+  var CACHE = {}, CN = 0;
+  function compose(k, lang) {   // Satz aus mehreren bekannten Teilen (z. B. Gesprächsbausteine) mit „…“ für leere Felder
+    if (!/^[„…]/.test(k)) return null;
+    var w = k.split(' '), memo = {};
+    function go(i) {
+      if (i === w.length) return [];
+      if (memo[i] !== undefined) return memo[i];
+      for (var j = w.length; j > i; j--) {
+        var p = w.slice(i, j).join(' '), e = EX[p], t = p === '…' ? '…' : (e && e[lang]);
+        if (t) { var rest = go(j); if (rest) { memo[i] = [t].concat(rest); return memo[i]; } }
+      }
+      memo[i] = null; return null;
+    }
+    var r = go(0); return r && r.length > 1 ? r.join(' ') : null;
+  }
+  var PLAIN = /^[\d\s.,:;+\-−–×÷=%€/()?!„“"…]*$/;
+
+  function tr(text, lang, depth) {
+    var k = norm(text), ck = lang + '|' + k;
+    if (ck in CACHE) return CACHE[ck];
+    var r = null, e = EX[k];
+    if (e && e[lang]) r = e[lang];
+    else if (!(depth > 2)) {
+      for (var i = 0; i < TPL.length && r === null; i++) {
+        var t = TPL[i], m = t.re.exec(k);
+        if (m && t.v[lang]) {
+          var cap = {};
+          t.nums.forEach(function (n, j) { cap[n] = m[j + 1]; });
+          r = t.v[lang].replace(/\{(\d+)\}/g, function (_, n) {
+            var c = cap[n]; if (c === undefined) return '';
+            if (PLAIN.test(c)) return c;
+            var x = tr(c, lang, (depth || 0) + 1);
+            if (!x) return c;
+            return c.length > 32 ? x : c + ' (' + x + ')';
+          });
+        }
+      }
+    }
+    if (r === null && !(depth > 2) && /^[A-C?]/.test(k) && k.length > 8 && /^[A-C?][A-ZÄÖÜa-zäöü„(0-9]/.test(k)) r = tr(k.slice(1), lang, (depth || 0) + 2);   // Buchstabe/Fragezeichen ohne Leerzeichen davor
+    if (r === null && !(depth > 2)) {                      // Markierungen ✓ ✗ ~ am Ende
+      var m3 = /^(.*[^\s✓✗~])\s+((?:[✓✗~]\s?)+)$/.exec(k);
+      if (m3) { var x3 = tr(m3[1], lang, (depth || 0) + 1); if (x3) r = x3 + ' ' + m3[2]; }
+    }
+    if (r === null && !(depth > 2)) r = compose(k, lang);
+    if (r === null) {
+      var m2 = /^(\S{1,3})\s+(.{3,})$/.exec(k);       // z. B. Knopf "A  Antworttext"
+      if (m2 && !(depth > 2)) r = tr(m2[2], lang, (depth || 0) + 1);
+    }
+    if (CN++ > 6000) { CACHE = {}; CN = 0; }
+    CACHE[ck] = r;
+    return r;
+  }
+
+  /* ---------- Sprache ---------- */
+  var lang = 'de';
+  var saved = store(SKEY);
+  if (saved && LANGS.indexOf(saved) >= 0) lang = saved;
+  var qm = /[?&]lang=(de|tr|vi|ar)\b/.exec(location.search);   // Sprach-Buttons im Dashboard: ...html?lang=tr
+  if (qm) { lang = qm[1]; store(SKEY, lang); }
+  var readMode = false;
+
+  /* ---------- Oberfläche ---------- */
+  var css = '#ub-bar{position:fixed;z-index:2147483000;top:6px;right:6px;display:flex;gap:3px;align-items:center;padding:3px 5px;border-radius:999px;background:rgba(27,42,56,.92);color:#fff;font:600 13px/1 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;box-shadow:0 1px 6px rgba(0,0,0,.3);direction:ltr}' +
+    '#ub-bar button{all:unset;box-sizing:border-box;cursor:pointer;min-width:34px;height:30px;padding:0 7px;border-radius:999px;text-align:center;line-height:30px;font:600 13px/30px system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:#fff;-webkit-tap-highlight-color:transparent}' +
+    '#ub-bar button[aria-pressed=true]{background:#fff;color:#1b2a38}#ub-bar button:focus-visible{outline:2px solid #ffd54a;outline-offset:1px}' +
+    '#ub-bar .g{padding:0 3px 0 4px;font-size:15px}#ub-mode{display:none}#ub-bar.l #ub-mode{display:block}' +
+    '#ub-hint{position:fixed;z-index:2147482999;top:46px;right:6px;max-width:min(88vw,340px);padding:8px 11px;border-radius:10px;background:#fff8d6;color:#222;border:1px solid #e0c85a;font:14px/1.35 system-ui,-apple-system,"Segoe UI","Noto Sans",Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.25);display:none}' +
+    '#ub-tip{position:absolute;z-index:2147483001;max-width:min(92vw,440px);padding:10px 13px;border-radius:10px;background:#1b2a38;color:#fff;font:17px/1.45 system-ui,-apple-system,"Segoe UI","Noto Sans",Arial,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.4);pointer-events:none;display:none}' +
+    '#ub-tip[dir=rtl]{text-align:right;font-family:"Geeza Pro","Segoe UI","Noto Naskh Arabic",Tahoma,Arial,sans-serif;font-size:19px}#ub-tip.none{opacity:.85;font-size:14px}' +
+    '#ub-tip .de{display:block;font-size:12px;opacity:.7;margin-bottom:4px;direction:ltr;text-align:left}' +
+    'body.ub-on [data-ub]:not(button):not(a){text-decoration:underline dotted rgba(80,110,160,.8);text-underline-offset:3px;text-decoration-thickness:1.5px}' +
+    'body.ub-on [data-ub]:not(button):not(a):hover{background:rgba(255,213,74,.28)}' +
+    'body.ub-read{cursor:help}body.ub-read #ub-mode{}' +
+    '@media print{#ub-bar,#ub-tip,#ub-hint{display:none!important}body.ub-on [data-ub]{text-decoration:none!important}}';
+  if (CFG.mode) css += 'body{padding-top:44px!important}';   // Apps: Leiste verdeckt nichts
+  var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+
+  var bar = document.createElement('div'); bar.id = 'ub-bar'; bar.setAttribute('role', 'toolbar'); bar.setAttribute('aria-label', 'Sprache / Language');
+  var h = '<span class="g" aria-hidden="true">🌐</span>';
+  LANGS.forEach(function (l) { h += '<button type="button" data-l="' + l + '" aria-pressed="false" title="' + NAMES[l] + '">' + l.toUpperCase() + '</button>'; });
+  if (CFG.mode) { h += '<button type="button" id="ub-mode" aria-pressed="false" title="Lesemodus">👆</button>'; bar.className = 'l'; }
+  bar.innerHTML = h;
+  var hint = document.createElement('div'); hint.id = 'ub-hint'; hint.setAttribute('role', 'status');
+  var tip = document.createElement('div'); tip.id = 'ub-tip'; tip.setAttribute('role', 'tooltip');
+  function mount() { document.body.appendChild(bar); document.body.appendChild(hint); document.body.appendChild(tip); apply(true); }
+
+  function latinRuns(s) { // deutsche Wörter/Zahlen im arabischen Text links-nach-rechts einbetten
+    return esc(s).replace(/([A-Za-zÄÖÜäöüß0-9€%][A-Za-zÄÖÜäöüß0-9€%.,:;+\-−×÷=\/'’]*(?: [A-Za-zÄÖÜäöüß0-9€%][A-Za-zÄÖÜäöüß0-9€%.,:;+\-−×÷=\/'’]*)*)/g, '<bdi dir="ltr">$1</bdi>');
+  }
+
+  /* ---------- Markieren ---------- */
+  var INL = { B: 1, I: 1, EM: 1, STRONG: 1, SPAN: 1, SMALL: 1, BR: 1, A: 1, CODE: 1, SUB: 1, SUP: 1, U: 1, MARK: 1, ABBR: 1, BDI: 1, S: 1, INPUT: 1, IMG: 1 };
+  var SKIP = { SCRIPT: 1, STYLE: 1, SVG: 1, TEXTAREA: 1, SELECT: 1, OPTION: 1, NOSCRIPT: 1, CANVAS: 1, TITLE: 1, HEAD: 1 };
+  function leafish(el) {
+    for (var c = el.firstElementChild; c; c = c.nextElementSibling) if (!INL[c.tagName.toUpperCase()] || (c.firstElementChild && !leafish(c))) return false;
+    return true;
+  }
+  function ownText(el) { for (var c = el.firstChild; c; c = c.nextSibling) if (c.nodeType === 3 && /\S/.test(c.nodeValue)) return true; return false; }
+  var NOOP = function () {};   // iOS-Safari: Elemente ohne Handler bekommen sonst kein click-Ereignis
+  function markEl(el) {
+    if (el.id === 'ub-bar' || el.id === 'ub-tip' || el.id === 'ub-hint') return;
+    if (SKIP[el.tagName.toUpperCase()] || el.closest && el.closest('#ub-bar,#ub-tip,#ub-hint,svg')) return;
+    if (!leafish(el)) return;
+    var t = textOf(el); if (!t || t.length < 2 || !/[A-Za-zÄÖÜäöüß]/.test(t)) return;
+    var r = tr(t, lang);
+    if (r !== null) { el.setAttribute('data-ub', '1'); if (!el.onclick) el.onclick = NOOP; }
+    else if (el.hasAttribute('data-ub')) el.removeAttribute('data-ub');
+    else if (CFG.debug && ownText(el)) (window.__ubMissing = window.__ubMissing || {})[norm(t)] = 1;
+  }
+  function markTree(root) {
+    if (lang === 'de') return;
+    if (root.nodeType !== 1) return;
+    markEl(root);
+    var all = root.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) markEl(all[i]);
+  }
+  function unmarkAll() { var a = document.querySelectorAll('[data-ub]'); for (var i = 0; i < a.length; i++) a[i].removeAttribute('data-ub'); }
+
+  var pend = [], timer = null;
+  function queue(n) { pend.push(n); if (!timer) timer = setTimeout(flush, 120); }
+  function flush() {
+    timer = null; var p = pend; pend = [];
+    if (lang === 'de') return;
+    var seen = [];
+    p.forEach(function (n) {
+      var e = n.nodeType === 1 ? n : n.parentElement; if (!e || seen.indexOf(e) >= 0) return; seen.push(e);
+      if (!document.body.contains(e)) return;
+      markTree(e);
+      var up = e.parentElement; if (up && up !== document.body) markEl(up);
+    });
+  }
+  var mo = new MutationObserver(function (ms) {
+    for (var i = 0; i < ms.length; i++) {
+      var m = ms[i];
+      if (m.type === 'characterData') queue(m.target);
+      else for (var j = 0; j < m.addedNodes.length; j++) { var n = m.addedNodes[j]; if (n.id === 'ub-tip' || n.id === 'ub-bar' || n.id === 'ub-hint') continue; queue(n); }
+      if (m.type === 'childList' && m.target.nodeType === 1 && m.addedNodes.length === 0 && m.removedNodes.length) queue(m.target);
+    }
+  });
+
+  /* ---------- Tooltip ---------- */
+  var tipEl = null, tipTimer = null;
+  function hideTip() { tip.style.display = 'none'; tipEl = null; clearTimeout(tipTimer); }
+  function findMarked(t) {
+    for (var e = t && t.nodeType === 3 ? t.parentElement : t; e && e !== document.body && e !== document.documentElement; e = e.parentElement) if (e.hasAttribute && e.hasAttribute('data-ub')) return e;
+    return null;
+  }
+  function showTip(el) {
+    if (lang === 'de') return;
+    if (tipEl === el && tip.style.display === 'block') { hideTip(); return; }
+    var de = norm(textOf(el)), r = tr(de, lang);
+    tip.className = r === null ? 'none' : '';
+    if (r === null) { r = (T.none[lang] || ''); }
+    tip.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr'); tip.setAttribute('lang', lang);
+    tip.innerHTML = '<span class="de">' + esc(de.length > 90 ? de.slice(0, 88) + '…' : de) + '</span>' + (lang === 'ar' ? latinRuns(r) : esc(r));
+    tip.style.display = 'block'; tip.style.left = '0px'; tip.style.top = '0px';
+    var rc = el.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight, sx = window.pageXOffset, sy = window.pageYOffset, vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    var x = rc.left; if (lang === 'ar') x = rc.right - tw; x = Math.max(6, Math.min(x, vw - tw - 6));
+    var y = rc.bottom + 6; if (y + th > vh - 6 && rc.top - th - 6 > 6) y = rc.top - th - 6; else if (y + th > vh - 6) y = Math.max(6, vh - th - 6);
+    tip.style.left = (x + sx) + 'px'; tip.style.top = (y + sy) + 'px';
+    tipEl = el; clearTimeout(tipTimer); tipTimer = setTimeout(hideTip, Math.min(16000, 4000 + r.length * 80));
+  }
+
+  /* ---------- Ereignisse ---------- */
+  var hoverOK = window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches;
+  function interactive(el) {
+    for (var e = el; e && e !== document.body; e = e.parentElement) {
+      var tg = e.tagName.toUpperCase();
+      if (/^(BUTTON|A|INPUT|SELECT|TEXTAREA|LABEL|SUMMARY)$/.test(tg) || e.getAttribute('role') === 'button' || e.hasAttribute('data-act') || e.hasAttribute('onclick') || (typeof e.onclick === 'function' && e.onclick !== NOOP)) return true;
+      try { if (getComputedStyle(e).cursor === 'pointer') return true; } catch (x) {}
+    }
+    return false;
+  }
+  var suppress = false, lpTimer = null, hoverTimer = null;
+  window.addEventListener('click', function (ev) {
+    if (ev.target.closest && ev.target.closest('#ub-bar')) return;
+    if (suppress) { suppress = false; ev.preventDefault(); ev.stopPropagation(); return; }
+    if (lang === 'de') return;
+    var m = findMarked(ev.target);
+    if (readMode) {   // Lesemodus: nichts im Spiel auslösen, nur übersetzen
+      ev.preventDefault(); ev.stopPropagation();
+      m = m || (ev.target.querySelector && ev.target.querySelector('[data-ub]'));
+      if (m) showTip(m); else hideTip();
+      return;
+    }
+    if (!m) { hideTip(); return; }
+    if (!interactive(m)) showTip(m); else hideTip();
+  }, true);
+  window.addEventListener('touchstart', function (ev) {
+    if (lang === 'de' || readMode) return;
+    var m = findMarked(ev.target); if (!m || !interactive(m)) return;
+    clearTimeout(lpTimer);
+    lpTimer = setTimeout(function () { suppress = true; showTip(m); setTimeout(function () { suppress = false; }, 900); }, 520);
+  }, { passive: true, capture: true });
+  ['touchend', 'touchmove', 'touchcancel'].forEach(function (n) { window.addEventListener(n, function () { clearTimeout(lpTimer); }, { passive: true, capture: true }); });
+  window.addEventListener('contextmenu', function (ev) { if (lang !== 'de' && findMarked(ev.target) && 'ontouchstart' in window) ev.preventDefault(); }, true);
+  if (hoverOK) {
+    window.addEventListener('mouseover', function (ev) {
+      if (lang === 'de') return; var m = findMarked(ev.target); clearTimeout(hoverTimer);
+      if (!m) return;
+      hoverTimer = setTimeout(function () { showTip(m); }, interactive(m) ? 550 : 200);
+    }, true);
+    window.addEventListener('mouseout', function (ev) { clearTimeout(hoverTimer); if (findMarked(ev.target)) hideTip(); }, true);
+  }
+  window.addEventListener('scroll', hideTip, { passive: true });
+  window.addEventListener('keydown', function (e) { if (e.key === 'Escape') hideTip(); });
+
+  /* ---------- Sprache umschalten ---------- */
+  var hintT = null;
+  function apply(init) {
+    document.body.classList.toggle('ub-on', lang !== 'de');
+    var b = bar.querySelectorAll('button[data-l]');
+    for (var i = 0; i < b.length; i++) b[i].setAttribute('aria-pressed', b[i].getAttribute('data-l') === lang ? 'true' : 'false');
+    hideTip(); unmarkAll();
+    if (lang !== 'de') {
+      markTree(document.body);
+      if (!init) {
+        var k = CFG.hint === 'pdf' ? T.hintPdf : T.hintApp;
+        hint.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr'); hint.setAttribute('lang', lang);
+        hint.textContent = k[lang]; hint.style.display = 'block'; clearTimeout(hintT); hintT = setTimeout(function () { hint.style.display = 'none'; }, 6500);
+      }
+    } else { hint.style.display = 'none'; readMode = false; document.body.classList.remove('ub-read'); var mb = document.getElementById('ub-mode'); if (mb) mb.setAttribute('aria-pressed', 'false'); }
+    document.documentElement.setAttribute('data-ub-lang', lang);
+  }
+  bar.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button'); if (!b) return;
+    if (b.id === 'ub-mode') {
+      readMode = !readMode; b.setAttribute('aria-pressed', readMode ? 'true' : 'false'); document.body.classList.toggle('ub-read', readMode);
+      if (lang === 'de') { lang = 'tr'; store(SKEY, lang); apply(); }
+      b.title = T.mode[lang] || T.mode.de;
+      if (readMode) { hint.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr'); hint.textContent = T.mode[lang] || T.mode.de; hint.style.display = 'block'; clearTimeout(hintT); hintT = setTimeout(function () { hint.style.display = 'none'; }, 4500); } else hint.style.display = 'none';
+      return;
+    }
+    var l = b.getAttribute('data-l'); if (!l) return;
+    lang = l; store(SKEY, lang); apply();
+  });
+
+  /* Debug / Qualitätscheck: ?debug=1 sammelt nicht übersetzte Texte in window.__ubMissing */
+  if (/[?&]ubdebug=1/.test(location.search)) CFG.debug = true;
+  window.UB = { tr: tr, setLang: function (l) { lang = l; store(SKEY, l); apply(); }, lang: function () { return lang; }, missing: function () { return Object.keys(window.__ubMissing || {}); } };
+
+  function start() { mount(); mo.observe(document.body, { childList: true, subtree: true, characterData: true }); }
+  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+</script>
+</body></html>
