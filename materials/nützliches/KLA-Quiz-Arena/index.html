@@ -1,0 +1,2505 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>KLA Quiz-Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#eef3f9;--surface:#fff;--surface2:#e6edf6;--ink:#14202e;--muted:#566578;--line:#cbd6e3;
+  --brand:#1f5fa8;--brand-ink:#fff;--ok:#1f7a3f;--bad:#b3261e;--warn:#a15c00;--gold:#e0a300;
+  --c0:#c9263d;--c1:#1f66c9;--c2:#e8a900;--c3:#1f8a4c;--c4:#7a3fc4;--c5:#0b8d99;
+  --display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI","Noto Sans Arabic","Noto Sans Ethiopic",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1722;--surface:#18222f;--surface2:#142030;--ink:#eaf0f7;--muted:#a3b2c4;--line:#2c3a4c;
+  --brand:#6fb0ff;--brand-ink:#08111d;--ok:#6fcf8e;--bad:#ff8a80;--warn:#f0b35a;--gold:#ffd04a;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0f1722;--surface:#18222f;--surface2:#142030;--ink:#eaf0f7;--muted:#a3b2c4;--line:#2c3a4c;
+  --brand:#6fb0ff;--brand-ink:#08111d;--ok:#6fcf8e;--bad:#ff8a80;--warn:#f0b35a;--gold:#ffd04a;color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.4;-webkit-text-size-adjust:100%}
+h1,h2,h3{font-family:var(--display);font-stretch:112%;margin:0 0 .4em;line-height:1.1}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:.6em 1em;touch-action:manipulation}
+button.pri{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:700}
+button.danger{border-color:var(--bad);color:var(--bad)}
+button:disabled{opacity:.45;cursor:default}
+input,textarea,select{font:inherit;width:100%;padding:.6em .7em;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+textarea{resize:vertical;min-height:4em}
+label{display:block;font-weight:700;margin:10px 0 4px}
+.muted{color:var(--muted)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grow{flex:1}
+.hide{display:none!important}
+svg text{font-family:var(--body)}
+/* ---------- Tafel ---------- */
+#tafel header{display:flex;align-items:center;gap:14px;padding:8px 18px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap}
+#tafel header .logo{height:44px;width:auto;display:block}
+#tafel header h1{font-size:1.3rem;margin:0}
+#tafel header .sp{flex:1}
+.mini{display:flex;align-items:center;gap:10px;font-size:.9rem}
+.mini canvas{width:56px;height:56px;border-radius:6px;background:#fff}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bad);margin-right:4px}
+.dot.on{background:var(--ok)}
+#tMain{padding:18px 22px 40px;max-width:1500px;margin:0 auto}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.ctrl button{font-size:1.05rem}
+.big{font-size:clamp(1.6rem,3.2vw,2.6rem)}
+.join{display:grid;grid-template-columns:minmax(260px,400px) 1fr;gap:28px;align-items:start}
+.join canvas{width:100%;aspect-ratio:1;background:#fff;border-radius:16px}
+.code{font-family:var(--display);font-size:3.2rem;font-weight:800;letter-spacing:.12em}
+.lobbyp{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.pchip{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 14px 4px 4px;font-weight:700;animation:pop .35s}
+.pchip svg{width:38px;height:38px;border-radius:50%}
+.pchip.t0{border-color:var(--c0)}.pchip.t1{border-color:var(--c1)}.pchip.t2{border-color:var(--c2)}.pchip.t3{border-color:var(--c3)}.pchip.t4{border-color:var(--c4)}.pchip.t5{border-color:var(--c5)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.settings{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:12px}
+.settings .box{padding:10px 12px}
+.settings label{margin:0 0 4px;font-size:.9rem}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+.seg button{padding:.35em .7em;font-size:.95rem}
+.seg button.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:700}
+/* Fragen auf der Tafel */
+.qwrap{display:flex;flex-direction:column;gap:14px;min-height:calc(100vh - 140px)}
+.qtop{display:flex;align-items:center;gap:14px}
+.qtype{font-family:var(--display);font-weight:800;background:var(--surface);border:2px solid var(--brand);border-radius:999px;padding:.2em .9em;font-size:1rem}
+.x2{background:var(--gold);color:#1a1200;border-radius:8px;padding:.1em .6em;font-family:var(--display);font-weight:800}
+.qtext{font-family:var(--display);font-stretch:112%;font-weight:800;font-size:clamp(1.6rem,3.4vw,3rem);text-align:center;background:var(--surface);border-radius:18px;padding:18px 24px;border:1px solid var(--line)}
+.qmid{display:flex;align-items:center;justify-content:center;gap:24px;flex:1}
+.qmid img{max-height:44vh;max-width:56vw;border-radius:14px;object-fit:contain;background:#fff}
+.imgcr{font-size:.72rem;color:var(--muted);text-align:right}
+.timer{font-family:var(--display);font-size:3rem;font-weight:800;min-width:2.1em;text-align:center;border-radius:50%;background:var(--surface);border:6px solid var(--brand);aspect-ratio:1;display:flex;align-items:center;justify-content:center;line-height:1;padding:.1em}
+.timer.low{border-color:var(--bad);color:var(--bad);animation:pulse .5s infinite alternate}
+@keyframes pulse{to{transform:scale(1.08)}}
+.cnt{font-family:var(--display);font-size:2.4rem;font-weight:800;text-align:center}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{border-radius:16px;padding:16px 18px;color:#fff;font-size:clamp(1.1rem,2vw,1.7rem);font-weight:700;position:relative;display:flex;align-items:center;gap:14px;min-height:76px}
+.opt svg.sh{width:34px;height:34px;flex:none;fill:currentColor}
+.opt .n{margin-left:auto;font-family:var(--display);font-size:1.8rem;font-weight:800}
+.opt.dim{opacity:.28}
+.opt.good{outline:6px solid var(--ok);outline-offset:3px}
+.o0{background:var(--c0)}.o1{background:var(--c1)}.o2{background:var(--c2);color:#1a1200}.o3{background:var(--c3)}.o4{background:var(--c4)}.o5{background:var(--c5)}
+.bars{display:flex;align-items:flex-end;justify-content:center;gap:14px;height:200px;margin:6px 0}
+.bars div{flex:1;max-width:160px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.bars i{display:block;width:100%;border-radius:10px 10px 0 0;min-height:4px;transition:height .5s}
+.bars b{font-family:var(--display);font-size:1.5rem}
+.expl{background:var(--surface);border-left:8px solid var(--brand);border-radius:12px;padding:12px 16px;font-size:1.2rem}
+.board{list-style:none;padding:0;margin:0;max-width:900px;margin-inline:auto}
+.board li{display:flex;align-items:center;gap:14px;padding:8px 16px;border-radius:14px;background:var(--surface);margin-bottom:8px;font-size:1.5rem;border:1px solid var(--line);transition:transform .6s}
+.board li .rk{font-family:var(--display);font-weight:800;width:1.6em;color:var(--muted)}
+.board li svg{width:48px;height:48px;border-radius:50%;flex:none}
+.board li .nm{flex:1;font-weight:700}
+.board li .pt{font-family:var(--display);font-weight:800}
+.board li .gain{font-size:1rem;color:var(--ok);font-weight:700;min-width:4em;text-align:right}
+.board li .fire{color:var(--warn);font-size:1rem}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:18px;margin-top:20px;min-height:340px}
+.podium .pl{min-width:210px;text-align:center}
+.podium .pl svg{width:90px;height:90px;border-radius:50%;border:4px solid var(--surface)}
+.podium .pl .bl{background:var(--brand);color:var(--brand-ink);border-radius:14px 14px 0 0;padding:12px 6px;font-family:var(--display);font-weight:800;margin-top:6px;animation:rise 1s both}
+.podium .pl.p1 .bl{background:var(--gold);color:#1a1200;height:230px}
+.podium .pl.p2 .bl{height:170px}.podium .pl.p3 .bl{height:120px}
+.podium .pl .bl big{display:block;font-size:3rem}
+@keyframes rise{from{transform:translateY(60%);opacity:0}to{transform:none;opacity:1}}
+.cloud{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;justify-content:center;padding:16px;background:var(--surface);border-radius:16px;min-height:280px;border:1px solid var(--line)}
+.cloud span{font-family:var(--display);font-weight:800;line-height:1.1}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.cards div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:1.15rem;cursor:pointer}
+.cards div.fav{outline:4px solid var(--gold);font-size:1.6rem;grid-column:span 2}
+.tteams{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
+.tteam{border-radius:12px;padding:8px 16px;color:#fff;font-weight:800;font-family:var(--display);font-size:1.2rem}
+table.rep{border-collapse:collapse;width:100%;background:var(--surface);border-radius:12px;overflow:hidden}
+table.rep th,table.rep td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:center}
+table.rep th{background:var(--surface2);font-size:.85rem}
+table.rep td.l,table.rep th.l{text-align:left}
+td.g{background:color-mix(in srgb,var(--ok) 25%,var(--surface))}
+td.f{background:color-mix(in srgb,var(--bad) 22%,var(--surface))}
+.paused{position:fixed;inset:0;background:rgba(10,20,35,.82);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--display);font-size:4rem;font-weight:800;z-index:40;pointer-events:none}
+.paused button{pointer-events:auto;font-size:1.4rem;margin-top:14px}
+#tafel header{position:relative;z-index:50}
+.libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:12px}
+.libgrid .box h3{margin-bottom:2px}
+/* Editor */
+.ed{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}
+.ed .ql{display:flex;flex-direction:column;gap:6px;max-height:75vh;overflow:auto}
+.ed .ql button{text-align:left;padding:.5em .7em;font-size:.95rem}
+.ed .ql button.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.ed .opt-row{display:flex;gap:8px;align-items:center;margin:6px 0}
+.ed .opt-row input[type=checkbox]{width:26px;height:26px;flex:none}
+.ed .opt-row input[type=text]{flex:1}
+.ed img.th{max-width:220px;max-height:140px;border-radius:10px;display:block;margin:6px 0}
+.cand{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px}
+.cand img{width:100%;height:110px;object-fit:cover;border-radius:8px;cursor:pointer;border:3px solid transparent}
+.cand img:hover{border-color:var(--brand)}
+.pinimg{position:relative;display:inline-block;cursor:crosshair;width:min(100%,720px)}
+.pinimg img{width:100%;height:auto;display:block;border-radius:10px}
+.pinimg i{position:absolute;border:4px solid var(--ok);border-radius:50%;transform:translate(-50%,-50%);background:rgba(31,122,63,.25);pointer-events:none}
+@media (max-width:900px){.join,.opts,.ed{grid-template-columns:1fr}.qmid img{max-width:100%}}
+/* ---------- Handy ---------- */
+#phone{max-width:560px;margin:0 auto;padding:12px 14px 40px;min-height:100vh}
+#phone[dir=rtl]{text-align:right}
+.ptop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;font-size:.95rem}
+.ptop .me{display:flex;align-items:center;gap:8px;font-weight:700;min-width:0}
+.ptop .me svg{width:34px;height:34px;border-radius:50%;flex:none}
+.ptop .me span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ptop .pts{font-family:var(--display);font-weight:800;font-size:1.1rem}
+.lang{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.lang button{padding:.4em .8em;font-size:1rem}
+.lang button.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:700}
+.avg{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:6px 0}
+.avg button{padding:2px;border-radius:50%;border:3px solid transparent;background:none;aspect-ratio:1}
+.avg button svg{width:100%;height:100%;border-radius:50%;display:block}
+.avg button.on{border-color:var(--ink)}
+.colg{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.colg button{width:38px;height:38px;border-radius:50%;padding:0;border:3px solid transparent}
+.colg button.on{border-color:var(--ink)}
+.pq{font-family:var(--display);font-weight:800;font-size:1.35rem;margin:6px 0 10px;line-height:1.2}
+.pq2{font-size:.95rem;color:var(--muted);margin:-4px 0 10px}
+.pimg{width:100%;max-height:34vh;object-fit:contain;border-radius:12px;background:#fff;margin-bottom:8px}
+.ptimer{height:10px;border-radius:6px;background:var(--surface2);overflow:hidden;margin:6px 0 12px}
+.ptimer i{display:block;height:100%;background:var(--brand);width:100%}
+.pbtn{display:flex;align-items:center;gap:12px;width:100%;margin:8px 0;padding:16px 14px;border-radius:16px;color:#fff;border:none;font-size:1.1rem;font-weight:700;text-align:start}
+.pbtn svg.sh{width:28px;height:28px;fill:currentColor;flex:none}
+.pbtn.o2{color:#1a1200}
+.pbtn.sel{outline:5px solid var(--ink);outline-offset:2px}
+.pbtn.gone{opacity:.15;pointer-events:none}
+.ptf{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ptf .pbtn{justify-content:center;font-size:1.3rem;min-height:110px}
+.item{display:flex;align-items:center;gap:8px;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px;margin:6px 0}
+.item span{flex:1}
+.item button{padding:.3em .7em;font-weight:800}
+.mpair{display:flex;gap:8px;margin:6px 0;align-items:stretch}
+.mpair>div,.mpair>button{flex:1;border-radius:12px;padding:10px;border:3px solid var(--line);background:var(--surface);font-size:1rem;text-align:center}
+.mpair .on{outline:4px solid var(--ink)}
+.res{text-align:center;padding:26px 12px;border-radius:20px;margin-top:10px}
+.res.ok{background:color-mix(in srgb,var(--ok) 22%,var(--surface))}
+.res.bad{background:color-mix(in srgb,var(--bad) 18%,var(--surface))}
+.res.mid{background:color-mix(in srgb,var(--warn) 18%,var(--surface))}
+.res.neu{background:var(--surface)}
+.res h2{font-size:2rem;margin:0 0 6px}
+.res .bp{font-family:var(--display);font-size:2.6rem;font-weight:800}
+.stat{display:flex;justify-content:center;gap:22px;margin-top:10px;font-size:1rem}
+.stat b{display:block;font-family:var(--display);font-size:1.5rem}
+.wait{text-align:center;padding:30px 10px}
+.wait svg.av{width:120px;height:120px;border-radius:50%}
+.pill{display:inline-block;border-radius:999px;padding:.1em .8em;color:#fff;font-weight:800;font-family:var(--display)}
+.joker{margin:6px 0;font-weight:800}
+.banner{position:fixed;left:0;right:0;bottom:0;background:var(--bad);color:#fff;text-align:center;padding:8px;font-size:.95rem;z-index:30}
+.paus{text-align:center;font-family:var(--display);font-size:2.4rem;font-weight:800;padding:70px 10px}
+.vote{display:block;width:100%;text-align:start;margin:6px 0;padding:12px;border-radius:12px;font-size:1.05rem}
+.vote.sel{outline:4px solid var(--gold);background:var(--surface2)}
+</style>
+</head>
+<body>
+<div id="tafel" hidden>
+  <header>
+    <img class="logo" id="logoImg" alt="KLA Bremerhaven">
+    <h1>Quiz-Arena</h1>
+    <span class="sp"></span>
+    <span id="tctl"></span>
+    <div class="mini"><canvas id="qrSmall" width="128" height="128"></canvas><div><b id="miniCode"></b><br><span id="miniN"></span><br><span id="conn"></span></div></div>
+  </header>
+  <main id="tMain"></main>
+</div>
+<div id="phone" hidden></div>
+<script>
+var QRLib=(function(){var M={};function R(n){n=n.replace("./","");return M[n]();}
+M["QR8bitByte"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMode = R("./QRMode");
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+})(c,c.exports);return c.exports;};})();
+M["QRBitBuffer"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+})(c,c.exports);return c.exports;};})();
+M["QRErrorCorrectLevel"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+})(c,c.exports);return c.exports;};})();
+M["QRMaskPattern"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+})(c,c.exports);return c.exports;};})();
+M["QRMath"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+})(c,c.exports);return c.exports;};})();
+M["QRMode"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+})(c,c.exports);return c.exports;};})();
+M["QRPolynomial"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMath = R("./QRMath");
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+})(c,c.exports);return c.exports;};})();
+M["QRRSBlock"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRErrorCorrectLevel = R("./QRErrorCorrectLevel");
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+})(c,c.exports);return c.exports;};})();
+M["QRUtil"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){var QRMode = R("./QRMode");
+var QRPolynomial = R("./QRPolynomial");
+var QRMath = R("./QRMath");
+var QRMaskPattern = R("./QRMaskPattern");
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+})(c,c.exports);return c.exports;};})();
+M["index"]=(function(){var c;return function(){if(c)return c.exports;c={exports:{}};(function(module,exports){//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = R("./QR8bitByte");
+var QRUtil = R("./QRUtil");
+var QRPolynomial = R("./QRPolynomial");
+var QRRSBlock = R("./QRRSBlock");
+var QRBitBuffer = R("./QRBitBuffer");
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+})(c,c.exports);return c.exports;};})();
+return {QRCode:R("./index"),ECL:R("./QRErrorCorrectLevel")};})();
+
+</script>
+<script>
+const LOGO="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ii00IC00IDI1OSAxMTUiPjxwYXRoIGZpbGw9IiMyMDcxYjUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTI1MC44OCA4NS43NSBMMjQ5LjEyIDg1LjYyIEwyNDYuMDAgODYuMjUgTDIxOC4wMCA5NC4zOCBMMjA5LjUwIDk2LjEyIEwxOTcuMzggOTcuNzUgTDE4Ny42MiA5OC4yNSBMMTg2LjUwIDk4LjUwIEwxODMuMTIgOTguNTAgTDE4Mi4xMiA5OC43NSBMMTYzLjYyIDk4Ljc1IEwxNjIuNzUgOTguNTAgTDE1OC42MiA5OC41MCBMMTU3LjYyIDk4LjI1IEwxNDkuODggOTguMDAgTDEzMi43NSA5Ni4wMCBMMTI5LjAwIDk1LjI1IEwxMjQuMDAgOTQuNjIgTDEyMS41MCA5NC4wMCBMMTA0LjEyIDkxLjAwIEw5My44OCA4OS44OCBMOTEuMjUgODkuMzggTDgyLjYyIDg4Ljg4IEw3OC42MiA4OC4zOCBMNzMuNzUgODguMjUgTDcyLjUwIDg4LjAwIEw2Mi4yNSA4OC4wMCBMNjEuMDAgODguMjUgTDU5LjI1IDg4LjEyIEw1Ny42MiA4OC4zOCBMNTQuMzggODguMzggTDQ5LjEyIDg5LjAwIEw0My4wMCA4OS4zOCBMNDAuNzUgODkuODggTDM1LjI1IDkwLjM4IEwyOS4zOCA5MS4yNSBMMjcuMTIgOTEuODggTDIzLjYyIDkyLjI1IEwyMi4wMCA5Mi43NSBMMTUuODggOTMuODggTDcuNTAgOTYuMjUgTDMuMDAgOTguMDAgTDEuMTIgOTkuMDAgTDAuNTAgOTkuNzUgTDEuNTAgMTAwLjYyIEwzLjAwIDEwMC44OCBMMTAuMTIgMTAwLjg4IEwxNC4wMCAxMDAuNTAgTDI2LjI1IDk4LjAwIEwyOC4zOCA5Ny44OCBMMzEuNzUgOTcuMTIgTDM5LjYyIDk2LjEyIEw1My4xMiA5NS4wMCBMNzMuNTAgOTQuODggTDgwLjEyIDk1LjI1IEw5Ny4yNSA5Ny4xMiBMOTkuODggOTcuNzUgTDEwMi43NSA5OC4wMCBMMTEwLjEyIDk5LjUwIEwxMTIuNTAgOTkuNzUgTDExNS42MiAxMDAuNjIgTDExOS41MCAxMDEuMDAgTDEyNS4zOCAxMDIuMTIgTDEzMC4zOCAxMDIuNTAgTDEzOC41MCAxMDMuNzUgTDE0Ny44OCAxMDQuMTIgTDE1My41MCAxMDQuODggTDE1Ni43NSAxMDQuODggTDE1OS44OCAxMDUuNjIgTDE2OS4xMiAxMDUuMzggTDE3NS4xMiAxMDUuNTAgTDE3Ni4zOCAxMDUuMjUgTDE4My43NSAxMDUuMzggTDE4Ny4zOCAxMDQuODggTDE4OS4yNSAxMDUuMDAgTDE5NS4xMiAxMDQuMTIgTDE5OC43NSAxMDMuODggTDIwOC44OCAxMDIuMTIgTDIxNC4wMCAxMDAuODggTDIxNi4xMiAxMDAuNjIgTDIxNy4zOCAxMDAuMTIgTDIyMC4wMCA5OS42MiBMMjI0Ljg4IDk4LjEyIEwyMjYuODggOTcuNzUgTDIyOC4zOCA5Ny4xMiBMMjM2LjUwIDk0Ljc1IEwyNDIuMDAgOTIuNzUgTDI0NS4zOCA5MC44OCBMMjQ4LjUwIDg4Ljc1IEwyNTAuMzggODcuMDAgTDI1MC44OCA4Ni44OFogTTE4Ni41MCAwLjAwIEwxODQuNjIgNC41MCBMMTgyLjYyIDEwLjM4IEwxODAuMjUgMTYuMTIgTDE3NS4wMCAzMC42MiBMMTc0LjEyIDMyLjUwIEwxNzMuNzUgMzQuMDAgTDE3MS4xMiA0MC4zOCBMMTY3LjYyIDUwLjI1IEwxNTYuNjIgNzkuMTIgTDE1Ni42MiA4MC4zOCBMMTU3LjAwIDgwLjYyIEwxNzcuMDAgODAuNjIgTDE3Ny41MCA4MC4zOCBMMTc4LjEyIDc5LjM4IEwxODIuMTIgNjcuODggTDE4Mi42MiA2Ny4wMCBMMTgzLjI1IDY2LjM4IEwxODMuODggNjYuMTIgTDIwOS43NSA2Ni4xMiBMMjEwLjYyIDY2LjM4IEwyMTEuNTAgNjcuNjIgTDIxNS4yNSA3OC44OCBMMjE1Ljc1IDc5Ljg4IEwyMTYuMzggODAuNTAgTDIzNy4xMiA4MC41MCBMMjM3LjUwIDc5Ljg4IEwyMzcuMzggNzkuMTIgTDIzNi4wMCA3Ni4xMiBMMjM1LjYyIDc0LjYyIEwyMzQuMTIgNzEuMTIgTDIyOS41MCA1OC4yNSBMMjI1LjI1IDQ3LjUwIEwyMjQuNzUgNDUuNjIgTDIxOS4xMiAzMS4xMiBMMjE4Ljg4IDMwLjAwIEwyMTguMTIgMjguNTAgTDIxMi43NSAxMy42MiBMMjEyLjEyIDEyLjUwIEwyMDguNTAgMi4zOCBMMjA3LjM4IDAuMDBaIE0xOTYuNjIgMjMuNzUgTDE5Ny4yNSAyMy43NSBMMTk3Ljg4IDI0LjUwIEwxOTguMTIgMjYuMDAgTDIwMi4wMCAzNy44OCBMMjAzLjEyIDQyLjAwIEwyMDQuMDAgNDQuMTIgTDIwNS4wMCA0Ny43NSBMMjA1Ljc1IDQ5LjM4IEwyMDUuNjIgNTAuMTIgTDIwNS4wMCA1MC42MiBMMTg4Ljc1IDUwLjc1IEwxODguMTIgNTAuMzggTDE4Ny44OCA0OS43NSBMMTk2LjAwIDI0LjYyWiBNOTUuNjIgMC4wMCBMOTUuMjUgMS4yNSBMOTUuMjUgNzkuNzUgTDk1LjUwIDgwLjI1IEw5Ni4xMiA4MC42MiBMMTUzLjM4IDgwLjUwIEwxNTMuODggNzkuODggTDE1My44OCA2My4zOCBMMTUzLjUwIDYyLjg4IEwxNTIuNjIgNjIuNjIgTDExNy43NSA2Mi43NSBMMTE2Ljg4IDYyLjUwIEwxMTYuMzggNjIuMDAgTDExNi4yNSAxLjM4IEwxMTUuODggMC4wMFogTTExLjg4IDAuMDAgTDExLjM4IDEuNTAgTDExLjM4IDc5LjUwIEwxMS42MiA4MC4xMiBMMTIuMzggODAuNjIgTDMxLjUwIDgwLjYyIEwzMi4yNSA4MC4xMiBMMzIuMzggNTYuNTAgTDMzLjAwIDU1LjI1IEw0MC4xMiA0Ny44OCBMNDEuMzggNDcuNjIgTDQyLjAwIDQ4LjI1IEw2MS4xMiA3OC4yNSBMNjIuNzUgODAuMzggTDYzLjM4IDgwLjYyIEw4Ny4wMCA4MC43NSBMODguMDAgODAuNTAgTDg4LjEyIDc5LjYyIEw4Ny43NSA3OC44OCBMODYuMTIgNzYuODggTDU1LjYyIDMyLjM4IEw1NS43NSAzMS4zOCBMODQuMDAgMS41MCBMODQuMjUgMC4wMCBMNTkuMTIgMC4wMCBMNTkuMDAgMC41MCBMNTYuMTIgMy41MCBMMzQuMTIgMjkuMjUgTDMzLjM4IDI5Ljg4IEwzMi44OCAyOS44OCBMMzIuMzggMjkuMjUgTDMyLjM4IDEuMTIgTDMyLjAwIDAuMDBaIi8+PC9zdmc+";
+const TE=new TextEncoder(), TD=new TextDecoder();
+function mqStr(s){const b=TE.encode(s);return [b.length>>8,b.length&255,...b];}
+function mqLen(n){const o=[];do{let d=n%128;n=Math.floor(n/128);if(n>0)d|=128;o.push(d);}while(n>0);return o;}
+function mqPacket(h,body){return new Uint8Array([h,...mqLen(body.length),...body]);}
+class MqttLink{
+  constructor(url,cid,onMsg,onStatus){this.url=url;this.cid=cid;this.onMsg=onMsg;this.onStatus=onStatus;this.subs=new Set();this.up=false;this.buf=new Uint8Array(0);this.pid=1;this.tries=0;this.connect();}
+  connect(){
+    clearTimeout(this.rt);clearInterval(this.ping);let ws;
+    try{ws=new WebSocket(this.url,["mqtt"]);}catch(e){this.retry();return;}
+    this.ws=ws;ws.binaryType="arraybuffer";
+    const guard=setTimeout(()=>{if(!this.up){try{ws.close();}catch(e){}}},9000);
+    ws.onopen=()=>{ws.send(mqPacket(0x10,[...mqStr("MQTT"),4,0x02,0,30,...mqStr(this.cid+"-"+Math.random().toString(36).slice(2,6))]));};
+    ws.onmessage=(ev)=>{const d=new Uint8Array(ev.data);const nb=new Uint8Array(this.buf.length+d.length);nb.set(this.buf);nb.set(d,this.buf.length);this.buf=nb;this.parse();};
+    ws.onclose=()=>{clearTimeout(guard);this.up=false;clearInterval(this.ping);this.onStatus();this.retry();};
+    ws.onerror=()=>{};
+  }
+  retry(){this.tries++;this.rt=setTimeout(()=>this.connect(),Math.min(15000,800*Math.pow(1.6,this.tries)));}
+  parse(){
+    while(this.buf.length>=2){
+      let mult=1,len=0,i=1,b;
+      do{if(i>=this.buf.length)return;b=this.buf[i++];len+=(b&127)*mult;mult*=128;}while(b&128);
+      if(this.buf.length<i+len)return;
+      const type=this.buf[0]>>4,flags=this.buf[0]&15,body=this.buf.subarray(i,i+len);this.buf=this.buf.slice(i+len);
+      if(type===2){if(body[1]===0){this.up=true;this.tries=0;for(const t of this.subs)this.sendSub(t);
+          this.ping=setInterval(()=>{try{this.ws.send(new Uint8Array([0xC0,0]));}catch(e){}},20000);this.onStatus(true);}else{try{this.ws.close();}catch(e){}}}
+      else if(type===3){const tl=(body[0]<<8)|body[1];const topic=TD.decode(body.subarray(2,2+tl));let p=2+tl;const qos=(flags>>1)&3;
+        if(qos>0){const id=(body[p]<<8)|body[p+1];p+=2;if(qos===1){try{this.ws.send(new Uint8Array([0x40,2,id>>8,id&255]));}catch(e){}}}
+        let payload=null;try{payload=JSON.parse(TD.decode(body.subarray(p)));}catch(e){}
+        if(payload!==null)this.onMsg(topic,payload,(flags&1)===1);}
+    }
+  }
+  sendSub(t){const id=this.pid=(this.pid%60000)+1;try{this.ws.send(mqPacket(0x82,[id>>8,id&255,...mqStr(t),0]));}catch(e){}}
+  subscribe(t){this.subs.add(t);if(this.up)this.sendSub(t);}
+  publish(t,obj,retain){if(!this.up)return false;const body=[...mqStr(t),...TE.encode(obj===null?"":JSON.stringify(obj))];
+    try{this.ws.send(mqPacket(retain?0x31:0x30,body));return true;}catch(e){return false;}}
+}
+/* Lokaler Testbetrieb: ?bc=1 verbindet nur Tabs im selben Browser (zum Ausprobieren ohne Internet) */
+class LocalLink{
+  constructor(cid,onMsg,onStatus){this.up=true;this.subs=new Set();this.bc=new BroadcastChannel("kla-quiz");
+    this.bc.onmessage=e=>{const m=e.data;if(this.subs.has(m.t))onMsg(m.t,m.p,false);};setTimeout(()=>onStatus(true),50);}
+  subscribe(t){this.subs.add(t);}
+  publish(t,obj){this.bc.postMessage({t,p:JSON.parse(JSON.stringify(obj))});return true;}
+}
+const params=new URLSearchParams(location.search);
+const LOCAL=params.get("bc")==="1";
+const BROKERS=params.get("broker")?[params.get("broker")]:["wss://broker.hivemq.com:8884/mqtt","wss://broker.emqx.io:8084/mqtt"];
+const NS="klaquiz1/";
+class Net{
+  constructor(onMsg,onStatus){
+    this.cid="p"+rnd(10);this.seen=new Map();this.onMsg=onMsg;
+    const st=()=>onStatus(this.count());
+    this.links=LOCAL?[new LocalLink(this.cid,(t,p,r)=>this.recv(t,p,r),st)]:BROKERS.map(u=>new MqttLink(u,this.cid,(t,p,r)=>this.recv(t,p,r),st));
+  }
+  count(){return {up:this.links.filter(l=>l.up).length,all:this.links.length};}
+  recv(t,p,r){
+    if(p&&typeof p==="object"&&p.mid){const now=Date.now();if(this.seen.has(p.mid))return;this.seen.set(p.mid,now);
+      if(this.seen.size>3000){for(const [k,v] of this.seen){if(now-v>600000)this.seen.delete(k);}}}
+    this.onMsg(t,p,r);
+  }
+  sub(t){this.links.forEach(l=>l.subscribe(NS+t));}
+  pub(t,obj,retain){obj.mid=rnd(12);let ok=false;this.links.forEach(l=>{if(l.publish(NS+t,obj,retain))ok=true;});return ok;}
+}
+function rnd(n){const a="abcdefghijkmnpqrstuvwxyz23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(n));for(const x of r)s+=a[x%a.length];return s;}
+function codeGen(){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(5));for(const x of r)s+=a[x%a.length];return s;}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k));localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+const $=id=>document.getElementById(id);
+function clean(s,max){return String(s==null?"":s).replace(/[\u0000-\u001f\u007f​-‏‪-‮]/g," ").trim().slice(0,max);}
+function h(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* =========================================================
+   Sprachen und Handy-Texte
+   ========================================================= */
+const LANGS=[["de","Deutsch"],["ru","Русский"],["uk","Українська"],["pt","Português"],["es","Español"],["ar","العربية"],["tr","Türkçe"],["vi","Tiếng Việt"],["ti","ትግርኛ"]];
+const LK=LANGS.map(x=>x[0]);
+const LANGNAME_DE={de:"Deutsch",ru:"Russisch",uk:"Ukrainisch",pt:"Portugiesisch",es:"Spanisch",ar:"Arabisch",tr:"Türkisch",vi:"Vietnamesisch",ti:"Tigrinya"};
+const UI={
+de:{join:"Spiel beitreten",lang:"Sprache",nick:"Dein Spitzname",rnd:"Zufallsname",pick:"Wähle Tier und Farbe",go:"Los geht's",badname:"Dieser Name geht nicht. Nimm einen anderen.",wait:"Du bist dabei! Gleich geht es los.",ready:"Mach dich bereit!",read:"Lies die Frage.",sent:"Antwort gesendet. Warte auf die anderen.",ok:"Richtig!",bad:"Leider falsch",part:"Teilweise richtig",none:"Keine Antwort",pts:"Punkte",streak:"Serie",place:"Platz",send:"Senden",typeDe:"Schreibe auf Deutsch.",idea:"Deine Idee",word:"Dein Wort",vote:"Wähle bis zu 3 beste Ideen.",tap:"Tippe auf die richtige Stelle im Bild.",order:"Bring die Teile in die richtige Reihenfolge.",match:"Tippe zwei Dinge an, die zusammengehören.",multi:"Mehrere Antworten sind richtig.",thanks:"Danke!",pause:"Pause",over:"Spiel beendet",showDe:"Auf Deutsch zeigen",offline:"Keine Verbindung. Ich versuche es weiter …",team:"Team",next:"Weiter",correctIs:"Richtig ist:",kicked:"Du wurdest aus dem Spiel genommen.",done:"Du bist fertig!",number:"Zahl eingeben",wq:"Warte auf die Lehrkraft …",tf1:"Richtig",tf0:"Falsch"},
+ru:{join:"Войти в игру",lang:"Язык",nick:"Твой ник",rnd:"Случайное имя",pick:"Выбери животное и цвет",go:"Поехали!",badname:"Это имя не подходит. Выбери другое.",wait:"Ты в игре! Скоро начнём.",ready:"Приготовься!",read:"Прочитай вопрос.",sent:"Ответ отправлен. Жди остальных.",ok:"Верно!",bad:"К сожалению, неверно",part:"Частично верно",none:"Нет ответа",pts:"Очки",streak:"Серия",place:"Место",send:"Отправить",typeDe:"Пиши по-немецки.",idea:"Твоя идея",word:"Твоё слово",vote:"Выбери до 3 лучших идей.",tap:"Нажми на нужное место на картинке.",order:"Расставь части в правильном порядке.",match:"Нажми на две вещи, которые подходят друг другу.",multi:"Правильных ответов несколько.",thanks:"Спасибо!",pause:"Пауза",over:"Игра окончена",showDe:"Показать по-немецки",offline:"Нет соединения. Пробую снова …",team:"Команда",next:"Дальше",correctIs:"Правильно:",kicked:"Тебя исключили из игры.",done:"Ты закончил(а)!",number:"Введи число",wq:"Ждём учителя …",tf1:"Верно",tf0:"Неверно"},
+uk:{join:"Приєднатися до гри",lang:"Мова",nick:"Твій нік",rnd:"Випадкове ім'я",pick:"Обери тварину і колір",go:"Поїхали!",badname:"Це ім'я не підходить. Обери інше.",wait:"Ти в грі! Скоро почнемо.",ready:"Приготуйся!",read:"Прочитай запитання.",sent:"Відповідь надіслано. Чекай на інших.",ok:"Правильно!",bad:"На жаль, неправильно",part:"Частково правильно",none:"Немає відповіді",pts:"Бали",streak:"Серія",place:"Місце",send:"Надіслати",typeDe:"Пиши німецькою.",idea:"Твоя ідея",word:"Твоє слово",vote:"Обери до 3 найкращих ідей.",tap:"Натисни на потрібне місце на малюнку.",order:"Розстав частини в правильному порядку.",match:"Натисни на дві речі, які підходять одна одній.",multi:"Правильних відповідей кілька.",thanks:"Дякуємо!",pause:"Пауза",over:"Гру завершено",showDe:"Показати німецькою",offline:"Немає зв'язку. Пробую знову …",team:"Команда",next:"Далі",correctIs:"Правильно:",kicked:"Тебе вилучили з гри.",done:"Ти закінчив(ла)!",number:"Введи число",wq:"Чекаємо на вчителя …",tf1:"Правильно",tf0:"Неправильно"},
+pt:{join:"Entrar no jogo",lang:"Idioma",nick:"Seu apelido",rnd:"Nome aleatório",pick:"Escolha animal e cor",go:"Vamos lá!",badname:"Este nome não pode. Escolha outro.",wait:"Você está no jogo! Já vai começar.",ready:"Prepare-se!",read:"Leia a pergunta.",sent:"Resposta enviada. Aguarde os outros.",ok:"Certo!",bad:"Infelizmente errado",part:"Parcialmente certo",none:"Sem resposta",pts:"Pontos",streak:"Sequência",place:"Lugar",send:"Enviar",typeDe:"Escreva em alemão.",idea:"Sua ideia",word:"Sua palavra",vote:"Escolha até 3 melhores ideias.",tap:"Toque no lugar certo da imagem.",order:"Coloque as partes na ordem certa.",match:"Toque em duas coisas que combinam.",multi:"Várias respostas estão certas.",thanks:"Obrigado!",pause:"Pausa",over:"Jogo terminado",showDe:"Mostrar em alemão",offline:"Sem conexão. Tentando de novo …",team:"Equipe",next:"Continuar",correctIs:"Correto:",kicked:"Você foi removido do jogo.",done:"Você terminou!",number:"Digite um número",wq:"Aguardando o professor …",tf1:"Verdadeiro",tf0:"Falso"},
+es:{join:"Unirse al juego",lang:"Idioma",nick:"Tu apodo",rnd:"Nombre al azar",pick:"Elige animal y color",go:"¡Vamos!",badname:"Ese nombre no vale. Elige otro.",wait:"¡Ya estás dentro! Enseguida empezamos.",ready:"¡Prepárate!",read:"Lee la pregunta.",sent:"Respuesta enviada. Espera a los demás.",ok:"¡Correcto!",bad:"Lástima, incorrecto",part:"Parcialmente correcto",none:"Sin respuesta",pts:"Puntos",streak:"Racha",place:"Puesto",send:"Enviar",typeDe:"Escribe en alemán.",idea:"Tu idea",word:"Tu palabra",vote:"Elige hasta 3 mejores ideas.",tap:"Toca el lugar correcto de la imagen.",order:"Pon las partes en el orden correcto.",match:"Toca dos cosas que van juntas.",multi:"Hay varias respuestas correctas.",thanks:"¡Gracias!",pause:"Pausa",over:"Fin del juego",showDe:"Mostrar en alemán",offline:"Sin conexión. Lo intento de nuevo …",team:"Equipo",next:"Siguiente",correctIs:"Correcto:",kicked:"Te han sacado del juego.",done:"¡Has terminado!",number:"Escribe un número",wq:"Esperando al profesor …",tf1:"Verdadero",tf0:"Falso"},
+ar:{join:"الانضمام إلى اللعبة",lang:"اللغة",nick:"اسمك المستعار",rnd:"اسم عشوائي",pick:"اختر حيواناً ولوناً",go:"هيا نبدأ!",badname:"هذا الاسم غير مسموح. اختر اسماً آخر.",wait:"أنت في اللعبة! سنبدأ بعد قليل.",ready:"استعد!",read:"اقرأ السؤال.",sent:"تم إرسال الإجابة. انتظر الآخرين.",ok:"صحيح!",bad:"للأسف خطأ",part:"صحيح جزئياً",none:"بلا إجابة",pts:"النقاط",streak:"السلسلة",place:"المركز",send:"إرسال",typeDe:"اكتب بالألمانية.",idea:"فكرتك",word:"كلمتك",vote:"اختر حتى 3 من أفضل الأفكار.",tap:"المس المكان الصحيح في الصورة.",order:"رتّب الأجزاء بالترتيب الصحيح.",match:"المس شيئين يتناسبان معاً.",multi:"هناك عدة إجابات صحيحة.",thanks:"شكراً!",pause:"استراحة",over:"انتهت اللعبة",showDe:"عرض بالألمانية",offline:"لا يوجد اتصال. أحاول مجدداً …",team:"الفريق",next:"التالي",correctIs:"الإجابة الصحيحة:",kicked:"تم إخراجك من اللعبة.",done:"لقد انتهيت!",number:"اكتب رقماً",wq:"في انتظار المعلمة …",tf1:"صحيح",tf0:"خطأ"},
+tr:{join:"Oyuna katıl",lang:"Dil",nick:"Takma adın",rnd:"Rastgele isim",pick:"Hayvan ve renk seç",go:"Başla!",badname:"Bu isim olmaz. Başka bir isim seç.",wait:"Oyundasın! Birazdan başlıyoruz.",ready:"Hazır ol!",read:"Soruyu oku.",sent:"Cevap gönderildi. Diğerlerini bekle.",ok:"Doğru!",bad:"Maalesef yanlış",part:"Kısmen doğru",none:"Cevap yok",pts:"Puan",streak:"Seri",place:"Sıra",send:"Gönder",typeDe:"Almanca yaz.",idea:"Fikrin",word:"Kelimen",vote:"En iyi 3 fikre kadar seç.",tap:"Resimde doğru yere dokun.",order:"Parçaları doğru sıraya koy.",match:"Birbirine uyan iki şeye dokun.",multi:"Birden çok doğru cevap var.",thanks:"Teşekkürler!",pause:"Mola",over:"Oyun bitti",showDe:"Almancayı göster",offline:"Bağlantı yok. Tekrar deniyorum …",team:"Takım",next:"Devam",correctIs:"Doğrusu:",kicked:"Oyundan çıkarıldın.",done:"Bitirdin!",number:"Bir sayı yaz",wq:"Öğretmen bekleniyor …",tf1:"Doğru",tf0:"Yanlış"},
+vi:{join:"Vào trò chơi",lang:"Ngôn ngữ",nick:"Biệt danh của bạn",rnd:"Tên ngẫu nhiên",pick:"Chọn con vật và màu",go:"Bắt đầu!",badname:"Tên này không được. Hãy chọn tên khác.",wait:"Bạn đã vào! Sắp bắt đầu rồi.",ready:"Chuẩn bị nào!",read:"Hãy đọc câu hỏi.",sent:"Đã gửi câu trả lời. Chờ các bạn khác.",ok:"Đúng rồi!",bad:"Tiếc quá, sai rồi",part:"Đúng một phần",none:"Không trả lời",pts:"Điểm",streak:"Chuỗi",place:"Hạng",send:"Gửi",typeDe:"Viết bằng tiếng Đức.",idea:"Ý tưởng của bạn",word:"Từ của bạn",vote:"Chọn tối đa 3 ý tưởng hay nhất.",tap:"Chạm vào đúng chỗ trong hình.",order:"Sắp xếp các phần theo đúng thứ tự.",match:"Chạm vào hai thứ đi cùng nhau.",multi:"Có nhiều đáp án đúng.",thanks:"Cảm ơn!",pause:"Tạm dừng",over:"Trò chơi kết thúc",showDe:"Hiện tiếng Đức",offline:"Mất kết nối. Đang thử lại …",team:"Đội",next:"Tiếp",correctIs:"Đáp án đúng:",kicked:"Bạn đã bị loại khỏi trò chơi.",done:"Bạn đã xong!",number:"Nhập một số",wq:"Đang chờ giáo viên …",tf1:"Đúng",tf0:"Sai"},
+ti:{join:"ናብ ጸወታ ተሓወስ",lang:"ቋንቋ",nick:"ስምካ",rnd:"ብዕድል ዝመጸ ስም",pick:"እንስሳን ሕብርን ምረጽ",go:"ንጀምር!",badname:"እዚ ስም ኣይፍቀድን። ካልእ ምረጽ።",wait:"ኣብ ጸወታ ኣለኻ! ሕጂ ንጅምር።",ready:"ተዳለው!",read:"ሕቶ ኣንብብ።",sent:"መልሲ ተሰዲዱ። ንኻልኦት ተጸበዮም።",ok:"ቅኑዕ!",bad:"ይቕሬታ፡ ጌጋ",part:"ብሸነኽ ቅኑዕ",none:"መልሲ የለን",pts:"ነጥቢ",streak:"ተኸታታሊ",place:"ደረጃ",send:"ሰደድ",typeDe:"ብጀርመንኛ ጽሓፍ።",idea:"ሓሳብካ",word:"ቃልካ",vote:"ክሳብ 3 ዝበለጸ ሓሳብ ምረጽ።",tap:"ኣብቲ ቅኑዕ ቦታ ናይቲ ስእሊ ጠውቕ።",order:"ክፍልታት ብቅኑዕ ሰዓብ ኣዳሉ።",match:"ክልተ ዝሰማምዑ ነገራት ጠውቕ።",multi:"ብዙሓት መልስታት ቅኑዓት እዮም።",thanks:"የቐንየለይ!",pause:"ዕረፍቲ",over:"ጸወታ ተወዲኡ",showDe:"ብጀርመንኛ ኣርእይ",offline:"ርክብ የለን። ዳግማይ እፍትን ኣለኹ …",team:"ጉጅለ",next:"ቀጽል",correctIs:"ቅኑዕ:",kicked:"ካብ ጸወታ ወጺእካ።",done:"ወዲእካ!",number:"ቁጽሪ ጽሓፍ",wq:"ንመምህር ተጸበ …",tf1:"ቅኑዕ",tf0:"ጌጋ"}
+};
+const tr=(l,k)=>(UI[l]&&UI[l][k])||UI.de[k]||k;
+/* Text aus {de:…,ru:…} in Sprache l, sonst Deutsch */
+const tx=(o,l)=>o==null?"":typeof o==="string"?o:(o[l]!=null&&o[l]!==""?o[l]:(o.de||""));
+const hasTr=(o,l)=>l==="de"||(o&&typeof o==="object"&&o[l]);
+
+/* =========================================================
+   Avatare: 12 Tiere × 8 Farben (selbst gezeichnet)
+   ========================================================= */
+const ANIMALS=["Katze","Hund","Bär","Hase","Fuchs","Panda","Eule","Frosch","Schwein","Löwe","Maus","Pinguin"];
+const BGS=["#ffd166","#ef7b94","#5fd6a8","#6ab7e0","#b9a0ee","#ffa64d","#9fd8ee","#d3d9e0"];
+function eyes(x1,x2,y,r,col){r=r||4;return `<circle cx="${x1}" cy="${y}" r="${r}" fill="${col||"#1b1b1b"}"/><circle cx="${x2}" cy="${y}" r="${r}" fill="${col||"#1b1b1b"}"/><circle cx="${x1+1.3}" cy="${y-1.3}" r="${r*.32}" fill="#fff"/><circle cx="${x2+1.3}" cy="${y-1.3}" r="${r*.32}" fill="#fff"/>`;}
+function animalSVG(a,c){
+  a=((+a)%12+12)%12;c=((+c)%8+8)%8;
+  const bg=`<rect width="100" height="100" fill="${BGS[c]}"/>`;let b="";
+  switch(a){
+  case 0:b=`<polygon points="22,40 26,10 46,28" fill="#e0a05a"/><polygon points="78,40 74,10 54,28" fill="#e0a05a"/><polygon points="27,33 28,18 39,28" fill="#f5b7c0"/><polygon points="73,33 72,18 61,28" fill="#f5b7c0"/><circle cx="50" cy="58" r="32" fill="#f0b46d"/>${eyes(38,62,52,4.5,"#2b5f2b")}<polygon points="46,62 54,62 50,67" fill="#e0707f"/><path d="M50 67 Q44 74 38 70 M50 67 Q56 74 62 70" stroke="#6b3d12" stroke-width="2" fill="none"/><path d="M16 60 L34 63 M16 70 L34 67 M84 60 L66 63 M84 70 L66 67" stroke="#6b3d12" stroke-width="1.6"/>`;break;
+  case 1:b=`<ellipse cx="22" cy="48" rx="11" ry="22" fill="#7a4a22" transform="rotate(12 22 48)"/><ellipse cx="78" cy="48" rx="11" ry="22" fill="#7a4a22" transform="rotate(-12 78 48)"/><circle cx="50" cy="55" r="30" fill="#d9a066"/><ellipse cx="50" cy="68" rx="15" ry="11" fill="#f1d3a8"/>${eyes(38,62,50)}<ellipse cx="50" cy="63" rx="6" ry="4.4" fill="#1b1b1b"/><path d="M50 67 L50 72 M42 74 Q50 80 58 74" stroke="#1b1b1b" stroke-width="2" fill="none"/>`;break;
+  case 2:b=`<circle cx="24" cy="30" r="12" fill="#7a4a1e"/><circle cx="76" cy="30" r="12" fill="#7a4a1e"/><circle cx="24" cy="30" r="6" fill="#d9a77a"/><circle cx="76" cy="30" r="6" fill="#d9a77a"/><circle cx="50" cy="56" r="32" fill="#8b5a2b"/><ellipse cx="50" cy="66" rx="15" ry="12" fill="#e0bf94"/>${eyes(37,63,50)}<ellipse cx="50" cy="62" rx="6" ry="4.4" fill="#1b1b1b"/><path d="M50 66 L50 71 M43 73 Q50 79 57 73" stroke="#1b1b1b" stroke-width="2" fill="none"/>`;break;
+  case 3:b=`<ellipse cx="36" cy="22" rx="8" ry="22" fill="#f3f3f3"/><ellipse cx="64" cy="22" rx="8" ry="22" fill="#f3f3f3"/><ellipse cx="36" cy="24" rx="4" ry="16" fill="#f5b7c0"/><ellipse cx="64" cy="24" rx="4" ry="16" fill="#f5b7c0"/><circle cx="50" cy="60" r="30" fill="#f7f7f7"/>${eyes(39,61,55)}<ellipse cx="50" cy="65" rx="4" ry="3" fill="#e0707f"/><path d="M50 68 L50 72 M43 74 Q50 79 57 74" stroke="#7a5560" stroke-width="2" fill="none"/><circle cx="32" cy="66" r="5" fill="#f9d0d6" opacity=".7"/><circle cx="68" cy="66" r="5" fill="#f9d0d6" opacity=".7"/>`;break;
+  case 4:b=`<polygon points="20,42 24,8 46,28" fill="#d9701c"/><polygon points="80,42 76,8 54,28" fill="#d9701c"/><polygon points="25,34 27,17 38,28" fill="#2b1a0e"/><polygon points="75,34 73,17 62,28" fill="#2b1a0e"/><circle cx="50" cy="56" r="31" fill="#e8812a"/><polygon points="19,58 50,92 81,58 66,70 50,66 34,70" fill="#fff6ea"/>${eyes(38,62,50)}<ellipse cx="50" cy="74" rx="5" ry="4" fill="#1b1b1b"/>`;break;
+  case 5:b=`<circle cx="24" cy="30" r="12" fill="#1c1c1c"/><circle cx="76" cy="30" r="12" fill="#1c1c1c"/><circle cx="50" cy="56" r="32" fill="#fafafa"/><ellipse cx="37" cy="52" rx="8" ry="11" fill="#1c1c1c" transform="rotate(20 37 52)"/><ellipse cx="63" cy="52" rx="8" ry="11" fill="#1c1c1c" transform="rotate(-20 63 52)"/><circle cx="37" cy="52" r="3" fill="#fff"/><circle cx="63" cy="52" r="3" fill="#fff"/><ellipse cx="50" cy="66" rx="5" ry="3.6" fill="#1c1c1c"/><path d="M44 72 Q50 78 56 72" stroke="#1c1c1c" stroke-width="2" fill="none"/>`;break;
+  case 6:b=`<polygon points="22,34 26,12 42,26" fill="#7a5a36"/><polygon points="78,34 74,12 58,26" fill="#7a5a36"/><ellipse cx="50" cy="58" rx="33" ry="34" fill="#9a7448"/><circle cx="36" cy="50" r="14" fill="#fff"/><circle cx="64" cy="50" r="14" fill="#fff"/><circle cx="36" cy="50" r="8" fill="#e8a900"/><circle cx="64" cy="50" r="8" fill="#e8a900"/><circle cx="36" cy="50" r="4" fill="#111"/><circle cx="64" cy="50" r="4" fill="#111"/><polygon points="44,60 56,60 50,72" fill="#e8812a"/><path d="M30 82 Q50 90 70 82" stroke="#6e5230" stroke-width="3" fill="none"/>`;break;
+  case 7:b=`<circle cx="30" cy="34" r="13" fill="#6abf4b"/><circle cx="70" cy="34" r="13" fill="#6abf4b"/><ellipse cx="50" cy="62" rx="36" ry="28" fill="#6abf4b"/><circle cx="30" cy="34" r="8" fill="#fff"/><circle cx="70" cy="34" r="8" fill="#fff"/><circle cx="30" cy="35" r="4" fill="#111"/><circle cx="70" cy="35" r="4" fill="#111"/><path d="M26 66 Q50 86 74 66" stroke="#2d6b1c" stroke-width="3.5" fill="none"/><circle cx="44" cy="55" r="1.8" fill="#2d6b1c"/><circle cx="56" cy="55" r="1.8" fill="#2d6b1c"/><circle cx="22" cy="68" r="5" fill="#f08a8a" opacity=".6"/><circle cx="78" cy="68" r="5" fill="#f08a8a" opacity=".6"/>`;break;
+  case 8:b=`<polygon points="22,38 24,12 44,26" fill="#ee8da2"/><polygon points="78,38 76,12 56,26" fill="#ee8da2"/><circle cx="50" cy="56" r="32" fill="#f4a6b8"/>${eyes(36,64,48)}<ellipse cx="50" cy="66" rx="15" ry="11" fill="#ee8da2"/><ellipse cx="44" cy="66" rx="2.6" ry="4" fill="#9b3a55"/><ellipse cx="56" cy="66" rx="2.6" ry="4" fill="#9b3a55"/><path d="M42 80 Q50 85 58 80" stroke="#9b3a55" stroke-width="2" fill="none"/>`;break;
+  case 9:b=`<circle cx="50" cy="54" r="40" fill="#c47a1a"/><circle cx="26" cy="26" r="9" fill="#c47a1a"/><circle cx="74" cy="26" r="9" fill="#c47a1a"/><circle cx="50" cy="56" r="27" fill="#f0c36a"/><circle cx="32" cy="34" r="7" fill="#f0c36a"/><circle cx="68" cy="34" r="7" fill="#f0c36a"/>${eyes(40,60,50)}<ellipse cx="50" cy="63" rx="5.5" ry="4" fill="#6b3d12"/><path d="M50 67 L50 71 M43 73 Q50 79 57 73" stroke="#6b3d12" stroke-width="2" fill="none"/>`;break;
+  case 10:b=`<circle cx="24" cy="32" r="15" fill="#aeb1be"/><circle cx="76" cy="32" r="15" fill="#aeb1be"/><circle cx="24" cy="32" r="9" fill="#f5b7c0"/><circle cx="76" cy="32" r="9" fill="#f5b7c0"/><circle cx="50" cy="58" r="29" fill="#c3c6d1"/>${eyes(39,61,52,3.8)}<ellipse cx="50" cy="66" rx="4.6" ry="3.4" fill="#e0707f"/><path d="M12 60 L33 64 M12 70 L33 68 M88 60 L67 64 M88 70 L67 68" stroke="#6a6d7a" stroke-width="1.5"/><path d="M45 72 Q50 77 55 72" stroke="#6a6d7a" stroke-width="2" fill="none"/>`;break;
+  default:b=`<ellipse cx="50" cy="60" rx="32" ry="36" fill="#1f2937"/><ellipse cx="50" cy="64" rx="22" ry="26" fill="#fff"/>${eyes(41,59,52,3.6)}<polygon points="43,60 57,60 50,70" fill="#f08c1a"/><ellipse cx="26" cy="74" rx="6" ry="10" fill="#1f2937" transform="rotate(20 26 74)"/><ellipse cx="74" cy="74" rx="6" ry="10" fill="#1f2937" transform="rotate(-20 74 74)"/>`;
+  }
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${bg}${b}</svg>`;
+}
+const avOf=a=>{const p=String(a||"0.0").split(".");return animalSVG(+p[0]||0,+p[1]||0);};
+/* Formen auf den Antwortfeldern (auch ohne Farbensehen unterscheidbar) */
+const SHAPES=['<svg class="sh" viewBox="0 0 24 24"><polygon points="12,3 22,21 2,21"/></svg>','<svg class="sh" viewBox="0 0 24 24"><polygon points="12,2 22,12 12,22 2,12"/></svg>','<svg class="sh" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>','<svg class="sh" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>','<svg class="sh" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9.5 16.5,14 18.5,21.5 12,17.5 5.5,21.5 7.5,14 2,9.5 9,9"/></svg>','<svg class="sh" viewBox="0 0 24 24"><polygon points="12,2 21,7 21,17 12,22 3,17 3,7"/></svg>'];
+const TEAMS=[["Rot","var(--c0)"],["Blau","var(--c1)"],["Gelb","var(--c2)"],["Grün","var(--c3)"],["Violett","var(--c4)"],["Türkis","var(--c5)"]];
+const ADJ=["Mutiger","Schneller","Kluger","Lustiger","Starker","Cooler","Flinker","Fröhlicher","Wilder","Ruhiger","Listiger","Glücklicher"];
+const NOUN=["Fuchs","Adler","Tiger","Delfin","Panda","Falke","Wolf","Igel","Otter","Rabe","Luchs","Hai"];
+const randName=()=>ADJ[Math.floor(Math.random()*ADJ.length)]+NOUN[Math.floor(Math.random()*NOUN.length)]+(10+Math.floor(Math.random()*90));
+/* einfacher Namensfilter (Lehrkraft kann zusätzlich jeden Namen entfernen) */
+const BADW=["hitler","nazi","heil","sieg","hure","fick","wichs","arsch","schlampe","nutte","neger","schwuchtel","spast","kanake","fotze","penis","vagina","porno","sex","isis","adolf","ss88","h1tler","bastard","wixer","mongo","behindert"];
+function badName(n){const s=String(n).toLowerCase().replace(/[0@]/g,"o").replace(/[1!|]/g,"i").replace(/3/g,"e").replace(/[$5]/g,"s").replace(/[^a-zäöüß]/g,"");return BADW.some(w=>s.includes(w));}
+
+/* =========================================================
+   Gemeinsame Helfer: Fragetypen, Prüfen von Antworten, Import
+   ========================================================= */
+const QT={info:{n:"Folie (ohne Frage)",sc:0},mc:{n:"Multiple Choice",sc:1},tf:{n:"Richtig / Falsch",sc:1},puzzle:{n:"Puzzle (Reihenfolge)",sc:1},short:{n:"Kurzantwort",sc:1},num:{n:"Zahl / Schätzen",sc:1},match:{n:"Zuordnung",sc:1},pin:{n:"Bild markieren",sc:1},poll:{n:"Umfrage",sc:0},cloud:{n:"Wortwolke",sc:0},open:{n:"Offene Frage",sc:0},brain:{n:"Brainstorming",sc:0}};
+const DEFTIME={info:0,mc:20,tf:15,puzzle:45,short:20,num:30,match:60,pin:20,poll:20,cloud:60,open:90,brain:120};
+const TIMES=[0,5,10,20,30,45,60,90,120,240];
+const SELF_OK=["mc","tf","puzzle","short","num","match","pin","poll"];
+const num=(x,d)=>{x=Number(x);return Number.isFinite(x)?x:d;};
+function norm(s){
+  s=String(s||"").toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"");
+  s=s.replace(/[^a-z0-9Ѐ-ӿ؀-ۿሀ-፿ ]+/g," ").replace(/\s+/g," ").trim().replace(/^(der|die|das|ein|eine|den|dem) /,"");
+  return s;}
+function lev(a,b){if(a===b)return 0;const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=Array.from({length:n+1},(_,i)=>i);
+  for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(c[j-1]+1,p[j]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c;}return p[n];}
+function shortOK(q,txt){const t=norm(txt);if(!t)return false;
+  return (q.acc||[]).some(a=>{const n=norm(a);return n===t||(n.length>=6&&t.length>=6&&lev(n,t)<=1);});}
+/* Antwort bewerten: Anteil 0..1 (null = ungültig). perm = Mischung der Anzeige (puzzle, match) */
+function judge(q,v,perm){
+  switch(q.ty){
+  case "mc":{const ok=new Set(q.o.map((o,i)=>o.ok?i:-1).filter(i=>i>=0)),s=new Set(v);return s.size===ok.size&&[...s].every(i=>ok.has(i))?1:0;}
+  case "tf":return (v[0]===1)===!!q.ok?1:0;
+  case "puzzle":{const n=q.o.length;let c=0;for(let p=0;p<n;p++){if(perm[v[p]]===p)c++;}return c===n?1:c/n*0.5;}
+  case "short":return shortOK(q,v)?1:0;
+  case "num":{const d=Math.abs(v-q.ans);if(q.est){const rg=Math.max(1,(q.max-q.min));return Math.max(0,1-d/(rg*0.5));}return d<=Math.max(q.tol||0,1e-9)?1:0;}
+  case "match":{const n=q.pr.length;let c=0;for(let j=0;j<n;j++){if(perm[v[j]]===j)c++;}return c===n?1:c/n*0.5;}
+  case "pin":{const p=q.pin;if(!p)return 0;return Math.hypot(v[0]-p.x,v[1]-p.y)<=p.r?1:0;}
+  }return 0;}
+/* Antwort prüfen (Form und Grenzen) – wird auf der Tafel gegen manipulierte Nachrichten genutzt */
+function validAns(q,v){
+  switch(q.ty){
+  case "mc":case "poll":return Array.isArray(v)&&v.length>=1&&v.length<=q.o.length&&v.every(i=>Number.isInteger(i)&&i>=0&&i<q.o.length)&&new Set(v).size===v.length&&(q.ty==="poll"||q.multi?true:v.length===1)&&(q.ty!=="poll"||v.length===1)?v:null;
+  case "tf":return Array.isArray(v)&&(v[0]===0||v[0]===1)?[v[0]]:null;
+  case "puzzle":{const n=q.o.length;return Array.isArray(v)&&v.length===n&&new Set(v).size===n&&v.every(i=>Number.isInteger(i)&&i>=0&&i<n)?v:null;}
+  case "match":{const n=q.pr.length;return Array.isArray(v)&&v.length===n&&new Set(v).size===n&&v.every(i=>Number.isInteger(i)&&i>=0&&i<n)?v:null;}
+  case "short":return typeof v==="string"&&clean(v,60)?clean(v,60):null;
+  case "open":return typeof v==="string"&&clean(v,240)?clean(v,240):null;
+  case "num":{const x=Number(typeof v==="string"?v.replace(",","."):v);return Number.isFinite(x)&&Math.abs(x)<1e9?(q.sl?Math.min(q.max,Math.max(q.min,x)):x):null;}
+  case "pin":return Array.isArray(v)&&v.length===2&&v.every(x=>typeof x==="number"&&x>=0&&x<=1)?[v[0],v[1]]:null;
+  case "cloud":{if(!Array.isArray(v))return null;const w=v.map(x=>clean(x,30)).filter(Boolean).slice(0,q.max||3);return w.length?w:null;}
+  }return null;}
+/* Quiz aus Datei prüfen und bereinigen */
+function cleanTr(o,max){if(o==null)return {de:""};if(typeof o==="string")return {de:clean(o,max)};const r={};for(const l of LK){if(typeof o[l]==="string"&&o[l].trim())r[l]=clean(o[l],max);}if(!r.de)r.de="";return r;}
+function cleanImg(s){s=String(s||"");return /^data:image\/(png|jpe?g|webp|gif|svg\+xml)[;,]/.test(s)&&s.length<900000?s:"";}
+function sanitizeQuiz(raw){
+  if(!raw||typeof raw!=="object"||!Array.isArray(raw.qs))throw new Error("Das ist keine Quiz-Datei (Feld „qs“ fehlt).");
+  const qs=[];
+  for(const r of raw.qs.slice(0,80)){
+    if(!r||!QT[r.ty])continue;
+    const q={id:clean(r.id||("q"+(qs.length+1)),20),ty:r.ty,q:cleanTr(r.q,400)};
+    q.time=TIMES.includes(+r.time)?+r.time:DEFTIME[r.ty];
+    if(r.pts===2)q.pts=2;
+    if(r.img){const i=cleanImg(r.img);if(i){q.img=i;if(r.cr)q.cr=clean(r.cr,160);}}
+    if(r.kw)q.kw=clean(r.kw,60);
+    if(r.x&&r.x.de!==undefined||typeof r.x==="string")q.x=cleanTr(r.x,500);
+    if(r.ty==="info")q.body=cleanTr(r.body,800);
+    if(r.ty==="mc"||r.ty==="poll"){q.o=(r.o||[]).slice(0,6).map(o=>({t:cleanTr(o&&o.t,160),ok:o&&o.ok?1:0}));while(q.o.length<2)q.o.push({t:{de:""},ok:0});
+      if(r.ty==="mc"){if(r.multi)q.multi=1;if(!q.o.some(o=>o.ok))q.o[0].ok=1;if(!q.multi){let f=false;q.o.forEach(o=>{if(o.ok&&f)o.ok=0;if(o.ok)f=true;});}}else q.o.forEach(o=>o.ok=0);}
+    if(r.ty==="tf")q.ok=r.ok?1:0;
+    if(r.ty==="puzzle"){q.o=(r.o||[]).slice(0,8).map(o=>({t:cleanTr(o&&o.t,160)}));while(q.o.length<2)q.o.push({t:{de:""}});}
+    if(r.ty==="short"){q.acc=(r.acc||[]).slice(0,30).map(a=>clean(a,60)).filter(Boolean);if(!q.acc.length)q.acc=["?"];}
+    if(r.ty==="num"){q.ans=num(r.ans,0);q.tol=Math.max(0,num(r.tol,0));if(r.sl){q.sl=1;q.min=num(r.min,0);q.max=num(r.max,100);if(q.max<=q.min)q.max=q.min+1;q.step=Math.max(1e-6,num(r.step,1));}if(r.est)q.est=1;if(q.est&&!q.sl){q.sl=1;q.min=num(r.min,0);q.max=num(r.max,100);q.step=num(r.step,1);}}
+    if(r.ty==="match"){q.pr=(r.pr||[]).slice(0,6).map(p=>({l:cleanTr(p&&p.l,100),r:cleanTr(p&&p.r,100)}));while(q.pr.length<2)q.pr.push({l:{de:""},r:{de:""}});}
+    if(r.ty==="pin"){const p=r.pin||{};q.pin={x:Math.min(1,Math.max(0,num(p.x,.5))),y:Math.min(1,Math.max(0,num(p.y,.5))),r:Math.min(.5,Math.max(.03,num(p.r,.1)))};}
+    if(r.ty==="cloud"||r.ty==="brain")q.max=Math.min(5,Math.max(1,num(r.max,3)));
+    qs.push(q);}
+  if(!qs.length)throw new Error("Die Datei enthält keine Fragen.");
+  return {v:1,id:clean(raw.id||("quiz-"+rnd(5)),30),title:clean(raw.title||"Quiz ohne Titel",80),qs};}
+function newQ(ty){
+  const q={id:"q"+rnd(5),ty,q:{de:""},time:DEFTIME[ty]};
+  if(ty==="mc"||ty==="poll")q.o=[{t:{de:""},ok:ty==="mc"?1:0},{t:{de:""},ok:0},{t:{de:""},ok:0},{t:{de:""},ok:0}];
+  if(ty==="tf")q.ok=1;
+  if(ty==="puzzle")q.o=[{t:{de:""}},{t:{de:""}},{t:{de:""}}];
+  if(ty==="short")q.acc=[""];
+  if(ty==="num"){q.ans=0;q.tol=0;}
+  if(ty==="match")q.pr=[{l:{de:""},r:{de:""}},{l:{de:""},r:{de:""}},{l:{de:""},r:{de:""}}];
+  if(ty==="pin")q.pin={x:.5,y:.5,r:.12};
+  if(ty==="cloud"||ty==="brain")q.max=3;
+  if(ty==="info")q.body={de:""};
+  return q;}
+function qTitle(q,l){return tx(q.q,l)||tx(q.body,l)||"(leer)";}
+/* Fassung für die Handys: ohne Lösungen */
+function phoneQ(q,perm){
+  const p={ty:q.ty,q:q.q,time:q.time,pts:q.pts||1,hi:q.img?1:0};
+  if(q.ty==="info")p.body=q.body;
+  if(q.ty==="mc"||q.ty==="poll"){p.o=q.o.map(o=>o.t);if(q.multi)p.multi=1;}
+  if(q.ty==="puzzle")p.o=perm.map(i=>q.o[i].t);
+  if(q.ty==="match"){p.l=q.pr.map(x=>x.l);p.o=perm.map(i=>q.pr[i].r);}
+  if(q.ty==="num"&&q.sl){p.sl=1;p.min=q.min;p.max=q.max;p.step=q.step;}
+  if(q.ty==="cloud"||q.ty==="brain")p.max=q.max;
+  return p;}
+/* Daten für die Auflösung (Lösung) in der Reihenfolge, die das Handy anzeigt */
+function solution(q,perm){
+  switch(q.ty){
+  case "mc":return q.o.map((o,i)=>o.ok?i:-1).filter(i=>i>=0);
+  case "tf":return [q.ok?1:0];
+  case "puzzle":return q.o.map((_,p)=>perm.indexOf(p));
+  case "short":return q.acc[0];
+  case "num":return q.ans;
+  case "match":return q.pr.map((_,j)=>perm.indexOf(j));
+  case "pin":return q.pin;
+  }return null;}
+function fmtNum(x){return String(Math.round(x*1000)/1000).replace(".",",");}
+function download(name,text,type){const b=new Blob([text],{type:type||"text/plain"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
+/* Bild verkleinern (Datei oder URL) und als JPEG-Datenadresse zurückgeben */
+function shrinkImg(src,maxW){return new Promise((res,rej)=>{const im=new Image();im.crossOrigin="anonymous";im.onload=()=>{const k=Math.min(1,(maxW||640)/im.naturalWidth),c=document.createElement("canvas");c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);try{res(c.toDataURL("image/jpeg",.72));}catch(e){rej(e);}};im.onerror=()=>rej(new Error("Bild konnte nicht geladen werden"));im.src=src;});}
+function fileToImg(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>shrinkImg(r.result).then(res,rej);r.onerror=rej;r.readAsDataURL(file);});}
+/* Bilder suchen: Wikimedia Commons (frei lizenziert, ohne Schlüssel) */
+async function searchImages(term,n){
+  const u="https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit="+(n||8)+"&gsrsearch="+encodeURIComponent(term+" filetype:bitmap")+"&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=640";
+  const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),12000);
+  try{const r=await fetch(u,{signal:ctl.signal});const j=await r.json();const pages=Object.values((j.query&&j.query.pages)||{});
+    return pages.sort((a,b)=>a.index-b.index).map(p=>{const ii=(p.imageinfo||[])[0];if(!ii||!/^image\/(jpeg|png)$/.test(ii.mime||""))return null;const m=ii.extmetadata||{};
+      const strip=s=>String((s&&s.value)||"").replace(/<[^>]*>/g,"").trim();
+      return {thumb:ii.thumburl||ii.url,credit:(strip(m.Artist)||"unbekannt")+" · "+(strip(m.LicenseShortName)||"Lizenz siehe Commons")+" · Wikimedia Commons"};}).filter(Boolean);
+  }finally{clearTimeout(to);}}
+
+/* =========================================================
+   Demo-Quiz: zeigt alle Fragetypen. Übersetzt sind nur die ersten Fragen
+   (zum Ausprobieren der Sprachwahl). Echte Quizze entstehen im Chat aus deinen Dokumenten.
+   ========================================================= */
+const TT=(...a)=>{const o={};a.forEach((s,i)=>{if(s)o[LK[i]]=s;});return o;};
+function demoQuiz(){
+  const shop=`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400"><rect width="640" height="400" fill="#f4efe6"/><rect y="320" width="640" height="80" fill="#cdbfa6"/>
+  <g><rect x="30" y="60" width="150" height="240" fill="#8a6a45"/><rect x="40" y="80" width="130" height="50" fill="#e8a900"/><rect x="40" y="150" width="130" height="50" fill="#c9263d"/><rect x="40" y="220" width="130" height="50" fill="#1f8a4c"/></g>
+  <g><rect x="215" y="60" width="150" height="240" fill="#8a6a45"/><rect x="225" y="80" width="130" height="50" fill="#1f66c9"/><rect x="225" y="150" width="130" height="50" fill="#7a3fc4"/><rect x="225" y="220" width="130" height="50" fill="#0b8d99"/></g>
+  <rect x="440" y="215" width="170" height="105" rx="6" fill="#4b5563"/><rect x="460" y="170" width="70" height="50" rx="4" fill="#111827"/><rect x="468" y="178" width="54" height="26" fill="#6ee7b7"/><rect x="545" y="195" width="44" height="22" fill="#9ca3af"/>
+  <rect x="470" y="60" width="140" height="70" fill="#fff" stroke="#bbb"/><circle cx="540" cy="95" r="22" fill="#e8a900"/></svg>`;
+  const q=[
+  {ty:"info",q:TT("Willkommen zum Demo-Quiz!"),body:TT("Gleich siehst du alle Fragetypen. Auf dem Handy kannst du oben deine Sprache wählen. Viel Spaß!"),time:0},
+  {ty:"mc",q:TT("Wofür steht die Abkürzung „MwSt.“?","Что означает сокращение «MwSt.»?","Що означає скорочення «MwSt.»?","O que significa a abreviação «MwSt.»?","¿Qué significa la abreviatura «MwSt.»?","ماذا يعني الاختصار «MwSt.»؟","«MwSt.» kısaltması ne anlama gelir?","Chữ viết tắt «MwSt.» nghĩa là gì?","እቲ ሕጽረ-ቃል «MwSt.» እንታይ ማለት እዩ?"),
+   o:[{t:TT("Mehrwertsteuer","Налог на добавленную стоимость","Податок на додану вартість","Imposto sobre valor agregado","Impuesto sobre el valor añadido","ضريبة القيمة المضافة","Katma değer vergisi (KDV)","Thuế giá trị gia tăng","ቀረጽ ዝወሰኸ ዋጋ (VAT)"),ok:1},
+      {t:TT("Mindestwarensteuer","Налог на минимальный товар","Податок на мінімальний товар","Imposto sobre mercadoria mínima","Impuesto sobre mercancía mínima","ضريبة الحد الأدنى للبضائع","Asgari mal vergisi","Thuế hàng hóa tối thiểu","ቀረጽ ዝተሓተ ሸቐጥ")},
+      {t:TT("Marktwertsteuer","Налог на рыночную стоимость","Податок на ринкову вартість","Imposto sobre valor de mercado","Impuesto sobre valor de mercado","ضريبة القيمة السوقية","Piyasa değeri vergisi","Thuế giá trị thị trường","ቀረጽ ዋጋ ዕዳጋ")},
+      {t:TT("Mengenwertsteuer","Налог на количество","Податок на кількість","Imposto sobre quantidade","Impuesto sobre cantidad","ضريبة الكمية","Miktar vergisi","Thuế số lượng","ቀረጽ መጠን")}],
+   time:20,pts:1,kw:"Mehrwertsteuer",x:TT("MwSt. = Mehrwertsteuer. Sie steht auf jeder Rechnung und beträgt meist 19 %.")},
+  {ty:"tf",q:TT("Beim Kauf im Laden gibt es gesetzlich immer ein 14-tägiges Widerrufsrecht.","При покупке в магазине по закону всегда есть 14 дней на возврат.","Під час купівлі в магазині за законом завжди є 14 днів на повернення.","Em uma compra na loja sempre existe por lei um direito de arrependimento de 14 dias.","En una compra en la tienda siempre existe por ley un derecho de desistimiento de 14 días.","عند الشراء من المتجر يوجد دائماً بحكم القانون حق الرجوع خلال 14 يوماً.","Mağazadan yapılan alışverişte yasal olarak her zaman 14 günlük cayma hakkı vardır.","Khi mua hàng tại cửa hàng, theo luật luôn có quyền hoàn trả trong 14 ngày.","ኣብ ድኳን ምስ ትዕድግ ብሕጊ ኩሉ ግዜ ናይ 14 መዓልቲ መመለሲ መሰል ኣሎ።"),
+   ok:0,time:15,x:TT("Falsch. Das 14-tägige Widerrufsrecht gilt vor allem beim Online-Kauf. Im Laden kaufen Sie die Ware meist endgültig.")},
+  {ty:"mc",multi:1,q:TT("Welche Angaben gehören auf ein Preisschild? (Mehrere sind richtig)"),o:[{t:TT("Verkaufspreis"),ok:1},{t:TT("Grundpreis (z. B. Preis je Kilogramm)"),ok:1},{t:TT("Einkaufspreis"),ok:0},{t:TT("Gewinn des Geschäfts"),ok:0}],time:30,x:TT("Pflicht sind Verkaufspreis und Grundpreis. Einkaufspreis und Gewinn sind Betriebsgeheimnis.")},
+  {ty:"puzzle",q:TT("Bring die Schritte des Verkaufsgesprächs in die richtige Reihenfolge."),o:[{t:TT("Kunden begrüßen")},{t:TT("Wünsche des Kunden erfragen")},{t:TT("Ware vorlegen und beraten")},{t:TT("Preis nennen")},{t:TT("Verabschieden")}],time:45},
+  {ty:"short",q:TT("Wie heißt das Gegenteil von „Angebot“ im Markt?"),acc:["Nachfrage","die Nachfrage"],time:20,x:TT("Angebot = Verkäufer. Nachfrage = Käufer.")},
+  {ty:"num",q:TT("Ein Pullover kostet netto 50,00 €. Wie viel kostet er mit 19 % MwSt.? (in €)"),ans:59.5,tol:0.01,time:60,x:TT("50 € · 1,19 = 59,50 €")},
+  {ty:"num",sl:1,est:1,min:0,max:40,step:1,ans:12,tol:0,q:TT("Schätze: Wie viel Euro sind 15 % von 80 €?"),time:30,x:TT("80 € · 0,15 = 12 €. Je näher du bist, desto mehr Punkte.")},
+  {ty:"match",q:TT("Verbinde Begriff und Erklärung."),pr:[{l:TT("Angebot"),r:TT("Ware, die Verkäufer anbieten")},{l:TT("Nachfrage"),r:TT("Ware, die Käufer kaufen wollen")},{l:TT("Gleichgewichtspreis"),r:TT("Angebot ist gleich Nachfrage")},{l:TT("Rabatt"),r:TT("Preisnachlass")}],time:60},
+  {ty:"pin",q:TT("Tippe auf die Kasse."),img:"data:image/svg+xml;utf8,"+encodeURIComponent(shop),pin:{x:.78,y:.62,r:.13},time:20},
+  {ty:"mc",pts:2,q:TT("DOPPELTE PUNKTE: Wie nennt man es, wenn bei einem Preis mehr Ware angeboten als gekauft wird?"),o:[{t:TT("Nachfrageüberhang")},{t:TT("Angebotsüberhang"),ok:1},{t:TT("Gleichgewicht")},{t:TT("Käufermarkt")}],time:20,x:TT("Angebotsüberhang: Die Verkäufer bleiben auf Ware sitzen, der Preis sinkt.")},
+  {ty:"poll",q:TT("Wie sicher fühlst du dich beim Thema Preise?"),o:[{t:TT("Sehr sicher")},{t:TT("Eher sicher")},{t:TT("Eher unsicher")},{t:TT("Noch gar nicht sicher")}],time:20},
+  {ty:"cloud",max:3,q:TT("Was fällt dir ein, wenn du „Kunde“ hörst? (bis zu 3 Wörter)"),time:60},
+  {ty:"open",q:TT("Welche Frage hast du noch zum Thema?"),time:90},
+  {ty:"brain",max:3,q:TT("Wie können wir Kunden im Laden freundlicher begrüßen?"),time:120}
+  ];
+  q.forEach((x,i)=>{x.id="q"+(i+1);});
+  return {v:1,id:"demo-"+rnd(4),title:"Demo-Quiz (alle Fragetypen)",qs:q};
+}
+
+/* =========================================================
+   Spannungsmusik (nur Tafel, Web Audio, keine Dateien, keine bekannte Melodie)
+   ========================================================= */
+const Music=(()=>{
+  let ctx=null,master=null,timer=null,step=0,nextT=0,tempo=118,running=false;
+  let on=store("klaq_music")===1,vol=store("klaq_vol");if(typeof vol!=="number")vol=0.3;
+  const BASS=[55,55,82.4,55,65.4,65.4,73.4,82.4],ARP=[0,3,7,10,12,10,7,3];
+  function ensure(){if(!ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return false;ctx=new C();master=ctx.createGain();master.gain.value=vol*0.6;master.connect(ctx.destination);}
+    if(ctx.state==="suspended")ctx.resume();return true;}
+  function tone(f,t,d,type,g,lp){const o=ctx.createOscillator(),e=ctx.createGain();o.type=type;o.frequency.value=f;
+    e.gain.setValueAtTime(0.0001,t);e.gain.exponentialRampToValueAtTime(g,t+0.012);e.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    let n=o;if(lp){const b=ctx.createBiquadFilter();b.type="lowpass";b.frequency.value=lp;o.connect(b);n=b;}n.connect(e);e.connect(master);o.start(t);o.stop(t+d+0.05);}
+  function play(s,t){const sd=60/tempo/2,bar=Math.floor(s/8)%8;
+    if(s%2===0)tone(BASS[bar],t,sd*1.8,"sawtooth",0.22,380);
+    tone(220*Math.pow(2,ARP[s%8]/12),t,sd*0.9,"triangle",0.11);
+    if(s%4===2)tone(1800,t,0.03,"square",0.03);}
+  function sched(){if(!ctx)return;while(nextT<ctx.currentTime+0.18){play(step,nextT);nextT+=60/tempo/2;step++;}}
+  const api={
+    enabled:()=>on,vol:()=>vol,
+    toggle(){on=!on;store("klaq_music",on?1:0);if(on){ensure();}else api.stop();return on;},
+    setVol(v){vol=v;store("klaq_vol",v);if(master)master.gain.value=v*0.6;},
+    start(){if(!on||running||document.hidden)return;if(!ensure())return;running=true;step=0;nextT=ctx.currentTime+0.05;tempo=118;timer=setInterval(sched,60);master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(vol*0.6,ctx.currentTime,0.05);},
+    tempo(b){tempo=b;},
+    stop(){if(!running)return;running=false;clearInterval(timer);if(ctx&&master){master.gain.setTargetAtTime(0.0001,ctx.currentTime,0.08);}},
+    running:()=>running,
+    jingle(kind){if(!on||!ensure())return;if(master)master.gain.setTargetAtTime(vol*0.6,ctx.currentTime+0.01,0.02);const t=ctx.currentTime+0.05;
+      const seq=kind==="end"?[[262,0],[330,.14],[392,.28],[523,.42],[392,.6],[523,.74],[659,.9]]:[[392,0],[523,.12],[659,.24]];
+      seq.forEach(([f,d])=>{tone(f,t+d,0.35,"triangle",0.22);tone(f*2,t+d,0.25,"sine",0.06);});}
+  };
+  document.addEventListener("visibilitychange",()=>{if(document.hidden)api.stop();});
+  return api;})();
+
+/* =========================================================
+   TAFEL (Lehrkraft, Beamer) – Teil 1: Zustand, Netz, Spielablauf
+   ========================================================= */
+function tafelApp(){
+  $("tafel").hidden=false;$("logoImg").src=LOGO;
+  const LIB="klaq_lib",KEY="klaq_game",SETK="klaq_set";
+  let lib=store(LIB);if(!Array.isArray(lib))lib=[];
+  function saveLib(){try{localStorage.setItem(LIB,JSON.stringify(lib));return true;}catch(e){window.alert("Der Speicher des Browsers ist voll. Bitte exportiere das Quiz als Datei (Knopf „Exportieren“) und lösche alte Quizze.");return false;}}
+  let G=store(KEY),Q=null;
+  function bindQuiz(){if(!G||!G.code){G=null;Q=null;return;}const base=lib.find(x=>x.id===G.qid);if(!base){G=null;Q=null;return;}
+    Q=G.sel?Object.assign({},base,{qs:G.sel.map(id=>base.qs.find(q=>q.id===id)).filter(Boolean)}):base;}
+  bindQuiz();
+  let view=G?"game":"home",E={qid:null,qi:0,lang:"de"};
+  let conn={up:0,all:2},pubT=null,subbed="",dirty=new Set(),favs=new Set();
+  const net=new Net(onMsg,c=>{const was=conn.up;conn=c;if(c.up&&c.up!==was&&G){pubQz();pubState();G&&Object.keys(G.pl).forEach(markP);}renderHead();});
+  const save=()=>{if(G)store(KEY,G);};
+  const players=()=>G?Object.keys(G.pl):[];
+  const curQ=()=>Q&&G&&G.qi>=0?Q.qs[G.qi]:null;
+  function sub(){if(G&&subbed!==G.code){subbed=G.code;net.sub(G.code+"/in");}}
+  const settings=()=>Object.assign({mode:"live",teams:0,rd:5,rank:1,joker:1,rn:0},store(SETK)||{});
+
+  /* ---------- Spiel anlegen ---------- */
+  function newGame(base,sel,old){
+    const s=old?{mode:old.mode,teams:old.teams,rd:old.rd,rank:old.rank,joker:old.joker,rn:old.rn}:settings();
+    G=Object.assign({code:old?old.code:codeGen(),seq:Math.max(Date.now(),old?old.seq+10:0),qv:Date.now(),qid:base.id,sel:sel||null,ph:"lobby",qi:-1,qStart:0,qDur:0,rdEnd:0,pa:false,paT:0,
+      pl:{},ans:{},ideas:{},votes:{},bp:"c",il:[],rv:null,perm:{},kick:old?old.kick:[],rj:{}},s);
+    if(old){for(const id in old.pl){const o=old.pl[id];G.pl[id]={n:o.n,a:o.a,l:o.l,t:-1,pts:0,st:0,j:0};}}
+    bindQuiz();
+    Q.qs.forEach((q,i)=>{const n=q.ty==="puzzle"?q.o.length:q.ty==="match"?q.pr.length:0;if(n){let p;let k=0;do{p=shuffle([...Array(n).keys()]);k++;}while(k<12&&p.every((x,j)=>x===j));G.perm[i]=p;}});
+    sub();view="game";save();pubQz();pubState();Object.keys(G.pl).forEach(markP);render();}
+  function startFromDemo(){let d=lib.find(x=>x.id&&x.id.startsWith("demo-"));if(!d){d=demoQuiz();lib.push(d);saveLib();}return d;}
+
+  /* ---------- Senden ---------- */
+  let qzT=0;function pubQzSoon(){if(Date.now()-qzT>3000){qzT=Date.now();pubQz();}}
+  function pubQz(){if(!G||!Q)return;
+    net.pub(G.code+"/qz",{v:G.qv,n:Q.qs.length,t:Q.title,qs:Q.qs.map((q,i)=>phoneQ(q,G.perm[i]))},true);
+    Q.qs.forEach((q,i)=>{if(q.img)net.pub(G.code+"/img/"+i,{v:G.qv,i,d:q.img},true);});}
+  function teamPts(){if(!G.teams)return [];const a=[];for(let t=0;t<G.teams;t++){const m=players().filter(id=>G.pl[id].t===t);a.push({t,n:TEAMS[t][0],c:TEAMS[t][1],m:m.length,pts:m.length?Math.round(m.reduce((s,id)=>s+G.pl[id].pts,0)/m.length):0});}return a;}
+  function rankMap(){const r=players().map(id=>({id,p:G.pl[id].pts})).sort((a,b)=>b.p-a.p),m={};let rk=0,last=null;r.forEach((x,i)=>{if(x.p!==last){rk=i+1;last=x.p;}m[x.id]=rk;});return m;}
+  function ranking(){const m=rankMap();return players().map(id=>Object.assign({id,rk:m[id]},G.pl[id])).sort((a,b)=>a.rk-b.rk||a.n.localeCompare(b.n));}
+  function liveAnswered(){if(!G||G.qi<0)return [];const q=curQ();if(q&&q.ty==="brain")return Object.keys((G.bp==="c"?G.ideas[G.qi]:G.votes[G.qi])||{});return Object.keys(G.ans[G.qi]||{});}
+  function markP(pid){dirty.add(pid);clearTimeout(markP.t);markP.t=setTimeout(flushP,150);}
+  function flushP(){if(!G)return;const rm=rankMap(),np=players().length;
+    for(const pid of dirty){const P=G.pl[pid];if(!P)continue;
+      net.pub(G.code+"/p/"+pid,{ok:1,seq:++G.seq,n:P.n,a:P.a,t:P.t,tn:P.t>=0?TEAMS[P.t][0]:"",pts:P.pts,rk:rm[pid],np,fb:P.fb||null,jk:P.jk||null,ss:P.ss||"",ci:P.ci==null?-1:P.ci,qr:(P.ss==="q"&&Q.qs[P.ci]&&Q.qs[P.ci].time>0)?Math.max(0,Q.qs[P.ci].time-(Date.now()-P.qs)/1000):null,j:P.j?1:0},true);}
+    dirty.clear();}
+  function pubState(){clearTimeout(pubT);pubT=setTimeout(doPub,120);}
+  function doPub(){if(!G||!Q)return;const q=curQ(),now=Date.now();
+    const S={seq:++G.seq,v:G.qv,ph:G.ph,mode:G.mode,qi:G.qi,nq:Q.qs.length,open:G.ph==="q",pa:G.pa,
+      rem:G.ph==="q"&&G.qDur>0?Math.max(0,G.qDur-(now-G.qStart)/1000):null,rd:G.ph==="intro"?Math.max(0,(G.rdEnd-now)/1000):0,
+      an:liveAnswered(),np:players().length,cfg:{joker:G.joker?1:0,rn:G.rn?1:0,teams:G.teams},bp:G.bp,
+      bi:(q&&q.ty==="brain"&&G.ph==="q"&&G.bp==="v")?G.il.map(x=>({i:x.id,t:x.t})):null,rv:(G.ph==="res"||G.ph==="rank")?G.rv:null,tm:G.teams?teamPts():null};
+    net.pub(G.code+"/st",S,true);}
+  setInterval(()=>{doPub();if(G)Object.keys(G.pl).forEach(markP);},6000);
+  setInterval(()=>{if(G&&(G.ph==="lobby"))pubQz();},45000);
+
+  /* ---------- Eingehende Nachrichten (alles wird hier geprüft) ---------- */
+  function onMsg(t,p){
+    if(!G||t!==NS+G.code+"/in"||!p||typeof p!=="object")return;
+    const pid=clean(p.p,12);if(!pid||G.kick.includes(pid))return;
+    if(p.k==="hi"){join(pid,p);return;}
+    if(p.k==="rq"){pubQzSoon();return;}
+    if(p.k==="ri"){const i=+p.i,q=Q.qs[i];if(Number.isInteger(i)&&q&&q.img)net.pub(G.code+"/img/"+i,{v:G.qv,i,d:q.img},true);return;}
+    const P=G.pl[pid];if(!P)return;
+    if(p.k==="a"){if(G.mode==="self")selfAnswer(pid,p);else liveAnswer(pid,p);}
+    else if(p.k==="i")onIdeas(pid,p);
+    else if(p.k==="vt")onVote(pid,p);
+    else if(p.k==="j")onJoker(pid,p);
+    else if(p.k==="nx")selfNext(pid);
+    else return;
+    save();pubState();render();}
+  function uniqueName(n){const used=new Set(players().map(id=>G.pl[id].n.toLowerCase()));if(!used.has(n.toLowerCase()))return n;for(let i=2;i<99;i++){const c=n.slice(0,13)+" "+i;if(!used.has(c.toLowerCase()))return c;}return n;}
+  function join(pid,p){
+    let n=clean(p.n,16);if(!n)return;const l=LK.includes(p.l)?p.l:"de",a=/^\d{1,2}\.\d$/.test(String(p.a))?String(p.a):"0.0";
+    if(!G.pl[pid]){
+      if(badName(n)){G.rj[pid]=1;net.pub(G.code+"/p/"+pid,{rj:1,seq:++G.seq},true);return;}
+      if(players().length>=60)return;
+      G.pl[pid]={n:uniqueName(n),a,l,t:-1,pts:0,st:0,j:0};delete G.rj[pid];
+      if(G.teams>0){const c=Array(G.teams).fill(0);players().forEach(id=>{const t=G.pl[id].t;if(t>=0&&t<G.teams)c[t]++;});G.pl[pid].t=c.indexOf(Math.min(...c));}
+      if(G.ph==="self")selfStart(pid);
+    }else{G.pl[pid].a=a;G.pl[pid].l=l;}
+    markP(pid);pubQzSoon();save();pubState();render();}
+  function removePlayer(pid){if(!G.pl[pid])return;delete G.pl[pid];G.kick.push(pid);net.pub(G.code+"/p/"+pid,{kick:1,seq:++G.seq},true);save();pubState();render();}
+
+  /* ---------- Antworten ---------- */
+  function liveAnswer(pid,p){
+    if(G.ph!=="q"||G.pa||p.q!==G.qi)return;const q=curQ();if(!QT[q.ty].sc&&!["poll","cloud","open"].includes(q.ty))return;
+    const v=validAns(q,p.v);if(v==null)return;const A=G.ans[G.qi];if(A[pid])return;
+    const ms=Date.now()-G.qStart;if(G.qDur>0&&ms>G.qDur*1000+2000)return;
+    A[pid]={v,ms};
+    if(Object.keys(A).length>=players().length)closeQ();}
+  function onIdeas(pid,p){const q=curQ();if(!q||q.ty!=="brain"||G.ph!=="q"||G.bp!=="c"||p.q!==G.qi||G.pa)return;
+    if(!Array.isArray(p.v))return;const w=p.v.map(x=>clean(x,90)).filter(Boolean).slice(0,q.max||3);if(!w.length)return;
+    const I=(G.ideas[G.qi]=G.ideas[G.qi]||{});if(I[pid])return;I[pid]=w;
+    if(Object.keys(I).length>=players().length)closeQ();}
+  function onVote(pid,p){const q=curQ();if(!q||q.ty!=="brain"||G.ph!=="q"||G.bp!=="v"||p.q!==G.qi||G.pa||!Array.isArray(p.v))return;
+    const ids=[...new Set(p.v)].filter(i=>G.il.some(x=>x.id===i&&x.p!==pid)).slice(0,3);if(!ids.length)return;
+    const V=(G.votes[G.qi]=G.votes[G.qi]||{});if(V[pid])return;V[pid]=ids;
+    if(Object.keys(V).length>=players().length)closeQ();}
+  function onJoker(pid,p){const P=G.pl[pid];if(!G.joker||P.j)return;
+    let qi,q;if(G.mode==="self"){qi=P.ci;if(P.ss!=="q"||p.q!==qi)return;}else{qi=G.qi;if(G.ph!=="q"||p.q!==qi)return;}
+    q=Q.qs[qi];if(!q||q.ty!=="mc"||q.multi||q.o.length<3)return;
+    if(G.mode!=="self"&&(G.ans[qi]||{})[pid])return;
+    const wrong=q.o.map((o,i)=>o.ok?-1:i).filter(i=>i>=0),h=shuffle(wrong).slice(0,Math.min(2,wrong.length-0));
+    P.j=1;P.jk={q:qi,h};markP(pid);}
+
+  /* ---------- Punkte ---------- */
+  function scoreOne(P,q,qi,a){
+    if(!QT[q.ty].sc)return {q:qi,ok:null,g:0};
+    if(!a){P.st=0;return {q:qi,ok:0,none:1,g:0,st:0};}
+    const r=judge(q,a.v,G.perm[qi]),dur=q.time*1000;
+    const base=dur>0?Math.round(1000*(1-Math.min(1,a.ms/dur)/2)):1000;
+    let g=Math.round(base*r*(q.pts===2?2:1));
+    if(r===1){P.st=(P.st||0)+1;if(P.st>=2)g+=Math.min(5,P.st-1)*100;}else P.st=0;
+    P.pts+=g;a.r=r;a.g=g;
+    return {q:qi,ok:r===1?1:r>0?2:0,g,st:P.st};}
+
+  /* ---------- Ablauf live ---------- */
+  function beginQ(i){G.qi=i;G.ans[i]={};G.rv=null;G.bp="c";G.il=[];G.pa=false;const q=Q.qs[i];
+    players().forEach(id=>{G.pl[id].jk=null;});
+    if(q.ty==="info"){G.ph="q";G.qStart=Date.now();G.qDur=0;}
+    else if(G.rd>0){G.ph="intro";G.rdEnd=Date.now()+G.rd*1000;}
+    else openQ();
+    after();}
+  function openQ(){const q=curQ();G.ph="q";G.qStart=Date.now();G.qDur=q.time||0;if(q.time>0)Music.start();after();}
+  function closeQ(){const q=curQ(),qi=G.qi;
+    if(q.ty==="brain"&&G.bp==="c"){
+      const I=G.ideas[qi]||{};G.il=[];Object.keys(I).forEach(pid=>I[pid].forEach(t=>G.il.push({id:"i"+G.il.length,p:pid,t})));G.il=shuffle(G.il);
+      if(G.il.length){G.bp="v";G.qStart=Date.now();G.qDur=0;Music.stop();after();return;}
+    }
+    Music.stop();
+    if(q.ty==="brain")G.bp="r";
+    const A=G.ans[qi]||{};
+    players().forEach(id=>{const P=G.pl[id];P.fb=scoreOne(P,q,qi,A[id]||null);P.jk=P.jk;});
+    G.rv={q:qi,c:solution(q,G.perm[qi]),x:q.x||null};
+    G.ph="res";Music.jingle("ok");players().forEach(markP);after();}
+  function nextQ(){const i=G.qi+1;if(i>=Q.qs.length){endGame();return;}beginQ(i);}
+  function advance(){
+    if(!G||G.pa)return;const q=curQ();
+    if(G.ph==="intro")openQ();
+    else if(G.ph==="q"){if(q.ty==="info")nextQ();else closeQ();}
+    else if(G.ph==="res"){if(G.rank&&QT[q.ty].sc)G.ph="rank";else{nextQ();return;}after();}
+    else if(G.ph==="rank")nextQ();}
+  function skipQ(){if(!G||(G.ph!=="q"&&G.ph!=="intro"))return;Music.stop();G.ans[G.qi]={};G.pa=false;nextQ();}
+  function endGame(){Music.stop();G.ph="end";G.qi=Q.qs.length;G.rv=null;G.pa=false;Music.jingle("end");players().forEach(markP);after();}
+  function after(){save();pubState();render();}
+  function togglePause(){if(!G||!["intro","q"].includes(G.ph))return;
+    if(!G.pa){G.pa=true;G.paT=Date.now();Music.stop();}else{const d=Date.now()-G.paT;G.qStart+=d;G.rdEnd+=d;G.pa=false;if(G.ph==="q"&&G.qDur>0)Music.start();}after();}
+  function addTime(){if(G.ph==="q"&&G.qDur>0){G.qDur+=10;after();}}
+  function startGame(){
+    if(G.teams>0){const ids=shuffle(players());ids.forEach((id,i)=>{G.pl[id].t=i%G.teams;});}else players().forEach(id=>{G.pl[id].t=-1;});
+    if(G.mode==="self"){G.ph="self";players().forEach(selfStart);after();}else nextQ();}
+
+  /* ---------- Schülertempo ---------- */
+  function selfIdx(from){for(let i=from;i<Q.qs.length;i++)if(SELF_OK.includes(Q.qs[i].ty))return i;return -1;}
+  function selfStart(pid){const P=G.pl[pid];P.ci=-1;P.fb=null;selfAdvance(pid);}
+  function selfAdvance(pid){const P=G.pl[pid],i=selfIdx((P.ci==null?-1:P.ci)+1);P.jk=null;
+    if(i<0){P.ss="done";P.ci=Q.qs.length;}else{P.ci=i;P.ss="q";P.qs=Date.now();}markP(pid);}
+  function selfAnswer(pid,p){const P=G.pl[pid];if(G.ph!=="self"||P.ss!=="q"||p.q!==P.ci)return;const q=Q.qs[P.ci];
+    const v=validAns(q,p.v);if(v==null)return;if((G.ans[P.ci]||{})[pid])return;
+    const ms=Date.now()-P.qs,late=q.time>0&&ms>q.time*1000+3000;
+    const a={v,ms};(G.ans[P.ci]=G.ans[P.ci]||{})[pid]=a;
+    P.fb=scoreOne(P,q,P.ci,late?null:a);if(late)a.r=0;P.fb.c=solution(q,G.perm[P.ci]);P.fb.x=q.x||null;P.ss="fb";markP(pid);}
+  function selfNext(pid){const P=G.pl[pid];if(G.ph!=="self")return;const q=Q.qs[P.ci];
+    if(P.ss==="q"&&q&&q.time>0&&Date.now()-P.qs>=q.time*1000-700){const a=null;P.fb=scoreOne(P,q,P.ci,a);P.fb.c=solution(q,G.perm[P.ci]);P.fb.x=q.x||null;P.ss="fb";markP(pid);return;}
+    if(P.ss==="fb")selfAdvance(pid);}
+
+  /* ---------- Uhr ---------- */
+  setInterval(()=>{
+    if(!G||G.pa||!Q)return;const now=Date.now();
+    if(G.ph==="intro"&&now>=G.rdEnd){openQ();return;}
+    if(G.ph==="q"&&G.qDur>0){const left=G.qDur-(now-G.qStart)/1000;
+      if(left<=0){closeQ();return;}
+      const el=$("clk");if(el){el.textContent=Math.ceil(left);el.classList.toggle("low",left<=5);}
+      Music.tempo(left<=10?156:118);}
+    if(G.ph==="intro"){const el=$("rdc");if(el)el.textContent=Math.max(1,Math.ceil((G.rdEnd-now)/1000));}
+  },250);
+
+
+  /* =========================================================
+     TAFEL – Teil 2: Anzeige
+     ========================================================= */
+  function joinUrl(){
+    const extra=(params.get("broker")?"&broker="+encodeURIComponent(params.get("broker")):"")+(LOCAL?"&bc=1":"");
+    if(!G)return "";
+    if(location.protocol.startsWith("http"))return location.origin+location.pathname+"?s="+G.code+extra;
+    const u=(settings().url||"").trim();if(u)return u+(u.includes("?")?"&":"?")+"s="+G.code+extra;
+    if(LOCAL)return location.href.split("?")[0]+"?s="+G.code+extra;return "";}
+  function drawQR(canvas,text){
+    if(!canvas)return;const ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+    if(!text||typeof QRLib==="undefined"){ctx.fillStyle="#999";ctx.font="bold 16px sans-serif";ctx.textAlign="center";ctx.fillText("keine Adresse",canvas.width/2,canvas.height/2);return;}
+    const q=new QRLib.QRCode(-1,QRLib.ECL.M);q.addData(text);q.make();
+    const n=q.getModuleCount(),cell=Math.floor(canvas.width/(n+4)),off=Math.floor((canvas.width-cell*n)/2);
+    ctx.fillStyle="#000";for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))ctx.fillRect(off+c*cell,off+r*cell,cell,cell);}
+  function renderHead(){
+    const g=!!G&&view==="game";
+    $("miniCode").textContent=G?"Code "+G.code:"";$("miniN").textContent=G?players().length+" dabei":"";
+    $("conn").innerHTML=`<span class="dot ${conn.up?"on":""}"></span>${conn.up?"verbunden":"keine Verbindung"}`;
+    document.querySelector("#tafel .mini").classList.toggle("hide",!G);
+    const mus=Music.enabled();
+    $("tctl").innerHTML=`${view!=="home"?`<button data-act="home">Startseite</button> `:""}${g&&["intro","q"].includes(G.ph)?`<button data-act="pause">${G.pa?"Weiter":"Pause"}</button> `:""}
+      <button data-act="music" title="Spannungsmusik an/aus">${mus?"Musik an":"Musik aus"}</button>${mus?` <input type="range" min="0" max="1" step="0.05" value="${Music.vol()}" data-act="vol" style="width:90px;vertical-align:middle">`:""} <button data-act="full">Vollbild</button>`;
+    if(G)drawQR($("qrSmall"),joinUrl());}
+  function render(){renderHead();const M=$("tMain");
+    if(view==="home")rHome(M);else if(view==="edit")rEdit(M);else if(view==="report")rReport(M);
+    else if(!G)rHome(M);else if(G.ph==="lobby")rLobby(M);else if(G.ph==="rank")rRank(M);else if(G.ph==="end")rEnd(M);else if(G.ph==="self")rSelf(M);else rQuestion(M);
+    if(G&&G.pa)M.insertAdjacentHTML("beforeend",`<div class="paused"><div>Pause<br><button class="pri" data-act="pause">Weiter</button></div></div>`);}
+  const av=(a,cls)=>`<span class="${cls||""}" style="display:inline-flex">${avOf(a)}</span>`;
+  const langCover=quiz=>LK.filter(l=>l!=="de"&&quiz.qs.every(q=>hasTr(q.q,l)||q.ty==="info"&&hasTr(q.body,l)));
+
+  /* ---------- Startseite ---------- */
+  function rHome(M){
+    M.innerHTML=`<div class="row"><h2 class="big grow" style="margin:0">Quiz-Arena der KLA Bremerhaven</h2></div>
+    <p class="muted">Live-Quiz für Beamer und Handys. Auf dem Handy können Schüler ihre Sprache wählen.</p>
+    <div class="ctrl"><button class="pri" data-act="demo">Demo-Quiz spielen</button><button data-act="import">Quiz importieren (.json)</button><button data-act="newquiz">Neues Quiz erstellen</button>
+    ${G?`<button data-act="resume" class="pri">Laufendes Spiel fortsetzen (${h(Q?Q.title:"")})</button>`:""}</div>
+    <input type="file" id="impf" accept=".json,application/json" class="hide">
+    <div class="libgrid">${lib.map(qz=>`<div class="box"><h3>${h(qz.title)}</h3><div class="muted">${qz.qs.length} Fragen · Sprachen: ${langCover(qz).map(l=>l.toUpperCase()).join(", ")||"nur Deutsch"}</div>
+      <div class="ctrl" style="margin-top:10px"><button class="pri" data-act="play" data-id="${h(qz.id)}">Spielen</button><button data-act="edit" data-id="${h(qz.id)}">Bearbeiten</button><button data-act="export" data-id="${h(qz.id)}">Exportieren</button><button class="danger" data-act="del" data-id="${h(qz.id)}">Löschen</button></div></div>`).join("")}</div>
+    ${lib.length?"":`<p class="muted" style="margin-top:20px">Noch kein Quiz gespeichert. Starte mit dem Demo-Quiz oder importiere eine Quiz-Datei, die Claude aus deinem Dokument erstellt hat.</p>`}`;}
+
+  /* ---------- Lobby ---------- */
+  function seg(k,opts,cur){return `<div class="seg">${opts.map(([v,t])=>`<button data-act="set" data-k="${k}" data-v="${v}" class="${String(cur)===String(v)?"on":""}">${t}</button>`).join("")}</div>`;}
+  function rLobby(M){
+    const pl=players(),url=joinUrl(),needUrl=!location.protocol.startsWith("http")&&!LOCAL;
+    M.innerHTML=`<div class="join"><div><canvas id="qrBig" width="600" height="600"></canvas></div>
+    <div><h2 class="big">${h(Q.title)}</h2>
+    <p style="font-size:1.3rem;margin:.2em 0">QR-Code scannen oder Adresse öffnen, Spielcode eingeben:</p>
+    <div class="code">${G.code}</div><div class="muted" id="jU" style="word-break:break-all">${h(url)}</div>
+    ${needUrl?`<label>Internetadresse dieser Seite (nur nötig, wenn die Datei lokal geöffnet ist)<input id="tUrl" value="${h(settings().url||"")}" placeholder="https://…/kla-quiz/"></label>`:""}
+    <h3 style="margin-top:14px">${pl.length} dabei <span class="muted" style="font-size:.9rem;font-weight:400">· Antippen entfernt einen Namen</span></h3>
+    <div class="lobbyp">${pl.map(id=>{const P=G.pl[id];return `<button class="pchip ${P.t>=0?"t"+P.t:""}" data-act="kick" data-id="${h(id)}" style="padding:4px 14px 4px 4px">${avOf(P.a)}<span>${h(P.n)}</span></button>`;}).join("")||`<span class="muted">Noch niemand. Die ersten Avatare erscheinen gleich hier.</span>`}</div>
+    <div class="settings">
+      <div class="box"><label>Spielmodus</label>${seg("mode",[["live","Alle gemeinsam (Live)"],["self","Eigenes Tempo"]],G.mode)}</div>
+      <div class="box"><label>Teams</label>${seg("teams",[[0,"Aus"],[2,"2"],[3,"3"],[4,"4"],[5,"5"],[6,"6"]],G.teams)}</div>
+      <div class="box"><label>Lesezeit vor den Antworten</label>${seg("rd",[[0,"0 s"],[3,"3 s"],[5,"5 s"],[8,"8 s"],[12,"12 s"]],G.rd)}</div>
+      <div class="box"><label>Rangliste nach jeder Frage</label>${seg("rank",[[1,"Ja"],[0,"Nein"]],G.rank)}</div>
+      <div class="box"><label>Joker 50:50 für Schüler</label>${seg("joker",[[1,"An"],[0,"Aus"]],G.joker)}</div>
+      <div class="box"><label>Nur Zufallsnamen</label>${seg("rn",[[0,"Aus"],[1,"An"]],G.rn)}</div>
+    </div>
+    <div class="ctrl"><button class="pri" id="bGo" data-act="start" style="font-size:1.3rem;padding:.7em 1.6em" ${pl.length?"":"disabled"}>Los geht's: Quiz starten →</button><button data-act="cancel">Abbrechen</button></div>
+    ${G.mode==="self"?`<p class="muted">Im Eigenen Tempo beantwortet jeder die Fragen allein. Übersprungen werden Folien, Wortwolke, offene Fragen und Brainstorming.</p>`:""}
+    </div></div>`;
+    drawQR($("qrBig"),url);}
+
+  /* ---------- Fragen ---------- */
+  function counts(q,A){const n=q.ty==="tf"?2:q.o.length,c=Array(n).fill(0);for(const id in A){const v=A[id].v;if(q.ty==="tf")c[v[0]===1?0:1]++;else v.forEach(i=>c[i]++);}return c;}
+  function groupAns(A,fmt){const g={};for(const id in A){const k=norm(A[id].v)||String(A[id].v);(g[k]=g[k]||{t:fmt?fmt(A[id].v):A[id].v,n:0,r:A[id].r}).n++;}return Object.values(g).sort((a,b)=>b.n-a.n);}
+  function cloudHTML(A){const c={};for(const id in A)for(const w of A[id].v){const k=norm(w)||w.toLowerCase();(c[k]=c[k]||{t:w,n:0}).n++;}
+    const arr=Object.values(c).sort((a,b)=>b.n-a.n),mx=arr.length?arr[0].n:1;
+    return `<div class="cloud" style="width:100%">${arr.length?arr.map((w,i)=>`<span style="font-size:${(1.3+2.9*w.n/mx).toFixed(2)}rem;color:var(--c${[1,0,3,4,5,2][i%6]})">${h(w.t)}</span>`).join(""):`<span class="muted">Die Wörter erscheinen hier, sobald die Schüler sie senden.</span>`}</div>`;}
+  function pinHTML(q,A,res){
+    let dots="";for(const id in A){const v=A[id].v;dots+=`<i style="left:${v[0]*100}%;top:${v[1]*100}%;width:16px;height:16px;border:3px solid #fff;background:${A[id].r===1?"var(--ok)":"var(--bad)"};border-radius:50%"></i>`;}
+    const p=q.pin;return `<div class="pinimg" style="cursor:default"><img src="${q.img||""}" alt="">${res?`<i style="left:${p.x*100}%;top:${p.y*100}%;width:${p.r*200}%;aspect-ratio:1;"></i>${dots}`:""}</div>`;}
+  function qBody(q,res){
+    const A=G.ans[G.qi]||{},n=Object.keys(A).length,np=players().length;
+    switch(q.ty){
+    case "mc":case "tf":case "poll":{
+      const opts=q.ty==="tf"?[{t:"Richtig"},{t:"Falsch"}]:q.o.map(o=>({t:tx(o.t,"de")})),c=counts(q,A);
+      const good=q.ty==="tf"?[q.ok?0:1]:q.ty==="mc"?q.o.map((o,i)=>o.ok?i:-1).filter(i=>i>=0):[];
+      const cols=q.ty==="tf"?["o1","o0"]:null;
+      if(q.ty==="poll"&&res){const mx=Math.max(1,...c);return `<div class="bars">${opts.map((o,i)=>`<div><b>${c[i]}</b><i class="o${i}" style="height:${Math.round(c[i]/mx*100)}%"></i><span style="text-align:center">${h(o.t)}</span></div>`).join("")}</div>`;}
+      return `<div class="opts">${opts.map((o,i)=>`<div class="opt ${cols?cols[i]:"o"+i} ${res&&q.ty!=="poll"?(good.includes(i)?"good":"dim"):""}">${SHAPES[q.ty==="tf"?(i?3:0):i]}<span>${h(o.t)}</span>${res?`<span class="n">${c[i]}</span>`:""}</div>`).join("")}</div>`;}
+    case "puzzle":{
+      if(!res)return `<div class="box"><b>Das sind die Teile (gemischt). Auf dem Handy in die richtige Reihenfolge bringen:</b><div class="lobbyp">${G.perm[G.qi].map(i=>`<span class="pchip" style="padding:8px 16px;font-size:1.3rem">${h(tx(q.o[i].t,"de"))}</span>`).join("")}</div></div>`;
+      const ex=Object.values(A).filter(a=>a.r===1).length;
+      return `<div class="box"><b>Richtige Reihenfolge:</b><ol style="font-size:1.5rem;margin:.4em 0">${q.o.map(o=>`<li>${h(tx(o.t,"de"))}</li>`).join("")}</ol><div class="muted">${ex} von ${n} Antworten ganz richtig.</div></div>`;}
+    case "short":{
+      if(!res)return `<div class="box muted" style="font-size:1.3rem;text-align:center">Antwort auf dem Handy eintippen.</div>`;
+      const g=groupAns(A);
+      return `<div class="box"><b>Richtig:</b> <span style="font-size:1.4rem">${q.acc.map(h).join(" · ")}</span><div class="lobbyp">${g.map(x=>`<span class="pchip" style="padding:6px 14px;border-color:var(--${x.r===1?"ok":"bad"});border-width:3px">${h(x.t)}${x.n>1?` ×${x.n}`:""}</span>`).join("")}</div></div>`;}
+    case "num":{
+      if(!res)return `<div class="box muted" style="font-size:1.3rem;text-align:center">${q.sl?`Schieber auf dem Handy (${fmtNum(q.min)} bis ${fmtNum(q.max)}).`:"Zahl auf dem Handy eintippen."}</div>`;
+      const vals=Object.values(A).map(a=>a.v).sort((a,b)=>a-b);
+      if(q.sl){const lo=q.min,hi=q.max,X=v=>40+(v-lo)/(hi-lo)*720;
+        return `<div class="box"><svg viewBox="0 0 800 130" style="width:100%"><line x1="40" x2="760" y1="80" y2="80" stroke="currentColor" stroke-width="3"/>
+          ${vals.map((v,i)=>`<circle cx="${X(v)}" cy="${72-(i%3)*10}" r="8" fill="var(--c1)" opacity=".75"/>`).join("")}
+          <line x1="${X(q.ans)}" x2="${X(q.ans)}" y1="30" y2="95" stroke="var(--ok)" stroke-width="5"/><text x="${X(q.ans)}" y="22" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ok)">${fmtNum(q.ans)}</text>
+          <text x="40" y="118" font-size="18" fill="currentColor">${fmtNum(lo)}</text><text x="760" y="118" text-anchor="end" font-size="18" fill="currentColor">${fmtNum(hi)}</text></svg></div>`;}
+      return `<div class="box"><b>Richtig:</b> <span style="font-size:1.6rem">${fmtNum(q.ans)}</span><div class="lobbyp">${vals.map(v=>`<span class="pchip" style="padding:6px 14px;border-width:3px;border-color:var(--${Math.abs(v-q.ans)<=Math.max(q.tol||0,1e-9)?"ok":"bad"})">${fmtNum(v)}</span>`).join("")}</div></div>`;}
+    case "match":{
+      const P=G.perm[G.qi];
+      if(!res)return `<div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="box">${q.pr.map(p=>`<div class="pchip" style="margin:6px 0;font-size:1.3rem;display:block;border-radius:12px">${h(tx(p.l,"de"))}</div>`).join("")}</div><div class="box">${P.map(i=>`<div class="pchip" style="margin:6px 0;font-size:1.3rem;display:block;border-radius:12px">${h(tx(q.pr[i].r,"de"))}</div>`).join("")}</div></div>`;
+      return `<div class="box">${q.pr.map(p=>`<div style="font-size:1.4rem;margin:6px 0"><b>${h(tx(p.l,"de"))}</b> → ${h(tx(p.r,"de"))}</div>`).join("")}<div class="muted">${Object.values(A).filter(a=>a.r===1).length} von ${n} Antworten ganz richtig.</div></div>`;}
+    case "pin":return `<div style="text-align:center">${pinHTML(q,A,res)}${res?`<div class="muted">Grün = getroffen, rot = daneben.</div>`:""}</div>`;
+    case "cloud":return cloudHTML(A);
+    case "open":{const arr=Object.keys(A).map(id=>({id,t:A[id].v}));
+      return `<div class="cards">${arr.map(a=>`<div class="${favs.has(a.id)?"fav":""}" data-act="fav" data-id="${h(a.id)}">${h(a.t)}</div>`).join("")||`<span class="muted">Die Antworten erscheinen hier. Antippen = groß anzeigen.</span>`}</div>`;}
+    case "brain":{
+      if(G.bp==="c")return `<div class="box" style="text-align:center;font-size:1.5rem">Ideen sammeln auf den Handys … <b>${Object.keys(G.ideas[G.qi]||{}).length}</b> von ${np} haben Ideen gesendet.</div>`;
+      const V=G.votes[G.qi]||{},cnt={};for(const id in V)V[id].forEach(i=>cnt[i]=(cnt[i]||0)+1);
+      if(G.bp==="v")return `<div class="box"><b>Abstimmung läuft: ${Object.keys(V).length} von ${np} haben abgestimmt.</b><div class="cards" style="margin-top:10px">${G.il.map(x=>`<div>${h(x.t)}</div>`).join("")}</div></div>`;
+      const r=G.il.slice().sort((a,b)=>(cnt[b.id]||0)-(cnt[a.id]||0));
+      return `<div class="board">${r.slice(0,10).map((x,i)=>`<li><span class="rk">${i+1}</span><span class="nm">${h(x.t)}</span><span class="pt">${cnt[x.id]||0}</span></li>`).join("")}</div>`;}
+    case "info":return `<div class="qtext" style="font-weight:700;font-size:clamp(1.3rem,2.6vw,2.2rem)">${h(tx(q.body,"de"))}</div>`;
+    }return "";}
+  function rQuestion(M){
+    const q=curQ(),res=G.ph==="res",intro=G.ph==="intro",np=players().length,i=G.qi,A=G.ans[i]||{};
+    const an=liveAnswered().length,timed=G.ph==="q"&&G.qDur>0&&!(q.ty==="brain"&&G.bp==="v");
+    const label=q.ty==="brain"&&G.bp==="v"?"Brainstorming: Abstimmung":QT[q.ty].n;
+    let btn="";
+    if(intro)btn=`<button class="pri" data-act="adv">Gleich Antworten zeigen →</button>`;
+    else if(G.ph==="q")btn=`<button class="pri" data-act="adv">${q.ty==="info"?"Weiter →":q.ty==="brain"?(G.bp==="c"?"Abstimmung starten →":"Ergebnis zeigen →"):"Antworten beenden →"}</button>${timed?`<button data-act="plus">+10 s</button>`:""}`;
+    else btn=`<button class="pri" data-act="adv">${G.rank&&QT[q.ty].sc?"Rangliste zeigen →":i+1>=Q.qs.length?"Zum Ergebnis →":"Nächste Frage →"}</button>`;
+    const stat=res&&QT[q.ty].sc?`<div class="muted" style="font-size:1.1rem">${Object.values(A).filter(a=>a.r===1).length} von ${np} richtig · ${np-n(A)} ohne Antwort</div>`:"";
+    function n(a){return Object.keys(a).length;}
+    const imgOnly=q.img&&q.ty!=="pin"&&q.ty!=="info";
+    M.innerHTML=`<div class="qwrap"><div class="qtop"><span class="qtype">${i+1} / ${Q.qs.length} · ${h(label)}</span>${q.pts===2?`<span class="x2">Doppelte Punkte</span>`:""}<span class="grow"></span>
+      ${G.ph==="q"&&q.ty!=="info"?`<span style="font-size:1.2rem"><b>${an}</b> / ${np} haben geantwortet</span>`:""}</div>
+      ${q.ty==="info"?"":`<div class="qtext">${h(tx(q.q,"de"))}</div>`}
+      ${(intro||imgOnly||(q.ty==="info"&&q.img)||timed)?`<div class="qmid">${intro?`<div class="timer" style="border-color:var(--gold)"><span id="rdc">${Math.max(1,Math.ceil((G.rdEnd-Date.now())/1000))}</span></div>`:""}${imgOnly?`<div><img src="${q.img}" alt="">${q.cr?`<div class="imgcr">${h(q.cr)}</div>`:""}</div>`:""}${q.ty==="info"&&q.img?`<img src="${q.img}" alt="">`:""}${timed?`<div class="timer" id="clk">${Math.ceil(Math.max(0,G.qDur-(Date.now()-G.qStart)/1000))}</div>`:""}</div>`:""}
+      ${intro?`<div class="cnt muted">Lies die Frage. Gleich kommen die Antworten.</div>`:`<div>${qBody(q,res)}</div>`}
+      ${res&&q.x&&tx(q.x,"de")?`<div class="expl"><b>Erklärung:</b> ${h(tx(q.x,"de"))}</div>`:""}${stat}
+      <div class="ctrl">${btn}<button data-act="skip">Frage überspringen</button></div></div>`;
+    if(timed)Music.start();}
+
+  /* ---------- Rangliste ---------- */
+  function rRank(M){
+    const r=ranking(),top=r.slice(0,Math.max(5,r.length>8?8:r.length));
+    M.innerHTML=`<h2 class="big" style="text-align:center">Rangliste</h2>
+    ${G.teams?`<div class="tteams">${teamPts().sort((a,b)=>b.pts-a.pts).map(t=>`<span class="tteam" style="background:${t.c};${t.n==="Gelb"?"color:#1a1200":""}">${t.n}: ${t.pts}</span>`).join("")}</div>`:""}
+    <ul class="board">${top.map(p=>`<li><span class="rk">${p.rk}</span>${avOf(p.a)}<span class="nm">${h(p.n)}${p.t>=0?` <span class="pill" style="background:${TEAMS[p.t][1]};font-size:.7rem;${p.t===2?"color:#1a1200":""}">${TEAMS[p.t][0]}</span>`:""}</span>${p.st>=2?`<span class="fire">Serie ${p.st}</span>`:""}<span class="gain">${p.fb&&p.fb.g?"+"+p.fb.g:""}</span><span class="pt">${p.pts}</span></li>`).join("")}</ul>
+    <div class="ctrl" style="justify-content:center"><button class="pri" data-act="adv" style="font-size:1.3rem">${G.qi+1>=Q.qs.length?"Zum Ergebnis →":"Nächste Frage →"}</button></div>`;}
+  function rSelf(M){
+    const r=ranking(),done=r.filter(p=>p.ss==="done").length;
+    M.innerHTML=`<h2 class="big" style="text-align:center">Eigenes Tempo: ${done} von ${r.length} fertig</h2>
+    <ul class="board">${r.map(p=>`<li><span class="rk">${p.rk}</span>${avOf(p.a)}<span class="nm">${h(p.n)}</span><span class="muted" style="font-size:1rem">Frage ${Math.min(Q.qs.length,(p.ci<0?0:p.ci)+(p.ss==="done"?0:1))}/${Q.qs.length}</span><span class="pt">${p.pts}</span></li>`).join("")}</ul>
+    <div class="ctrl" style="justify-content:center"><button class="pri" data-act="finish">Spiel beenden und Sieger zeigen</button></div>`;}
+  function rEnd(M){
+    const r=ranking(),top=r.filter(p=>p.rk<=3),by=k=>top.filter(p=>p.rk===k);
+    const col=(k,cls)=>{const a=by(k);return a.length?`<div class="pl ${cls}"><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${a.map(p=>`<div>${avOf(p.a)}<div><b>${h(p.n)}</b></div></div>`).join("")}</div><div class="bl"><big>${k}</big>${a[0].pts} Punkte</div></div>`:"";};
+    M.innerHTML=`<h2 class="big" style="text-align:center">Geschafft!</h2>
+    ${G.teams?`<div class="tteams">${teamPts().sort((a,b)=>b.pts-a.pts).map((t,i)=>`<span class="tteam" style="background:${t.c};${t.n==="Gelb"?"color:#1a1200":""}">${i+1}. Team ${t.n}: ${t.pts}</span>`).join("")}</div>`:""}
+    <div class="podium">${col(2,"p2")}${col(1,"p1")}${col(3,"p3")}</div>
+    <ul class="board" style="margin-top:20px">${r.filter(p=>p.rk>3).slice(0,12).map(p=>`<li><span class="rk">${p.rk}</span>${avOf(p.a)}<span class="nm">${h(p.n)}</span><span class="pt">${p.pts}</span></li>`).join("")}</ul>
+    <div class="ctrl" style="justify-content:center"><button class="pri" data-act="report">Auswertung ansehen</button><button data-act="retry">Wiederholungsrunde (schwierige Fragen)</button><button data-act="again">Nochmal (gleiche Gruppe)</button><button data-act="home">Startseite</button></div>`;}
+
+  /* ---------- Auswertung ---------- */
+  function repData(){
+    const qs=Q.qs.map((q,i)=>{const A=G.ans[i]||{},sc=QT[q.ty].sc,np=players().length;const ok=Object.values(A).filter(a=>a.r===1).length,ans=Object.keys(A).length;return {i,q,sc,ok,ans,rate:sc&&np?ok/np:null};});
+    return {qs,rows:ranking()};}
+  function rReport(M){
+    if(!G){view="home";render();return;}
+    const D=repData(),sq=D.qs.filter(x=>x.sc);
+    const hard=sq.slice().sort((a,b)=>a.rate-b.rate).slice(0,3);
+    M.innerHTML=`<div class="row"><h2 class="big grow" style="margin:0">Auswertung: ${h(Q.title)}</h2><button data-act="back">Zurück</button><button class="pri" data-act="csv">Als Excel-Datei (CSV)</button></div>
+    ${hard.length?`<div class="box" style="margin:12px 0"><b>Am schwierigsten:</b> ${hard.map(x=>`Frage ${x.i+1} (${Math.round(x.rate*100)} % richtig): ${h(qTitle(x.q,"de").slice(0,70))}`).join(" · ")}</div>`:""}
+    <div style="overflow:auto"><table class="rep"><tr><th class="l">Platz</th><th class="l">Name</th><th>Team</th><th>Punkte</th>${D.qs.map(x=>`<th title="${h(qTitle(x.q,"de"))}">${x.i+1}</th>`).join("")}</tr>
+    ${D.rows.map(p=>`<tr><td class="l">${p.rk}</td><td class="l">${h(p.n)}</td><td>${p.t>=0?TEAMS[p.t][0]:""}</td><td><b>${p.pts}</b></td>${D.qs.map(x=>{const a=(G.ans[x.i]||{})[p.id];return x.sc?`<td class="${a?(a.r===1?"g":"f"):"f"}">${a?(a.r===1?"✓":a.r>0?"~":"✗"):"–"}</td>`:`<td>${a?"•":""}</td>`;}).join("")}</tr>`).join("")}
+    <tr><td class="l" colspan="4"><b>Richtig in %</b></td>${D.qs.map(x=>`<td><b>${x.rate==null?"":Math.round(x.rate*100)}</b></td>`).join("")}</tr></table></div>
+    <p class="muted">✓ richtig, ~ teilweise, ✗ falsch, – keine Antwort, • beantwortet (ohne Wertung).</p>`;}
+  function csv(){const D=repData(),sep=";",q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+    const head=["Platz","Name","Team","Punkte",...D.qs.map(x=>"Frage "+(x.i+1))];
+    const lines=[head.map(q).join(sep),...D.rows.map(p=>[p.rk,q(p.n),p.t>=0?TEAMS[p.t][0]:"",p.pts,...D.qs.map(x=>{const a=(G.ans[x.i]||{})[p.id];return x.sc?(a?(a.r===1?1:a.r>0?0.5:0):""):(a?"x":"");})].join(sep)),
+      ["","","","Richtig in %",...D.qs.map(x=>x.rate==null?"":Math.round(x.rate*100))].join(sep),"",...D.qs.map(x=>q("Frage "+(x.i+1)+": "+qTitle(x.q,"de"))).map(s=>s)];
+    download("quiz-auswertung-"+new Date().toISOString().slice(0,10)+".csv","﻿"+lines.join("\r\n"),"text/csv;charset=utf-8");}
+  function retryRound(){const D=repData(),weak=D.qs.filter(x=>x.sc&&x.rate!==null&&x.rate<0.7).map(x=>x.q.id);
+    const base=lib.find(x=>x.id===G.qid),all=Q.qs.filter(q=>QT[q.ty].sc).map(q=>q.id);const sel=weak.length?weak:all;newGame(base,sel,G);}
+
+  /* ---------- Bedienung ---------- */
+  function act(a,d,el){
+    switch(a){
+    case "home":if(G&&G.ph!=="lobby"&&G.ph!=="end"&&view==="game"&&!window.confirm("Zur Startseite? Das laufende Spiel bleibt gespeichert und kann fortgesetzt werden."))return;Music.stop();view="home";render();break;
+    case "resume":view="game";render();break;
+    case "demo":{const d=startFromDemo();newGame(d);break;}
+    case "play":{const b=lib.find(x=>x.id===d.id);if(b)newGame(b);break;}
+    case "cancel":Music.stop();if(G){net.pub(G.code+"/st",{seq:++G.seq,ph:"closed"},true);}G=null;Q=null;store(KEY,null);try{localStorage.removeItem(KEY);}catch(e){}view="home";render();break;
+    case "import":$("impf").click();break;
+    case "newquiz":{const qz={v:1,id:"quiz-"+rnd(5),title:"Neues Quiz",qs:[newQ("mc")]};lib.push(qz);saveLib();E={qid:qz.id,qi:0,lang:"de"};view="edit";render();break;}
+    case "edit":E={qid:d.id,qi:0,lang:"de"};view="edit";render();break;
+    case "export":{const b=lib.find(x=>x.id===d.id);if(b)download((b.title||"quiz").replace(/[^\wäöüÄÖÜß -]/g,"_")+".json",JSON.stringify(b),"application/json");break;}
+    case "del":{const b=lib.find(x=>x.id===d.id);if(b&&window.confirm("Quiz „"+b.title+"“ wirklich löschen?")){lib=lib.filter(x=>x!==b);saveLib();render();}break;}
+    case "set":{const k=d.k,v=k==="mode"?d.v:+d.v;G[k]=v;const s=settings();s[k]=v;store(SETK,s);save();pubState();render();break;}
+    case "kick":removePlayer(d.id);break;
+    case "start":startGame();break;
+    case "adv":advance();break;
+    case "plus":addTime();break;
+    case "skip":if(window.confirm("Diese Frage überspringen?"))skipQ();break;
+    case "pause":togglePause();break;
+    case "finish":if(window.confirm("Spiel beenden?"))endGame();break;
+    case "fav":if(favs.has(d.id))favs.delete(d.id);else{favs.clear();favs.add(d.id);}render();break;
+    case "report":view="report";render();break;
+    case "back":view="game";render();break;
+    case "csv":csv();break;
+    case "retry":retryRound();break;
+    case "again":newGame(lib.find(x=>x.id===G.qid),G.sel,G);break;
+    case "music":Music.toggle();if(!Music.enabled())Music.stop();else if(G&&G.ph==="q"&&G.qDur>0)Music.start();renderHead();break;
+    case "vol":Music.setVol(+el.value);break;
+    case "full":{const e=document.documentElement;if(document.fullscreenElement)document.exitFullscreen();else if(e.requestFullscreen)e.requestFullscreen();break;}
+    default:if(a.startsWith("ed-"))editAct(a,d,el);
+    }}
+  const root=$("tafel");let lastEv=null;
+  root.addEventListener("click",e=>{lastEv=e;const b=e.target.closest("[data-act]");if(!b||b.tagName==="INPUT"||b.tagName==="SELECT"||b.tagName==="TEXTAREA")return;act(b.dataset.act,b.dataset,b);});
+  root.addEventListener("input",e=>{const t=e.target;if(t.dataset&&t.dataset.act==="vol")Music.setVol(+t.value);else if(t.dataset&&t.dataset.act&&t.dataset.act.startsWith("ed-")&&(t.type==="text"||t.tagName==="TEXTAREA"||t.type==="number"))editAct(t.dataset.act,t.dataset,t,true);});
+  root.addEventListener("change",e=>{const t=e.target;
+    if(t.id==="impf"&&t.files[0]){const f=t.files[0],r=new FileReader();r.onload=()=>{try{const qz=sanitizeQuiz(JSON.parse(r.result));qz.id="quiz-"+rnd(5);lib.push(qz);if(saveLib()){render();window.alert("Quiz „"+qz.title+"“ mit "+qz.qs.length+" Fragen importiert.");}}catch(err){window.alert("Import nicht möglich: "+err.message);}};r.readAsText(f);t.value="";}
+    else if(t.id==="tUrl"){const s=settings();s.url=t.value;store(SETK,s);render();}
+    else if(t.dataset&&t.dataset.act&&t.dataset.act.startsWith("ed-")&&!(t.type==="text"||t.type==="number"||t.tagName==="TEXTAREA")){editAct(t.dataset.act,t.dataset,t,false);}});
+
+
+  /* =========================================================
+     TAFEL – Teil 3: Editor
+     ========================================================= */
+  let saveT=null;const touch=()=>{clearTimeout(saveT);saveT=setTimeout(saveLib,400);};
+  function problems(qz){const p=[];qz.qs.forEach((q,i)=>{const n="Frage "+(i+1)+": ";
+    if(q.ty!=="info"&&!tx(q.q,"de").trim())p.push(n+"Fragetext fehlt.");
+    if(q.ty==="info"&&!tx(q.body,"de").trim()&&!tx(q.q,"de").trim())p.push(n+"Text der Folie fehlt.");
+    if((q.ty==="mc"||q.ty==="poll"||q.ty==="puzzle")&&q.o.some(o=>!tx(o.t,"de").trim()))p.push(n+"Eine Antwort ist leer.");
+    if(q.ty==="mc"&&!q.o.some(o=>o.ok))p.push(n+"Keine richtige Antwort markiert.");
+    if(q.ty==="short"&&!(q.acc||[]).some(a=>a.trim()))p.push(n+"Richtige Antwort fehlt.");
+    if(q.ty==="match"&&q.pr.some(x=>!tx(x.l,"de").trim()||!tx(x.r,"de").trim()))p.push(n+"Ein Paar ist unvollständig.");
+    if(q.ty==="pin"&&!q.img)p.push(n+"Bild fehlt.");});return p;}
+  function checkAndPlay(qz){const p=problems(qz);if(p.length){window.alert("Das Quiz ist noch nicht fertig:\n\n"+p.slice(0,8).join("\n"));return false;}newGame(qz);return true;}
+  const eqz=()=>lib.find(x=>x.id===E.qid);
+  function setTx(obj,lang,val){if(!obj)return;if(val===""&&lang!=="de")delete obj[lang];else obj[lang]=val;}
+  function pathObj(q,path){let o=q;const p=path.split(".");for(const k of p)o=o[isNaN(k)?k:+k];return o;}
+  function txIn(path,obj,ph,area){const L=E.lang,v=obj&&obj[L]!=null?obj[L]:"",pl=L!=="de"?(obj&&obj.de||""):ph||"";
+    return area?`<textarea data-act="ed-tx" data-path="${path}" placeholder="${h(pl)}" dir="${L==="ar"?"rtl":"auto"}">${h(v)}</textarea>`
+      :`<input type="text" data-act="ed-tx" data-path="${path}" value="${h(v)}" placeholder="${h(pl)}" dir="${L==="ar"?"rtl":"auto"}">`;}
+  function rEdit(M){
+    const qz=eqz();if(!qz){view="home";render();return;}
+    if(E.qi>=qz.qs.length)E.qi=qz.qs.length-1;if(E.qi<0)E.qi=0;
+    const q=qz.qs[E.qi],L=E.lang,de=L==="de";
+    const miss=LK.filter(l=>l!=="de").map(l=>{const n=qz.qs.filter(x=>!(hasTr(x.q,l)||(x.ty==="info"&&hasTr(x.body,l)))).length;return `${l.toUpperCase()} ${n?`<span style="color:var(--bad)">fehlt ${n}</span>`:"✓"}`;}).join(" · ");
+    const sc=QT[q.ty].sc;
+    let body="";
+    body+=`<label>Fragetyp</label><select data-act="ed-type">${Object.keys(QT).map(k=>`<option value="${k}" ${k===q.ty?"selected":""}>${QT[k].n}</option>`).join("")}</select>`;
+    body+=`<label>${q.ty==="info"?"Überschrift":"Frage"} (${LANGNAME_DE[L]})</label>${txIn("q",q.q,"",true)}`;
+    if(q.ty==="info")body+=`<label>Text der Folie (${LANGNAME_DE[L]})</label>${txIn("body",q.body,"",true)}`;
+    if(q.ty==="mc"||q.ty==="poll"){
+      body+=`<label>Antworten ${q.ty==="mc"?`(Haken = richtig${q.multi?", mehrere möglich":""})`:""}</label>`+q.o.map((o,i)=>`<div class="opt-row">${q.ty==="mc"?`<input type="checkbox" data-act="ed-ok" data-i="${i}" ${o.ok?"checked":""}>`:""}${txIn("o."+i+".t",o.t)}${q.o.length>2?`<button data-act="ed-delo" data-i="${i}">✕</button>`:""}</div>`).join("")+(q.o.length<6?`<button data-act="ed-addo">+ Antwort</button>`:"");
+      if(q.ty==="mc")body+=`<label><input type="checkbox" style="width:auto" data-act="ed-val" data-path="multi" ${q.multi?"checked":""}> Mehrere Antworten richtig (Mehrfachauswahl)</label>`;}
+    if(q.ty==="tf")body+=`<label>Die Aussage ist</label>${seg2("ed-tf",[[1,"Richtig"],[0,"Falsch"]],q.ok)}`;
+    if(q.ty==="puzzle")body+=`<label>Teile in der RICHTIGEN Reihenfolge</label>`+q.o.map((o,i)=>`<div class="opt-row"><b>${i+1}.</b>${txIn("o."+i+".t",o.t)}<button data-act="ed-mv" data-i="${i}" data-dir="-1">↑</button><button data-act="ed-mv" data-i="${i}" data-dir="1">↓</button>${q.o.length>2?`<button data-act="ed-delo" data-i="${i}">✕</button>`:""}</div>`).join("")+(q.o.length<8?`<button data-act="ed-addo">+ Teil</button>`:"");
+    if(q.ty==="short")body+=`<label>Richtige Antworten (alle Schreibweisen, die gelten sollen)</label>`+q.acc.map((a,i)=>`<div class="opt-row"><input type="text" data-act="ed-acc" data-i="${i}" value="${h(a)}">${q.acc.length>1?`<button data-act="ed-delacc" data-i="${i}">✕</button>`:""}</div>`).join("")+`<button data-act="ed-addacc">+ weitere Schreibweise</button>`;
+    if(q.ty==="num")body+=`<div class="row"><div><label>Richtige Zahl</label><input type="number" step="any" data-act="ed-val" data-path="ans" value="${q.ans}"></div><div><label>Erlaubte Abweichung (±)</label><input type="number" step="any" data-act="ed-val" data-path="tol" value="${q.tol||0}"></div></div>
+      <label><input type="checkbox" style="width:auto" data-act="ed-val" data-path="sl" ${q.sl?"checked":""}> Schieber statt Tastatur</label>${q.sl?`<div class="row"><div><label>Von</label><input type="number" step="any" data-act="ed-val" data-path="min" value="${q.min}"></div><div><label>Bis</label><input type="number" step="any" data-act="ed-val" data-path="max" value="${q.max}"></div><div><label>Schritt</label><input type="number" step="any" data-act="ed-val" data-path="step" value="${q.step}"></div></div><label><input type="checkbox" style="width:auto" data-act="ed-val" data-path="est" ${q.est?"checked":""}> Schätzfrage (je näher, desto mehr Punkte)</label>`:""}`;
+    if(q.ty==="match")body+=`<label>Paare (links gehört zu rechts)</label>`+q.pr.map((p,i)=>`<div class="opt-row">${txIn("pr."+i+".l",p.l)}<span>→</span>${txIn("pr."+i+".r",p.r)}${q.pr.length>2?`<button data-act="ed-delp" data-i="${i}">✕</button>`:""}</div>`).join("")+(q.pr.length<6?`<button data-act="ed-addp">+ Paar</button>`:"");
+    if(q.ty==="pin"){body+=`<label>Richtige Stelle: ins Bild tippen</label>`+(q.img?`<div class="pinimg" data-act="ed-pin"><img src="${q.img}" alt=""><i style="left:${q.pin.x*100}%;top:${q.pin.y*100}%;width:${q.pin.r*200}%;aspect-ratio:1"></i></div><label>Größe des Treffer-Kreises (in % der Bildbreite)</label><input type="number" min="3" max="50" data-act="ed-val" data-path="pinr" value="${Math.round(q.pin.r*100)}">`:`<p class="muted">Zuerst unten ein Bild wählen.</p>`);}
+    if(q.ty==="cloud"||q.ty==="brain")body+=`<label>Wörter bzw. Ideen pro Schüler</label><select data-act="ed-val" data-path="max">${[1,2,3,4,5].map(n=>`<option ${n===q.max?"selected":""}>${n}</option>`).join("")}</select>`;
+    if(q.ty!=="info")body+=`<div class="row"><div><label>Zeit</label><select data-act="ed-val" data-path="time">${TIMES.map(t=>`<option value="${t}" ${t===q.time?"selected":""}>${t?t+" Sekunden":"Ohne Zeitlimit"}</option>`).join("")}</select></div>
+      ${sc?`<div><label>Punkte</label><label style="font-weight:400"><input type="checkbox" style="width:auto" data-act="ed-val" data-path="pts" ${q.pts===2?"checked":""}> Doppelte Punkte</label></div>`:""}</div>`;
+    if(sc)body+=`<label>Erklärung nach der Auflösung (${LANGNAME_DE[L]}, freiwillig)</label>${txIn("x",q.x||(q.x={de:""}),"",true)}`;
+    body+=`<label>Bild</label>${q.img?`<img class="th" src="${q.img}" alt="">${q.cr?`<div class="muted" style="font-size:.8rem">${h(q.cr)}</div>`:""}`:""}
+      <div class="row"><input type="file" accept="image/*" data-act="ed-img" style="width:auto"><input type="text" id="edkw" placeholder="Suchbegriff (z. B. Kasse Supermarkt)" value="${h(q.kw||"")}" style="max-width:280px"><button data-act="ed-search">Bild suchen</button>${q.img?`<button data-act="ed-noimg">Bild entfernen</button>`:""}</div>
+      ${E.busy?`<p class="muted">${h(E.busy)}</p>`:""}<div class="cand">${(E.cand||[]).map((c,i)=>`<img src="${c.thumb}" alt="" data-act="ed-pick" data-i="${i}" title="${h(c.credit)}">`).join("")}</div>`;
+    M.innerHTML=`<div class="row" style="margin-bottom:10px"><h2 style="margin:0" class="grow">Quiz bearbeiten</h2><button data-act="ed-close">Fertig</button><button class="pri" data-act="ed-play">Dieses Quiz spielen</button></div>
+    <div class="ed"><div class="box"><label style="margin-top:0">Titel</label><input type="text" data-act="ed-title" value="${h(qz.title)}">
+      <label>Fragen</label><div class="ql">${qz.qs.map((x,i)=>`<button data-act="ed-sel" data-i="${i}" class="${i===E.qi?"on":""}">${i+1}. ${h(qTitle(x,"de").slice(0,40))}<br><span style="font-size:.75rem;opacity:.8">${QT[x.ty].n}</span></button>`).join("")}</div>
+      <div class="row" style="margin-top:8px"><select id="edtype" style="flex:1">${Object.keys(QT).map(k=>`<option value="${k}">${QT[k].n}</option>`).join("")}</select><button data-act="ed-add">+ Frage</button></div>
+      <div class="row" style="margin-top:8px"><button data-act="ed-up">↑</button><button data-act="ed-down">↓</button><button class="danger" data-act="ed-delq">Frage löschen</button></div>
+      <div class="row" style="margin-top:8px"><button data-act="ed-autoimg">Bilder automatisch suchen</button></div>
+      <div class="muted" style="font-size:.8rem;margin-top:10px">Übersetzungen: ${miss}</div></div>
+    <div class="box"><div class="lang" style="margin-top:0">${LANGS.map(([k,n])=>`<button data-act="ed-lang" data-v="${k}" class="${k===L?"on":""}">${n}</button>`).join("")}</div>
+      ${de?"":`<p class="muted" style="margin:4px 0">Sprache ${LANGNAME_DE[L]}: Die deutsche Fassung steht als Hinweistext in den Feldern. Leere Felder werden den Schülern auf Deutsch gezeigt.</p>`}${body}</div></div>`;}
+  function seg2(a,opts,cur){return `<div class="seg">${opts.map(([v,t])=>`<button data-act="${a}" data-v="${v}" class="${String(cur)===String(v)?"on":""}">${t}</button>`).join("")}</div>`;}
+  function editAct(a,d,el,silent){
+    const qz=eqz();if(!qz)return;const q=qz.qs[E.qi];
+    const done=()=>{if(silent){touch();return;}saveLib();render();};
+    switch(a){
+    case "ed-title":qz.title=clean(el.value,80);touch();break;
+    case "ed-sel":E.qi=+d.i;E.cand=[];E.busy="";render();break;
+    case "ed-add":{const t=$("edtype").value;qz.qs.push(newQ(t));E.qi=qz.qs.length-1;E.cand=[];saveLib();render();break;}
+    case "ed-delq":if(qz.qs.length>1&&window.confirm("Diese Frage löschen?")){qz.qs.splice(E.qi,1);E.qi=Math.max(0,E.qi-1);saveLib();render();}break;
+    case "ed-up":if(E.qi>0){[qz.qs[E.qi-1],qz.qs[E.qi]]=[qz.qs[E.qi],qz.qs[E.qi-1]];E.qi--;saveLib();render();}break;
+    case "ed-down":if(E.qi<qz.qs.length-1){[qz.qs[E.qi+1],qz.qs[E.qi]]=[qz.qs[E.qi],qz.qs[E.qi+1]];E.qi++;saveLib();render();}break;
+    case "ed-lang":E.lang=d.v;render();break;
+    case "ed-type":{const n=newQ(el.value);n.id=q.id;n.q=q.q;if(q.img){n.img=q.img;n.cr=q.cr;}qz.qs[E.qi]=n;saveLib();render();break;}
+    case "ed-tx":{const o=pathObj(q,d.path);if(o)setTx(o,E.lang,el.value);done();break;}
+    case "ed-ok":{const i=+d.i;if(q.multi)q.o[i].ok=el.checked?1:0;else q.o.forEach((o,j)=>o.ok=j===i?1:0);saveLib();render();break;}
+    case "ed-addo":q.o.push(q.ty==="puzzle"?{t:{de:""}}:{t:{de:""},ok:0});saveLib();render();break;
+    case "ed-delo":q.o.splice(+d.i,1);if(q.ty==="mc"&&!q.o.some(o=>o.ok))q.o[0].ok=1;saveLib();render();break;
+    case "ed-mv":{const i=+d.i,j=i+ +d.dir;if(j>=0&&j<q.o.length){[q.o[i],q.o[j]]=[q.o[j],q.o[i]];saveLib();render();}break;}
+    case "ed-tf":q.ok=+d.v;saveLib();render();break;
+    case "ed-acc":q.acc[+d.i]=clean(el.value,60);done();break;
+    case "ed-addacc":q.acc.push("");saveLib();render();break;
+    case "ed-delacc":q.acc.splice(+d.i,1);saveLib();render();break;
+    case "ed-addp":q.pr.push({l:{de:""},r:{de:""}});saveLib();render();break;
+    case "ed-delp":q.pr.splice(+d.i,1);saveLib();render();break;
+    case "ed-val":{const p=d.path;
+      if(p==="time")q.time=+el.value;else if(p==="pts"){if(el.checked)q.pts=2;else delete q.pts;}
+      else if(p==="multi"){if(el.checked)q.multi=1;else{delete q.multi;let f=false;q.o.forEach(o=>{if(o.ok&&f)o.ok=0;if(o.ok)f=true;});}}
+      else if(p==="sl"){if(el.checked){q.sl=1;q.min=q.min??0;q.max=q.max??100;q.step=q.step??1;}else{delete q.sl;delete q.est;}}
+      else if(p==="est"){if(el.checked)q.est=1;else delete q.est;}
+      else if(p==="max"&&(q.ty==="cloud"||q.ty==="brain"))q.max=+el.value;
+      else if(p==="pinr")q.pin.r=Math.min(.5,Math.max(.03,num(el.value,10)/200));
+      else q[p]=num(el.value,0);
+      if(el.type==="number"){touch();if(p==="pinr"||p==="min"||p==="max"||p==="step"){}return;}
+      saveLib();render();break;}
+    case "ed-pin":{const r=el.getBoundingClientRect();q.pin.x=Math.min(1,Math.max(0,(lastEv.clientX-r.left)/r.width));q.pin.y=Math.min(1,Math.max(0,(lastEv.clientY-r.top)/r.height));saveLib();render();break;}
+    case "ed-img":if(el.files[0])fileToImg(el.files[0]).then(u=>{q.img=u;delete q.cr;saveLib();render();}).catch(()=>window.alert("Das Bild konnte nicht gelesen werden."));break;
+    case "ed-noimg":delete q.img;delete q.cr;saveLib();render();break;
+    case "ed-search":{const kw=clean($("edkw").value,60)||tx(q.q,"de");q.kw=$("edkw").value?clean($("edkw").value,60):q.kw;E.busy="Suche …";E.cand=[];render();
+      searchImages(kw,10).then(r=>{E.cand=r;E.busy=r.length?"":"Keine Bilder gefunden. Versuche einen anderen Suchbegriff (am besten ein Hauptwort).";render();}).catch(()=>{E.busy="Die Bildsuche ist gerade nicht erreichbar (Internet?).";render();});break;}
+    case "ed-pick":{const c=E.cand[+d.i];if(!c)break;E.busy="Bild wird geladen …";render();shrinkImg(c.thumb).then(u=>{q.img=u;q.cr=c.credit;E.cand=[];E.busy="";saveLib();render();}).catch(()=>{E.busy="Dieses Bild konnte nicht geladen werden. Nimm ein anderes.";render();});break;}
+    case "ed-autoimg":autoImages(qz);break;
+    case "ed-close":saveLib();view="home";render();break;
+    case "ed-play":saveLib();checkAndPlay(qz);break;
+    }}
+  async function autoImages(qz){
+    let n=0,todo=qz.qs.filter(q=>!q.img&&q.ty!=="info"&&q.ty!=="cloud"&&q.ty!=="open"&&q.ty!=="brain"&&q.ty!=="pin");
+    for(let i=0;i<todo.length;i++){const q=todo[i];E.busy="Suche Bilder … "+(i+1)+" von "+todo.length;render();
+      try{const term=q.kw||tx(q.q,"de").replace(/[„“"?!.,:;()]/g," ").split(/\s+/).filter(w=>w.length>4).slice(0,3).join(" ");
+        if(!term)continue;const r=await searchImages(term,6);
+        for(const c of r){try{q.img=await shrinkImg(c.thumb);q.cr=c.credit;n++;break;}catch(e){}}}catch(e){}
+      if(i%3===2)saveLib();}
+    saveLib();E.busy=n+" Bilder eingefügt. Bitte kurz prüfen und unpassende tauschen.";render();}
+
+  sub();render();
+  if(G&&G.ph==="lobby")G.pa=false;
+  if(G){pubQz();pubState();Object.keys(G.pl).forEach(markP);}
+  /* Direktlink: index.html?quiz=Quizze/Name.json lädt das Quiz und öffnet die Lobby (aus dem Stundenplan verlinkbar) */
+  const qUrl=params.get("quiz");
+  if(qUrl&&!G){
+    fetch(qUrl).then(r=>{if(!r.ok)throw new Error("Datei nicht gefunden ("+r.status+")");return r.json();}).then(j=>{
+      const qz=sanitizeQuiz(j);if(!qz.id)qz.id="quiz-"+rnd(5);
+      lib=lib.filter(x=>x.id!==qz.id);lib.push(qz);saveLib();
+      try{history.replaceState(null,"",location.pathname);}catch(e){}
+      newGame(qz);
+    }).catch(err=>window.alert("Das Quiz konnte nicht geladen werden: "+err.message+"\nTipp: Die Datei muss im selben Ordner-Aufbau liegen (Quizze/…json). Beim Öffnen direkt von der Festplatte geht das nicht, bitte über die Webseite öffnen."));
+  }
+  window.__klaq={get G(){return G;},get Q(){return Q;}};
+}
+
+/* =========================================================
+   HANDY / IPAD (Schüler)
+   ========================================================= */
+function guessLang(){const n=(navigator.language||"de").slice(0,2).toLowerCase();return LK.includes(n)?n:"de";}
+function phoneApp(){
+  const root=$("phone");root.hidden=false;
+  const KEY="klaq_p_"+roomCode+(params.get("t")||"");
+  let P=store(KEY);if(!P||!P.pid){P={pid:"p"+rnd(8),n:"",a:"0.0",l:store("klaq_lang")||guessLang(),joined:0,de:1};}
+  if(!LK.includes(P.l))P.l="de";
+  const savP=()=>store(KEY,P);savP();
+  let S=null,M=null,QZ=null,IMG={},Sseq=-1,Mseq=-1,recvS=0,recvM=0,pend=[],L={q:null},J={err:0,langOpen:0},imgAsk={},lastKey="",rejoinT=0;
+  const net=new Net(onMsg,c=>{if(c.up){net.sub(roomCode+"/st");net.sub(roomCode+"/qz");net.sub(roomCode+"/p/"+P.pid);}draw();});
+  net.sub(roomCode+"/st");net.sub(roomCode+"/qz");net.sub(roomCode+"/p/"+P.pid);
+  const l=()=>P.l,T=k=>tr(P.l,k);
+
+  function onMsg(t,p){
+    if(!p||typeof p!=="object")return;
+    if(t===NS+roomCode+"/st"){if(p.seq<=Sseq)return;Sseq=p.seq;S=p;recvS=Date.now();}
+    else if(t===NS+roomCode+"/qz"){if(QZ&&QZ.v===p.v)return;QZ=p;IMG={};imgAsk={};for(let i=0;i<p.n;i++)net.sub(roomCode+"/img/"+i);}
+    else if(t.startsWith(NS+roomCode+"/img/")){if(QZ&&p.v===QZ.v&&typeof p.d==="string"&&/^data:image\//.test(p.d))IMG[p.i]=p.d;}
+    else if(t===NS+roomCode+"/p/"+P.pid){if(p.seq<=Mseq)return;Mseq=p.seq;M=p;recvM=Date.now();if(p.ok&&!P.joined){P.joined=1;savP();}}
+    pend=pend.filter(x=>!x.ok());
+    if(S&&P.joined&&(!M||!M.ok)&&Date.now()-rejoinT>4000&&S.ph!=="closed"){rejoinT=Date.now();sendHi();}
+    draw();}
+  function send(m,ok){m.p=P.pid;const it={m,ok:ok||(()=>false),n:0};pend.push(it);net.pub(roomCode+"/in",Object.assign({},m));return it;}
+  function sendHi(){net.pub(roomCode+"/in",{k:"hi",p:P.pid,n:P.n,a:P.a,l:P.l});}
+  setInterval(()=>{pend=pend.filter(x=>!x.ok());pend.forEach(x=>{if(x.n++<40)net.pub(roomCode+"/in",Object.assign({},x.m));});
+    if(S&&!QZ)net.pub(roomCode+"/in",{k:"rq",p:P.pid});
+    if(S&&QZ&&curQi()>=0){const q=QZ.qs[curQi()];if(q&&q.hi&&!IMG[curQi()]&&Date.now()-(imgAsk[curQi()]||0)>6000){imgAsk[curQi()]=Date.now();net.pub(roomCode+"/in",{k:"ri",p:P.pid,i:curQi()});}}},2500);
+
+  /* ---------- Hilfen ---------- */
+  const self=()=>S&&S.mode==="self"&&S.ph==="self";
+  const curQi=()=>!S?-1:self()?(M&&M.ss!=="done"?M.ci:-1):S.qi;
+  const curQ=()=>QZ&&curQi()>=0?QZ.qs[curQi()]:null;
+  function answered(){const i=curQi();if(self())return !!(M&&M.ss!=="q");return !!(S&&S.an&&S.an.includes(P.pid))||L.sent===i;}
+  function remaining(){ // Sekunden
+    if(self()){return M&&M.qr!=null?Math.max(0,M.qr-(Date.now()-recvM)/1000):null;}
+    return S&&S.rem!=null?Math.max(0,S.rem-(Date.now()-recvS)/1000):null;}
+  const dual=o=>{const t=tx(o,P.l);return `<span dir="auto" style="flex:1">${h(t)}${P.de&&P.l!=="de"&&hasTr(o,P.l)?`<small dir="ltr" style="display:block;font-weight:400;opacity:.85;font-size:.8em">${h(tx(o,"de"))}</small>`:""}</span>`;};
+  const plain=o=>h(tx(o,P.l));
+  function top(){const ok=M&&M.ok;
+    return `<div class="ptop"><div class="me">${ok?`${avOf(P.a)}<span>${h(M.n||P.n)}</span>${M.tn?`<span class="pill" style="background:${TEAMS.find(t=>t[0]===M.tn)?TEAMS.find(t=>t[0]===M.tn)[1]:"#666"};${M.tn==="Gelb"?"color:#1a1200":""}">${h(M.tn)}</span>`:""}`:`<span>${h(T("join"))}</span>`}</div>
+    <div class="row">${ok?`<span class="pts">${M.pts||0}</span>`:""}<button id="bLang" style="padding:.3em .7em">${LANGS.find(x=>x[0]===P.l)[1]}</button></div></div>
+    ${J.langOpen?`<div class="box" style="margin-bottom:10px"><div class="lang">${LANGS.map(([k,n])=>`<button data-lang="${k}" class="${k===P.l?"on":""}">${n}</button>`).join("")}</div>${P.l!=="de"?`<label style="font-weight:400"><input type="checkbox" id="cDe" style="width:auto" ${P.de?"checked":""}> ${h(T("showDe"))}</label>`:""}</div>`:""}`;}
+  function qHead(q,i){const img=IMG[i];
+    return `<div class="pq" dir="auto">${h(tx(q.q,P.l))}</div>${P.de&&P.l!=="de"&&hasTr(q.q,P.l)?`<div class="pq2" dir="ltr">${h(tx(q.q,"de"))}</div>`:""}${q.hi?(img?`<img class="pimg" src="${img}" alt="">`:`<div class="muted" style="text-align:center;padding:14px">…</div>`):""}`;}
+  const timerBar=()=>{const q=curQ();return q&&q.time>0?`<div class="ptimer"><i id="tbar"></i></div>`:"";};
+
+  /* ---------- Bildschirme ---------- */
+  function vJoin(){
+    const an=P.a.split(".");const a=+an[0]||0,c=+an[1]||0;
+    return `<h2 style="margin-top:6px">${h(T("join"))}</h2><div class="lang">${LANGS.map(([k,n])=>`<button data-lang="${k}" class="${k===P.l?"on":""}">${n}</button>`).join("")}</div>
+    <label>${h(T("nick"))}</label><div class="row"><input id="iNick" maxlength="16" value="${h(P.n)}" autocomplete="off" style="flex:1" ${S&&S.cfg&&S.cfg.rn?"readonly":""}><button id="bRnd">${h(T("rnd"))}</button></div>
+    ${(J.err||(M&&M.rj))?`<div style="color:var(--bad);font-weight:700;margin-top:6px">${h(T("badname"))}</div>`:""}
+    <label>${h(T("pick"))}</label><div class="avg">${ANIMALS.map((_,i)=>`<button data-an="${i}" class="${i===a?"on":""}">${animalSVG(i,c)}</button>`).join("")}</div>
+    <div class="colg">${BGS.map((b,i)=>`<button data-col="${i}" class="${i===c?"on":""}" style="background:${b}"></button>`).join("")}</div>
+    <button class="pri" id="bJoin" style="width:100%;font-size:1.2rem;margin-top:14px;padding:.8em">${h(T("go"))}</button>`;}
+  function vWait(msg){return `<div class="wait">${M&&M.ok?`<svg class="av" viewBox="0 0 100 100">${animalSVG(+P.a.split(".")[0],+P.a.split(".")[1]).replace(/^<svg[^>]*>|<\/svg>$/g,"")}</svg>`:""}<h2 style="margin-top:14px">${h(msg)}</h2></div>`;}
+  function vQuestion(q,i,ro){
+    const done=!ro&&answered();let b="";
+    if(q.ty==="info")return `<h2 dir="auto">${h(tx(q.q,P.l))}</h2><p dir="auto" style="font-size:1.2rem">${h(tx(q.body,P.l))}</p>`;
+    if(ro)return qHead(q,i)+`<div class="wait"><h2>${h(T("ready"))}</h2><div class="bigpts" id="rdc">${Math.max(1,Math.ceil(S.rd-(Date.now()-recvS)/1000))}</div><p class="muted">${h(T("read"))}</p></div>`;
+    if(done)return qHead(q,i)+`<div class="res neu"><h2>${h(T("thanks"))}</h2><p>${h(T("sent"))}</p></div>`;
+    b+=timerBar();
+    switch(q.ty){
+    case "mc":case "poll":{
+      const hid=M&&M.jk&&M.jk.q===i?M.jk.h:[];
+      b+=(q.multi?`<p class="muted">${h(T("multi"))}</p>`:"")+q.o.map((o,k)=>`<button class="pbtn o${k} ${L.sel&&L.sel.includes(k)?"sel":""} ${hid.includes(k)?"gone":""}" data-opt="${k}">${SHAPES[k]}${dual(o)}</button>`).join("");
+      if(q.multi)b+=`<button class="pri" data-submit="1" style="width:100%;margin-top:8px" ${L.sel&&L.sel.length?"":"disabled"}>${h(T("send"))}</button>`;
+      if(S.cfg&&S.cfg.joker&&q.ty==="mc"&&!q.multi&&q.o.length>=3&&M&&!M.j)b+=`<button class="joker" data-joker="1">${h("50:50")}</button>`;
+      break;}
+    case "tf":b+=`<div class="ptf"><button class="pbtn o1" data-tf="1">${SHAPES[0]}<span>${h(T("tf1"))}</span></button><button class="pbtn o0" data-tf="0">${SHAPES[3]}<span>${h(T("tf0"))}</span></button></div>`;break;
+    case "puzzle":{const ord=L.ord||(L.ord=q.o.map((_,k)=>k));b+=`<p class="muted">${h(T("order"))}</p>`+ord.map((k,pos)=>`<div class="item"><b>${pos+1}</b>${dual(q.o[k])}<button data-mv="${pos}" data-d="-1" ${pos?"":"disabled"}>↑</button><button data-mv="${pos}" data-d="1" ${pos<ord.length-1?"":"disabled"}>↓</button></div>`).join("")+`<button class="pri" data-submit="1" style="width:100%;margin-top:8px">${h(T("send"))}</button>`;break;}
+    case "short":b+=`<p class="muted">${h(T("typeDe"))}</p><input id="iTxt" maxlength="60" autocomplete="off" value="${h(L.txt||"")}"><button class="pri" data-submit="1" style="width:100%;margin-top:10px">${h(T("send"))}</button>`;break;
+    case "open":b+=`<p class="muted">${h(T("typeDe"))}</p><textarea id="iTxt" maxlength="240">${h(L.txt||"")}</textarea><button class="pri" data-submit="1" style="width:100%;margin-top:10px">${h(T("send"))}</button>`;break;
+    case "num":if(q.sl){const v=L.num!=null?L.num:Math.round((q.min+q.max)/2/q.step)*q.step;b+=`<div class="bigpts" style="text-align:center" id="nv">${fmtNum(v)}</div><input type="range" id="iRng" min="${q.min}" max="${q.max}" step="${q.step}" value="${v}" style="padding:0">`;L.num=v;}
+      else b+=`<input id="iNum" inputmode="decimal" placeholder="${h(T("number"))}" value="${h(L.txt||"")}" autocomplete="off" style="font-size:1.5rem">`;
+      b+=`<button class="pri" data-submit="1" style="width:100%;margin-top:10px">${h(T("send"))}</button>`;break;
+    case "match":{const n=q.l.length,m=L.mt||(L.mt=Array(n).fill(-1)),used=new Set(m.filter(x=>x>=0));
+      b+=`<p class="muted">${h(T("match"))}</p>`+q.l.map((lt,j)=>`<div class="mpair"><div>${dual(lt)}</div><button data-row="${j}" class="${L.cur===j?"on":""}">${m[j]>=0?dual(q.o[m[j]]):"?"}</button></div>`).join("")+`<div style="margin-top:8px">`+q.o.map((o,k)=>used.has(k)?"":`<button class="vote" data-rt="${k}">${dual(o)}</button>`).join("")+`</div><button class="pri" data-submit="1" style="width:100%;margin-top:8px" ${m.every(x=>x>=0)?"":"disabled"}>${h(T("send"))}</button>`;break;}
+    case "pin":b+=`<p class="muted">${h(T("tap"))}</p>`;break;
+    case "cloud":case "brain":{const n=q.max||3;L.w=L.w||Array(n).fill("");b+=`<p class="muted">${h(T("typeDe"))}</p>`+L.w.map((w,k)=>`<input class="iw" data-w="${k}" maxlength="${q.ty==="cloud"?30:90}" placeholder="${h(T(q.ty==="cloud"?"word":"idea"))}" value="${h(w)}" style="margin:6px 0" autocomplete="off">`).join("")+`<button class="pri" data-submit="1" style="width:100%;margin-top:10px">${h(T("send"))}</button>`;break;}
+    }
+    if(q.ty==="pin"){const img=IMG[i];return qHead(Object.assign({},q,{hi:0}),i)+b+(img?`<div class="pinimg" id="pinBox" style="display:block"><img src="${img}" alt="" style="width:100%;max-height:none;border-radius:12px">${L.pin?`<i style="left:${L.pin[0]*100}%;top:${L.pin[1]*100}%;width:22px;height:22px;border:4px solid var(--bad);background:rgba(179,38,30,.3)"></i>`:""}</div><button class="pri" data-submit="1" style="width:100%;margin-top:10px" ${L.pin?"":"disabled"}>${h(T("send"))}</button>`:`<div class="muted" style="text-align:center;padding:20px">…</div>`);}
+    return qHead(q,i)+b;}
+  function solText(q,c){
+    if(c==null)return "";
+    switch(q.ty){
+    case "mc":return c.map(k=>plain(q.o[k])).join(" · ");
+    case "tf":return h(T(c[0]?"tf1":"tf0"));
+    case "puzzle":return `<ol style="text-align:start;margin:4px 0">${c.map(k=>`<li>${plain(q.o[k])}</li>`).join("")}</ol>`;
+    case "short":return h(c);
+    case "num":return fmtNum(c);
+    case "match":return q.l.map((lt,j)=>`<div>${plain(lt)} → ${plain(q.o[c[j]])}</div>`).join("");
+    }return "";}
+  function vResult(q,i){
+    const fb=M&&M.fb&&M.fb.q===i?M.fb:null,sc=q.ty==="info"?0:(["poll","cloud","open","brain"].includes(q.ty)?0:1);
+    const c=fb&&fb.c!==undefined?fb.c:(S&&S.rv&&S.rv.q===i?S.rv.c:null),x=fb&&fb.x?fb.x:(S&&S.rv&&S.rv.q===i?S.rv.x:null);
+    let box="";
+    if(!sc)box=`<div class="res neu"><h2>${h(T("thanks"))}</h2></div>`;
+    else if(!fb)box=`<div class="res bad"><h2>${h(T("none"))}</h2></div>`;
+    else{const k=fb.ok===1?"ok":fb.ok===2?"mid":"bad";
+      box=`<div class="res ${k}"><h2>${h(T(fb.ok===1?"ok":fb.ok===2?"part":fb.none?"none":"bad"))}</h2>${fb.g?`<div class="bp">+${fb.g}</div>`:""}${fb.st>=2?`<div>${h(T("streak"))}: ${fb.st}</div>`:""}
+        ${fb.ok!==1&&c!=null&&solText(q,c)?`<div style="margin-top:10px"><b>${h(T("correctIs"))}</b><div style="font-size:1.15rem">${solText(q,c)}</div></div>`:""}</div>`;}
+    const ex=x&&tx(x,P.l)?`<div class="merk" style="border-left:6px solid var(--brand);background:var(--surface);border-radius:10px;padding:10px 12px;margin-top:10px">${h(tx(x,P.l))}${P.de&&P.l!=="de"&&hasTr(x,P.l)?`<div class="muted" dir="ltr" style="font-size:.85rem;margin-top:4px">${h(tx(x,"de"))}</div>`:""}</div>`:"";
+    const stat=M?`<div class="stat"><div><b>${M.pts||0}</b>${h(T("pts"))}</div><div><b>${M.rk||"–"}${M.np?` / ${M.np}`:""}</b>${h(T("place"))}</div></div>`:"";
+    return qHead(q,i)+box+ex+stat+(self()?`<button class="pri" data-next="1" style="width:100%;margin-top:14px;font-size:1.2rem;padding:.8em">${h(T("next"))}</button>`:"");}
+  function vBrainVote(q,i){
+    if(answered())return qHead(q,i)+`<div class="res neu"><h2>${h(T("thanks"))}</h2><p>${h(T("sent"))}</p></div>`;
+    const sel=L.vs||(L.vs=[]);const mine=new Set((L.mine||[]));
+    return `<p class="muted">${h(T("vote"))}</p>`+(S.bi||[]).map(x=>`<button class="vote ${sel.includes(x.i)?"sel":""}" data-vote="${h(x.i)}">${h(x.t)}</button>`).join("")+`<button class="pri" data-submit="1" style="width:100%;margin-top:8px" ${sel.length?"":"disabled"}>${h(T("send"))}</button>`;}
+  function vEnd(){return `<div class="res ok"><h2>${h(T("over"))}</h2>${M&&M.rk?`<div class="bp">${h(T("place"))} ${M.rk}</div>`:""}<div class="stat"><div><b>${M?M.pts||0:0}</b>${h(T("pts"))}</div></div></div>`;}
+
+  /* ---------- Zeichnen ---------- */
+  function currentView(){
+    if(!S)return {k:"conn",html:`<div class="wait"><h2>${h(T("wq"))}</h2></div>`};
+    if(S.ph==="closed")return {k:"closed",html:`<div class="paus">${h(T("over"))}</div>`};
+    if(M&&M.kick)return {k:"kick",html:`<div class="paus" style="font-size:1.6rem">${h(T("kicked"))}</div>`};
+    if(!M||!M.ok)return {k:"join"+J.err+(M&&M.rj?"r":""),html:vJoin(),join:1};
+    const q=curQ(),i=curQi();
+    if(S.pa&&!self())return {k:"pause",html:`<div class="paus">${h(T("pause"))}</div>`};
+    if(self()){
+      if(M.ss==="done")return {k:"done",html:vEnd()};
+      if(!q)return {k:"w",html:vWait(T("wait"))};
+      if(M.ss==="fb")return {k:"sfb"+i+(M.fb?M.fb.ok:""),html:vResult(q,i)};
+      return {k:"sq"+i+(answered()?"a":"")+(IMG[i]?"i":"")+(M.jk?"j":"")+L.q,html:vQuestion(q,i,false)};}
+    if(S.ph==="lobby")return {k:"lobby"+(M.tn||""),html:vWait(T("wait"))};
+    if(S.ph==="end")return {k:"end",html:vEnd()};
+    if(!q)return {k:"w2",html:vWait(T("wait"))};
+    if(S.ph==="intro")return {k:"intro"+i+(IMG[i]?"i":""),html:vQuestion(q,i,true)};
+    if(S.ph==="q"){
+      if(q.ty==="brain"&&S.bp==="v")return {k:"bv"+i+(answered()?"a":"")+(S.bi?S.bi.length:0),html:vBrainVote(q,i)};
+      return {k:"q"+i+(answered()?"a":"")+(IMG[i]?"i":"")+(M.jk?"j":"")+L.q,html:vQuestion(q,i,false)};}
+    if(S.ph==="res"||S.ph==="rank")return {k:"res"+i+(M.fb?M.fb.ok+"/"+M.fb.g:"")+(S.rv?1:0)+M.rk+(M.pts||0),html:vResult(q,i)};
+    return {k:"x",html:vWait(T("wait"))};}
+  function draw(){
+    const qi=curQi(),idt=(self()?"s":"l")+qi+"/"+(QZ?QZ.v:0);if(L.q!==idt){L={q:idt};}
+    if(S&&S.ph==="q"&&!self()&&S.pa===false){}
+    const v=currentView();
+    root.dir=P.l==="ar"?"rtl":"ltr";root.lang=P.l;
+    const key=v.k+"|"+P.l+"|"+P.de+"|"+J.langOpen+"|"+(M&&M.tn)+"|"+(net.count().up?1:0);
+    if(key===lastKey)return;lastKey=key;
+    root.innerHTML=top()+v.html+(net.count().up?"":`<div class="banner">${h(T("offline"))}</div>`);
+    bind(v);tickBar();}
+  function tickBar(){const el=$("tbar");if(el){const q=curQ(),r=remaining();if(q&&r!=null&&q.time>0){el.style.width=Math.max(0,Math.min(100,r/q.time*100))+"%";el.style.background=r<=5?"var(--bad)":"var(--brand)";
+      if(self()&&r<=0&&M&&M.ss==="q"&&!L.autoNx){L.autoNx=1;send({k:"nx"},()=>M&&M.ss!=="q"||L.q===null);}}}
+    const rd=$("rdc");if(rd&&S)rd.textContent=Math.max(1,Math.ceil(S.rd-(Date.now()-recvS)/1000));}
+  setInterval(tickBar,250);
+  setInterval(()=>{if(S&&S.ph==="intro"&&!$("rdc"))draw();},1000);
+
+  /* ---------- Eingaben ---------- */
+  function submitAns(v){const i=curQi();L.sent=i;
+    const it=send({k:"a",q:i,v},()=>self()?(M&&M.fb&&M.fb.q===i):(S&&S.an&&S.an.includes(P.pid)));lastKey="";draw();return it;}
+  function bind(v){
+    root.querySelector("#bLang").onclick=()=>{J.langOpen=J.langOpen?0:1;lastKey="";draw();};
+    root.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{P.l=b.dataset.lang;store("klaq_lang",P.l);savP();J.langOpen=0;lastKey="";draw();});
+    const cDe=$("cDe");if(cDe)cDe.onchange=()=>{P.de=cDe.checked?1:0;savP();lastKey="";draw();};
+    if(v.join){
+      const inp=$("iNick");inp.oninput=()=>{P.n=inp.value;J.err=0;};
+      $("bRnd").onclick=()=>{P.n=randName();lastKey="";draw();};
+      root.querySelectorAll("[data-an]").forEach(b=>b.onclick=()=>{const c=P.a.split(".")[1]||"0";P.a=b.dataset.an+"."+c;savP();J.keep=1;lastKey="";draw();});
+      root.querySelectorAll("[data-col]").forEach(b=>b.onclick=()=>{const a=P.a.split(".")[0]||"0";P.a=a+"."+b.dataset.col;savP();lastKey="";draw();});
+      $("bJoin").onclick=()=>{let n=clean(P.n,16);if(!n||badName(n)){J.err=1;lastKey="";draw();return;}if(S&&S.cfg&&S.cfg.rn&&!n)n=randName();P.n=n;savP();
+        send({k:"hi",n:P.n,a:P.a,l:P.l},()=>M&&M.ok);$("bJoin").disabled=true;};
+      return;}
+    const q=curQ(),i=curQi();if(!q)return;
+    root.querySelectorAll("[data-opt]").forEach(b=>b.onclick=()=>{const k=+b.dataset.opt;
+      if(q.multi){L.sel=L.sel||[];L.sel=L.sel.includes(k)?L.sel.filter(x=>x!==k):[...L.sel,k];lastKey="";draw();}else submitAns([k]);});
+    root.querySelectorAll("[data-tf]").forEach(b=>b.onclick=()=>submitAns([+b.dataset.tf]));
+    root.querySelectorAll("[data-mv]").forEach(b=>b.onclick=()=>{const p=+b.dataset.mv,d=+b.dataset.d,o=L.ord;[o[p],o[p+d]]=[o[p+d],o[p]];lastKey="";draw();});
+    const jb=root.querySelector("[data-joker]");if(jb)jb.onclick=()=>{send({k:"j",q:i},()=>M&&M.jk&&M.jk.q===i);jb.disabled=true;};
+    const it=$("iTxt");if(it)it.oninput=()=>{L.txt=it.value;};
+    const inn=$("iNum");if(inn)inn.oninput=()=>{L.txt=inn.value;};
+    const rg=$("iRng");if(rg)rg.oninput=()=>{L.num=+rg.value;$("nv").textContent=fmtNum(L.num);};
+    root.querySelectorAll(".iw").forEach(e=>e.oninput=()=>{L.w[+e.dataset.w]=e.value;});
+    root.querySelectorAll("[data-row]").forEach(b=>b.onclick=()=>{const j=+b.dataset.row;if(L.mt[j]>=0)L.mt[j]=-1;L.cur=j;lastKey="";draw();});
+    root.querySelectorAll("[data-rt]").forEach(b=>b.onclick=()=>{const k=+b.dataset.rt;let j=L.cur;if(j==null||L.mt[j]>=0)j=L.mt.indexOf(-1);if(j<0)return;L.mt[j]=k;L.cur=L.mt.indexOf(-1);if(L.cur<0)L.cur=null;lastKey="";draw();});
+    const pb=$("pinBox");if(pb)pb.onclick=e=>{const r=pb.getBoundingClientRect();L.pin=[Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))];lastKey="";draw();};
+    root.querySelectorAll("[data-vote]").forEach(b=>b.onclick=()=>{const id=b.dataset.vote;L.vs=L.vs||[];if(L.vs.includes(id))L.vs=L.vs.filter(x=>x!==id);else if(L.vs.length<3)L.vs.push(id);lastKey="";draw();});
+    const nx=root.querySelector("[data-next]");if(nx)nx.onclick=()=>{send({k:"nx"},()=>M&&(M.ci!==i||M.ss!=="fb"));nx.disabled=true;};
+    const sb=root.querySelector("[data-submit]");if(sb)sb.onclick=()=>{
+      if(q.ty==="brain"){if(S.bp==="v"&&S.ph==="q"){L.sent=i;send({k:"vt",q:i,v:L.vs||[]},()=>S&&S.an&&S.an.includes(P.pid));lastKey="";draw();return;}
+        const w=(L.w||[]).map(x=>x.trim()).filter(Boolean);if(!w.length)return;L.sent=i;send({k:"i",q:i,v:w},()=>S&&S.an&&S.an.includes(P.pid));lastKey="";draw();return;}
+      let v=null;
+      if(q.ty==="mc"||q.ty==="poll")v=L.sel;else if(q.ty==="puzzle")v=L.ord;else if(q.ty==="short"||q.ty==="open"){v=(L.txt||"").trim();if(!v)return;}
+      else if(q.ty==="num"){v=q.sl?L.num:Number(String(L.txt||"").replace(",","."));if(!Number.isFinite(v))return;}
+      else if(q.ty==="match")v=L.mt;else if(q.ty==="pin")v=L.pin;else if(q.ty==="cloud"){v=(L.w||[]).map(x=>x.trim()).filter(Boolean);if(!v.length)return;}
+      if(v==null)return;submitAns(v);};
+  }
+  window.__phone={get S(){return S;},get M(){return M;},get QZ(){return QZ;}};
+  draw();
+}
+
+
+/* =========================================================
+   Start
+   ========================================================= */
+const roomCode=(params.get("s")||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+function joinPage(){const r=$("phone");r.hidden=false;const l=guessLang();
+  r.innerHTML=`<h2 style="margin-top:30px">${h(tr(l,"join"))}</h2><label>Code</label><input id="jc" maxlength="5" autocomplete="off" style="font-size:2rem;text-transform:uppercase;letter-spacing:.2em;text-align:center"><button class="pri" id="jb" style="width:100%;margin-top:14px;font-size:1.2rem;padding:.8em">${h(tr(l,"go"))}</button>`;
+  $("jb").onclick=()=>{const c=$("jc").value.toUpperCase().replace(/[^A-Z0-9]/g,"");if(c)location.search="?s="+c;};}
+if(roomCode)phoneApp();else if(params.get("join"))joinPage();else tafelApp();
+
+</script>
+</body>
+</html>
