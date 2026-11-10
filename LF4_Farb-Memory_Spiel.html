@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LF 4 – Farb-Memory (Spiel)</title>
+<style>
+:root{--blau:#1F4E79;--hell:#EAF1F8;--gruen:#2E6B45;--rot:#C00000;--grau:#F2F2F2;--gelb:#FFF2CC}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}
+header{background:var(--blau);color:#fff;padding:12px 16px}
+header h1{font-size:20px;margin:0}header small{opacity:.9}
+main{max-width:1000px;margin:0 auto;padding:14px}
+.box{background:var(--hell);border-left:5px solid var(--blau);border-radius:4px;padding:12px 16px;line-height:1.45;margin-bottom:14px}
+button{background:var(--blau);color:#fff;border:0;border-radius:6px;padding:11px 18px;font-size:16px;cursor:pointer;margin:4px 6px 4px 0}
+button.sec{background:#fff;color:var(--blau);border:2px solid var(--blau)}
+button.big{font-size:18px;padding:14px 24px}
+.opt{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.opt label{border:2px solid var(--blau);border-radius:8px;padding:10px 14px;cursor:pointer;background:#fff;font-size:16px}
+.opt input{margin-right:6px}
+.opt label.on{background:var(--hell);font-weight:bold}
+h2{color:var(--blau);font-size:18px;margin:16px 0 4px}
+input[type=text]{font-size:16px;padding:8px;width:150px;border:2px solid #999;border-radius:6px;margin:3px 6px 3px 0}
+#spiel{display:none}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.stat{font-size:17px;font-weight:bold;color:var(--blau)}
+.teams{display:flex;flex-wrap:wrap;gap:8px}
+.team{border:3px solid #bbb;border-radius:8px;padding:6px 12px;font-size:16px;background:#fff;min-width:110px;text-align:center}
+.team b{display:block;font-size:22px}
+.team.dran{border-color:var(--gruen);background:#E2EFDA}
+.board{display:grid;gap:8px;grid-template-columns:repeat(4,1fr)}
+.board.c3{grid-template-columns:repeat(3,1fr)}
+.board.c6{grid-template-columns:repeat(6,1fr)}
+@media(max-width:620px){.board,.board.c6{grid-template-columns:repeat(3,1fr)}}
+.card{perspective:700px;min-height:104px;cursor:pointer;border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;text-align:center}
+.card .in{position:relative;width:100%;height:100%;min-height:104px;transition:transform .45s;transform-style:preserve-3d}
+.card.up .in,.card.won .in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;overflow:hidden}
+.back{background:linear-gradient(135deg,#1F4E79,#4a86b8);color:#fff;font-size:34px;border:2px solid #14375a}
+.front{transform:rotateY(180deg);background:#fff;border:3px solid var(--blau);font-size:13px;line-height:1.25;overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto}
+.front .t{font-size:16px;font-weight:bold}
+@media(max-width:620px){.front .t{font-size:13px}.front .t[style]{font-size:12px!important}.front small{font-size:11px}.card,.card .in{min-height:118px}}
+.front .sw{width:46px;height:30px;border-radius:6px;border:2px solid #444;margin-bottom:4px}
+.front .ic{font-size:28px}
+.front small{display:block;color:#444;margin-top:2px;font-size:12px}
+.card.won .front{border-color:var(--gruen);background:#E2EFDA}
+.card.won{cursor:default}
+.card:focus-visible .face{outline:4px solid #f90}
+#satz{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;align-items:center;justify-content:center;padding:14px}
+#satz .p{background:#fff;border-radius:12px;max-width:560px;width:100%;padding:20px;border:4px solid var(--gruen);max-height:92vh;overflow:auto}
+#satz .s{font-size:21px;font-weight:bold;color:var(--blau);margin:10px 0;line-height:1.35}
+#satz .w{background:var(--gelb);border-radius:6px;padding:8px 10px;font-size:15px;margin:8px 0}
+#ende{display:none}
+.res{background:#E2EFDA;border:3px solid var(--gruen);border-radius:12px;padding:18px;text-align:center}
+.res .z{font-size:28px;font-weight:bold;color:var(--gruen);margin:6px 0}
+table{border-collapse:collapse;margin:10px auto}td,th{border:1px solid #999;padding:6px 14px;font-size:17px}
+th{background:var(--hell)}
+details{margin:8px 0;background:var(--gelb);border-radius:6px;padding:8px 12px}
+summary{cursor:pointer;font-weight:bold}
+.msg{min-height:26px;font-weight:bold;font-size:17px;margin:6px 0}
+.msg.ok{color:var(--gruen)}.msg.no{color:var(--rot)}
+@media print{#spiel button{display:none}}
+</style></head><body>
+<header><h1>Farb-Memory: Farbe und Licht wirken</h1><small>Lernfeld 4 · Waren präsentieren · Modul 2</small></header>
+<main>
+
+<section id="start">
+<div class="box"><b>So geht es:</b> Decke zwei Karten auf. Eine Karte zeigt eine Farbe oder ein Licht. Die andere Karte zeigt die passende Wirkung. Passen die zwei Karten zusammen, sagst du einen Satz. Wer die meisten Paare hat, gewinnt.</div>
+
+<h2>1. Wie spielt ihr?</h2>
+<div class="opt" id="modus">
+ <label class="on"><input type="radio" name="modus" value="solo" checked>Allein spielen</label>
+ <label><input type="radio" name="modus" value="team">Klassenwettkampf (Teams)</label>
+</div>
+
+<div id="teamwahl" style="display:none">
+ <h2>Wie viele Teams?</h2>
+ <div class="opt" id="anz">
+  <label><input type="radio" name="anz" value="2">2 Teams</label>
+  <label class="on"><input type="radio" name="anz" value="3" checked>3 Teams</label>
+  <label><input type="radio" name="anz" value="4">4 Teams</label>
+ </div>
+ <div id="namen"></div>
+ <p class="box">Die Teams sind abwechselnd dran. Ein Paar gefunden und den Satz gesagt? Dann darf das Team noch einmal. Das Gerät kommt an die Tafel (Beamer) oder wandert von Team zu Team.</p>
+</div>
+
+<h2>2. Wie viele Paare?</h2>
+<div class="opt" id="stufe">
+ <label><input type="radio" name="stufe" value="6">Leicht: 6 Paare</label>
+ <label class="on"><input type="radio" name="stufe" value="9" checked>Mittel: 9 Paare</label>
+ <label><input type="radio" name="stufe" value="12">Alle: 12 Paare</label>
+</div>
+
+<button class="big" id="los">Spiel starten</button>
+<details><summary>Wortspeicher (Hilfe für die Sätze)</summary>
+<p>aktivieren · die Signalwirkung · beruhigen · appetitlich · naturgetreu · die Akzentbeleuchtung · die Grundbeleuchtung</p>
+<p>… wirkt …, deshalb nutzt man es für … · Unter … Licht wirkt … appetitlich.</p>
+</details>
+</section>
+
+<section id="spiel">
+ <div class="bar">
+  <div class="stat" id="solostat"></div>
+  <div class="teams" id="teamstat"></div>
+  <div><button class="sec" id="wsp">Wortspeicher</button><button class="sec" id="neu">Neu starten</button></div>
+ </div>
+ <div class="msg" id="msg"></div>
+ <div class="board" id="board"></div>
+</section>
+
+<section id="ende">
+ <div class="res" id="res"></div>
+ <p><button class="big" id="nochmal">Noch einmal spielen</button></p>
+</section>
+
+</main>
+
+<div id="satz" role="dialog" aria-modal="true"><div class="p">
+ <div style="font-size:30px">🎉 Paar gefunden!</div>
+ <div class="s" id="satztext"></div>
+ <div class="w">Wortspeicher: aktivieren · die Signalwirkung · beruhigen · appetitlich · naturgetreu · die Akzentbeleuchtung · die Grundbeleuchtung</div>
+ <div id="satzhinweis"></div>
+ <button class="big" id="satzok">Weiter</button>
+</div></div>
+
+<script>
+(function(){
+// Paare: a = Farbe / Licht, b = Wirkung, s = Beispielsatz
+var P=[
+ {id:'rot',a:'Rot',c:'#D32F2F',b:'aktiviert, Signal, Kraft',b2:'Sonderangebote, Preisschilder im Angebot',s:'Rot wirkt aktivierend, deshalb nutzt man es für Sonderangebote und Preisschilder im Angebot.'},
+ {id:'orange',a:'Orange',c:'#F57C00',b:'hell, heiter, warm – fällt auf',b2:'Aktionsflächen, Kinderabteilung',s:'Orange wirkt hell und heiter, deshalb nutzt man es für Aktionsflächen und die Kinderabteilung.'},
+ {id:'gelb',a:'Gelb',c:'#FDD835',b:'anregend, warm, freundlich',b2:'Backwarentheke',s:'Gelb wirkt anregend und freundlich, deshalb nutzt man es an der Backwarentheke.'},
+ {id:'blau',a:'Blau',c:'#1976D2',b:'kühl, ruhig, Vertrauen',b2:'Beratungsecke für teure Matratzen',s:'Blau wirkt kühl und beruhigend, deshalb nutzt man es für die Beratungsecke für teure Matratzen.'},
+ {id:'gruen',a:'Grün',c:'#388E3C',b:'natürlich, frisch, entspannend',b2:'Obst und Gemüse, Bio',s:'Grün wirkt natürlich und frisch, deshalb nutzt man es für Obst und Gemüse und für Bio-Produkte.'},
+ {id:'weiss',a:'Weiß',c:'#FFFFFF',b:'sauber, frisch, festlich',b2:'Drogerie, Brautmode',s:'Weiß wirkt sauber und festlich, deshalb nutzt man es in der Drogerie und bei Brautmode.'},
+ {id:'schwarz',a:'Schwarz',c:'#212121',b:'feierlich, elegant',b2:'Juwelier (mit Gold oder Weiß)',s:'Schwarz wirkt feierlich und elegant, deshalb nutzt man es beim Juwelier, zum Beispiel mit Gold oder Weiß.'},
+ {id:'warm',a:'Warmes Licht',i:'💡',b:'lässt Brot, Fleisch und Obst appetitlich wirken',b2:'',s:'Unter warmem Licht wirken Brot, Fleisch und Obst appetitlich.'},
+ {id:'natur',a:'Naturgetreues Licht',i:'☀️',b:'Textilien: Die Farbe sieht zu Hause genauso aus wie im Laden',b2:'',s:'Bei Textilien nutzt man naturgetreues Licht, denn die Farbe sieht zu Hause genauso aus wie im Laden.'},
+ {id:'akzent',a:'Akzentbeleuchtung',i:'🔦',b:'ein Spot hebt einzelne Ware hervor',b2:'',s:'Die Akzentbeleuchtung ist ein Spot und hebt einzelne Ware hervor.'},
+ {id:'grund',a:'Grundbeleuchtung',i:'🏬',b:'gleichmäßige Helligkeit im ganzen Verkaufsraum',b2:'',s:'Die Grundbeleuchtung sorgt für gleichmäßige Helligkeit im ganzen Verkaufsraum.'},
+ {id:'kalt',a:'Kaltes, bläuliches Licht an der Fleischtheke',i:'🥶',b:'Fehler! Fleisch wirkt grau und unappetitlich',b2:'',s:'Unter kaltem, bläulichem Licht wirkt Fleisch grau und unappetitlich. Das ist ein Fehler!'}
+];
+var $=function(i){return document.getElementById(i)};
+var mode='solo',nTeams=3,nPairs=9,cards=[],open=[],lock=false,found=0,moves=0,t0=0,tick=null,teams=[],cur=0,pending=null;
+
+function radio(name){var r=document.querySelector('input[name='+name+']:checked');return r?r.value:null}
+function markOn(){['modus','anz','stufe'].forEach(function(g){var box=$(g);box.querySelectorAll('label').forEach(function(l){l.classList.toggle('on',l.querySelector('input').checked)})})}
+function namenFelder(){
+ var n=+radio('anz'),h='';
+ for(var i=1;i<=n;i++)h+='<input type="text" maxlength="14" id="tn'+i+'" value="Team '+i+'" aria-label="Team '+i+'">';
+ $('namen').innerHTML=h;
+}
+document.querySelectorAll('input[type=radio]').forEach(function(r){r.addEventListener('change',function(){
+ markOn();
+ $('teamwahl').style.display=radio('modus')==='team'?'block':'none';
+ if(r.name==='anz'||r.name==='modus')namenFelder();
+})});
+namenFelder();
+
+function mischen(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function fmt(s){var m=Math.floor(s/60),x=s%60;return m+':'+(x<10?'0':'')+x}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+function start(){
+ mode=radio('modus');nPairs=+radio('stufe');nTeams=+radio('anz');
+ var pick=mischen(P.slice()).slice(0,nPairs);
+ cards=[];
+ pick.forEach(function(p){cards.push({p:p,k:'a'});cards.push({p:p,k:'b'})});
+ mischen(cards);
+ open=[];lock=false;found=0;moves=0;cur=0;pending=null;
+ teams=[];
+ if(mode==='team'){for(var i=1;i<=nTeams;i++){var el=$('tn'+i);teams.push({n:(el&&el.value.trim())||('Team '+i),pt:0})}}
+ $('start').style.display='none';$('ende').style.display='none';$('spiel').style.display='block';
+ var b=$('board');b.className='board'+(cards.length>=18?' c6':'');
+ b.innerHTML='';
+ cards.forEach(function(c,i){
+  var e=document.createElement('button');e.className='card';e.type='button';
+  var f=c.k==='a'?('<div class="t">'+esc(c.p.a)+'</div>'):('<div class="t" style="font-size:14px">'+esc(c.p.b)+'</div>'+(c.p.b2?'<small>'+esc(c.p.b2)+'</small>':''));
+  var top='';
+  if(c.k==='a'){top=c.p.c?'<div class="sw" style="background:'+c.p.c+'"></div>':'<div class="ic">'+c.p.i+'</div>'}
+  e.innerHTML='<div class="in"><div class="face back">?</div><div class="face front">'+top+f+'</div></div>';
+  e.addEventListener('click',function(){klick(i,e)});
+  c.el=e;b.appendChild(e);
+ });
+ $('msg').textContent='';$('msg').className='msg';
+ anzeige();
+ clearInterval(tick);t0=Date.now();
+ if(mode==='solo')tick=setInterval(anzeige,1000);
+}
+
+function anzeige(){
+ if(mode==='solo'){
+  var s=Math.round((Date.now()-t0)/1000);
+  $('solostat').textContent='Zeit '+fmt(s)+' · Züge '+moves+' · Paare '+found+' von '+nPairs;
+  $('teamstat').innerHTML='';
+ }else{
+  $('solostat').textContent='Paare: '+found+' von '+nPairs;
+  $('teamstat').innerHTML=teams.map(function(t,i){return '<div class="team'+(i===cur?' dran':'')+'"><div>'+esc(t.n)+'</div><b>'+t.pt+'</b>'+(i===cur?'<div>ist dran</div>':'')+'</div>'}).join('');
+ }
+}
+
+function klick(i,e){
+ if(lock)return;
+ var c=cards[i];
+ if(c.el.classList.contains('up')||c.el.classList.contains('won'))return;
+ c.el.classList.add('up');open.push(i);
+ if(open.length<2)return;
+ lock=true;moves++;
+ var a=cards[open[0]],b=cards[open[1]];
+ if(a.p===b.p&&a.k!==b.k){
+  pending=a.p;
+  setTimeout(function(){zeigeSatz(a.p)},700);
+ }else{
+  $('msg').textContent='Das passt nicht zusammen. Merkt euch die Karten!';$('msg').className='msg no';
+  setTimeout(function(){
+   open.forEach(function(j){cards[j].el.classList.remove('up')});
+   open=[];lock=false;$('msg').textContent='';
+   if(mode==='team'){cur=(cur+1)%teams.length}
+   anzeige();
+  },1700);
+ }
+ anzeige();
+}
+
+function zeigeSatz(p){
+ $('satztext').textContent=p.s;
+ $('satzhinweis').textContent=mode==='team'?'Sagt den Satz laut. Dann tippt auf „Satz gesagt“. Das Team darf noch einmal.':'Lies den Satz laut.';
+ $('satzok').textContent=mode==='team'?'Satz gesagt – Paar behalten':'Weiter';
+ $('satz').style.display='flex';$('satzok').focus();
+}
+$('satzok').addEventListener('click',function(){
+ $('satz').style.display='none';
+ open.forEach(function(j){cards[j].el.classList.remove('up');cards[j].el.classList.add('won')});
+ open=[];lock=false;found++;
+ if(mode==='team')teams[cur].pt++;
+ $('msg').textContent='Richtig!';$('msg').className='msg ok';
+ anzeige();
+ if(found===nPairs)ende();
+});
+
+function ende(){
+ clearInterval(tick);
+ var s=Math.round((Date.now()-t0)/1000),h='';
+ if(mode==='solo'){
+  var key='farbmemory_best_'+nPairs,best=null;
+  try{best=JSON.parse(localStorage.getItem(key)||'null')}catch(e){}
+  var neu=!best||moves<best.m||(moves===best.m&&s<best.s);
+  if(neu){try{localStorage.setItem(key,JSON.stringify({m:moves,s:s}))}catch(e){}}
+  h='<div style="font-size:42px">🏆</div><div class="z"><div>Geschafft!</div></div>'+
+    '<table><tr><th>Zeit</th><th>Züge</th><th>Paare</th></tr><tr><td>'+fmt(s)+'</td><td>'+moves+'</td><td>'+nPairs+'</td></tr></table>'+
+    (neu?'<p><b>Neuer Bestwert auf diesem Gerät!</b></p>':'<p>Bestwert auf diesem Gerät: '+best.m+' Züge, Zeit '+fmt(best.s)+'</p>')+
+    '<p>Zeige dieses Ergebnis deiner Lehrerin. Wer hat die wenigsten Züge?</p>';
+ }else{
+  var r=teams.slice().sort(function(a,b){return b.pt-a.pt}),top=r[0].pt;
+  var sieger=r.filter(function(t){return t.pt===top}).map(function(t){return t.n});
+  h='<div style="font-size:42px">🏆</div><div class="z"><div>'+(sieger.length>1?'Unentschieden:':'Gewonnen:')+'</div><div>'+esc(sieger.join(' & '))+'</div></div>'+
+    '<table><tr><th>Platz</th><th>Team</th><th>Paare</th></tr>'+
+    r.map(function(t,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(t.n)+'</td><td>'+t.pt+'</td></tr>'}).join('')+'</table>';
+ }
+ $('res').innerHTML=h;
+ $('spiel').style.display='none';$('ende').style.display='block';
+ window.scrollTo(0,0);
+}
+
+$('los').addEventListener('click',start);
+$('neu').addEventListener('click',function(){clearInterval(tick);$('spiel').style.display='none';$('start').style.display='block'});
+$('nochmal').addEventListener('click',function(){$('ende').style.display='none';$('start').style.display='block'});
+$('wsp').addEventListener('click',function(){
+ alert('aktivieren · die Signalwirkung · beruhigen · appetitlich · naturgetreu · die Akzentbeleuchtung · die Grundbeleuchtung\n\n… wirkt …, deshalb nutzt man es für … · Unter … Licht wirkt … appetitlich.');
+});
+})();
+</script>
+<script src="i18n/i18n.js" defer></script>
+</body></html>
