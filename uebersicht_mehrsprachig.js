@@ -15,7 +15,10 @@ window.UEB_ML={
   "ti": "LF1_Modul_1-12_-_Rettet_Kaje_7_mehrsprachig.html?lang=ti",
   "ru": "LF1_Modul_1-12_-_Rettet_Kaje_7_mehrsprachig.html?lang=ru",
   "es": "LF1_Modul_1-12_-_Rettet_Kaje_7_mehrsprachig.html?lang=es",
-  "pt": "LF1_Modul_1-12_-_Rettet_Kaje_7_mehrsprachig.html?lang=pt"
+  "pt": "LF1_Modul_1-12_-_Rettet_Kaje_7_mehrsprachig.html?lang=pt",
+  "tr": "LF1_Modul_1-12_-_Rettet_Kaje_7_mehrsprachig.html?lang=tr",
+  "ar": "LF1_Modul_1-12_-_Rettet_Kaje_7_mehrsprachig.html?lang=ar",
+  "vi": "LF1_Modul_1-12_-_Rettet_Kaje_7_mehrsprachig.html?lang=vi"
  },
  "LF3_Rechen-Minute_-_Karten_1-20.pdf": {
   "tr": "LF3_Rechen-Minute_-_Karten_1-20_mehrsprachig.html?lang=tr",
