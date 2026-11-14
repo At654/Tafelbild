@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="de" data-level="b">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LF 9 · Modul 2 · Vom Listenpreis zum Bezugspreis</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23303a;--mute:#5d6b76;--pri:#2f6f8f;--pri2:#e3f0f6;--ok:#2e7d4f;--okbg:#e5f4ea;--bad:#b3402f;--badbg:#fbe9e5;--warn:#c98a10;--warnbg:#fff4d6;--line:#d9d5c8;--mark:#ffe36e}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:1.188rem;line-height:1.6;padding-top:5.25rem}
+#bar{position:fixed;top:0;left:0;right:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 0.625rem) 1rem 0.625rem;box-shadow:0 2px 0.5rem rgba(0,0,0,.06)}
+#barin{max-width:53.75rem;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+#barlbl{font-weight:700;font-size:0.9375rem;white-space:nowrap}
+#track{flex:1;height:1.125rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#4aa3c7,#2e7d4f);border-radius:6.188rem;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+#fill.pulse{animation:pulse .6s}
+@keyframes pulse{50%{filter:brightness(1.3)}}
+#snd{border:1px solid var(--line);background:#fff;border-radius:0.625rem;font-size:1.25rem;min-width:2.75rem;min-height:2.75rem;cursor:pointer}
+main{max-width:53.75rem;margin:0 auto;padding:1rem 1rem 5rem}
+h1{font-size:1.875rem;line-height:1.25;margin:1rem 0 0.25rem}
+.sub{color:var(--mute);margin:0 0 1.25rem}
+h2{font-size:1.5rem;margin:0 0 0.375rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:1.125rem;padding:1.5rem;margin:0 0 1.75rem}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+@media(max-width:600px){.meta{grid-template-columns:1fr}body{font-size:1.125rem}}
+label.f{font-size:0.875rem;color:var(--mute);display:block}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;border:2px solid var(--line);border-radius:0.75rem;padding:0.75rem 0.875rem;min-height:3.25rem;background:#fffefb;-webkit-appearance:none}
+textarea{min-height:6.5rem;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 0.1875rem var(--pri2)}
+.pts{display:inline-block;background:var(--pri2);color:var(--pri);border-radius:6.188rem;font-size:0.875rem;font-weight:700;padding:2px 0.75rem;vertical-align:middle}
+.can li{list-style:none;margin:0.375rem 0}
+.can input{width:1.625rem;height:1.625rem;vertical-align:middle;margin-right:0.625rem}
+.q{border-top:1px dashed var(--line);padding:1.125rem 0 0.25rem;margin-top:0.875rem}
+.q:first-of-type{border-top:0}
+.qt{font-weight:600;margin-bottom:0.5rem}
+.sit{background:var(--pri2);border-radius:0.625rem;padding:0.5rem 0.75rem;margin-bottom:0.625rem}
+.row{display:flex;flex-wrap:wrap;gap:0.625rem;align-items:center;margin-top:0.625rem}
+button.b{font:inherit;font-weight:600;border:0;border-radius:0.75rem;padding:0.75rem 1.25rem;min-height:3rem;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button.b.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+button.b:disabled{opacity:.45;cursor:default}
+.bulb{border:0;background:var(--warnbg);color:var(--warn);font-size:1.5rem;border-radius:50%;width:3rem;height:3rem;cursor:pointer;touch-action:manipulation}
+.fb{margin-top:0.75rem;border-radius:0.75rem;padding:0.75rem 1rem;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--okbg);border-left:0.375rem solid var(--ok)}
+.fb.part{background:var(--warnbg);border-left:0.375rem solid var(--warn)}
+.fb.bad{background:var(--badbg);border-left:0.375rem solid var(--bad)}
+.sol{margin-top:0.5rem;font-size:1.062rem}
+.self button{margin-right:0.5rem}
+.read{position:relative}
+.rsec{border:2px solid var(--line);border-radius:0.875rem;padding:1.125rem;margin:1rem 0;background:#fffefb}
+.rsec.locked{opacity:.45;pointer-events:none;filter:grayscale(1)}
+.rsec.locked::before{content:"🔒 Schließt sich auf, wenn du den Abschnitt davor geschafft hast.";display:block;color:var(--mute);font-size:0.9375rem}
+.rsec.locked>*{display:none}
+.rsec.done{border-color:var(--ok);background:#f4fbf6}
+.rsec h3{margin:0 0 0.375rem;font-size:1.312rem}
+.task{font-size:0.9375rem;background:var(--warnbg);border-radius:0.5rem;padding:0.375rem 0.75rem;margin-bottom:0.625rem}
+.w{cursor:pointer;border-radius:0.375rem;padding:2px 0.1875rem;-webkit-tap-highlight-color:transparent;border-bottom:2px dotted #b9b19a}
+.w.marked{background:var(--mark);border-bottom-color:#d7b800}
+.w.right{background:#bfe8cd}.w.wrong{background:#f3b9ae;text-decoration:line-through}
+.zq{display:none;margin-top:0.875rem;border-top:1px solid var(--line);padding-top:0.75rem}
+.zq.show{display:block}
+.opt{display:block;width:100%;text-align:left;font:inherit;border:2px solid var(--line);background:#fff;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.5rem 0;min-height:3.25rem;cursor:pointer}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+table{border-collapse:collapse;width:100%;font-size:1rem;margin:0.625rem 0}
+td,th{border:1px solid var(--line);padding:0.5rem 0.625rem;text-align:left}
+th{background:var(--pri2)}
+.merke{background:var(--okbg);border-left:0.375rem solid var(--ok);border-radius:0.625rem;padding:0.625rem 1rem;margin:0.75rem 0}
+.worked{background:#f0f7fa;border-radius:0.75rem;padding:0.75rem 1rem;margin:0.625rem 0;font-size:1.062rem}
+.bar2{height:1.375rem;background:#e7e3d6;border-radius:6.188rem;overflow:hidden;margin:0.25rem 0 0.875rem}
+.bar2 i{display:block;height:100%;border-radius:6.188rem;transition:width 1s}
+.res{margin:0.875rem 0}
+.res b{display:block}
+#modal{position:fixed;inset:0;background:rgba(20,30,40,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+#modal.show{display:flex}
+#mbox{background:#fff;border-radius:1.25rem;max-width:32.5rem;width:100%;padding:1.5rem;box-shadow:0 1.25rem 3.125rem rgba(0,0,0,.3)}
+#mbox h3{margin:0 0 0.5rem}
+#toast{position:fixed;left:50%;bottom:1.75rem;transform:translateX(-50%) translateY(7.5rem);background:#23303a;color:#fff;padding:0.75rem 1.375rem;border-radius:6.188rem;transition:.4s;z-index:90;font-weight:600}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.printonly{display:none}
+@media print{
+ @page{margin:14mm}
+ body{background:#fff;padding:0;font-size:12pt}
+ #bar,.bulb,#snd,#modal,#toast,.row,.fb,.zq,.task,button,.self,.noprint,.can input{display:none!important}
+ .printonly{display:block}
+ .card,.rsec{border:1px solid #999;box-shadow:none;break-inside:avoid;margin-bottom:0.75rem}
+ .rsec.locked>*{display:block!important}.rsec.locked::before{display:none}.rsec.locked{opacity:1;filter:none}
+ .w,.w.marked,.w.right,.w.wrong{background:none!important;border:0;text-decoration:none!important}
+ input[type=text],textarea{border:0;border-bottom:1px solid #666;border-radius:0;background:none;padding:2px}
+ textarea{min-height:3.75rem;overflow:visible}
+ .sol{display:none}
+ .tl,.tlb,.solt,#gloss,#pop,#set,#pills,#gear,#dlg,.wg,.rcard{display:none!important}
+ html{font-size:16px!important}
+}
+
+html{font-size:100%}
+#barin{flex-wrap:wrap}
+#barlbl{font-size:.95rem}
+#gear{border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.25rem;min-width:3rem;min-height:3rem;cursor:pointer;touch-action:manipulation}
+#pills{display:flex;gap:.5rem;width:100%;overflow-x:auto;padding:2px 0 2px}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:99px;min-height:3rem;padding:0 1rem;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.pill.on{background:var(--pri);border-color:var(--pri);color:#fff}
+#set{max-width:53.75rem;margin:8px auto 0}
+#setin{background:#fff;border:1px solid var(--line);border-radius:14px;padding:.75rem 1rem;max-height:60vh;overflow:auto}
+#setin h3{margin:0 0 .4rem;font-size:1.1rem}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;justify-content:space-between;padding:.4rem 0;border-top:1px dashed var(--line)}
+.seg{display:flex;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.95rem;font-weight:600;min-height:3rem;min-width:3.2rem;padding:0 .9rem;border:0;background:#fff;color:var(--pri);cursor:pointer;touch-action:manipulation}
+.seg button.on{background:var(--pri);color:#fff}
+.tl{display:block;color:#1d5a78;font-size:.9em;font-weight:400;margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
+.tl[dir=rtl]{text-align:right;font-size:1em}
+button .tl,.opt .tl,.chip .tl{margin-top:2px;font-size:.85em}
+.pts .tl{display:inline;font-size:inherit;margin:0 0 0 6px}
+th .tl{font-size:.85em}
+label .tl{margin-left:2.2rem}
+.tlb{display:inline-flex;align-items:center;justify-content:center;min-width:2rem;min-height:2rem;margin-left:.4rem;cursor:pointer;font-size:1rem;background:#e3f0f6;border-radius:50%;vertical-align:middle;line-height:1;user-select:none;-webkit-tap-highlight-color:transparent}
+#pop{position:fixed;z-index:120;background:#fff;color:#1d3b4c;border:2px solid var(--pri);border-radius:14px;padding:.8rem 1rem;box-shadow:0 12px 32px rgba(0,0,0,.28);font-size:1rem;line-height:1.6;max-height:50vh;overflow:auto;overflow-wrap:anywhere}
+#pop .pl{padding-left:1.1rem;margin:.4rem 0 0}.tl2{color:#1d5a78}
+#gloss table td{padding:4px 8px}
+#gloss .tl{background:#fff;border-radius:10px;padding:8px 12px}
+.fb .tl{margin-top:6px}
+.solt:empty{display:none}
+.opt{line-height:1.45;overflow-wrap:anywhere}
+details.wg{margin:.6rem 0;background:#f3f8fb;border:1px solid #cfe2ec;border-radius:12px;padding:.3rem .8rem}
+details.wg summary{min-height:2.8rem;display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;cursor:pointer;font-weight:600;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.4rem 0 .6rem}
+.chip{font:inherit;font-size:.95rem;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;min-height:3rem;padding:.2rem .8rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.chip.st{background:var(--pri2)}
+#dlg{position:fixed;inset:0;background:rgba(20,30,40,.55);display:flex;align-items:center;justify-content:center;z-index:130;padding:16px}
+#dlg[hidden]{display:none}
+#dbox{background:#fff;border-radius:20px;max-width:30rem;width:100%;padding:1.5rem}
+.rcard{border:2px solid var(--pri);border-radius:16px;padding:1rem 1.2rem;margin-top:1.4rem;background:#f9fcfd}
+.rc{font-size:1.05rem;line-height:1.7}.rc .big{font-size:2rem;font-weight:700;color:var(--pri)}
+.rc code{font-size:.9rem;background:#eef2f4;padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+html[data-level=b] .vonly{display:none}
+.gl{background:#fff}
+@media print{.vonly{display:block!important}html[data-level=b] .vonly{display:none!important}}
+</style>
+</head>
+<body>
+<div id="bar" class="noprint"><div id="barin">
+  <span id="barlbl">0 %</span>
+  <div id="track" role="progressbar" aria-label="Fortschritt"><div id="fill"></div></div>
+  <button id="gear" aria-label="Einstellungen" aria-expanded="false">⚙️</button>
+  <div id="pills" role="group" aria-label="Sprache">
+    <button class="pill on" data-l="de">🇩🇪 Deutsch</button>
+    <button class="pill" data-l="vi">🇻🇳 Tiếng Việt</button>
+  </div>
+</div>
+<div id="set" hidden><div id="setin">
+  <h3 data-k="set_h">Einstellungen</h3>
+  <div class="srow"><b data-k="set_mode">Übersetzung</b><div class="seg" id="segMode"><button data-m="tap" data-k="mode_tap">Antippen</button><button data-m="under" data-k="mode_under">Unterlegt</button><button data-m="off" data-k="mode_off">Aus</button></div></div>
+  <div class="srow"><b data-k="set_fs">Schriftgröße</b><div class="seg" id="segFs"><button data-f="-1">A−</button><button data-f="0" id="fsLbl">A</button><button data-f="1">A+</button></div></div>
+  <div class="srow"><b data-k="set_level">Ebene</b><div class="seg" id="segLvl"><button data-v="b" data-k="lvl_b">Basis</button><button data-v="v" data-k="lvl_v">Vertiefung</button></div></div>
+  <div class="srow"><b data-k="set_snd">Ton</b><div class="seg"><button id="snd" aria-label="Ton an/aus">🔊</button></div></div>
+  <div class="srow"><button class="b sec" id="reset" data-k="set_reset">Neu starten</button></div>
+</div></div></div>
+
+
+<main>
+  <p class="sub" style="margin-bottom:0" data-k="sub">Lernfeld 9 · Preispolitische Maßnahmen vorbereiten und durchführen</p>
+  <h1 data-k="h1">Modul 2: Vom Listenpreis zum Bezugspreis</h1>
+  <p class="sub" data-k="meta">3 Doppelstunden · 14 Punkte · Arbeitsheft LF 6 Kap. 6 · Taschenrechner, Handy und Werkzeugkarte mitbringen</p>
+
+  <div class="card meta">
+    <div><label class="f" for="nm" data-k="name">Name</label><input type="text" id="nm" autocomplete="name"></div>
+    <div><label class="f" for="dt" data-k="date">Datum</label><input type="text" id="dt"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="can_h">Das kann ich danach</h2>
+    <ul class="can" style="padding:0;margin:8px 0 0">
+      <li><label data-k="can1"><input type="checkbox"> Ich kann aus einer Rechnung oder einem Angebot den Bezugspreis berechnen: erst Rabatt, dann Skonto, dann Bezugskosten.</label></li>
+      <li><label data-k="can2"><input type="checkbox"> Ich kann den Bezugspreis für ein Stück berechnen und rechne dabei ohne Umsatzsteuer.</label></li>
+      <li><label data-k="can3"><input type="checkbox"> Ich kann zwei Angebote vergleichen und das günstigere finden.</label></li>
+      <li><label data-k="can4"><input type="checkbox"> Ich kann Rabatt, Skonto und Bonus unterscheiden.</label></li>
+    </ul>
+    <p class="noprint" style="color:var(--mute);font-size:15px;margin-bottom:0" data-k="can_note">Hake am Ende ab, was du jetzt kannst.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-k="g0_h">Aufgabe 1 · Abruf: Zwei Fragen aus dem Kopf</h2>
+    <p data-k="g0_p">Ohne Buch, ohne Heft. Fragen aus früheren Modulen und Lernfeldern – so bleibt das Wissen fürs Fachgespräch frisch. Erst danach vergleichen.</p>
+    <div data-items="g0"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="g1_h">Aufgabe 2 · Ankommen: Was weißt du noch aus Modul 1?</h2>
+    <p data-k="g1_p">Aus dem Kopf. Schreibe nur den Faktor, z. B. 0,85.</p>
+    <div data-items="g1"></div>
+  </div>
+
+  <div class="card read">
+    <h2 data-k="read_h">Zum Nachlesen · aktiv lesen</h2>
+    <p data-k="read_p">Lies jeden Abschnitt und <b>tippe die gesuchten Begriffe an</b> (sie werden gelb). Achtung: Es sind auch falsche Begriffe dabei! Danach beantwortest du eine kurze Frage – erst dann geht der nächste Abschnitt auf.</p>
+    <div class="merke noprint" style="font-size:16px"><b>Wortspeicher:</b> der Listeneinkaufspreis · der Rabatt · der Zieleinkaufspreis · der Skonto · der Bareinkaufspreis · die Bezugskosten · der Bezugspreis (Einstandspreis) · der Mengenrabatt · der Bonus · frei Haus · ab Werk · netto · brutto · je Stück
+      <div id="gloss"></div></div>
+    <div id="reading"></div>
+
+    <h3 style="margin-top:24px" data-k="inf0">Das Schema der Bezugskalkulation</h3>
+    <table>
+      <tr><td data-k="inf1">Listeneinkaufspreis: Preis laut Liste oder Angebot des Lieferanten (netto) · Menge · Beispiel: 100 · 20,00 = 2.000,00 €</td></tr>
+      <tr><td data-k="inf2">– Rabatt: Preisnachlass, z. B. für eine große Menge – immer zuerst · Beispiel: · 0,9 → 1.800,00 €</td></tr>
+      <tr><td data-k="inf3">= Zieleinkaufspreis: So viel müsste man zahlen, wenn man das Zahlungsziel (z. B. 30 Tage) ausnutzt.</td></tr>
+      <tr><td data-k="inf4">– Skonto: Preisnachlass für schnelles Zahlen (z. B. innerhalb von 10 Tagen) · Beispiel: · 0,98</td></tr>
+      <tr><td data-k="inf5">= Bareinkaufspreis: So viel wird bei schneller Zahlung überwiesen.</td></tr>
+      <tr><td data-k="inf6">+ Bezugskosten: Fracht, Porto, Verpackung, Transportversicherung – werden nicht rabattiert · Beispiel: + 35,00 €</td></tr>
+      <tr><td data-k="inf7">= Bezugspreis: Das kostet die Ware wirklich, bis sie im Lager ist. Auch: Einstandspreis.</td></tr>
+    </table>
+    <div class="merke" data-k="merke"><b>Merke:</b> Listeneinkaufspreis – Rabatt – Skonto + Bezugskosten = Bezugspreis. In einer Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer.</div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a2_h">Aufgabe 3 · Vorgemacht: der Bezugspreis für ein Hemd</h2>
+    <p data-k="a2_p">So gehst du bei einer Prüfungsaufgabe vor. Lies die Schritte genau, du brauchst sie gleich.</p>
+    <div class="worked" data-k="wk0"><b>Die Aufgabe:</b> Rechnung: 180 Herrenhemden zu je 16,00 €, abzüglich 10 % Rabatt, zuzüglich 18,00 € Verpackungskosten, zuzüglich 19 % Umsatzsteuer. Berechnen Sie den Bezugspreis in Euro (netto) für ein Hemd!</div>
+    <div class="worked" data-k="wk1"><b>Listeneinkaufspreis:</b> 180 · 16,00 € = 2.880,00 €</div>
+    <div class="worked" data-k="wk2"><b>– 10 % Rabatt:</b> 2.880,00 · 0,9 = 2.592,00 €</div>
+    <div class="worked" data-k="wk3"><b>+ Verpackung:</b> 2.592,00 + 18,00 = 2.610,00 €</div>
+    <div class="worked" data-k="wk4"><b>Umsatzsteuer?</b> weglassen – der Bezugspreis ist netto</div>
+    <div class="worked" data-k="wk5"><b>je Hemd:</b> 2.610,00 : 180 = 14,50 €</div>
+    <div class="worked" data-k="wk6"><b>Taschenrechner:</b> 180 × 16 × 0,9 + 18 = ÷ 180 = → 14,50</div>
+    <div class="row noprint"><button class="b" id="a2btn" data-k="a2btn">Ich habe das Beispiel gelesen ✓</button></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="g2_h">Aufgabe 4 · Geführte Übung: 50 Rucksäcke</h2>
+    <p data-k="g2_p">Ein Lieferant liefert 50 Rucksäcke zu je 12,00 €. Er gewährt 20 % Rabatt und bei Zahlung innerhalb von 10 Tagen 2 % Skonto. Die Fracht kostet 14,40 €. Die Kaufhaus Hansa GmbH zahlt sofort. Fülle das Schema Zeile für Zeile aus.</p>
+    <div data-items="g2"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="g3_h">Aufgabe 5 · Geführte Übung: Welcher Preisnachlass ist gemeint?</h2>
+    <p data-k="g3_p">Ordne zu: Rabatt, Skonto oder Bonus?</p>
+    <div data-items="g3"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="g4_h">Aufgabe 6 · Geführte Übung: Welches Angebot ist günstiger?</h2>
+    <p data-k="g4_p">Die Kaufhaus Hansa GmbH braucht 100 Deckenleuchten und zahlt immer innerhalb von 10 Tagen. Angebot A (Licht-Werk): 20,00 € je Stück, 10 % Rabatt, kein Skonto, Lieferung frei Haus. Angebot B (Lampen-Hansen): 21,00 € je Stück, 15 % Rabatt, 3 % Skonto, Fracht 35,00 €. Entscheide zuerst aus dem Bauch – dann rechne.</p>
+    <div data-items="g4"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="g5_h">Aufgabe 7 · Freie Übung: Zwei Angebote vergleichen</h2>
+    <p data-k="g5_p">Ersatzangebote für 60 Rucksäcke. Angebot A (Trekking-Profi): 28,50 € je Stück, 12 % Rabatt, 2 % Skonto, frei Haus. Angebot B (Outdoor-Welt): 27,00 € je Stück, 8 % Rabatt, kein Skonto, Fracht 45,00 €. Du kannst zusätzlich zwei Angebote aus deinem Betrieb vergleichen und deiner Lehrkraft zeigen (4 Leistungspunkte).</p>
+    <div data-items="g5"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="g6_h">Aufgabe 8 · Prüfungs-Check</h2>
+    <p data-k="g6_p">5 Aufgaben · etwa 15 Minuten. So fragt die IHK in der Abschlussprüfung.</p>
+    <div data-items="g6"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="g7_h">Aufgabe 9 · Für Profis</h2>
+    <p data-k="g7_p">Zum Weiterdenken – ganze Sätze, mit Begründung.</p>
+    <div data-items="g7"></div>
+  </div>
+
+  <div class="card vonly" id="a8card">
+    <h2 data-k="g8_h">Aufgabe 10 · Vertiefung <span class="pts" data-k="pts_bonus">Bonus</span></h2>
+    <p data-k="g8_p">Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.</p>
+    <div data-items="g8"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-k="a7_h">Aufgabe 11 · Schätzen, testen, eintragen</h2>
+    <p data-k="a7_p">Wie viele der <b>20 Punkte</b> wirst du in diesem Arbeitsblatt schaffen? Trag deine Schätzung <b>vor</b> der Auswertung ein.</p>
+    <table>
+      <tr><th data-k="th1">Meine Schätzung</th><th data-k="th2">Mein Ergebnis</th><th data-k="th3">Differenz</th><th data-k="th4">Punkte fürs Punktekonto</th></tr>
+      <tr><td><input type="text" id="est" inputmode="numeric" placeholder="0–20"></td><td id="resP">–</td><td id="resD">–</td><td><input type="text" id="konto" inputmode="numeric" placeholder="Lehrkraft"></td></tr>
+    </table>
+  </div>
+
+  <div class="card noprint" id="submitCard">
+    <h2 data-k="submit_h">Fertig? Dann auswerten!</h2>
+    <p data-k="submit_p">Du kannst auswerten, auch wenn noch nicht alles bearbeitet ist – offene Aufgaben zählen dann 0 Punkte.</p>
+    <div class="row"><button class="b" id="submit" data-k="submit_b">📊 Absenden &amp; auswerten</button></div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2 data-k="res_h">Deine Auswertung</h2>
+    <div id="resBody"></div>
+    <div id="rcard" class="rcard"><h3 data-k="res_card_h">Ergebnis für die Lehrkraft</h3>
+      <canvas id="cv" width="900" height="600" style="display:none"></canvas>
+      <div id="rinfo"></div>
+      <div class="row noprint"><button class="b" id="btnImg" data-k="btn_img">🖼️ Ergebnis als Bild speichern</button><button class="b sec" id="btnCode" data-k="btn_code">📋 Code kopieren</button></div>
+      <input type="text" id="codeBox" readonly aria-label="Code" style="margin-top:10px;display:none">
+      <div class="row noprint" style="margin-top:14px"><button class="b sec" id="btnNext" data-k="btn_next">👤 Nächste Person</button></div>
+    </div>
+  </div>
+
+  <div class="row noprint" style="justify-content:center"><button class="b sec" id="pdf" data-k="pdf_b">🖨️ Als PDF exportieren (Lehrkraft)</button></div>
+  <p class="noprint" style="text-align:center;color:var(--mute);font-size:14px">Im Druckdialog „Als PDF sichern“ wählen. Es werden nur der deutsche Text und deine Eingaben gedruckt.</p>
+</main>
+
+<div id="modal" class="noprint"><div id="mbox">
+  <h3 id="mt">💡 Tipp</h3>
+  <p id="mx"></p>
+  <div id="mxt"></div>
+  <div class="row"><button class="b sec" id="mnext" data-k="tip_next">Noch ein Tipp</button><button class="b" id="mclose" data-k="close">Schließen</button></div>
+</div></div>
+<div id="dlg" class="noprint" hidden><div id="dbox"><p id="dtx"></p><div class="row"><button class="b sec" id="dno" data-k="dlg_cancel">Abbrechen</button><button class="b" id="dyes" data-k="dlg_ok">Ja</button></div></div></div>
+<div id="pop" hidden></div>
+<div id="toast"></div>
+<script>
+/* ===== DATEN ===== */
+const CAT={"vor": "Vorwissen: Abruf und Ankommen", "txt": "Textverständnis: aktiv lesen", "trans": "Transfer: Geführte Übung", "wis": "Fachwissen: Prüfungs-Check", "refl": "Weiterdenken: Für Profis"};
+/* kw = Gruppen von Stichwörtern (ae/oe/ue statt Umlaute, Kleinschreibung; "re:" = Regex); min = Anzahl getroffener Gruppen */
+const ITEMS=[
+{"id": "q0_1", "g": "g0", "cat": "vor", "h": ["Das kennst du aus einem früheren Lernfeld. Was fällt dir zuerst ein?", "Schreibe Stichworte auf. Vergleiche erst danach mit der Lösung."], "q": "A1 Wie lange ist die Rügefrist bei offenen Mängeln beim zweiseitigen Handelskauf? (aus LF 6)", "mode": "self", "rows": 2, "sol": "unverzüglich (sofort nach Prüfung)"},
+{"id": "q0_2", "g": "g0", "cat": "vor", "h": ["Das kennst du aus einem früheren Lernfeld. Was fällt dir zuerst ein?", "Schreibe Stichworte auf. Vergleiche erst danach mit der Lösung."], "q": "A2 Was ist der Unterschied zwischen Anfrage und Angebot? (aus LF 6)", "mode": "self", "rows": 3, "sol": "Anfrage: unverbindliche Bitte um ein Angebot; Angebot: Willenserklärung des Verkäufers, an die er gebunden ist"},
+{"id": "q1_1", "g": "g1", "cat": "vor", "h": ["Plus oder minus? Bei Plus wird der Faktor größer als 1, bei Minus kleiner als 1.", "Plus p % heißt mal (1 + p : 100). Minus p % heißt mal (1 – p : 100)."], "q": "a) – 15 % Rabatt → Faktor?", "kw": [["re:(?:^|[^0-9,.])0[,.]85(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 2, "sol": "· 0,85"},
+{"id": "q1_2", "g": "g1", "cat": "vor", "h": ["Plus oder minus? Bei Plus wird der Faktor größer als 1, bei Minus kleiner als 1.", "Plus p % heißt mal (1 + p : 100). Minus p % heißt mal (1 – p : 100)."], "q": "b) – 3 % Skonto → Faktor?", "kw": [["re:(?:^|[^0-9,.])0[,.]97(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 2, "sol": "· 0,97"},
+{"id": "q1_3", "g": "g1", "cat": "vor", "h": ["Plus oder minus? Bei Plus wird der Faktor größer als 1, bei Minus kleiner als 1.", "Plus p % heißt mal (1 + p : 100). Minus p % heißt mal (1 – p : 100)."], "q": "c) + 19 % Umsatzsteuer → Faktor?", "kw": [["re:(?:^|[^0-9,.])1[,.]19(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 2, "sol": "· 1,19"},
+{"id": "q1_4", "g": "g1", "cat": "vor", "h": ["Du kennst den Preis nach dem Aufschlag oder Nachlass und suchst den Preis davor.", "Zurückrechnen heißt: geteilt durch denselben Faktor."], "q": "d) brutto → netto (19 %): Durch welche Zahl teilst du?", "kw": [["re:(?:^|[^0-9,.])1[,.]19(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 2, "sol": ": 1,19"},
+{"id": "q2_1", "g": "g2", "cat": "trans", "h": ["Gehe das Schema Zeile für Zeile durch. Jede Zeile rechnet mit dem Ergebnis davor.", "Rabatt vom Listeneinkaufspreis, Skonto vom Zieleinkaufspreis, Bezugskosten werden addiert."], "q": "Listeneinkaufspreis (50 · 12,00 €)", "kw": [["re:(?:^|[^0-9,.])600(?:[,.]0+)?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 2, "sol": "600,00 €"},
+{"id": "q2_2", "g": "g2", "cat": "trans", "h": ["Gehe das Schema Zeile für Zeile durch. Jede Zeile rechnet mit dem Ergebnis davor.", "Rabatt vom Listeneinkaufspreis, Skonto vom Zieleinkaufspreis, Bezugskosten werden addiert."], "q": "– 20 % Rabatt: Wie viel Euro Rabatt?", "kw": [["re:(?:^|[^0-9,.])120(?:[,.]0+)?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 2, "sol": "600,00 · 0,2 = 120,00 €"},
+{"id": "q2_3", "g": "g2", "cat": "trans", "h": ["Gehe das Schema Zeile für Zeile durch. Jede Zeile rechnet mit dem Ergebnis davor.", "Rabatt vom Listeneinkaufspreis, Skonto vom Zieleinkaufspreis, Bezugskosten werden addiert."], "q": "= Zieleinkaufspreis", "kw": [["re:(?:^|[^0-9,.])480(?:[,.]0+)?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 2, "sol": "600,00 – 120,00 = 480,00 €"},
+{"id": "q2_4", "g": "g2", "cat": "trans", "h": ["Gehe das Schema Zeile für Zeile durch. Jede Zeile rechnet mit dem Ergebnis davor.", "Rabatt vom Listeneinkaufspreis, Skonto vom Zieleinkaufspreis, Bezugskosten werden addiert."], "q": "– 2 % Skonto: Wie viel Euro Skonto?", "kw": [["re:(?:^|[^0-9,.])9[,.]60?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 2, "sol": "480,00 · 0,02 = 9,60 €"},
+{"id": "q2_5", "g": "g2", "cat": "trans", "h": ["Gehe das Schema Zeile für Zeile durch. Jede Zeile rechnet mit dem Ergebnis davor.", "Rabatt vom Listeneinkaufspreis, Skonto vom Zieleinkaufspreis, Bezugskosten werden addiert."], "q": "= Bareinkaufspreis", "kw": [["re:(?:^|[^0-9,.])470[,.]40?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 2, "sol": "480,00 – 9,60 = 470,40 €"},
+{"id": "q2_6", "g": "g2", "cat": "trans", "h": ["Halte die Reihenfolge ein: erst Rabatt, dann Skonto, dann Bezugskosten.", "Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer. Für ein Stück: am Ende durch die Stückzahl teilen."], "q": "= Bezugspreis für 50 Rucksäcke (mit 14,40 € Fracht)", "kw": [["re:(?:^|[^0-9,.])484[,.]80?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 3, "sol": "470,40 + 14,40 = 484,80 € · in einer Kette: 50 · 12,00 · 0,8 · 0,98 + 14,40 = 484,80 €"},
+{"id": "q2_7", "g": "g2", "cat": "trans", "h": ["Halte die Reihenfolge ein: erst Rabatt, dann Skonto, dann Bezugskosten.", "Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer. Für ein Stück: am Ende durch die Stückzahl teilen."], "q": "Bezugspreis für 1 Rucksack", "kw": [["re:(?:^|[^0-9,.])9[,.]70?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 2, "sol": "484,80 : 50 = 9,70 €"},
+{"id": "q3_1", "g": "g3", "cat": "trans", "h": ["Wann bekommt man den Nachlass: sofort, bei schneller Zahlung oder nachträglich?", "Rabatt: sofort auf der Rechnung. Skonto: für schnelles Zahlen. Bonus: nachträglich, z. B. am Jahresende."], "q": "Der Lieferant zieht 3 % ab, weil innerhalb von 8 Tagen gezahlt wird. → Rabatt, Skonto oder Bonus?", "kw": [["skonto"]], "min": 1, "rows": 2, "sol": "Skonto"},
+{"id": "q3_2", "g": "g3", "cat": "trans", "h": ["Wann bekommt man den Nachlass: sofort, bei schneller Zahlung oder nachträglich?", "Rabatt: sofort auf der Rechnung. Skonto: für schnelles Zahlen. Bonus: nachträglich, z. B. am Jahresende."], "q": "Am Jahresende schreibt der Lieferant 2 % des Jahresumsatzes gut. → Rabatt, Skonto oder Bonus?", "kw": [["bonus"]], "min": 1, "rows": 2, "sol": "Bonus"},
+{"id": "q3_3", "g": "g3", "cat": "trans", "h": ["Wann bekommt man den Nachlass: sofort, bei schneller Zahlung oder nachträglich?", "Rabatt: sofort auf der Rechnung. Skonto: für schnelles Zahlen. Bonus: nachträglich, z. B. am Jahresende."], "q": "Ab 100 Stück gibt es 10 % Nachlass. → Rabatt, Skonto oder Bonus?", "kw": [["rabatt"]], "min": 1, "rows": 2, "sol": "Rabatt"},
+{"id": "q3_4", "g": "g3", "cat": "trans", "h": ["Wann bekommt man den Nachlass: sofort, bei schneller Zahlung oder nachträglich?", "Rabatt: sofort auf der Rechnung. Skonto: für schnelles Zahlen. Bonus: nachträglich, z. B. am Jahresende."], "q": "Zum Firmenjubiläum gibt es auf alle Bestellungen 5 %. → Rabatt, Skonto oder Bonus?", "kw": [["rabatt"]], "min": 1, "rows": 2, "sol": "Rabatt"},
+{"id": "q4_1", "g": "g4", "cat": "trans", "h": ["Halte die Reihenfolge ein: erst Rabatt, dann Skonto, dann Bezugskosten.", "Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer. Für ein Stück: am Ende durch die Stückzahl teilen."], "q": "Bezugspreis Angebot A für 100 Stück", "kw": [["re:(?:^|[^0-9,.])1[. ]?800(?:[,.]0+)?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 3, "sol": "100 · 20,00 · 0,9 = 1.800,00 €"},
+{"id": "q4_2", "g": "g4", "cat": "trans", "h": ["Halte die Reihenfolge ein: erst Rabatt, dann Skonto, dann Bezugskosten.", "Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer. Für ein Stück: am Ende durch die Stückzahl teilen."], "q": "Bezugspreis Angebot B für 100 Stück", "kw": [["re:(?:^|[^0-9,.])1[. ]?766[,.]45(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 3, "sol": "100 · 21,00 · 0,85 · 0,97 + 35,00 = 1.766,45 €"},
+{"id": "q4_3", "g": "g4", "cat": "trans", "h": ["Halte die Reihenfolge ein: erst Rabatt, dann Skonto, dann Bezugskosten.", "Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer. Für ein Stück: am Ende durch die Stückzahl teilen."], "q": "Um wie viel Euro ist das günstigere Angebot günstiger?", "kw": [["re:(?:^|[^0-9,.])33[,.]55(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 3, "sol": "1.800,00 – 1.766,45 = 33,55 € → Angebot B ist günstiger, obwohl der Listenpreis höher ist. Rabatt und Skonto machen den Unterschied."},
+{"id": "q5_1", "g": "g5", "cat": "trans", "h": ["Halte die Reihenfolge ein: erst Rabatt, dann Skonto, dann Bezugskosten.", "Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer. Für ein Stück: am Ende durch die Stückzahl teilen."], "q": "Bezugspreis Angebot A für 60 Stück", "kw": [["re:(?:^|[^0-9,.])1[. ]?474[,.]70?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 3, "sol": "60 · 28,50 · 0,88 · 0,98 = 1.474,70 €"},
+{"id": "q5_2", "g": "g5", "cat": "trans", "h": ["Halte die Reihenfolge ein: erst Rabatt, dann Skonto, dann Bezugskosten.", "Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer. Für ein Stück: am Ende durch die Stückzahl teilen."], "q": "Bezugspreis Angebot B für 60 Stück", "kw": [["re:(?:^|[^0-9,.])1[. ]?535[,.]40?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 3, "sol": "60 · 27,00 · 0,92 + 45,00 = 1.535,40 €"},
+{"id": "q5_3", "g": "g5", "cat": "trans", "h": ["Halte die Reihenfolge ein: erst Rabatt, dann Skonto, dann Bezugskosten.", "Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer. Für ein Stück: am Ende durch die Stückzahl teilen."], "q": "Um wie viel Euro ist Angebot A günstiger?", "kw": [["re:(?:^|[^0-9,.])60[,.]70?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 2, "sol": "1.535,40 – 1.474,70 = 60,70 €"},
+{"id": "q6_1", "g": "g6", "cat": "wis", "h": ["Halte die Reihenfolge ein: erst Rabatt, dann Skonto, dann Bezugskosten.", "Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer. Für ein Stück: am Ende durch die Stückzahl teilen."], "q": "Ein Lieferant bietet Schlüsselanhänger zu 4,50 € je Stück an. Ab 100 Stück gewährt er 20 % Rabatt, bei Zahlung innerhalb von 10 Tagen 2 % Skonto. Die Bezugskosten betragen insgesamt 6,90 €. Sie bestellen 100 Stück und zahlen innerhalb von 10 Tagen. Ermitteln Sie den Bezugspreis in Euro für die gesamte Lieferung!", "kw": [["re:(?:^|[^0-9,.])359[,.]70?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 3, "sol": "100 · 4,50 · 0,8 · 0,98 + 6,90 = 359,70 €"},
+{"id": "q6_2", "g": "g6", "cat": "wis", "h": ["Halte die Reihenfolge ein: erst Rabatt, dann Skonto, dann Bezugskosten.", "Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer. Für ein Stück: am Ende durch die Stückzahl teilen."], "q": "Rechnung: 250 Herrenhemden zu je 12,00 €, abzüglich 10 % Rabatt, zuzüglich 35,00 € Verpackung und Versand, zuzüglich 19 % Umsatzsteuer. Berechnen Sie den Bezugspreis in Euro für ein Hemd!", "kw": [["re:(?:^|[^0-9,.])10[,.]94(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 3, "sol": "250 · 12,00 · 0,9 + 35,00 = 2.735,00 € : 250 = 10,94 €"},
+{"id": "q6_3", "g": "g6", "cat": "wis", "h": ["Halte die Reihenfolge ein: erst Rabatt, dann Skonto, dann Bezugskosten.", "Kette: Menge · Preis · Rabatt-Faktor · Skonto-Faktor + Bezugskosten. Immer ohne Umsatzsteuer. Für ein Stück: am Ende durch die Stückzahl teilen."], "q": "Sie benötigen 100 Deckenstrahler. Angebot Italo: 55,50 € je Stück, 15 % Rabatt, 3 % Skonto, Lieferung frei Haus. Angebot Susan: 50,00 € je Stück, 10 % Rabatt, kein Skonto, Fracht 20,00 €. Ermitteln Sie den Bezugspreis des günstigeren Angebots für 100 Stück!", "kw": [["re:(?:^|[^0-9,.])4[. ]?520(?:[,.]0+)?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 3, "sol": "Italo: 5.550,00 · 0,85 · 0,97 = 4.575,98 € · Susan: 5.000,00 · 0,9 + 20,00 = 4.520,00 € → Susan"},
+{"id": "q6_4", "g": "g6", "cat": "wis", "h": ["Fallen die Kosten an, bis die Ware bei uns ankommt – oder danach im eigenen Betrieb?", "Bis die Ware ankommt: Bezugskosten. Danach im Betrieb: Handlungskosten."], "q": "Welche Kosten zählen zu den Bezugskosten?<br>① Die Miete für das Warenlager<br>② Die Gehälter der Einkaufsabteilung<br>③ Die Frachtkosten für die Anlieferung der Ware<br>④ Die Werbekosten für die neue Ware<br>⑤ Die Energiekosten der Verkaufsräume", "kw": [["re:(?:^|[^0-9])3(?![0-9])", "③", "fracht", "anlieferung"]], "min": 1, "rows": 2, "sol": "③ Die Frachtkosten für die Anlieferung der Ware – Fracht erhöht den Bezugspreis. Alles andere sind Handlungskosten (Modul 3)."},
+{"id": "q6_5", "g": "g6", "cat": "wis", "h": ["Plus oder minus? Bei Plus wird der Faktor größer als 1, bei Minus kleiner als 1.", "Plus p % heißt mal (1 + p : 100). Minus p % heißt mal (1 – p : 100)."], "q": "Eine Rechnung über 3.520,00 € wird innerhalb der Skontofrist mit 3 % Skonto bezahlt. Berechnen Sie den Überweisungsbetrag!", "kw": [["re:(?:^|[^0-9,.])3[. ]?414[,.]40?(?![0-9])(?![,.][0-9])"]], "min": 1, "rows": 3, "sol": "3.520,00 · 0,97 = 3.414,40 €"},
+{"id": "q7_1", "g": "g7", "cat": "refl", "h": ["Überlege: Worauf bezieht sich der Prozentsatz – was sind hier 100 %?", "Begründe mit „weil“ und zeige es an einem Zahlenbeispiel."], "q": "Begründen Sie, warum Skonto erst nach dem Rabatt abgezogen wird.", "mode": "self", "rows": 5, "sol": "Skonto ist ein Nachlass auf den Betrag, der wirklich überwiesen wird. Das ist der Preis nach Rabatt (Zieleinkaufspreis). Der Rabatt steht schon beim Kauf fest, Skonto erst bei der Zahlung."},
+{"id": "q7_2", "g": "g7", "cat": "refl", "h": ["Probiere es mit einem einfachen Zahlenbeispiel, z. B. mit 100 €.", "Schreibe jeden Rechenschritt auf und erkläre danach in einem Satz, was du siehst."], "q": "Ein Lieferant bietet „2 % Skonto innerhalb von 10 Tagen oder 30 Tage netto“. Beurteilen Sie, ob es sich lohnt, für die Skontozahlung einen Kredit mit 8 % Jahreszins aufzunehmen. (Tipp: 20 Tage früher zahlen bringt 2 %.)", "mode": "self", "rows": 5, "sol": "2 % für 20 Tage entsprechen etwa 2 · 360 : 20 = 36 % im Jahr. Der Kredit kostet nur 8 % im Jahr – Skonto ausnutzen lohnt sich deutlich."},
+{"id": "v2_1", "g": "g8", "cat": "bonus", "level": "v", "h": ["Überlege: Worauf bezieht sich der Prozentsatz – was sind hier 100 %?", "Begründe mit „weil“ und zeige es an einem Zahlenbeispiel."], "q": "Warum zählt die Umsatzsteuer auf der Rechnung des Lieferanten nicht zum Bezugspreis? Begründe.", "mode": "self", "rows": 5, "sol": "Die Kaufhaus Hansa GmbH bekommt die Umsatzsteuer vom Finanzamt zurück. Sie ist für den Betrieb deshalb kein Kostenteil. Der Bezugspreis ist immer netto."},
+{"id": "v2_2", "g": "g8", "cat": "bonus", "level": "v", "h": ["Probiere es mit einem einfachen Zahlenbeispiel, z. B. mit 100 €.", "Schreibe jeden Rechenschritt auf und erkläre danach in einem Satz, was du siehst."], "q": "Was würde passieren, wenn man Rabatt und Skonto einfach zusammenzählt (z. B. 20 % + 2 % = 22 %)? Rechne mit den 50 Rucksäcken und begründe.", "mode": "self", "rows": 5, "sol": "600,00 · 0,78 = 468,00 € statt richtig 600,00 · 0,8 · 0,98 = 470,40 €. Der Skonto würde dann vom Listenpreis gerechnet. Er wird aber vom Zieleinkaufspreis (nach Rabatt) gerechnet – der Abzug wäre zu groß."},
+{"id": "v2_3", "g": "g8", "cat": "bonus", "level": "v", "h": ["Überlege: Worauf bezieht sich der Prozentsatz – was sind hier 100 %?", "Begründe mit „weil“ und zeige es an einem Zahlenbeispiel."], "q": "Warum kann ein Angebot mit höherem Listenpreis trotzdem das günstigere sein? Begründe mit den Deckenleuchten.", "mode": "self", "rows": 5, "sol": "Entscheidend ist der Bezugspreis, nicht der Listenpreis. Angebot B hat 21,00 € statt 20,00 € Listenpreis, aber mehr Rabatt (15 %) und 3 % Skonto. Trotz 35,00 € Fracht ist es um 33,55 € günstiger."}
+];
+/* Lesetext: [[Richtig]] = gesuchter Begriff, {{Falsch}} = Ablenker */
+const READ=[{"t": "Das Schema der Bezugskalkulation", "task": "Markiere die vier Preise des Schemas vom Anfang bis zum Ende.", "x": "Am Anfang steht der [[Listeneinkaufspreis]]. Das ist der Preis laut Liste oder Angebot des Lieferanten (netto). Davon ziehst du zuerst den Rabatt ab. Das Ergebnis ist der [[Zieleinkaufspreis]]. Dann ziehst du den Skonto ab und erhältst den [[Bareinkaufspreis]]. Zum Schluss kommen die Bezugskosten dazu. Das Ergebnis ist der [[Bezugspreis]]. Er heißt auch Einstandspreis. Der {{Bruttoverkaufspreis}} gehört nicht in dieses Schema.", "q": "Was kommt nach dem Abzug des Rabatts heraus?", "o": ["der Bareinkaufspreis", "der Zieleinkaufspreis", "der Bezugspreis"], "c": 1}, {"t": "Drei wichtige Regeln", "task": "Markiere die drei Regeln in Stichworten.", "x": "Rechne [[immer netto]]. Die Umsatzsteuer zählt nicht zum Bezugspreis, denn der Betrieb bekommt sie vom Finanzamt zurück. Die Reihenfolge ist: [[erst Rabatt, dann Skonto, dann Bezugskosten]]. Skonto wird vom Zieleinkaufspreis gerechnet, nicht vom {{Listenpreis}}. Wird der Bezugspreis für ein Stück gefragt, teilst du am Ende [[durch die Stückzahl]].", "q": "Wovon wird der Skonto berechnet?", "o": ["vom Listeneinkaufspreis", "vom Zieleinkaufspreis", "vom Bezugspreis"], "c": 1}, {"t": "Preisnachlässe des Lieferanten", "task": "Markiere die drei Nachlässe.", "x": "Den [[Rabatt]] gibt es sofort auf der Rechnung, zum Beispiel als Mengenrabatt für eine große Menge. Den [[Skonto]] gibt es, wenn innerhalb einer kurzen Frist gezahlt wird. Den [[Bonus]] gibt es nachträglich, zum Beispiel am Jahresende, wenn ein bestimmter Umsatz erreicht wurde. Die {{Fracht}} ist kein Nachlass.", "q": "Welchen Nachlass gibt es nachträglich am Jahresende?", "o": ["Rabatt", "Skonto", "Bonus"], "c": 2}];
+ITEMS.forEach(i=>{if(!i.level)i.level="b";});
+CAT.bonus="Bonus (Vertiefung)";
+/* Wortgeländer: Wörter + Satzanfänge (nie die Lösung) */
+const WG={"q0_1": [["weil", "deshalb", "zum Beispiel", "dadurch"], ["Der Grund ist: …", "Das bedeutet: …", "Zum Beispiel …"]], "q0_2": [["weil", "deshalb", "zum Beispiel", "dadurch"], ["Der Grund ist: …", "Das bedeutet: …", "Zum Beispiel …"]], "q1_1": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q1_2": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q1_3": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q1_4": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q2_1": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q2_2": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q2_3": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q2_4": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q2_5": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q2_6": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q2_7": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q3_1": [["gehört zu", "weil"], ["Das ist …"]], "q3_2": [["gehört zu", "weil"], ["Das ist …"]], "q3_3": [["gehört zu", "weil"], ["Das ist …"]], "q3_4": [["gehört zu", "weil"], ["Das ist …"]], "q4_1": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q4_2": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q4_3": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q5_1": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q5_2": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q5_3": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q6_1": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q6_2": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q6_3": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q6_4": [["die Antwort", "richtig", "weil"], ["Richtig ist Antwort …", "…, weil …"]], "q6_5": [["die Rechnung", "das Ergebnis", "der Faktor", "Euro"], ["Ich rechne: …", "Das Ergebnis ist …"]], "q7_1": [["der Zieleinkaufspreis", "die Zahlung", "der Kauf", "überweisen"], ["Skonto ist ein Nachlass auf …", "Der Rabatt steht …"]], "q7_2": [["der Kredit", "der Jahreszins", "sich lohnen", "im Jahr"], ["2 % für 20 Tage entsprechen …", "Es lohnt sich, weil …"]], "v2_1": [["weil", "deshalb", "zum Beispiel", "dadurch"], ["Der Grund ist: …", "Das bedeutet: …", "Zum Beispiel …"]], "v2_2": [["weil", "deshalb", "zum Beispiel", "dadurch"], ["Der Grund ist: …", "Das bedeutet: …", "Zum Beispiel …"]], "v2_3": [["weil", "deshalb", "zum Beispiel", "dadurch"], ["Der Grund ist: …", "Das bedeutet: …", "Zum Beispiel …"]]};
+ITEMS.forEach(i=>{i.wg=WG[i.id];});
+const GLOSS_DE=["der Listeneinkaufspreis", "der Rabatt", "der Zieleinkaufspreis", "der Skonto", "der Bareinkaufspreis", "die Bezugskosten", "der Bezugspreis (Einstandspreis)", "der Mengenrabatt", "der Bonus", "frei Haus", "ab Werk", "netto", "brutto", "je Stück"];
+/* Übersetzungen: [vi] */
+const TX={"name": ["Họ tên"], "date": ["Ngày"], "can_h": ["Sau bài này tôi có thể"], "can_note": ["Cuối bài, hãy đánh dấu những gì bạn đã làm được."], "read_h": ["Đọc lại · đọc chủ động"], "read_p": ["Đọc từng đoạn và chạm vào các từ cần tìm (chúng sẽ chuyển màu vàng). Chú ý: cũng có từ sai! Sau đó trả lời một câu hỏi ngắn – rồi đoạn tiếp theo mới mở."], "ws_h": ["Kho từ vựng (bản dịch)"], "th1": ["Dự đoán của tôi"], "th2": ["Kết quả của tôi"], "th3": ["Chênh lệch"], "th4": ["Điểm cho tài khoản điểm"], "submit_h": ["Xong chưa? Hãy chấm điểm!"], "submit_p": ["Bạn có thể chấm điểm dù chưa làm hết – bài chưa làm tính 0 điểm."], "submit_b": ["Gửi và chấm điểm"], "res_h": ["Kết quả của bạn"], "pdf_b": ["Xuất PDF (cho giáo viên)"], "tip_t": ["Gợi ý"], "tip_next": ["Thêm gợi ý"], "close": ["Đóng"], "chk": ["Kiểm tra"], "shw": ["Hiện lời giải"], "markb": ["Kiểm tra phần đánh dấu"], "self_q": ["Câu trả lời của bạn tốt đến đâu?"], "self1": ["Đạt"], "self2": ["Một phần"], "self3": ["Chưa"], "fb_ok": ["Đúng rồi! Làm tốt lắm."], "fb_part": ["Gần đúng – còn thiếu một phần. So sánh với lời giải và bổ sung."], "fb_bad": ["Chưa đúng. Hãy xem gợi ý hoặc đọc lại văn bản."], "sol_lbl": ["Lời giải:"], "mk_ok": ["Đánh dấu đúng! Giờ đến câu hỏi:"], "mk_bad": ["Chưa hoàn toàn đúng. Hãy đọc lại đề bài."], "zq_ok": ["Chính xác! Đoạn tiếp theo đã mở."], "zq_bad": ["Chưa đúng. Hãy đọc lại đoạn và thử lại."], "res_pts": ["trên 20 điểm"], "res_an": ["Phân tích lỗi theo lĩnh vực năng lực"], "rep": ["Bạn nên ôn lại"], "lab1": ["Tuyệt vời!"], "lab2": ["Khá – cần luyện thêm"], "lab3": ["Phần này bạn cần luyện thêm"], "set_h": ["Cài đặt"], "set_mode": ["Bản dịch"], "mode_tap": ["Chạm để xem"], "mode_under": ["Hiện bên dưới"], "mode_off": ["Tắt"], "set_fs": ["Cỡ chữ"], "set_level": ["Mức độ"], "lvl_b": ["Cơ bản"], "lvl_v": ["Nâng cao"], "set_snd": ["Âm thanh"], "set_reset": ["Làm lại từ đầu"], "dlg_reset": ["Xóa tất cả và làm lại từ đầu? Mọi nội dung bạn đã nhập trong phiếu này sẽ mất."], "dlg_next": ["Người tiếp theo: nội dung và tên sẽ bị xóa."], "dlg_cancel": ["Hủy"], "dlg_ok": ["Đồng ý"], "wg_h": ["Từ ngữ và gợi ý đầu câu"], "pts_bonus": ["Điểm thưởng"], "res_card_h": ["Kết quả cho giáo viên"], "btn_img": ["Lưu kết quả dưới dạng ảnh"], "btn_code": ["Sao chép mã"], "btn_next": ["Người tiếp theo"], "res_open": ["Lưu ý: bài chưa làm tính 0 điểm."], "res_bonus": ["Điểm thưởng"], "cat_bonus": ["Điểm thưởng (Nâng cao)"], "fb_peek": ["Đúng – nhưng bạn đã xem lời giải trước, nên chỉ được nửa điểm."], "t25": ["Khởi đầu tốt!"], "t50": ["Xong một nửa rồi!"], "t75": ["Sắp đến đích rồi!"], "t100": ["Đã làm xong hết! Giờ hãy chấm điểm."], "t_write": ["Hãy viết gì đó trước"], "t_saved": ["Đã ghi"], "t_read": ["Đã đọc"], "t_resume": ["Tiếp tục từ chỗ bạn dừng"], "t_copy": ["Đã sao chép mã"], "t_img": ["Đã lưu ảnh"], "a7_p": ["Bạn sẽ đạt bao nhiêu trong 20 điểm ở phiếu bài tập này? Hãy ghi dự đoán trước khi chấm."], "a8_p": ["Chỉ có ở mức „Nâng cao“. Hãy giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của bạn."], "a2_p": ["Đây là cách làm một bài thi. Hãy đọc kỹ các bước, lát nữa bạn sẽ cần."], "sub": ["Lĩnh vực học 9 · Chuẩn bị và thực hiện các biện pháp về giá"], "h1": ["Mô-đun 2: Từ giá niêm yết (Listenpreis) đến giá nhập (Bezugspreis)"], "meta": ["3 buổi học đôi · 14 điểm · vở bài tập LF 6 chương 6 · mang theo máy tính, điện thoại và thẻ công cụ"], "can1": ["Tôi có thể tính Bezugspreis từ một hóa đơn hoặc một bản chào giá: trước Rabatt, sau đó Skonto, rồi Bezugskosten."], "can2": ["Tôi có thể tính Bezugspreis cho một chiếc và tính không có thuế."], "can3": ["Tôi có thể so sánh hai bản chào giá và tìm ra bản rẻ hơn."], "can4": ["Tôi có thể phân biệt Rabatt, Skonto và Bonus."], "g0_h": ["Bài 1 · Nhớ lại: hai câu hỏi trả lời bằng trí nhớ"], "g0_p": ["Không dùng sách, không dùng vở. Các câu hỏi từ những mô-đun và lĩnh vực học trước – để kiến thức luôn mới cho buổi vấn đáp. Sau đó mới so đáp án."], "q0_1.h0": ["Em đã học điều này ở một lĩnh vực học trước. Em nhớ ra điều gì đầu tiên?"], "q0_1.h1": ["Viết các từ khóa. Sau đó mới so với đáp án."], "q0_1.s": ["ngay lập tức (ngay sau khi kiểm tra)"], "q0_1.q": ["A1 Thời hạn khiếu nại (Rügefrist) đối với lỗi nhìn thấy được trong mua bán giữa hai thương nhân là bao lâu? (từ LF 6)"], "q0_2.h0": ["Em đã học điều này ở một lĩnh vực học trước. Em nhớ ra điều gì đầu tiên?"], "q0_2.h1": ["Viết các từ khóa. Sau đó mới so với đáp án."], "q0_2.s": ["Anfrage: lời đề nghị gửi bản chào giá, không ràng buộc; Angebot: tuyên bố ý chí của người bán, người bán bị ràng buộc bởi nó"], "q0_2.q": ["A2 Sự khác nhau giữa Anfrage (hỏi giá) và Angebot (chào giá) là gì? (từ LF 6)"], "g1_h": ["Bài 2 · Khởi động: em còn nhớ gì từ mô-đun 1?"], "g1_p": ["Trả lời bằng trí nhớ. Chỉ viết hệ số, ví dụ 0,85."], "q1_1.h0": ["Cộng hay trừ? Khi cộng thì hệ số lớn hơn 1, khi trừ thì hệ số nhỏ hơn 1."], "q1_1.h1": ["Cộng p % nghĩa là nhân (1 + p : 100). Trừ p % nghĩa là nhân (1 – p : 100)."], "q1_1.q": ["a) – 15 % Rabatt → hệ số?"], "q1_2.h0": ["Cộng hay trừ? Khi cộng thì hệ số lớn hơn 1, khi trừ thì hệ số nhỏ hơn 1."], "q1_2.h1": ["Cộng p % nghĩa là nhân (1 + p : 100). Trừ p % nghĩa là nhân (1 – p : 100)."], "q1_2.q": ["b) – 3 % Skonto → hệ số?"], "q1_3.h0": ["Cộng hay trừ? Khi cộng thì hệ số lớn hơn 1, khi trừ thì hệ số nhỏ hơn 1."], "q1_3.h1": ["Cộng p % nghĩa là nhân (1 + p : 100). Trừ p % nghĩa là nhân (1 – p : 100)."], "q1_3.q": ["c) + 19 % thuế → hệ số?"], "q1_4.h0": ["Em biết giá sau khi cộng hoặc giảm và cần tìm giá trước đó."], "q1_4.h1": ["Tính ngược lại nghĩa là: chia cho chính hệ số đó."], "q1_4.q": ["d) brutto → netto (19 %): em chia cho số nào?"], "inf0": ["Sơ đồ tính giá nhập hàng"], "inf1": ["Listeneinkaufspreis: giá theo bảng giá hoặc bản chào giá của nhà cung cấp (netto) · số lượng · Ví dụ: 100 · 20,00 = 2.000,00 €"], "inf2": ["– Rabatt: giảm giá, ví dụ khi mua số lượng lớn – luôn trừ trước · Ví dụ: · 0,9 → 1.800,00 €"], "inf3": ["= Zieleinkaufspreis: số tiền phải trả nếu tận dụng hết thời hạn thanh toán (ví dụ 30 ngày)."], "inf4": ["– Skonto: giảm giá khi trả tiền nhanh (ví dụ trong vòng 10 ngày) · Ví dụ: · 0,98"], "inf5": ["= Bareinkaufspreis: số tiền chuyển khoản khi trả nhanh."], "inf6": ["+ Bezugskosten: cước vận chuyển, bưu phí, đóng gói, bảo hiểm vận chuyển – không được giảm giá · Ví dụ: + 35,00 €"], "inf7": ["= Bezugspreis: chi phí thực của hàng hóa cho đến khi vào kho. Còn gọi là: Einstandspreis."], "merke": ["<b>Ghi nhớ:</b> Listeneinkaufspreis – Rabatt – Skonto + Bezugskosten = Bezugspreis. Trong một chuỗi: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế."], "a2_h": ["Bài 3 · Làm mẫu: Bezugspreis cho một chiếc áo sơ mi"], "wk0": ["<b>Đề bài:</b> Hóa đơn: 180 áo sơ mi nam, mỗi chiếc 16,00 €, trừ 10 % Rabatt, cộng 18,00 € phí đóng gói, cộng 19 % thuế. Hãy tính Bezugspreis bằng euro (netto) cho một chiếc áo!"], "wk1": ["<b>Listeneinkaufspreis:</b> 180 · 16,00 € = 2.880,00 €"], "wk2": ["<b>– 10 % Rabatt:</b> 2.880,00 · 0,9 = 2.592,00 €"], "wk3": ["<b>+ Đóng gói:</b> 2.592,00 + 18,00 = 2.610,00 €"], "wk4": ["<b>Thuế?</b> bỏ qua – Bezugspreis là netto"], "wk5": ["<b>mỗi áo:</b> 2.610,00 : 180 = 14,50 €"], "wk6": ["<b>Máy tính:</b> 180 × 16 × 0,9 + 18 = ÷ 180 = → 14,50"], "a2btn": ["Tôi đã đọc ví dụ ✓"], "g2_h": ["Bài 4 · Bài tập có hướng dẫn: 50 chiếc ba lô"], "g2_p": ["Một nhà cung cấp giao 50 chiếc ba lô, mỗi chiếc 12,00 €. Họ giảm 20 % Rabatt và 2 % Skonto nếu trả trong vòng 10 ngày. Cước vận chuyển là 14,40 €. Kaufhaus Hansa GmbH trả ngay. Điền sơ đồ theo từng dòng."], "q2_1.h0": ["Đi theo bảng từng dòng một. Mỗi dòng tính tiếp từ kết quả của dòng trước."], "q2_1.h1": ["Rabatt tính từ Listeneinkaufspreis, Skonto tính từ Zieleinkaufspreis, Bezugskosten được cộng thêm."], "q2_1.q": ["Listeneinkaufspreis (50 · 12,00 €)"], "q2_2.h0": ["Đi theo bảng từng dòng một. Mỗi dòng tính tiếp từ kết quả của dòng trước."], "q2_2.h1": ["Rabatt tính từ Listeneinkaufspreis, Skonto tính từ Zieleinkaufspreis, Bezugskosten được cộng thêm."], "q2_2.q": ["– 20 % Rabatt: Rabatt là bao nhiêu euro?"], "q2_3.h0": ["Đi theo bảng từng dòng một. Mỗi dòng tính tiếp từ kết quả của dòng trước."], "q2_3.h1": ["Rabatt tính từ Listeneinkaufspreis, Skonto tính từ Zieleinkaufspreis, Bezugskosten được cộng thêm."], "q2_3.q": ["= Zieleinkaufspreis"], "q2_4.h0": ["Đi theo bảng từng dòng một. Mỗi dòng tính tiếp từ kết quả của dòng trước."], "q2_4.h1": ["Rabatt tính từ Listeneinkaufspreis, Skonto tính từ Zieleinkaufspreis, Bezugskosten được cộng thêm."], "q2_4.q": ["– 2 % Skonto: Skonto là bao nhiêu euro?"], "q2_5.h0": ["Đi theo bảng từng dòng một. Mỗi dòng tính tiếp từ kết quả của dòng trước."], "q2_5.h1": ["Rabatt tính từ Listeneinkaufspreis, Skonto tính từ Zieleinkaufspreis, Bezugskosten được cộng thêm."], "q2_5.q": ["= Bareinkaufspreis"], "q2_6.h0": ["Giữ đúng thứ tự: trước tiên Rabatt, sau đó Skonto, rồi Bezugskosten."], "q2_6.h1": ["Chuỗi tính: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế. Cho một chiếc: cuối cùng chia cho số lượng."], "q2_6.s": ["470,40 + 14,40 = 484,80 € · trong một chuỗi: 50 · 12,00 · 0,8 · 0,98 + 14,40 = 484,80 €"], "q2_6.q": ["= Bezugspreis cho 50 chiếc ba lô (gồm 14,40 € cước vận chuyển)"], "q2_7.h0": ["Giữ đúng thứ tự: trước tiên Rabatt, sau đó Skonto, rồi Bezugskosten."], "q2_7.h1": ["Chuỗi tính: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế. Cho một chiếc: cuối cùng chia cho số lượng."], "q2_7.q": ["Bezugspreis cho 1 chiếc ba lô"], "g3_h": ["Bài 5 · Bài tập có hướng dẫn: đó là khoản giảm giá nào?"], "g3_p": ["Hãy ghép: Rabatt, Skonto hay Bonus?"], "q3_1.h0": ["Khi nào được giảm giá: ngay lập tức, khi trả tiền nhanh hay về sau?"], "q3_1.h1": ["Rabatt: ngay trên hóa đơn. Skonto: khi trả tiền nhanh. Bonus: về sau, ví dụ cuối năm."], "q3_1.q": ["Nhà cung cấp trừ 3 % vì được trả tiền trong vòng 8 ngày. → Rabatt, Skonto hay Bonus?"], "q3_2.h0": ["Khi nào được giảm giá: ngay lập tức, khi trả tiền nhanh hay về sau?"], "q3_2.h1": ["Rabatt: ngay trên hóa đơn. Skonto: khi trả tiền nhanh. Bonus: về sau, ví dụ cuối năm."], "q3_2.q": ["Cuối năm nhà cung cấp hoàn lại 2 % doanh thu cả năm. → Rabatt, Skonto hay Bonus?"], "q3_3.h0": ["Khi nào được giảm giá: ngay lập tức, khi trả tiền nhanh hay về sau?"], "q3_3.h1": ["Rabatt: ngay trên hóa đơn. Skonto: khi trả tiền nhanh. Bonus: về sau, ví dụ cuối năm."], "q3_3.q": ["Từ 100 chiếc trở lên được giảm 10 %. → Rabatt, Skonto hay Bonus?"], "q3_4.h0": ["Khi nào được giảm giá: ngay lập tức, khi trả tiền nhanh hay về sau?"], "q3_4.h1": ["Rabatt: ngay trên hóa đơn. Skonto: khi trả tiền nhanh. Bonus: về sau, ví dụ cuối năm."], "q3_4.q": ["Nhân dịp kỷ niệm công ty, mọi đơn hàng được giảm 5 %. → Rabatt, Skonto hay Bonus?"], "g4_h": ["Bài 6 · Bài tập có hướng dẫn: bản chào giá nào rẻ hơn?"], "g4_p": ["Kaufhaus Hansa GmbH cần 100 đèn trần và luôn trả tiền trong vòng 10 ngày. Angebot A (Licht-Werk): 20,00 € mỗi chiếc, 10 % Rabatt, không có Skonto, giao hàng miễn phí (frei Haus). Angebot B (Lampen-Hansen): 21,00 € mỗi chiếc, 15 % Rabatt, 3 % Skonto, cước vận chuyển 35,00 €. Trước tiên đoán theo cảm giác – sau đó tính."], "q4_1.h0": ["Giữ đúng thứ tự: trước tiên Rabatt, sau đó Skonto, rồi Bezugskosten."], "q4_1.h1": ["Chuỗi tính: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế. Cho một chiếc: cuối cùng chia cho số lượng."], "q4_1.q": ["Bezugspreis của Angebot A cho 100 chiếc"], "q4_2.h0": ["Giữ đúng thứ tự: trước tiên Rabatt, sau đó Skonto, rồi Bezugskosten."], "q4_2.h1": ["Chuỗi tính: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế. Cho một chiếc: cuối cùng chia cho số lượng."], "q4_2.q": ["Bezugspreis của Angebot B cho 100 chiếc"], "q4_3.h0": ["Giữ đúng thứ tự: trước tiên Rabatt, sau đó Skonto, rồi Bezugskosten."], "q4_3.h1": ["Chuỗi tính: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế. Cho một chiếc: cuối cùng chia cho số lượng."], "q4_3.s": ["1.800,00 – 1.766,45 = 33,55 € → Angebot B rẻ hơn, dù Listenpreis cao hơn. Rabatt và Skonto tạo ra sự khác biệt."], "q4_3.q": ["Bản chào giá rẻ hơn thì rẻ hơn bao nhiêu euro?"], "g5_h": ["Bài 7 · Bài tập tự do: so sánh hai bản chào giá"], "g5_p": ["Các bản chào giá thay thế cho 60 chiếc ba lô. Angebot A (Trekking-Profi): 28,50 € mỗi chiếc, 12 % Rabatt, 2 % Skonto, frei Haus. Angebot B (Outdoor-Welt): 27,00 € mỗi chiếc, 8 % Rabatt, không có Skonto, cước 45,00 €. Em có thể so sánh thêm hai bản chào giá từ doanh nghiệp của em và đưa cho giáo viên xem (4 điểm thành tích)."], "q5_1.h0": ["Giữ đúng thứ tự: trước tiên Rabatt, sau đó Skonto, rồi Bezugskosten."], "q5_1.h1": ["Chuỗi tính: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế. Cho một chiếc: cuối cùng chia cho số lượng."], "q5_1.q": ["Bezugspreis của Angebot A cho 60 chiếc"], "q5_2.h0": ["Giữ đúng thứ tự: trước tiên Rabatt, sau đó Skonto, rồi Bezugskosten."], "q5_2.h1": ["Chuỗi tính: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế. Cho một chiếc: cuối cùng chia cho số lượng."], "q5_2.q": ["Bezugspreis của Angebot B cho 60 chiếc"], "q5_3.h0": ["Giữ đúng thứ tự: trước tiên Rabatt, sau đó Skonto, rồi Bezugskosten."], "q5_3.h1": ["Chuỗi tính: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế. Cho một chiếc: cuối cùng chia cho số lượng."], "q5_3.q": ["Angebot A rẻ hơn bao nhiêu euro?"], "g6_h": ["Bài 8 · Kiểm tra kiểu thi"], "g6_p": ["5 bài · khoảng 15 phút. IHK hỏi như thế này trong kỳ thi tốt nghiệp."], "q6_1.h0": ["Giữ đúng thứ tự: trước tiên Rabatt, sau đó Skonto, rồi Bezugskosten."], "q6_1.h1": ["Chuỗi tính: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế. Cho một chiếc: cuối cùng chia cho số lượng."], "q6_1.q": ["Một nhà cung cấp chào bán móc khóa giá 4,50 € mỗi chiếc. Từ 100 chiếc họ giảm 20 % Rabatt, nếu trả trong vòng 10 ngày thì giảm 2 % Skonto. Bezugskosten tổng cộng là 6,90 €. Em đặt 100 chiếc và trả trong vòng 10 ngày. Hãy tính Bezugspreis bằng euro cho toàn bộ lô hàng!"], "q6_2.h0": ["Giữ đúng thứ tự: trước tiên Rabatt, sau đó Skonto, rồi Bezugskosten."], "q6_2.h1": ["Chuỗi tính: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế. Cho một chiếc: cuối cùng chia cho số lượng."], "q6_2.q": ["Hóa đơn: 250 áo sơ mi nam, mỗi chiếc 12,00 €, trừ 10 % Rabatt, cộng 35,00 € đóng gói và gửi hàng, cộng 19 % thuế. Hãy tính Bezugspreis bằng euro cho một chiếc áo!"], "q6_3.h0": ["Giữ đúng thứ tự: trước tiên Rabatt, sau đó Skonto, rồi Bezugskosten."], "q6_3.h1": ["Chuỗi tính: số lượng · giá · hệ số Rabatt · hệ số Skonto + Bezugskosten. Luôn không có thuế. Cho một chiếc: cuối cùng chia cho số lượng."], "q6_3.q": ["Em cần 100 đèn rọi trần. Angebot Italo: 55,50 € mỗi chiếc, 15 % Rabatt, 3 % Skonto, giao hàng frei Haus. Angebot Susan: 50,00 € mỗi chiếc, 10 % Rabatt, không có Skonto, cước 20,00 €. Hãy tính Bezugspreis của bản chào giá rẻ hơn cho 100 chiếc!"], "q6_4.h0": ["Chi phí phát sinh cho đến khi hàng về tới cửa hàng – hay sau đó trong chính doanh nghiệp?"], "q6_4.h1": ["Cho đến khi hàng về: Bezugskosten. Sau đó trong doanh nghiệp: Handlungskosten."], "q6_4.s": ["③ Cước vận chuyển khi giao hàng đến – Cước vận chuyển làm tăng Bezugspreis. Tất cả những thứ khác là Handlungskosten (mô-đun 3)."], "q6_4.q": ["Chi phí nào được tính vào Bezugskosten?<br>① Tiền thuê kho hàng<br>② Lương của bộ phận mua hàng<br>③ Cước vận chuyển khi giao hàng đến<br>④ Chi phí quảng cáo cho hàng mới<br>⑤ Chi phí điện năng của khu bán hàng"], "q6_5.h0": ["Cộng hay trừ? Khi cộng thì hệ số lớn hơn 1, khi trừ thì hệ số nhỏ hơn 1."], "q6_5.h1": ["Cộng p % nghĩa là nhân (1 + p : 100). Trừ p % nghĩa là nhân (1 – p : 100)."], "q6_5.q": ["Một hóa đơn 3.520,00 € được thanh toán trong thời hạn Skonto với 3 % Skonto. Hãy tính số tiền chuyển khoản!"], "g7_h": ["Bài 9 · Dành cho người giỏi"], "g7_p": ["Để suy nghĩ thêm – viết câu đầy đủ, có giải thích."], "q7_1.h0": ["Hãy nghĩ: số phần trăm này tính trên cái gì – ở đây 100 % là gì?"], "q7_1.h1": ["Giải thích bằng „weil“ và cho thấy bằng một ví dụ số."], "q7_1.s": ["Skonto là khoản giảm trên số tiền thực sự được chuyển khoản. Đó là giá sau Rabatt (Zieleinkaufspreis). Rabatt đã được xác định khi mua, còn Skonto chỉ khi thanh toán."], "q7_1.q": ["Hãy giải thích vì sao Skonto chỉ được trừ sau Rabatt."], "q7_2.h0": ["Hãy thử với một ví dụ số đơn giản, ví dụ 100 €."], "q7_2.h1": ["Viết từng bước tính, sau đó giải thích bằng một câu điều em thấy."], "q7_2.s": ["2 % cho 20 ngày tương đương khoảng 2 · 360 : 20 = 36 % một năm. Khoản vay chỉ tốn 8 % một năm – tận dụng Skonto rõ ràng là có lợi."], "q7_2.q": ["Một nhà cung cấp đưa ra „2 % Skonto trong vòng 10 ngày hoặc 30 ngày netto“. Hãy đánh giá xem có đáng vay một khoản tín dụng lãi suất 8 % một năm để trả tiền hưởng Skonto không. (Gợi ý: trả sớm 20 ngày được 2 %.)"], "g8_h": ["Bài 10 · Nâng cao"], "g8_p": ["Chỉ ở mức „Vertiefung“. Giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của em."], "v2_1.h0": ["Hãy nghĩ: số phần trăm này tính trên cái gì – ở đây 100 % là gì?"], "v2_1.h1": ["Giải thích bằng „weil“ và cho thấy bằng một ví dụ số."], "v2_1.s": ["Kaufhaus Hansa GmbH được sở thuế hoàn lại thuế doanh thu. Vì vậy đối với doanh nghiệp đó không phải là chi phí. Bezugspreis luôn là netto."], "v2_1.q": ["Vì sao thuế trên hóa đơn của nhà cung cấp không tính vào Bezugspreis? Hãy giải thích."], "v2_2.h0": ["Hãy thử với một ví dụ số đơn giản, ví dụ 100 €."], "v2_2.h1": ["Viết từng bước tính, sau đó giải thích bằng một câu điều em thấy."], "v2_2.s": ["600,00 · 0,78 = 468,00 € thay vì đúng là 600,00 · 0,8 · 0,98 = 470,40 €. Khi đó Skonto bị tính từ Listenpreis. Nhưng nó phải được tính từ Zieleinkaufspreis (sau Rabatt) – số tiền trừ sẽ quá lớn."], "v2_2.q": ["Điều gì xảy ra nếu cộng đơn giản Rabatt và Skonto (ví dụ 20 % + 2 % = 22 %)? Hãy tính với 50 chiếc ba lô và giải thích."], "v2_3.h0": ["Hãy nghĩ: số phần trăm này tính trên cái gì – ở đây 100 % là gì?"], "v2_3.h1": ["Giải thích bằng „weil“ và cho thấy bằng một ví dụ số."], "v2_3.s": ["Điều quyết định là Bezugspreis, không phải Listenpreis. Angebot B có Listenpreis 21,00 € thay vì 20,00 €, nhưng nhiều Rabatt hơn (15 %) và 3 % Skonto. Dù có 35,00 € cước, nó vẫn rẻ hơn 33,55 €."], "v2_3.q": ["Vì sao một bản chào giá có Listenpreis cao hơn vẫn có thể rẻ hơn? Giải thích bằng ví dụ đèn trần."], "a7_h": ["Bài 11 · Ước lượng, kiểm tra, ghi lại"], "r0.t": ["Sơ đồ tính giá nhập hàng"], "r0.task": ["Đánh dấu bốn mức giá của sơ đồ từ đầu đến cuối."], "r0.q": ["Sau khi trừ Rabatt thì được gì?"], "r0.x": ["Đầu tiên là Listeneinkaufspreis. Đó là giá theo bảng giá hoặc bản chào giá của nhà cung cấp (netto). Từ đó em trừ Rabatt trước. Kết quả là Zieleinkaufspreis. Sau đó em trừ Skonto và được Bareinkaufspreis. Cuối cùng cộng thêm Bezugskosten. Kết quả là Bezugspreis. Nó còn gọi là Einstandspreis. Bruttoverkaufspreis không thuộc sơ đồ này."], "r1.t": ["Ba quy tắc quan trọng"], "r1.task": ["Đánh dấu ba quy tắc bằng từ khóa."], "r1.q": ["Skonto được tính từ đâu?"], "r1.x": ["Luôn tính netto. Thuế doanh thu không tính vào Bezugspreis, vì doanh nghiệp được sở thuế hoàn lại. Thứ tự là: trước Rabatt, sau đó Skonto, rồi Bezugskosten. Skonto được tính từ Zieleinkaufspreis, không phải từ Listenpreis. Nếu đề hỏi Bezugspreis cho một chiếc thì cuối cùng em chia cho số lượng."], "r2.t": ["Các khoản giảm giá của nhà cung cấp"], "r2.task": ["Đánh dấu ba loại giảm giá."], "r2.q": ["Khoản giảm giá nào được trả về sau vào cuối năm?"], "r2.x": ["Rabatt được trừ ngay trên hóa đơn, ví dụ Mengenrabatt khi mua số lượng lớn. Skonto có khi trả tiền trong một thời hạn ngắn. Bonus được trả về sau, ví dụ cuối năm, khi đạt một mức doanh thu nhất định. Fracht (cước vận chuyển) không phải là giảm giá."], "cat_vor": ["Kiến thức cũ: nhớ lại và khởi động"], "cat_txt": ["Hiểu văn bản: đọc chủ động"], "cat_trans": ["Vận dụng: bài tập có hướng dẫn"], "cat_wis": ["Kiến thức chuyên môn: kiểm tra kiểu thi"], "cat_refl": ["Suy nghĩ thêm: dành cho người giỏi"]};
+const GLOSS=[["der Listeneinkaufspreis", "giá mua theo bảng giá"], ["der Rabatt", "giảm giá (ngay trên hóa đơn)"], ["der Zieleinkaufspreis", "giá mua sau khi trừ Rabatt"], ["der Skonto", "giảm giá khi trả tiền nhanh"], ["der Bareinkaufspreis", "giá mua khi trả ngay"], ["die Bezugskosten", "chi phí nhập hàng (vận chuyển, đóng gói)"], ["der Bezugspreis (Einstandspreis)", "giá nhập hàng thực tế"], ["der Mengenrabatt", "giảm giá theo số lượng"], ["der Bonus", "tiền thưởng trả sau"], ["frei Haus", "giao hàng miễn phí"], ["ab Werk", "giao tại xưởng (người mua trả vận chuyển)"], ["netto", "chưa có thuế"], ["brutto", "đã có thuế"], ["je Stück", "mỗi chiếc"]];
+const WTX={"weil": ["vì"], "deshalb": ["vì vậy"], "zum Beispiel": ["ví dụ"], "dadurch": ["nhờ đó / do đó"], "Der Grund ist: …": ["Lý do là: …"], "Das bedeutet: …": ["Điều đó có nghĩa là: …"], "Zum Beispiel …": ["Ví dụ …"], "die Rechnung": ["hóa đơn"], "das Ergebnis": ["kết quả"], "der Faktor": ["hệ số (Faktor)"], "Euro": ["euro"], "Ich rechne: …": ["Tôi tính: …"], "Das Ergebnis ist …": ["Kết quả là …"], "gehört zu": ["thuộc về"], "Das ist …": ["Đó là …"], "die Antwort": ["câu trả lời"], "richtig": ["đúng"], "Richtig ist Antwort …": ["Đáp án đúng là …"], "…, weil …": ["…, vì …"], "der Zieleinkaufspreis": ["giá mua sau khi trừ Rabatt"], "die Zahlung": ["việc thanh toán"], "der Kauf": ["việc mua"], "überweisen": ["chuyển khoản"], "Skonto ist ein Nachlass auf …": ["Skonto là khoản giảm trên …"], "Der Rabatt steht …": ["Rabatt đã …"], "der Kredit": ["khoản vay"], "der Jahreszins": ["lãi suất năm"], "sich lohnen": ["đáng, có lợi"], "im Jahr": ["trong một năm"], "2 % für 20 Tage entsprechen …": ["2 % cho 20 ngày tương đương …"], "Es lohnt sich, weil …": ["Điều đó có lợi, vì …"]};
+</script>
+<script>
+/* ===== HILFSFUNKTIONEN ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const norm=t=>(" "+t.toLowerCase().replace(/ß/g,"ss").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").normalize("NFD").replace(/[̀-ͯ]/g,"")+" ");
+const lev=(a,b)=>{const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
+/* Treffer: Teilwort, Regex ("re:") oder – ab 6 Buchstaben – Tippfehler (1 Abweichung) */
+const hit1=(t,w)=>{
+  if(w.startsWith("re:"))return new RegExp(w.slice(3)).test(t);
+  if(w.startsWith("nosb:"))return hit1(t.replace(/selbst\s?bed\w*/g," "),w.slice(5));
+  if(t.includes(w))return true;
+  if(w.length>=6&&w.indexOf(" ")<0){return t.split(/[^a-z0-9]+/).some(x=>x.length>=w.length-1&&lev(x.slice(0,w.length),w)<=1);}
+  return false;
+};
+const LI={vi:0}, RTL_LANGS=["ar"], FS=[100,115,130,150];
+const P={lang:"de",mode:"tap",fs:0,level:"b",snd:true};
+const S={}; let submitted=false;
+const TITLE="LF 9 · Modul 2 · Vom Listenpreis zum Bezugspreis";
+const transOn=()=>P.lang!=="de"&&P.mode!=="off";
+const dirOf=()=>RTL_LANGS.includes(P.lang)?"rtl":"ltr";
+const TL=k=>{const v=TX[k];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const WL=w=>{const v=WTX[w];return (v&&LI[P.lang]!==undefined)?(v[LI[P.lang]]||""):"";};
+const trSpan=t=>`<span class="tl" dir="${dirOf()}" lang="${P.lang}">${t}</span>`;
+const visible=it=>it.level==="b"||P.level==="v";
+let actx=null;
+function beep(freqs){
+  if(!P.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type="sine";o.frequency.value=f;
+      const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.26);});}catch(e){}
+}
+let toastT;
+function toast(de,key){const t=$("#toast");t.textContent=de+((key&&transOn()&&TL(key))?" · "+TL(key):"");t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+
+/* ===== SPEICHER (nur Zusatz, alles läuft auch ohne) ===== */
+const KEY="lf9m2_v1";
+function lsGet(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+let saveT;
+function scheduleSave(){clearTimeout(saveT);saveT=setTimeout(save,400);}
+function snapshot(){
+  const st={nm:$("#nm").value,dt:$("#dt").value,est:$("#est").value,konto:$("#konto").value,
+    can:$$(".can input").map(i=>i.checked),ta:{},S:S,read:[],sub:submitted,P:P};
+  ITEMS.forEach(it=>{st.ta[it.id]=$("#q_"+it.id+" textarea").value;});
+  READ.forEach((r,i)=>{const s=$("#rs"+i);st.read.push({m:$$("#rs"+i+" .w").map(w=>w.classList.contains("marked")?1:0),
+    md:!!s.dataset.m,mf:s.dataset.mf||"",qt:+s.dataset.qt||0,qd:s.classList.contains("done")});});
+  return st;
+}
+function save(){if(window.__noSave)return;lsSet(snapshot());}
+window.addEventListener("pagehide",save);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+["input","click","change"].forEach(ev=>document.addEventListener(ev,scheduleSave,true));
+
+/* ===== ÜBERSETZUNG: Antippen / Unterlegt / Aus ===== */
+function closePop(){const p=$("#pop");p.hidden=true;p._for=null;}
+function openPop(icon,html){
+  const p=$("#pop");
+  if(p._for===icon&&!p.hidden){closePop();return;}
+  p.innerHTML=`<div dir="${dirOf()}" lang="${P.lang}">${html}</div>`;p.hidden=false;p._for=icon;
+  const r=icon.getBoundingClientRect(),w=Math.min(420,window.innerWidth-24);
+  p.style.width=w+"px";
+  let left=Math.max(12,Math.min(r.left-w/2,window.innerWidth-w-12));
+  p.style.left=left+"px";
+  let top=r.bottom+8;
+  p.style.top=top+"px";
+  const h=p.offsetHeight;
+  if(top+h>window.innerHeight-8)p.style.top=Math.max(8,r.top-h-8)+"px";
+}
+document.addEventListener("click",e=>{if(!e.target.closest("#pop")&&!e.target.closest(".tlb"))closePop();});
+window.addEventListener("scroll",closePop,{passive:true});
+function mkIcon(getHtml){
+  const b=document.createElement("span");b.className="tlb";b.textContent="🌐";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.setAttribute("aria-label","Übersetzung");
+  b.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openPop(b,getHtml());};
+  return b;
+}
+function applyLang(){
+  $$(".tl,.tlb").forEach(e=>e.remove());closePop();
+  document.documentElement.lang="de";
+  if(!transOn()){renderGloss();return;}
+  $$("[data-k]").forEach(e=>{
+    const s=TL(e.dataset.k);if(!s)return;
+    if(P.mode==="under")e.insertAdjacentHTML("beforeend",trSpan(s));
+    else e.appendChild(mkIcon(()=>s));
+  });
+  $$("details.wg").forEach(d=>{
+    const sm=d.querySelector("summary"),chips=[...d.querySelectorAll(".chip")];
+    if(P.mode==="under"){
+      sm.insertAdjacentHTML("beforeend",trSpan(TL("wg_h")));
+      chips.forEach(c=>{const t=WL(c.dataset.w);if(t)c.insertAdjacentHTML("beforeend",trSpan(t));});
+    } else {
+      sm.appendChild(mkIcon(()=>`<b>${TL("wg_h")}</b><ul class="pl">`+chips.map(c=>`<li>${c.dataset.w}<br><span class="tl2">${WL(c.dataset.w)}</span></li>`).join("")+"</ul>"));
+    }
+  });
+  renderGloss();
+}
+function renderGloss(){
+  const g=$("#gloss");
+  if(!transOn()){g.innerHTML="";return;}
+  const i=LI[P.lang]+1;
+  g.innerHTML=`<div class="tl gl" dir="${dirOf()}" lang="${P.lang}"><b>${TL("ws_h")}</b><table style="font-size:.9em">`+GLOSS.map(r=>`<tr><td>${r[0]}</td><td>${r[i]}</td></tr>`).join("")+`</table></div>`;
+}
+
+/* ===== EINSTELLUNGEN ===== */
+function padTop(){document.body.style.paddingTop=($("#bar").offsetHeight+14)+"px";}
+function applyPrefs(){
+  document.documentElement.style.fontSize=FS[P.fs]+"%";
+  document.documentElement.dataset.level=P.level;
+  $$(".pill").forEach(b=>b.classList.toggle("on",b.dataset.l===P.lang));
+  $$("#segMode button").forEach(b=>b.classList.toggle("on",b.dataset.m===P.mode));
+  $$("#segLvl button").forEach(b=>b.classList.toggle("on",b.dataset.v===P.level));
+  $("#fsLbl").textContent=FS[P.fs]+" %";
+  $("#snd").textContent=P.snd?"🔊":"🔇";
+  applyLang();progress();padTop();
+}
+$("#pills").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;P.lang=b.dataset.l;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.mode=b.dataset.m;applyPrefs();if(tipItem&&$("#modal").classList.contains("show"))showTip();};
+$("#segLvl").onclick=e=>{const b=e.target.closest("button");if(!b)return;P.level=b.dataset.v;applyPrefs();};
+$("#segFs").onclick=e=>{const b=e.target.closest("button");if(!b)return;const d=+b.dataset.f;if(d)P.fs=Math.max(0,Math.min(FS.length-1,P.fs+d));applyPrefs();};
+$("#snd").onclick=()=>{P.snd=!P.snd;applyPrefs();};
+$("#gear").onclick=()=>{const o=$("#set").hidden;$("#set").hidden=!o;$("#gear").setAttribute("aria-expanded",o);padTop();};
+if(window.ResizeObserver)new ResizeObserver(padTop).observe($("#bar"));
+window.addEventListener("resize",padTop);
+function ask(de,key,onYes){
+  $("#dtx").innerHTML=de+(transOn()&&TL(key)?trSpan(TL(key)):"");
+  $("#dlg").hidden=false;
+  $("#dyes").onclick=()=>{$("#dlg").hidden=true;onYes();};
+  $("#dno").onclick=()=>{$("#dlg").hidden=true;};
+}
+function resetAll(keepPrefs){
+  window.__noSave=true;clearTimeout(saveT);
+  try{localStorage.removeItem(KEY);if(keepPrefs)localStorage.setItem(KEY,JSON.stringify({P:P}));}catch(e){}
+  location.reload();
+}
+window.addEventListener("pagehide",e=>{if(window.__noSave)clearTimeout(saveT);});
+$("#reset").onclick=()=>ask("Alles löschen und neu starten? Deine Eingaben in diesem Arbeitsblatt gehen verloren.","dlg_reset",()=>resetAll(true));
+$("#btnNext").onclick=()=>ask("Nächste Person: Eingaben und Name werden gelöscht.","dlg_next",()=>resetAll(true));
+
+/* ===== FORTSCHRITT ===== */
+const curIds=()=>ITEMS.filter(visible).map(i=>i.id).concat(READ.map((r,i)=>"r"+i),document.getElementById("a2btn")?["a2"]:[]);
+let lastPct=0;
+function progress(){
+  const ids=curIds();
+  const n=ids.filter(id=>S[id]&&S[id].done).length;
+  const p=Math.round(n/ids.length*100);
+  $("#fill").style.width=p+"%";$("#barlbl").textContent=p+" %";
+  if(p>lastPct){
+    const f=$("#fill");f.classList.remove("pulse");void f.offsetWidth;f.classList.add("pulse");
+    beep(p>=100?[523,659,784,1047]:[660,880]);
+    const ms={25:["Guter Start! 🚀","t25"],50:["Halbzeit geschafft! 💪","t50"],75:["Fast am Ziel! 🔥","t75"],100:["Alles bearbeitet! 🎉 Jetzt auswerten.","t100"]};
+    for(const k of [100,75,50,25]){if(p>=k&&lastPct<k){toast(ms[k][0],ms[k][1]);break;}}
+  }
+  lastPct=p;
+}
+function setDone(id,score){S[id]=S[id]||{};S[id].done=true;if(score!==undefined)S[id].score=score;progress();}
+
+/* ===== TIPP-POPUP (gestuft) ===== */
+let tipItem=null,tipLvl=0;
+function openTip(it){tipItem=it;tipLvl=0;S[it.id]=S[it.id]||{};S[it.id].tip=true;showTip();$("#modal").classList.add("show");}
+function showTip(){
+  const h=tipItem.h,idx=Math.min(tipLvl,h.length-1);
+  $("#mt").textContent="💡 Tipp "+(tipLvl+1)+(tipLvl===0?": Denkanstoß":": Detail-Hinweis");
+  $("#mx").textContent=h[idx];
+  const t=TL(tipItem.id+".h"+idx),box=$("#mxt");box.innerHTML="";
+  if(transOn()&&t){if(P.mode==="under")box.innerHTML=trSpan(t);else box.appendChild(mkIcon(()=>t));}
+  $("#mnext").style.display=(tipLvl<1&&h.length>1)?"":"none";
+}
+$("#mnext").onclick=()=>{tipLvl=1;showTip();};
+$("#mclose").onclick=()=>$("#modal").classList.remove("show");
+$("#modal").onclick=e=>{if(e.target.id==="modal")$("#modal").classList.remove("show");};
+
+/* ===== FREITEXT-AUFGABEN ===== */
+function insertAt(ta,txt){
+  const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,e=ta.selectionEnd==null?s:ta.selectionEnd;
+  const pre=ta.value.slice(0,s),post=ta.value.slice(e),sp=(pre&&!/\s$/.test(pre))?" ":"";
+  ta.value=pre+sp+txt+post;const c=(pre+sp+txt).length;
+  ta.focus();try{ta.setSelectionRange(c,c);}catch(e){}
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+const chipText=(x,isStart)=>isStart?x.replace(/ …$/,"").replace(/„…“$/,"„")+" ":x+" ";
+function buildItem(it){
+  const d=document.createElement("div");d.className="q";d.id="q_"+it.id;
+  const wg=it.wg?`<details class="wg noprint"><summary>Wörter und Satzanfangs-Hilfen</summary><div class="chips">`+
+    it.wg[0].map(x=>`<button type="button" class="chip" data-w="${x}">${x}</button>`).join("")+
+    it.wg[1].map(x=>`<button type="button" class="chip st" data-w="${x}" data-st="1">${x}</button>`).join("")+`</div></details>`:"";
+  d.innerHTML=`<div class="qt" data-k="${it.id}.q">${it.q}</div>
+  <textarea rows="${it.rows||2}" aria-label="Antwort" autocapitalize="sentences" spellcheck="false"></textarea>
+  ${wg}
+  <div class="row noprint">
+   ${it.mode==="self"?"":'<button class="b chk" data-k="chk">✔ Prüfen</button>'}
+   <button class="b sec shw" data-k="shw">Lösung anzeigen</button>
+   <button class="bulb" title="Tipp" aria-label="Tipp">💡</button>
+  </div>
+  <div class="fb"></div>`;
+  const ta=d.querySelector("textarea"),fb=d.querySelector(".fb");
+  d.querySelectorAll(".chip").forEach(c=>c.onclick=()=>insertAt(ta,chipText(c.dataset.w,!!c.dataset.st)));
+  const show=(cls,html)=>{fb.className="fb show "+cls;fb.innerHTML=html;applyLang();};
+  const sol=()=>`<div class="sol"><b>Lösung:</b> <span>${it.sol}</span></div><div class="solt" data-k="${it.id}.s"></div>`;
+  const selfBtns=`<div class="self noprint" style="margin-top:10px"><b data-k="self_q">Wie gut war deine Antwort?</b><div class="row">
+        <button class="b" data-s="1" data-k="self1">✔ Geschafft</button><button class="b sec" data-s=".5" data-k="self2">◐ Teilweise</button><button class="b sec" data-s="0" data-k="self3">✖ Noch nicht</button></div></div>`;
+  const fbs={ok:['<span data-k="fb_ok">✅ Das passt! Gut gemacht.</span>'],part:['<span data-k="fb_part">🟡 Fast – ein Teil fehlt noch. Vergleiche mit der Lösung und ergänze.</span>'],bad:['<span data-k="fb_bad">❌ Das passt noch nicht. Nimm einen Tipp 💡 oder lies im Text nach.</span>']};
+  d._reshow=(cls)=>{ // Wiederherstellen
+    if(it.mode==="self")show("part",sol());else show(cls,fbs[cls][0]+sol());
+  };
+  d.querySelector(".bulb").onclick=()=>openTip(it);
+  if(it.mode!=="self"){
+    d.querySelector(".chk").onclick=()=>{
+      const t=norm(ta.value);
+      if(ta.value.trim().length<2){toast("Schreib zuerst etwas auf ✍️","t_write");return;}
+      const hit=it.kw.filter(g=>g.some(w=>hit1(t,w))).length;
+      let sc=Math.min(1,hit/it.min);
+      const peeked=S[it.id]&&S[it.id].peek;
+      if(peeked)sc*=.5;
+      const cls=sc>=1?"ok":(peeked&&sc>=.5)?"ok":sc>0?"part":"bad";
+      S[it.id]=Object.assign(S[it.id]||{},{score:sc,fb:cls});
+      show(cls,(peeked&&sc>=.5&&sc<1?'<span data-k="fb_peek">✅ Richtig – aber du hast vorher die Lösung angesehen, deshalb halbe Punkte.</span>':fbs[cls][0])+sol());
+      setDone(it.id,sc);
+    };
+  }
+  d.querySelector(".shw").onclick=()=>{
+    S[it.id]=S[it.id]||{};S[it.id].peek=true;
+    if(it.mode==="self"){
+      S[it.id].fb="part";
+      show("part",sol()+selfBtns);
+      fb.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{setDone(it.id,parseFloat(b.dataset.s));toast("Eingetragen ✓","t_saved");});
+    } else {
+      S[it.id].fb=S[it.id].fb||"part";
+      show("part",sol());
+      if(!S[it.id].done)setDone(it.id,0);
+    }
+  };
+  return d;
+}
+$$("[data-items]").forEach(c=>{
+  ITEMS.filter(i=>i.g===c.dataset.items).forEach(i=>c.appendChild(buildItem(i)));
+});
+
+/* ===== AKTIVES LESEN ===== */
+function buildRead(){
+  const host=$("#reading");
+  READ.forEach((r,i)=>{
+    const s=document.createElement("div");s.className="rsec"+(i?" locked":"");s.id="rs"+i;
+    const html=r.x.replace(/\[\[(.+?)\]\]/g,'<span class="w" data-k1="1">$1</span>').replace(/\{\{(.+?)\}\}/g,'<span class="w" data-k1="0">$1</span>');
+    s.innerHTML=`<h3 data-k="r${i}.t">${r.t}</h3><div class="task">🖍️ <span data-k="r${i}.task">${r.task}</span></div><p class="txt" data-k="r${i}.x">${html}</p>
+      <div class="row noprint"><button class="b chkm" data-k="markb">Markierung prüfen</button></div><div class="fb"></div>
+      <div class="zq"><div class="qt">❓ <span data-k="r${i}.q">${r.q}</span></div>${r.o.map((o,j)=>`<button class="opt" data-j="${j}" data-k="r${i}.o${j}">${o}</button>`).join("")}<div class="fb zfb"></div></div>`;
+    host.appendChild(s);
+    const words=[...s.querySelectorAll(".w")],fb=s.querySelector(":scope > .fb"),chkm=s.querySelector(".chkm"),zfb=s.querySelector(".zfb");
+    words.forEach(w=>w.onclick=()=>{if(!s.dataset.m)w.classList.toggle("marked");});
+    let tries=0,mDone=false,qtries=0;
+    const markOk=()=>{mDone=true;s.dataset.m=1;words.forEach(w=>{if(w.dataset.k1==="1")w.classList.add("right");});
+      fb.className="fb show ok";fb.innerHTML='<span data-k="mk_ok">✅ Richtig markiert! Jetzt die Frage:</span>';chkm.disabled=true;s.querySelector(".zq").classList.add("show");};
+    const qOk=()=>{s.querySelector(`.opt[data-j="${r.c}"]`).classList.add("good");zfb.className="fb zfb show ok";zfb.innerHTML='<span data-k="zq_ok">✅ Genau! Der nächste Abschnitt ist freigeschaltet.</span>';
+      s.classList.add("done");const nx=$("#rs"+(i+1));if(nx)nx.classList.remove("locked");};
+    s._restore=st=>{
+      st.m.forEach((v,j)=>{if(v&&words[j])words[j].classList.add("marked");});
+      if(st.mf!=="")s.dataset.mf=st.mf;
+      if(st.md)markOk();if(st.qd)qOk();
+      qtries=st.qt||0;s.dataset.qt=qtries;
+    };
+    chkm.onclick=()=>{
+      if(mDone)return;
+      const miss=words.filter(w=>w.dataset.k1==="1"&&!w.classList.contains("marked")).length;
+      const extra=words.filter(w=>w.dataset.k1==="0"&&w.classList.contains("marked")).length;
+      tries++;
+      if(!miss&&!extra){markOk();s.dataset.mf=tries===1?1:0;}
+      else{fb.className="fb show bad";
+        fb.innerHTML=`<span data-k="mk_bad">Noch nicht ganz: ${miss?miss+" gesuchte(r) Begriff(e) fehlen. ":""}${extra?extra+" markierte(r) Begriff(e) gehören nicht dazu. ":""}Lies die Aufgabe noch einmal.</span>`;}
+      applyLang();
+    };
+    s.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      if(s.classList.contains("done"))return;
+      qtries++;s.dataset.qt=qtries;
+      if(+b.dataset.j===r.c){
+        qOk();
+        setDone("r"+i,((s.dataset.mf==="1"?1:.5)+(qtries===1?1:.5))/2);
+      } else {b.classList.add("no");zfb.className="fb zfb show bad";zfb.innerHTML='<span data-k="zq_bad">Nicht ganz. Lies den Abschnitt noch einmal und versuch es erneut.</span>';}
+      applyLang();
+    });
+  });
+}
+buildRead();
+
+/* Aufgabe 2 */
+if($("#a2btn"))$("#a2btn").onclick=function(){this.disabled=true;setDone("a2",1);toast("Gelesen ✓","t_read");};
+
+/* ===== AUSWERTUNG + ERGEBNISKARTE ===== */
+const readScore=i=>(S["r"+i]&&S["r"+i].score)||0;
+const CATK={vor:"cat_vor",txt:"cat_txt",trans:"cat_trans",wis:"cat_wis",refl:"cat_refl"};
+const CODEL={vor:"V",txt:"T",trans:"X",wis:"F",refl:"B"};
+const chk=s=>{let n=0;for(const c of s)n=(n*31+c.charCodeAt(0))%1296;return n.toString(36).toUpperCase().padStart(2,"0");};
+let RES=null;
+function compute(){
+  const cats={};const add=(c,s,lbl,sol,qk)=>{(cats[c]=cats[c]||{sum:0,n:0,weak:[]});cats[c].sum+=s;cats[c].n++;if(s<1)cats[c].weak.push({lbl,s,sol,qk});};
+  ITEMS.filter(i=>i.level==="b").forEach(it=>add(it.cat,(S[it.id]&&S[it.id].score)||0,it.q,it.sol,it.id));
+  READ.forEach((r,i)=>add("txt",readScore(i),"Lesetext: "+r.t,null,"r"+i));
+  let sum=0,n=0;Object.values(cats).forEach(c=>{sum+=c.sum;n+=c.n;});
+  const pts=Math.round(sum/n*20*10)/10;
+  let bonus=0;if(P.level==="v")ITEMS.filter(i=>i.level==="v").forEach(i=>{bonus+=(S[i.id]&&S[i.id].score)||0;});
+  bonus=Math.round(bonus*10)/10;
+  const open=curIds().filter(id=>!(S[id]&&S[id].done)&&!id.startsWith("v8")).length;
+  return {cats,sum,n,pts,bonus,open};
+}
+function codeFor(R){
+  const name=($("#nm").value||"NAME").toUpperCase().replace(/[|\s]+/g," ").trim()||"NAME";
+  const dt=($("#dt").value||"").slice(0,6);
+  const bars=Object.keys(CODEL).filter(k=>R.cats[k]).map(k=>CODEL[k]+Math.round(R.cats[k].sum/R.cats[k].n*100)).join("-");
+  const pre=`${name}|${dt}|${R.pts}/20|${bars}|${P.level==="v"?"V":"B"}${R.bonus>0?"+"+R.bonus:""}`;
+  return pre+"|"+chk(pre);
+}
+function renderResult(scroll){
+  const R=compute();RES=R;
+  const lab=p=>p>=80?["Super!","var(--ok)","lab1","#2e7d4f"]:p>=50?["Gut – noch etwas Übung","var(--warn)","lab2","#c98a10"]:["Hier hast du noch Übungsbedarf","var(--bad)","lab3","#b3402f"];
+  let h=`<div class="res"><b style="font-size:1.6em">${R.pts} von 20 Punkten</b><span data-k="res_pts"></span> (${Math.round(R.sum/R.n*100)} %)${R.bonus>0?` · <b>+${R.bonus} Bonus</b>`:""}</div><h3 data-k="res_an">Fehler-Analyse nach Kompetenzbereichen</h3>`;
+  for(const k of Object.keys(CATK)){
+    const c=R.cats[k];if(!c)continue;const p=Math.round(c.sum/c.n*100),[t,col,lk]=lab(p);
+    h+=`<div class="res"><b>${CAT[k]}: ${p} % <span style="color:${col}">(${t})</span></b><span data-k="${CATK[k]}"></span><span data-k="${lk}" style="color:${col}"></span><div class="bar2"><i style="width:${p}%;background:${col}"></i></div>`;
+    if(c.weak.length)h+=`<details class="noprint" style="font-size:.9em"><summary>Das solltest du wiederholen (${c.weak.length}) <span data-k="rep"></span></summary><ul>${c.weak.map(w=>`<li><b>${w.lbl}</b>${w.sol?"<br>→ "+w.sol+`<span data-k="${w.qk}.s"></span>`:""}</li>`).join("")}</ul></details>`;
+    h+="</div>";
+  }
+  if(R.open>0)h+=`<p data-k="res_open">Hinweis: ${R.open} Aufgabe(n) wurden nicht bearbeitet und zählen 0 Punkte.</p>`;
+  $("#resBody").innerHTML=h;$("#result").style.display="block";
+  $("#resP").textContent=R.pts+" / 20";
+  const e=parseFloat(($("#est").value||"").replace(",","."));
+  $("#resD").textContent=isNaN(e)?"(Schätzung fehlt)":(Math.round((R.pts-e)*10)/10>0?"+":"")+Math.round((R.pts-e)*10)/10;
+  const code=codeFor(R);
+  $("#rinfo").innerHTML=`<div class="rc"><b>${TITLE}</b><br>${($("#nm").value||"–")} · ${$("#dt").value}<br><span class="big">${R.pts} / 20</span>${R.bonus>0?` <b>+${R.bonus} Bonus</b>`:""} · Ebene: ${P.level==="v"?"Vertiefung":"Basis"}<br><code id="codeTx">${code}</code></div>`;
+  applyLang();
+  if(scroll){beep([523,659,784,1047]);$("#result").scrollIntoView({behavior:"smooth"});}
+}
+$("#submit").onclick=()=>{submitted=true;renderResult(true);save();};
+function drawCard(R){
+  const cv=$("#cv"),g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.fillStyle="#f6f4ee";g.fillRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(24,24,W-48,H-48);
+  g.strokeStyle="#d9d5c8";g.lineWidth=2;g.strokeRect(24,24,W-48,H-48);
+  const F='-apple-system,"Segoe UI",Helvetica,Arial,sans-serif';
+  g.fillStyle="#23303a";g.font="bold 30px "+F;g.fillText(TITLE,52,78);
+  g.font="24px "+F;g.fillStyle="#5d6b76";g.fillText(`${$("#nm").value||"–"}  ·  ${$("#dt").value}`,52,114);
+  g.fillStyle="#2f6f8f";g.font="bold 72px "+F;g.fillText(`${R.pts} / 20`,52,200);
+  g.font="bold 26px "+F;g.fillStyle="#23303a";g.fillText(`Ebene: ${P.level==="v"?"Vertiefung":"Basis"}${R.bonus>0?"   +"+R.bonus+" Bonus":""}`,52,242);
+  const names={vor:"Vorwissen",txt:"Textverständnis",trans:"Transfer",wis:"Fachwissen",refl:"Betrieb & Weiterdenken"};
+  let y=290;
+  Object.keys(names).forEach(k=>{const c=R.cats[k];if(!c)return;const p=Math.round(c.sum/c.n*100);
+    g.fillStyle="#23303a";g.font="22px "+F;g.fillText(names[k],52,y+18);
+    g.fillStyle="#e7e3d6";g.fillRect(300,y,440,22);g.fillStyle=p>=80?"#2e7d4f":p>=50?"#c98a10":"#b3402f";g.fillRect(300,y,440*p/100,22);
+    g.fillStyle="#23303a";g.fillText(p+" %",756,y+18);y+=46;});
+  g.fillStyle="#5d6b76";g.font="20px Menlo,Consolas,monospace";g.fillText(codeFor(R),52,H-52);
+}
+$("#btnImg").onclick=()=>{
+  const R=RES||compute();drawCard(R);
+  $("#cv").toBlob(async blob=>{
+    if(!blob)return;
+    const f=new File([blob],"Ergebnis_LF3_Modul18.png",{type:"image/png"});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Ergebnis"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Bild gespeichert ✓","t_img");
+  },"image/png");
+};
+$("#btnCode").onclick=async()=>{
+  const code=($("#codeTx")||{}).textContent||codeFor(RES||compute());
+  try{await navigator.clipboard.writeText(code);toast("Code kopiert ✓","t_copy");return;}catch(e){}
+  const bx=$("#codeBox");bx.style.display="block";bx.value=code;bx.focus();bx.select();
+};
+
+/* ===== PDF / DRUCK ===== */
+$("#pdf").onclick=()=>window.print();
+window.addEventListener("beforeprint",()=>$$("textarea").forEach(t=>{t.style.height="auto";t.style.height=Math.max(60,t.scrollHeight+4)+"px";}));
+$("#dt").value=new Date().toLocaleDateString("de-DE");
+
+/* ===== WIEDERHERSTELLEN ===== */
+(function(){
+  const st=lsGet();
+  if(!st){applyPrefs();return;}
+  try{
+    if(st.P)Object.assign(P,st.P);
+    if(st.S)Object.assign(S,st.S);
+    if(st.nm!=null)$("#nm").value=st.nm;if(st.dt)$("#dt").value=st.dt;
+    if(st.est!=null)$("#est").value=st.est;if(st.konto!=null)$("#konto").value=st.konto;
+    (st.can||[]).forEach((v,i)=>{const c=$$(".can input")[i];if(c)c.checked=!!v;});
+    ITEMS.forEach(it=>{const d=$("#q_"+it.id);if(!d)return;d.querySelector("textarea").value=(st.ta&&st.ta[it.id])||"";
+      const s=S[it.id];if(s&&s.fb)d._reshow(s.fb);});
+    (st.read||[]).forEach((rs,i)=>{const s=$("#rs"+i);if(s&&s._restore)s._restore(rs);});
+    if(S.a2&&S.a2.done&&$("#a2btn"))$("#a2btn").disabled=true;
+    lastPct=0;
+    applyPrefs();lastPct=Math.round(curIds().filter(id=>S[id]&&S[id].done).length/curIds().length*100);
+    if(st.sub){submitted=true;renderResult(false);}
+    const any=st.nm||Object.keys(S).length;
+    if(any)toast("Weitermachen, wo du aufgehört hast","t_resume");
+  }catch(e){applyPrefs();}
+})();
+</script>
+</body>
+</html>

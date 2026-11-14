@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Modul 1 – Das Prozent-Werkzeug</title>
+<style>
+:root{--fs:1;--ink:#1f2937;--mut:#5b6472;--bg:#f3f5fb;--card:#fff;--pri:#3b4cca;--pri2:#e8ebff;--ok:#1b8a4b;--okbg:#e3f6ea;--bad:#c0392b;--badbg:#fdeaea;--warn:#b7791f;--warnbg:#fff6dd;--vert:#7a3fb5;--vertbg:#f3eafc;--line:#d9deea}
+*{box-sizing:border-box}html{font-size:calc(17px*var(--fs));-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.55;overflow-wrap:anywhere}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;min-height:48px;border-radius:12px;border:2px solid var(--pri);background:#fff;color:var(--pri);padding:.5rem 1rem;font-weight:600;touch-action:manipulation}
+button.primary{background:var(--pri);color:#fff}button:disabled{opacity:.5}
+button:active{transform:scale(.98)}
+.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding:.5rem .75rem;padding-top:max(.5rem,env(safe-area-inset-top))}
+.top .row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;max-width:62rem;margin:0 auto}
+.top .ttl{font-weight:700;font-size:.95rem;flex:1 1 12rem}
+.pills{display:inline-flex;flex-wrap:wrap;border:2px solid var(--pri);border-radius:12px;overflow:hidden}
+.pills button{border:0;border-radius:0;min-height:44px;padding:.3rem .9rem}
+.pills button.on{background:var(--pri);color:#fff}
+.bar{height:12px;background:#e5e8f3;border-radius:8px;overflow:hidden;flex:1 1 8rem}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3b4cca,#27a37a);transition:width .4s}
+.cnt{font-size:.8rem;color:var(--mut);flex:0 0 auto}
+.wrap{max-width:62rem;margin:0 auto;padding:1rem .75rem 5rem}
+.head{background:var(--card);border-radius:16px;padding:1rem 1.1rem;margin-bottom:1rem;border-top:6px solid var(--pri)}
+.head h1{margin:0 0 .2rem;font-size:1.5rem;line-height:1.25}.head .sub{color:var(--mut);margin:0 0 .8rem}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.fields label{display:block;font-weight:600;font-size:.85rem}
+.fields input{width:100%;min-height:48px;font-size:16px;border:2px solid var(--line);border-radius:10px;padding:.4rem .7rem;background:#fff}
+.can{margin-top:.9rem}.can h3{margin:.2rem 0 .4rem;font-size:1rem}
+.can label{display:flex;gap:.7rem;align-items:flex-start;padding:.45rem .2rem;min-height:48px}
+.can input{width:26px;height:26px;margin-top:.1rem;flex:none;accent-color:var(--pri)}
+.card{background:var(--card);border-radius:16px;padding:1rem 1.1rem;margin-bottom:1rem;border-left:6px solid var(--pri);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card.vert{border-left-color:var(--vert);background:linear-gradient(var(--vertbg),#fff 5rem)}
+.card.done{border-left-color:var(--ok)}
+.card header{display:flex;gap:.6rem;align-items:baseline;flex-wrap:wrap}
+.card h2{margin:0;font-size:1.15rem;flex:1 1 12rem;line-height:1.3}
+.no{background:var(--pri2);color:var(--pri);font-weight:700;border-radius:8px;padding:.1rem .6rem;font-size:.9rem}
+.vert .no{background:var(--vertbg);color:var(--vert)}
+.pts{font-size:.85rem;color:var(--mut);white-space:nowrap}
+.instr{margin:.5rem 0;font-weight:500}.instr.vi,.vi-t{color:#34495e}
+.tip{margin:.5rem 0;border:1.5px dashed #d9a400;background:var(--warnbg);border-radius:12px}
+.tip summary{list-style:none;cursor:pointer;min-height:48px;display:flex;align-items:center;padding:.3rem .8rem;font-weight:600;color:var(--warn)}
+.tip summary::-webkit-details-marker{display:none}.tip>div{padding:0 .9rem .7rem}
+.box{background:var(--pri2);border-radius:12px;padding:.7rem .9rem;margin:.6rem 0}
+.box.merke{background:#fff3cd}.box h4{margin:0 0 .2rem}
+.info p{margin:.5rem 0}
+.vis{font-size:.95rem;border-left:4px solid var(--line);padding-left:.7rem;color:#34495e;margin:.5rem 0}
+.rd{line-height:2.25;margin:.5rem 0}
+.w{display:inline-block;padding:.1rem .2rem;margin:0 .05rem;border-radius:6px;cursor:pointer;user-select:none;-webkit-user-select:none;min-height:2rem}
+.w.sel{background:#ffe566}
+.rd.chk .w.key.sel{background:#b9ebc9;outline:2px solid var(--ok)}
+.rd.chk .w.key:not(.sel){outline:2px dashed var(--ok)}
+.rd.chk .w.sel:not(.key){background:#f5b7b1;outline:2px solid var(--bad)}
+.q{margin:.8rem 0;padding:.4rem;border-radius:12px}.q .qt{margin:.1rem 0 .4rem;font-weight:600}
+.opts{display:grid;gap:.45rem}
+.opt{display:flex;gap:.7rem;align-items:flex-start;border:2px solid var(--line);border-radius:12px;padding:.55rem .8rem;min-height:48px;cursor:pointer;background:#fff}
+.opt input{width:24px;height:24px;margin-top:.1rem;flex:none;accent-color:var(--pri)}
+.opt:has(input:checked){border-color:var(--pri);background:var(--pri2)}
+.tfrow{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin:.5rem 0;padding:.4rem;border-radius:12px}
+.tfrow .st{flex:1 1 16rem}.tfrow .opts{display:flex;gap:.4rem}
+select,.in{min-height:48px;font-size:16px;border:2px solid var(--line);border-radius:10px;padding:.35rem .6rem;background:#fff;max-width:100%}
+select:focus,.in:focus,textarea:focus{outline:3px solid #9fb0ff;border-color:var(--pri)}
+.gaptxt{line-height:2.6}.gaptxt select,.gaptxt .in{margin:0 .15rem}
+.mrow{display:grid;grid-template-columns:minmax(8rem,1fr) 2fr;gap:.5rem;align-items:center;margin:.5rem 0;padding:.4rem;border-radius:12px}
+.mrow select{width:100%}
+.trow{border:1.5px solid var(--line);border-radius:12px;padding:.6rem;margin:.6rem 0;display:grid;gap:.5rem}
+.trow .fld label{display:block;font-size:.8rem;font-weight:700;color:var(--mut)}.trow .fld select,.trow .fld .in{width:100%}
+.trow .fld{padding:.2rem;border-radius:10px}
+@media(min-width:760px){.trow{grid-template-columns:repeat(var(--n),1fr)}}
+.crow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:.6rem 0;padding:.4rem;border-radius:12px}
+.crow .qt{flex:1 1 100%;font-weight:600;margin:0}.crow .in{width:10rem;text-align:right}.crow .u{font-weight:600}
+textarea.in{width:100%;min-height:6.5rem;resize:vertical;line-height:1.5}
+.fpart{margin:.8rem 0}.fpart .qt{font-weight:600;margin:.2rem 0}
+.wg{margin:.3rem 0}.wg summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--pri);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0}.chip{min-height:44px;padding:.2rem .8rem;border-radius:999px;border:1.5px solid var(--pri);background:#fff;font-weight:500}
+.model{background:var(--okbg);border-radius:12px;padding:.6rem .9rem;margin:.4rem 0}
+.model .t{font-weight:700;color:var(--ok);font-size:.85rem}
+.rate{display:flex;gap:.5rem;flex-wrap:wrap;margin:.4rem 0}.rate button{flex:1 1 7rem}
+.rate button.on{background:var(--pri);color:#fff}
+.ok{background:var(--okbg)!important;outline:2px solid var(--ok)}.bad{background:var(--badbg)!important;outline:2px solid var(--bad)}
+select.ok,.in.ok,select.bad,.in.bad{outline-offset:0}
+.actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem}
+.fb{margin-top:.5rem;font-weight:600}.fb.ok{background:none;outline:0;color:var(--ok)}.fb.bad{background:none;outline:0;color:var(--bad)}.fb.mid{color:var(--warn)}
+.fb small{display:block;font-weight:400;color:var(--ink)}
+.bottom{background:var(--card);border-radius:16px;padding:1rem 1.1rem;margin:1rem 0}
+.bottom .actions button{flex:1 1 14rem}
+#result{background:var(--card);border-radius:16px;padding:1rem 1.1rem;margin:1rem 0;border-top:6px solid var(--ok)}
+#result h2{margin:.2rem 0}
+.score{font-size:2rem;font-weight:800;color:var(--pri)}
+.ritem{border-top:1px solid var(--line);padding:.7rem 0}.ritem h4{margin:0 0 .3rem;display:flex;gap:.5rem;flex-wrap:wrap}
+.ritem .st{font-weight:800}.st.g{color:var(--ok)}.st.m{color:var(--warn)}.st.r{color:var(--bad)}
+.ritem ul{margin:.2rem 0;padding-left:1.2rem}.ritem li{margin:.15rem 0}
+.sol{color:var(--ok);font-weight:600}.mine{color:var(--bad)}
+.steps{background:#f1f4fb;border-radius:10px;padding:.4rem .8rem;margin:.3rem 0}.steps div{font-family:ui-monospace,Menlo,monospace;font-size:.9rem}
+.toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:#222;color:#fff;padding:.7rem 1.1rem;border-radius:12px;z-index:50;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .3s}.toast.on{opacity:.95}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:60;padding:1rem}.modal.on{display:flex}
+.modal>div{background:#fff;border-radius:16px;padding:1.2rem;max-width:26rem}.modal .actions button{flex:1}
+.hide{display:none!important}
+@media(max-width:560px){.top{padding:.3rem .5rem}.top .row{gap:.3rem}.top .ttl{display:none}.pills button{min-height:44px;padding:.2rem .6rem;font-size:.8rem}.pills{border-width:1.5px}.fields{grid-template-columns:1fr}.mrow{grid-template-columns:1fr}html{font-size:calc(16px*var(--fs))}}
+.printonly{display:none}
+@media print{
+ body{background:#fff;font-size:11pt}.top,.card,.head .can,.bottom,.toast,.modal,.noprint,.head .fields{display:none!important}
+ .head{border:0;padding:0;margin:0}.printonly{display:block}
+ #result{border:0;padding:0;margin:0;display:block!important}.ritem{break-inside:avoid}
+ .wrap{padding:0;max-width:none}
+}
+
+.pills button[data-lg]{min-width:2.6rem}
+[dir=rtl] .opt{text-align:right}
+
+</style></head><body>
+<div class="top"><div class="row">
+ <div class="ttl" id="topt"></div>
+ <div class="pills" role="group" aria-label="Sprache"><button type="button" data-lg="de">DE</button><button type="button" data-lg="vi" title="Tiếng Việt">VI</button></div>
+ <div class="pills" role="group" aria-label="Ebene"><button type="button" data-lv="b">Basis</button><button type="button" data-lv="v">Vertiefung</button></div>
+ <div class="bar"><i id="barfill"></i></div><div class="cnt" id="cnt"></div>
+</div></div>
+<main class="wrap">
+ <div class="head"><h1 id="h_title"></h1><p class="sub" id="h_sub"></p>
+  <div class="fields"><div><label id="l_name" for="nm"></label><input id="nm" type="text" autocomplete="off" autocapitalize="words"></div><div><label id="l_date" for="dt"></label><input id="dt" type="text" autocomplete="off"></div></div>
+  <div class="can"><h3 id="t_can"></h3><div id="cans"></div></div></div>
+ <div id="cards"></div>
+ <div id="result" class="hide"></div>
+ <div class="bottom noprint"><div class="actions"><button type="button" class="primary" id="b_eval"></button><button type="button" id="b_pdf"></button><button type="button" id="b_restart"></button></div></div>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<div class="modal" id="modal"><div><p id="m_ask"></p><div class="actions"><button type="button" id="m_no"></button><button type="button" class="primary" id="m_yes"></button></div></div></div>
+<script>
+const SHEET={"id":"M1","short":"LF 9 · Modul 1","title":"Modul 1 – Das Prozent-Werkzeug","sub":"Lernfeld 9 · Preispolitische Maßnahmen vorbereiten und durchführen","can":[{"de":"Ich kann eine Prozentangabe in einen Faktor übersetzen (+ 19 % = · 1,19; – 10 % = · 0,9).","vi":"Tôi có thể đổi một số phần trăm thành hệ số (+ 19 % = · 1,19; – 10 % = · 0,9)."},{"de":"Ich kann ausrechnen, wie viel Prozent ein Teil vom Ganzen ist.","vi":"Tôi có thể tính một phần chiếm bao nhiêu phần trăm của toàn bộ."},{"de":"Ich kann Euro auf 2 und den Kalkulationsfaktor auf 4 Nachkommastellen runden.","vi":"Tôi có thể làm tròn euro đến 2 chữ số và Kalkulationsfaktor đến 4 chữ số sau dấu phẩy."}],"items":[{"id":"g0","no":"Aufgabe 1","title":{"de":"Abruf: Zwei Fragen aus dem Kopf","vi":"Abruf: Zwei Fragen aus dem Kopf · Nhớ lại: hai câu hỏi trả lời bằng trí nhớ"},"instr":{"de":"Ohne Buch, ohne Heft. Zwei Fragen aus früheren Lernfeldern – so bleibt das Wissen fürs Fachgespräch frisch. Erst danach vergleichen.","vi":"Ohne Buch, ohne Heft. Zwei Fragen aus früheren Lernfeldern – so bleibt das Wissen fürs Fachgespräch frisch. Erst danach vergleichen.\n🇻🇳 Không dùng sách, không dùng vở. Hai câu hỏi từ các lĩnh vực học trước – để kiến thức luôn mới cho buổi vấn đáp. Sau đó mới so đáp án."},"tip":{"de":"Das kennst du aus einem früheren Lernfeld. Was fällt dir zuerst ein? Schreibe Stichworte auf. Vergleiche erst danach mit der Lösung.","vi":"Em đã học điều này ở một lĩnh vực học trước. Em nhớ ra điều gì đầu tiên? Viết các từ khóa. Sau đó mới so với đáp án."},"type":"free","parts":[{"q":{"de":"A1 Ab wann ist man voll geschäftsfähig? (aus WiSo)","vi":"A1 Ab wann ist man voll geschäftsfähig? (aus WiSo)\n🇻🇳 A1 Từ khi nào một người có đầy đủ năng lực giao dịch (voll geschäftsfähig)? (từ WiSo)"},"m":{"de":"ab 18 Jahren","vi":"ab 18 Jahren\n🇻🇳 từ 18 tuổi"},"w":["weil","deshalb","zum Beispiel","dadurch"],"s":["Der Grund ist: …","Das bedeutet: …","Zum Beispiel …"]},{"q":{"de":"A2 Nenne die vier Schritte der Kundenansprache an der Kasse beim Bezahlen mit Bargeld. (aus LF 3)","vi":"A2 Nenne die vier Schritte der Kundenansprache an der Kasse beim Bezahlen mit Bargeld. (aus LF 3)\n🇻🇳 A2 Nêu bốn bước nói với khách ở quầy thu ngân khi khách trả bằng tiền mặt. (từ LF 3)"},"m":{"de":"Betrag nennen – Geld annehmen und Wert nennen – Geld auf die Kasse legen – Rückgeld vorzählen","vi":"Betrag nennen – Geld annehmen und Wert nennen – Geld auf die Kasse legen – Rückgeld vorzählen\n🇻🇳 Nói số tiền – nhận tiền và nói giá trị – đặt tiền lên quầy – đếm tiền thối trước mặt khách"},"w":["weil","deshalb","zum Beispiel","dadurch"],"s":["Der Grund ist: …","Das bedeutet: …","Zum Beispiel …"]}],"pts":0.5},{"id":"g1","no":"Aufgabe 2","title":{"de":"Ankommen: Prozent im Alltag","vi":"Ankommen: Prozent im Alltag · Khởi động: phần trăm trong đời sống"},"instr":{"de":"Aus dem Kopf, ohne Taschenrechner.","vi":"Aus dem Kopf, ohne Taschenrechner.\n🇻🇳 Tính nhẩm, không dùng máy tính."},"tip":{"de":"Rechne im Kopf: 10 % ist ein Zehntel, 50 % ist die Hälfte, 25 % ist ein Viertel. Teile den Betrag durch 10, durch 2 oder durch 4.","vi":"Tính nhẩm: 10 % là một phần mười, 50 % là một nửa, 25 % là một phần tư. Chia số tiền cho 10, cho 2 hoặc cho 4."},"type":"calc","parts":[{"q":{"de":"a) 10 % von 80 €","vi":"a) 10 % von 80 €\n🇻🇳 a) 10 % của 80 €"},"u":"€","a":8,"tol":0.005,"steps":["8,00 €"]},{"q":{"de":"b) 50 % von 30 €","vi":"b) 50 % von 30 €\n🇻🇳 b) 50 % của 30 €"},"u":"€","a":15,"tol":0.005,"steps":["15,00 €"]},{"q":{"de":"c) 25 % von 200 €","vi":"c) 25 % von 200 €\n🇻🇳 c) 25 % của 200 €"},"u":"€","a":50,"tol":0.005,"steps":["50,00 €"]}],"pts":1.5},{"id":"g1_1","no":"Aufgabe 2","title":{"de":"Ankommen: Prozent im Alltag","vi":"Ankommen: Prozent im Alltag · Khởi động: phần trăm trong đời sống"},"instr":{"de":"Aus dem Kopf, ohne Taschenrechner.","vi":"Aus dem Kopf, ohne Taschenrechner.\n🇻🇳 Tính nhẩm, không dùng máy tính."},"tip":{"de":"„Zuzüglich“ ist das Gegenteil von „abzüglich“. Wird der Betrag größer oder kleiner?","vi":"„Zuzüglich“ là trái nghĩa của „abzüglich“. Số tiền tăng lên hay giảm đi?"},"type":"free","parts":[{"q":{"de":"d) Auf einer Rechnung steht „zuzüglich 19 % Umsatzsteuer“. Was bedeutet das?","vi":"d) Auf einer Rechnung steht „zuzüglich 19 % Umsatzsteuer“. Was bedeutet das?\n🇻🇳 d) Trên hóa đơn ghi „zuzüglich 19 % Umsatzsteuer“. Điều đó nghĩa là gì?"},"m":{"de":"Zum Preis kommen noch 19 % Steuer dazu.","vi":"Zum Preis kommen noch 19 % Steuer dazu.\n🇻🇳 Phải cộng thêm 19 % thuế vào giá."},"w":["die Umsatzsteuer","der Preis","zuzüglich","die Rechnung"],"s":["Das bedeutet: …","Zum Preis …"]}],"pts":0.5},{"id":"w1","type":"info","title":{"de":"Wortspeicher","vi":"Wortspeicher · Wortspeicher (kho từ)"},"html":"<p>das Prozent (%) · von Hundert · der Grundwert (das Ganze, 100 %) · der Prozentwert (der Teil) · der Prozentsatz (die Zahl mit %) · der Faktor · multiplizieren (mal) · dividieren (geteilt durch) · der Aufschlag · der Nachlass · runden · die Nachkommastelle</p>","vi":"Prozent (%) = phần trăm · von Hundert = trên một trăm · Grundwert (das Ganze, 100 %) = giá trị gốc (toàn bộ, 100 %) · Prozentwert (der Teil) = giá trị phần trăm (một phần) · Prozentsatz (die Zahl mit %) = tỉ lệ phần trăm (con số có %) · Faktor = hệ số · multiplizieren (mal) = nhân · dividieren (geteilt durch) = chia · Aufschlag = khoản cộng thêm · Nachlass = khoản giảm giá · runden = làm tròn · Nachkommastelle = chữ số sau dấu phẩy"},{"id":"r1","no":"Lesen 1","type":"read","title":{"de":"Was heißt Prozent?","vi":"Was heißt Prozent? · Phần trăm nghĩa là gì?"},"instr":{"de":"Markiere, was Prozent bedeutet und wie viel der Ausgangspreis immer ist.","vi":"Markiere, was Prozent bedeutet und wie viel der Ausgangspreis immer ist.\n🇻🇳 Đánh dấu phần trăm nghĩa là gì và giá ban đầu luôn là bao nhiêu."},"tip":{"de":"Suche die Wörter, die genau zur Aufgabe passen. Achtung: Nicht jedes Fachwort ist gesucht.","vi":"Hãy tìm những từ đúng với yêu cầu. Chú ý: không phải thuật ngữ nào cũng cần đánh dấu."},"paras":["Prozent heißt [[von Hundert]]. 19 % sind 19 von 100 – also [[0,19]]. Der Preis, von dem du ausgehst, ist immer [[100 %]]. Er ist nie 19 %."],"vi":"Phần trăm nghĩa là „trên một trăm“. 19 % là 19 trên 100 – tức là 0,19. Giá mà em bắt đầu tính luôn là 100 %. Nó không bao giờ là 19 %.","quiz":{"q":{"de":"Wie schreibt man 19 % als Dezimalzahl?","vi":"Wie schreibt man 19 % als Dezimalzahl?\n🇻🇳 19 % viết thành số thập phân như thế nào?"},"o":["1,9","0,19","19,0"],"a":1,"why":{"de":"Richtig ist: 0,19","vi":"Đáp án đúng: 0,19"}}},{"id":"r2","no":"Lesen 2","type":"read","title":{"de":"Der Faktor-Trick","vi":"Der Faktor-Trick · Mẹo dùng hệ số"},"instr":{"de":"Markiere die drei Rechenwege: aufschlagen, abziehen, zurückrechnen.","vi":"Markiere die drei Rechenwege: aufschlagen, abziehen, zurückrechnen.\n🇻🇳 Đánh dấu ba cách tính: cộng thêm, trừ đi, tính ngược lại."},"tip":{"de":"Suche die Wörter, die genau zur Aufgabe passen. Achtung: Nicht jedes Fachwort ist gesucht.","vi":"Hãy tìm những từ đúng với yêu cầu. Chú ý: không phải thuật ngữ nào cũng cần đánh dấu."},"paras":["Willst du p % aufschlagen (Steuer, Handlungskosten, Gewinn), rechnest du [[mal (1 + p : 100)]]. Beispiel: + 19 % heißt mal 1,19. Willst du p % abziehen (Rabatt, Skonto, Preissenkung), rechnest du [[mal (1 – p : 100)]]. Beispiel: – 10 % heißt mal 0,9. Willst du zurückrechnen, zum Beispiel von brutto nach netto, rechnest du [[geteilt durch denselben Faktor]]. Du rechnest nicht minus 19."],"vi":"Nếu muốn cộng thêm p % (thuế, Handlungskosten, lợi nhuận), em nhân với (1 + p : 100). Ví dụ: + 19 % nghĩa là nhân 1,19. Nếu muốn trừ p % (Rabatt, Skonto, giảm giá), em nhân với (1 – p : 100). Ví dụ: – 10 % nghĩa là nhân 0,9. Nếu muốn tính ngược lại, ví dụ từ brutto về netto, em chia cho chính hệ số đó. Em không tính trừ 19.","quiz":{"q":{"de":"119,00 € brutto (19 %) – wie rechnest du netto aus?","vi":"119,00 € brutto (19 %) – wie rechnest du netto aus?\n🇻🇳 119,00 € brutto (19 %) – em tính netto như thế nào?"},"o":["119,00 · 0,81","119,00 : 1,19","119,00 – 19"],"a":1,"why":{"de":"Richtig ist: 119,00 : 1,19","vi":"Đáp án đúng: 119,00 : 1,19"}}},{"id":"r3","no":"Lesen 3","type":"read","title":{"de":"Mehrere Prozente und Runden","vi":"Mehrere Prozente und Runden · Nhiều phần trăm và làm tròn"},"instr":{"de":"Markiere, wie man mehrere Faktoren verrechnet und wie die IHK rundet.","vi":"Markiere, wie man mehrere Faktoren verrechnet und wie die IHK rundet.\n🇻🇳 Đánh dấu cách tính nhiều hệ số và cách IHK làm tròn."},"tip":{"de":"Suche die Wörter, die genau zur Aufgabe passen. Achtung: Nicht jedes Fachwort ist gesucht.","vi":"Hãy tìm những từ đúng với yêu cầu. Chú ý: không phải thuật ngữ nào cũng cần đánh dấu."},"paras":["Faktoren werden [[hintereinander malgenommen]], nie zusammengezählt. Beispiel: 100 € + 10 % + 10 % = 100 · 1,1 · 1,1 = 121 €. Zwischenergebnisse werden [[nicht gerundet]]. Euro rundest du auf [[2 Nachkommastellen]], den Kalkulationsfaktor auf [[4 Nachkommastellen]]."],"vi":"Các hệ số được nhân nối tiếp nhau, không bao giờ cộng lại. Ví dụ: 100 € + 10 % + 10 % = 100 · 1,1 · 1,1 = 121 €. Kết quả trung gian không được làm tròn. Euro làm tròn đến 2 chữ số sau dấu phẩy, Kalkulationsfaktor đến 4 chữ số sau dấu phẩy.","quiz":{"q":{"de":"100 € + 10 % + 10 % sind …","vi":"100 € + 10 % + 10 % sind …\n🇻🇳 100 € + 10 % + 10 % là …"},"o":["120 €","121 €","110 €"],"a":1,"why":{"de":"Richtig ist: 121 €","vi":"Đáp án đúng: 121 €"}}},{"id":"w2","type":"info","title":{"de":"Zum Nachlesen: Übersicht","vi":"Zum Nachlesen: Übersicht · Để đọc lại: tổng quan"},"html":"<h4>Der Faktor-Trick</h4><p>p % aufschlagen (Steuer, Handlungskosten, Gewinn): mal (1 + p : 100) · Beispiel: + 19 % → · 1,19 · + 50 % → · 1,5</p><p>p % abziehen (Rabatt, Skonto, Preissenkung): mal (1 – p : 100) · Beispiel: – 10 % → · 0,9 · – 2 % → · 0,98</p><p>zurückrechnen (z. B. brutto → netto): geteilt durch denselben Faktor · Beispiel: 119,00 € : 1,19 = 100,00 €</p><p>Warum? Aus 100 % werden bei + 19 % genau 119 %. 119 % sind 1,19. Wer mit 1,19 malnimmt, hat Preis und Steuer in einem Schritt.</p><h4>Runden wie die IHK</h4><p>Zwischenergebnisse nicht runden – alles in einer Kette in den Taschenrechner tippen.</p><p>Euro auf 2 Nachkommastellen: 27,694 → 27,69 · 12,566 → 12,57.</p><p>Kalkulationsfaktor auf 4 Nachkommastellen: 1,785714 → 1,7857.</p><p>Prozent: so, wie es in der Aufgabe steht.</p><p><b>Merke:</b> Plus p % heißt mal (1 + p : 100). Minus p % heißt mal (1 – p : 100). Zurück heißt geteilt durch denselben Faktor. Mehrere Prozente: Faktoren nacheinander malnehmen.</p>","vi":"Mẹo dùng hệ số\nCộng thêm p % (thuế, Handlungskosten, lợi nhuận): nhân (1 + p : 100) · Ví dụ: + 19 % → · 1,19 · + 50 % → · 1,5\nTrừ p % (Rabatt, Skonto, giảm giá): nhân (1 – p : 100) · Ví dụ: – 10 % → · 0,9 · – 2 % → · 0,98\nTính ngược lại (ví dụ brutto → netto): chia cho chính hệ số đó · Ví dụ: 119,00 € : 1,19 = 100,00 €\nVì sao? Với + 19 % thì 100 % trở thành đúng 119 %. 119 % là 1,19. Ai nhân với 1,19 thì có cả giá và thuế trong một bước.\nLàm tròn như IHK\nKhông làm tròn kết quả trung gian – bấm tất cả thành một chuỗi vào máy tính.\nEuro đến 2 chữ số sau dấu phẩy: 27,694 → 27,69 · 12,566 → 12,57.\nKalkulationsfaktor đến 4 chữ số sau dấu phẩy: 1,785714 → 1,7857.\nPhần trăm: theo đúng yêu cầu trong đề bài.\nGhi nhớ: Cộng p % nghĩa là nhân (1 + p : 100). Trừ p % nghĩa là nhân (1 – p : 100). Tính ngược lại nghĩa là chia cho chính hệ số đó. Nhiều phần trăm: nhân các hệ số nối tiếp nhau."},{"id":"w3","type":"info","title":{"de":"Vorgemacht: drei Rechnungen mit dem Faktor","vi":"Vorgemacht: drei Rechnungen mit dem Faktor · Làm mẫu: ba phép tính với hệ số"},"html":"<p><b>Jacke 80,00 € netto, + 19 % Umsatzsteuer:</b> + 19 % → · 1,19 · 80,00 · 1,19 = 95,20 €</p><p><b>Rechnung 250,00 €, – 10 % Rabatt:</b> – 10 % → · 0,9 · 250,00 · 0,9 = 225,00 €</p><p><b>Preis 59,50 € brutto – wie viel netto?</b> zurück → geteilt durch 1,19 · 59,50 : 1,19 = 50,00 €</p><p><b>Taschenrechner:</b> 80 × 1,19 = · 250 × 0,9 = · 59,5 ÷ 1,19 =</p>","vi":"Áo khoác 80,00 € netto, + 19 % thuế: + 19 % → · 1,19 · 80,00 · 1,19 = 95,20 €\nHóa đơn 250,00 €, – 10 % Rabatt: – 10 % → · 0,9 · 250,00 · 0,9 = 225,00 €\nGiá 59,50 € brutto – netto là bao nhiêu? tính ngược → chia cho 1,19 · 59,50 : 1,19 = 50,00 €\nMáy tính: 80 × 1,19 = · 250 × 0,9 = · 59,5 ÷ 1,19 ="},{"id":"g2","no":"Aufgabe 3","title":{"de":"Geführte Übung: Prozent in Faktor übersetzen","vi":"Geführte Übung: Prozent in Faktor übersetzen · Bài tập có hướng dẫn: đổi phần trăm thành hệ số"},"instr":{"de":"Übersetze die Prozentangabe in einen Faktor. Schreibe nur die Zahl, z. B. 1,19.","vi":"Übersetze die Prozentangabe in einen Faktor. Schreibe nur die Zahl, z. B. 1,19.\n🇻🇳 Đổi số phần trăm thành hệ số. Chỉ viết con số, ví dụ 1,19."},"tip":{"de":"Plus oder minus? Bei Plus wird der Faktor größer als 1, bei Minus kleiner als 1. Plus p % heißt mal (1 + p : 100). Minus p % heißt mal (1 – p : 100).","vi":"Cộng hay trừ? Khi cộng thì hệ số lớn hơn 1, khi trừ thì hệ số nhỏ hơn 1. Cộng p % nghĩa là nhân (1 + p : 100). Trừ p % nghĩa là nhân (1 – p : 100)."},"type":"calc","parts":[{"q":"+ 19 % → Faktor?","u":"","a":1.19,"tol":0.005,"steps":["1,19"]},{"q":"+ 7 % → Faktor?","u":"","a":1.07,"tol":0.005,"steps":["1,07"]},{"q":"+ 60 % → Faktor?","u":"","a":1.6,"tol":0.05,"steps":["1,6"]},{"q":"+ 25 % → Faktor?","u":"","a":1.25,"tol":0.005,"steps":["1,25"]},{"q":"– 10 % → Faktor?","u":"","a":0.9,"tol":0.05,"steps":["0,9"]},{"q":"– 3 % → Faktor?","u":"","a":0.97,"tol":0.005,"steps":["0,97"]},{"q":"– 20 % → Faktor?","u":"","a":0.8,"tol":0.05,"steps":["0,8"]},{"q":"– 25 % → Faktor?","u":"","a":0.75,"tol":0.005,"steps":["0,75"]}],"pts":4},{"id":"g3","no":"Aufgabe 4","title":{"de":"Geführte Übung: Rechnen mit dem Faktor","vi":"Geführte Übung: Rechnen mit dem Faktor · Bài tập có hướng dẫn: tính với hệ số"},"instr":{"de":"Rechne mit dem Faktor. Vorgemacht: 45,00 € + 19 % Umsatzsteuer = 45,00 · 1,19 = 53,55 €.","vi":"Rechne mit dem Faktor. Vorgemacht: 45,00 € + 19 % Umsatzsteuer = 45,00 · 1,19 = 53,55 €.\n🇻🇳 Tính với hệ số. Làm mẫu: 45,00 € + 19 % thuế = 45,00 · 1,19 = 53,55 €."},"tip":{"de":"Plus oder minus? Bei Plus wird der Faktor größer als 1, bei Minus kleiner als 1. Plus p % heißt mal (1 + p : 100). Minus p % heißt mal (1 – p : 100).","vi":"Cộng hay trừ? Khi cộng thì hệ số lớn hơn 1, khi trừ thì hệ số nhỏ hơn 1. Cộng p % nghĩa là nhân (1 + p : 100). Trừ p % nghĩa là nhân (1 – p : 100)."},"type":"calc","parts":[{"q":{"de":"120,00 € – 15 % Rabatt","vi":"120,00 € – 15 % Rabatt\n🇻🇳 120,00 € – 15 % Rabatt (giảm giá)"},"u":"€","a":102,"tol":0.005,"steps":["120,00 · 0,85 = 102,00 €"]},{"q":{"de":"360,00 € – 2 % Skonto","vi":"360,00 € – 2 % Skonto\n🇻🇳 360,00 € – 2 % Skonto (giảm khi trả nhanh)"},"u":"€","a":352.8,"tol":0.005,"steps":["360,00 · 0,98 = 352,80 €"]},{"q":"23,80 € brutto (19 %) → netto","u":"€","a":20,"tol":0.005,"steps":["23,80 : 1,19 = 20,00 €"]},{"q":"2,14 € brutto (7 %) → netto","u":"€","a":2,"tol":0.005,"steps":["2,14 : 1,07 = 2,00 €"]},{"q":{"de":"50,00 € + 50 %, dann + 10 %","vi":"50,00 € + 50 %, dann + 10 %\n🇻🇳 50,00 € + 50 %, sau đó + 10 %"},"u":"€","a":82.5,"tol":0.005,"steps":["50,00 · 1,5 · 1,1 = 82,50 €"]},{"q":{"de":"Wie viel Prozent sind 36 € von 240 €?","vi":"Wie viel Prozent sind 36 € von 240 €?\n🇻🇳 36 € là bao nhiêu phần trăm của 240 €?"},"u":"%","a":15,"tol":0.01,"steps":["36 : 240 · 100 = 15 %"]}],"pts":5.5},{"id":"g4","no":"Aufgabe 5","title":{"de":"Freie Übung: Prozente im Prospekt","vi":"Freie Übung: Prozente im Prospekt · Bài tập tự do: phần trăm trong tờ quảng cáo"},"instr":{"de":"Berechne den neuen Preis mit dem Faktor. Hier rechnest du mit den Ersatzangeboten. Du kannst zusätzlich drei Angebote aus einem Prospekt rechnen und deiner Lehrkraft zeigen (3 Leistungspunkte).","vi":"Berechne den neuen Preis mit dem Faktor. Hier rechnest du mit den Ersatzangeboten. Du kannst zusätzlich drei Angebote aus einem Prospekt rechnen und deiner Lehrkraft zeigen (3 Leistungspunkte).\n🇻🇳 Tính giá mới bằng hệ số. Ở đây em tính với các ưu đãi thay thế. Em có thể tính thêm ba ưu đãi từ một tờ quảng cáo và đưa cho giáo viên xem (3 điểm thành tích)."},"tip":{"de":"Plus oder minus? Bei Plus wird der Faktor größer als 1, bei Minus kleiner als 1. Plus p % heißt mal (1 + p : 100). Minus p % heißt mal (1 – p : 100).","vi":"Cộng hay trừ? Khi cộng thì hệ số lớn hơn 1, khi trừ thì hệ số nhỏ hơn 1. Cộng p % nghĩa là nhân (1 + p : 100). Trừ p % nghĩa là nhân (1 – p : 100)."},"type":"calc","parts":[{"q":{"de":"Sneaker 89,99 € – 30 %: neuer Preis?","vi":"Sneaker 89,99 € – 30 %: neuer Preis?\n🇻🇳 Giày sneaker 89,99 € – 30 %: giá mới?"},"u":"€","a":62.99,"tol":0.005,"steps":["89,99 · 0,7 = 62,99 €"]},{"q":{"de":"Kaffeemaschine 149,00 € – 20 %: neuer Preis?","vi":"Kaffeemaschine 149,00 € – 20 %: neuer Preis?\n🇻🇳 Máy pha cà phê 149,00 € – 20 %: giá mới?"},"u":"€","a":119.2,"tol":0.005,"steps":["149,00 · 0,8 = 119,20 €"]},{"q":{"de":"Badetuch 12,99 € – 15 %: neuer Preis?","vi":"Badetuch 12,99 € – 15 %: neuer Preis?\n🇻🇳 Khăn tắm 12,99 € – 15 %: giá mới?"},"u":"€","a":11.04,"tol":0.005,"steps":["12,99 · 0,85 = 11,04 €"]}],"pts":3},{"id":"g5","no":"Aufgabe 6","title":{"de":"Prüfungs-Check","vi":"Prüfungs-Check · Kiểm tra kiểu thi"},"instr":{"de":"3 Aufgaben · etwa 6 Minuten. So fragt die IHK in der Abschlussprüfung.","vi":"3 Aufgaben · etwa 6 Minuten. So fragt die IHK in der Abschlussprüfung.\n🇻🇳 3 bài · khoảng 6 phút. IHK hỏi như thế này trong kỳ thi tốt nghiệp."},"tip":{"de":"Plus oder minus? Bei Plus wird der Faktor größer als 1, bei Minus kleiner als 1. Plus p % heißt mal (1 + p : 100). Minus p % heißt mal (1 – p : 100).","vi":"Cộng hay trừ? Khi cộng thì hệ số lớn hơn 1, khi trừ thì hệ số nhỏ hơn 1. Cộng p % nghĩa là nhân (1 + p : 100). Trừ p % nghĩa là nhân (1 – p : 100)."},"type":"calc","parts":[{"q":{"de":"Mitarbeiterinnen und Mitarbeiter erhalten 12,5 % Personalrabatt. Eine Kollegin kauft einen Artikel für 126,00 €. Wie viel Euro bezahlt sie?","vi":"Mitarbeiterinnen und Mitarbeiter erhalten 12,5 % Personalrabatt. Eine Kollegin kauft einen Artikel für 126,00 €. Wie viel Euro bezahlt sie?\n🇻🇳 Nhân viên được giảm 12,5 % (Personalrabatt). Một đồng nghiệp mua một món hàng giá 126,00 €. Cô ấy trả bao nhiêu euro?"},"u":"€","a":110.25,"tol":0.005,"steps":["126,00 · 0,875 = 110,25 €"],"work":true},{"q":{"de":"Ein Kunde kauft einen Fernseher für 789,00 € und leistet eine Anzahlung von 40 %. Berechnen Sie die Anzahlung in Euro!","vi":"Ein Kunde kauft einen Fernseher für 789,00 € und leistet eine Anzahlung von 40 %. Berechnen Sie die Anzahlung in Euro!\n🇻🇳 Một khách mua ti vi giá 789,00 € và đặt cọc (Anzahlung) 40 %. Hãy tính số tiền đặt cọc bằng euro!"},"u":"€","a":315.6,"tol":0.005,"steps":["789,00 · 0,4 = 315,60 €"],"work":true},{"q":{"de":"Eine Kundin hat einen Coupon über 15 % auf ihren Einkauf. Ihr Einkauf kostet 287,20 €. Wie viel Euro muss sie bezahlen?","vi":"Eine Kundin hat einen Coupon über 15 % auf ihren Einkauf. Ihr Einkauf kostet 287,20 €. Wie viel Euro muss sie bezahlen?\n🇻🇳 Một khách có phiếu giảm giá (Coupon) 15 % cho lần mua hàng. Hàng của cô ấy giá 287,20 €. Cô ấy phải trả bao nhiêu euro?"},"u":"€","a":244.12,"tol":0.005,"steps":["287,20 · 0,85 = 244,12 €"],"work":true}],"pts":3},{"id":"g6","no":"Aufgabe 7","title":{"de":"Für Profis","vi":"Für Profis · Dành cho người giỏi"},"instr":{"de":"Zum Weiterdenken – ganze Sätze, mit Begründung.","vi":"Zum Weiterdenken – ganze Sätze, mit Begründung.\n🇻🇳 Để suy nghĩ thêm – viết câu đầy đủ, có giải thích."},"tip":{"de":"Probiere es mit einem einfachen Zahlenbeispiel, z. B. mit 100 €. Schreibe jeden Rechenschritt auf und erkläre danach in einem Satz, was du siehst.","vi":"Hãy thử với một ví dụ số đơn giản, ví dụ 100 €. Viết từng bước tính, sau đó giải thích bằng một câu điều em thấy."},"type":"free","parts":[{"q":{"de":"Ein Preis wird erst um 10 % erhöht und danach um 10 % gesenkt. Begründen Sie mit einem Zahlenbeispiel, warum er danach nicht wieder so hoch ist wie vorher.","vi":"Ein Preis wird erst um 10 % erhöht und danach um 10 % gesenkt. Begründen Sie mit einem Zahlenbeispiel, warum er danach nicht wieder so hoch ist wie vorher.\n🇻🇳 Một giá trước tiên được tăng 10 % rồi sau đó giảm 10 %. Hãy giải thích bằng một ví dụ số vì sao sau đó giá không bằng giá ban đầu."},"m":{"de":"100 € · 1,1 = 110 € · 0,9 = 99 €. Die Senkung rechnet vom höheren Preis (110 €), 10 % davon sind 11 €, nicht 10 €.","vi":"100 € · 1,1 = 110 € · 0,9 = 99 €. Die Senkung rechnet vom höheren Preis (110 €), 10 % davon sind 11 €, nicht 10 €.\n🇻🇳 100 € · 1,1 = 110 € · 0,9 = 99 €. Lần giảm được tính từ giá cao hơn (110 €), 10 % của nó là 11 €, không phải 10 €."},"w":["der Grundwert","erhöhen","senken","der höhere Preis"],"s":["Zum Beispiel: 100 € …","Die Senkung rechnet vom …"]},{"q":{"de":"Erklären Sie, warum „+ 19 %“ dasselbe ist wie „mal 1,19“, aber „– 19 %“ nicht dasselbe wie „geteilt durch 1,19“.","vi":"Erklären Sie, warum „+ 19 %“ dasselbe ist wie „mal 1,19“, aber „– 19 %“ nicht dasselbe wie „geteilt durch 1,19“.\n🇻🇳 Hãy giải thích vì sao „+ 19 %“ giống với „nhân 1,19“, nhưng „– 19 %“ không giống với „chia cho 1,19“."},"m":{"de":"100 % + 19 % = 119 % = 1,19. Abziehen: 100 % – 19 % = 81 % = · 0,81. Geteilt durch 1,19 macht einen Aufschlag rückgängig (119 € → 100 €); das ist etwas anderes als 19 % abziehen (119 € · 0,81 = 96,39 €).","vi":"100 % + 19 % = 119 % = 1,19. Abziehen: 100 % – 19 % = 81 % = · 0,81. Geteilt durch 1,19 macht einen Aufschlag rückgängig (119 € → 100 €); das ist etwas anderes als 19 % abziehen (119 € · 0,81 = 96,39 €).\n🇻🇳 100 % + 19 % = 119 % = 1,19. Trừ đi: 100 % – 19 % = 81 % = · 0,81. Chia cho 1,19 là hủy một khoản cộng thêm (119 € → 100 €); điều đó khác với trừ 19 % (119 € · 0,81 = 96,39 €)."},"w":["der Aufschlag","abziehen","rückgängig machen","der Faktor"],"s":["Bei + 19 % werden aus 100 % …","Geteilt durch 1,19 …"]}],"pts":2},{"id":"vg7","no":"Aufgabe 8","title":{"de":"Vertiefung","vi":"Vertiefung · Nâng cao"},"instr":{"de":"Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.","vi":"Nur in der Ebene „Vertiefung“. Begründe in ganzen Sätzen. Diese Aufgaben geben Bonuspunkte und senken deine 20 Punkte nie.\n🇻🇳 Chỉ ở mức „Vertiefung“. Giải thích bằng câu đầy đủ. Các bài này cho điểm thưởng và không bao giờ làm giảm 20 điểm của em."},"level":"v","tip":{"de":"Probiere es mit einem einfachen Zahlenbeispiel, z. B. mit 100 €. Schreibe jeden Rechenschritt auf und erkläre danach in einem Satz, was du siehst.","vi":"Hãy thử với một ví dụ số đơn giản, ví dụ 100 €. Viết từng bước tính, sau đó giải thích bằng một câu điều em thấy."},"type":"free","parts":[{"q":{"de":"Warum darf man mehrere Prozentsätze nicht einfach zusammenzählen (z. B. + 10 % und + 10 % = + 20 %)? Begründe mit einem Zahlenbeispiel.","vi":"Warum darf man mehrere Prozentsätze nicht einfach zusammenzählen (z. B. + 10 % und + 10 % = + 20 %)? Begründe mit einem Zahlenbeispiel.\n🇻🇳 Vì sao không được cộng đơn giản nhiều số phần trăm lại (ví dụ + 10 % và + 10 % = + 20 %)? Giải thích bằng một ví dụ số."},"m":{"de":"Der zweite Aufschlag rechnet schon vom höheren Preis. 100 € · 1,1 · 1,1 = 121 €, nicht 120 €. Deshalb werden Faktoren hintereinander malgenommen.","vi":"Der zweite Aufschlag rechnet schon vom höheren Preis. 100 € · 1,1 · 1,1 = 121 €, nicht 120 €. Deshalb werden Faktoren hintereinander malgenommen.\n🇻🇳 Lần cộng thứ hai đã tính từ giá cao hơn. 100 € · 1,1 · 1,1 = 121 €, không phải 120 €. Vì vậy các hệ số được nhân nối tiếp nhau."},"w":["weil","deshalb","zum Beispiel","dadurch"],"s":["Der Grund ist: …","Das bedeutet: …","Zum Beispiel …"]},{"q":{"de":"Warum soll man Zwischenergebnisse nicht runden? Begründe.","vi":"Warum soll man Zwischenergebnisse nicht runden? Begründe.\n🇻🇳 Vì sao không nên làm tròn kết quả trung gian? Hãy giải thích."},"m":{"de":"Jede Rundung verändert die Zahl ein wenig. Rechnet man mit gerundeten Zwischenergebnissen weiter, kann das Endergebnis abweichen. Deshalb tippt man alles in einer Kette in den Taschenrechner und rundet erst am Ende.","vi":"Jede Rundung verändert die Zahl ein wenig. Rechnet man mit gerundeten Zwischenergebnissen weiter, kann das Endergebnis abweichen. Deshalb tippt man alles in einer Kette in den Taschenrechner und rundet erst am Ende.\n🇻🇳 Mỗi lần làm tròn thay đổi con số một chút. Nếu tính tiếp với kết quả trung gian đã làm tròn thì kết quả cuối có thể lệch. Vì vậy ta bấm tất cả thành một chuỗi vào máy tính và chỉ làm tròn ở cuối."},"w":["weil","deshalb","zum Beispiel","dadurch"],"s":["Der Grund ist: …","Das bedeutet: …","Zum Beispiel …"]},{"q":{"de":"Was würde passieren, wenn man aus 59,50 € brutto den Nettopreis mit „mal 0,81“ berechnet? Rechne und begründe.","vi":"Was würde passieren, wenn man aus 59,50 € brutto den Nettopreis mit „mal 0,81“ berechnet? Rechne und begründe.\n🇻🇳 Điều gì xảy ra nếu tính giá netto từ 59,50 € brutto bằng „nhân 0,81“? Hãy tính và giải thích."},"m":{"de":"59,50 · 0,81 = 48,20 € – das ist zu wenig. Richtig ist 59,50 : 1,19 = 50,00 €. Die 19 % beziehen sich auf den Nettopreis (100 %), nicht auf den Bruttopreis (119 %).","vi":"59,50 · 0,81 = 48,20 € – das ist zu wenig. Richtig ist 59,50 : 1,19 = 50,00 €. Die 19 % beziehen sich auf den Nettopreis (100 %), nicht auf den Bruttopreis (119 %).\n🇻🇳 59,50 · 0,81 = 48,20 € – như vậy là quá ít. Đúng là 59,50 : 1,19 = 50,00 €. 19 % tính trên giá netto (100 %), không phải trên giá brutto (119 %)."},"w":["weil","deshalb","zum Beispiel","dadurch"],"s":["Der Grund ist: …","Das bedeutet: …","Zum Beispiel …"]}],"pts":3}]};
+</script>
+<script>
+(function(){
+'use strict';
+const D=SHEET, KEY='lf9_interaktiv_'+D.id+'_v1';
+const $=(s,r)=>(r||document).querySelector(s), $$=(s,r)=>[...(r||document).querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const rich=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+const UI={
+ progress:{de:'Aufgaben bearbeitet',vi:'bài tập đã làm'},tip:{de:'Tipp',vi:'Gợi ý'},check:{de:'Prüfen',vi:'Kiểm tra'},
+ model:{de:'Musterlösung anzeigen',vi:'Xem bài mẫu'},basis:{de:'Basis',vi:'Cơ bản'},vert:{de:'Vertiefung',vi:'Nâng cao'},
+ name:{de:'Name',vi:'Họ và tên'},date:{de:'Datum',vi:'Ngày'},can:{de:'Das kann ich danach',vi:'Sau bài này em có thể'},
+ eval:{de:'Auswertung anzeigen',vi:'Xem kết quả'},pdf:{de:'Als PDF speichern / drucken',vi:'Lưu PDF / in ra'},
+ restart:{de:'Neu starten',vi:'Làm lại từ đầu'},ask:{de:'Alles löschen und neu anfangen? Deine Antworten in diesem Arbeitsblatt gehen verloren.',vi:'Xóa hết và bắt đầu lại? Các câu trả lời của em trong phiếu này sẽ mất.'},
+ yes:{de:'Ja, löschen',vi:'Có, xóa'},no:{de:'Abbrechen',vi:'Hủy'},
+ rate:{de:'Wie gut war deine Antwort? Vergleiche mit der Musterlösung.',vi:'Câu trả lời của em tốt đến đâu? Hãy so với bài mẫu.'},
+ y:{de:'Geschafft',vi:'Đạt'},p:{de:'Teilweise',vi:'Một phần'},n:{de:'Noch nicht',vi:'Chưa đạt'},
+ choose:{de:'– wählen –',vi:'– chọn –'},richtig:{de:'richtig',vi:'đúng'},falsch:{de:'falsch',vi:'sai'},
+ tap:{de:'Tippe die wichtigen Wörter an (gelb).',vi:'Chạm vào các từ quan trọng (màu vàng).'},chkmark:{de:'Markierung prüfen',vi:'Kiểm tra phần đánh dấu'},
+ words:{de:'Wörter und Satzanfänge zum Antippen',vi:'Từ và đầu câu để chạm vào'},
+ res:{de:'Deine Auswertung',vi:'Kết quả của em'},pts:{de:'Punkte',vi:'điểm'},bonus:{de:'Bonus (Vertiefung)',vi:'Điểm thưởng (Nâng cao)'},
+ mine:{de:'Deine Antwort',vi:'Câu trả lời của em'},sol:{de:'Richtige Lösung',vi:'Đáp án đúng'},why:{de:'Erklärung',vi:'Giải thích'},
+ path:{de:'Rechenweg',vi:'Cách tính'},empty:{de:'(keine Antwort)',vi:'(chưa trả lời)'},
+ next:{de:'Nächste Person',vi:'Người tiếp theo'},restored:{de:'Weitermachen, wo du aufgehört hast',vi:'Tiếp tục từ chỗ em đã dừng'},
+ level:{de:'Ebene',vi:'Mức độ'},selfeval:{de:'Selbsteinschätzung',vi:'Tự đánh giá'},unrated:{de:'noch nicht eingeschätzt',vi:'chưa tự đánh giá'},
+ of:{de:'von',vi:'trên'},right:{de:'richtig',vi:'đúng'},found:{de:'Schlüsselbegriffe gefunden',vi:'từ khóa đã tìm thấy'},extra:{de:'zu viel markiert',vi:'đánh dấu thừa'},
+ allright:{de:'Alles richtig!',vi:'Tất cả đều đúng!'},notall:{de:'Noch nicht alles richtig. Rot = falsch. Versuche es noch einmal.',vi:'Chưa đúng hết. Màu đỏ = sai. Em thử lại nhé.'},
+ fill:{de:'Fülle zuerst alle Felder aus.',vi:'Hãy điền hết các ô trước.'},
+ readfb:{de:'Lesetraining (ohne Punkte)',vi:'Luyện đọc (không tính điểm)'},hint:{de:'Mit Hilfe von Claude erstellt – bitte prüfen lassen.',vi:''},
+ done:{de:'bearbeitet',vi:'đã làm'},
+ printhint:{de:'Tipp: Im Druckfenster „Als PDF sichern“ wählen.',vi:'Gợi ý: Trong cửa sổ in, chọn “Lưu dưới dạng PDF”.'}
+};
+UI.bonusw={de:'Bonus',vi:'Điểm thưởng'};UI.workph={de:'Rechenweg (aufschreiben)',vi:'Cách tính (viết ra)'};
+if(D.ui)for(const l in D.ui)for(const k in D.ui[l]){if(UI[k])UI[k][l]=D.ui[l][k]}
+const RTL={ar:1};
+const u=k=>UI[k][S.lang]||UI[k].de;
+const T=x=>x==null?'':typeof x==='string'?x:(x[S.lang]||x.de||'');
+function def(){return{lang:'de',level:'b',name:'',date:new Date().toLocaleDateString('de-DE'),ans:{},checked:{},shown:{},can:{},sub:false}}
+let S=def();
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);S=Object.assign(def(),o);return true}}catch(e){}return false}
+let st=null;function save(){clearTimeout(st);st=setTimeout(saveNow,400)}
+function saveNow(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function clearStore(){try{localStorage.removeItem(KEY)}catch(e){}}
+const A=id=>S.ans[id]||(S.ans[id]={});
+function hashSeed(s){let h=7;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h}
+function shuf(arr,seed){const a=arr.slice();let s=hashSeed(seed)||1;for(let i=a.length-1;i>0;i--){s=(s*1664525+1013904223)>>>0;const j=s%(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+function norm(s){return String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ß/g,'ss').replace(/[^a-z0-9%€., ]/g,' ').replace(/\s+/g,' ').trim()}
+function num(s){s=String(s==null?'':s).replace(/[€%\s]|[a-zA-Z²³]+/g,'');if(!s)return NaN;if(s.indexOf(',')>=0)s=s.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');return parseFloat(s)}
+const fmt=n=>(Math.round(n*10)/10).toString().replace('.',',');
+const fnum=n=>n.toLocaleString('de-DE',{maximumFractionDigits:4});
+/* ---------- Teile je Typ ---------- */
+function cells(it){const o=[];it.rows.forEach((r,ri)=>r.forEach((c,ci)=>{if(c&&typeof c==='object')o.push({ri,ci,a:c.a,o:c.o||(it.colOpts||[])[ci],typed:c.typed,why:c.why})}));return o}
+function parts(it){switch(it.type){case'mc':return it.qs;case'tf':return it.st;case'gap':return it.gaps;case'match':return it.rows;case'table':return cells(it);case'calc':case'free':return it.parts;default:return[]}}
+function matchOpts(it){return shuf([...new Set(it.rows.map(r=>r.a).concat(it.extra||[]))],it.id)}
+function visible(it){return it.level==='v'?S.level==='v':true}
+function scored(it){return['mc','tf','gap','match','table','calc','free'].indexOf(it.type)>=0}
+function counted(it){return scored(it)||it.type==='read'}
+/* ---------- Bewertung ---------- */
+function mcTxt(p,idx){return String(idx).split(',').filter(x=>x!=='').map(i=>p.o[+i]).join(' / ')}
+function grade(it){
+ const a=A(it.id),ps=parts(it),res=[];
+ if(it.type==='read'){const keys=readKeys(it),sel=a.m||[];const found=keys.filter(k=>sel.indexOf(k)>=0).length,extra=sel.filter(k=>keys.indexOf(k)<0).length;
+  const q=it.quiz,qa=a.q;return{type:'read',found,total:keys.length,extra,qok:q?(qa!=null&&+qa===q.a):null,max:0,got:0,parts:[],filled:!!(a.chk&&(!q||qa!=null))}}
+ ps.forEach((p,i)=>{const v=a['p'+i];let ok=false,mine='',sol='',has=v!=null&&String(v).trim()!=='';
+  switch(it.type){
+  case'mc':{const sa=[].concat(p.a).slice().sort().join(',');const sv=has?String(v).split(',').sort().join(','):'';ok=has&&sv===sa;mine=has?mcTxt(p,v):'';sol=mcTxt(p,sa);break}
+  case'tf':ok=has&&(v==='t')===p.a;mine=has?(v==='t'?u('richtig'):u('falsch')):'';sol=p.a?u('richtig'):u('falsch');break;
+  case'gap':{const acc=[].concat(p.a);ok=has&&acc.some(x=>norm(x)===norm(v));mine=has?v:'';sol=acc[0];break}
+  case'match':ok=has&&v===p.a;mine=has?v:'';sol=p.a;break;
+  case'table':{const acc=[].concat(p.a);ok=has&&acc.some(x=>norm(x)===norm(v));mine=has?v:'';sol=acc[0];break}
+  case'calc':{const n=num(v);ok=has&&!isNaN(n)&&Math.abs(n-p.a)<=(p.tol==null?0.01:p.tol);mine=has?v:'';sol=fnum(p.a)+(p.u?' '+p.u:'');if(a['p'+i+'w'])mine+=' | '+u('path')+': '+a['p'+i+'w'];break}
+  case'free':{const r=a.r;ok=r==='y'?true:r==='p'?0.5:false;has=has&&!!r;mine=a['p'+i]||'';sol=T(p.m);break}
+  }
+  res.push({ok,has,mine,sol,why:p.why,q:p.q,p});});
+ const per=ps.length?it.pts/ps.length:0;let got=0;res.forEach(r=>{got+=(r.ok===true?1:r.ok===0.5?0.5:0)*per});
+ let filled;if(it.type==='free')filled=ps.every((p,i)=>String(a['p'+i]||'').trim()!=='');else filled=res.every(r=>r.has);
+ return{type:it.type,parts:res,max:it.pts||0,got,filled,any:res.some(r=>r.has)}}
+function tokens(p){const out=[];let idx=0;let m;
+ const parts=[];let last=0,s=p;const rg=/\[\[(.+?)\]\]|\{\{(.+?)\}\}/g;while((m=rg.exec(s))){if(m.index>last)parts.push({t:s.slice(last,m.index)});parts.push({t:m[1]||m[2],key:!!m[1]});last=rg.lastIndex}
+ if(last<s.length)parts.push({t:s.slice(last)});
+ parts.forEach((pt,pi)=>{const prev=parts[pi-1];pt.t.split(/\s+/).filter(Boolean).forEach((w,wi)=>{const att=wi===0&&prev&&!/\s$/.test(prev.t)&&!/^\s/.test(pt.t);out.push({w,key:!!pt.key,i:idx++,att,pu:/^[.,;:!?)“”„"]+$/.test(w)})})});return out}
+function allTokens(it){let g=0;return it.paras.map(p=>tokens(p).map(t=>({w:t.w,key:t.key,att:t.att,pu:t.pu,i:g++})))}
+function readKeys(it){const k=[];allTokens(it).forEach(ps=>ps.forEach(t=>{if(t.key)k.push(t.i)}));return k}
+/* ---------- Rendern ---------- */
+function ptsLabel(it){if(it.type==='read'||!it.pts)return'';return it.level==='v'?'+'+fmt(it.pts)+' '+(S.lang==='de'?'Bonus':u('bonusw')):fmt(it.pts)+' '+(S.lang==='de'?(it.pts===1?'Punkt':'Punkte'):u('pts'))}
+function sum(it){return (it.sum&&it.sum[S.lang])||(S.lang==='vi'?it.vi:'')||''}
+function autoDir(){if(!RTL[S.lang])return;$$('p,h1,h2,h3,h4,li,summary,label,.info,.vis,.qt,.st,.instr,.opt span,.chip,.fb,.model,.sub,.cnt').forEach(e=>e.setAttribute('dir','auto'))}
+function tipBlock(it){return it.tip?`<details class="tip"><summary>💡 ${u('tip')}</summary><div>${rich(T(it.tip))}</div></details>`:''}
+function wg(it,i,p){if(!p.w&&!p.s)return'';const ch=(p.w||[]).concat(p.s||[]).map(x=>`<button type="button" class="chip" data-chip="${esc(x)}" data-for="${it.id}_${i}">${esc(x)}</button>`).join('');return`<details class="wg"><summary>✏️ ${u('words')}</summary><div class="chips">${ch}</div></details>`}
+const BODY={
+ info(it){return`<div class="info">${it.html||''}</div>`+(sum(it)?`<div class="vis" lang="${S.lang}">${rich(sum(it))}</div>`:'')},
+ read(it){const per=allTokens(it);const a=A(it.id);const sel=a.m||[];
+  const ps=per.map(ts=>`<p class="rd${a.chk?' chk':''}" data-rd="${it.id}">`+ts.map(t=>t.pu&&t.att?esc(t.w):(t.att?'':' ')+`<span class="w${t.key?' key':''}${sel.indexOf(t.i)>=0?' sel':''}" data-w="${t.i}" role="button" tabindex="0">${esc(t.w)}</span>`).join('').trim()+'</p>').join('');
+  const q=it.quiz;let quiz='';
+  if(q&&a.chk){quiz=`<div class="q" data-part="0"><p class="qt">${rich(T(q.q))}</p><div class="opts">`+q.o.map((o,j)=>`<label class="opt"><input type="radio" name="${it.id}_q" data-k="q" value="${j}"${a.q!=null&&+a.q===j?' checked':''}><span>${rich(o)}</span></label>`).join('')+'</div></div>'}
+  return`<p class="vis">${u('tap')}</p>${ps}<div class="actions"><button type="button" class="primary" data-act="rdchk" data-id="${it.id}">${u('chkmark')}</button></div>${quiz}`+(sum(it)?`<p class="vis" lang="${S.lang}">${rich(sum(it))}</p>`:'')},
+ mc(it){const a=A(it.id);return it.qs.map((q,i)=>{const multi=Array.isArray(q.a);const cur=String(a['p'+i]==null?'':a['p'+i]).split(',');
+  return`<div class="q" data-part="${i}"><p class="qt">${rich(T(q.q))}</p><div class="opts">`+q.o.map((o,j)=>`<label class="opt"><input type="${multi?'checkbox':'radio'}" name="${it.id}_${i}" data-k="p${i}" ${multi?'data-multi="1"':''} value="${j}"${cur.indexOf(String(j))>=0?' checked':''}><span>${rich(o)}</span></label>`).join('')+'</div></div>'}).join('')},
+ tf(it){const a=A(it.id);return it.st.map((s,i)=>`<div class="tfrow" data-part="${i}"><div class="st">${rich(T(s.t))}</div><div class="opts">`+['t','f'].map(v=>`<label class="opt"><input type="radio" name="${it.id}_${i}" data-k="p${i}" value="${v}"${a['p'+i]===v?' checked':''}><span>${u(v==='t'?'richtig':'falsch')}</span></label>`).join('')+'</div></div>').join('')},
+ gap(it){const a=A(it.id);let html=esc(it.text);const bank=it.bank?shuf(it.bank,it.id):null;
+  it.gaps.forEach((g,i)=>{const v=a['p'+i]||'';let el;const o=g.o?shuf(g.o,it.id+i):bank;
+   if(o)el=`<select data-k="p${i}" data-part="${i}"><option value="">${u('choose')}</option>`+o.map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('')+'</select>';
+   else el=`<input class="in" type="text" data-k="p${i}" data-part="${i}" autocomplete="off" autocapitalize="off" spellcheck="false" size="${Math.max(8,String([].concat(g.a)[0]).length+2)}" value="${esc(v)}">`;
+   html=html.replace('{'+i+'}',el)});
+  return`<p class="gaptxt">${html.replace(/\n/g,'<br>')}</p>`},
+ match(it){const a=A(it.id);const o=matchOpts(it);return it.rows.map((r,i)=>`<div class="mrow" data-part="${i}"><div><b>${rich(T(r.l))}</b></div><select data-k="p${i}"><option value="">${u('choose')}</option>`+o.map(x=>`<option${a['p'+i]===x?' selected':''}>${esc(x)}</option>`).join('')+'</select></div>').join('')},
+ table(it){const a=A(it.id);let n=0;return it.rows.map(r=>{const cols=r.length;return`<div class="trow" style="--n:${cols}">`+r.map((c,ci)=>{
+   if(c&&typeof c==='object'){const i=n++;const o=c.o||(it.colOpts||[])[ci];const v=a['p'+i]||'';const f=o?`<select data-k="p${i}"><option value="">${u('choose')}</option>`+o.map(x=>`<option${x===v?' selected':''}>${esc(x)}</option>`).join('')+'</select>':`<input class="in" type="text" data-k="p${i}" value="${esc(v)}" autocomplete="off">`;
+    return`<div class="fld" data-part="${i}"><label>${esc(it.cols[ci])}</label>${f}</div>`}
+   return`<div class="fld"><label>${esc(it.cols[ci])}</label><div>${rich(T(c))}</div></div>`}).join('')+'</div>'}).join('')},
+ calc(it){const a=A(it.id);return it.parts.map((p,i)=>`<div class="crow" data-part="${i}"><p class="qt">${rich(T(p.q))}</p><input class="in" type="text" inputmode="decimal" data-k="p${i}" value="${esc(a['p'+i]||'')}" autocomplete="off" placeholder="0,00"><span class="u">${esc(p.u||'')}</span>${p.work?`<textarea class="in" data-k="p${i}w" rows="2" style="min-height:4rem" placeholder="${u('workph')}">${esc(a['p'+i+'w']||'')}</textarea>`:''}</div>`).join('')},
+ free(it){const a=A(it.id);const sh=S.shown[it.id];return it.parts.map((p,i)=>`<div class="fpart"><p class="qt">${rich(T(p.q))}</p>${wg(it,i,p)}<textarea class="in" id="${it.id}_${i}" data-k="p${i}" rows="3" placeholder="…">${esc(a['p'+i]||'')}</textarea>`+(sh?`<div class="model"><div class="t">${u('model').replace(/ anzeigen| ?$/,'')}</div>${rich(T(p.m))}</div>`:'')+'</div>').join('')+(sh?`<div class="rate"><span style="flex:1 1 100%;font-weight:600">${u('rate')}</span>`+['y','p','n'].map(v=>`<button type="button" data-rate="${v}" data-k="r" class="${a.r===v?'on':''}">${u(v)}</button>`).join('')+'</div>':'')}
+};
+function actions(it){if(it.type==='info'||it.type==='read')return'';if(it.type==='free')return S.shown[it.id]?'':`<button type="button" class="primary" data-act="model" data-id="${it.id}">${u('model')}</button>`;return`<button type="button" class="primary" data-act="check" data-id="${it.id}">${u('check')}</button>`}
+function cardHtml(it){const v=it.level==='v';
+ return`<section class="card${v?' vert':''}" id="c_${it.id}" data-id="${it.id}"><header>${it.no?`<span class="no">${esc(it.no)}</span>`:''}<h2>${rich(T(it.title))}</h2><span class="pts">${ptsLabel(it)}</span></header>`+
+ (it.instr?`<p class="instr">${rich(T(it.instr))}</p>`:'')+tipBlock(it)+`<div class="body">${BODY[it.type](it)}</div><div class="actions">${actions(it)}</div><div class="fb" aria-live="polite"></div></section>`}
+function renderAll(){
+ document.documentElement.lang=S.lang;
+ $('#cards').innerHTML=D.items.filter(visible).map(cardHtml).join('');
+ $('#t_can').textContent=u('can');$('#l_name').textContent=u('name');$('#l_date').textContent=u('date');
+ $('#cans').innerHTML=D.can.map((c,i)=>`<label><input type="checkbox" data-can="${i}"${S.can[i]?' checked':''}><span>${rich(T(c))}</span></label>`).join('');
+ $('#b_eval').textContent=u('eval');$('#b_pdf').textContent='📄 '+u('pdf');$('#b_restart').textContent=u('restart');
+ $$('[data-lv]').forEach(b=>{b.textContent=u(b.dataset.lv==='b'?'basis':'vert');b.classList.toggle('on',S.level===b.dataset.lv)});
+ $$('[data-lg]').forEach(b=>b.classList.toggle('on',S.lang===b.dataset.lg));
+ $('#cnt').textContent='';$('#m_ask').textContent=u('ask');$('#m_yes').textContent=u('yes');$('#m_no').textContent=u('no');
+ D.items.filter(visible).forEach(it=>{if(S.checked[it.id])paint(it)});
+ if(S.sub)renderResult();else $('#result').classList.add('hide');
+ autoDir();progress()}
+function progress(){const its=D.items.filter(it=>visible(it)&&counted(it));let n=0;its.forEach(it=>{if(grade(it).filled)n++});
+ const pc=its.length?Math.round(n/its.length*100):0;$('#barfill').style.width=pc+'%';$('#cnt').textContent=n+' / '+its.length+' '+u('progress');
+ $$('.card').forEach(c=>{const it=D.items.find(x=>x.id===c.dataset.id);c.classList.toggle('done',counted(it)&&grade(it).filled)});
+ [25,50,75,100].forEach(m=>{if(pc>=m&&!(S.toast||{})[m]&&n>0){S.toast=S.toast||{};S.toast[m]=1;if(m===100||m===50)toast(m+' % ✓')}})}
+function paint(it){const c=$('#c_'+it.id);if(!c)return;const g=grade(it);const fb=$('.fb',c);
+ if(it.type==='read'){const a=A(it.id);const rd=$$('.rd',c);rd.forEach(r=>r.classList.add('chk'));
+  let h=`${g.found===g.total&&!g.extra?'✔':'ℹ️'} ${g.found} ${u('of')} ${g.total} ${u('found')}`+(g.extra?`, ${g.extra} ${u('extra')}`:'');fb.className='fb '+(g.found===g.total&&!g.extra?'ok':'mid');fb.innerHTML=h;
+  const q=it.quiz;if(q&&a.q!=null){const qq=$('.q',c);const ok=+a.q===q.a;qq.classList.toggle('ok',ok);qq.classList.toggle('bad',!ok);fb.innerHTML+=`<small>${ok?'✓':'✗'} ${rich(T(q.why))}</small>`}return}
+ if(!S.checked[it.id]||it.type==='info')return;
+ if(it.type==='free'){return}
+ const right=g.parts.filter(p=>p.ok===true).length;
+ g.parts.forEach((p,i)=>{$$('[data-part="'+i+'"]',c).forEach(el=>{el.classList.remove('ok','bad');if(p.has)el.classList.add(p.ok===true?'ok':'bad');else el.classList.add('bad')})});
+ fb.className='fb '+(right===g.parts.length?'ok':right?'mid':'bad');
+ fb.innerHTML=(right===g.parts.length?'✓ '+u('allright'):right+' '+u('of')+' '+g.parts.length+' '+u('right')+'. '+(g.filled?'':u('fill')+' ')+(right<g.parts.length?`<small>${u('notall')}</small>`:''))}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2200)}
+/* ---------- Ergebnis ---------- */
+function stateOf(r){return r.ok===true?'g':r.ok===0.5?'m':'r'}
+function renderResult(){
+ const its=D.items.filter(visible);let got=0,max=0,bg=0,bm=0;
+ const html=its.filter(it=>it.type!=='info').map(it=>{const g=grade(it);
+  if(it.type==='read'){return`<div class="ritem"><h4><span>${esc(it.no||'')}</span> ${rich(T(it.title))} <span class="st ${g.found===g.total&&!g.extra?'g':'m'}">${g.filled?g.found+' / '+g.total:'–'}</span></h4><small>${u('readfb')}</small></div>`}
+  if(it.level==='v'){bg+=g.got;bm+=g.max}else{got+=g.got;max+=g.max}
+  const nr=g.parts.filter(r=>r.ok===true).length;const full=it.pts?g.got>=g.max-0.001:nr===g.parts.length;const cls=full?'g':(it.pts?g.got>0:nr>0)?'m':'r';
+  let li=g.parts.map((r,i)=>{const p=r.p;let line='';const lab=it.type==='match'?T(p.l):it.type==='table'?(it.rows[p.ri]&&T(it.rows[p.ri][0])||'')+' ['+it.cols[p.ci]+']':it.type==='gap'?'('+(i+1)+')':T(p.q||p.t||'')||(i+1);
+   const mark=r.ok===true?'✓':r.ok===0.5?'◐':'✗';
+   line=`<li><b>${mark}</b> ${rich(String(lab).slice(0,200))}<br><span class="${r.ok===true?'':'mine'}">${u('mine')}: ${r.mine?rich(r.mine):u('empty')}</span>`;
+   if(r.ok!==true||it.type==='free')line+=`<br><span class="sol">${u('sol')}: ${rich(r.sol)}</span>`;
+   if(r.ok!==true&&r.why)line+=`<br><small>${u('why')}: ${rich(T(r.why))}</small>`;
+   if(it.type==='calc'&&p.steps)line+=`<div class="steps"><b>${u('path')}:</b>`+p.steps.map(s=>`<div>${esc(T(s))}</div>`).join('')+'</div>';
+   return line+'</li>'}).join('');
+  if(it.why&&!full)li+=`<li><small>${u('why')}: ${rich(T(it.why))}</small></li>`;
+  if(it.type==='free'&&g.parts.some(r=>!r.has))li+=`<li><small>${u('unrated')}</small></li>`;
+  return`<div class="ritem"><h4><span>${esc(it.no||'')}</span> ${rich(T(it.title))}${it.level==='v'?' ('+u('vert')+')':''} <span class="st ${cls}">${it.pts?fmt(g.got)+' / '+fmt(g.max):''}</span></h4><ul>${li}</ul></div>`}).join('');
+ const el=$('#result');el.classList.remove('hide');
+ el.innerHTML=`<h2>${u('res')}</h2><p><b>${u('name')}:</b> ${esc(S.name)||'______'} &nbsp; <b>${u('date')}:</b> ${esc(S.date)} &nbsp; <b>${u('level')}:</b> ${u(S.level==='v'?'vert':'basis')}</p><p>${esc(D.title)}</p><div class="score">${fmt(got)} ${u('of')} ${fmt(max)} ${u('pts')}</div>`+(S.level==='v'&&bm?`<p><b>${u('bonus')}:</b> +${fmt(bg)} (${fmt(bm)})</p>`:'')+html+`<p class="noprint"><button type="button" id="b_next">${u('next')}</button></p>`;
+ $('#b_next').onclick=()=>{S=def();clearStore();renderAll();window.scrollTo(0,0)};
+ S.sub=true;save()}
+/* ---------- Ereignisse ---------- */
+function cardOf(e){const c=e.closest('.card');return c?D.items.find(x=>x.id===c.dataset.id):null}
+document.addEventListener('input',e=>{const t=e.target;
+ if(t.id==='nm'){S.name=t.value;save();return}if(t.id==='dt'){S.date=t.value;save();return}
+ const it=cardOf(t);if(!it||!t.dataset.k)return;if(t.type==='radio'||t.type==='checkbox')return;A(it.id)[t.dataset.k]=t.value;if(S.checked[it.id]&&t.closest('.card'))t.classList.remove('ok','bad');progress();save()});
+document.addEventListener('change',e=>{const t=e.target;
+ if(t.dataset.can!=null){S.can[t.dataset.can]=t.checked;save();return}
+ const it=cardOf(t);if(!it||!t.dataset.k)return;const a=A(it.id);
+ if(t.type==='radio'){a[t.dataset.k]=t.value}
+ else if(t.type==='checkbox'){const vals=$$('input[name="'+t.name+'"]:checked',t.closest('.card')).map(x=>x.value);a[t.dataset.k]=vals.join(',')}
+ else a[t.dataset.k]=t.value;
+ if(it.type==='read'&&a.chk){paint(it);}
+ if(S.checked[it.id]){const el=t.closest('[data-part]');if(el)el.classList.remove('ok','bad')}
+ progress();save()});
+document.addEventListener('click',e=>{const t=e.target.closest('button,.w,[data-lg],[data-lv]');if(!t)return;
+ if(t.dataset.lg){S.lang=t.dataset.lg;renderAll();save();return}
+ if(t.dataset.lv){S.level=t.dataset.lv;renderAll();save();return}
+ if(t.classList.contains('w')){const it=cardOf(t);const a=A(it.id);if(a.chk)return;a.m=a.m||[];const i=+t.dataset.w;const k=a.m.indexOf(i);if(k>=0)a.m.splice(k,1);else a.m.push(i);t.classList.toggle('sel');save();return}
+ if(t.dataset.chip){const ta=document.getElementById(t.dataset.for);if(!ta)return;const s=ta.selectionStart==null?ta.value.length:ta.selectionStart,en=ta.selectionEnd==null?s:ta.selectionEnd;const ins=t.dataset.chip+' ';ta.value=ta.value.slice(0,s)+ins+ta.value.slice(en);ta.focus();ta.selectionStart=ta.selectionEnd=s+ins.length;ta.dispatchEvent(new Event('input',{bubbles:true}));return}
+ if(t.dataset.rate){const it=cardOf(t);A(it.id)[t.dataset.k]=t.dataset.rate;$$('[data-k="'+t.dataset.k+'"]',t.parentNode).forEach(b=>b.classList.toggle('on',b===t));progress();save();return}
+ const act=t.dataset.act;if(!act)return;const it=D.items.find(x=>x.id===t.dataset.id);
+ if(act==='check'){S.checked[it.id]=true;paint(it);progress();save()}
+ if(act==='rdchk'){A(it.id).chk=true;const c=$('#c_'+it.id);const keep=window.scrollY;const fbk=true;renderCard(it);paint(it);window.scrollTo(0,keep);progress();save()}
+ if(act==='model'){S.shown[it.id]=true;renderCard(it);progress();save()}
+});
+function renderCard(it){const old=$('#c_'+it.id);const tmp=document.createElement('div');tmp.innerHTML=cardHtml(it);const det=old.querySelector('.tip').open;old.replaceWith(tmp.firstChild);if(S.checked[it.id]||it.type==='read')paint(it)}
+function evaluate(){renderResult();$('#result').scrollIntoView({behavior:'smooth'})}
+$('#b_eval').onclick=evaluate;
+$('#b_pdf').onclick=()=>{renderResult();setTimeout(()=>window.print(),100)};
+$('#b_restart').onclick=()=>$('#modal').classList.add('on');
+$('#m_no').onclick=()=>$('#modal').classList.remove('on');
+$('#m_yes').onclick=()=>{$('#modal').classList.remove('on');S=def();clearStore();$('#nm').value='';$('#dt').value=S.date;renderAll();window.scrollTo(0,0)};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveNow()});window.addEventListener('pagehide',saveNow);
+window.addEventListener('beforeprint',()=>{$$('textarea').forEach(t=>{t.style.height='auto';t.style.height=t.scrollHeight+'px'})});
+/* ---------- Start ---------- */
+const had=load();
+$('#h_title').textContent=D.title;$('#h_sub').textContent=D.sub;$('#topt').textContent=D.short;
+$('#nm').value=S.name;$('#dt').value=S.date;
+renderAll();if(had&&Object.keys(S.ans).length)toast(u('restored'));
+/* Test-Hilfe (für Lehrkraft-Prüfung per Konsole): LF5.solve(true|false) */
+window.LF5={S:()=>S,grade:id=>grade(D.items.find(x=>x.id===id)),
+ solve(right){D.items.forEach(it=>{const a=A(it.id);parts(it).forEach((p,i)=>{const k='p'+i;
+  switch(it.type){
+   case'mc':{const sa=[].concat(p.a);a[k]=right?sa.join(','):String((sa[0]+1)%p.o.length);break}
+   case'tf':a[k]=(right===p.a)?'t':'f';break;
+   case'gap':a[k]=right?[].concat(p.a)[0]:'xxx';break;
+   case'match':a[k]=right?p.a:'—falsch—';break;
+   case'table':a[k]=right?[].concat(p.a)[0]:'—falsch—';break;
+   case'calc':a[k]=right?String(p.a).replace('.',','):'1';break;
+   case'free':a[k]='Beispielantwort';a.r=right?'y':'n';S.shown[it.id]=true;break}});
+  if(it.type==='read'){a.m=right?readKeys(it):[];a.chk=true;if(it.quiz)a.q=right?it.quiz.a:(it.quiz.a+1)%it.quiz.o.length}
+  S.checked[it.id]=true});renderAll();evaluate();return S},
+ data:D};
+})();
+
+</script>
+</body></html>
