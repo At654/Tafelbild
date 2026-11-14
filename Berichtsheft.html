@@ -274,7 +274,7 @@ function localDay(i){
   try{ if(!Intl.DateTimeFormat.supportedLocalesOf([P.lang]).length) return '';
        return new Intl.DateTimeFormat(P.lang,{weekday:'long'}).format(addDays(m,i)); }catch(e){ return ''; }
 }
-const aiText = i => AI_PROMPT.replace('[TEXT]', (W().days[i].n||'').trim() || '[TEXT]');
+const aiText = i => { const d=W().days[i]; const x=((d.t||'').trim() || (d.n||'').trim() || '[TEXT]'); return AI_PROMPT.replace('[TEXT]', () => x); };
 
 function render(){
   document.documentElement.lang=P.lang; document.documentElement.dir = P.lang==='ar'?'rtl':'ltr';
@@ -408,7 +408,7 @@ document.addEventListener('input',e=>{
   setF(f,el.value);
   const a=f.split('.');
   if(a[0]==='d'&&a[2]==='t'){ const c=$('#cnt'+a[1]); if(c) c.textContent=el.value.length+'/'+MAXLEN.d; }
-  if(a[0]==='d'&&a[2]==='n'){ const p=$('#ai'+a[1]); if(p) p.textContent=aiText(+a[1]); }
+  if(a[0]==='d'&&(a[2]==='n'||a[2]==='t')){ const p=$('#ai'+a[1]); if(p) p.textContent=aiText(+a[1]); }
   if(f==='p.branch'&&$('#dlg').open) fillDlg();
   updateMissing();
 });
@@ -419,7 +419,7 @@ async function copyText(txt){
   catch(e){ const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(_){} ta.remove(); }
   toast(T('copied'));
 }
-function setDayText(i,txt){ const d=W().days[i]; d.t=txt; save(); const ta=$('#d'+i+'-t'); if(ta) ta.value=txt; const c=$('#cnt'+i); if(c) c.textContent=txt.length+'/'+MAXLEN.d; updateMissing(); }
+function setDayText(i,txt){ const d=W().days[i]; d.t=txt; save(); const ta=$('#d'+i+'-t'); if(ta) ta.value=txt; const c=$('#cnt'+i); if(c) c.textContent=txt.length+'/'+MAXLEN.d; const ap=$('#ai'+i); if(ap) ap.textContent=aiText(i); updateMissing(); }
 let dlgDay=0, curList={};
 function fillDlg(){
   $('#dlgT').textContent=T('phrFor',{d:DAYS[dlgDay]});
