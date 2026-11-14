@@ -68,7 +68,7 @@ function textHtml(s) {
 }
 
 function cardHtml(c, langs, foot, col, row) {
-  const [bg, ac] = COLORS[c.color] || COLORS.blue;
+  const [bgc, ac] = COLORS[c.color] || COLORS.blue; const bg = '#ffffff';
   const tr = langs.map(l => `<div class="ln ${l}"><i style="background:${ac}">${LANGS[l].code}</i><p dir="${LANGS[l].dir}">${textHtml(c.t[l])}</p></div>`).join('');
   return `<div class="card" style="background:${bg};--ac:${ac};${col ? 'border-left:.3pt dashed #777;' : ''}${row ? 'border-top:.3pt dashed #777;' : ''}">
 <div class="in"><div class="em">${c.emoji}</div><div class="de">${textHtml(c.t.de)}</div><div class="tr">${tr}</div></div>
