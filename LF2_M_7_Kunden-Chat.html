@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kunden-Chat – LF 2 Modul 7</title>
+<style>
+:root{--bg:#f3efe4;--ink:#1d1d1f;--navy:#13275a;--gold:#b8901c;--paper:#fbf9f3;--line:#d8d1bf;--ok:#2d6b3a;--bad:#a32626;--chat:#e9e4d6}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.app{max-width:620px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;background:var(--paper);box-shadow:0 0 0 1px var(--line)}
+.top{background:var(--navy);color:#fff;padding:10px 14px 8px}
+.top h1{font-family:Georgia,serif;font-size:24px;margin:0;line-height:1.1}
+.top .sub{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.top .sub .tl{color:#c9d4f0}
+.langs{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.langs button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:14px;padding:3px 10px;font:inherit;font-size:13px;cursor:pointer}
+.langs button.on{background:#fff;color:var(--navy)}
+.tl{display:block;font-size:.86em;color:#4b5a86;font-weight:400;unicode-bidi:plaintext;margin-top:2px}
+.tl[dir=rtl]{text-align:right}
+.chead{display:flex;gap:10px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:5}
+.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:26px;flex:none}
+.chead .nm{font-weight:700}
+.chead small{color:#666;display:block;font-size:12.5px}
+.mood{margin-left:auto;text-align:right;min-width:120px}
+.mood small{font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.bar{height:12px;border-radius:6px;background:#e5e0d2;overflow:hidden;margin-top:3px;width:120px}
+.bar i{display:block;height:100%;transition:width .5s,background .5s}
+.prog{font-size:12px;color:#666;text-align:right;margin-top:2px}
+.chat{flex:1;padding:14px 12px 8px;background:var(--chat);overflow-y:auto}
+.msg{display:flex;gap:8px;margin:8px 0;align-items:flex-end;animation:pop .25s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}}
+.msg .bub{max-width:80%;padding:9px 13px;border-radius:16px;background:#fff;box-shadow:0 1px 1px rgba(0,0,0,.12)}
+.msg.k .bub{border-bottom-left-radius:4px}
+.msg.v{justify-content:flex-end}
+.msg.v .bub{background:#d9f2c9;border-bottom-right-radius:4px}
+.msg .sav{width:30px;height:30px;font-size:18px}
+.note{margin:6px auto;max-width:92%;font-size:14.5px;padding:8px 12px;border-radius:10px;animation:pop .25s}
+.note.good{background:#dcefdf;border-left:4px solid var(--ok)}
+.note.bad{background:#f6dada;border-left:4px solid var(--bad)}
+.note.info{background:#fff;border:1px dashed #b9b19d;text-align:center}
+.prod{font-size:60px;text-align:center;margin:4px 0;animation:pop .4s}
+.typing .bub{color:#777;font-style:italic}
+.dots i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#999;margin:0 2px;animation:bl 1s infinite}
+.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes bl{50%{opacity:.2}}
+.reply{border-top:1px solid var(--line);padding:10px 12px 14px;background:var(--paper)}
+.reply h4{margin:0 0 6px;font-size:14px;color:#444}
+.opt{display:block;width:100%;text-align:left;border:2px solid #c9c1ad;background:#fff;border-radius:12px;padding:8px 12px;margin:6px 0;font:inherit;cursor:pointer;color:var(--ink)}
+.opt:hover:not(:disabled){border-color:var(--navy)}
+.opt .tag{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:10px;background:#eee;margin-bottom:3px}
+.tag.q{background:#e4e9f5;color:#13275a}.tag.z{background:#fdf0cc;color:#7a5a00}.tag.g{background:#dcefdf;color:#2d6b3a}.tag.x{background:#eee;color:#555}
+.opt:disabled{opacity:.45;cursor:default;text-decoration:line-through}
+.opt.right{border-color:var(--ok);background:#dcefdf;opacity:1;text-decoration:none}
+.opt.wrongsel{border-color:var(--bad);background:#f6dada;opacity:1;text-decoration:none}
+.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.btn{border:0;border-radius:10px;background:var(--navy);color:#fff;font:inherit;font-weight:700;font-size:17px;padding:12px 20px;cursor:pointer;width:100%;box-shadow:0 3px 0 #0b1838}
+.btn.gold{background:var(--gold);box-shadow:0 3px 0 #8a6a10}
+.btn .tl{color:#fff;opacity:.85}
+.start{padding:22px}
+.start h2{font-family:Georgia,serif;font-size:26px;margin:0 0 8px}
+.start input{width:100%;font:inherit;font-size:18px;padding:10px 12px;border:1px solid #bdb5a2;border-radius:8px;margin:6px 0 14px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 16px}
+.seg button{border:2px solid #b9b19d;background:#fff;border-radius:10px;padding:10px;font:inherit;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.seg button.on .tl{color:#dfe6fb}
+.faces{font-size:34px;text-align:center;letter-spacing:6px;margin:6px 0 14px}
+.sum{background:#fff;border-radius:12px;padding:12px 14px;margin:10px 0;box-shadow:0 1px 2px rgba(0,0,0,.15);animation:pop .3s}
+.stars{font-size:28px;letter-spacing:3px;color:var(--gold)}
+.end{padding:20px;text-align:center}
+.end h2{font-family:Georgia,serif;font-size:30px;margin:6px 0}
+.end .big{font-size:64px}
+.end table{width:100%;border-collapse:collapse;margin:12px 0;text-align:left}
+.end td{padding:6px 4px;border-bottom:1px solid #e3ddcd}
+.merke{background:#fdf0cc;border-radius:10px;padding:10px 12px;text-align:left;margin:12px 0}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:60;display:none}
+</style>
+</head>
+<body>
+<canvas id="cf"></canvas>
+<div class="app">
+ <div class="top"><h1>Kunden-Chat</h1><div class="sub" id="sub"></div><div class="langs" id="langs"></div></div>
+ <div id="main" style="flex:1;display:flex;flex-direction:column"></div>
+</div>
+<script>
+/* Texte: [de, tr, vi, ar] */
+const U={
+ sub:["Bedarfsermittlung · LF 2 Modul 7 · KLA Bremerhaven","İhtiyaç belirleme","Xác định nhu cầu","تحديد الاحتياجات"],
+ head:["Finde heraus, was der Kunde braucht!","Müşterinin neye ihtiyacı olduğunu bul!","Hãy tìm ra khách hàng cần gì!","اكتشف ما يحتاجه الزبون!"],
+ intro:["Sechs Kunden schreiben dir. Wähle immer die beste Antwort: fragen ❓, Ware zeigen 🛍️ oder einfach aushändigen 🤝. Achte auf den Stimmungsbalken!","Altı müşteri sana yazıyor. Her zaman en iyi cevabı seç: soru sor ❓, ürünü göster 🛍️ veya doğrudan teslim et 🤝. Ruh hali çubuğuna dikkat et!","Sáu khách hàng nhắn tin cho bạn. Luôn chọn câu trả lời tốt nhất: hỏi ❓, cho xem hàng 🛍️ hoặc trao hàng luôn 🤝. Hãy chú ý thanh tâm trạng!","ستة زبائن يكتبون لك. اختر دائمًا أفضل رد: اسأل ❓، اعرض البضاعة 🛍️ أو سلّم البضاعة مباشرة 🤝. انتبه إلى شريط المزاج!"],
+ name:["Dein Name (oder eure Namen)","Adın (veya adlarınız)","Tên của bạn (hoặc tên các bạn)","اسمك (أو أسماؤكم)"],
+ stufe:["Stufe","Seviye","Cấp độ","المستوى"],
+ basis:["Basis","Temel","Cơ bản","أساسي"],
+ profi:["Profi – mit Begründung","Profesyonel – gerekçeli","Nâng cao – có giải thích","متقدم – مع التعليل"],
+ los:["Los geht’s","Başlayalım","Bắt đầu","لنبدأ"],
+ kunde:["Kunde","Müşteri","Khách","زبون"],
+ von:["von","/","/","من"],
+ stimmung:["Stimmung","Ruh hali","Tâm trạng","المزاج"],
+ waehle:["Wähle deine Antwort:","Cevabını seç:","Chọn câu trả lời:","اختر ردك:"],
+ gut:["Gut gemacht!","Aferin!","Làm tốt lắm!","أحسنت!"],
+ nochmal:["Versuch es noch einmal.","Bir daha dene.","Hãy thử lại.","حاول مرة أخرى."],
+ formq:["Welche Form war das?","Bu hangi biçimdi?","Đó là hình thức nào?","ما هذا الشكل؟"],
+ grundq:["Profi: Warum passt diese Form?","Profesyonel: Bu biçim neden uygun?","Nâng cao: Vì sao hình thức này phù hợp?","متقدم: لماذا يناسب هذا الشكل؟"],
+ richtig:["Richtig!","Doğru!","Đúng!","صحيح!"],
+ falsch:["Leider falsch. Richtig ist:","Maalesef yanlış. Doğrusu:","Tiếc quá, sai rồi. Đáp án đúng:","للأسف خطأ. الصحيح:"],
+ naechster:["Nächster Kunde ➜","Sonraki müşteri ➜","Khách tiếp theo ➜","الزبون التالي ➜"],
+ auswertung:["Zur Auswertung ➜","Değerlendirmeye ➜","Xem kết quả ➜","إلى النتيجة ➜"],
+ punkte:["Punkte","puan","điểm","نقاط"],
+ geschafft:["Geschafft!","Başardın!","Hoàn thành!","أنجزت!"],
+ merke:["Merke","Unutma","Ghi nhớ","تذكّر"],
+ merktext:["Frag dich immer zuerst: Weiß der Kunde schon genau, was er will? Nein → fragen (direkt). Nur ungefähr, er findet keine Worte → Ware zeigen (indirekt). Ja, ganz genau → aushändigen.","Önce hep kendine sor: Müşteri ne istediğini tam biliyor mu? Hayır → soru sor (doğrudan). Sadece aşağı yukarı, kelime bulamıyor → ürünü göster (dolaylı). Evet, tam olarak → teslim et.","Luôn tự hỏi trước: Khách đã biết chính xác mình muốn gì chưa? Chưa → hỏi (trực tiếp). Chỉ biết đại khái, không diễn đạt được → cho xem hàng (gián tiếp). Biết rõ → trao hàng.","اسأل نفسك دائمًا أولًا: هل يعرف الزبون بالضبط ماذا يريد؟ لا ← اسأل (مباشر). يعرف تقريبًا ولا يجد الكلمات ← اعرض البضاعة (غير مباشر). نعم تمامًا ← سلّم البضاعة."],
+ neustart:["Nochmal spielen","Tekrar oyna","Chơi lại","العب مرة أخرى"],
+ titel3:["Bedarfs-Profi 🏆","İhtiyaç uzmanı 🏆","Chuyên gia nhu cầu 🏆","خبير الاحتياجات 🏆"],
+ titel2:["Gute Beratung 👍","İyi danışmanlık 👍","Tư vấn tốt 👍","استشارة جيدة 👍"],
+ titel1:["Weiter üben 💪","Çalışmaya devam 💪","Tiếp tục luyện tập 💪","واصل التدريب 💪"],
+ tq:["❓ fragen","❓ soru sor","❓ hỏi","❓ اسأل"],
+ tz:["🛍️ Ware zeigen","🛍️ ürünü göster","🛍️ cho xem hàng","🛍️ اعرض البضاعة"],
+ tg:["🤝 aushändigen","🤝 teslim et","🤝 trao hàng","🤝 سلّم البضاعة"],
+ tx:["💬 sonstiges","💬 diğer","💬 khác","💬 أخرى"],
+ schreibt:["schreibt …","yazıyor …","đang nhập …","يكتب …"],
+ zufrieden:["Kunde zufrieden","Müşteri memnun","Khách hài lòng","الزبون راضٍ"]
+};
+const FORMS=[
+ {n:["direkte Bedarfsermittlung","doğrudan ihtiyaç belirleme","xác định nhu cầu trực tiếp","تحديد الاحتياجات المباشر"],h:["Fragen nach Anlass, Zweck, Einsatz","amaç, vesile, kullanım hakkında sorular","hỏi về dịp, mục đích, cách dùng","أسئلة عن المناسبة والغرض والاستخدام"]},
+ {n:["indirekte Bedarfsermittlung","dolaylı ihtiyaç belirleme","xác định nhu cầu gián tiếp","تحديد الاحتياجات غير المباشر"],h:["Testangebot zeigen, Reaktion abwarten","deneme ürünü göster, tepkiyi bekle","cho xem hàng thử, chờ phản ứng","اعرض عرضًا تجريبيًا وانتظر ردّ الفعل"]},
+ {n:["Aushändigungsverkauf – keine Bedarfsermittlung","doğrudan teslim satışı – ihtiyaç belirleme yok","bán hàng trao tay – không cần xác định nhu cầu","بيع التسليم المباشر – بدون تحديد الاحتياجات"],h:["nur Ergänzungsfrage zu Art, Menge, Größe","sadece tür, miktar, boy için tamamlayıcı soru","chỉ hỏi bổ sung về loại, số lượng, cỡ","سؤال تكميلي فقط عن النوع أو الكمية أو الحجم"]}];
+const REASONS=[
+ ["Der Kunde weiß nicht genau, was er will. Fragen bringen mich weiter.","Müşteri tam olarak ne istediğini bilmiyor. Sorular beni ilerletir.","Khách không biết chính xác mình muốn gì. Câu hỏi giúp tôi tiến lên.","الزبون لا يعرف بالضبط ماذا يريد. الأسئلة تساعدني."],
+ ["Der Kunde kann seinen Wunsch nicht in Worte fassen. An der Ware zeigt sich, was er will.","Müşteri isteğini kelimelerle anlatamıyor. Ne istediği ürünü görünce ortaya çıkar.","Khách không diễn đạt được mong muốn bằng lời. Nhìn hàng thì mới rõ khách muốn gì.","الزبون لا يستطيع التعبير عن رغبته بالكلمات. يتضح ما يريده عند رؤية البضاعة."],
+ ["Der Kunde weiß genau, was er will – Ware des täglichen Bedarfs.","Müşteri ne istediğini tam biliyor – günlük ihtiyaç ürünü.","Khách biết chính xác mình muốn gì – hàng tiêu dùng hằng ngày.","الزبون يعرف بالضبط ماذا يريد – بضاعة للاستخدام اليومي."]];
+
+/* Kunden: f = passende Form, k = Typ der Antwort (q fragen, z zeigen, g aushändigen, x sonstiges) */
+const CUST=[
+ {nm:"Frau Akın",av:"👩",bg:"#fde2c4",ort:["Sportabteilung","Spor reyonu","Quầy thể thao","قسم الرياضة"],f:0,prod:"⚽",
+  hi:["Hallo! Ich brauche ein Geschenk für meinen Neffen. Ich weiß aber noch nicht genau, was.","Merhaba! Yeğenim için bir hediyeye ihtiyacım var. Ama ne olacağını henüz tam bilmiyorum.","Xin chào! Tôi cần một món quà cho cháu trai. Nhưng tôi chưa biết chính xác là gì.","مرحبًا! أحتاج هدية لابن أخي، لكني لا أعرف بعد ماذا بالضبط."],
+  st:[
+   {o:[
+     {k:"q",ok:1,t:["Gern! Für welchen Anlass ist das Geschenk, und wie alt ist Ihr Neffe?","Memnuniyetle! Hediye hangi vesileyle ve yeğeniniz kaç yaşında?","Rất sẵn lòng! Món quà dành cho dịp gì, và cháu trai bao nhiêu tuổi?","بكل سرور! ما مناسبة الهدية، وكم عمر ابن أخيك؟"],
+      f:["Sie weiß nicht, was sie will. Fragen nach Anlass und Person bringen dich weiter.","Ne istediğini bilmiyor. Vesile ve kişi hakkında sorular seni ilerletir.","Cô ấy không biết mình muốn gì. Hỏi về dịp và người nhận sẽ giúp bạn.","هي لا تعرف ماذا تريد. الأسئلة عن المناسبة والشخص تساعدك."]},
+     {k:"z",ok:0,t:["Nehmen Sie doch diese Bluetooth-Box hier!","Şu Bluetooth hoparlörü alın!","Chị lấy cái loa Bluetooth này đi!","خذي مكبّر الصوت هذا!"],
+      f:["Ein Testangebot ins Blaue. Passt es nicht, wirkst du nicht kompetent.","Rastgele bir deneme ürünü. Uymazsa yetkin görünmezsin.","Đưa hàng thử một cách ngẫu nhiên. Nếu không hợp, bạn trông thiếu chuyên nghiệp.","عرض عشوائي. إذا لم يناسب، تبدو غير كفء."]},
+     {k:"g",ok:0,t:["Welche Menge darf es sein?","Ne kadar olsun?","Chị cần bao nhiêu?","ما الكمية التي تريدينها؟"],
+      f:["Eine Ergänzungsfrage passt nur, wenn der Kunde genau weiß, was er will.","Tamamlayıcı soru sadece müşteri ne istediğini tam bildiğinde uygundur.","Câu hỏi bổ sung chỉ hợp khi khách biết rõ mình muốn gì.","السؤال التكميلي يناسب فقط عندما يعرف الزبون بالضبط ماذا يريد."]}],
+    r:["Er wird 14 und hat nächste Woche Geburtstag. Er spielt total gern Fußball.","14 yaşına giriyor, gelecek hafta doğum günü. Futbol oynamayı çok seviyor.","Cháu sắp 14 tuổi, tuần sau là sinh nhật. Cháu rất thích đá bóng.","سيبلغ 14 عامًا وعيد ميلاده الأسبوع القادم. يحب كرة القدم كثيرًا."]},
+   {o:[
+     {k:"q",ok:0,t:["Wie groß ist er? Welche Schuhgröße? Welche Lieblingsfarbe? Welcher Verein? Spielt er im Tor?","Boyu kaç? Ayakkabı numarası? En sevdiği renk? Hangi takım? Kaleci mi?","Cháu cao bao nhiêu? Cỡ giày? Màu yêu thích? Đội nào? Có làm thủ môn không?","كم طوله؟ ما مقاس حذائه؟ لونه المفضل؟ أي نادٍ؟ هل هو حارس مرمى؟"],
+      f:["Zu viele Fragen am Stück: Die Kundin fühlt sich ausgefragt. Das ist der Nachteil der direkten Bedarfsermittlung.","Arka arkaya çok fazla soru: Müşteri sorguya çekilmiş gibi hisseder. Doğrudan ihtiyaç belirlemenin dezavantajı budur.","Hỏi dồn quá nhiều: khách cảm thấy bị tra hỏi. Đó là nhược điểm của xác định nhu cầu trực tiếp.","أسئلة كثيرة متتالية: تشعر الزبونة أنها تُستجوب. هذا عيب التحديد المباشر."]},
+     {k:"z",ok:1,t:["Dann zeige ich Ihnen einmal unsere Fußbälle und Torwarthandschuhe.","O zaman size futbol toplarımızı ve kaleci eldivenlerimizi göstereyim.","Vậy để tôi cho chị xem bóng đá và găng tay thủ môn.","إذن سأريك كرات القدم وقفازات حارس المرمى."],
+      f:["Jetzt kennst du den Bedarf. Also passende Ware vorlegen.","Artık ihtiyacı biliyorsun. Şimdi uygun ürünü göster.","Giờ bạn đã biết nhu cầu. Hãy cho xem hàng phù hợp.","الآن تعرف الحاجة. اعرض البضاعة المناسبة."]},
+     {k:"q",ok:0,t:["Wie viel wollen Sie ausgeben?","Ne kadar harcamak istiyorsunuz?","Chị muốn chi bao nhiêu?","كم تريدين أن تنفقي؟"],
+      f:["Die Preisfrage gehört nicht an den Anfang. Zeig lieber Ware in mittlerer Preislage.","Fiyat sorusu başa ait değildir. Orta fiyatlı ürün göster.","Không nên hỏi giá ngay từ đầu. Hãy cho xem hàng giá trung bình.","سؤال السعر لا يكون في البداية. اعرض بضاعة بسعر متوسط."]}],
+    r:["Oh, der Ball mit den Unterschriften ist super! Den nehme ich.","Ah, imzalı top harika! Onu alıyorum.","Ồ, quả bóng có chữ ký thật tuyệt! Tôi lấy quả này.","الكرة الموقّعة رائعة! سآخذها."]}]},
+
+ {nm:"Herr Petrov",av:"👨",bg:"#d6e6fb",ort:["Elektronikabteilung","Elektronik reyonu","Quầy điện tử","قسم الإلكترونيات"],f:1,prod:"🎧",
+  hi:["Äh … so etwas in der Art suche ich.","Şey … buna benzer bir şey arıyorum.","À … tôi đang tìm cái gì đó kiểu như thế này.","أمم … أبحث عن شيء من هذا النوع."],
+  st:[
+   {o:[
+     {k:"q",ok:0,t:["Wofür, wann, wo, wie oft und mit welchem Gerät wollen Sie die Kopfhörer nutzen?","Kulaklığı ne için, ne zaman, nerede, ne sıklıkla ve hangi cihazla kullanacaksınız?","Anh dùng tai nghe để làm gì, khi nào, ở đâu, bao lâu một lần và với thiết bị nào?","لأي غرض ومتى وأين وكم مرة ومع أي جهاز ستستخدم السماعات؟"],
+      f:["Er kann seinen Wunsch nicht in Worte fassen. Viele Fragen überfordern ihn.","İsteğini kelimelerle anlatamıyor. Çok soru onu bunaltır.","Anh ấy không diễn đạt được mong muốn. Hỏi nhiều sẽ làm anh ấy rối.","لا يستطيع التعبير عن رغبته. كثرة الأسئلة ترهقه."]},
+     {k:"z",ok:1,t:["Ich zeige Ihnen einmal dieses Modell. Wie gefällt es Ihnen?","Size şu modeli göstereyim. Nasıl buldunuz?","Để tôi cho anh xem mẫu này. Anh thấy thế nào?","سأريك هذا الطراز. ما رأيك فيه؟"],
+      f:["Richtig: Ware vorlegen und die Reaktion abwarten.","Doğru: ürünü göster ve tepkiyi bekle.","Đúng: cho xem hàng và chờ phản ứng.","صحيح: اعرض البضاعة وانتظر ردّ الفعل."]},
+     {k:"x",ok:0,t:["Kopfhörer stehen da hinten.","Kulaklıklar arkada.","Tai nghe ở đằng sau kia.","السماعات هناك في الخلف."],
+      f:["So lässt du den Kunden allein. Er kauft woanders.","Böylece müşteriyi yalnız bırakırsın. Başka yerden alır.","Như vậy là bỏ mặc khách. Anh ấy sẽ mua ở chỗ khác.","هكذا تترك الزبون وحده. سيشتري من مكان آخر."]}],
+    r:["Hm, schön leicht. Aber die drücken an den Ohren. Und ich will damit joggen.","Hm, güzel hafif. Ama kulaklarımı sıkıyor. Ve onlarla koşmak istiyorum.","Ừm, nhẹ thật. Nhưng nó bóp tai. Và tôi muốn đeo khi chạy bộ.","خفيفة وجميلة، لكنها تضغط على أذنيّ. وأريد أن أركض بها."]},
+   {o:[
+     {k:"z",ok:0,t:["Dann zeige ich Ihnen noch diese zehn anderen Modelle.","O zaman size şu on modeli daha göstereyim.","Vậy tôi cho anh xem thêm mười mẫu khác nữa.","إذن سأريك هذه الطرازات العشرة الأخرى."],
+      f:["Zu viele Testangebote verwirren den Kunden.","Çok fazla deneme ürünü müşterinin kafasını karıştırır.","Quá nhiều hàng thử làm khách rối.","كثرة العروض التجريبية تربك الزبون."]},
+     {k:"x",ok:0,t:["Die drücken nur am Anfang. Die nehmen Sie, oder?","Sadece başta sıkar. Bunları alıyorsunuz, değil mi?","Chỉ bóp lúc đầu thôi. Anh lấy cái này nhé?","تضغط فقط في البداية. ستأخذها، أليس كذلك؟"],
+      f:["Du übergehst seine Reaktion und drängst mit einer Suggestivfrage.","Tepkisini görmezden geliyorsun ve yönlendirici soruyla baskı yapıyorsun.","Bạn bỏ qua phản ứng của khách và ép bằng câu hỏi dẫn dắt.","تتجاهل ردّ فعله وتضغط بسؤال إيحائي."]},
+     {k:"z",ok:1,t:["Dann probieren Sie diese In-Ear-Sportkopfhörer. Sie sitzen fest und vertragen Schweiß.","O zaman şu kulak içi spor kulaklıklarını deneyin. Sıkı oturur ve tere dayanıklıdır.","Vậy anh thử tai nghe thể thao nhét tai này. Đeo chắc và chịu được mồ hôi.","إذن جرّب سماعات الرياضة داخل الأذن هذه. ثابتة ومقاومة للعرق."],
+      f:["Gut: Aus seiner Reaktion lernst du und zeigst ein besser passendes Angebot.","İyi: Tepkisinden öğreniyorsun ve daha uygun bir ürün gösteriyorsun.","Tốt: Bạn học từ phản ứng và cho xem hàng phù hợp hơn.","جيد: تتعلم من ردّ فعله وتعرض شيئًا أنسب."]}],
+    r:["Perfekt, die sitzen bombenfest!","Mükemmel, bunlar sımsıkı oturuyor!","Tuyệt, đeo chắc lắm!","ممتاز، ثابتة تمامًا!"]}]},
+
+ {nm:"Frau Nguyen",av:"👵",bg:"#e3f1dc",ort:["Fleischtheke","Şarküteri tezgâhı","Quầy thịt","قسم اللحوم"],f:2,prod:"🥓",
+  hi:["Zweihundert Gramm gekochten Schinken, bitte.","İki yüz gram haşlanmış jambon, lütfen.","Cho tôi hai trăm gam thịt nguội luộc.","مئتا غرام من اللحم المطبوخ، من فضلك."],
+  st:[
+   {o:[
+     {k:"q",ok:0,t:["Für welchen Anlass brauchen Sie den Schinken?","Jambona hangi vesileyle ihtiyacınız var?","Bà cần thịt nguội cho dịp gì ạ?","لأي مناسبة تحتاجين اللحم؟"],
+      f:["Sie weiß genau, was sie will. Fragen nerven hier nur.","Ne istediğini tam biliyor. Sorular burada sadece rahatsız eder.","Bà ấy biết rõ mình muốn gì. Hỏi thêm chỉ gây phiền.","هي تعرف بالضبط ماذا تريد. الأسئلة هنا مزعجة فقط."]},
+     {k:"g",ok:1,t:["Gern. Lieber am Stück oder geschnitten?","Memnuniyetle. Parça mı olsun, dilimlenmiş mi?","Vâng ạ. Bà muốn nguyên miếng hay cắt lát?","بكل سرور. قطعة واحدة أم شرائح؟"],
+      f:["Richtig: Aushändigungsverkauf. Nur eine Ergänzungsfrage.","Doğru: doğrudan teslim satışı. Sadece tamamlayıcı bir soru.","Đúng: bán hàng trao tay. Chỉ một câu hỏi bổ sung.","صحيح: بيع التسليم المباشر. سؤال تكميلي فقط."]},
+     {k:"z",ok:0,t:["Ich zeige Ihnen erst mal unsere zwölf Schinkensorten.","Önce size on iki jambon çeşidimizi göstereyim.","Để tôi cho bà xem mười hai loại thịt nguội trước.","سأريك أولًا أنواع اللحم الاثني عشر لدينا."],
+      f:["Unnötig: Sie hat schon gesagt, was sie will.","Gereksiz: Ne istediğini zaten söyledi.","Không cần thiết: Bà ấy đã nói rõ mình muốn gì.","غير ضروري: قالت بالفعل ماذا تريد."]}],
+    r:["Geschnitten, bitte – schön dünn.","Dilimlenmiş, lütfen – ince ince.","Cắt lát nhé – thật mỏng.","شرائح من فضلك – رفيعة."]},
+   {o:[
+     {k:"x",ok:0,t:["Nur 200 Gramm? Nehmen Sie doch gleich ein Kilo!","Sadece 200 gram mı? Hemen bir kilo alın!","Chỉ 200 gam thôi ạ? Bà lấy luôn một ký đi!","فقط 200 غرام؟ خذي كيلو كاملًا!"],
+      f:["Das ist Drängeln. Die Kundin ärgert sich.","Bu baskı yapmaktır. Müşteri sinirlenir.","Đó là ép khách. Bà ấy sẽ bực mình.","هذا إلحاح. تنزعج الزبونة."]},
+     {k:"q",ok:0,t:["Essen Sie den Schinken zum Frühstück oder am Abend?","Jambonu kahvaltıda mı yoksa akşam mı yiyorsunuz?","Bà ăn thịt nguội vào bữa sáng hay buổi tối?","هل تأكلين اللحم في الفطور أم في المساء؟"],
+      f:["Unnötige Frage beim Aushändigungsverkauf.","Doğrudan teslim satışında gereksiz bir soru.","Câu hỏi không cần thiết khi bán hàng trao tay.","سؤال غير ضروري في بيع التسليم."]},
+     {k:"g",ok:1,t:["Bitte schön: 200 Gramm, dünn geschnitten. Darf es noch etwas sein?","Buyurun: 200 gram, ince dilimlenmiş. Başka bir şey ister misiniz?","Của bà đây: 200 gam, cắt lát mỏng. Bà cần thêm gì nữa không ạ?","تفضلي: 200 غرام، شرائح رفيعة. هل تريدين شيئًا آخر؟"],
+      f:["Gut: abwiegen, prüfen, einpacken – und freundlich nach weiteren Wünschen fragen.","İyi: tart, kontrol et, paketle – ve nazikçe başka istek sor.","Tốt: cân, kiểm tra, gói – và lịch sự hỏi khách còn cần gì.","جيد: زِن، افحص، غلّف – واسأل بلطف عن طلبات أخرى."]}],
+    r:["Danke, das ging schnell!","Teşekkürler, çok hızlı oldu!","Cảm ơn, nhanh quá!","شكرًا، كان ذلك سريعًا!"]}]},
+
+ {nm:"Herr Weber",av:"🧔",bg:"#efe0f7",ort:["Elektronikabteilung","Elektronik reyonu","Quầy điện tử","قسم الإلكترونيات"],f:0,prod:"🖨️",
+  hi:["Ich brauche einen Drucker. Aber ich kenne mich damit gar nicht aus.","Bir yazıcıya ihtiyacım var. Ama bu konuda hiç bilgim yok.","Tôi cần một cái máy in. Nhưng tôi hoàn toàn không rành về nó.","أحتاج طابعة، لكني لا أفهم فيها شيئًا."],
+  st:[
+   {o:[
+     {k:"q",ok:0,t:["Möchten Sie Tinte oder Laser?","Mürekkepli mi, lazer mi istersiniz?","Anh muốn máy in phun hay máy in laser?","هل تريد طابعة حبر أم ليزر؟"],
+      f:["Er kennt sich nicht aus. Mit Fachbegriffen kann er nichts anfangen. Frag erst offen.","Bilgisi yok. Teknik terimlerle bir şey anlamaz. Önce açık uçlu sor.","Anh ấy không rành. Thuật ngữ chuyên môn không giúp được. Hãy hỏi câu hỏi mở trước.","لا يفهم في الموضوع. المصطلحات الفنية لا تفيده. اسأل سؤالًا مفتوحًا أولًا."]},
+     {k:"z",ok:0,t:["Nehmen Sie den hier, der ist gerade im Angebot.","Şunu alın, şu an indirimde.","Anh lấy cái này đi, đang khuyến mãi.","خذ هذه، إنها في العرض الآن."],
+      f:["Ein Drucker ist erklärungsbedürftig. Ohne Fragen weißt du nicht, was passt.","Yazıcı açıklama gerektiren bir üründür. Soru sormadan neyin uyduğunu bilemezsin.","Máy in là hàng cần tư vấn. Không hỏi thì bạn không biết cái nào hợp.","الطابعة تحتاج إلى شرح. بدون أسئلة لا تعرف ما يناسب."]},
+     {k:"q",ok:1,t:["Kein Problem. Wofür möchten Sie den Drucker vor allem verwenden?","Sorun değil. Yazıcıyı en çok ne için kullanmak istiyorsunuz?","Không sao ạ. Anh chủ yếu muốn dùng máy in để làm gì?","لا مشكلة. لأي غرض تريد استخدام الطابعة بشكل أساسي؟"],
+      f:["Richtig: Er weiß nicht, was er will. Eine offene Frage zum Einsatzbereich hilft.","Doğru: Ne istediğini bilmiyor. Kullanım alanı hakkında açık uçlu bir soru yardımcı olur.","Đúng: Anh ấy không biết mình muốn gì. Câu hỏi mở về mục đích sử dụng sẽ giúp.","صحيح: لا يعرف ماذا يريد. سؤال مفتوح عن الاستخدام يساعد."]}],
+    r:["Für die Hausaufgaben meiner Kinder. Und ab und zu für Fotos.","Çocuklarımın ödevleri için. Ve arada bir fotoğraf için.","Để con tôi in bài tập về nhà. Và thỉnh thoảng in ảnh.","لواجبات أطفالي المدرسية، وأحيانًا للصور."]},
+   {o:[
+     {k:"z",ok:1,t:["Dann zeige ich Ihnen diesen Tintenstrahldrucker. Er druckt Texte und schöne Fotos.","O zaman size şu mürekkep püskürtmeli yazıcıyı göstereyim. Hem yazı hem güzel fotoğraf basar.","Vậy tôi cho anh xem máy in phun này. Nó in được chữ và ảnh đẹp.","إذن سأريك طابعة الحبر هذه. تطبع النصوص والصور الجميلة."],
+      f:["Gut: Aus den Antworten ziehst du Schlüsse und legst passende Ware vor.","İyi: Cevaplardan sonuç çıkarıyor ve uygun ürünü gösteriyorsun.","Tốt: Bạn rút ra kết luận từ câu trả lời và cho xem hàng phù hợp.","جيد: تستنتج من الإجابات وتعرض البضاعة المناسبة."]},
+     {k:"z",ok:0,t:["Da brauchen Sie unseren Profi-Laserdrucker für 900 Euro.","O zaman 900 euroluk profesyonel lazer yazıcımıza ihtiyacınız var.","Vậy anh cần máy in laser chuyên nghiệp giá 900 euro.","إذن تحتاج طابعة الليزر الاحترافية بسعر 900 يورو."],
+      f:["Passt nicht zum Bedarf: zu teuer und kann keine schönen Fotos.","İhtiyaca uymuyor: çok pahalı ve güzel fotoğraf basamaz.","Không hợp nhu cầu: quá đắt và không in ảnh đẹp.","لا يناسب الحاجة: غالية جدًا ولا تطبع صورًا جميلة."]},
+     {k:"q",ok:0,t:["Wie viele Seiten genau? Pro Woche, pro Monat, pro Jahr?","Tam olarak kaç sayfa? Haftada, ayda, yılda?","Chính xác bao nhiêu trang? Mỗi tuần, mỗi tháng, mỗi năm?","كم صفحة بالضبط؟ في الأسبوع، في الشهر، في السنة؟"],
+      f:["Jetzt wird es ein Verhör. Du weißt genug – zeig Ware.","Artık sorguya dönüyor. Yeterince biliyorsun – ürünü göster.","Giờ thành tra hỏi rồi. Bạn đã biết đủ – hãy cho xem hàng.","أصبح استجوابًا. تعرف ما يكفي – اعرض البضاعة."]}],
+    r:["Genau so einen habe ich gesucht!","Tam da böyle bir şey arıyordum!","Đúng cái tôi đang tìm!","هذا بالضبط ما كنت أبحث عنه!"]}]},
+
+ {nm:"Frau Silva",av:"👱‍♀️",bg:"#fbe0e6",ort:["Damenmode","Kadın giyim","Thời trang nữ","ملابس نسائية"],f:1,prod:"👗",
+  hi:["Ich suche so ein Kleid wie im Schaufenster … aber irgendwie anders.","Vitrindeki gibi bir elbise arıyorum … ama biraz farklı.","Tôi tìm một chiếc váy giống trong tủ kính … nhưng hơi khác một chút.","أبحث عن فستان مثل الذي في الواجهة … لكن مختلف قليلًا."],
+  st:[
+   {o:[
+     {k:"x",ok:0,t:["Das Kleid im Schaufenster ist doch perfekt, oder?","Vitrindeki elbise mükemmel, değil mi?","Chiếc váy trong tủ kính hoàn hảo mà, đúng không?","الفستان في الواجهة مثالي، أليس كذلك؟"],
+      f:["Suggestivfrage: Sie hat doch gesagt, dass sie etwas anderes will.","Yönlendirici soru: Başka bir şey istediğini söyledi.","Câu hỏi dẫn dắt: Cô ấy đã nói muốn cái khác.","سؤال إيحائي: لقد قالت إنها تريد شيئًا مختلفًا."]},
+     {k:"z",ok:1,t:["Ich zeige Ihnen einmal dieses Kleid hier. Wie gefällt es Ihnen?","Size şu elbiseyi göstereyim. Nasıl buldunuz?","Để tôi cho chị xem chiếc váy này. Chị thấy thế nào?","سأريك هذا الفستان. ما رأيك فيه؟"],
+      f:["Richtig: Sie findet keine Worte. An der Ware zeigt sich ihr Wunsch.","Doğru: Kelime bulamıyor. İsteği ürünü görünce ortaya çıkar.","Đúng: Cô ấy không diễn đạt được. Nhìn hàng thì mong muốn mới rõ.","صحيح: لا تجد الكلمات. تتضح رغبتها عند رؤية البضاعة."]},
+     {k:"q",ok:0,t:["Was genau soll anders sein? Länge? Farbe? Stoff? Schnitt? Ärmel?","Tam olarak ne farklı olmalı? Boy? Renk? Kumaş? Kesim? Kol?","Chính xác khác ở chỗ nào? Độ dài? Màu? Vải? Kiểu? Tay áo?","ما الذي يجب أن يكون مختلفًا بالضبط؟ الطول؟ اللون؟ القماش؟ القصة؟ الأكمام؟"],
+      f:["Sie kann es nicht in Worte fassen. So viele Fragen überfordern sie.","Kelimelerle anlatamıyor. Bu kadar çok soru onu bunaltır.","Cô ấy không diễn đạt được. Hỏi nhiều thế làm cô ấy rối.","لا تستطيع التعبير بالكلمات. كثرة الأسئلة ترهقها."]}],
+    r:["Die Farbe ist schön. Aber es sollte länger sein.","Rengi güzel. Ama daha uzun olmalı.","Màu đẹp. Nhưng nên dài hơn.","اللون جميل، لكن يجب أن يكون أطول."]},
+   {o:[
+     {k:"z",ok:1,t:["Dann habe ich hier das gleiche Kleid in Midi-Länge.","O zaman burada aynı elbisenin midi boyu var.","Vậy tôi có chiếc váy giống hệt nhưng dài qua gối.","إذن لدي الفستان نفسه بطول متوسط."],
+      f:["Gut: Du nimmst ihre Reaktion auf und näherst dich ihrem Wunsch.","İyi: Tepkisini dikkate alıp isteğine yaklaşıyorsun.","Tốt: Bạn tiếp thu phản ứng và tiến gần mong muốn của khách.","جيد: تأخذ ردّ فعلها بعين الاعتبار وتقترب من رغبتها."]},
+     {k:"x",ok:0,t:["Kürzer ist gerade aber modern.","Ama şu an kısa olan moda.","Nhưng ngắn đang là mốt đấy.","لكن القصير هو الموضة الآن."],
+      f:["Du übergehst ihre Reaktion. Sie fühlt sich nicht ernst genommen.","Tepkisini görmezden geliyorsun. Ciddiye alınmadığını hisseder.","Bạn bỏ qua phản ứng của khách. Cô ấy thấy không được tôn trọng.","تتجاهل ردّ فعلها. تشعر أنها لا تؤخذ بجدية."]},
+     {k:"q",ok:0,t:["Was müsste denn anders sein?","Ne farklı olmalıydı?","Vậy cần khác ở chỗ nào ạ?","ما الذي يجب أن يكون مختلفًا؟"],
+      f:["Das hat sie gerade gesagt: länger. Zeig jetzt ein passendes Kleid.","Bunu az önce söyledi: daha uzun. Şimdi uygun bir elbise göster.","Cô ấy vừa nói rồi: dài hơn. Giờ hãy cho xem chiếc váy phù hợp.","قالت ذلك للتو: أطول. اعرض الآن فستانًا مناسبًا."]}],
+    r:["Wunderbar, genau das!","Harika, tam olarak bu!","Tuyệt vời, đúng cái này!","رائع، هذا بالضبط!"]}]},
+
+ {nm:"Herr Yılmaz",av:"🧑",bg:"#fff3c4",ort:["Sportschuhe","Spor ayakkabı","Giày thể thao","الأحذية الرياضية"],f:0,prod:"👟",
+  hi:["Ich suche Laufschuhe. Nach fünf Kilometern tun mir immer die Knie weh. Und ich laufe meistens im Park auf Schotter …","Koşu ayakkabısı arıyorum. Beş kilometreden sonra hep dizlerim ağrıyor. Ve genelde parkta çakıl yolda koşuyorum …","Tôi tìm giày chạy bộ. Chạy được năm cây số là đầu gối tôi lại đau. Và tôi hay chạy trong công viên trên đường sỏi …","أبحث عن حذاء للجري. بعد خمسة كيلومترات تؤلمني ركبتاي دائمًا. وأجري غالبًا في الحديقة على الحصى …"],
+  st:[
+   {o:[
+     {k:"x",ok:0,t:["Möchten Sie bar oder mit Karte zahlen?","Nakit mi, kartla mı ödemek istersiniz?","Anh muốn trả tiền mặt hay thẻ?","هل تريد الدفع نقدًا أم بالبطاقة؟"],
+      f:["Viel zu früh! Die Abschlussfrage gehört ans Ende.","Çok erken! Kapanış sorusu sona aittir.","Quá sớm! Câu hỏi chốt đơn thuộc về cuối cùng.","مبكر جدًا! سؤال إتمام البيع يكون في النهاية."]},
+     {k:"q",ok:1,t:["Das hilft mir schon sehr. Wie oft in der Woche laufen Sie?","Bu bana çok yardımcı oluyor. Haftada kaç kez koşuyorsunuz?","Thông tin này giúp tôi nhiều. Anh chạy mấy lần một tuần?","هذا يساعدني كثيرًا. كم مرة تجري في الأسبوع؟"],
+      f:["Richtig: Er erzählt viel. Zuhören und gezielt weiterfragen.","Doğru: Çok anlatıyor. Dinle ve hedefli sormaya devam et.","Đúng: Anh ấy kể nhiều. Hãy lắng nghe và hỏi tiếp có mục đích.","صحيح: يتحدث كثيرًا. استمع وتابع بأسئلة محددة."]},
+     {k:"z",ok:0,t:["Hier, die sind gerade total im Trend.","Bakın, bunlar şu an çok moda.","Đây, đôi này đang rất thịnh hành.","هذه رائجة جدًا الآن."],
+      f:["Du hörst nicht zu: Er hat Knieprobleme, Trend ist ihm egal.","Dinlemiyorsun: Dizlerinde sorun var, moda onun umurunda değil.","Bạn không lắng nghe: Anh ấy đau đầu gối, mốt không quan trọng.","أنت لا تستمع: لديه مشاكل في الركبة، ولا تهمه الموضة."]}],
+    r:["Dreimal pro Woche, immer so acht Kilometer.","Haftada üç kez, hep sekiz kilometre kadar.","Ba lần một tuần, mỗi lần khoảng tám cây số.","ثلاث مرات في الأسبوع، نحو ثمانية كيلومترات."]},
+   {o:[
+     {k:"q",ok:0,t:["Welche Farbe mögen Sie am liebsten?","En çok hangi rengi seviyorsunuz?","Anh thích màu nào nhất?","ما اللون المفضل لديك؟"],
+      f:["Nebensache zuerst. Wichtig sind Dämpfung und Untergrund.","Önce önemsiz şey. Önemli olan yastıklama ve zemin.","Hỏi chuyện phụ trước. Quan trọng là độ êm và mặt đường.","تبدأ بأمر ثانوي. المهم هو التبطين ونوع الأرض."]},
+     {k:"z",ok:1,t:["Dann zeige ich Ihnen diese gut gedämpften Trailschuhe. Sie schonen die Knie auf Schotter.","O zaman size şu iyi yastıklamalı arazi ayakkabılarını göstereyim. Çakılda dizleri korur.","Vậy tôi cho anh xem đôi giày chạy địa hình êm này. Nó đỡ cho đầu gối trên đường sỏi.","إذن سأريك حذاء الجري على الطرق الوعرة هذا، تبطينه جيد ويحمي الركبتين على الحصى."],
+      f:["Gut: Aus seinen Antworten weißt du, was er braucht – jetzt passende Ware zeigen.","İyi: Cevaplarından neye ihtiyacı olduğunu biliyorsun – şimdi uygun ürünü göster.","Tốt: Từ câu trả lời, bạn biết anh ấy cần gì – giờ cho xem hàng phù hợp.","جيد: من إجاباته تعرف ما يحتاجه – اعرض الآن البضاعة المناسبة."]},
+     {k:"x",ok:0,t:["Mit Knieschmerzen sollten Sie lieber gar nicht laufen.","Diz ağrısıyla hiç koşmasanız daha iyi.","Đau đầu gối thì anh đừng chạy nữa.","مع ألم الركبة من الأفضل ألا تجري أبدًا."],
+      f:["Das ist keine Beratung. Er möchte laufen – hilf ihm dabei.","Bu danışmanlık değil. Koşmak istiyor – ona yardım et.","Đó không phải là tư vấn. Anh ấy muốn chạy – hãy giúp anh ấy.","هذه ليست استشارة. هو يريد الجري – ساعده في ذلك."]}],
+    r:["Die fühlen sich super weich an. Die nehme ich!","Çok yumuşak hissettiriyor. Bunları alıyorum!","Đi êm quá. Tôi lấy đôi này!","تبدو ناعمة جدًا. سآخذها!"]}]}
+];
+
+</script>
+<script>
+"use strict";
+const LI={tr:0,vi:1,ar:2};
+const LANGS=[["de","Deutsch"],["tr","Türkçe"],["vi","Tiếng Việt"],["ar","العربية"]];
+let lang="de";
+try{const s=localStorage.getItem("kc_lang");if(s&&LANGS.some(l=>l[0]===s))lang=s;}catch(e){}
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const tl=a=>{if(lang==="de"||!a)return "";const s=a[LI[lang]+1];return s?`<span class="tl" lang="${lang}" dir="${lang==="ar"?"rtl":"ltr"}">${esc(s)}</span>`:"";};
+const L=a=>esc(a[0])+tl(a);           /* a = [de,tr,vi,ar] */
+const T=k=>L(U[k]);
+const D=k=>U[k][0];
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+let S={screen:"start",name:"",profi:false,ci:0,step:0,mood:50,log:[],tries:[],phase:"chat",busy:false,res:[],pts:0,custPts:0,fq:null,rq:null,order:[]};
+
+function head(){
+  $("sub").innerHTML=T("sub");
+  $("langs").innerHTML=LANGS.map(([c,n])=>`<button class="${c===lang?"on":""}" data-l="${c}">${n}</button>`).join("");
+  $("langs").querySelectorAll("button").forEach(b=>b.onclick=()=>{lang=b.dataset.l;try{localStorage.setItem("kc_lang",lang);}catch(e){}render();});
+}
+
+/* ---------- Start ---------- */
+function renderStart(){
+  $("main").innerHTML=`<div class="start"><div class="faces">👩 👨 👵 🧔 👱‍♀️ 🧑</div><h2>${D("head")}</h2>${tl(U.head)}<p>${T("intro")}</p>
+  <label><b>${D("name")}</b>${tl(U.name)}</label><input id="nm" maxlength="30" value="${esc(S.name)}" autocomplete="off">
+  <b>${D("stufe")}</b>${tl(U.stufe)}<div class="seg"><button id="b0" class="${S.profi?"":"on"}">${T("basis")}</button><button id="b1" class="${S.profi?"on":""}">${T("profi")}</button></div>
+  <button class="btn gold" id="go">${T("los")}</button></div>`;
+  $("nm").oninput=e=>S.name=e.target.value;
+  $("b0").onclick=()=>{S.profi=false;renderStart();};
+  $("b1").onclick=()=>{S.profi=true;renderStart();};
+  $("go").onclick=()=>{S.name=$("nm").value.trim();S.screen="game";S.ci=0;S.res=[];S.pts=0;S.order=CUST.map((_,i)=>i);startCust();};
+}
+
+/* ---------- Chat ---------- */
+const C=()=>CUST[S.order[S.ci]];
+function startCust(){
+  S.step=0;S.mood=50;S.log=[];S.tries=[];S.custPts=0;S.phase="busy";S.fq=null;S.rq=null;
+  S.shuf=C().st.map(st=>shuffle(st.o.map((_,i)=>i)));
+  render();
+  say(()=>{S.log.push({t:"k",a:C().hi});S.phase="chat";render();});
+}
+function say(fn,ms){ /* Tipp-Anzeige, dann Nachricht */
+  S.typing=true;render();
+  setTimeout(()=>{S.typing=false;fn();},ms||900);
+}
+function moodColor(m){return m>=70?"#2d6b3a":m>=40?"#d1a10f":"#a32626";}
+function moodFace(m){return m>=85?"😄":m>=60?"🙂":m>=40?"😐":m>=20?"😕":"😠";}
+
+function renderGame(){
+  const c=C();
+  let h=`<div class="chead"><div class="av" style="background:${c.bg}">${c.av}</div><div><div class="nm">${esc(c.nm)}</div><small>${esc(c.ort[0])}${lang!=="de"?" · "+esc(c.ort[LI[lang]+1]):""}</small></div>
+   <div class="mood"><small>${D("stimmung")} ${moodFace(S.mood)}</small><div class="bar"><i style="width:${S.mood}%;background:${moodColor(S.mood)}"></i></div><div class="prog">${D("kunde")} ${S.ci+1} ${D("von")} ${CUST.length}</div></div></div>`;
+  h+=`<div class="chat" id="chat">`;
+  for(const m of S.log){
+    if(m.t==="k")h+=`<div class="msg k"><div class="av sav" style="background:${c.bg}">${c.av}</div><div class="bub">${L(m.a)}</div></div>`;
+    else if(m.t==="v")h+=`<div class="msg v"><div class="bub">${L(m.a)}</div></div>`;
+    else if(m.t==="good")h+=`<div class="note good">✔ <b>${D("gut")}</b> ${L(m.a)}</div>`;
+    else if(m.t==="bad")h+=`<div class="note bad">✘ ${L(m.a)}<div style="margin-top:3px"><b>${D("nochmal")}</b>${tl(U.nochmal)}</div></div>`;
+    else if(m.t==="prod")h+=`<div class="prod">${m.p}</div><div class="note info">🎉 ${T("zufrieden")}</div>`;
+    else if(m.t==="info")h+=`<div class="note ${m.c}">${m.h}</div>`;
+    else if(m.t==="sum")h+=m.h;
+  }
+  if(S.typing)h+=`<div class="msg k typing"><div class="av sav" style="background:${c.bg}">${c.av}</div><div class="bub"><span class="dots"><i></i><i></i><i></i></span></div></div>`;
+  h+=`</div><div class="reply" id="reply">${renderReply()}</div>`;
+  $("main").innerHTML=h;
+  bind();
+  const ch=$("chat");ch.scrollTop=ch.scrollHeight;
+  setTimeout(()=>{const r=$("reply");if(r&&r.innerHTML.trim())r.scrollIntoView({block:"nearest",behavior:"smooth"});},50);
+}
+function tagOf(k){return {q:"tq",z:"tz",g:"tg",x:"tx"}[k];}
+function renderReply(){
+  if(S.typing||S.phase==="busy")return "";
+  const c=C();
+  if(S.phase==="chat"){
+    const st=c.st[S.step];
+    let h=`<h4>${D("waehle")}${tl(U.waehle)}</h4>`;
+    for(const i of S.shuf[S.step]){
+      const o=st.o[i],tried=S.tries.includes(i);
+      h+=`<button class="opt" data-o="${i}" ${tried?"disabled":""}><span class="tag ${o.k}">${U[tagOf(o.k)][0]}</span>${tl(U[tagOf(o.k)])}<div>„${esc(o.t[0])}“</div>${tl(o.t)}</button>`;
+    }
+    return h;
+  }
+  if(S.phase==="form"){
+    let h=`<h4>${D("formq")}${tl(U.formq)}</h4>`;
+    FORMS.forEach((f,i)=>{let cls="opt";if(S.fq!==null){if(i===c.f)cls+=" right";else if(i===S.fq)cls+=" wrongsel";}
+      h+=`<button class="${cls}" data-f="${i}" ${S.fq!==null?"disabled":""}><b>${esc(f.n[0])}</b>${tl(f.n)}<div style="font-size:14px;color:#555">${esc(f.h[0])}</div>${tl(f.h)}</button>`;});
+    return h;
+  }
+  if(S.phase==="reason"){
+    let h=`<h4>${D("grundq")}${tl(U.grundq)}</h4>`;
+    REASONS.forEach((r,i)=>{let cls="opt";if(S.rq!==null){if(i===c.f)cls+=" right";else if(i===S.rq)cls+=" wrongsel";}
+      h+=`<button class="${cls}" data-r="${i}" ${S.rq!==null?"disabled":""}>${L(r)}</button>`;});
+    return h;
+  }
+  if(S.phase==="done"){
+    const last=S.ci===CUST.length-1;
+    return `<button class="btn ${last?"gold":""}" id="nextC">${last?T("auswertung"):T("naechster")}</button>`;
+  }
+  return "";
+}
+function bind(){
+  document.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>pick(+b.dataset.o,b));
+  document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>pickForm(+b.dataset.f));
+  document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>pickReason(+b.dataset.r));
+  if($("nextC"))$("nextC").onclick=()=>{if(S.ci<CUST.length-1){S.ci++;startCust();}else{S.screen="end";render();confetti();}};
+}
+function pick(i,btn){
+  if(S.busy)return;
+  const c=C(),st=c.st[S.step],o=st.o[i];
+  if(!o.ok){
+    S.tries.push(i);S.mood=Math.max(0,S.mood-15);
+    S.log.push({t:"bad",a:o.f});
+    btn.classList.add("shake");
+    setTimeout(render,250);
+    return;
+  }
+  S.custPts+=S.tries.length?50:100;
+  S.mood=Math.min(100,S.mood+25);
+  S.log.push({t:"v",a:o.t});
+  S.log.push({t:"good",a:o.f});
+  S.phase="busy";S.busy=true;render();
+  say(()=>{
+    S.busy=false;
+    S.log.push({t:"k",a:st.r});
+    S.tries=[];
+    if(S.step<c.st.length-1){S.step++;S.phase="chat";}
+    else{S.log.push({t:"prod",p:c.prod});S.phase="form";}
+    render();
+  },1100);
+}
+function pickForm(i){
+  const c=C();S.fq=i;
+  const ok=i===c.f;if(ok)S.custPts+=50;
+  S.log.push({t:"info",c:ok?"good":"bad",h:ok?`✔ <b>${D("richtig")}</b> ${L(FORMS[c.f].n)}`:`✘ ${D("falsch")} <b>${esc(FORMS[c.f].n[0])}</b>${tl(FORMS[c.f].n)}`});
+  S.phase="busy";render();
+  setTimeout(()=>{if(S.profi){S.phase="reason";render();}else finishCust();},700);
+}
+function pickReason(i){
+  const c=C();S.rq=i;
+  const ok=i===c.f;if(ok)S.custPts+=50;
+  S.log.push({t:"info",c:ok?"good":"bad",h:ok?`✔ <b>${D("richtig")}</b> ${L(REASONS[c.f])}`:`✘ ${D("falsch")} ${L(REASONS[c.f])}`});
+  S.phase="busy";render();
+  setTimeout(finishCust,700);
+}
+function stars(m){return m>=90?3:m>=60?2:1;}
+function finishCust(){
+  const c=C(),s=stars(S.mood);
+  S.pts+=S.custPts;
+  S.res.push({nm:c.nm,av:c.av,s,p:S.custPts});
+  S.log.push({t:"sum",h:`<div class="sum"><div class="stars">${"★".repeat(s)}${"☆".repeat(3-s)}</div><b>+${S.custPts} ${D("punkte")}</b> · ${D("stimmung")} ${S.mood} % ${moodFace(S.mood)}</div>`});
+  S.phase="done";render();
+}
+
+/* ---------- Ende ---------- */
+function renderEnd(){
+  const tot=S.res.reduce((a,r)=>a+r.s,0),max=CUST.length*3;
+  const tk=tot>=max-2?"titel3":tot>=max-6?"titel2":"titel1";
+  let h=`<div class="end"><div class="big">🏆</div><h2>${D("geschafft")}</h2>${tl(U.geschafft)}`;
+  if(S.name)h+=`<div style="font-size:20px;font-weight:700">${esc(S.name)}</div>`;
+  h+=`<div class="stars" style="font-size:34px">★ ${tot} / ${max}</div><div style="font-size:20px;font-weight:700">${S.pts} ${D("punkte")}</div><div style="font-size:22px;margin-top:6px"><b>${D(tk)}</b>${tl(U[tk])}</div><table>`;
+  for(const r of S.res)h+=`<tr><td>${r.av} ${esc(r.nm)}</td><td class="stars" style="font-size:20px">${"★".repeat(r.s)}${"☆".repeat(3-r.s)}</td><td style="text-align:right">${r.p} ${D("punkte")}</td></tr>`;
+  h+=`</table><div class="merke"><b>💡 ${D("merke")}</b>${tl(U.merke)}<div>${esc(U.merktext[0])}</div>${tl(U.merktext)}</div><button class="btn gold" id="again">${T("neustart")}</button></div>`;
+  $("main").innerHTML=h;window.scrollTo(0,0);
+  $("again").onclick=()=>{cfStop=true;S.screen="start";render();};
+}
+
+/* ---------- Konfetti ---------- */
+let cfStop=false;
+function confetti(){
+  cfStop=false;const c=$("cf");c.style.display="block";const x=c.getContext("2d");
+  let W=c.width=innerWidth,H=c.height=innerHeight;
+  const cols=["#b8901c","#13275a","#a32626","#2d6b3a","#e7c35a","#22508f","#f28c28","#d94f8c","#3fb6a8"];
+  const P=[];for(let i=0;i<300;i++)P.push({x:Math.random()*W,y:-Math.random()*H*1.3,w:6+Math.random()*8,h:9+Math.random()*10,vy:2.2+Math.random()*3.8,vx:-1.5+Math.random()*3,r:Math.random()*6.28,vr:-.22+Math.random()*.44,c:cols[i%cols.length],s:Math.random()*6.28,round:Math.random()<.25});
+  const t0=performance.now();
+  function f(t){
+    if(cfStop){x.clearRect(0,0,W,H);c.style.display="none";return;}
+    x.clearRect(0,0,W,H);let alive=false;
+    for(const p of P){p.y+=p.vy;p.x+=p.vx+Math.sin(t/380+p.s)*1.3;p.r+=p.vr;
+      if(t-t0<5000&&p.y>H+20){p.y=-20;p.x=Math.random()*W;}
+      if(p.y<H+20)alive=true;
+      x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;
+      if(p.round){x.beginPath();x.arc(0,0,p.w/2,0,6.28);x.fill();}else x.fillRect(-p.w/2,-p.h/2,p.w,p.h*Math.max(.15,Math.abs(Math.cos(p.r*1.3))));
+      x.restore();}
+    if(alive)requestAnimationFrame(f);else c.style.display="none";
+  }
+  requestAnimationFrame(f);
+}
+
+function render(){
+  head();
+  if(S.screen==="start")renderStart();
+  else if(S.screen==="game")renderGame();
+  else renderEnd();
+}
+render();
+</script>
+</body>
+</html>
