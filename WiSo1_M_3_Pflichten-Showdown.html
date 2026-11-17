@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pflichten-Showdown – WiSo Modul 3</title>
+<style>
+:root{--bg:#f3efe4;--ink:#1d1d1f;--navy:#13275a;--gold:#b8901c;--paper:#fbf9f3;--line:#d8d1bf;--muted:#5d5a52;--ok:#2d6b3a;--bad:#a32626}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:14px 20px 40px}
+header{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;border-top:3px double var(--ink);border-bottom:2px solid var(--ink);padding:10px 0 8px;margin-bottom:16px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:44px;margin:0;line-height:1;letter-spacing:-.5px}
+.sub{letter-spacing:.16em;font-size:12.5px;text-transform:uppercase;color:#333;flex:1;padding-bottom:4px;min-width:260px}
+.hbtns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.hbtn{background:var(--paper);border:1px solid #9c9584;border-radius:5px;padding:6px 10px;font:inherit;font-size:14px;cursor:pointer}
+.hbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.tl{display:block;font-size:.86em;color:#4b5a86;font-weight:400;unicode-bidi:plaintext;margin-top:2px}
+.tl[dir=rtl],.tl:lang(ar){text-align:right}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 26px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+.center{max-width:1000px;margin:0 auto}
+h2{font-family:Georgia,serif;font-size:30px;margin:0 0 6px}
+.intro{color:var(--muted);margin:0 0 16px}
+.rule{display:flex;gap:14px;background:#ece7d8;border-radius:6px;padding:12px 16px;margin-bottom:10px}
+.num{flex:none;width:32px;height:32px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-family:Georgia,serif}
+.rule h3{margin:0 0 3px;font-size:17px}
+.rule p{margin:0}
+.big{display:block;width:100%;border:0;border-radius:5px;background:var(--gold);color:#fff;font-family:inherit;font-weight:700;font-size:19px;line-height:1.2;padding:13px;cursor:pointer;margin-top:12px;box-shadow:0 3px 0 #8a6a10}
+.big .tl,.btn .tl{color:#fff;opacity:.85}
+.big:disabled{opacity:.45;cursor:default}
+.navy{background:var(--navy);box-shadow:0 3px 0 #0b1838}
+.cnt{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.cnt button{border:2px solid #b9b19d;background:var(--paper);border-radius:6px;padding:12px;font-family:inherit;font-weight:700;font-size:19px;cursor:pointer}
+.cnt button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.nrow{display:flex;gap:12px;align-items:center;margin:8px 0}
+.nrow input{flex:1;font:inherit;font-size:19px;padding:10px 14px;border:1px solid #bdb5a2;border-radius:5px;background:#fff}
+.dot{flex:none;width:34px;height:34px;border-radius:50%;color:#fff;display:grid;place-items:center;font-weight:700;border:3px solid #fff;box-shadow:0 0 0 1px #888}
+.hint{color:var(--muted);font-size:15px;margin-top:8px}
+.game{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:22px;align-items:start}
+@media(max-width:900px){.game{grid-template-columns:1fr}h1{font-size:34px}}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{display:flex;gap:10px;align-items:center;background:var(--paper);border:2px solid var(--line);border-radius:6px;padding:6px 14px 6px 8px;min-width:150px}
+.chip.cur{border-color:currentColor}
+.chip b{display:block;color:var(--ink)}
+.chip small{color:var(--muted)}
+.board{border:2px solid var(--navy);border-radius:4px;overflow:hidden;background:#fff}
+.bhead{background:var(--navy);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;font-family:Georgia,serif;font-weight:700;font-size:17px;min-height:46px}
+.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+.cell{position:relative;aspect-ratio:1.12/1;border-right:1px solid #ddd6c3;border-bottom:1px solid #ddd6c3;padding:4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cell:nth-child(odd){background:#f6f3ea}.cell:nth-child(even){background:#ece8dc}
+.cell .n{position:absolute;top:3px;left:6px;font-size:13px;font-weight:600;color:#333}
+.cell .ic{font-size:30px;line-height:1}
+.cell .lb{font-size:9.5px;letter-spacing:.03em;overflow-wrap:anywhere;text-transform:uppercase;color:#444;margin-top:4px;text-align:center}
+.cell.w{background:#f3eab8 !important}.cell.p{background:#cfe0f2 !important}.cell.g{background:#f1d4d4 !important}
+.cell.z{background:#1b1b22 !important;color:#fff}.cell.z .n,.cell.z .lb{color:#fff}
+.toks{position:absolute;bottom:3px;right:3px;display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;max-width:70%}
+.tok{width:24px;height:24px;border-radius:50%;color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:transform .2s}
+.tok.hop{transform:translateY(-6px) scale(1.15)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin-top:8px;color:#333}
+.legend span .tl{display:inline;margin-left:4px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:18px 22px}
+.who{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.who small{letter-spacing:.14em;text-transform:uppercase;color:#555;font-size:12px}
+.who .nm{font-family:Georgia,serif;font-weight:700;font-size:22px;display:block}
+.drow{display:flex;gap:16px;align-items:center;margin:8px 0 6px}
+.die{width:62px;height:62px;border:3px solid var(--ink);border-radius:10px;background:#fff;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:7px;box-shadow:0 3px 0 #333}
+.die i{display:block;width:11px;height:11px;border-radius:50%;margin:auto}
+.die i.on{background:var(--ink)}
+.die.roll{animation:wob .12s linear infinite}
+@keyframes wob{50%{transform:rotate(12deg)}}
+.btn{border:0;border-radius:5px;background:var(--navy);color:#fff;font-family:inherit;font-weight:700;font-size:18px;padding:12px 22px;cursor:pointer;box-shadow:0 3px 0 #0b1838}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.gold{background:var(--gold);box-shadow:0 3px 0 #8a6a10}
+.qcard{background:#fff;border:2px solid var(--gold);border-radius:8px;padding:12px 16px;margin:10px 0 14px;position:relative}
+.qcard .lbl{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#7a6418;font-weight:700}
+.qcard .q{font-family:Georgia,serif;font-size:23px;font-weight:700;margin-top:4px}
+.qcard .sit{font-size:17px;margin-top:4px}
+h4{margin:12px 0 6px;font-size:16px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.opts.one{grid-template-columns:1fr}
+.opt{text-align:left;border:2px solid #c9c1ad;background:#fff;border-radius:6px;padding:8px 12px;font-family:inherit;font-weight:600;font-size:16px;cursor:pointer;line-height:1.25}
+.opt small{font-weight:400;color:#666}
+.opt.sel{border-color:var(--navy);background:#e4e9f5}
+.opt.right{border-color:var(--ok);background:#dcefdf}
+.opt.wrong{border-color:var(--bad);background:#f6dada}
+.opt:disabled{cursor:default;color:var(--ink)}
+.res{border-radius:6px;padding:10px 14px;margin-top:12px;background:#eef1f7;border-left:5px solid var(--navy)}
+.res p{margin:4px 0}
+.okc{color:var(--ok);font-weight:700}.badc{color:var(--bad);font-weight:700}
+.move{font-size:19px;font-weight:700;margin:12px 0 4px}
+.spec{font-size:19px;margin:6px 0 4px}
+#win{position:fixed;inset:0;background:rgba(19,39,90,.82);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+#win .card{max-width:620px;width:100%;text-align:center}
+#win .trophy{font-size:70px;line-height:1}
+#win h2{font-size:34px}
+.rank{text-align:left;margin:14px 0}
+.rank div{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid #e3ddcd;font-size:18px}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:60;display:none}
+.hide{display:none !important}
+</style>
+</head>
+<body>
+<canvas id="cf"></canvas>
+<div class="wrap">
+<header>
+  <h1>Pflichten-Showdown</h1>
+  <div class="sub" id="sub"></div>
+  <div class="hbtns" id="hbtns"></div>
+</header>
+<main id="main"></main>
+</div>
+<div id="win"><div class="card" id="wincard"></div></div>
+
+<script>
+"use strict";
+/* ---------- Sprachen ---------- */
+const LI={es:0};
+const LANGS=[["de","Deutsch"],["es","Español"]];
+let lang="de";
+try{const s=localStorage.getItem("ps_lang");if(s&&LANGS.some(l=>l[0]===s))lang=s;}catch(e){}
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+/* Übersetzung unter dem deutschen Text: arr = [es] */
+function tl(arr){if(lang==="de"||!arr)return "";const s=arr[LI[lang]];if(!s)return "";return `<span class="tl" lang="${lang}">${esc(s)}</span>`;}
+/* UI-Texte: [de, es] */
+const U={
+ sub:["Brettspiel zu Rechten und Pflichten · WiSo Modul 3 · KLA Bremerhaven","Juego de mesa sobre derechos y obligaciones"],
+ regeln:["Regeln","Reglas"],
+ ende:["Spiel beenden","Terminar juego"],
+ howto:["So funktioniert das Spiel","Cómo se juega"],
+ intro:["Lest euch die Regeln kurz durch, dann geht es los. Ihr könnt sie im Spiel jederzeit über „Regeln“ nochmal aufrufen.","Leed las reglas rápidamente y empezamos. Podéis abrirlas otra vez en cualquier momento con el botón «Regeln»."],
+ r1t:["Ziel","Objetivo"],
+ r1:["Ihr startet am <b>ersten Ausbildungstag</b> und wollt als Erste/r die <b>bestandene Prüfung</b> 🎓 (Feld 18) erreichen. Gespielt wird reihum an einem Gerät.","Empezáis el primer día de formación y queréis ser los primeros en llegar al examen aprobado 🎓 (casilla 18). Se juega por turnos en un solo dispositivo."],
+ r2t:["Würfeln & Karte ziehen","Tirar el dado y sacar una tarjeta"],
+ r2:["Wer dran ist, würfelt und bekommt eine <b>Fallkarte</b> aus dem Ausbildungsalltag, zum Beispiel: Die Chefin sagt „Den Ausbildungsnachweis schreibst du zu Hause.“","Quien tiene el turno tira el dado y recibe una tarjeta con un caso de la vida diaria en la formación."],
+ r3t:["Zwei Fragen beantworten","Responder dos preguntas"],
+ r3:["① Um welche <b>Pflicht</b> geht es? (4 Antworten zur Auswahl)<br>② Ist das <b>in Ordnung</b> – ja oder nein?<br>Die Mitspielenden dürfen mitraten, am Ende entscheidet die Person am Zug.","① ¿De qué obligación se trata? (4 respuestas a elegir) ② ¿Está bien esto, sí o no? Los demás pueden ayudar; al final decide quien tiene el turno."],
+ r4t:["Ziehen","Avanzar"],
+ r4:["<b>Pflicht richtig:</b> so viele Felder, wie du gewürfelt hast.<br><b>② richtig:</b> +1 Feld extra.<br>Beides falsch: Du bleibst stehen. Danach siehst du die Lösung mit Begründung.","Obligación correcta: avanzas tantas casillas como marca el dado. ② correcta: +1 casilla. Las dos mal: te quedas donde estás. Después ves la solución con la explicación."],
+ r5t:["Besondere Felder","Casillas especiales"],
+ r5:["⚖️ <b>Rechtsfall:</b> Zusatzkarte „Welches Ergebnis stimmt?“ Richtig: 2 Felder vor.<br>💶 <b>Zahltag:</b> 2 Felder vor.<br>⚠️ <b>Abmahnung:</b> 2 Felder zurück.","⚖️ Caso legal: tarjeta extra «¿Qué resultado es correcto?» Correcto: avanzas 2 casillas. 💶 Día de pago: avanzas 2 casillas. ⚠️ Amonestación: retrocedes 2 casillas."],
+ verstanden:["Verstanden – weiter zu den Namen","Entendido – a los nombres"],
+ zurueck:["Zurück zum Spiel","Volver al juego"],
+ wer:["Wer spielt mit?","¿Quién juega?"],
+ wieviele:["Wie viele Personen spielen? Dann tragt ihr eure Namen ein.","¿Cuántas personas juegan? Después escribid vuestros nombres."],
+ personen:["Personen","personas"],
+ namevon:["Name von Person","Nombre de la persona"],
+ start:["Spiel starten","Empezar"],
+ allenamen:["Bitte alle Namen eintragen.","Escribid todos los nombres, por favor."],
+ feld:["Feld","Casilla"],
+ von18:["von 18","de 18"],
+ bstart:["🏢 Erster Ausbildungstag · Start","Salida: primer día de formación"],
+ amzug:["Am Zug","Le toca a"],
+ wuerfle:["Würfle, dann wird deine Fallkarte aufgedeckt.","Tira el dado; después se muestra tu tarjeta."],
+ wuerfeln:["Würfeln","Tirar"],
+ gewuerfelt:["Gewürfelt:","Dado:"],
+ fall:["📋 Der Fall","El caso"],
+ f1:["① Um welche Pflicht geht es?","① ¿De qué obligación se trata?"],
+ f2:["② Ist das in Ordnung?","② ¿Está bien esto?"],
+ ja:["Ja, in Ordnung","Sí, está bien"],
+ nein:["Nein, nicht in Ordnung","No, no está bien"],
+ aufloesen:["Auflösen","Ver solución"],
+ waehle:["Wähle bei ① und ② je eine Antwort.","Elige una respuesta en ① y en ②."],
+ richtig:["richtig","correcto"],
+ falsch:["falsch","incorrecto"],
+ loesung:["Lösung","Solución"],
+ werpf:["Wer hat die Pflicht?","¿Quién tiene la obligación?"],
+ warum:["Begründung:","Explicación:"],
+ azubi:["Azubi","aprendiz"],
+ betrieb:["Betrieb","empresa"],
+ vor:["Felder vor","casillas adelante"],
+ vor1:["Feld vor","casilla adelante"],
+ stehen:["Du bleibst stehen.","Te quedas donde estás."],
+ ziehen:["Ziehen ➜","Avanzar ➜"],
+ weiter:["Weiter","Seguir"],
+ naechste:["Nächste Person:","Siguiente:"],
+ rechtsfall:["Rechtsfall","Caso legal"],
+ zahltag:["Zahltag","Día de pago"],
+ abmahnung:["Abmahnung","Amonestación"],
+ ziel:["Prüfung bestanden = Ziel","Examen aprobado = meta"],
+ zielkurz:["Ziel","Meta"],
+ rfkarte:["⚖️ Rechtsfall – Zusatzkarte","Caso legal – tarjeta extra"],
+ passt:["Welches Ergebnis stimmt?","¿Qué resultado es correcto?"],
+ w_ok:["Richtig – 2 Felder vor!","¡Correcto – avanzas 2 casillas!"],
+ w_bad:["Leider nicht – du bleibst stehen.","Lo siento – te quedas donde estás."],
+ p_msg:["💶 Zahltag! 2 Felder vor.","¡Día de pago! Avanzas 2 casillas."],
+ g_msg:["⚠️ Abmahnung! 2 Felder zurück.","¡Amonestación! Retrocedes 2 casillas."],
+ g_why:["Du bist zu spät gekommen und hast dich nicht abgemeldet …","Llegaste tarde y no avisaste …"],
+ feierabend:["hat die Prüfung bestanden!","¡ha aprobado el examen!"],
+ platz:["Platz","Puesto"],
+ nochmal:["Nochmal mit denselben Namen","Otra vez con los mismos nombres"],
+ neuenamen:["Neue Namen","Nombres nuevos"],
+ ende2:["Wirklich beenden?","¿Terminar de verdad?"]
+};
+const T=k=>U[k][0]+tl(U[k].slice(1));
+const D=k=>U[k][0];
+
+/* ---------- Inhalte ---------- */
+/* Pflichten: w = 0 Azubi / 1 Betrieb, g = Gesetz */
+const PF={
+ A0:{n:"Lernpflicht",x:"sich bemühen, das Ausbildungsziel zu erreichen",t:["deber de aprender: esforzarse para alcanzar el objetivo de la formación"],w:0,g:"§ 13 BBiG"},
+ A1:{n:"Sorgfaltspflicht",x:"Aufgaben sorgfältig ausführen",t:["deber de cuidado: hacer las tareas con cuidado"],w:0,g:"§ 13 BBiG"},
+ A2:{n:"Berufsschule und Prüfungen besuchen",x:"",t:["asistir a la escuela profesional y a los exámenes"],w:0,g:"§ 13 BBiG"},
+ A3:{n:"Weisungen befolgen",x:"Ausbilder und Vorgesetzte",t:["seguir las instrucciones de formadores y jefes"],w:0,g:"§ 13 BBiG"},
+ A4:{n:"Ordnung im Betrieb beachten",x:"",t:["respetar las normas de la empresa"],w:0,g:"§ 13 BBiG"},
+ A5:{n:"Werkzeuge und Einrichtungen pfleglich behandeln",x:"",t:["tratar con cuidado las herramientas y los equipos"],w:0,g:"§ 13 BBiG"},
+ A6:{n:"Schweigepflicht",x:"Betriebs- und Geschäftsgeheimnisse",t:["deber de confidencialidad: secretos de la empresa"],w:0,g:"§ 13 BBiG"},
+ A7:{n:"Ausbildungsnachweis führen",x:"",t:["llevar el registro de formación"],w:0,g:"§ 13 BBiG"},
+ B0:{n:"Ausbildungspflicht",x:"alles nach Ausbildungsplan vermitteln",t:["deber de formar: enseñar todo según el plan de formación"],w:1,g:"§ 14 BBiG"},
+ B1:{n:"Ausbildungsmittel kostenlos stellen",x:"",t:["dar gratis el material de formación"],w:1,g:"§ 14 BBiG"},
+ B2:{n:"Freistellung für Berufsschule und Prüfungen",x:"",t:["dar tiempo libre para la escuela y los exámenes"],w:1,g:"§ 15 BBiG"},
+ B3:{n:"nur Aufgaben, die der Ausbildung dienen",x:"",t:["solo tareas que sirven a la formación"],w:1,g:"§ 14 Abs. 3 BBiG"},
+ B4:{n:"Fürsorgepflicht",x:"Azubis nicht gefährden",t:["deber de protección: no poner en peligro a los aprendices"],w:1,g:"§ 14 BBiG"},
+ B5:{n:"Vergütung zahlen",x:"",t:["pagar la remuneración"],w:1,g:"§§ 17–19 BBiG"},
+ B6:{n:"Ausbildungsnachweis durchsehen und Zeit dafür geben",x:"",t:["revisar el registro de formación y dar tiempo para hacerlo"],w:1,g:"§ 14 Abs. 2 BBiG"}};
+const PK=Object.keys(PF);
+
+/* Fallkarten: c = Fall, ct = [es], p = Pflicht, ok = 1 in Ordnung / 0 nicht in Ordnung, e = Begründung, et = [es] */
+const CARDS=[
+ {c:"Die Chefin sagt zu Mia (17): „Den Ausbildungsnachweis schreibst du zu Hause. Im Laden ist dafür keine Zeit.“",ct:["La jefa le dice a Mia (17): «El registro de formación lo escribes en casa. En la tienda no hay tiempo.»"],p:"B6",ok:0,e:"Der Betrieb muss Zeit geben, den Nachweis im Betrieb zu schreiben.",et:["La empresa tiene que dar tiempo para escribirlo en la empresa."]},
+ {c:"Der Filialleiter sagt zu Jonas (18): „Wasch bitte jeden Morgen meinen Privatwagen.“",ct:["El jefe de la tienda le dice a Jonas (18): «Lava mi coche privado cada mañana, por favor.»"],p:"B3",ok:0,e:"Autowaschen dient nicht der Ausbildung. Jonas muss das nicht tun.",et:["Lavar el coche no sirve a la formación. Jonas no tiene que hacerlo."]},
+ {c:"Lena erzählt auf einer Party die Umsatzzahlen ihrer Filiale.",ct:["Lena cuenta en una fiesta las cifras de ventas de su tienda."],p:"A6",ok:0,e:"Umsatzzahlen sind Geschäftsgeheimnisse. Darüber muss Lena schweigen.",et:["Las cifras de ventas son secretos de la empresa. Lena debe callar."]},
+ {c:"Tim wirft den Handscanner aus Spaß durch das Lager.",ct:["Tim lanza el escáner de mano por el almacén para divertirse."],p:"A5",ok:0,e:"Arbeitsgeräte muss man pfleglich behandeln.",et:["Hay que tratar con cuidado los aparatos de trabajo."]},
+ {c:"Der Unterricht beginnt um 8 Uhr. Der Chef sagt: „Komm vorher von 6 bis 7.30 Uhr zum Regale-Auffüllen.“",ct:["La clase empieza a las 8. El jefe dice: «Ven antes, de 6 a 7:30, a reponer estanterías.»"],p:"B2",ok:0,e:"Beginnt der Unterricht vor 9 Uhr, darf der Betrieb Azubis vorher nicht beschäftigen.",et:["Si la clase empieza antes de las 9, la empresa no puede hacer trabajar al aprendiz antes."]},
+ {c:"Ayla hat montags 6 Stunden Berufsschule – ihr einziger langer Schultag. Der Chef will, dass sie danach noch in den Laden kommt.",ct:["Ayla tiene los lunes 6 horas de escuela, su único día largo. El jefe quiere que después vaya a la tienda."],p:"B2",ok:0,e:"Einmal pro Woche zählt ein Schultag mit mehr als 5 Stunden wie ein voller Arbeitstag.",et:["Una vez por semana, un día con más de 5 horas de clase cuenta como un día completo de trabajo."]},
+ {c:"Der Betrieb verlangt von Luca 40 € für das Preisauszeichnungsgerät, mit dem er im Laden arbeitet.",ct:["La empresa le pide a Luca 40 € por la etiquetadora de precios con la que trabaja en la tienda."],p:"B1",ok:0,e:"Ausbildungsmittel stellt der Betrieb kostenlos.",et:["La empresa da gratis el material de formación."]},
+ {c:"Die Ausbilderin bittet Sami, die neue Ware nach Plan einzuräumen. Sami macht es sofort.",ct:["La formadora le pide a Sami colocar la mercancía nueva según el plan. Sami lo hace enseguida."],p:"A3",ok:1,e:"Sami befolgt die Weisung – richtig so.",et:["Sami sigue la instrucción. Así está bien."]},
+ {c:"Kim geht bei schönem Wetter nicht zur Berufsschule, sondern an den Strand.",ct:["Cuando hace buen tiempo, Kim no va a la escuela profesional, sino a la playa."],p:"A2",ok:0,e:"Azubis müssen am Berufsschulunterricht teilnehmen.",et:["Los aprendices tienen que asistir a la escuela profesional."]},
+ {c:"Die Vergütung für März kommt erst am 15. April.",ct:["La remuneración de marzo llega el 15 de abril."],p:"B5",ok:0,e:"Die Vergütung muss spätestens am letzten Arbeitstag des Monats gezahlt werden.",et:["La remuneración se paga como muy tarde el último día laborable del mes."]},
+ {c:"Noah ist drei Wochen krank. Der Betrieb zahlt die Vergütung weiter.",ct:["Noah está enfermo tres semanas. La empresa sigue pagando la remuneración."],p:"B5",ok:1,e:"Bei Krankheit läuft die Vergütung bis zu sechs Wochen weiter.",et:["Si estás enfermo, la remuneración continúa hasta seis semanas."]},
+ {c:"Emil zerlegt seit Monaten nur Kartons. An der Kasse war er noch nie.",ct:["Desde hace meses Emil solo desmonta cajas. Nunca ha estado en la caja."],p:"B0",ok:0,e:"Der Betrieb muss alles vermitteln, was im Ausbildungsplan steht.",et:["La empresa tiene que enseñar todo lo que está en el plan de formación."]},
+ {c:"Jana fragt nach, wenn sie etwas nicht versteht, und lernt abends für die Prüfung.",ct:["Jana pregunta cuando no entiende algo y estudia por la tarde para el examen."],p:"A0",ok:1,e:"Jana bemüht sich, das Ausbildungsziel zu erreichen – vorbildlich.",et:["Jana se esfuerza por alcanzar el objetivo de la formación. ¡Muy bien!"]},
+ {c:"Ben zählt die Kasse schnell und ungenau. Am Abend fehlen 20 €.",ct:["Ben cuenta la caja rápido y sin cuidado. Por la tarde faltan 20 €."],p:"A1",ok:0,e:"Aufgaben müssen sorgfältig ausgeführt werden.",et:["Las tareas se tienen que hacer con cuidado."]},
+ {c:"Mert raucht im Lager, obwohl dort Rauchverbot gilt.",ct:["Mert fuma en el almacén aunque allí está prohibido fumar."],p:"A4",ok:0,e:"Azubis müssen die Ordnung im Betrieb beachten.",et:["Los aprendices tienen que respetar las normas de la empresa."]},
+ {c:"Paul schreibt jede Woche seinen Ausbildungsnachweis und legt ihn seinem Ausbilder vor.",ct:["Paul escribe cada semana su registro de formación y se lo enseña a su formador."],p:"A7",ok:1,e:"Paul führt den Ausbildungsnachweis – so ist es Pflicht.",et:["Paul lleva el registro de formación, como es su obligación."]},
+ {c:"Die 16-jährige Zoe soll allein schwere Kisten über eine wackelige Leiter tragen.",ct:["Zoe, de 16 años, tiene que subir sola cajas pesadas por una escalera inestable."],p:"B4",ok:0,e:"Der Betrieb darf Azubis nicht gefährden.",et:["La empresa no puede poner en peligro a los aprendices."]},
+ {c:"Am Tag vor der schriftlichen Abschlussprüfung gibt der Betrieb Max frei.",ct:["El día antes del examen final escrito, la empresa le da el día libre a Max."],p:"B2",ok:1,e:"Der Arbeitstag direkt vor der schriftlichen Abschlussprüfung ist frei.",et:["El día laborable justo antes del examen final escrito es libre."]},
+ {c:"Die Ausbilderin sieht jeden Monat den Ausbildungsnachweis durch und unterschreibt ihn.",ct:["La formadora revisa cada mes el registro de formación y lo firma."],p:"B6",ok:1,e:"Den Nachweis durchsehen ist Pflicht des Betriebs – richtig so.",et:["Revisar el registro es obligación de la empresa. Así está bien."]},
+ {c:"Kein Tarifvertrag: Sophie bekommt im 1. Ausbildungsjahr (Beginn 2026) 600 € im Monat.",ct:["Sin convenio colectivo: Sophie recibe 600 € al mes en el primer año (inicio 2026)."],p:"B5",ok:0,e:"Die Mindestvergütung im 1. Jahr liegt bei 724 € (Beginn 2026).",et:["La remuneración mínima en el primer año es de 724 € (inicio 2026)."]},
+ {c:"Lisa geht nicht zur Zwischenprüfung, weil sie keine Lust hat.",ct:["Lisa no va al examen intermedio porque no tiene ganas."],p:"A2",ok:0,e:"Azubis müssen an Prüfungen teilnehmen.",et:["Los aprendices tienen que presentarse a los exámenes."]},
+ {c:"Leon macht vor Weihnachten Überstunden. Er bekommt dafür im Januar Freizeit.",ct:["Leon hace horas extra antes de Navidad. En enero recibe tiempo libre a cambio."],p:"B5",ok:1,e:"Überstunden werden extra bezahlt oder mit Freizeit ausgeglichen.",et:["Las horas extra se pagan aparte o se compensan con tiempo libre."]},
+ {c:"Emir soll Preisschilder tauschen. Er sagt „Keine Lust“ und setzt sich in den Pausenraum.",ct:["Emir tiene que cambiar etiquetas de precios. Dice «No tengo ganas» y se sienta en la sala de descanso."],p:"A3",ok:0,e:"Azubis müssen den Weisungen von Ausbildern und Vorgesetzten folgen.",et:["Los aprendices tienen que seguir las instrucciones de formadores y jefes."]},
+ {c:"Der Betrieb stellt Nele Preisauszeichner und Cutter kostenlos zur Verfügung.",ct:["La empresa le da a Nele gratis la etiquetadora y el cúter."],p:"B1",ok:1,e:"Ausbildungsmittel stellt der Betrieb kostenlos – richtig so.",et:["La empresa da gratis el material de formación. Así está bien."]}];
+
+/* Rechtsfall-Karten: s = Fall, st = [es], o = [Text, [es]], r = richtiger Index, p = Pflicht */
+const RF=[
+ {s:"Sara (16) hat heute 6 Stunden Berufsschule – ihr einziger langer Schultag in dieser Woche. Der Chef will, dass sie danach bis 18 Uhr arbeitet.",st:["Sara (16) hoy tiene 6 horas de escuela, su único día largo de esta semana. El jefe quiere que después trabaje hasta las 18 h."],p:"B2",r:0,
+  o:[["Sara muss nicht mehr in den Betrieb: Der Tag zählt wie ein voller Arbeitstag.",["Sara ya no tiene que ir a la empresa: el día cuenta como un día completo de trabajo."]],["Sara muss arbeiten, weil der Chef es sagt.",["Sara tiene que trabajar porque lo dice el jefe."]],["Sara muss nur arbeiten, wenn sie schon 18 ist.",["Sara solo tiene que trabajar si ya tiene 18 años."]]]},
+ {s:"Der Betrieb verlangt von Luca 30 € für das Material zur Abschlussprüfung.",st:["La empresa le pide a Luca 30 € por el material para el examen final."],p:"B1",r:2,
+  o:[["Luca muss zahlen, die Prüfung ist seine Privatsache.",["Luca tiene que pagar, el examen es asunto suyo."]],["Luca und der Betrieb zahlen je die Hälfte.",["Luca y la empresa pagan la mitad cada uno."]],["Luca muss nicht zahlen: Ausbildungsmittel – auch für Prüfungen – stellt der Betrieb kostenlos.",["Luca no tiene que pagar: la empresa da gratis el material de formación, también para los exámenes."]]]},
+ {s:"Elif fotografiert die neuen Einkaufspreise und schickt sie an eine Freundin, die bei der Konkurrenz arbeitet.",st:["Elif fotografía los nuevos precios de compra y se los envía a una amiga que trabaja en la competencia."],p:"A6",r:1,
+  o:[["Erlaubt: Preise sind kein Geheimnis.",["Está permitido: los precios no son un secreto."]],["Nicht erlaubt: Elif verletzt die Schweigepflicht.",["No está permitido: Elif rompe el deber de confidencialidad."]],["Erlaubt, weil Elif nur Azubi ist.",["Está permitido porque Elif solo es aprendiz."]]]},
+ {s:"Der Chef sagt zu Ole: „Den Ausbildungsnachweis musst du nicht schreiben. Das ist nur Papierkram.“",st:["El jefe le dice a Ole: «No tienes que escribir el registro de formación. Solo es papeleo.»"],p:"A7",r:0,
+  o:[["Ole muss ihn trotzdem führen: Ohne Ausbildungsnachweis keine Zulassung zur Abschlussprüfung.",["Ole tiene que llevarlo igualmente: sin registro de formación no lo admiten al examen final."]],["Ole muss ihn nicht führen, wenn der Chef es sagt.",["Ole no tiene que llevarlo si el jefe lo dice."]],["Ole schreibt ihn erst kurz vor der Prüfung.",["Ole lo escribe justo antes del examen."]]]},
+ {s:"Aylins Vergütung kommt seit drei Monaten immer erst am 10. des nächsten Monats.",st:["Desde hace tres meses la remuneración de Aylin llega siempre el día 10 del mes siguiente."],p:"B5",r:2,
+  o:[["Erlaubt, wenn der Betrieb gerade wenig Geld hat.",["Está permitido si la empresa tiene poco dinero ahora."]],["Erlaubt, Azubis haben kein Recht auf pünktliches Geld.",["Está permitido, los aprendices no tienen derecho a cobrar puntualmente."]],["Nicht erlaubt: Spätestens am letzten Arbeitstag des Monats muss das Geld da sein.",["No está permitido: el dinero tiene que llegar como muy tarde el último día laborable del mes."]]]},
+ {s:"Die Ausbilderin bittet Finn, die Werbeaufsteller für die Aktion aufzubauen. Finn sagt: „Das ist nicht meine Aufgabe.“",st:["La formadora le pide a Finn montar los expositores publicitarios para la promoción. Finn dice: «Eso no es mi tarea.»"],p:"A3",r:1,
+  o:[["Finn muss nur machen, was er selbst will.",["Finn solo tiene que hacer lo que él quiera."]],["Finn muss die Weisung befolgen: Die Aufgabe gehört zur Ausbildung.",["Finn tiene que seguir la instrucción: la tarea forma parte de la formación."]],["Finn muss es nur gegen Extra-Geld machen.",["Finn solo tiene que hacerlo si le pagan extra."]]]}];
+
+/* ---------- Spielfeld ---------- */
+const GOAL=18;
+const FT={4:"w",10:"w",15:"w",7:"p",13:"p",9:"g",16:"g",18:"z"};
+const FI={w:["⚖️","rechtsfall"],p:["💶","zahltag"],g:["⚠️","abmahnung"],z:["🎓","zielkurz"]};
+const COLORS=["#a32626","#22508f","#2d6b3a","#7a3f99"];
+const ORDER=[1,2,3,4,5,6,12,11,10,9,8,7,13,14,15,16,17,18];
+const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+
+let S={screen:"rules",count:3,names:["","","",""],players:[],cur:0,phase:"roll",roll:1,card:null,opts:[],a1:null,a2:null,wcard:null,wa:null,msg:"",deck:[],wdeck:[],busy:false,endAsk:false};
+let rulesFromGame=false;
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const $=id=>document.getElementById(id);
+const main=$("main");
+
+function draw(){
+  if(!S.deck.length)S.deck=shuffle(CARDS.map((_,i)=>i));
+  const c=CARDS[S.deck.pop()];
+  /* richtige Pflicht + 3 andere: mindestens eine von der anderen Seite */
+  const same=shuffle(PK.filter(k=>k!==c.p&&PF[k].w===PF[c.p].w)),other=shuffle(PK.filter(k=>PF[k].w!==PF[c.p].w));
+  S.opts=shuffle([c.p,same[0],same[1],other[0]]);
+  return c;
+}
+function drawW(){
+  if(!S.wdeck.length)S.wdeck=shuffle(RF.map((_,i)=>i));
+  return RF[S.wdeck.pop()];
+}
+const whoTag=k=>PF[k].w?`🏪 ${D("betrieb")}`:`👤 ${D("azubi")}`;
+const pfName=k=>PF[k].n+(PF[k].x?` <small>(${PF[k].x})</small>`:"");
+
+/* ---------- Kopfzeile ---------- */
+function renderHead(){
+  $("sub").innerHTML=T("sub");
+  let h=LANGS.map(([c,n])=>`<button class="hbtn ${c===lang?"on":""}" data-lang="${c}">${n}</button>`).join("");
+  if(S.screen==="game"){
+    h+=`<button class="hbtn" id="hRules">${D("regeln")}</button><button class="hbtn" id="hEnd">${S.endAsk?D("ende2"):D("ende")}</button>`;
+  }
+  $("hbtns").innerHTML=h;
+  $("hbtns").querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{lang=b.dataset.lang;try{localStorage.setItem("ps_lang",lang);}catch(e){}render();});
+  if($("hRules"))$("hRules").onclick=()=>{rulesFromGame=true;S.screen="rules";render();};
+  if($("hEnd"))$("hEnd").onclick=()=>{
+    if(!S.endAsk){S.endAsk=true;renderHead();setTimeout(()=>{S.endAsk=false;if(S.screen==="game")renderHead();},4000);return;}
+    S.endAsk=false;S.screen="names";render();
+  };
+}
+
+/* ---------- Regeln ---------- */
+function renderRules(){
+  let h=`<div class="card center"><h2>${D("howto")}</h2><p class="intro">${D("intro")}${tl(U.intro.slice(1))}</p>`;
+  for(let i=1;i<=5;i++){
+    h+=`<div class="rule"><div class="num">${i}</div><div><h3>${T("r"+i+"t")}</h3><p>${U["r"+i][0]}${tl(U["r"+i].slice(1))}</p></div></div>`;
+  }
+  h+=`<button class="big" id="go">${rulesFromGame?T("zurueck"):T("verstanden")}</button></div>`;
+  main.innerHTML=h;
+  $("go").onclick=()=>{S.screen=rulesFromGame?"game":"names";rulesFromGame=false;render();};
+}
+
+/* ---------- Namen ---------- */
+function renderNames(){
+  let h=`<div class="card center" style="max-width:760px"><h2>${D("wer")}</h2><p class="intro">${D("wieviele")}${tl(U.wieviele.slice(1))}</p><div class="cnt">`;
+  for(const n of [2,3,4])h+=`<button data-n="${n}" class="${S.count===n?"on":""}">${n} ${D("personen")}${lang!=="de"?`<span class="tl" style="color:inherit;opacity:.8">${n} ${U.personen[LI[lang]+1]}</span>`:""}</button>`;
+  h+=`</div>`;
+  for(let i=0;i<S.count;i++)h+=`<div class="nrow"><div class="dot" style="background:${COLORS[i]}">${i+1}</div><input id="nm${i}" maxlength="18" placeholder="${D("namevon")} ${i+1}" value="${esc(S.names[i])}" autocomplete="off"></div>`;
+  h+=`<button class="big" id="startBtn">${T("start")}</button><p class="hint" id="nhint"></p></div>`;
+  main.innerHTML=h;
+  main.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>{saveNames();S.count=+b.dataset.n;renderNames();});
+  const check=()=>{saveNames();const ok=S.names.slice(0,S.count).every(n=>n.trim());$("startBtn").disabled=!ok;$("nhint").innerHTML=ok?"":T("allenamen");};
+  for(let i=0;i<S.count;i++){$("nm"+i).oninput=check;$("nm"+i).onkeydown=e=>{if(e.key==="Enter"){const nx=$("nm"+(i+1));if(nx)nx.focus();else if(!$("startBtn").disabled)$("startBtn").click();}};}
+  check();
+  $("startBtn").onclick=()=>{saveNames();startGame();};
+  const first=[...Array(S.count).keys()].find(i=>!S.names[i].trim());
+  if(first!==undefined)$("nm"+first).focus();
+}
+function saveNames(){for(let i=0;i<4;i++){const el=$("nm"+i);if(el)S.names[i]=el.value;}}
+function startGame(){
+  S.players=S.names.slice(0,S.count).map((n,i)=>({name:n.trim(),pos:0,color:COLORS[i]}));
+  S.cur=0;S.phase="roll";S.deck=shuffle(CARDS.map((_,i)=>i));S.wdeck=shuffle(RF.map((_,i)=>i));S.screen="game";
+  $("win").style.display="none";render();
+}
+
+/* ---------- Spiel ---------- */
+function tokHTML(i,p){return `<div class="tok" id="tok${i}" style="background:${p.color}">${i+1}</div>`;}
+function renderBoard(){
+  let h=`<div class="chips">`;
+  S.players.forEach((p,i)=>{h+=`<div class="chip ${i===S.cur?"cur":""}" style="color:${p.color}"><div class="dot" style="background:${p.color}">${i+1}</div><div><b>${esc(p.name)}</b><small>${D("feld")} ${p.pos} ${D("von18")}</small></div></div>`;});
+  h+=`</div><div class="board"><div class="bhead"><span>${D("bstart")}</span><span style="display:flex;gap:4px">`;
+  S.players.forEach((p,i)=>{if(p.pos===0)h+=tokHTML(i,p);});
+  h+=`</span></div><div class="grid">`;
+  for(const f of ORDER){
+    const t=FT[f];
+    h+=`<div class="cell ${t||""}"><span class="n">${f}</span>`;
+    if(t)h+=`<span class="ic">${FI[t][0]}</span><span class="lb">${D(FI[t][1])}</span>`;
+    h+=`<div class="toks">`;
+    S.players.forEach((p,i)=>{if(p.pos===f)h+=tokHTML(i,p);});
+    h+=`</div></div>`;
+  }
+  h+=`</div></div><div class="legend">`;
+  h+=`<span>⚖️ ${D("rechtsfall")} (+2)${tl(U.rechtsfall.slice(1))}</span><span>💶 ${D("zahltag")} (+2)${tl(U.zahltag.slice(1))}</span><span>⚠️ ${D("abmahnung")} (−2)${tl(U.abmahnung.slice(1))}</span><span>🎓 ${D("ziel")}${tl(U.ziel.slice(1))}</span></div>`;
+  return h;
+}
+function dieHTML(n,rolling){let h=`<div class="die ${rolling?"roll":""}" id="die">`;for(let i=0;i<9;i++)h+=`<i class="${PIPS[n].includes(i)?"on":""}"></i>`;return h+`</div>`;}
+
+function renderPanel(){
+  const p=S.players[S.cur];
+  let h=`<div class="panel"><div class="who"><div class="dot" style="background:${p.color};width:42px;height:42px;font-size:18px">${S.cur+1}</div><div><small>${D("amzug")}</small>${lang!=="de"?`<small style="letter-spacing:0;text-transform:none"> · ${U.amzug[LI[lang]+1]}</small>`:""}<span class="nm">${esc(p.name)}</span></div></div>`;
+  if(S.phase==="roll"){
+    h+=`<p style="margin:4px 0 8px">${D("wuerfle")}${tl(U.wuerfle.slice(1))}</p><div class="drow">${dieHTML(S.roll)}<button class="btn" id="rollBtn">${D("wuerfeln")}</button></div>`;
+  } else if(S.phase==="card"||S.phase==="result"){
+    const c=S.card,pf=PF[c.p],done=S.phase==="result";
+    h+=`<div class="drow">${dieHTML(S.roll)}<b style="font-size:18px">${D("gewuerfelt")} ${S.roll}</b></div>`;
+    h+=`<div class="qcard"><div class="lbl">${D("fall")}${tl(U.fall.slice(1))}</div><div class="sit" style="font-size:19px;font-weight:600">${esc(c.c)}</div>${tl(c.ct)}</div>`;
+    h+=`<h4>${T("f1")}</h4><div class="opts">`;
+    S.opts.forEach(k=>{
+      let cls="opt";
+      if(done){if(k===c.p)cls+=" right";else if(k===S.a1)cls+=" wrong";}
+      else if(S.a1===k)cls+=" sel";
+      h+=`<button class="${cls}" data-a1="${k}" ${done?"disabled":""}>${pfName(k)}${tl(PF[k].t)}</button>`;
+    });
+    h+=`</div><h4>${T("f2")}</h4><div class="opts">`;
+    [[1,"ja"],[0,"nein"]].forEach(([v,k])=>{
+      let cls="opt";
+      if(done){if(v===c.ok)cls+=" right";else if(v===S.a2)cls+=" wrong";}
+      else if(S.a2===v)cls+=" sel";
+      h+=`<button class="${cls}" data-a2="${v}" ${done?"disabled":""}>${v?"✅":"⛔"} ${D(k)}${tl(U[k].slice(1))}</button>`;
+    });
+    h+=`</div>`;
+    if(!done){
+      const ready=S.a1!==null&&S.a2!==null;
+      h+=`<div style="margin-top:14px"><button class="btn gold" id="solveBtn" ${ready?"":"disabled"}>${D("aufloesen")}</button>${ready?"":`<span class="hint" style="margin-left:10px">${D("waehle")}</span>`}</div>`;
+    } else {
+      const r1=S.a1===c.p,r2=S.a2===c.ok,steps=(r1?S.roll:0)+(r2?1:0);
+      h+=`<div class="res"><p>① <span class="${r1?"okc":"badc"}">${r1?"✔ "+D("richtig"):"✘ "+D("falsch")}</span> &nbsp; ② <span class="${r2?"okc":"badc"}">${r2?"✔ "+D("richtig"):"✘ "+D("falsch")}</span></p>`;
+      h+=`<p><b>${D("loesung")}: ${pf.n}</b> (${pf.g})${tl(pf.t)}</p>`;
+      h+=`<p>${D("werpf")} <b>${whoTag(c.p)}</b>${tl([U.werpf[1]+" "+(pf.w?U.betrieb[1]:U.azubi[1])])}</p>`;
+      h+=`<p>${D("warum")} ${esc(c.e)}${tl(c.et)}</p></div>`;
+      h+=`<div class="move">${steps?`➜ ${steps} ${D(steps===1?"vor1":"vor")}`:D("stehen")}${steps?tl(U[steps===1?"vor1":"vor"].slice(1).map(s=>steps+" "+s)):tl(U.stehen.slice(1))}</div>`;
+      h+=`<button class="btn" id="moveBtn">${steps?D("ziehen"):D("weiter")}</button>`;
+    }
+  } else if(S.phase==="wunsch"||S.phase==="wresult"){
+    const w=S.wcard,done=S.phase==="wresult";
+    h+=`<div class="qcard"><div class="lbl">${D("rfkarte")}${tl(U.rfkarte.slice(1))}</div><div class="sit">${esc(w.s)}</div>${tl(w.st)}</div><h4>${T("passt")}</h4><div class="opts one">`;
+    w.o.forEach((o,i)=>{
+      let cls="opt";
+      if(done){if(i===w.r)cls+=" right";else if(i===S.wa)cls+=" wrong";}
+      h+=`<button class="${cls}" data-w="${i}" ${done?"disabled":""}>${esc(o[0])}${tl(o[1])}</button>`;
+    });
+    h+=`</div>`;
+    if(done){
+      const ok=S.wa===w.r,pf=PF[w.p];
+      h+=`<div class="res"><p><b>${pf.n}</b> (${pf.g}) – ${whoTag(w.p)}${tl(pf.t)}</p></div>`;
+      h+=`<div class="move">${ok?D("w_ok"):D("w_bad")}${tl(U[ok?"w_ok":"w_bad"].slice(1))}</div><button class="btn" id="wBtn">${ok?D("ziehen"):D("weiter")}</button>`;
+    }
+  } else if(S.phase==="next"){
+    if(S.msg)h+=`<div class="spec">${S.msg}</div>`;
+    const nx=S.players[(S.cur+1)%S.players.length];
+    h+=`<div style="margin-top:14px"><button class="btn" id="nextBtn">${D("naechste")} ${esc(nx.name)}</button></div>`;
+  } else if(S.phase==="busy"){
+    if(S.msg)h+=`<div class="spec">${S.msg}</div>`;
+  }
+  return h+`</div>`;
+}
+
+function renderGame(){
+  main.innerHTML=`<div class="game"><div>${renderBoard()}</div><div id="pan">${renderPanel()}</div></div>`;
+  bindPanel();
+}
+function refreshPanel(){$("pan").innerHTML=renderPanel();bindPanel();}
+function refreshBoardOnly(){const g=main.querySelector(".game>div");if(g)g.innerHTML=renderBoard();}
+
+function bindPanel(){
+  const b=id=>$(id);
+  if(b("rollBtn"))b("rollBtn").onclick=doRoll;
+  main.querySelectorAll("[data-a1]").forEach(x=>x.onclick=()=>{S.a1=x.dataset.a1;refreshPanel();});
+  main.querySelectorAll("[data-a2]").forEach(x=>x.onclick=()=>{S.a2=+x.dataset.a2;refreshPanel();});
+  if(b("solveBtn"))b("solveBtn").onclick=()=>{S.phase="result";refreshPanel();};
+  if(b("moveBtn"))b("moveBtn").onclick=()=>{
+    const c=S.card,steps=(S.a1===c.p?S.roll:0)+(S.a2===c.ok?1:0);
+    if(!steps){toNext("");return;}
+    S.phase="busy";S.msg="";refreshPanel();
+    moveBy(steps,afterLand);
+  };
+  main.querySelectorAll("[data-w]").forEach(x=>x.onclick=()=>{S.wa=+x.dataset.w;S.phase="wresult";refreshPanel();});
+  if(b("wBtn"))b("wBtn").onclick=()=>{
+    if(S.wa===S.wcard.r){S.phase="busy";S.msg="";refreshPanel();moveBy(2,()=>{if(!checkWin())toNext("");});}
+    else toNext("");
+  };
+  if(b("nextBtn"))b("nextBtn").onclick=()=>{S.cur=(S.cur+1)%S.players.length;S.phase="roll";S.msg="";render();};
+}
+
+function doRoll(){
+  if(S.busy)return;S.busy=true;
+  let n=0;const btn=$("rollBtn");btn.disabled=true;
+  const it=setInterval(()=>{
+    S.roll=1+Math.floor(Math.random()*6);
+    const d=$("die");if(d)d.outerHTML=dieHTML(S.roll,true);
+    if(++n>=11){clearInterval(it);S.busy=false;S.card=draw();S.a1=null;S.a2=null;S.phase="card";refreshPanel();}
+  },80);
+}
+
+function moveBy(steps,done){
+  const p=S.players[S.cur];const dir=steps>0?1:-1;let left=Math.abs(steps);
+  const step=()=>{
+    if(left===0||(dir>0&&p.pos>=GOAL)||(dir<0&&p.pos<=0)){done();return;}
+    p.pos+=dir;left--;refreshBoardOnly();
+    const t=$("tok"+S.cur);if(t){t.classList.add("hop");setTimeout(()=>t.classList.remove("hop"),180);}
+    setTimeout(step,300);
+  };
+  setTimeout(step,150);
+}
+
+function afterLand(){
+  if(checkWin())return;
+  const p=S.players[S.cur],t=FT[p.pos];
+  if(t==="p"){
+    const m=U.p_msg[0]+tl(U.p_msg.slice(1));
+    S.phase="busy";S.msg=m;refreshPanel();
+    setTimeout(()=>moveBy(2,()=>{if(!checkWin())toNext(m);}),900);
+  } else if(t==="g"){
+    const m=U.g_msg[0]+tl(U.g_msg.slice(1))+`<div class="hint">${U.g_why[0]}${tl(U.g_why.slice(1))}</div>`;
+    S.phase="busy";S.msg=m;refreshPanel();
+    setTimeout(()=>moveBy(-2,()=>toNext(m)),900);
+  } else if(t==="w"){
+    S.wcard=drawW();S.wa=null;S.phase="wunsch";refreshPanel();
+  } else toNext("");
+}
+function toNext(msg){S.msg=msg;S.phase="next";refreshPanel();refreshBoardOnly();}
+
+function checkWin(){
+  const p=S.players[S.cur];
+  if(p.pos<GOAL)return false;
+  p.pos=GOAL;refreshBoardOnly();
+  const rank=S.players.map((q,i)=>({...q,i})).sort((a,b)=>(a.i===S.cur?-1:b.i===S.cur?1:b.pos-a.pos));
+  let h=`<div class="trophy">🎓🎉</div><h2>${esc(p.name)} ${D("feierabend")}</h2>${tl(U.feierabend.slice(1).map(s=>p.name+" "+s))}<div class="rank">`;
+  rank.forEach((q,k)=>{h+=`<div><b style="width:70px">${k+1}. ${D("platz")}</b><span class="dot" style="background:${q.color};width:28px;height:28px">${q.i+1}</span><span style="flex:1">${esc(q.name)}</span><span>${D("feld")} ${q.pos}</span></div>`;});
+  h+=`</div><button class="big" id="again">${T("nochmal")}</button><button class="big navy" id="newnames">${T("neuenamen")}</button>`;
+  $("wincard").innerHTML=h;$("win").style.display="flex";
+  $("again").onclick=()=>{cfStop=true;startGame();};
+  $("newnames").onclick=()=>{cfStop=true;$("win").style.display="none";S.screen="names";render();};
+  confetti();
+  return true;
+}
+
+/* ---------- Konfetti ---------- */
+let cfStop=false;
+function confetti(){
+  cfStop=false;
+  const c=$("cf");c.style.display="block";const x=c.getContext("2d");
+  let W=c.width=innerWidth,H=c.height=innerHeight;
+  const cols=["#b8901c","#13275a","#a32626","#2d6b3a","#e7c35a","#22508f","#f28c28","#d94f8c","#3fb6a8"];
+  const P=[];
+  for(let i=0;i<360;i++)P.push({x:Math.random()*W,y:-Math.random()*H*1.3,w:6+Math.random()*8,h:9+Math.random()*10,vy:2.2+Math.random()*3.8,vx:-1.5+Math.random()*3,r:Math.random()*6.28,vr:-.22+Math.random()*.44,c:cols[i%cols.length],s:Math.random()*6.28,round:Math.random()<.25});
+  const t0=performance.now();
+  function f(t){
+    if(cfStop){x.clearRect(0,0,W,H);c.style.display="none";return;}
+    x.clearRect(0,0,W,H);let alive=false;
+    for(const p of P){
+      p.y+=p.vy;p.x+=p.vx+Math.sin(t/380+p.s)*1.3;p.r+=p.vr;
+      if(t-t0<5000&&p.y>H+20){p.y=-20;p.x=Math.random()*W;}
+      if(p.y<H+20)alive=true;
+      x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;
+      if(p.round){x.beginPath();x.arc(0,0,p.w/2,0,6.28);x.fill();}
+      else x.fillRect(-p.w/2,-p.h/2,p.w,p.h*Math.max(.15,Math.abs(Math.cos(p.r*1.3))));
+      x.restore();
+    }
+    if(alive)requestAnimationFrame(f);else c.style.display="none";
+  }
+  requestAnimationFrame(f);
+}
+addEventListener("resize",()=>{const c=$("cf");if(c.style.display==="block"){c.width=innerWidth;c.height=innerHeight;}});
+
+function render(){
+  renderHead();
+  if(S.screen==="rules")renderRules();
+  else if(S.screen==="names")renderNames();
+  else renderGame();
+}
+render();
+</script>
+</body>
+</html>

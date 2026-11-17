@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fragen-Showdown – LF 2 Modul 6</title>
+<style>
+:root{--bg:#f3efe4;--ink:#1d1d1f;--navy:#13275a;--gold:#b8901c;--paper:#fbf9f3;--line:#d8d1bf;--muted:#5d5a52;--ok:#2d6b3a;--bad:#a32626}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:14px 20px 40px}
+header{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;border-top:3px double var(--ink);border-bottom:2px solid var(--ink);padding:10px 0 8px;margin-bottom:16px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:44px;margin:0;line-height:1;letter-spacing:-.5px}
+.sub{letter-spacing:.16em;font-size:12.5px;text-transform:uppercase;color:#333;flex:1;padding-bottom:4px;min-width:260px}
+.hbtns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.hbtn{background:var(--paper);border:1px solid #9c9584;border-radius:5px;padding:6px 10px;font:inherit;font-size:14px;cursor:pointer}
+.hbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.tl{display:block;font-size:.86em;color:#4b5a86;font-weight:400;unicode-bidi:plaintext;margin-top:2px}
+.tl[dir=rtl],.tl:lang(ar){text-align:right}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 26px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+.center{max-width:1000px;margin:0 auto}
+h2{font-family:Georgia,serif;font-size:30px;margin:0 0 6px}
+.intro{color:var(--muted);margin:0 0 16px}
+.rule{display:flex;gap:14px;background:#ece7d8;border-radius:6px;padding:12px 16px;margin-bottom:10px}
+.num{flex:none;width:32px;height:32px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-family:Georgia,serif}
+.rule h3{margin:0 0 3px;font-size:17px}
+.rule p{margin:0}
+.big{display:block;width:100%;border:0;border-radius:5px;background:var(--gold);color:#fff;font-family:inherit;font-weight:700;font-size:19px;line-height:1.2;padding:13px;cursor:pointer;margin-top:12px;box-shadow:0 3px 0 #8a6a10}
+.big .tl,.btn .tl{color:#fff;opacity:.85}
+.big:disabled{opacity:.45;cursor:default}
+.navy{background:var(--navy);box-shadow:0 3px 0 #0b1838}
+.cnt{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.cnt button{border:2px solid #b9b19d;background:var(--paper);border-radius:6px;padding:12px;font-family:inherit;font-weight:700;font-size:19px;cursor:pointer}
+.cnt button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.nrow{display:flex;gap:12px;align-items:center;margin:8px 0}
+.nrow input{flex:1;font:inherit;font-size:19px;padding:10px 14px;border:1px solid #bdb5a2;border-radius:5px;background:#fff}
+.dot{flex:none;width:34px;height:34px;border-radius:50%;color:#fff;display:grid;place-items:center;font-weight:700;border:3px solid #fff;box-shadow:0 0 0 1px #888}
+.hint{color:var(--muted);font-size:15px;margin-top:8px}
+.game{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:22px;align-items:start}
+@media(max-width:900px){.game{grid-template-columns:1fr}h1{font-size:34px}}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{display:flex;gap:10px;align-items:center;background:var(--paper);border:2px solid var(--line);border-radius:6px;padding:6px 14px 6px 8px;min-width:150px}
+.chip.cur{border-color:currentColor}
+.chip b{display:block;color:var(--ink)}
+.chip small{color:var(--muted)}
+.board{border:2px solid var(--navy);border-radius:4px;overflow:hidden;background:#fff}
+.bhead{background:var(--navy);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;font-family:Georgia,serif;font-weight:700;font-size:17px;min-height:46px}
+.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+.cell{position:relative;aspect-ratio:1.12/1;border-right:1px solid #ddd6c3;border-bottom:1px solid #ddd6c3;padding:4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cell:nth-child(odd){background:#f6f3ea}.cell:nth-child(even){background:#ece8dc}
+.cell .n{position:absolute;top:3px;left:6px;font-size:13px;font-weight:600;color:#333}
+.cell .ic{font-size:30px;line-height:1}
+.cell .lb{font-size:9.5px;letter-spacing:.03em;overflow-wrap:anywhere;text-transform:uppercase;color:#444;margin-top:4px;text-align:center}
+.cell.w{background:#f3eab8 !important}.cell.p{background:#cfe0f2 !important}.cell.g{background:#f1d4d4 !important}
+.cell.z{background:#1b1b22 !important;color:#fff}.cell.z .n,.cell.z .lb{color:#fff}
+.toks{position:absolute;bottom:3px;right:3px;display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;max-width:70%}
+.tok{width:24px;height:24px;border-radius:50%;color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:transform .2s}
+.tok.hop{transform:translateY(-6px) scale(1.15)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin-top:8px;color:#333}
+.legend span .tl{display:inline;margin-left:4px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:18px 22px}
+.who{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.who small{letter-spacing:.14em;text-transform:uppercase;color:#555;font-size:12px}
+.who .nm{font-family:Georgia,serif;font-weight:700;font-size:22px;display:block}
+.drow{display:flex;gap:16px;align-items:center;margin:8px 0 6px}
+.die{width:62px;height:62px;border:3px solid var(--ink);border-radius:10px;background:#fff;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:7px;box-shadow:0 3px 0 #333}
+.die i{display:block;width:11px;height:11px;border-radius:50%;margin:auto}
+.die i.on{background:var(--ink)}
+.die.roll{animation:wob .12s linear infinite}
+@keyframes wob{50%{transform:rotate(12deg)}}
+.btn{border:0;border-radius:5px;background:var(--navy);color:#fff;font-family:inherit;font-weight:700;font-size:18px;padding:12px 22px;cursor:pointer;box-shadow:0 3px 0 #0b1838}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.gold{background:var(--gold);box-shadow:0 3px 0 #8a6a10}
+.qcard{background:#fff;border:2px solid var(--gold);border-radius:8px;padding:12px 16px;margin:10px 0 14px;position:relative}
+.qcard .lbl{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#7a6418;font-weight:700}
+.qcard .q{font-family:Georgia,serif;font-size:23px;font-weight:700;margin-top:4px}
+.qcard .sit{font-size:17px;margin-top:4px}
+h4{margin:12px 0 6px;font-size:16px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.opts.one{grid-template-columns:1fr}
+.opt{text-align:left;border:2px solid #c9c1ad;background:#fff;border-radius:6px;padding:8px 12px;font-family:inherit;font-weight:600;font-size:16px;cursor:pointer;line-height:1.25}
+.opt small{font-weight:400;color:#666}
+.opt.sel{border-color:var(--navy);background:#e4e9f5}
+.opt.right{border-color:var(--ok);background:#dcefdf}
+.opt.wrong{border-color:var(--bad);background:#f6dada}
+.opt:disabled{cursor:default;color:var(--ink)}
+.res{border-radius:6px;padding:10px 14px;margin-top:12px;background:#eef1f7;border-left:5px solid var(--navy)}
+.res p{margin:4px 0}
+.okc{color:var(--ok);font-weight:700}.badc{color:var(--bad);font-weight:700}
+.move{font-size:19px;font-weight:700;margin:12px 0 4px}
+.spec{font-size:19px;margin:6px 0 4px}
+#win{position:fixed;inset:0;background:rgba(19,39,90,.82);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+#win .card{max-width:620px;width:100%;text-align:center}
+#win .trophy{font-size:70px;line-height:1}
+#win h2{font-size:34px}
+.rank{text-align:left;margin:14px 0}
+.rank div{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid #e3ddcd;font-size:18px}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:60;display:none}
+.hide{display:none !important}
+</style>
+</head>
+<body>
+<canvas id="cf"></canvas>
+<div class="wrap">
+<header>
+  <h1>Fragen-Showdown</h1>
+  <div class="sub" id="sub"></div>
+  <div class="hbtns" id="hbtns"></div>
+</header>
+<main id="main"></main>
+</div>
+<div id="win"><div class="card" id="wincard"></div></div>
+
+<script>
+"use strict";
+/* ---------- Sprachen ---------- */
+const LI={tr:0,vi:1,ar:2};
+const LANGS=[["de","Deutsch"],["tr","Türkçe"],["vi","Tiếng Việt"],["ar","العربية"]];
+let lang="de";
+try{const s=localStorage.getItem("fs_lang");if(s&&LANGS.some(l=>l[0]===s))lang=s;}catch(e){}
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+/* Übersetzung unter dem deutschen Text: arr = [tr, vi, ar] */
+function tl(arr){if(lang==="de"||!arr)return "";const s=arr[LI[lang]];if(!s)return "";return `<span class="tl" lang="${lang}" dir="${lang==="ar"?"rtl":"ltr"}">${esc(s)}</span>`;}
+/* UI-Texte: [de, tr, vi, ar] */
+const U={
+ sub:["Brettspiel zu Fragearten · LF 2 Modul 6 · KLA Bremerhaven","Soru türleri üzerine masa oyunu","Trò chơi bàn cờ về các loại câu hỏi","لعبة لوحية عن أنواع الأسئلة"],
+ regeln:["Regeln","Kurallar","Luật chơi","القواعد"],
+ ende:["Spiel beenden","Oyunu bitir","Kết thúc","إنهاء اللعبة"],
+ howto:["So funktioniert das Spiel","Oyun nasıl oynanır","Cách chơi","طريقة اللعب"],
+ intro:["Lest euch die Regeln kurz durch, dann geht es los. Ihr könnt sie im Spiel jederzeit über „Regeln“ nochmal aufrufen.","Kuralları kısaca okuyun, sonra başlıyoruz. Kurallara oyunda her zaman „Regeln“ düğmesinden tekrar bakabilirsiniz.","Hãy đọc nhanh luật chơi rồi bắt đầu. Trong khi chơi, bạn có thể mở lại luật bất cứ lúc nào bằng nút „Regeln“.","اقرؤوا القواعد بسرعة، ثم نبدأ. يمكنكم فتحها في أي وقت أثناء اللعب عبر زر «Regeln»."],
+ r1t:["Ziel","Hedef","Mục tiêu","الهدف"],
+ r1:["Ihr startet morgens bei der <b>Ladenöffnung</b> und wollt als Erste/r den <b>Feierabend</b> 🎉 (Feld 18) erreichen. Gespielt wird reihum an einem Gerät.","Sabah mağaza açılışında başlıyorsunuz ve iş çıkışına 🎉 (18. alan) ilk ulaşan olmak istiyorsunuz. Sırayla tek bir cihazda oynanır.","Các bạn bắt đầu lúc cửa hàng mở cửa buổi sáng và muốn là người đầu tiên đến giờ tan ca 🎉 (ô 18). Mọi người chơi lần lượt trên một thiết bị.","تبدؤون صباحًا عند افتتاح المتجر، ويريد كل واحد أن يصل أولًا إلى نهاية الدوام 🎉 (الخانة 18). يلعب الجميع بالدور على جهاز واحد."],
+ r2t:["Würfeln & Karte ziehen","Zar at ve kart çek","Tung xúc xắc và rút thẻ","ارمِ النرد واسحب بطاقة"],
+ r2:["Wer dran ist, würfelt und bekommt eine <b>Kundenkarte</b> mit einer Frage aus einem Verkaufsgespräch, zum Beispiel „Zahlen Sie bar oder mit Karte?“.","Sırası gelen zar atar ve bir satış konuşmasından bir soru içeren bir müşteri kartı alır.","Người đến lượt tung xúc xắc và nhận một thẻ khách hàng có một câu hỏi trong cuộc trò chuyện bán hàng.","من عليه الدور يرمي النرد ويحصل على بطاقة زبون فيها سؤال من محادثة بيع."],
+ r3t:["Zwei Fragen beantworten","İki soruyu cevapla","Trả lời hai câu hỏi","أجب عن سؤالين"],
+ r3:["① Welche <b>Frageart</b> ist das? (offene Frage, geschlossene Frage, Alternativfrage, Suggestivfrage, rhetorische Frage)<br>② Sollte man so im Verkaufsgespräch fragen – <b>ja</b> oder <b>lieber vermeiden</b>?<br>Die Mitspielenden dürfen mitraten, am Ende entscheidet die Person am Zug.","① Bu hangi soru türü? ② Satış konuşmasında böyle sorulmalı mı – evet mi, yoksa kaçınmak mı daha iyi? Diğer oyuncular da tahmin edebilir, son kararı sırası gelen verir.","① Đây là loại câu hỏi nào? ② Có nên hỏi như vậy khi bán hàng không – có, hay nên tránh? Những người khác được đoán cùng, người đến lượt quyết định cuối cùng.","① ما نوع هذا السؤال؟ ② هل يجب أن نسأل هكذا في محادثة البيع – نعم أم الأفضل تجنّبه؟ يمكن للآخرين المساعدة، والقرار الأخير لمن عليه الدور."],
+ r4t:["Ziehen","İlerle","Di chuyển","التقدّم"],
+ r4:["<b>Frageart richtig:</b> so viele Felder, wie du gewürfelt hast.<br><b>② richtig:</b> +1 Feld extra.<br>Beides falsch: Du bleibst stehen. Danach siehst du die Lösung mit Begründung.","Soru türü doğru: zarda çıkan sayı kadar ilerle. ② doğru: +1 alan. İkisi de yanlış: yerinde kalırsın. Sonra çözümü ve açıklamasını görürsün.","Đúng loại câu hỏi: đi số ô bằng số xúc xắc. ② đúng: thêm 1 ô. Sai cả hai: đứng yên. Sau đó bạn xem lời giải và lý do.","نوع السؤال صحيح: تتقدّم بعدد النرد. ② صحيح: خانة إضافية. الاثنان خطأ: تبقى مكانك. بعد ذلك ترى الحل مع التعليل."],
+ r5t:["Besondere Felder","Özel alanlar","Ô đặc biệt","خانات خاصة"],
+ r5:["🛍️ <b>Kundenwunsch:</b> Zusatzkarte „Welche Frage passt am besten?“ Richtig: 2 Felder vor.<br>☕ <b>Pause:</b> 2 Felder vor.<br>😠 <b>Kunde genervt:</b> 2 Felder zurück.","🛍️ Müşteri isteği: ek kart „Hangi soru en uygun?“ Doğru: 2 alan ileri. ☕ Mola: 2 alan ileri. 😠 Sinirli müşteri: 2 alan geri.","🛍️ Mong muốn của khách: thẻ phụ „Câu hỏi nào phù hợp nhất?“ Đúng: tiến 2 ô. ☕ Nghỉ giải lao: tiến 2 ô. 😠 Khách bực mình: lùi 2 ô.","🛍️ طلب الزبون: بطاقة إضافية «أي سؤال هو الأنسب؟» صحيح: تتقدّم خانتين. ☕ استراحة: تتقدّم خانتين. 😠 زبون منزعج: ترجع خانتين."],
+ verstanden:["Verstanden – weiter zu den Namen","Anladım – isimlere geç","Đã hiểu – tiếp tục nhập tên","فهمت – إلى الأسماء"],
+ zurueck:["Zurück zum Spiel","Oyuna dön","Quay lại trò chơi","العودة إلى اللعبة"],
+ wer:["Wer spielt mit?","Kimler oynuyor?","Ai chơi?","من يلعب؟"],
+ wieviele:["Wie viele Personen spielen? Dann tragt ihr eure Namen ein.","Kaç kişi oynuyor? Sonra isimlerinizi yazın.","Có bao nhiêu người chơi? Sau đó hãy nhập tên của các bạn.","كم شخصًا يلعب؟ ثم اكتبوا أسماءكم."],
+ personen:["Personen","kişi","người","أشخاص"],
+ namevon:["Name von Person","Kişinin adı","Tên người chơi","اسم الشخص"],
+ start:["Spiel starten","Oyunu başlat","Bắt đầu chơi","ابدأ اللعب"],
+ allenamen:["Bitte alle Namen eintragen.","Lütfen tüm isimleri yazın.","Vui lòng nhập tất cả tên.","يرجى كتابة جميع الأسماء."],
+ feld:["Feld","Alan","Ô","الخانة"],
+ von18:["von 18","/ 18","/ 18","من 18"],
+ bstart:["🏬 Ladenöffnung, 9 Uhr · Start","Başlangıç: mağaza açılışı, saat 9","Xuất phát: cửa hàng mở cửa, 9 giờ","البداية: افتتاح المتجر، الساعة 9"],
+ amzug:["Am Zug","Sıra sende","Đến lượt","الدور على"],
+ wuerfle:["Würfle, dann wird deine Kundenkarte aufgedeckt.","Zar at, sonra müşteri kartın açılır.","Hãy tung xúc xắc, sau đó thẻ khách hàng của bạn sẽ được mở.","ارمِ النرد، ثم تُكشف بطاقة الزبون."],
+ wuerfeln:["Würfeln","Zar at","Tung xúc xắc","ارمِ النرد"],
+ gewuerfelt:["Gewürfelt:","Zar:","Xúc xắc:","النرد:"],
+ fragt:["🧑‍💼 Im Verkaufsgespräch fragt die Verkäuferin:","Satış konuşmasında satıcı soruyor:","Trong cuộc trò chuyện bán hàng, người bán hỏi:","في محادثة البيع تسأل البائعة:"],
+ f1:["① Welche Frageart ist das?","① Bu hangi soru türü?","① Đây là loại câu hỏi nào?","① ما نوع هذا السؤال؟"],
+ f2:["② Sollte man so im Verkaufsgespräch fragen?","② Satış konuşmasında böyle sorulmalı mı?","② Có nên hỏi như vậy khi bán hàng không?","② هل يجب أن نسأل هكذا في محادثة البيع؟"],
+ ja:["Ja, gut geeignet","Evet, uygun","Có, phù hợp","نعم، مناسب"],
+ nein:["Lieber vermeiden","Kaçınmak daha iyi","Nên tránh","الأفضل تجنّبه"],
+ aufloesen:["Auflösen","Çözümü göster","Xem lời giải","اعرض الحل"],
+ waehle:["Wähle bei ① und ② je eine Antwort.","① ve ② için birer cevap seç.","Hãy chọn một câu trả lời cho ① và ②.","اختر إجابة في ① وإجابة في ②."],
+ richtig:["richtig","doğru","đúng","صحيح"],
+ falsch:["falsch","yanlış","sai","خطأ"],
+ loesung:["Lösung","Çözüm","Lời giải","الحل"],
+ signal:["Signal im Satz:","Cümledeki ipucu:","Dấu hiệu trong câu:","العلامة في الجملة:"],
+ merkmal:["Merkmal:","Özellik:","Đặc điểm:","السمة:"],
+ wirkung:["Im Verkaufsgespräch:","Satış konuşmasında:","Khi bán hàng:","في محادثة البيع:"],
+ vor:["Felder vor","alan ileri","ô tiến lên","خانات إلى الأمام"],
+ vor1:["Feld vor","alan ileri","ô tiến lên","خانة إلى الأمام"],
+ stehen:["Du bleibst stehen.","Yerinde kalıyorsun.","Bạn đứng yên.","تبقى مكانك."],
+ ziehen:["Ziehen ➜","İlerle ➜","Di chuyển ➜","تقدّم ➜"],
+ weiter:["Weiter","Devam","Tiếp tục","متابعة"],
+ naechste:["Nächste Person:","Sıradaki kişi:","Người tiếp theo:","الشخص التالي:"],
+ wunsch:["Kundenwunsch","Müşteri isteği","Mong muốn của khách","طلب الزبون"],
+ pause:["Pause","Mola","Nghỉ giải lao","استراحة"],
+ genervt:["Kunde genervt","Sinirli müşteri","Khách bực mình","زبون منزعج"],
+ ziel:["Feierabend = Ziel","İş çıkışı = hedef","Tan ca = đích","نهاية الدوام = الهدف"],
+ zielkurz:["Ziel","Hedef","Đích","الهدف"],
+ wunschkarte:["🛍️ Kundenwunsch – Zusatzkarte","Müşteri isteği – ek kart","Mong muốn của khách – thẻ phụ","طلب الزبون – بطاقة إضافية"],
+ passt:["Welche Frage passt am besten?","Hangi soru en uygun?","Câu hỏi nào phù hợp nhất?","أي سؤال هو الأنسب؟"],
+ w_ok:["Richtig – 2 Felder vor!","Doğru – 2 alan ileri!","Đúng – tiến 2 ô!","صحيح – تتقدّم خانتين!"],
+ w_bad:["Leider nicht – du bleibst stehen.","Maalesef değil – yerinde kalıyorsun.","Tiếc quá – bạn đứng yên.","للأسف لا – تبقى مكانك."],
+ p_msg:["☕ Pause! 2 Felder vor.","Mola! 2 alan ileri.","Nghỉ giải lao! Tiến 2 ô.","استراحة! تتقدّم خانتين."],
+ g_msg:["😠 Kunde genervt! 2 Felder zurück.","Sinirli müşteri! 2 alan geri.","Khách bực mình! Lùi 2 ô.","زبون منزعج! ترجع خانتين."],
+ g_why:["Er wurde mit Suggestivfragen unter Druck gesetzt …","Yönlendirici sorularla baskı altına alındı …","Khách bị gây áp lực bằng câu hỏi dẫn dắt …","تعرّض لضغط بأسئلة إيحائية …"],
+ feierabend:["hat Feierabend!","iş çıkışına ulaştı!","đã được tan ca!","وصل إلى نهاية الدوام!"],
+ platz:["Platz","Sıra","Hạng","المركز"],
+ nochmal:["Nochmal mit denselben Namen","Aynı isimlerle tekrar","Chơi lại với cùng tên","مرة أخرى بنفس الأسماء"],
+ neuenamen:["Neue Namen","Yeni isimler","Tên mới","أسماء جديدة"],
+ ende2:["Wirklich beenden?","Gerçekten bitirilsin mi?","Thật sự kết thúc?","هل تريد الإنهاء فعلًا؟"]
+};
+const T=k=>U[k][0]+tl(U[k].slice(1));
+const D=k=>U[k][0];
+
+/* ---------- Inhalte ---------- */
+const TY=[
+ {n:"offene Frage",a:"W-Frage",tr:["açık uçlu soru","câu hỏi mở","سؤال مفتوح"],
+  m:"Fragewort am Anfang (Wer, Was, Wie …)",mt:["Başta soru sözcüğü (Kim, Ne, Nasıl …)","Bắt đầu bằng từ để hỏi (Ai, Cái gì, Như thế nào …)","أداة استفهام في البداية (مَن، ماذا، كيف …)"],
+  ok:1,e:"gut geeignet: Bedarf ermitteln – der Kunde erzählt viel",et:["uygun: ihtiyacı belirlemek","phù hợp: xác định nhu cầu","مناسب: تحديد الاحتياجات"]},
+ {n:"geschlossene Frage",a:"Ja/Nein-Frage",tr:["kapalı uçlu soru (evet/hayır)","câu hỏi đóng (có/không)","سؤال مغلق (نعم/لا)"],
+  m:"Verb am Anfang – Antwort Ja oder Nein",mt:["Başta fiil – cevap evet/hayır","Động từ đứng đầu – trả lời có/không","الفعل في البداية – الإجابة نعم/لا"],
+  ok:1,e:"gut geeignet: kontrollieren und bestätigen (aber: „Kann ich Ihnen helfen?“ → oft „Nein, danke“)",et:["uygun: kontrol etmek, onaylamak","phù hợp: kiểm tra, xác nhận","مناسب: التحقق والتأكيد"]},
+ {n:"Alternativfrage",a:"Auswahlfrage",tr:["seçenekli soru","câu hỏi lựa chọn","سؤال اختيار"],
+  m:"zwei Möglichkeiten mit „oder“",mt:["„veya“ ile iki seçenek","hai lựa chọn với „hay“","خياران باستخدام «أو»"],
+  ok:1,e:"gut geeignet: hilft bei der Auswahl und beim Abschluss",et:["uygun: seçim, satışı bitirme","phù hợp: lựa chọn, chốt bán","مناسب: الاختيار وإتمام البيع"]},
+ {n:"Suggestivfrage",a:"Lenkungsfrage",tr:["yönlendirici soru","câu hỏi dẫn dắt","سؤال إيحائي (موجِّه)"],
+  m:"gibt die Antwort vor (doch, sicher, wohl, nicht wahr)",mt:["cevabı baştan verir (doch, sicher, wohl)","gợi sẵn câu trả lời (doch, sicher, wohl)","يفرض الإجابة مسبقًا (doch, sicher, wohl)"],
+  ok:0,e:"lieber vermeiden: Der Kunde fühlt sich unter Druck gesetzt",et:["kaçın: baskı","tránh: gây áp lực","تجنَّبه: ضغط"]},
+ {n:"rhetorische Frage",a:"Scheinfrage",tr:["retorik soru","câu hỏi tu từ","سؤال بلاغي"],
+  m:"keine Antwort erwartet",mt:["cevap beklenmez","không mong đợi câu trả lời","لا يُنتظر جواب"],
+  ok:0,e:"lieber vermeiden: Du erfährst nichts über den Bedarf",et:["kaçın: bilgi yok","tránh: không có thông tin","تجنَّبه: لا معلومات"]}];
+
+/* q = Frage, k = Frageart (Index in TY), s = Signal im Satz, t = [tr, vi, ar] */
+const CARDS=[
+ {q:"Wer möchte nicht gut aussehen?",k:4,s:"Wer … nicht – die Antwort ist klar: jeder.",t:["Kim iyi görünmek istemez ki?","Ai mà không muốn trông thật đẹp chứ?","من لا يريد أن يبدو جميلًا؟"]},
+ {q:"Das Modell ist doch viel besser, nicht wahr?",k:3,s:"doch … nicht wahr",t:["Bu model çok daha iyi, değil mi?","Mẫu này tốt hơn nhiều, đúng không?","هذا الطراز أفضل بكثير، أليس كذلك؟"]},
+ {q:"Zahlen Sie bar oder mit Karte?",k:2,s:"oder",t:["Nakit mi, kartla mı ödeyeceksiniz?","Quý khách trả bằng tiền mặt hay bằng thẻ?","هل ستدفع نقدًا أم بالبطاقة؟"]},
+ {q:"Wer möchte im Winter schon frieren?",k:4,s:"Wer … schon – niemand antwortet.",t:["Kış günü kim üşümek ister ki?","Ai mà muốn bị lạnh vào mùa đông chứ?","من يريد أن يشعر بالبرد في الشتاء؟"]},
+ {q:"Kann ich Ihnen helfen?",k:1,s:"Kann (Verb am Anfang)",t:["Size yardımcı olabilir miyim?","Tôi có thể giúp gì cho quý khách không?","هل يمكنني مساعدتك؟"]},
+ {q:"Hat Ihr Sohn bereits eine Isomatte?",k:1,s:"Hat (Verb am Anfang)",t:["Oğlunuzun zaten bir kamp matı var mı?","Con trai quý khách đã có tấm đệm ngủ cắm trại chưa?","هل لدى ابنك حصيرة تخييم بالفعل؟"]},
+ {q:"Kann man bei diesem Preis noch nein sagen?",k:4,s:"Kann man … noch nein sagen – niemand soll antworten.",t:["Bu fiyata hayır denir mi hiç?","Với giá này thì ai nỡ từ chối chứ?","هل يمكن للمرء أن يقول لا بهذا السعر؟"]},
+ {q:"Wann benötigen Sie die Ware?",k:0,s:"Wann",t:["Ürüne ne zaman ihtiyacınız var?","Khi nào quý khách cần hàng?","متى تحتاج إلى البضاعة؟"]},
+ {q:"Sie finden wohl auch, dass Ihnen das sehr gut steht?",k:3,s:"wohl auch",t:["Siz de bunun size çok yakıştığını düşünüyorsunuz herhalde?","Chắc quý khách cũng thấy cái này rất hợp với mình, đúng không?","أنت أيضًا ترى أن هذا يناسبك جدًا، أليس كذلك؟"]},
+ {q:"Wofür möchten Sie den Rucksack verwenden?",k:0,s:"Wofür",t:["Sırt çantasını ne için kullanmak istiyorsunuz?","Quý khách muốn dùng ba lô để làm gì?","لأي غرض تريد استخدام حقيبة الظهر؟"]},
+ {q:"Soll das Geschenk für ein Mädchen oder einen Jungen sein?",k:2,s:"oder",t:["Hediye bir kız için mi, bir erkek çocuk için mi olacak?","Món quà dành cho bé gái hay bé trai?","هل الهدية لفتاة أم لولد؟"]},
+ {q:"Möchten Sie sich setzen?",k:1,s:"Möchten (Verb am Anfang)",t:["Oturmak ister misiniz?","Quý khách có muốn ngồi không?","هل تودّ الجلوس؟"]},
+ {q:"Wer zahlt schon gern zu viel?",k:4,s:"Wer … schon – niemand antwortet.",t:["Kim fazla ödemek ister ki?","Ai mà thích trả quá nhiều chứ?","من يحب أن يدفع أكثر من اللازم؟"]},
+ {q:"Möchten Sie das rote oder das blaue Modell?",k:2,s:"oder",t:["Kırmızı modeli mi, mavi modeli mi istersiniz?","Quý khách muốn mẫu màu đỏ hay màu xanh?","هل تريد الطراز الأحمر أم الأزرق؟"]},
+ {q:"Sonst brauchen Sie nichts?",k:3,s:"Sonst … nichts – die Antwort „Nein“ ist schon vorgegeben.",t:["Başka bir şeye ihtiyacınız yok, değil mi?","Quý khách không cần gì khác nữa, đúng không?","لا تحتاج إلى شيء آخر، أليس كذلك؟"]},
+ {q:"Worauf legen Sie bei einer Jacke besonders Wert?",k:0,s:"Worauf",t:["Bir ceketten özellikle neye önem veriyorsunuz?","Quý khách đặc biệt coi trọng điều gì ở áo khoác?","ما الذي تهتم به بشكل خاص في الجاكيت؟"]},
+ {q:"Für welchen Anlass suchen Sie das Kleid?",k:0,s:"Für welchen",t:["Elbiseyi hangi vesile için arıyorsunuz?","Quý khách tìm váy cho dịp nào?","لأي مناسبة تبحث عن الفستان؟"]},
+ {q:"Sie wollen doch sicher kein Modell aus der letzten Saison?",k:3,s:"doch sicher",t:["Geçen sezonun modelini istemezsiniz herhalde?","Chắc quý khách không muốn mẫu của mùa trước đúng không?","أنت بالتأكيد لا تريد طرازًا من الموسم الماضي، أليس كذلك؟"]},
+ {q:"Haben Sie Schuhgröße 42?",k:1,s:"Haben (Verb am Anfang)",t:["Ayakkabı numaranız 42 mi?","Quý khách đi giày cỡ 42 phải không?","هل مقاس حذائك 42؟"]},
+ {q:"Bevorzugen Sie den gelben oder den blaugrünen Schlafsack?",k:2,s:"oder",t:["Sarı uyku tulumunu mu, mavi-yeşil olanı mı tercih edersiniz?","Quý khách thích túi ngủ màu vàng hay màu xanh lục?","هل تفضل كيس النوم الأصفر أم الأزرق المخضر؟"]},
+ {q:"Was darf es sein?",k:0,s:"Was",t:["Ne arzu edersiniz?","Quý khách cần gì ạ?","ماذا تريد؟"]},
+ {q:"Möchten Sie die Hose anprobieren?",k:1,s:"Möchten (Verb am Anfang)",t:["Pantolonu denemek ister misiniz?","Quý khách có muốn mặc thử quần không?","هل تودّ تجربة البنطلون؟"]},
+ {q:"Nehmen Sie die kleine oder die große Packung?",k:2,s:"oder",t:["Küçük paketi mi, büyük paketi mi alıyorsunuz?","Quý khách lấy gói nhỏ hay gói lớn?","هل تأخذ العبوة الصغيرة أم الكبيرة؟"]},
+ {q:"Sie nehmen doch sicher gleich zwei?",k:3,s:"doch sicher",t:["Elbette hemen iki tane alırsınız, değil mi?","Chắc chắn quý khách lấy luôn hai cái chứ?","بالتأكيد ستأخذ اثنين، أليس كذلك؟"]},
+ {q:"Wer will schon auf Komfort verzichten?",k:4,s:"Wer … schon – niemand antwortet.",t:["Kim konfordan vazgeçmek ister ki?","Ai mà muốn bỏ qua sự thoải mái chứ?","من يريد أن يتخلى عن الراحة؟"]},
+ {q:"Wie viel möchten Sie ungefähr ausgeben?",k:0,s:"Wie viel",t:["Yaklaşık ne kadar harcamak istiyorsunuz?","Quý khách muốn chi khoảng bao nhiêu?","كم تريد أن تنفق تقريبًا؟"]},
+ {q:"Ist das Fahrrad für Sie selbst?",k:1,s:"Ist (Verb am Anfang)",t:["Bisiklet kendiniz için mi?","Chiếc xe đạp này là cho chính quý khách phải không?","هل الدراجة لك شخصيًا؟"]},
+ {q:"Darf es Vollmilch oder fettarme Milch sein?",k:2,s:"oder",t:["Tam yağlı süt mü olsun, az yağlı süt mü?","Quý khách muốn sữa nguyên kem hay sữa ít béo?","هل تريد حليبًا كامل الدسم أم قليل الدسم؟"]}];
+
+/* Kundenwunsch-Karten: Situation + 3 Fragen, r = richtige Antwort (Index), k = Frageart je Antwort */
+const WUENSCHE=[
+ {s:"Eine Kundin kommt in den Laden. Du willst ihren Bedarf ermitteln.",st:["Bir müşteri mağazaya geliyor. Onun ihtiyacını öğrenmek istiyorsun.","Một khách hàng bước vào cửa hàng. Bạn muốn tìm hiểu nhu cầu của cô ấy.","تدخل زبونة إلى المتجر. تريد أن تعرف احتياجاتها."],r:0,
+  o:[["Wofür möchten Sie die Jacke verwenden?",0,["Ceketi ne için kullanmak istiyorsunuz?","Quý khách muốn dùng áo khoác để làm gì?","لأي غرض تريدين استخدام الجاكيت؟"]],
+     ["Sie suchen doch sicher eine warme Jacke?",3,["Elbette sıcak bir ceket arıyorsunuz, değil mi?","Chắc chắn quý khách đang tìm áo khoác ấm đúng không?","أنتِ بالتأكيد تبحثين عن جاكيت دافئ، أليس كذلك؟"]],
+     ["Wer friert schon gern?",4,["Kim üşümeyi sever ki?","Ai mà thích bị lạnh chứ?","من يحب أن يشعر بالبرد؟"]]]},
+ {s:"Die Kundin kann sich zwischen zwei Pullovern nicht entscheiden.",st:["Müşteri iki kazak arasında karar veremiyor.","Khách hàng không quyết định được giữa hai chiếc áo len.","لا تستطيع الزبونة الاختيار بين كنزتين."],r:1,
+  o:[["Wer trägt schon gern Grau?",4,["Kim gri giymeyi sever ki?","Ai mà thích mặc màu xám chứ?","من يحب أن يلبس الرمادي؟"]],
+     ["Möchten Sie den grauen oder den grünen Pullover?",2,["Gri kazağı mı, yeşil olanı mı istersiniz?","Quý khách muốn áo len màu xám hay màu xanh lá?","هل تريدين الكنزة الرمادية أم الخضراء؟"]],
+     ["Der grüne ist doch viel schöner, oder?",3,["Yeşil olan çok daha güzel, değil mi?","Cái màu xanh lá đẹp hơn nhiều, đúng không?","الأخضر أجمل بكثير، أليس كذلك؟"]]]},
+ {s:"Der Kunde möchte kaufen. Du willst den Abschluss leicht machen.",st:["Müşteri satın almak istiyor. Satışı kolayca bitirmek istiyorsun.","Khách hàng muốn mua. Bạn muốn chốt đơn thật dễ dàng.","يريد الزبون أن يشتري. تريد أن تسهّل إتمام البيع."],r:2,
+  o:[["Wollen Sie das wirklich kaufen?",1,["Bunu gerçekten almak istiyor musunuz?","Quý khách thật sự muốn mua cái này không?","هل تريد حقًا شراء هذا؟"]],
+     ["Wer kann da schon nein sagen?",4,["Buna kim hayır diyebilir ki?","Ai mà nói không được chứ?","من يستطيع أن يقول لا؟"]],
+     ["Zahlen Sie bar oder mit Karte?",2,["Nakit mi, kartla mı ödeyeceksiniz?","Quý khách trả bằng tiền mặt hay bằng thẻ?","هل ستدفع نقدًا أم بالبطاقة؟"]]]},
+ {s:"Ein Kunde sucht ein Geschenk. Du weißt noch nichts über die beschenkte Person.",st:["Bir müşteri hediye arıyor. Hediye alacak kişi hakkında henüz bir şey bilmiyorsun.","Một khách hàng đang tìm quà. Bạn chưa biết gì về người nhận quà.","زبون يبحث عن هدية. لا تعرف شيئًا بعد عن الشخص الذي ستُهدى إليه."],r:0,
+  o:[["Für wen ist das Geschenk gedacht?",0,["Hediye kimin için?","Món quà này dành cho ai?","لمن هذه الهدية؟"]],
+     ["Das Geschenk soll doch sicher etwas Besonderes sein?",3,["Hediye elbette özel bir şey olmalı, değil mi?","Món quà chắc chắn phải là thứ gì đặc biệt đúng không?","الهدية يجب أن تكون شيئًا مميزًا بالتأكيد، أليس كذلك؟"]],
+     ["Wer schenkt schon gern etwas Langweiliges?",4,["Kim sıkıcı bir şey hediye etmek ister ki?","Ai mà thích tặng thứ nhàm chán chứ?","من يحب أن يهدي شيئًا مملًا؟"]]]},
+ {s:"Du willst prüfen, ob du den Kunden richtig verstanden hast.",st:["Müşteriyi doğru anlayıp anlamadığını kontrol etmek istiyorsun.","Bạn muốn kiểm tra xem mình đã hiểu đúng khách hàng chưa.","تريد أن تتأكد أنك فهمت الزبون بشكل صحيح."],r:1,
+  o:[["Wer möchte schon nasse Füße bekommen?",4,["Kim ayaklarının ıslanmasını ister ki?","Ai mà muốn bị ướt chân chứ?","من يريد أن تبتلّ قدماه؟"]],
+     ["Sollen die Schuhe also wasserdicht sein?",1,["Yani ayakkabılar su geçirmez mi olmalı?","Vậy giày phải chống nước phải không?","إذن يجب أن يكون الحذاء مقاومًا للماء؟"]],
+     ["Sie wollen doch sicher die teuersten Schuhe?",3,["Elbette en pahalı ayakkabıları istersiniz, değil mi?","Chắc chắn quý khách muốn đôi giày đắt nhất đúng không?","أنت بالتأكيد تريد أغلى حذاء، أليس كذلك؟"]]]},
+ {s:"Die Kundin sucht einen Laptop. Du willst wissen, was ihr wichtig ist.",st:["Müşteri bir dizüstü bilgisayar arıyor. Onun için neyin önemli olduğunu öğrenmek istiyorsun.","Khách hàng đang tìm máy tính xách tay. Bạn muốn biết điều gì quan trọng với cô ấy.","تبحث الزبونة عن حاسوب محمول. تريد أن تعرف ما المهم بالنسبة لها."],r:2,
+  o:[["Sie wollen doch sicher den schnellsten?",3,["Elbette en hızlısını istersiniz, değil mi?","Chắc chắn quý khách muốn cái nhanh nhất đúng không?","أنتِ بالتأكيد تريدين الأسرع، أليس كذلك؟"]],
+     ["Wer arbeitet schon gern langsam?",4,["Kim yavaş çalışmayı sever ki?","Ai mà thích làm việc chậm chạp chứ?","من يحب أن يعمل ببطء؟"]],
+     ["Worauf legen Sie bei einem Laptop besonders Wert?",0,["Bir dizüstü bilgisayarda özellikle neye önem veriyorsunuz?","Quý khách đặc biệt coi trọng điều gì ở máy tính xách tay?","ما الذي تهتمين به بشكل خاص في الحاسوب المحمول؟"]]]}];
+
+/* ---------- Spielfeld ---------- */
+const GOAL=18;
+const FT={4:"w",10:"w",15:"w",7:"p",13:"p",9:"g",16:"g",18:"z"};
+const FI={w:["🛍️","wunsch"],p:["☕","pause"],g:["😠","genervt"],z:["🎉","zielkurz"]};
+const COLORS=["#a32626","#22508f","#2d6b3a","#7a3f99"];
+const ORDER=[1,2,3,4,5,6,12,11,10,9,8,7,13,14,15,16,17,18];
+const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+
+let S={screen:"rules",count:3,names:["","","",""],players:[],cur:0,phase:"roll",roll:1,card:null,a1:null,a2:null,wcard:null,wa:null,msg:"",deck:[],wdeck:[],busy:false,endAsk:false};
+let rulesFromGame=false;
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const $=id=>document.getElementById(id);
+const main=$("main");
+
+function draw(){
+  if(!S.deck.length)S.deck=shuffle(CARDS.map((_,i)=>i));
+  return CARDS[S.deck.pop()];
+}
+function drawW(){
+  if(!S.wdeck.length)S.wdeck=shuffle(WUENSCHE.map((_,i)=>i));
+  return WUENSCHE[S.wdeck.pop()];
+}
+
+/* ---------- Kopfzeile ---------- */
+function renderHead(){
+  $("sub").innerHTML=T("sub");
+  let h=LANGS.map(([c,n])=>`<button class="hbtn ${c===lang?"on":""}" data-lang="${c}">${n}</button>`).join("");
+  if(S.screen==="game"){
+    h+=`<button class="hbtn" id="hRules">${D("regeln")}</button><button class="hbtn" id="hEnd">${S.endAsk?D("ende2"):D("ende")}</button>`;
+  }
+  $("hbtns").innerHTML=h;
+  $("hbtns").querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{lang=b.dataset.lang;try{localStorage.setItem("fs_lang",lang);}catch(e){}render();});
+  if($("hRules"))$("hRules").onclick=()=>{rulesFromGame=true;S.screen="rules";render();};
+  if($("hEnd"))$("hEnd").onclick=()=>{
+    if(!S.endAsk){S.endAsk=true;renderHead();setTimeout(()=>{S.endAsk=false;if(S.screen==="game")renderHead();},4000);return;}
+    S.endAsk=false;S.screen="names";render();
+  };
+}
+
+/* ---------- Regeln ---------- */
+function renderRules(){
+  let h=`<div class="card center"><h2>${D("howto")}</h2><p class="intro">${D("intro")}${tl(U.intro.slice(1))}</p>`;
+  for(let i=1;i<=5;i++){
+    h+=`<div class="rule"><div class="num">${i}</div><div><h3>${T("r"+i+"t")}</h3><p>${U["r"+i][0]}${tl(U["r"+i].slice(1))}</p></div></div>`;
+  }
+  h+=`<button class="big" id="go">${rulesFromGame?T("zurueck"):T("verstanden")}</button></div>`;
+  main.innerHTML=h;
+  $("go").onclick=()=>{S.screen=rulesFromGame?"game":"names";rulesFromGame=false;render();};
+}
+
+/* ---------- Namen ---------- */
+function renderNames(){
+  let h=`<div class="card center" style="max-width:760px"><h2>${D("wer")}</h2><p class="intro">${D("wieviele")}${tl(U.wieviele.slice(1))}</p><div class="cnt">`;
+  for(const n of [2,3,4])h+=`<button data-n="${n}" class="${S.count===n?"on":""}">${n} ${D("personen")}${lang!=="de"?`<span class="tl" style="color:inherit;opacity:.8" dir="auto">${n} ${U.personen[LI[lang]+1]}</span>`:""}</button>`;
+  h+=`</div>`;
+  for(let i=0;i<S.count;i++)h+=`<div class="nrow"><div class="dot" style="background:${COLORS[i]}">${i+1}</div><input id="nm${i}" maxlength="18" placeholder="${D("namevon")} ${i+1}" value="${esc(S.names[i])}" autocomplete="off"></div>`;
+  h+=`<button class="big" id="startBtn">${T("start")}</button><p class="hint" id="nhint"></p></div>`;
+  main.innerHTML=h;
+  main.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>{saveNames();S.count=+b.dataset.n;renderNames();});
+  const check=()=>{saveNames();const ok=S.names.slice(0,S.count).every(n=>n.trim());$("startBtn").disabled=!ok;$("nhint").innerHTML=ok?"":T("allenamen");};
+  for(let i=0;i<S.count;i++){$("nm"+i).oninput=check;$("nm"+i).onkeydown=e=>{if(e.key==="Enter"){const nx=$("nm"+(i+1));if(nx)nx.focus();else if(!$("startBtn").disabled)$("startBtn").click();}};}
+  check();
+  $("startBtn").onclick=()=>{saveNames();startGame();};
+  const first=[...Array(S.count).keys()].find(i=>!S.names[i].trim());
+  if(first!==undefined)$("nm"+first).focus();
+}
+function saveNames(){for(let i=0;i<4;i++){const el=$("nm"+i);if(el)S.names[i]=el.value;}}
+function startGame(){
+  S.players=S.names.slice(0,S.count).map((n,i)=>({name:n.trim(),pos:0,color:COLORS[i]}));
+  S.cur=0;S.phase="roll";S.deck=shuffle(CARDS.map((_,i)=>i));S.wdeck=shuffle(WUENSCHE.map((_,i)=>i));S.screen="game";
+  $("win").style.display="none";render();
+}
+
+/* ---------- Spiel ---------- */
+function tokHTML(i,p){return `<div class="tok" id="tok${i}" style="background:${p.color}">${i+1}</div>`;}
+function renderBoard(){
+  let h=`<div class="chips">`;
+  S.players.forEach((p,i)=>{h+=`<div class="chip ${i===S.cur?"cur":""}" style="color:${p.color}"><div class="dot" style="background:${p.color}">${i+1}</div><div><b>${esc(p.name)}</b><small>${D("feld")} ${p.pos} ${D("von18")}</small></div></div>`;});
+  h+=`</div><div class="board"><div class="bhead"><span>${D("bstart")}</span><span style="display:flex;gap:4px">`;
+  S.players.forEach((p,i)=>{if(p.pos===0)h+=tokHTML(i,p);});
+  h+=`</span></div><div class="grid">`;
+  for(const f of ORDER){
+    const t=FT[f];
+    h+=`<div class="cell ${t||""}"><span class="n">${f}</span>`;
+    if(t)h+=`<span class="ic">${FI[t][0]}</span><span class="lb">${D(FI[t][1])}</span>`;
+    h+=`<div class="toks">`;
+    S.players.forEach((p,i)=>{if(p.pos===f)h+=tokHTML(i,p);});
+    h+=`</div></div>`;
+  }
+  h+=`</div></div><div class="legend">`;
+  h+=`<span>🛍️ ${D("wunsch")} (+2)${tl(U.wunsch.slice(1))}</span><span>☕ ${D("pause")} (+2)${tl(U.pause.slice(1))}</span><span>😠 ${D("genervt")} (−2)${tl(U.genervt.slice(1))}</span><span>🎉 ${D("ziel")}${tl(U.ziel.slice(1))}</span></div>`;
+  return h;
+}
+function dieHTML(n,rolling){let h=`<div class="die ${rolling?"roll":""}" id="die">`;for(let i=0;i<9;i++)h+=`<i class="${PIPS[n].includes(i)?"on":""}"></i>`;return h+`</div>`;}
+
+function renderPanel(){
+  const p=S.players[S.cur];
+  let h=`<div class="panel"><div class="who"><div class="dot" style="background:${p.color};width:42px;height:42px;font-size:18px">${S.cur+1}</div><div><small>${D("amzug")}</small>${lang!=="de"?`<small style="letter-spacing:0;text-transform:none"> · ${U.amzug[LI[lang]+1]}</small>`:""}<span class="nm">${esc(p.name)}</span></div></div>`;
+  if(S.phase==="roll"){
+    h+=`<p style="margin:4px 0 8px">${D("wuerfle")}${tl(U.wuerfle.slice(1))}</p><div class="drow">${dieHTML(S.roll)}<button class="btn" id="rollBtn">${D("wuerfeln")}</button></div>`;
+  } else if(S.phase==="card"||S.phase==="result"){
+    const c=S.card,ty=TY[c.k],done=S.phase==="result";
+    h+=`<div class="drow">${dieHTML(S.roll)}<b style="font-size:18px">${D("gewuerfelt")} ${S.roll}</b></div>`;
+    h+=`<div class="qcard"><div class="lbl">${D("fragt")}${tl(U.fragt.slice(1))}</div><div class="q">„${esc(c.q)}“</div>${tl(c.t)}</div>`;
+    h+=`<h4>${T("f1")}</h4><div class="opts">`;
+    TY.forEach((t,i)=>{
+      let cls="opt";
+      if(done){if(i===c.k)cls+=" right";else if(i===S.a1)cls+=" wrong";}
+      else if(S.a1===i)cls+=" sel";
+      h+=`<button class="${cls}" data-a1="${i}" ${done?"disabled":""}>${t.n} <small>(${t.a})</small>${tl(t.tr)}</button>`;
+    });
+    h+=`</div><h4>${T("f2")}</h4><div class="opts">`;
+    [[1,"ja"],[0,"nein"]].forEach(([v,k])=>{
+      let cls="opt";
+      if(done){if(v===ty.ok)cls+=" right";else if(v===S.a2)cls+=" wrong";}
+      else if(S.a2===v)cls+=" sel";
+      h+=`<button class="${cls}" data-a2="${v}" ${done?"disabled":""}>${v?"👍":"✋"} ${D(k)}${tl(U[k].slice(1))}</button>`;
+    });
+    h+=`</div>`;
+    if(!done){
+      const ready=S.a1!==null&&S.a2!==null;
+      h+=`<div style="margin-top:14px"><button class="btn gold" id="solveBtn" ${ready?"":"disabled"}>${D("aufloesen")}</button>${ready?"":`<span class="hint" style="margin-left:10px">${D("waehle")}</span>`}</div>`;
+    } else {
+      const r1=S.a1===c.k,r2=S.a2===ty.ok,steps=(r1?S.roll:0)+(r2?1:0);
+      h+=`<div class="res"><p>① <span class="${r1?"okc":"badc"}">${r1?"✔ "+D("richtig"):"✘ "+D("falsch")}</span> &nbsp; ② <span class="${r2?"okc":"badc"}">${r2?"✔ "+D("richtig"):"✘ "+D("falsch")}</span></p>`;
+      h+=`<p><b>${D("loesung")}: ${ty.n}</b> (${ty.a})${tl(ty.tr)}</p>`;
+      h+=`<p>${D("signal")} <i>${esc(c.s)}</i></p>`;
+      h+=`<p>${D("merkmal")} ${ty.m}${tl(ty.mt)}</p>`;
+      h+=`<p>${D("wirkung")} ${ty.e}${tl(ty.et)}</p></div>`;
+      h+=`<div class="move">${steps?`➜ ${steps} ${D(steps===1?"vor1":"vor")}`:D("stehen")}${steps?tl(U[steps===1?"vor1":"vor"].slice(1).map(s=>steps+" "+s)):tl(U.stehen.slice(1))}</div>`;
+      h+=`<button class="btn" id="moveBtn">${steps?D("ziehen"):D("weiter")}</button>`;
+    }
+  } else if(S.phase==="wunsch"||S.phase==="wresult"){
+    const w=S.wcard,done=S.phase==="wresult";
+    h+=`<div class="qcard"><div class="lbl">${D("wunschkarte")}${tl(U.wunschkarte.slice(1))}</div><div class="sit">${esc(w.s)}</div>${tl(w.st)}</div><h4>${T("passt")}</h4><div class="opts one">`;
+    w.o.forEach((o,i)=>{
+      let cls="opt";
+      if(done){if(i===w.r)cls+=" right";else if(i===S.wa)cls+=" wrong";}
+      h+=`<button class="${cls}" data-w="${i}" ${done?"disabled":""}>„${esc(o[0])}“${done?` <small>– ${TY[o[1]].n}</small>`:""}${tl(o[2])}</button>`;
+    });
+    h+=`</div>`;
+    if(done){
+      const ok=S.wa===w.r,ty=TY[w.o[w.r][1]];
+      h+=`<div class="res"><p><b>${ty.n}</b>${tl(ty.tr)}</p><p>${ty.e}${tl(ty.et)}</p></div>`;
+      h+=`<div class="move">${ok?D("w_ok"):D("w_bad")}${tl(U[ok?"w_ok":"w_bad"].slice(1))}</div><button class="btn" id="wBtn">${ok?D("ziehen"):D("weiter")}</button>`;
+    }
+  } else if(S.phase==="next"){
+    if(S.msg)h+=`<div class="spec">${S.msg}</div>`;
+    const nx=S.players[(S.cur+1)%S.players.length];
+    h+=`<div style="margin-top:14px"><button class="btn" id="nextBtn">${D("naechste")} ${esc(nx.name)}</button></div>`;
+  } else if(S.phase==="busy"){
+    if(S.msg)h+=`<div class="spec">${S.msg}</div>`;
+  }
+  return h+`</div>`;
+}
+
+function renderGame(){
+  main.innerHTML=`<div class="game"><div>${renderBoard()}</div><div id="pan">${renderPanel()}</div></div>`;
+  bindPanel();
+}
+function refreshPanel(){$("pan").innerHTML=renderPanel();bindPanel();}
+function refreshBoardOnly(){const g=main.querySelector(".game>div");if(g)g.innerHTML=renderBoard();}
+
+function bindPanel(){
+  const b=id=>$(id);
+  if(b("rollBtn"))b("rollBtn").onclick=doRoll;
+  main.querySelectorAll("[data-a1]").forEach(x=>x.onclick=()=>{S.a1=+x.dataset.a1;refreshPanel();});
+  main.querySelectorAll("[data-a2]").forEach(x=>x.onclick=()=>{S.a2=+x.dataset.a2;refreshPanel();});
+  if(b("solveBtn"))b("solveBtn").onclick=()=>{S.phase="result";refreshPanel();};
+  if(b("moveBtn"))b("moveBtn").onclick=()=>{
+    const c=S.card,steps=(S.a1===c.k?S.roll:0)+(S.a2===TY[c.k].ok?1:0);
+    if(!steps){toNext("");return;}
+    S.phase="busy";S.msg="";refreshPanel();
+    moveBy(steps,afterLand);
+  };
+  main.querySelectorAll("[data-w]").forEach(x=>x.onclick=()=>{S.wa=+x.dataset.w;S.phase="wresult";refreshPanel();});
+  if(b("wBtn"))b("wBtn").onclick=()=>{
+    if(S.wa===S.wcard.r){S.phase="busy";S.msg="";refreshPanel();moveBy(2,()=>{if(!checkWin())toNext("");});}
+    else toNext("");
+  };
+  if(b("nextBtn"))b("nextBtn").onclick=()=>{S.cur=(S.cur+1)%S.players.length;S.phase="roll";S.msg="";render();};
+}
+
+function doRoll(){
+  if(S.busy)return;S.busy=true;
+  let n=0;const btn=$("rollBtn");btn.disabled=true;
+  const it=setInterval(()=>{
+    S.roll=1+Math.floor(Math.random()*6);
+    const d=$("die");if(d)d.outerHTML=dieHTML(S.roll,true);
+    if(++n>=11){clearInterval(it);S.busy=false;S.card=draw();S.a1=null;S.a2=null;S.phase="card";refreshPanel();}
+  },80);
+}
+
+function moveBy(steps,done){
+  const p=S.players[S.cur];const dir=steps>0?1:-1;let left=Math.abs(steps);
+  const step=()=>{
+    if(left===0||(dir>0&&p.pos>=GOAL)||(dir<0&&p.pos<=0)){done();return;}
+    p.pos+=dir;left--;refreshBoardOnly();
+    const t=$("tok"+S.cur);if(t){t.classList.add("hop");setTimeout(()=>t.classList.remove("hop"),180);}
+    setTimeout(step,300);
+  };
+  setTimeout(step,150);
+}
+
+function afterLand(){
+  if(checkWin())return;
+  const p=S.players[S.cur],t=FT[p.pos];
+  if(t==="p"){
+    S.phase="busy";S.msg=U.p_msg[0]+tl(U.p_msg.slice(1));refreshPanel();
+    setTimeout(()=>moveBy(2,()=>{if(!checkWin())toNext(U.p_msg[0]+tl(U.p_msg.slice(1)));}),900);
+  } else if(t==="g"){
+    const m=U.g_msg[0]+tl(U.g_msg.slice(1))+`<div class="hint">${U.g_why[0]}${tl(U.g_why.slice(1))}</div>`;
+    S.phase="busy";S.msg=m;refreshPanel();
+    setTimeout(()=>moveBy(-2,()=>toNext(m)),900);
+  } else if(t==="w"){
+    S.wcard=drawW();S.wa=null;S.phase="wunsch";refreshPanel();
+  } else toNext("");
+}
+function toNext(msg){S.msg=msg;S.phase="next";refreshPanel();refreshBoardOnly();}
+
+function checkWin(){
+  const p=S.players[S.cur];
+  if(p.pos<GOAL)return false;
+  p.pos=GOAL;refreshBoardOnly();
+  const rank=S.players.map((q,i)=>({...q,i})).sort((a,b)=>(a.i===S.cur?-1:b.i===S.cur?1:b.pos-a.pos));
+  let h=`<div class="trophy">🏆🎉</div><h2>${esc(p.name)} ${D("feierabend")}</h2>${tl(U.feierabend.slice(1).map(s=>p.name+" "+s))}<div class="rank">`;
+  rank.forEach((q,k)=>{h+=`<div><b style="width:70px">${k+1}. ${D("platz")}</b><span class="dot" style="background:${q.color};width:28px;height:28px">${q.i+1}</span><span style="flex:1">${esc(q.name)}</span><span>${D("feld")} ${q.pos}</span></div>`;});
+  h+=`</div><button class="big" id="again">${T("nochmal")}</button><button class="big navy" id="newnames">${T("neuenamen")}</button>`;
+  $("wincard").innerHTML=h;$("win").style.display="flex";
+  $("again").onclick=()=>{$("cf").style.display="none";cfStop=true;startGame();};
+  $("newnames").onclick=()=>{$("cf").style.display="none";cfStop=true;$("win").style.display="none";S.screen="names";render();};
+  confetti();
+  return true;
+}
+
+/* ---------- Konfetti ---------- */
+let cfStop=false;
+function confetti(){
+  cfStop=false;
+  const c=$("cf");c.style.display="block";const x=c.getContext("2d");
+  let W=c.width=innerWidth,H=c.height=innerHeight;
+  const cols=["#b8901c","#13275a","#a32626","#2d6b3a","#e7c35a","#22508f","#f28c28","#d94f8c","#3fb6a8"];
+  const P=[];
+  for(let i=0;i<360;i++)P.push({x:Math.random()*W,y:-Math.random()*H*1.3,w:6+Math.random()*8,h:9+Math.random()*10,vy:2.2+Math.random()*3.8,vx:-1.5+Math.random()*3,r:Math.random()*6.28,vr:-.22+Math.random()*.44,c:cols[i%cols.length],s:Math.random()*6.28,round:Math.random()<.25});
+  const t0=performance.now();
+  function f(t){
+    if(cfStop){x.clearRect(0,0,W,H);c.style.display="none";return;}
+    x.clearRect(0,0,W,H);let alive=false;
+    for(const p of P){
+      p.y+=p.vy;p.x+=p.vx+Math.sin(t/380+p.s)*1.3;p.r+=p.vr;
+      if(t-t0<5000&&p.y>H+20){p.y=-20;p.x=Math.random()*W;}
+      if(p.y<H+20)alive=true;
+      x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;
+      if(p.round){x.beginPath();x.arc(0,0,p.w/2,0,6.28);x.fill();}
+      else x.fillRect(-p.w/2,-p.h/2,p.w,p.h*Math.max(.15,Math.abs(Math.cos(p.r*1.3))));
+      x.restore();
+    }
+    if(alive)requestAnimationFrame(f);else c.style.display="none";
+  }
+  requestAnimationFrame(f);
+}
+addEventListener("resize",()=>{const c=$("cf");if(c.style.display==="block"){c.width=innerWidth;c.height=innerHeight;}});
+
+/* ---------- Hauptschleife ---------- */
+function render(){
+  document.documentElement.lang=lang==="de"?"de":"de";
+  renderHead();
+  if(S.screen==="rules")renderRules();
+  else if(S.screen==="names")renderNames();
+  else renderGame();
+  if(S.screen==="game"&&$("win").style.display==="flex"&&S.players.some(p=>p.pos>=GOAL)){/* Siegerbildschirm bleibt */}
+}
+render();
+</script>
+</body>
+</html>
