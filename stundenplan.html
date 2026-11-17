@@ -573,7 +573,7 @@ function pdfLink(u){
  return u.item.lab?autoPdf(u.part,u.item):'';
 }
 const matLink=o=>pdfLink(o.unit);
-const isLink=s=>/^(https?:\/\/|materials\/)/i.test((s||'').trim());
+const isLink=s=>/^(https?:\/\/|materials\/)/i.test((s||'').trim())||/^[\w.%\-\/]+\.(pdf|html?|docx?|pptx?|xlsx?|png|jpe?g)(\?[^\s]*)?(#[^\s]*)?$/i.test((s||'').trim());
 const digLinks=u=>matOf(u.key).links.filter(x=>isLink(x.u)&&!(STUDENT&&/lehrerhandreichung/i.test(x.l||'')));
 const periodLabel=p=>state.settings.periods[p]||('DS '+(p+1));
 
@@ -687,7 +687,7 @@ function matCls(l){
  return 'c-gr';
 }
 function matButtons(u,lim,id){
- const pl=pdfLink(u),dl=digLinks(u),sh=lim?dl.slice(0,lim):dl;
+ const pl=pdfLink(u),all=digLinks(u),isL=x=>/lehrerhandreichung/i.test(x.l||''),lh=all.filter(isL),dl=all.filter(x=>!isL(x)),sh=(lim?dl.slice(0,lim):dl).concat(lh);
  return (pl?`<a class="btn sm c-gr" href="${esc(pl)}" target="_blank" rel="noopener" title="Arbeitsblatt (PDF)">${kt('material')}</a>`:'')+
   sh.map(x=>`<a class="btn sm ${matCls(x.l)}" href="${esc(x.u.trim())}" target="_blank" rel="noopener">${esc(x.l||'Link')}</a>`).join('')+
   (lim&&dl.length>lim?`<button class="btn sm ghost" data-act="entry" data-id="${esc(id)}" title="Weitere Materialien im Eintrag">+${dl.length-lim} mehr</button>`:'');
