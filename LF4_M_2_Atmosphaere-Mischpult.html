@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atmosphäre-Mischpult – LF 4 Modul 2</title>
+<style>
+:root{--bg:#f3efe4;--ink:#1d1d1f;--navy:#13275a;--gold:#b8901c;--paper:#fbf9f3;--line:#d8d1bf;--ok:#2d6b3a;--bad:#a32626}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.app{max-width:680px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--paper);box-shadow:0 0 0 1px var(--line)}
+.top{background:var(--navy);color:#fff;padding:10px 14px 8px}
+.top h1{font-family:Georgia,serif;font-size:24px;margin:0;line-height:1.1}
+.top .sub{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.top .sub .tl{color:#c9d4f0}
+.langs{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.langs button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:14px;padding:3px 10px;font:inherit;font-size:13px;cursor:pointer}
+.langs button.on{background:#fff;color:var(--navy)}
+.tl{display:block;font-size:.86em;color:#4b5a86;font-weight:400;margin-top:2px}
+.main{flex:1;padding:16px}
+.btn{border:0;border-radius:10px;background:var(--navy);color:#fff;font:inherit;font-weight:700;font-size:17px;padding:12px 20px;cursor:pointer;width:100%;box-shadow:0 3px 0 #0b1838}
+.btn.gold{background:var(--gold);box-shadow:0 3px 0 #8a6a10}
+.btn:disabled{opacity:.45;cursor:default}
+.btn .tl{color:#fff;opacity:.85}
+h2{font-family:Georgia,serif;font-size:26px;margin:0 0 8px}
+input.nm{width:100%;font:inherit;font-size:18px;padding:10px 12px;border:1px solid #bdb5a2;border-radius:8px;margin:6px 0 14px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 16px}
+.seg button{border:2px solid #b9b19d;background:#fff;border-radius:10px;padding:10px;font:inherit;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.seg button.on .tl{color:#dfe6fb}
+.opt{display:block;width:100%;text-align:left;border:2px solid #c9c1ad;background:#fff;border-radius:12px;padding:9px 12px;margin:6px 0;font:inherit;cursor:pointer;color:var(--ink)}
+.opt:hover:not(:disabled){border-color:var(--navy)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:#dcefdf}
+.opt.wrong{border-color:var(--bad);background:#f6dada}
+.note{margin:10px 0;font-size:15px;padding:10px 12px;border-radius:10px}
+.note.good{background:#dcefdf;border-left:5px solid var(--ok)}
+.note.bad{background:#f6dada;border-left:5px solid var(--bad)}
+.stars{color:var(--gold);letter-spacing:3px}
+.end{text-align:center}
+.end h2{font-size:30px}
+.end table{width:100%;border-collapse:collapse;margin:12px 0;text-align:left}
+.end td{padding:6px 4px;border-bottom:1px solid #e3ddcd;vertical-align:top}
+.merke{background:#fdf0cc;border-radius:10px;padding:10px 12px;text-align:left;margin:12px 0}
+.prog{height:8px;background:#e5e0d2;border-radius:4px;overflow:hidden;margin:4px 0 12px}
+.prog i{display:block;height:100%;background:var(--gold);transition:width .4s}
+.meta{display:flex;justify-content:space-between;font-size:14px;color:#555}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:60;display:none}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}}
+.pop{animation:pop .3s ease-out}
+.task{display:flex;gap:12px;align-items:flex-start;background:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.12);margin-bottom:10px}
+.tem{font-size:40px;line-height:1}
+.scwrap{position:relative;border-radius:12px;overflow:hidden;border:2px solid var(--navy);margin-bottom:10px;scroll-margin-top:10px}
+.scene{display:block;width:100%;height:auto}
+.crowd{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:34px;animation:pop .5s}
+.notes text{animation:fl 3s ease-in-out infinite}
+.notes.fast text{animation-duration:.7s}
+@keyframes fl{50%{transform:translateY(-10px)}}
+.scent{animation:sc 2.5s ease-in-out infinite}
+@keyframes sc{50%{opacity:.4}}
+.ch{background:#2b2f3a;border-radius:12px;padding:8px 10px;margin:8px 0;color:#fff}
+.chl{font-weight:700;margin-bottom:6px}
+.chl .tl{color:#c9d4f0}
+.chb{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.mb{border:2px solid #555b6b;background:#3a3f4d;color:#fff;border-radius:10px;padding:8px 6px;font:inherit;font-size:14px;cursor:pointer;text-align:center;line-height:1.2}
+.mb .ic{display:block;font-size:24px;margin-bottom:3px}
+.mb .tl{color:#c9d4f0;font-size:12px}
+.mb.on{border-color:#ffcf6b;background:#5a4a1e;box-shadow:0 0 0 2px #ffcf6b inset}
+.mb.right{border-color:#5fd07a;background:#1f4d2c}
+.mb.wrong{border-color:#ff6b6b;background:#5a1f1f}
+.mb:disabled{cursor:default}
+.ch .note{color:var(--ink);margin:8px 0 2px;font-size:14px}
+.opt.on{border-color:var(--navy);background:#e4e9f5}
+.hint{color:#666;font-size:14px;margin:6px 0}
+.sumline{font-size:24px;color:var(--gold);text-align:center;margin:12px 0 8px;font-weight:700}
+h4{margin:14px 0 4px}
+.opt.on.wrong,.opt.wrong{border-color:var(--bad);background:#f6dada}.opt.on.right{border-color:var(--ok);background:#dcefdf}
+
+</style>
+</head>
+<body>
+<canvas id="cf"></canvas>
+<div class="app">
+ <div class="top"><h1>Atmosphäre-Mischpult</h1><div class="sub" id="sub"></div><div class="langs" id="langs"></div></div>
+ <div class="main" id="main"></div>
+</div>
+<script>
+/* Texte: [de, es, pt, ru, ti] */
+const U={
+ sub:["Sinne-Spiel · LF 4 Modul 2 · KLA Bremerhaven","Juego de los sentidos","Jogo dos sentidos","Игра чувств","ጸወታ ሕዋሳት"],
+ head:["Stell die richtige Stimmung ein!","¡Crea el ambiente adecuado!","Cria o ambiente certo!","Создай правильную атмосферу!","ቅኑዕ ሃዋህው ኣዳልው!"],
+ intro:["Sechs Läden brauchen deine Hilfe. Stell Licht, Farbe, Musik und Duft so ein, dass sie zum Laden und zum Auftrag passen. Dann öffnest du den Laden – die Kunden zeigen dir, ob es stimmt.","Seis tiendas necesitan tu ayuda. Ajusta la luz, el color, la música y el aroma para que encajen con la tienda y el encargo. Luego abres la tienda y los clientes te muestran si está bien.","Seis lojas precisam da tua ajuda. Ajusta a luz, a cor, a música e o aroma para combinarem com a loja e a tarefa. Depois abres a loja e os clientes mostram-te se está certo.","Шести магазинам нужна твоя помощь. Настрой свет, цвет, музыку и запах так, чтобы они подходили магазину и заданию. Потом открой магазин — покупатели покажут, правильно ли.","ሽዱሽተ ድኳናት ሓገዝካ የድልዮም። ብርሃን፡ ሕብሪ፡ ሙዚቃን ጨናን ምስቲ ድኳንን ዕማምን ክሰማማዕ ኣስተኻኽል። ድሕሪኡ ነቲ ድኳን ክፈቶ – ዓማዊል ቅኑዕ እንተ ኾይኑ ከርእዩኻ እዮም።"],
+ name:["Dein Name (oder eure Namen)","Tu nombre (o vuestros nombres)","O teu nome (ou os vossos nomes)","Твоё имя (или ваши имена)","ስምካ (ወይ ኣስማትኩም)"],
+ stufe:["Stufe","Nivel","Nível","Уровень","ደረጃ"],
+ basis:["Basis","Básico","Básico","Базовый","መሰረታዊ"],
+ profi:["Profi – mit Wirkung","Profi – con efecto","Profi – com efeito","Профи — с эффектом","ፕሮፌሽናል – ምስ ውጽኢት"],
+ los:["Los geht’s","¡Vamos!","Vamos!","Поехали!","ንጀምር"],
+ laden:["Laden","Tienda","Loja","Магазин","ድኳን"],
+ von:["von","de","de","из","ካብ"],
+ auftrag:["Auftrag","Encargo","Tarefa","Задание","ዕማም"],
+ licht:["💡 Licht","💡 Luz","💡 Luz","💡 Свет","💡 ብርሃን"],
+ farbe:["🎨 Farbe","🎨 Color","🎨 Cor","🎨 Цвет","🎨 ሕብሪ"],
+ musik:["🎵 Musik","🎵 Música","🎵 Música","🎵 Музыка","🎵 ሙዚቃ"],
+ duft:["👃 Duft","👃 Aroma","👃 Aroma","👃 Запах","👃 ጨና"],
+ oeffnen:["Laden öffnen 🔑","Abrir la tienda 🔑","Abrir a loja 🔑","Открыть магазин 🔑","ድኳን ክፈት 🔑"],
+ alle:["Stell erst alle vier Regler ein.","Primero ajusta los cuatro controles.","Primeiro ajusta os quatro controlos.","Сначала настрой все четыре регулятора.","መጀመርታ ኣርባዕቲኦም መቆጻጸሪታት ኣስተኻኽል።"],
+ zielq:["Profi: Welche Wirkung willst du erreichen?","Profi: ¿Qué efecto quieres conseguir?","Profi: Que efeito queres alcançar?","Профи: какого эффекта ты хочешь добиться?","ፕሮፌሽናል፡ እንታይ ውጽኢት ክትረክብ ትደሊ?"],
+ passt:["passt","encaja","combina","подходит","ይሰማማዕ"],
+ passtnicht:["passt nicht","no encaja","não combina","не подходит","ኣይሰማማዕን"],
+ richtig:["Richtig!","¡Correcto!","Certo!","Верно!","ቅኑዕ!"],
+ falsch:["Leider falsch. Richtig ist:","Lo siento. Lo correcto es:","Infelizmente errado. O certo é:","К сожалению, неверно. Правильно:","ይቕሬታ፡ ጌጋ። ቅኑዕ፡"],
+ naechster:["Nächster Laden ➜","Siguiente tienda ➜","Próxima loja ➜","Следующий магазин ➜","ዝቕጽል ድኳን ➜"],
+ auswertung:["Zur Auswertung ➜","Ver resultado ➜","Ver resultado ➜","К результатам ➜","ናብ ውጽኢት ➜"],
+ punkte:["Punkte","puntos","pontos","очков","ነጥቢ"],
+ geschafft:["Geschafft!","¡Lo lograste!","Conseguiste!","Готово!","ዓወት!"],
+ merke:["Merke","Recuerda","Lembra-te","Запомни","ዘክር"],
+ merktext:["Licht, Farbe, Musik und Duft müssen zur Ware und zur Zielgruppe passen. Warmes Licht macht Lebensmittel appetitlich, bei Kleidung muss das Licht naturgetreu sein. Ruhige Musik und Duft verlängern die Verweildauer, warme Farben aktivieren.","La luz, el color, la música y el aroma deben encajar con el producto y el público. La luz cálida hace apetitosos los alimentos; para la ropa, la luz debe ser natural. La música tranquila y el aroma alargan la estancia; los colores cálidos activan.","A luz, a cor, a música e o aroma devem combinar com o produto e o público-alvo. A luz quente torna os alimentos apetitosos; na roupa, a luz deve ser natural. Música calma e aroma prolongam a permanência; cores quentes ativam.","Свет, цвет, музыка и запах должны подходить товару и целевой группе. Тёплый свет делает продукты аппетитными, для одежды свет должен быть естественным. Спокойная музыка и запах продлевают время пребывания, тёплые цвета активируют.","ብርሃን፡ ሕብሪ፡ ሙዚቃን ጨናን ምስቲ ኣቕሓን ዕላማ ጉጅለን ክሰማምዑ ኣለዎም። ውዑይ ብርሃን ምግቢ ዘሀንጥይ ይገብሮ፡ ን ክዳውንቲ ግን ብርሃን ተፈጥሮኣዊ ክኸውን ኣለዎ። ህዱእ ሙዚቃን ጨናን ግዜ ምጽናሕ የናውሑ፡ ውዑያት ሕብርታት የንቀሳቕሱ።"],
+ neustart:["Nochmal spielen","Jugar otra vez","Jogar outra vez","Играть снова","እንደገና ተጻወት"],
+ t3:["Atmosphäre-Profi 🏆","Experto en ambiente 🏆","Especialista em ambiente 🏆","Профи атмосферы 🏆","ክኢላ ሃዋህው 🏆"],
+ t2:["Gut gemacht 👍","Bien hecho 👍","Bom trabalho 👍","Хорошо сделано 👍","ጽቡቕ ገይርካ 👍"],
+ t1:["Weiter üben 💪","Sigue practicando 💪","Continua a praticar 💪","Продолжай тренироваться 💪","ምልምማድ ቀጽል 💪"]
+};
+/* Regler: Optionen */
+const CTRL=[
+ {k:"l",lab:"licht",o:[
+   ["warmes Licht","luz cálida","luz quente","тёплый свет","ውዑይ ብርሃን"],
+   ["naturgetreues Licht","luz natural (colores reales)","luz natural (cores reais)","естественный свет","ተፈጥሮኣዊ ብርሃን"],
+   ["helles Neonlicht","luz de neón intensa","luz de néon forte","яркий неоновый свет","ብሩህ ብርሃን ኒዮን"]],ic:["🕯️","☀️","💡"]},
+ {k:"f",lab:"farbe",o:[
+   ["warm: Rot, Gelb, Orange","cálido: rojo, amarillo, naranja","quente: vermelho, amarelo, laranja","тёплые: красный, жёлтый, оранжевый","ውዑይ፡ ቀይሕ፡ ብጫ፡ ኣራንሾኒ"],
+   ["ruhig: Grün, Blau","tranquilo: verde, azul","calmo: verde, azul","спокойные: зелёный, синий","ህዱእ፡ ቀጠልያ፡ ሰማያዊ"],
+   ["edel: Schwarz, Weiß","elegante: negro, blanco","elegante: preto, branco","элегантные: чёрный, белый","ክቡር፡ ጸሊም፡ ጻዕዳ"]],ic:["🟧","🟩","⬛"]},
+ {k:"m",lab:"musik",o:[
+   ["ruhige Musik","música tranquila","música calma","спокойная музыка","ህዱእ ሙዚቃ"],
+   ["schnelle Musik","música rápida","música rápida","быстрая музыка","ቅልጡፍ ሙዚቃ"],
+   ["keine Musik","sin música","sem música","без музыки","ሙዚቃ የለን"]],ic:["🎻","🎧","🔇"]},
+ {k:"s",lab:"duft",o:[
+   ["Duft der Ware (Kaffee, Brot)","aroma del producto (café, pan)","aroma do produto (café, pão)","запах товара (кофе, хлеб)","ጨና ናይቲ ኣቕሓ (ቡን፡ ባኒ)"],
+   ["dezenter, frischer Duft","aroma suave y fresco","aroma suave e fresco","лёгкий свежий запах","ፍኹስ ሓድሽ ጨና"],
+   ["kein Duft","sin aroma","sem aroma","без запаха","ጨና የለን"]],ic:["☕","🌿","🚫"]}];
+const GOALS=[
+ ["Die Kunden sollen länger bleiben (Verweildauer).","Los clientes deben quedarse más tiempo.","Os clientes devem ficar mais tempo.","Покупатели должны оставаться дольше.","ዓማዊል ነዊሕ ክጸንሑ።"],
+ ["Die Kunden sollen aktiviert werden und schnell zugreifen.","Los clientes deben activarse y comprar rápido.","Os clientes devem ser ativados e comprar depressa.","Покупателей нужно активировать, чтобы они быстро покупали.","ዓማዊል ክንቀሳቐሱን ቀልጢፎም ክገዝኡን።"],
+ ["Kosten sparen – die Preise sollen niedrig bleiben.","Ahorrar costes: los precios deben seguir bajos.","Poupar custos: os preços devem continuar baixos.","Экономить расходы — цены должны оставаться низкими.","ወጻኢታት ምቑጣብ – ዋጋታት ትሑት ክጸንሕ።"],
+ ["Die edle Qualität der Ware soll wirken.","Debe destacar la calidad elegante del producto.","A qualidade elegante do produto deve sobressair.","Должно подчёркиваться высокое качество товара.","ክቡር ጽሬት ናይቲ ኣቕሓ ክረአ።"]];
+/* Aufträge: ok = erlaubte Optionen je Regler, g = Ziel, r = Begründungen je Regler */
+const SHOPS=[
+ {nm:"Feinkost Lindemann",em:"🧀",
+  task:["Feinkostladen mit Käse, Brot und Wein. Die Kunden sollen sich Zeit lassen und Appetit bekommen.","Tienda gourmet con queso, pan y vino. Los clientes deben tomarse su tiempo y abrir el apetito.","Loja gourmet com queijo, pão e vinho. Os clientes devem ter tempo e ganhar apetite.","Магазин деликатесов: сыр, хлеб и вино. Покупатели должны не спешить и почувствовать аппетит.","ድኳን ፍሉይ ምግቢ ምስ ፎርማጆ፡ ባኒን ወይንን። ዓማዊል ግዜ ክወስዱን ሸውሃት ክመጾምን ኣለዎ።"],
+  ok:{l:[0],f:[0,1],m:[0],s:[0]},g:0,
+  r:{l:["Warmes Licht lässt Käse und Brot appetitlich wirken.","La luz cálida hace apetitosos el queso y el pan.","A luz quente torna o queijo e o pão apetitosos.","Тёплый свет делает сыр и хлеб аппетитными.","ውዑይ ብርሃን ፎርማጆን ባንን ዘሀንጥዩ ይገብሮም።"],
+     f:["Warme oder natürliche Farben wirken freundlich und frisch.","Los colores cálidos o naturales resultan amables y frescos.","Cores quentes ou naturais parecem acolhedoras e frescas.","Тёплые или природные цвета выглядят дружелюбно и свежо.","ውዑያት ወይ ተፈጥሮኣውያን ሕብርታት ፍሽክታን ሓድሽን ይመስሉ።"],
+     m:["Ruhige Musik: Die Kunden bleiben länger.","Música tranquila: los clientes se quedan más tiempo.","Música calma: os clientes ficam mais tempo.","Спокойная музыка: покупатели остаются дольше.","ህዱእ ሙዚቃ፡ ዓማዊል ነዊሕ ይጸንሑ።"],
+     s:["Der Duft der Ware (Brot, Kaffee) macht Appetit.","El aroma del producto (pan, café) abre el apetito.","O aroma do produto (pão, café) abre o apetite.","Запах товара (хлеб, кофе) вызывает аппетит.","ጨና ናይቲ ኣቕሓ (ባኒ፡ ቡን) ሸውሃት የምጽእ።"]}},
+ {nm:"Streetstyle",em:"🧢",
+  task:["Junge Mode: Hoodies und Sneaker für Jugendliche. Die Kunden sollen in Kauflaune kommen.","Moda joven: sudaderas y zapatillas para jóvenes. Los clientes deben tener ganas de comprar.","Moda jovem: camisolas com capuz e ténis para jovens. Os clientes devem ficar com vontade de comprar.","Молодёжная мода: худи и кроссовки для подростков. Покупатели должны захотеть покупать.","ፋሽን መንእሰያት፡ ሁዲን ስኒከርን ንመንእሰያት። ዓማዊል ፍቕሪ ዕዳጋ ክመጾም ኣለዎ።"],
+  ok:{l:[1],f:[0],m:[1],s:[1,2]},g:1,
+  r:{l:["Bei Kleidung muss das Licht naturgetreu sein – sonst sieht die Farbe zu Hause anders aus.","Para la ropa, la luz debe ser natural; si no, el color se ve diferente en casa.","Na roupa, a luz deve ser natural; senão, a cor parece diferente em casa.","Для одежды свет должен быть естественным — иначе дома цвет будет другим.","ን ክዳውንቲ ብርሃን ተፈጥሮኣዊ ክኸውን ኣለዎ – እንተዘይኮይኑ ኣብ ገዛ እቲ ሕብሪ ካልእ ይመስል።"],
+     f:["Warme Farben aktivieren.","Los colores cálidos activan.","Cores quentes ativam.","Тёплые цвета активируют.","ውዑያት ሕብርታት የንቀሳቕሱ።"],
+     m:["Schnelle Musik passt zur jungen Zielgruppe und aktiviert.","La música rápida encaja con el público joven y activa.","Música rápida combina com o público jovem e ativa.","Быстрая музыка подходит молодой аудитории и активирует.","ቅልጡፍ ሙዚቃ ምስ መንእሰያት ይሰማማዕ፡ የንቀሳቕስ ድማ።"],
+     s:["Ein dezenter Duft oder gar keiner – Hauptsache nicht aufdringlich.","Un aroma suave o ninguno; lo importante es que no moleste.","Um aroma suave ou nenhum; o importante é não incomodar.","Лёгкий запах или никакого — главное, не навязчивый.","ፍኹስ ጨና ወይ ጨና የለን – እቲ ቀንዲ ዘይረብሽ ክኸውን።"]}},
+ {nm:"Möbelhaus Nordlicht",em:"🛋️",
+  task:["Teure Sofas, viel Beratung. Die Kunden sollen sich entspannen und Probe sitzen.","Sofás caros y mucho asesoramiento. Los clientes deben relajarse y probar los sofás.","Sofás caros e muito aconselhamento. Os clientes devem relaxar e experimentar os sofás.","Дорогие диваны, много консультаций. Покупатели должны расслабиться и посидеть на диванах.","ክቡራት ሶፋታት፡ ብዙሕ ምኽሪ። ዓማዊል ክዛነዩን ኮፍ ኢሎም ክፍትኑን ኣለዎም።"],
+  ok:{l:[0],f:[1],m:[0],s:[1,0]},g:0,
+  r:{l:["Warmes Licht wirkt gemütlich wie zu Hause.","La luz cálida resulta acogedora, como en casa.","A luz quente parece acolhedora, como em casa.","Тёплый свет создаёт уют, как дома.","ውዑይ ብርሃን ከም ኣብ ገዛ ምቹእ ይመስል።"],
+     f:["Bei teurer Ware mit viel Beratung wirken kühle Farben (Blau, Grün) entspannend.","Con productos caros y mucho asesoramiento, los colores fríos (azul, verde) relajan.","Em produtos caros com muito aconselhamento, cores frias (azul, verde) relaxam.","Для дорогого товара с консультацией прохладные цвета (синий, зелёный) расслабляют.","ን ክቡር ኣቕሓ ምስ ብዙሕ ምኽሪ ዝሑላት ሕብርታት (ሰማያዊ፡ ቀጠልያ) የዛንዩ።"],
+     m:["Ruhige Musik im Möbelhaus: Die Kunden bleiben länger.","Música tranquila en la tienda de muebles: los clientes se quedan más tiempo.","Música calma na loja de móveis: os clientes ficam mais tempo.","Спокойная музыка в мебельном: покупатели остаются дольше.","ህዱእ ሙዚቃ ኣብ ድኳን ኣቕሑ ገዛ፡ ዓማዊል ነዊሕ ይጸንሑ።"],
+     s:["Ein angenehmer Duft (frisch oder Kaffee in der Ruhezone) verlängert die Verweildauer.","Un aroma agradable (fresco o café en la zona de descanso) alarga la estancia.","Um aroma agradável (fresco ou café na zona de descanso) prolonga a permanência.","Приятный запах (свежий или кофе в зоне отдыха) продлевает пребывание.","ጽቡቕ ጨና (ሓድሽ ወይ ቡን ኣብ ቦታ ዕረፍቲ) ግዜ ምጽናሕ የናውሕ።"]}},
+ {nm:"Preisfuchs",em:"🏷️",
+  task:["Discounter mit Sonderangeboten auf Paletten. Es soll wenig kosten, und die Preise sollen ins Auge springen.","Supermercado de descuento con ofertas en palés. Debe costar poco y los precios deben llamar la atención.","Supermercado de desconto com promoções em paletes. Deve custar pouco e os preços devem saltar à vista.","Дискаунтер с акциями на поддонах. Должно стоить мало, а цены должны бросаться в глаза.","ዲስካውንት ምስ ፍሉያት ዋጋታት ኣብ ፓሌት። ውሑድ ክኽፈል፡ ዋጋታት ድማ ብቐሊሉ ክረኣዩ ኣለዎም።"],
+  ok:{l:[2],f:[0],m:[2],s:[2]},g:2,
+  r:{l:["Einfaches, helles Licht ist zweckmäßig und günstig.","Una luz sencilla y clara es práctica y barata.","Uma luz simples e clara é prática e barata.","Простой яркий свет практичен и дёшев.","ቀሊልን ብሩህን ብርሃን ጠቓሚን ሕሱርን እዩ።"],
+     f:["Rot und Gelb sind Signalfarben für Sonderangebote.","El rojo y el amarillo son colores de señal para ofertas.","O vermelho e o amarelo são cores de sinal para promoções.","Красный и жёлтый — сигнальные цвета для акций.","ቀይሕን ብጫን ሕብርታት ምልክት ንፍሉያት ዋጋታት እዮም።"],
+     m:["Discountstrategie: keine Musik, keine Kosten.","Estrategia de descuento: sin música, sin costes.","Estratégia de desconto: sem música, sem custos.","Стратегия дискаунтера: без музыки, без расходов.","ስትራተጂ ዲስካውንት፡ ሙዚቃ የለን፡ ወጻኢ የለን።"],
+     s:["Kein Geld für Duft – die Kosten bleiben niedrig.","Nada de dinero para aromas; los costes siguen bajos.","Nenhum dinheiro para aromas; os custos continuam baixos.","Никаких денег на ароматы — расходы остаются низкими.","ገንዘብ ን ጨና የለን – ወጻኢታት ትሑት ይጸንሑ።"]}},
+ {nm:"Boutique Perle",em:"👗",
+  task:["Teure Abendkleider. Die edle Qualität soll wirken.","Vestidos de noche caros. Debe destacar la calidad elegante.","Vestidos de noite caros. A qualidade elegante deve sobressair.","Дорогие вечерние платья. Должно чувствоваться высокое качество.","ክቡራት ክዳውንቲ ምሸት። እቲ ክቡር ጽሬት ክረአ ኣለዎ።"],
+  ok:{l:[1],f:[2],m:[0],s:[1]},g:3,
+  r:{l:["Naturgetreues Licht: Die Kundin sieht die echte Farbe des Kleides.","Luz natural: la clienta ve el color real del vestido.","Luz natural: a cliente vê a cor verdadeira do vestido.","Естественный свет: покупательница видит настоящий цвет платья.","ተፈጥሮኣዊ ብርሃን፡ እታ ዓሚል ናይቲ ቀሚሽ ሓቀኛ ሕብሪ ትርኢ።"],
+     f:["Schwarz und Weiß wirken elegant und festlich.","El negro y el blanco resultan elegantes y festivos.","O preto e o branco parecem elegantes e festivos.","Чёрный и белый выглядят элегантно и празднично.","ጸሊምን ጻዕዳን ክቡርን በዓላውን ይመስሉ።"],
+     m:["Ruhige Musik passt zu edler Ware und Beratung.","La música tranquila encaja con productos elegantes y asesoramiento.","Música calma combina com produtos elegantes e aconselhamento.","Спокойная музыка подходит к дорогому товару и консультации.","ህዱእ ሙዚቃ ምስ ክቡር ኣቕሓን ምኽርን ይሰማማዕ።"],
+     s:["Ein dezenter Duft unterstreicht die Qualität.","Un aroma suave subraya la calidad.","Um aroma suave realça a qualidade.","Лёгкий запах подчёркивает качество.","ፍኹስ ጨና ነቲ ጽሬት የጉልሕ።"]}},
+ {nm:"Bäckerei-Café Deichkrone",em:"🥐",
+  task:["Frische Brötchen und Kuchen. Die Kunden sollen Lust bekommen und im Café sitzen bleiben.","Panecillos y pasteles frescos. Los clientes deben tener ganas y quedarse en la cafetería.","Pãezinhos e bolos frescos. Os clientes devem ficar com vontade e ficar no café.","Свежие булочки и пироги. Покупатели должны захотеть и остаться в кафе.","ሓድሽ ባኒን ኬክን። ዓማዊል ፍቕሪ ክመጾምን ኣብ ካፈ ኮፍ ኢሎም ክጸንሑን ኣለዎም።"],
+  ok:{l:[0],f:[0],m:[0],s:[0]},g:0,
+  r:{l:["Warmes Licht lässt Backwaren appetitlich wirken.","La luz cálida hace apetitosos los productos de panadería.","A luz quente torna os produtos de padaria apetitosos.","Тёплый свет делает выпечку аппетитной.","ውዑይ ብርሃን ፍርያት ባኒ ዘሀንጥዩ ይገብሮም።"],
+     f:["Warme Farben wirken freundlich und gemütlich.","Los colores cálidos resultan amables y acogedores.","Cores quentes parecem acolhedoras.","Тёплые цвета выглядят дружелюбно и уютно.","ውዑያት ሕብርታት ፍሽክታን ምቹኣትን ይመስሉ።"],
+     m:["Ruhige Musik: Die Gäste bleiben im Café.","Música tranquila: los clientes se quedan en la cafetería.","Música calma: os clientes ficam no café.","Спокойная музыка: гости остаются в кафе.","ህዱእ ሙዚቃ፡ ጋሻ ኣብ ካፈ ይጸንሑ።"],
+     s:["Der Duft frischer Backwaren steigert die Kaufbereitschaft.","El aroma de la bollería fresca aumenta las ganas de comprar.","O aroma de produtos acabados de fazer aumenta a vontade de comprar.","Запах свежей выпечки повышает желание купить.","ጨና ሓድሽ ፍርያት ባኒ ድሌት ዕዳጋ የዕቢ።"]}}
+];
+
+const LSKEY="mp_lang";
+
+const LI={es:0,pt:1,ru:2,ti:3};
+const LANGS=[["de","Deutsch"],["es","Español"],["pt","Português"],["ru","Русский"],["ti","ትግርኛ"]];
+let lang="de";
+try{const s=localStorage.getItem(LSKEY);if(s&&LANGS.some(l=>l[0]===s))lang=s;}catch(e){}
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const tl=a=>{if(lang==="de"||!a)return "";const s=a[LI[lang]+1];return s?`<span class="tl" lang="${lang}">${esc(s)}</span>`:"";};
+const L=a=>esc(a[0])+tl(a);
+const T=k=>L(U[k]);
+const D=k=>U[k][0];
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function head(){
+  $("sub").innerHTML=T("sub");
+  $("langs").innerHTML=LANGS.map(([c,n])=>`<button class="${c===lang?"on":""}" data-l="${c}">${n}</button>`).join("");
+  $("langs").querySelectorAll("button").forEach(b=>b.onclick=()=>{lang=b.dataset.l;try{localStorage.setItem(LSKEY,lang);}catch(e){}render();});
+}
+function startScreen(S,onGo,extra){
+  return `<div class="pop"><h2>${D("head")}</h2>${tl(U.head)}<p>${T("intro")}</p>${extra||""}
+  <label><b>${D("name")}</b>${tl(U.name)}</label><input class="nm" id="nm" maxlength="30" value="${esc(S.name)}" autocomplete="off">
+  <b>${D("stufe")}</b>${tl(U.stufe)}<div class="seg"><button id="b0" class="${S.profi?"":"on"}">${T("basis")}</button><button id="b1" class="${S.profi?"on":""}">${T("profi")}</button></div>
+  <button class="btn gold" id="go">${T("los")}</button></div>`;
+}
+function bindStart(S,onGo){
+  $("nm").oninput=e=>S.name=e.target.value;
+  $("b0").onclick=()=>{S.profi=false;render();};
+  $("b1").onclick=()=>{S.profi=true;render();};
+  $("go").onclick=()=>{S.name=$("nm").value.trim();onGo();};
+}
+let cfStop=false;
+function confetti(){
+  cfStop=false;const c=$("cf");c.style.display="block";const x=c.getContext("2d");
+  let W=c.width=innerWidth,H=c.height=innerHeight;
+  const cols=["#b8901c","#13275a","#a32626","#2d6b3a","#e7c35a","#22508f","#f28c28","#d94f8c","#3fb6a8"];
+  const P=[];for(let i=0;i<320;i++)P.push({x:Math.random()*W,y:-Math.random()*H*1.3,w:6+Math.random()*8,h:9+Math.random()*10,vy:2.2+Math.random()*3.8,vx:-1.5+Math.random()*3,r:Math.random()*6.28,vr:-.22+Math.random()*.44,c:cols[i%cols.length],s:Math.random()*6.28,round:Math.random()<.25});
+  const t0=performance.now();
+  function f(t){
+    if(cfStop){x.clearRect(0,0,W,H);c.style.display="none";return;}
+    x.clearRect(0,0,W,H);let alive=false;
+    for(const p of P){p.y+=p.vy;p.x+=p.vx+Math.sin(t/380+p.s)*1.3;p.r+=p.vr;
+      if(t-t0<5000&&p.y>H+20){p.y=-20;p.x=Math.random()*W;}
+      if(p.y<H+20)alive=true;
+      x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;
+      if(p.round){x.beginPath();x.arc(0,0,p.w/2,0,6.28);x.fill();}else x.fillRect(-p.w/2,-p.h/2,p.w,p.h*Math.max(.15,Math.abs(Math.cos(p.r*1.3))));
+      x.restore();}
+    if(alive)requestAnimationFrame(f);else c.style.display="none";
+  }
+  requestAnimationFrame(f);
+}
+
+let S={screen:"start",name:"",profi:false,i:0,set:{},goal:null,phase:"set",pts:0,res:[]};
+const N=SHOPS.length;
+const shop=()=>SHOPS[S.i];
+const WALL=["#f3a75e","#7fc0a4","#2a2a2e"];
+function scene(){
+  const st=S.set,sh=shop();
+  const wall=st.f==null?"#d9d4c7":WALL[st.f];
+  const trim=st.f===2?"#f4f4f4":"#fff";
+  let light="";
+  if(st.l===0)light=`<radialGradient id="lg" cx="50%" cy="15%" r="75%"><stop offset="0" stop-color="#ffd27a" stop-opacity=".75"/><stop offset="1" stop-color="#ff9d3c" stop-opacity=".12"/></radialGradient><rect width="600" height="220" fill="url(#lg)"/>`;
+  else if(st.l===1)light=`<rect width="600" height="220" fill="#fffdf6" opacity=".25"/>`;
+  else if(st.l===2)light=`<rect width="600" height="220" fill="#dfe9ff" opacity=".45"/><rect x="80" y="8" width="140" height="7" rx="3" fill="#fff"/><rect x="380" y="8" width="140" height="7" rx="3" fill="#fff"/>`;
+  const lamps=st.l===0||st.l===1?`<g fill="${st.l===0?"#ffcf6b":"#fff8e0"}"><circle cx="150" cy="16" r="9"/><circle cx="300" cy="16" r="9"/><circle cx="450" cy="16" r="9"/></g>`:"";
+  const notes=st.m===2||st.m==null?"":`<g class="notes ${st.m===1?"fast":"slow"}"><text x="60" y="90" font-size="26">🎵</text><text x="520" y="70" font-size="22">🎶</text><text x="300" y="60" font-size="20">🎵</text></g>`;
+  const scent=st.s===0?`<g class="scent"><text x="470" y="150" font-size="28">☕</text><path d="M480 128 q8 -12 0 -24 q-8 -12 0 -24" stroke="#8a5a2b" stroke-width="3" fill="none"/><path d="M495 128 q8 -12 0 -24 q-8 -12 0 -24" stroke="#8a5a2b" stroke-width="3" fill="none"/></g>`:st.s===1?`<g class="scent"><text x="470" y="150" font-size="28">🌿</text><path d="M485 125 q10 -10 0 -20 q-10 -10 0 -20" stroke="#4c9a62" stroke-width="2" fill="none" opacity=".7"/></g>`:"";
+  return `<svg viewBox="0 0 600 220" class="scene" role="img" aria-label="Laden">
+   <rect width="600" height="160" fill="${wall}"/><rect y="160" width="600" height="60" fill="#c8b89a"/>
+   <rect x="40" y="70" width="170" height="90" rx="6" fill="${trim}" opacity=".85"/><rect x="40" y="112" width="170" height="4" fill="#bbb"/>
+   <rect x="250" y="100" width="150" height="70" rx="6" fill="#8b6a46"/><rect x="250" y="96" width="150" height="8" rx="3" fill="#6f5235"/>
+   <text x="105" y="108" font-size="34" text-anchor="middle">${sh.em}</text><text x="160" y="150" font-size="26" text-anchor="middle">${sh.em}</text><text x="325" y="145" font-size="34" text-anchor="middle">${sh.em}</text>
+   ${lamps}${light}${notes}${scent}
+  </svg>`;
+}
+function renderGame(){
+  const sh=shop(),done=S.phase==="result";
+  let h=`<div class="meta"><span>${D("laden")} ${S.i+1} ${D("von")} ${N}</span><span>${S.pts} ${D("punkte")}</span></div><div class="prog"><i style="width:${S.i/N*100}%"></i></div>`;
+  h+=`<div class="task"><div class="tem">${sh.em}</div><div><b>${esc(sh.nm)}</b><div><small>${D("auftrag")}:</small> ${esc(sh.task[0])}</div>${tl(sh.task)}</div></div>`;
+  h+=`<div class="scwrap">${scene()}${done?`<div class="crowd">${CTRL.map(c=>sh.ok[c.k].includes(S.set[c.k])?"😄":"😒").join(" ")}</div>`:""}</div>`;
+  for(const c of CTRL){
+    const v=S.set[c.k];
+    h+=`<div class="ch"><div class="chl">${D(c.lab)}${tl(U[c.lab])}</div><div class="chb">`;
+    c.o.forEach((o,i)=>{
+      let cls="mb";if(v===i)cls+=" on";
+      if(done){if(sh.ok[c.k].includes(i))cls+=" right";else if(v===i)cls+=" wrong";}
+      h+=`<button class="${cls}" data-c="${c.k}" data-v="${i}" ${done?"disabled":""}><span class="ic">${c.ic[i]}</span>${esc(o[0])}${tl(o)}</button>`;
+    });
+    h+=`</div>`;
+    if(done){const ok=sh.ok[c.k].includes(v);h+=`<div class="note ${ok?"good":"bad"}">${ok?"✔ "+D("passt"):"✘ "+D("passtnicht")} – ${L(sh.r[c.k])}</div>`;}
+    h+=`</div>`;
+  }
+  if(S.profi){
+    h+=`<h4>${D("zielq")}${tl(U.zielq)}</h4>`;
+    GOALS.forEach((g,i)=>{let cls="opt";if(S.goal===i)cls+=" on";if(done){if(i===sh.g)cls+=" right";else if(i===S.goal)cls+=" wrong";}
+      h+=`<button class="${cls}" data-g="${i}" ${done?"disabled":""}>${L(g)}</button>`;});
+  }
+  if(!done){
+    const ready=CTRL.every(c=>S.set[c.k]!=null)&&(!S.profi||S.goal!=null);
+    h+=`<button class="btn gold" id="open" ${ready?"":"disabled"} style="margin-top:12px">${T("oeffnen")}</button>${ready?"":`<p class="hint">${D("alle")}${tl(U.alle)}</p>`}`;
+  } else {
+    const last=S.i===N-1;
+    h+=`<div class="sumline">${"★".repeat(S.res[S.i].s)}${"☆".repeat(3-S.res[S.i].s)} · +${S.res[S.i].p} ${D("punkte")}</div><button class="btn ${last?"gold":""}" id="nx">${last?T("auswertung"):T("naechster")}</button>`;
+  }
+  $("main").innerHTML=h;
+  $("main").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{S.set[b.dataset.c]=+b.dataset.v;renderGame();});
+  $("main").querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{S.goal=+b.dataset.g;renderGame();});
+  if($("open"))$("open").onclick=openShop;
+  if($("nx"))$("nx").onclick=()=>{if(S.i<N-1){S.i++;S.set={};S.goal=null;S.phase="set";renderGame();window.scrollTo(0,0);}else{S.screen="end";render();confetti();}};
+}
+function openShop(){
+  const sh=shop();let n=0;
+  for(const c of CTRL)if(sh.ok[c.k].includes(S.set[c.k]))n++;
+  let p=n*25;if(S.profi&&S.goal===sh.g)p+=25;
+  S.pts+=p;S.res[S.i]={nm:sh.nm,em:sh.em,n,p,s:n===4?3:n===3?2:1};
+  S.phase="result";renderGame();
+  const sc=document.querySelector(".scwrap");if(sc)sc.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function renderEnd(){
+  const tot=S.res.reduce((a,r)=>a+r.s,0),max=N*3;
+  const tk=tot>=max-2?"t3":tot>=max-6?"t2":"t1";
+  let h=`<div class="end pop"><div style="font-size:60px">🏆</div><h2>${D("geschafft")}</h2>${tl(U.geschafft)}`;
+  if(S.name)h+=`<div style="font-size:20px;font-weight:700">${esc(S.name)}</div>`;
+  h+=`<div class="stars" style="font-size:30px">★ ${tot} / ${max}</div><div style="font-size:20px;font-weight:700">${S.pts} ${D("punkte")}</div><div style="font-size:22px;margin-top:6px"><b>${D(tk)}</b>${tl(U[tk])}</div><table>`;
+  for(const r of S.res)h+=`<tr><td>${r.em} ${esc(r.nm)}</td><td class="stars">${"★".repeat(r.s)}${"☆".repeat(3-r.s)}</td><td style="text-align:right">${r.p} ${D("punkte")}</td></tr>`;
+  h+=`</table><div class="merke"><b>💡 ${D("merke")}</b>${tl(U.merke)}<div>${esc(U.merktext[0])}</div>${tl(U.merktext)}</div><button class="btn gold" id="again">${T("neustart")}</button></div>`;
+  $("main").innerHTML=h;window.scrollTo(0,0);
+  $("again").onclick=()=>{cfStop=true;S.screen="start";render();};
+}
+function render(){
+  head();
+  if(S.screen==="start"){$("main").innerHTML=startScreen(S);bindStart(S,()=>{S.i=0;S.pts=0;S.res=[];S.set={};S.goal=null;S.phase="set";S.screen="game";render();});}
+  else if(S.screen==="game")renderGame();
+  else renderEnd();
+}
+render();
+
+</script>
+</body>
+</html>
