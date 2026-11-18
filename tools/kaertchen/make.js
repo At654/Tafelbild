@@ -24,6 +24,8 @@ const LANGS = {
 const VERSIONS = {
   A: { langs: ['vi', 'ar', 'tr'], file: 'VI-AR-TR' },
   B: { langs: ['es', 'pt', 'ti', 'uk', 'ru'], file: 'ES-PT-TI-UK-RU' },
+  C: { langs: ['vi'], file: 'VI' },
+  D: { langs: ['es'], file: 'ES' },
 };
 const COLORS = {
   blue: ['#e8f0fb', '#2f6db5'], orange: ['#fdebdc', '#d9741a'], green: ['#e6f4e6', '#3a8a3a'],
@@ -96,7 +98,7 @@ function build(m, ver, id) {
           ['de', ...langs].forEach(l => { if (!c.t[l]) miss.push(`${id} ${sh.name} ${c.code || k}: ${l}`); });
           return cardHtml(c, langs, foot, k % cols, Math.floor(k / cols));
         }).join('');
-        pages.push(`<section class="page${cols >= 4 ? ' dense' : ''}" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr)">${html}</section>`);
+        pages.push(`<section class="page${cols >= 4 ? ' dense' : ''}${langs.length === 1 ? ' mono' : ''}" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr)">${html}</section>`);
       }
     }
   });
@@ -135,6 +137,8 @@ body{font-family:'Liberation Sans','DejaVu Sans',sans-serif;color:#1d2733}
 .ln b{font-weight:700}.ln span{font-weight:400}
 .ln.ar p{font-family:'NArab','Liberation Sans',sans-serif;line-height:1.15}
 .ln.ti p{font-family:'NEth','Liberation Sans',sans-serif;line-height:1.2}
+.mono .ln{font-size:1em;line-height:1.2;grid-template-columns:2.1em 1fr}
+.mono .de{font-size:.95em}
 .dense .in{left:2mm;right:2mm;top:1mm;bottom:4mm}
 .dense .em{font-size:1.9em;line-height:1.1}
 .dense .de{line-height:1.12;margin-top:.05em}
