@@ -45,6 +45,9 @@ function walk(dir, rel, out) {
       e.links.push({ l: x.c === 'loesung' ? 'Lösungen (PDF)' : x.label, u: x.u });
     });
   })));
+  /* Zusatz-Zuordnungen für Schlüssel ohne eigenes Modul in der Übersicht */
+  const EXTRA = { 'WISO2.X1': [['Kärtchen Modul 1 „Wer zahlt?“ (TR · VI · AR)', 'WiSo2_M_1_Kaertchen_VI-AR-TR.pdf']] };
+  Object.keys(EXTRA).forEach(k => { const e = mat[k] || (mat[k] = { pdf: '', links: [] }); EXTRA[k].forEach(([l, u]) => { if (has.has(u) && !e.links.some(x => x.u === u)) e.links.push({ l, u }); }); });
   /* Lösungen und Lehrerhandreichungen ans Ende */
   Object.values(mat).forEach(e => { const t = /l[öo]e?sung|lehrerhandreichung/i; e.links = e.links.filter(l => !t.test(l.l)).concat(e.links.filter(l => t.test(l.l))); });
   const out = { built: new Date().toISOString().slice(0, 10) + '.' + Date.now().toString(36), files, mat };
