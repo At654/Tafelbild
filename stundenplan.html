@@ -253,7 +253,7 @@ function defaultChain(klasse,fach){
 }
 function defaultState(){
  const chains={};KLASSEN.forEach(k=>FAECHER[k.typ].forEach(f=>chains[k.id+'|'+f]=defaultChain(k.id,f)));
- return {version:6,settings:{refA:'2026-10-26',skipHolidayWeeks:false,planStart:'2026-08-17',stichtag:'',periods:PERIODS,klassenEnde:{'V25/1':'2027-05-28','V25/3':'2027-05-28'},hoverLangs:{'V26/1':['uk','ti','pt','es','ru'],'V26/2':['ar','vi','ru']}},slots:presetSlots(),chains,mat:{},customDays:[],absences:[],exams:[],exkursionen:[],inserts:[],texts:{},trainer:kvNorm(null,KV_DEFAULT)};
+ return {version:7,settings:{refA:'2026-10-26',skipHolidayWeeks:false,planStart:'2026-08-17',stichtag:'',periods:PERIODS,klassenEnde:{'V25/1':'2027-05-28','V25/3':'2027-05-28'},hoverLangs:{'V26/1':['uk','ti','pt','es','ru'],'V26/2':['ar','vi','ru','tr']}},slots:presetSlots(),chains,mat:{},customDays:[],absences:[],exams:[],exkursionen:[],inserts:[],texts:{},trainer:kvNorm(null,KV_DEFAULT)};
 }
 function repairChain(c){
  if(!c||typeof c!=='object')return;
@@ -286,7 +286,8 @@ function normalize(j){
   Object.keys(o.chains).forEach(k=>{const ch=o.chains[k];(ch&&ch.parts||[]).forEach(pt=>{if(pt&&pt.pid==='LF2'&&pt.mods&&pt.mods.X1&&parseFloat(pt.mods.X1.ds)===1)pt.mods.X1.ds=0.5;});});
  }
  if(ver<6){['V26/1','V26/2'].forEach(k=>{const l=o.settings.hoverLangs[k];if(Array.isArray(l)&&!l.includes('ru'))l.push('ru');});}
- o.version=6;o.trainer=kvNorm(o.trainer,KV_DEFAULT);
+ if(ver<7){const l=o.settings.hoverLangs['V26/2'];if(Array.isArray(l)&&!l.includes('tr'))l.push('tr');}
+ o.version=7;o.trainer=kvNorm(o.trainer,KV_DEFAULT);
  Object.keys(o.chains).forEach(k=>repairChain(o.chains[k]));
  if(!o.seed2){ /* Dateien aus dem Ordner materials/ einmalig eintragen (vorhandene Eingaben bleiben erhalten) */
   o.seed2=true;
@@ -606,12 +607,12 @@ function renderTabs(){
 
 /* ================= HOVER-ÜBERSETZUNG (Schüleransicht) =================
    Die Übersetzungen stehen in stundenplan_uebersetzungen.js (neben der index.html). Welche Sprachen eine Klasse sieht,
-   steht unter Admin → Einstellungen (V26/1: uk, ti, pt, es · V26/2: ar, vi). */
-const TRLANGS=['uk','ti','pt','es','ar','vi','ru'];
-const TR_INFO={uk:['🇺🇦','Українська'],ti:['🌐','ትግርኛ'],pt:['🇵🇹','Português'],es:['🇪🇸','Español'],ar:['🌐','العربية'],vi:['🇻🇳','Tiếng Việt'],ru:['🇷🇺','Русский']};
+   steht unter Admin → Einstellungen (V26/1: uk, ti, pt, es · V26/2: ar, vi, ru, tr). */
+const TRLANGS=['uk','ti','pt','es','ar','vi','ru','tr'];
+const TR_INFO={uk:['🇺🇦','Українська'],ti:['🌐','ትግርኛ'],pt:['🇵🇹','Português'],es:['🇪🇸','Español'],ar:['🌐','العربية'],vi:['🇻🇳','Tiếng Việt'],ru:['🇷🇺','Русский'],tr:['🇹🇷','Türkçe']};
 let TRD=null;
 const hoverLangs=k=>{const l=((state&&state.settings.hoverLangs)||{})[k];return STUDENT&&TRD&&Array.isArray(l)?l.filter(x=>TRLANGS.includes(x)&&TRD.l.includes(x)):[];};
-const ktx=(key,l)=>{const a=KVT[key];if(!a)return key;if(l==='ru')return KVT_RU[key]||a[0];return a[KV_LANGS.indexOf(l)]||a[0];};
+const ktx=(key,l)=>{const a=KVT[key];if(!a)return key;if(l==='ru')return KVT_RU[key]||a[0];if(l==='tr')return (window.TR_TR&&window.TR_TR.kvt&&window.TR_TR.kvt[key])||a[0];return a[KV_LANGS.indexOf(l)]||a[0];};
 const ktl=(key,i)=>ktx(key,TRD.l[i]);
 function trSpan(str,k){
  if(!str)return '';
@@ -646,6 +647,13 @@ function trLines(kind,val,k,occ){
  return hoverLangs(k).map(l=>{const i=TRD.l.indexOf(l);let t='';
   if(kind==='s')t=(TRD.s[val]||[])[i]||'';else{const o=occ||C.occById[val];if(o)t=trEntryTxt(o,i);}
   return t?{l,t}:null;}).filter(Boolean);
+}
+function mergeTR(){ /* Türkisch (separate Datei) als zusätzliche Sprache an TRD anhängen */
+ const T=window.TR_TR;if(!TRD||!T||TRD.l.includes('tr'))return;
+ TRD.l.push('tr');
+ Object.keys(TRD.s).forEach(k=>{TRD.s[k][TRD.l.length-1]=(T.s&&T.s[k])||'';});
+ TRD.w.lf.push(T.w.lf);TRD.w.mod.push(T.w.mod);
+ Object.keys(TRD.p).forEach(k=>{TRD.p[k].push((T.p&&T.p[k])||'');});
 }
 const trHtml=lines=>lines.map(x=>`<div class="trl" dir="${x.l==='ar'?'rtl':'ltr'}"><span class="fl">${TR_INFO[x.l][0]}</span> ${esc(x.t)}</div>`).join('');
 function trBlock(o){ /* feste Übersetzung unter dem Eintragstext (Handy: kein Hover) */
@@ -1345,6 +1353,7 @@ async function init(){
  if(STUDENT){
   try{state=await fetchJson();}catch(e){state=defaultState();LOAD_ERR=true;}
   await new Promise(res=>{const sc=document.createElement('script');sc.src='stundenplan_uebersetzungen.js';sc.charset='utf-8';sc.onload=()=>{TRD=window.TR||null;res();};sc.onerror=()=>res();document.head.appendChild(sc);});
+  await new Promise(res=>{const sc=document.createElement('script');sc.src='stundenplan_uebersetzungen_tr.js';sc.charset='utf-8';sc.onload=()=>{mergeTR();res();};sc.onerror=()=>res();document.head.appendChild(sc);});
   ui.filterKlasse=KLASSEN.some(k=>k.id===q.get('klasse'))?q.get('klasse'):'';
   document.getElementById('title').textContent='Stundenplan – Schüleransicht';
  }else{
