@@ -82,7 +82,8 @@ function build(m, ver, id) {
   m.sheets.forEach(sh => {
     for (let rep = 1; rep <= sh.repeat; rep++) {
       const cards = sh.cards;
-      const per = 8;
+      let per = 8;
+      if (sh.grid) { const [gc, gr] = sh.grid.split('x').map(Number); per = gc * gr; }
       for (let off = 0; off < cards.length; off += per) {
         const chunk = cards.slice(off, off + per);
         let cols = 2, rows;
@@ -95,7 +96,7 @@ function build(m, ver, id) {
           ['de', ...langs].forEach(l => { if (!c.t[l]) miss.push(`${id} ${sh.name} ${c.code || k}: ${l}`); });
           return cardHtml(c, langs, foot, k % cols, Math.floor(k / cols));
         }).join('');
-        pages.push(`<section class="page" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr)">${html}</section>`);
+        pages.push(`<section class="page${cols >= 4 ? ' dense' : ''}" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr)">${html}</section>`);
       }
     }
   });
@@ -134,6 +135,12 @@ body{font-family:'Liberation Sans','DejaVu Sans',sans-serif;color:#1d2733}
 .ln b{font-weight:700}.ln span{font-weight:400}
 .ln.ar p{font-family:'NArab','Liberation Sans',sans-serif;line-height:1.15}
 .ln.ti p{font-family:'NEth','Liberation Sans',sans-serif;line-height:1.2}
+.dense .in{left:2mm;right:2mm;top:1mm;bottom:4mm}
+.dense .em{font-size:1.9em;line-height:1.1}
+.dense .de{line-height:1.12;margin-top:.05em}
+.dense .tr{margin-top:.25em;padding-top:.25em;gap:.14em}
+.dense .ln{font-size:.86em;line-height:1.12;grid-template-columns:1.9em 1fr;column-gap:.3em}
+.dense .ft{bottom:.8mm;left:2mm;right:2mm}
 .ft{position:absolute;left:3.5mm;right:3.5mm;bottom:1.4mm;display:flex;justify-content:space-between;font-size:5.5pt;color:#6b7785}
 .teacher{width:210mm;height:297mm;padding:16mm 18mm;font-size:10pt;line-height:1.4;page-break-after:auto}
 .teacher h1{font-size:15pt;color:#b02a2a;margin-bottom:3mm}
@@ -152,6 +159,12 @@ const FIT = () => {
     }
     inner.style.setProperty('--fs', fs);
     card.dataset.fs = fs;
+  });
+  /* einheitliche Schriftgröße je Blatt: kleinste passende Größe der Karten dieses Blatts */
+  document.querySelectorAll('.page').forEach(pg => {
+    const cs = Array.from(pg.querySelectorAll('.card'));
+    const m = Math.min(...cs.map(c => +c.dataset.fs));
+    cs.forEach(c => { c.querySelector('.in').style.setProperty('--fs', m); c.dataset.fs = m; });
   });
   return Array.from(document.querySelectorAll('.card')).map(c => +c.dataset.fs);
 };
