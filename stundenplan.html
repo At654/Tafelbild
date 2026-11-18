@@ -570,11 +570,12 @@ const autoPdf=(p,it)=>`${p.file}_${slug(it.lab||it.id)}.pdf`;
 function pdfLink(u){
  const l=(matOf(u.key).pdf||'').trim();
  if(l)return l;
- return u.item.lab?autoPdf(u.part,u.item):'';
+ const a=u.item.lab?autoPdf(u.part,u.item):'';
+ return a&&(!MAT_FILES||MAT_FILES.has(a))?a:'';
 }
 const matLink=o=>pdfLink(o.unit);
-const isLink=s=>/^(https?:\/\/|materials\/)/i.test((s||'').trim())||/^[\w.%\-\/]+\.(pdf|html?|docx?|pptx?|xlsx?|png|jpe?g)(\?[^\s]*)?(#[^\s]*)?$/i.test((s||'').trim());
-const digLinks=u=>matOf(u.key).links.filter(x=>isLink(x.u)&&!(STUDENT&&/lehrerhandreichung/i.test(x.l||'')));
+const isLink=s=>{s=(s||'').trim();return /^(https?:\/\/|materials\/)/i.test(s)||/^[^<>"'\\]+\.(pdf|html?|docx?|pptx?|xlsx?|png|jpe?g)([?#]\S*)?$/i.test(s);};
+const digLinks=u=>matOf(u.key).links.filter(x=>isLink(x.u)&&!(STUDENT&&/lehrerhandreichung|l[öo]e?sung/i.test(x.l||'')));
 const periodLabel=p=>state.settings.periods[p]||('DS '+(p+1));
 
 /* ================= AUSGABE ================= */
@@ -1099,7 +1100,7 @@ function renderModal(){
  let mat='',plan='';
  o.segs.forEach(g=>{
   if(g.ins){mat+=`<p class="small" style="margin:4px 0"><b>${esc(g.ins.name)}</b> · eingeplant · ${g.n===1?'1 Stunde':'Doppelstunde'}</p>`;return;}
-  const u=g.unit,pm=matOf(u.part.id).links.filter(x=>isLink(x.u)&&!(STUDENT&&/lehrerhandreichung/i.test(x.l||'')));
+  const u=g.unit,pm=matOf(u.part.id).links.filter(x=>isLink(x.u)&&!(STUDENT&&/lehrerhandreichung|l[öo]e?sung/i.test(x.l||'')));
   const btns=matButtons(u)+pm.map(x=>`<a class="btn sm ${matCls(x.l)}" href="${esc(x.u.trim())}" target="_blank" rel="noopener">${esc(x.l||'Link')} (${esc(u.part.tag)})</a>`).join('');
   mat+=`<p class="small" style="margin:4px 0"><b>${esc(unitTag(u))}</b>${u.item.lab?': '+esc(u.item.name):''} · Doppelstunde ${u.dsNo}/${u.total}${o.segs.length>1?' · '+g.n*45+' min':''}</p>${btns?`<div class="acts" style="margin:0 0 8px">${btns}</div>`:''}`;
  });
@@ -1293,6 +1294,48 @@ document.getElementById('fileIn').addEventListener('change',async e=>{
  e.target.value='';
 });
 
+/* ================= MATERIAL-ABGLEICH =================
+   stundenplan_material.json (erzeugt mit tools/matmap/build.js) enthält die Liste aller vorhandenen Dateien und die geprüfte
+   Zuordnung Modul -> Arbeitsblatt/Links. Beim Start werden gespeicherte Links repariert (alter Ordner materials/, nicht mehr vorhandene
+   Dateien) und fehlende Links einmal je neuer Fassung ergänzt. Eigene Links (Web-Adressen oder neue Dateien) bleiben erhalten. */
+let MAT_FILES=null;
+function fixPath(u){
+ u=(u||'').trim();if(!u||/^https?:\/\//i.test(u)||!MAT_FILES)return u;
+ u=u.replace(/^\.\//,'');
+ if(MAT_FILES.has(u))return u;
+ if(/^materials\//i.test(u)&&MAT_FILES.has(u.slice(10)))return u.slice(10);
+ let d=u;try{d=decodeURIComponent(u);}catch(e){}
+ if(MAT_FILES.has(d))return d;
+ return u;
+}
+async function syncMat(st){
+ let M;try{const r=await fetch('stundenplan_material.json',{cache:'no-store'});if(!r.ok)return false;M=await r.json();}catch(e){return false;}
+ MAT_FILES=new Set(M.files);
+ const dead=[];
+ Object.keys(st.mat).forEach(k=>{
+  const e=st.mat[k];if(!e)return;
+  e.pdf=fixPath(e.pdf);
+  e.links=(e.links||[]).map(l=>({l:l.l,u:fixPath(l.u)}));
+ });
+ if(st.matBuilt!==M.built){
+  Object.keys(M.mat).forEach(k=>{
+   const c=M.mat[k],e=st.mat[k]||(st.mat[k]={pdf:'',links:[]});
+   if(!e.pdf||(!MAT_FILES.has(e.pdf)&&!/^https?:/i.test(e.pdf)))e.pdf=c.pdf||e.pdf;
+   e.links=e.links.filter(l=>l.u||l.l);
+   c.links.forEach(l=>{if(!e.links.some(x=>x.u===l.u))e.links.push({l:l.l,u:l.u});});
+  });
+  st.matBuilt=M.built;
+ }
+ /* Dateien, die weder in der Liste stehen noch Web-Adressen sind: im Netz prüfen und bei „nicht gefunden“ entfernen */
+ const unk=new Set();
+ Object.values(st.mat).forEach(e=>{[e.pdf].concat((e.links||[]).map(l=>l.u)).forEach(u=>{u=(u||'').trim();if(u&&!/^https?:/i.test(u)&&!MAT_FILES.has(u))unk.add(u);});});
+ for(const u of [...unk].slice(0,60)){
+  try{const r=await fetch(u,{method:'HEAD',cache:'no-store'});if(r.status===404)dead.push(u);}catch(e){}
+ }
+ if(dead.length){const D=new Set(dead);Object.values(st.mat).forEach(e=>{if(D.has((e.pdf||'').trim()))e.pdf='';e.links=(e.links||[]).filter(l=>!D.has((l.u||'').trim()));});}
+ return true;
+}
+
 /* ================= START ================= */
 async function init(){
  const q=new URLSearchParams(location.search);
@@ -1308,6 +1351,7 @@ async function init(){
   state=loadLocal();
   if(!state){try{state=await fetchJson();save();}catch(e){state=defaultState();}}
  }
+ await syncMat(state);if(!STUDENT)save();
  let d=todayStr();if(wd(d)>4)d=addDays(d,7);
  ui.week=mondayOf(d);
  refresh();
