@@ -757,7 +757,12 @@ function kvBuildEvents(){
    if(!last)return;pid=last.part.id;const meta=KV_META[pid];if(!meta)return;
    const order=CAT[pid].items.map(x=>x.id),idx=order.indexOf(last.item.id);
    const ks=Object.keys(meta.klausurItems).sort((a,b)=>order.indexOf(a)-order.indexOf(b));
-   const hit=ks.find(x=>idx<=order.indexOf(x));if(!hit)return;k=meta.klausurItems[hit];
+   const hit=ks.find(x=>idx<=order.indexOf(x));
+   if(hit)k=meta.klausurItems[hit];
+   else{ /* Termin liegt hinter dem geplanten Klausur-Modul der Kette (Klausur wurde nach hinten verschoben): bis 60 Tage danach dieselbe Klausur */
+    let prev=null;(ch.occ||[]).forEach(o=>{if(o.date<=e.date)(o.segs||[]).forEach(g=>{if(g.unit&&g.unit.part.id===pid&&meta.klausurItems[g.unit.item.id])prev={d:o.date,k:meta.klausurItems[g.unit.item.id]};});});
+    if(!prev||kvDaysBetween(prev.d,e.date)>60)return;k=prev.k;
+   }
   }
   const cfg=state.trainer&&state.trainer[pid];if(!cfg||!cfg.on)return;
   add(e.date,e.klasse,e.fach,pid,k);
