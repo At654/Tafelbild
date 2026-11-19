@@ -253,7 +253,7 @@ function defaultChain(klasse,fach){
 }
 function defaultState(){
  const chains={};KLASSEN.forEach(k=>FAECHER[k.typ].forEach(f=>chains[k.id+'|'+f]=defaultChain(k.id,f)));
- return {version:6,settings:{refA:'2026-10-26',skipHolidayWeeks:false,planStart:'2026-08-17',stichtag:'',periods:PERIODS,klassenEnde:{'V25/1':'2027-05-28','V25/3':'2027-05-28'},hoverLangs:{'V26/1':['uk','ti','pt','es','ru'],'V26/2':['ar','vi','ru']}},slots:presetSlots(),chains,mat:{},customDays:[],absences:[],exams:[],exkursionen:[],inserts:[],texts:{},trainer:kvNorm(null,KV_DEFAULT)};
+ return {version:6,settings:{refA:'2026-10-26',skipHolidayWeeks:false,planStart:'2026-08-17',stichtag:'',periods:PERIODS,klassenEnde:{'V25/1':'2027-05-28','V25/3':'2027-05-28'},hoverLangs:{'V26/1':['uk','ti','pt','es','ru'],'V26/2':['ar','vi','ru']}},slots:presetSlots(),wechsel:{},chains,mat:{},customDays:[],absences:[],exams:[],exkursionen:[],inserts:[],texts:{},trainer:kvNorm(null,KV_DEFAULT)};
 }
 function repairChain(c){
  if(!c||typeof c!=='object')return;
@@ -273,6 +273,7 @@ function normalize(j){
  ['customDays','absences','exams','exkursionen','inserts'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[];});
  if(!o.settings.hoverLangs||typeof o.settings.hoverLangs!=='object'||Array.isArray(o.settings.hoverLangs))o.settings.hoverLangs=b.settings.hoverLangs;
  if(!o.slots||typeof o.slots!=='object')o.slots={};
+ if(!o.wechsel||typeof o.wechsel!=='object'||Array.isArray(o.wechsel))o.wechsel={};
  if(!o.texts||typeof o.texts!=='object')o.texts={};
  if(!o.mat||typeof o.mat!=='object')o.mat={};
  if(!Array.isArray(o.settings.periods)||o.settings.periods.length<4)o.settings.periods=b.settings.periods;
@@ -448,7 +449,10 @@ function itemList(ch){
 }
 const posIn=(all,key,ds)=>{const els=all.filter(u=>u.key===key);if(!els.length)return -1;const d=Math.min(Math.max(1,parseInt(ds)||1),els[0].total);return all.findIndex(u=>u.key===key&&u.dsNo===d);};
 function startIndex(ch,all){if(!ch.startKey)return 0;const i=posIn(all,ch.startKey,ch.startDs);return i<0?0:i;}
-const slotsOn=(klasse,date,fach)=>Object.entries(state.slots).map(([k,v])=>{const q=k.split('|');return {w:q[0],d:+q[1],p:+q[2],klasse:v.klasse,fach:v.fach};}).filter(x=>x.klasse===klasse&&x.w===abOf(date)&&x.d===wd(date)&&(!fach||x.fach===fach)).sort((a,b)=>a.p-b.p);
+/* Wochenweise Umstellung (nur V26/4): state.wechsel['Klasse|Datum|Doppelstunde'] = 'Wiso' | 'Wahlpflicht'; ohne Eintrag gilt das Raster */
+const WECHSEL_KL='V26/4';
+const fachAt=(s,date)=>{const f=s.klasse===WECHSEL_KL&&(state.wechsel||{})[s.klasse+'|'+date+'|'+s.p];return f&&FAECHER[typOf(s.klasse)].includes(f)?f:s.fach;};
+const slotsOn=(klasse,date,fach)=>Object.entries(state.slots).map(([k,v])=>{const q=k.split('|');return {w:q[0],d:+q[1],p:+q[2],klasse:v.klasse,fach:v.fach};}).map(x=>Object.assign(x,{fach:fachAt(x,date)})).filter(x=>x.klasse===klasse&&x.w===abOf(date)&&x.d===wd(date)&&(!fach||x.fach===fach)).sort((a,b)=>a.p-b.p);
 function compute(){
  buildAB();
  C={chains:{},byDate:{},occById:{}};
@@ -459,14 +463,14 @@ function compute(){
   const ch=state.chains[key];if(!ch)return;
   const sp=key.split('|'),klasse=sp[0],fach=sp[1];
   const all=chainItems(ch),si=startIndex(ch,all),units=all.slice(si);
-  const mine=slots.filter(s=>s.klasse===klasse&&s.fach===fach);
+  const mine=slots.filter(s=>s.klasse===klasse);
   const from=ch.start&&ch.start>S.planStart?ch.start:S.planStart;
   const kend=(S.klassenEnde||{})[klasse]||'',stop=kend&&kend<PLAN_END?kend:PLAN_END;
   const jumps=(ch.jumps||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)||(a.p||0)-(b.p||0));
   const occ=[];let u=si,ji=0;
   for(let d=from;d<=stop;d=addDays(d,1)){
    const w=wd(d);if(w>4)continue;
-   const todays=mine.filter(s=>s.w===abOf(d)&&s.d===w).sort((a,b)=>a.p-b.p);
+   const todays=mine.filter(s=>s.w===abOf(d)&&s.d===w&&fachAt(s,d)===fach).sort((a,b)=>a.p-b.p);
    if(!todays.length)continue;
    const info=dayInfo(d);
    const absent=state.absences.some(a=>d>=a.from&&d<=(a.to||a.from));
@@ -879,7 +883,8 @@ function lessonCard(o){
  }else{
   body=`<div class="topic">${kt('frei')}</div><div class="sub">${esc(o.label||kvStat(o.status))}</div>`;
  }
- return `<div class="les st-${o.status}${cls}">${head}${body}</div>`;
+ const wsel=(!STUDENT&&o.klasse===WECHSEL_KL)?`<div class="acts"><label class="small">Diese Woche: <select data-wechsel="${esc(o.klasse+'|'+o.date+'|'+o.period)}" aria-label="Fach dieser Stunde wählen">${FAECHER[typOf(o.klasse)].filter(f=>f==='Wiso'||f==='Wahlpflicht').map(f=>`<option ${f===o.fach?'selected':''}>${f}</option>`).join('')}</select></label></div>`:'';
+ return `<div class="les st-${o.status}${cls}">${head}${body}${wsel}</div>`;
 }
 
 function renderWoche(){
@@ -1253,6 +1258,7 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
 
 document.addEventListener('change',e=>{
  const t=e.target;
+ if(t.dataset&&t.dataset.wechsel){const k=t.dataset.wechsel,q=k.split('|'),nom=Object.entries(state.slots).find(([sk,v])=>v.klasse===q[0]&&sk.split('|')[0]===abOf(q[1])&&+sk.split('|')[1]===wd(q[1])&&+sk.split('|')[2]===+q[2]);if(nom&&nom[1].fach===t.value)delete state.wechsel[k];else state.wechsel[k]=t.value;save();refresh();return;}
  if(t.dataset&&t.dataset.kvoff){const a=t.dataset.kvoff.split('|'),cfg=state.trainer[a[0]];if(cfg){if(t.checked)delete cfg.off[a[1]];else cfg.off[a[1]]=true;save();}return;}
  if(t.dataset.mat){ /* Material-Links (Modul- bzw. Lernfeld-Schlüssel) */
   const m=matEnsure(t.dataset.mat);
