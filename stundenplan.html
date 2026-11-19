@@ -542,7 +542,7 @@ function segText(u,f){
 }
 const insText=g=>(g.ins.text&&g.ins.text.trim())||g.ins.name;
 function exkAuto(o){const x=o.ex;return `Exkursion statt Unterricht im Fach ${o.fach}: ${x.ziel||'Ziel noch offen'}.`+(x.grund?` Grund der Exkursion: ${x.grund}.`:'');}
-const lfLabel=lf=>{const a=/^(LF\d+)\.(\d)$/.exec(lf||''),m=a&&KV_META[a[1]];return m?`${m.tag} – Klausur ${a[2]}${m.scopes[a[2]]?' ('+m.scopes[a[2]].replace(/^Klausur \d+ \(|\)$/g,'')+')':''}`:'';};
+const lfLabel=lf=>{const a=/^((?:LF|WISO)\d+)\.(\d)$/.exec(lf||''),m=a&&KV_META[a[1]];return m?`${m.tag} – Klausur ${a[2]}${m.scopes[a[2]]?' ('+m.scopes[a[2]].replace(/^Klausur \d+ \(|\)$/g,'')+')':''}`:'';};
 function klausurAuto(o){const l=lfLabel(o.exam&&o.exam.lf);return `Schriftliche Leistungsüberprüfung (Klausur) im Fach ${o.fach}${l?': '+l:''}.`;}
 function autoText(o){
  if(o.status==='exkursion')return exkAuto(o);
@@ -699,9 +699,11 @@ function matButtons(u,lim,id){
 }
 /* ================= KLAUSURVORBEREITUNG · ÜBUNGEN · SPRACHE ================= */
 const KV_META={LF2:{tag:'LF 2',title:'Klausurtrainer LF 2 – Verkaufsgespräche kundenorientiert führen',daten:'LF2_Klausurtrainer_Daten.js',klausurItems:{X5:1,X9:2},scopes:{1:'Klausur 1 (M 1–M 7)',2:'Klausur 2 (M 8–M 15)'},ls:'lf2_trainer_v1',langs:'Deutsch · Vietnamesisch · Arabisch',lc:'de / vi / ar',ph:'Phasen des Kundengesprächs'},
- LF1:{tag:'LF 1',title:'Klausurtrainer LF 1 – Das Einzelhandelsunternehmen repräsentieren',daten:'LF1_Klausurtrainer_Daten.js',klausurItems:{X3:1,X5:2},scopes:{1:'Klausur 1 (M 1–M 7)',2:'Klausur 2 (M 8–M 12)'},ls:'lf1_trainer_v1',langs:'Deutsch · Ukrainisch · Tigrinja · Portugiesisch · Spanisch',lc:'de / uk / ti / pt / es',ph:'Themenkarten (M 1–M 12)'}};
+ LF1:{tag:'LF 1',title:'Klausurtrainer LF 1 – Das Einzelhandelsunternehmen repräsentieren',daten:'LF1_Klausurtrainer_Daten.js',klausurItems:{X3:1,X5:2},scopes:{1:'Klausur 1 (M 1–M 7)',2:'Klausur 2 (M 8–M 12)'},ls:'lf1_trainer_v1',langs:'Deutsch · Ukrainisch · Tigrinja · Portugiesisch · Spanisch',lc:'de / uk / ti / pt / es',ph:'Themenkarten (M 1–M 12)'},
+ WISO1:{tag:'WiSo 1',title:'Klausurtrainer WiSo 1 – Modul 1–4 (Klausur 1)',daten:'WiSo1_Klausurtrainer_Daten.js',klausurItems:{X3:1},scopes:{1:'Klausur 1 (M 1–M 4)'},ls:'wiso1_trainer_m1_4_v1',langs:'Deutsch · Spanisch',lc:'de / es',ph:'Themen (Modul 1–4)'}};
 const KV_DEFAULT={LF2:{on:true,days:7,exakt:false,url:'LF2_Klausurtrainer.html',fmt:{karten:true,quiz:true,luecke:true,reihe:true},off:{}},
- LF1:{on:true,days:7,exakt:false,url:'LF1_Klausurtrainer.html',fmt:{karten:true,quiz:true,luecke:true,reihe:true,profi:true},off:{}}};
+ LF1:{on:true,days:7,exakt:false,url:'LF1_Klausurtrainer.html',fmt:{karten:true,quiz:true,luecke:true,reihe:true,profi:true},off:{}},
+ WISO1:{on:true,days:7,exakt:false,url:'WiSo1_Klausurtrainer.html',fmt:{karten:true,quiz:true,luecke:true,profi:true},off:{}}};
 const KV_LANGKEY='ds_lang',KV_LANGS=['de','vi','ar','uk','ti','pt','es','ru'];
 let KV_LANG='de',KV_EV=[];
 try{const l=localStorage.getItem(KV_LANGKEY);if(KV_LANGS.includes(l))KV_LANG=l;}catch(e){}
@@ -748,7 +750,7 @@ function kvBuildEvents(){
  (state.exams||[]).forEach(e=>{
   if(e.lf==='none')return;
   let pid,k;
-  if(/^LF\d+\.\d$/.test(e.lf||'')){const a=e.lf.split('.');pid=a[0];k=+a[1];}
+  if(/^(?:LF|WISO)\d+\.\d$/.test(e.lf||'')){const a=e.lf.split('.');pid=a[0];k=+a[1];}
   else{
    const ch=C.chains[e.klasse+'|'+e.fach];if(!ch)return;
    let last=null;(ch.occ||[]).forEach(o=>{if(o.date<e.date&&o.unit)last=o.unit;});
@@ -828,7 +830,7 @@ const kvOth=o=>Object.keys(o).filter(k=>k!=='de').map(k=>esc(o[k])).join(' · ')
 function kvAdminCard(pid){
  const meta=KV_META[pid];if(!meta)return '';
  const cfg=state.trainer[pid],B='trainer.'+pid+'.',data=kvData(pid);
- const FN=Object.assign({karten:'Lernkarten',quiz:'Quiz (Multiple Choice)',luecke:'Lückentexte',reihe:pid==='LF2'?'Phasen-Reihenfolge':'Reihenfolge-Übung'},('profi' in cfg.fmt)?{profi:'Für Profis (Begründungsfragen)'}:{});
+ const FN=Object.assign({karten:'Lernkarten',quiz:'Quiz (Multiple Choice)',luecke:'Lückentexte'},('reihe' in cfg.fmt)?{reihe:pid==='LF2'?'Phasen-Reihenfolge':'Reihenfolge-Übung'}:{},('profi' in cfg.fmt)?{profi:'Für Profis (Begründungsfragen)'}:{});
  const cnt=data?{karten:data.TERMS.length,quiz:data.MC.filter(x=>!x.p).length,profi:data.MC.filter(x=>x.p).length,luecke:data.LK.length,reihe:1}:{};
  let h=`<div class="card"><h2>📝 Übungen &amp; Klausurtrainer · ${esc(meta.tag)}</h2>
  <p class="small">Mehrsprachiger Selbsttest (${esc(meta.langs)}) mit Piktogrammen, Hover-Übersetzung der Fachbegriffe, Umschalter je Frage und Fortschrittsbalken (wird im Browser des Schülers gespeichert). Der Knopf <b>„Klausurvorbereitung aktiv!“</b> erscheint im Stundenplan beim Fach der Klasse – blinkend – und führt direkt zum Trainer. Klausurtermine kommen aus <b>Admin → Klausuren</b> oder aus dem geplanten Modul „Klausur 1/2“ der Themenkette.</p>
