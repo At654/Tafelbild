@@ -748,7 +748,7 @@ function kvBuildEvents(){
  if(typeof C==='undefined'||!C||!C.chains)return ev;
  const add=(date,klasse,fach,pid,k)=>{const sig=date+'|'+klasse+'|'+fach;if(seen.has(sig))return;seen.add(sig);has.add(klasse+'|'+fach+'|'+pid+'|'+k);ev.push({date,klasse,fach,pid,k});};
  (state.exams||[]).forEach(e=>{
-  if(e.lf==='none')return;
+  if(e.lf==='none'||/probe|übung/i.test(e.note||''))return; /* Probe-/Übungsklausuren lösen den Knopf nicht aus */
   let pid,k;
   if(/^(?:LF|WISO)\d+\.\d$/.test(e.lf||'')){const a=e.lf.split('.');pid=a[0];k=+a[1];}
   else{
@@ -772,7 +772,9 @@ function kvBuildEvents(){
    add(o.date,o.klasse,o.fach,g.unit.part.id,k);
   });
  });});
- return ev;
+ /* mehrere Termine für dieselbe Klausur (z. B. Probeklausur und Klausur): maßgeblich ist der späteste */
+ const last={};ev.forEach(e=>{const k=e.klasse+'|'+e.fach+'|'+e.pid+'|'+e.k;if(!last[k]||e.date>last[k])last[k]=e.date;});
+ return ev.filter(e=>e.date===last[e.klasse+'|'+e.fach+'|'+e.pid+'|'+e.k]);
 }
 function kvUrl(cfg,k){
  const f=Object.keys(cfg.fmt||{}).filter(x=>cfg.fmt[x]),off=Object.keys(cfg.off||{}).filter(x=>cfg.off[x]);
