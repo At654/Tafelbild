@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Würfel-App</title>
+<style>
+  :root{
+    --bg1:#1b1640; --bg2:#3a1c71; --bg3:#d76d77;
+    --card:rgba(255,255,255,.10); --line:rgba(255,255,255,.22);
+    --text:#fff; --muted:rgba(255,255,255,.72);
+    --accent:#ffd36e; --accent2:#ff8a5c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    min-height:100vh; font-family:"Segoe UI",system-ui,-apple-system,sans-serif; color:var(--text);
+    background:linear-gradient(135deg,var(--bg1),var(--bg2) 55%,var(--bg3));
+    background-attachment:fixed; display:flex; justify-content:center; padding:28px 16px 40px;
+  }
+  .app{width:100%; max-width:860px}
+  h1{font-size:2.2rem; text-align:center; letter-spacing:.5px}
+  h1 span{color:var(--accent)}
+  .sub{text-align:center; color:var(--muted); margin:6px 0 22px}
+  .panel{
+    background:var(--card); border:1px solid var(--line); border-radius:22px;
+    backdrop-filter:blur(10px); padding:20px; margin-bottom:18px;
+    box-shadow:0 10px 40px rgba(0,0,0,.25);
+  }
+  .row{display:flex; flex-wrap:wrap; gap:18px; align-items:center; justify-content:center}
+  label.t{font-size:.8rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); display:block; text-align:center; margin-bottom:8px}
+  .counter{display:flex; align-items:center; gap:14px; justify-content:center}
+  .counter button{
+    width:50px; height:50px; border-radius:50%; border:1px solid var(--line); background:rgba(255,255,255,.14);
+    color:#fff; font-size:1.7rem; cursor:pointer; transition:.15s;
+  }
+  .counter button:hover{background:rgba(255,255,255,.28); transform:scale(1.08)}
+  .counter .n{font-size:2.8rem; font-weight:700; min-width:64px; text-align:center}
+  .types{display:flex; flex-wrap:wrap; gap:8px; justify-content:center}
+  .types button{
+    padding:9px 16px; border-radius:999px; border:1px solid var(--line); background:transparent;
+    color:var(--text); font-size:.95rem; cursor:pointer; transition:.15s;
+  }
+  .types button:hover{background:rgba(255,255,255,.15)}
+  .types button.on{background:var(--accent); color:#2b1b4d; border-color:var(--accent); font-weight:700}
+  .quick{display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:12px}
+  .quick button{
+    width:38px; height:38px; border-radius:10px; border:1px solid var(--line); background:transparent;
+    color:var(--text); cursor:pointer; font-size:1rem;
+  }
+  .quick button.on{background:rgba(255,255,255,.28); font-weight:700}
+  #roll{
+    display:block; margin:6px auto 0; padding:16px 52px; font-size:1.35rem; font-weight:800; letter-spacing:1px;
+    border:none; border-radius:999px; cursor:pointer; color:#2b1b4d;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    box-shadow:0 8px 24px rgba(255,138,92,.45); transition:.15s;
+  }
+  #roll:hover{transform:translateY(-2px) scale(1.03)}
+  #roll:active{transform:scale(.97)}
+  .hint{text-align:center; color:var(--muted); font-size:.8rem; margin-top:10px}
+
+  .stage{min-height:200px; display:flex; flex-wrap:wrap; gap:18px; justify-content:center; align-items:center; padding:10px 0}
+  .die{
+    width:92px; height:92px; border-radius:20px; background:linear-gradient(145deg,#fff,#e9e4f7);
+    box-shadow:0 8px 18px rgba(0,0,0,.35), inset 0 -4px 8px rgba(0,0,0,.08);
+    display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr);
+    padding:12px; position:relative;
+  }
+  .pip{width:17px; height:17px; border-radius:50%; background:#2b1b4d; place-self:center; box-shadow:inset 0 2px 3px rgba(255,255,255,.25)}
+  .die.num{display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:800; color:#2b1b4d}
+  .die.num.big{font-size:1.7rem}
+  .die.max{outline:4px solid var(--accent); }
+  .die.min{outline:4px solid #ff6b81; }
+  @keyframes tumble{
+    0%{transform:translateY(-70px) rotate(0) scale(.6); opacity:0}
+    50%{transform:translateY(8px) rotate(380deg) scale(1.08); opacity:1}
+    75%{transform:translateY(-10px) rotate(660deg)}
+    100%{transform:translateY(0) rotate(720deg) scale(1)}
+  }
+  .die.rolling{animation:tumble .7s cubic-bezier(.3,.7,.4,1)}
+  .die.shake{animation:wob .09s linear infinite}
+  @keyframes wob{0%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}100%{transform:rotate(-6deg)}}
+
+  .result{display:flex; gap:26px; justify-content:center; flex-wrap:wrap; text-align:center; margin-top:8px}
+  .result div b{display:block; font-size:2.4rem; color:var(--accent)}
+  .result div span{font-size:.78rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted)}
+  .empty{color:var(--muted); font-size:1.05rem}
+
+  .hist h2{font-size:1rem; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center}
+  .hist button{background:none; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:4px 10px; cursor:pointer}
+  .hist ol{list-style:none; max-height:190px; overflow:auto}
+  .hist li{padding:7px 4px; border-bottom:1px solid rgba(255,255,255,.1); display:flex; justify-content:space-between; gap:10px; font-size:.95rem}
+  .hist li small{color:var(--muted)}
+  .hist li strong{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🎲 <span>Würfel</span>-App</h1>
+  <p class="sub">Anzahl wählen, würfeln, spielen.</p>
+
+  <div class="panel">
+    <div class="row">
+      <div>
+        <label class="t">Anzahl Würfel</label>
+        <div class="counter">
+          <button id="minus" aria-label="weniger">−</button>
+          <div class="n" id="count">2</div>
+          <button id="plus" aria-label="mehr">+</button>
+        </div>
+        <div class="quick" id="quick"></div>
+      </div>
+      <div>
+        <label class="t">Würfelart</label>
+        <div class="types" id="types"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="stage" id="stage"><p class="empty">Drück auf „Würfeln“ – oder auf die Leertaste.</p></div>
+    <div class="result" id="result" style="display:none">
+      <div><b id="sum">0</b><span>Summe</span></div>
+      <div><b id="hi">0</b><span>Höchster</span></div>
+      <div><b id="lo">0</b><span>Niedrigster</span></div>
+    </div>
+  </div>
+
+  <button id="roll">WÜRFELN</button>
+  <p class="hint">Tipp: Leertaste würfelt. Klick auf einen einzelnen Würfel würfelt nur diesen neu.</p>
+
+  <div class="panel hist" style="margin-top:22px">
+    <h2>Verlauf <button id="clear">leeren</button></h2>
+    <ol id="hist"></ol>
+  </div>
+</div>
+
+<script>
+(function(){
+  var MAX = 12;
+  var count = 2, sides = 6, values = [], busy = false, history = [];
+  var TYPES = [4,6,8,10,12,20,100];
+
+  var $ = function(id){return document.getElementById(id)};
+  var stage=$('stage'), countEl=$('count');
+
+  // faire Zufallszahl 1..n (ohne Modulo-Verzerrung)
+  function rnd(n){
+    var a = new Uint32Array(1), lim = Math.floor(4294967296 / n) * n, x;
+    do { crypto.getRandomValues(a); x = a[0]; } while (x >= lim);
+    return (x % n) + 1;
+  }
+
+  var PIPS = {
+    1:[5], 2:[1,9], 3:[1,5,9], 4:[1,3,7,9], 5:[1,3,5,7,9], 6:[1,3,4,6,7,9]
+  };
+
+  function dieEl(v){
+    var d = document.createElement('div');
+    if (sides === 6){
+      d.className = 'die';
+      PIPS[v].forEach(function(p){
+        var s = document.createElement('div');
+        s.className = 'pip'; s.style.gridArea = Math.ceil(p/3) + ' / ' + (((p-1)%3)+1);
+        d.appendChild(s);
+      });
+    } else {
+      d.className = 'die num' + (v > 99 ? ' big' : '');
+      d.textContent = v;
+    }
+    return d;
+  }
+
+  function render(animate){
+    stage.innerHTML = '';
+    values.forEach(function(v,i){
+      var d = dieEl(v);
+      if (animate) { d.classList.add('rolling'); d.style.animationDelay = (i*60)+'ms'; }
+      d.title = 'Klicken = diesen Würfel neu würfeln';
+      d.style.cursor = 'pointer';
+      d.addEventListener('click', function(){ rerollOne(i); });
+      d.dataset.i = i;
+      stage.appendChild(d);
+    });
+    var sum = values.reduce(function(a,b){return a+b},0);
+    var hi = Math.max.apply(null, values), lo = Math.min.apply(null, values);
+    $('sum').textContent = sum; $('hi').textContent = hi; $('lo').textContent = lo;
+    $('result').style.display = '';
+    if (values.length > 1 && hi !== lo){
+      Array.prototype.forEach.call(stage.children, function(el,i){
+        if (values[i]===hi) el.classList.add('max');
+        if (values[i]===lo) el.classList.add('min');
+      });
+    }
+  }
+
+  function addHistory(){
+    var sum = values.reduce(function(a,b){return a+b},0);
+    history.unshift({n:values.length, s:sides, v:values.slice(), sum:sum});
+    if (history.length > 30) history.pop();
+    drawHistory();
+  }
+  function drawHistory(){
+    var ol = $('hist'); ol.innerHTML = '';
+    if (!history.length){ ol.innerHTML = '<li><small>Noch nichts gewürfelt.</small></li>'; return; }
+    history.forEach(function(h){
+      var li = document.createElement('li');
+      li.innerHTML = '<span><small>' + h.n + '× W' + h.s + ':</small> ' + h.v.join(' · ') + '</span><strong>Σ ' + h.sum + '</strong>';
+      ol.appendChild(li);
+    });
+  }
+
+  function roll(){
+    if (busy) return; busy = true;
+    // kurzes Schütteln mit wechselnden Zahlen
+    var ticks = 0;
+    var timer = setInterval(function(){
+      values = []; for (var i=0;i<count;i++) values.push(rnd(sides));
+      render(false);
+      Array.prototype.forEach.call(stage.children, function(el){ el.classList.add('shake'); });
+      if (++ticks >= 7){
+        clearInterval(timer);
+        values = []; for (var j=0;j<count;j++) values.push(rnd(sides));
+        render(true); addHistory();
+        setTimeout(function(){ busy = false; }, 500);
+      }
+    }, 70);
+  }
+
+  function rerollOne(i){
+    if (busy) return;
+    values[i] = rnd(sides);
+    render(false);
+    var el = stage.children[i]; if (el){ el.classList.add('rolling'); }
+    addHistory();
+  }
+
+  function setCount(n){
+    count = Math.max(1, Math.min(MAX, n));
+    countEl.textContent = count;
+    Array.prototype.forEach.call($('quick').children, function(b){
+      b.classList.toggle('on', +b.textContent === count);
+    });
+  }
+
+  // Schnellwahl-Knöpfe 1..12
+  for (var q=1;q<=MAX;q++){
+    (function(n){
+      var b = document.createElement('button'); b.textContent = n;
+      b.addEventListener('click', function(){ setCount(n); });
+      $('quick').appendChild(b);
+    })(q);
+  }
+  TYPES.forEach(function(t){
+    var b = document.createElement('button'); b.textContent = 'W' + t;
+    if (t === sides) b.classList.add('on');
+    b.addEventListener('click', function(){
+      sides = t; values = [];
+      Array.prototype.forEach.call($('types').children, function(x){ x.classList.toggle('on', x===b); });
+      stage.innerHTML = '<p class="empty">W' + t + ' gewählt – drück auf „Würfeln“.</p>';
+      $('result').style.display = 'none';
+    });
+    $('types').appendChild(b);
+  });
+
+  $('minus').onclick = function(){ setCount(count-1); };
+  $('plus').onclick  = function(){ setCount(count+1); };
+  $('roll').onclick  = roll;
+  $('clear').onclick = function(){ history = []; drawHistory(); };
+  document.addEventListener('keydown', function(e){
+    if (e.code === 'Space'){ e.preventDefault(); roll(); }
+    else if (e.key === '+' || e.key === 'ArrowUp') setCount(count+1);
+    else if (e.key === '-' || e.key === 'ArrowDown') setCount(count-1);
+  });
+
+  setCount(2); drawHistory();
+})();
+</script>
+</body>
+</html>
