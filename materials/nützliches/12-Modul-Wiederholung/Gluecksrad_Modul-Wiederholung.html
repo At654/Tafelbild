@@ -159,6 +159,10 @@ function fanfare(){ if(ST.mute) return; const a=ac(); const t=a.currentTime+.02;
   [523.25,659.25,783.99,1046.5].forEach(f=>{ tone(f,t+.52,1.1,"triangle",.16); tone(f/2,t+.52,1.1,"sawtooth",.05); });
 }
 
+function buzz(){ if(ST.mute) return; const a=ac(); const t=a.currentTime+.02; const lp=a.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=900; lp.connect(master);
+  const g=a.createGain(); g.connect(lp); env(g,t,.03,.22,.5);
+  [185,196.5].forEach(f=>{ const o=a.createOscillator(); o.type="sawtooth"; o.frequency.setValueAtTime(f,t); o.frequency.linearRampToValueAtTime(f*.9,t+.55); o.connect(g); o.start(t); o.stop(t+.6); }); }
+
 /* ---------- Rad ---------- */
 const cv=$("#wheel"), ctx=cv.getContext("2d"); let R=300, CX=0, CY=0, rot=0, spinning=false, segs=[], secret=null;
 function active(){ const s=new Set(P().sel); return MODS.filter(m=>s.has(key(m))); }
@@ -306,7 +310,7 @@ function startGame(k){ const m=byKey[k], d=m.daten, B=$("#gbody");
   else if(m.typ==="rf"){ const lab=d.labels||["richtig","falsch"]; gOpen(m,`Aufstehen = ${lab[0]} · sitzen bleiben = ${lab[1]}`); const its=shuf(d.aussagen); let i=0;
     const r=()=>{ const it=its[i]; B.innerHTML=`<div class="big">${esc(it[0])}${trs(m,it[0])}</div><div id="sl"></div><div class="small" style="text-align:center">Aussage ${i+1} von ${its.length}</div>
       <div class="btns" style="justify-content:center"><button class="btn b3" id="go">Auflösen</button><button class="btn b1" id="nx">Weiter ▶</button></div>`;
-      $("#go").onclick=()=>{ $("#sl").innerHTML=`<div class="sol" style="background:${it[1]?"#d9f2e2":"#ffe0e0"}"><b>${it[1]?"✔ "+lab[0].toUpperCase():"✘ "+lab[1].toUpperCase()}</b>${it[2]?"<br>"+esc(it[2])+trs(m,it[2]):""}</div>`; if(it[1]) fanfare(); };
+      $("#go").onclick=()=>{ $("#sl").innerHTML=`<div class="sol" style="background:${it[1]?"#d9f2e2":"#ffe0e0"}"><b>${it[1]?"✔ "+lab[0].toUpperCase():"✘ "+lab[1].toUpperCase()}</b>${it[2]?"<br>"+esc(it[2])+trs(m,it[2]):""}</div>`; if(it[1]) fanfare(); else buzz(); };
       $("#nx").onclick=()=>{ i=(i+1)%its.length; r(); }; }; r(); }
   else if(m.typ==="activity"){ gOpen(m,"Activity: Pantomime – Zeichnen – Erklären"); const MODE={P:["🎭","Pantomime"],Z:["✏️","Zeichnen"],E:["💬","Erklären"]}; const its=shuf(d.karten); let i=0, sc=[0,0], team=0;
     const r=()=>{ const it=its[i]; const md=MODE[it[1]]; if(gTimer){clearInterval(gTimer);gTimer=null;}
@@ -333,7 +337,7 @@ function startGame(k){ const m=byKey[k], d=m.daten, B=$("#gbody");
     const r=()=>{ const rr=R[ri]; gOpen(m,"Reihenfolge: "+rr.titel); let next=0; const st=shuf(rr.schritte.map((s,i)=>[s,i]));
       B.innerHTML=`<div class="small" style="text-align:center;margin-bottom:8px">Tippt die Schritte in der richtigen Reihenfolge an.</div><div class="seq">${st.map(([s,i])=>`<button class="seqb" data-i="${i}">${esc(s)}${trs(m,s)}</button>`).join("")}</div>
       <div class="btns" style="justify-content:center">${R.length>1?`<button class="btn b1" id="nr">Nächste Reihe ▶</button>`:""}<button class="btn b2" id="nw">Neu mischen</button></div>`;
-      document.querySelectorAll(".seqb").forEach(b=>b.onclick=()=>{ if(b.classList.contains("ok")) return; if(+b.dataset.i===next){ b.classList.add("ok"); b.innerHTML=`<b>${next+1}.</b> `+b.innerHTML; b.style.order=next-100; next++; tick(); if(next===rr.schritte.length) { fanfare(); confetti(); } } else { b.classList.remove("no"); void b.offsetWidth; b.classList.add("no"); } });
+      document.querySelectorAll(".seqb").forEach(b=>b.onclick=()=>{ if(b.classList.contains("ok")) return; if(+b.dataset.i===next){ b.classList.add("ok"); b.innerHTML=`<b>${next+1}.</b> `+b.innerHTML; b.style.order=next-100; next++; tick(); if(next===rr.schritte.length) { fanfare(); confetti(); } } else { b.classList.remove("no"); void b.offsetWidth; b.classList.add("no"); buzz(); } });
       if(R.length>1) $("#nr").onclick=()=>{ ri=(ri+1)%R.length; r(); }; $("#nw").onclick=r; }; r(); }
   else { // Tafel-Memory
     const pr=pairsOf(m).slice(0,9); gOpen(m,"Tafel-Memory: Paare finden"); let cards=shuf(pr.flatMap((p,i)=>[[p[0],i,0],[p[1],i,1]])); let open=[], sc=[0,0], team=0, lock=false;
@@ -343,7 +347,7 @@ function startGame(k){ const m=byKey[k], d=m.daten, B=$("#gbody");
     document.querySelectorAll(".mc").forEach(el=>el.onclick=()=>{ const i=+el.dataset.i, c=cards[i]; if(lock||el.classList.contains("open")||el.classList.contains("done")) return;
       el.classList.add("open"); el.innerHTML=esc(c[0])+trs(m,c[0]); open.push([el,c]); tick();
       if(open.length===2){ lock=true; const [a,b]=open; if(a[1][1]===b[1][1]){ setTimeout(()=>{ a[0].classList.add("done"); b[0].classList.add("done"); sc[team]++; upd(); open=[]; lock=false; fanfare(); if(document.querySelectorAll(".mc.done").length===cards.length) confetti(); },500); }
-        else setTimeout(()=>{ [a,b].forEach(x=>{ x[0].classList.remove("open"); x[0].textContent=+x[0].dataset.i+1; }); open=[]; lock=false; team=1-team; upd(); },1700); } }); }
+        else { buzz(); setTimeout(()=>{ [a,b].forEach(x=>{ x[0].classList.remove("open"); x[0].textContent=+x[0].dataset.i+1; }); open=[]; lock=false; team=1-team; upd(); },1700); } } }); }
 }
 
 /* ---------- Start ---------- */
