@@ -181,7 +181,7 @@ function draw(){ segs=active(); const n=segs.length; ctx.clearRect(0,0,2*R,2*R);
     const mid=s+a/2, flip=Math.cos(mid)<0; ctx.save(); ctx.rotate(flip?mid+Math.PI:mid); ctx.textAlign=flip?"left":"right"; ctx.textBaseline="middle"; ctx.fillStyle="#fff"; const X=flip?-(rr-12):rr-12;
     const fs=Math.max(9, Math.min(R*.075, a*rr*.55)); ctx.font=`800 ${fs}px sans-serif`;
     let label = `${m.kurz} ${m.lab}`;
-    if(n<=18){ const t=m.titel.length>20?m.titel.slice(0,19)+"…":m.titel; ctx.fillText(label, X, -fs*.45); ctx.font=`600 ${fs*.72}px sans-serif`; ctx.fillText(t, X, fs*.5); }
+    if(ST.names!==false){ const lim=n<=18?20:14; const t=m.titel.length>lim?m.titel.slice(0,lim-1)+"…":m.titel; const f2=n<=18?fs:Math.min(fs,a*rr*.42); ctx.font=`800 ${f2}px sans-serif`; ctx.fillText(label, X, -f2*.45); ctx.font=`600 ${f2*.72}px sans-serif`; ctx.fillText(t, X, f2*.5); }
     else ctx.fillText(label, X, 0);
     ctx.restore(); });
   // Ring mit Lämpchen
@@ -263,6 +263,7 @@ function openSet(){ const p=P(); const sel=new Set(p.sel);
   <label class="small" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="rare" ${p.rare?"checked":""}> oft gezogene Module seltener ziehen</label>
   <button class="mini" id="hReset">Zähler zurücksetzen</button></div>`;
   h+=`<div class="lfbox"><h3>⏱ Wartezeit bis das Material erscheint</h3><label class="small" style="display:flex;gap:8px;align-items:center"><input type="number" id="resDelay" min="0" max="30" step="0.5" value="${resDelay()}" style="width:70px;font-size:16px"> Sekunden nach dem Einrasten (0 = sofort)</label></div>`;
+  h+=`<div class="lfbox"><h3>🏷 Beschriftung auf dem Rad</h3><label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="names" ${ST.names!==false?"checked":""}> Modulname auf den Feldern anzeigen (z. B. „LF 1 M 5 Preisbildung auf dem Markt“)</label></div>`;
   h+=`<div class="lfbox"><h3>🌍 Sprachen dieser Klasse</h3><div class="mods">${LANG.slice(1).map(([l,n])=>`<label><input type="checkbox" data-lang="${l}" ${(p.langs||[]).includes(l)?"checked":""}> ${n}</label>`).join("")}</div></div>`;
   for(const A of DATA.areas){ const lf=A.id; const ms=MODS.filter(m=>m.area===lf);
     h+=`<div class="lfbox"><h3><span class="dot" style="background:${A.col}"></span>${esc(A.ordner)}
@@ -283,6 +284,7 @@ function openSet(){ const p=P(); const sel=new Set(p.sel);
   document.querySelectorAll("#setBody input[data-lang]").forEach(i=>i.onchange=()=>{ p.langs=[...document.querySelectorAll("#setBody input[data-lang]")].filter(x=>x.checked).map(x=>x.dataset.lang); save(); });
   $("#resDelay").onchange=e=>{ let v=parseFloat(String(e.target.value).replace(",",".")); if(!(v>=0)) v=2; ST.delay=Math.min(30,v); e.target.value=ST.delay; save(); };
   $("#rare").onchange=e=>{ p.rare=e.target.checked; save(); };
+  $("#names").onchange=e=>{ ST.names=e.target.checked; save(); draw(); };
   $("#hReset").onclick=()=>{ if(confirm("Zähler für diese Klasse zurücksetzen?")){ p.hist={}; p.last=null; save(); openSet(); } };
   $("#secretSel").onchange=e=>{ secret=e.target.value||null; draw(); };
   $("#pNew").onclick=()=>{ const n=prompt("Name der Klasse (z. B. VK 26a):"); if(!n||ST.profile[n]) return; ST.profile[n]={sel:[...p.sel],hist:{},rare:true,last:null,langs:[...(p.langs||[])]}; ST.cur=n; save(); fillProfiles(); openSet(); draw(); };
