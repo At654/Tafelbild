@@ -126,7 +126,7 @@ WARENPRAESENTATION
 REGAL"></textarea>
 
   <label>Titel über dem Rätsel (optional)</label>
-  <input type="text" id="title" placeholder="z. B. Buchstabensalat">
+  <input type="text" id="title" placeholder="wird beim Hochladen eines Arbeitsblatts automatisch eingetragen">
 
   <label>Lernfeld</label>
   <input type="text" id="lernfeld" placeholder="Lernfeld 4">
@@ -176,7 +176,7 @@ const PALETTE=["#fde2e2","#e2f0fd","#e8f9e2","#fdf3d0","#f2e2fd","#d9f7f2","#fde
 const ALPHABET="ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ";
 
 function toggleMode(){
-  setTimeout(()=>{ if(typeof updatePrompt==='function') updatePrompt(); },0);
+  setTimeout(()=>{ if(typeof updatePrompt==='function'){ updatePrompt(); refreshTitle(); } },0);
   const m=document.getElementById('mode').value;
   document.getElementById('wordsearch-options').style.display = m==='wordsearch'?'block':'none';
   document.getElementById('crossword-options').style.display = m==='crossword'?'block':'none';
@@ -583,12 +583,46 @@ function findCandidates(text){
   return top;
 }
 
-function prefillHeader(text){
+let AUTO={};   // zuletzt automatisch eingetragene Werte (werden bei neuem Upload ersetzt, manuelle Änderungen bleiben)
+let TOPIC='';
+function setAuto(id,v){
+  const el=document.getElementById(id);
+  if(!el) return;
+  if(!el.value.trim()||el.value===AUTO[id]){ el.value=v||''; AUTO[id]=v||''; }
+}
+function puzzleTitle(){ return (document.getElementById('mode').value==='crossword'?'Kreuzworträtsel':'Buchstabensalat')+(TOPIC?': '+TOPIC:''); }
+function refreshTitle(){ if(TOPIC) setAuto('title',puzzleTitle()); }
+
+function prefillHeader(text,fileName){
   const t=text.replace(/\s+/g,' ');
-  const set=(id,v)=>{const el=document.getElementById(id); if(el&&!el.value.trim()&&v) el.value=v;};
-  const lf=t.match(/Lernfeld\s*(\d+)/i); if(lf) set('lernfeld','Lernfeld '+lf[1]);
-  const lt=t.match(/Lernfeld\s*\d+\s+([A-ZÄÖÜ][^:]{3,50}?)\s+(?:Name|Datum|Modul)/); if(lt) set('lftitel',lt[1].trim());
-  const mo=t.match(/Modul\s*(\d+)\s*[–-]\s*([^.]{3,70}?)\s+(?:Modul\s*\d+:|DS\s|Das kann)/); if(mo) set('modul','Modul '+mo[1]+' – '+mo[2].trim());
+  const fn=(fileName||'').match(/LF\s*_?(\d+)[_\s-]*M(?:odul)?[_\s-]*(\d+)/i);
+  // Lernfeld-Nummer und -Titel
+  let lfNr=(t.match(/Lernfeld\s*(\d+)/i)||[])[1]||(fn&&fn[1]);
+  let lfTitel=(t.match(/Lernfeld\s*\d+\s+([A-ZÄÖÜ][^:|]{3,60}?)\s+(?:Name|Datum|Modul)/)||[])[1];
+  // Modul: "Modul 1 – Titel" aus dem Kopf, sonst Überschrift "Modul 1: Titel"
+  let mNr, mTitel;
+  let mo=t.match(/Modul\s*(\d+)\s*[–-]\s*([^.|]{3,80}?)\s+(?=Modul\s*\d+\s*:|DS\s|Das kann|Aufgabe|Schreibe|Name|Datum)/);
+  if(mo){ mNr=mo[1]; mTitel=mo[2].trim(); }
+  const hd=t.match(/Modul\s*(\d+)\s*:\s*([^.|]{3,80}?)\s+(?=DS\s|Das kann|Aufgabe|Schreibe|Lehrbuch|\d+ Punkte)/);
+  if(hd){ if(!mNr) mNr=hd[1]; if(!mTitel) mTitel=hd[2].trim(); }
+  if(!mNr&&fn) mNr=fn[2];
+  TOPIC=((hd&&hd[2].trim())||mTitel||'').replace(/\s+\d+\s+(Doppelstunden|DS|Punkte).*$/,'').replace(/\s*·.*$/,'').trim();
+  let mNrText='';
+  let lfField=lfNr?'Lernfeld '+lfNr:'', lfTxt=lfTitel?lfTitel.trim():'';
+  if(!lfNr){ // kein Lernfeld: Fach erkennen (WiSo, WPF, Englisch)
+    if(/Wirtschafts\s*-?\s*und\s*Sozialkunde/i.test(t)||/^WiSo/i.test(fileName||'')){ lfField='Wirtschafts- und Sozialkunde'; lfTxt=(t.match(/(\d\.\s*Ausbildungsjahr)/)||[])[1]||''; }
+    else if(/Wahlpflicht/i.test(t)){ lfField='Wahlpflicht'; lfTxt=((t.match(/Wahlpflicht\s+(?:Name:?\s*)?(?:Datum:?\s*)?([A-ZÄÖÜ][^:|]{3,60}?)\s+(?:Datum|Name|Modul)/)||[])[1]||'').trim(); }
+    else if(/Englisch|English/.test(t.slice(0,300))||/^Englisch/i.test(fileName||'')){
+      lfField='Englisch';
+      const en=t.match(/(English for Retail Sales)\s+([^:|]{3,70}?)\s+Arbeitsblatt\s*[–-]\s*(Termin\s*\d+)/);
+      if(en){ lfTxt=en[1].trim(); TOPIC=en[2].trim(); if(!mNr) mNrText=en[3]; }
+    }
+  }
+  setAuto('lernfeld',lfField);
+  setAuto('lftitel',lfTxt);
+  setAuto('modul',mNr?'Modul '+mNr+(mTitel?' – '+mTitel:''):mNrText);
+  refreshTitle();
+  return {lfNr,lfTitel,mNr,mTitel};
 }
 
 async function handleFile(file){
@@ -599,10 +633,10 @@ async function handleFile(file){
   try{
     SRC_TEXT=(await extractText(file)).trim();
     if(SRC_TEXT.length<30) throw new Error('Kein Text gefunden (gescanntes PDF?). Nutze den Prompt unten und hänge das Arbeitsblatt in Claude an.');
-    prefillHeader(SRC_TEXT);
+    const ph=prefillHeader(SRC_TEXT,file.name);
     CANDS=findCandidates(SRC_TEXT);
     renderCands();
-    st.textContent='✔ '+file.name+': '+CANDS.length+' Begriffe vorgeschlagen. Häkchen setzen und übernehmen.';
+    st.textContent='✔ '+file.name+': '+CANDS.length+' Begriffe vorgeschlagen. Titel, Lernfeld und Modul wurden '+((ph.lfNr||ph.mNr)?'aus dem Material eingetragen (bitte prüfen/anpassen)':'nicht gefunden (bitte selbst eintragen)')+'. Häkchen setzen und übernehmen.';
   }catch(e){
     st.innerHTML='<span class="warn">'+esc(e.message)+' – Nutze alternativ den Prompt unten.</span>';
   }
