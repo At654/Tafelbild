@@ -31,25 +31,32 @@
   table.grid td{width:28px;height:28px;border:1px solid #9ca3af;text-align:center;vertical-align:middle;font-weight:700;font-size:.95rem;position:relative;}
   table.grid td.black{background:#111827;border-color:#111827;}
   table.grid td .num{position:absolute;top:1px;left:2px;font-size:.5rem;font-weight:400;}
-  .kla-kopf{display:flex;border:1.5px solid #111827;margin-bottom:16px;font-size:.82rem;}
-  .kla-kopf .kopf-col{padding:8px 10px;border-right:1.5px solid #111827;}
-  .kla-kopf .kopf-col:last-child{border-right:none;}
-  .kopf-name{flex:1;line-height:1.9;}
-  .kopf-title{flex:2;display:flex;flex-direction:column;justify-content:center;text-align:center;}
-  .kopf-title .lf{font-weight:700;}
-  .kopf-title .mod{font-weight:600;margin-top:2px;}
-  .kopf-logo{flex:0 0 110px;display:flex;align-items:center;justify-content:center;}
-  .logo-circle{width:88px;height:88px;border-radius:50%;border:2px solid #0f6e5e;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:.6rem;color:#0f6e5e;font-weight:700;line-height:1.15;}
-  .logo-circle .big{font-size:1.1rem;letter-spacing:.05em;}
-  .wordlist{columns:2;font-size:.9rem;}
+  .kla-kopf{display:flex;border:1px solid #111827;margin-bottom:16px;font-family:Arial,sans-serif;color:#111827;}
+.kla-kopf .kopf-name{flex:0 0 26%;padding:10px 12px;border-right:1px solid #111827;font-size:.85rem;line-height:2.1;}
+.kla-kopf .kopf-title{flex:1;padding:10px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;}
+.kopf-title .lf{font-weight:700;font-size:1rem;}
+.kopf-title .lftxt{font-size:.85rem;padding-bottom:6px;margin-bottom:6px;}
+.kopf-title .mod{font-weight:700;font-size:.95rem;}
+.kopf-title .lftxt.line{border-bottom:1px solid #111827;}
+.kla-kopf .kopf-logo{flex:0 0 120px;display:flex;align-items:center;justify-content:center;padding:4px;}
+.kla-kopf .kopf-logo img{width:100px;height:auto;}
+.upload-box{border:2px dashed var(--accent);background:var(--accent-soft);border-radius:8px;padding:12px 14px;margin:12px 0;}
+.upload-box h3{margin:0 0 6px;font-size:.95rem;}
+.cand{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0;}
+.cand label{margin:0;font-weight:500;display:flex;align-items:center;gap:5px;font-size:.88rem;}
+details.prompt{margin-top:12px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;}
+details.prompt summary{cursor:pointer;font-weight:600;font-size:.9rem;}
+details.prompt textarea{min-height:200px;font-size:.8rem;margin-top:8px;}
+.wordlist{columns:2;font-size:.9rem;}
   .wordlist span{display:block;margin-bottom:4px;}
-  .clues{display:flex;gap:24px;flex-wrap:wrap;font-size:.88rem;}
+  .clues{margin-top:14px;display:flex;gap:24px;flex-wrap:wrap;font-size:.88rem;}
   .clues div{flex:1;min-width:220px;}
   .clues h3{font-size:.95rem;margin:0 0 6px;}
   .clues ol{margin:0;padding-left:20px;}
   .warn{color:#b45309;font-size:.85rem;margin-top:8px;}
   .no-print{}
   @media print{
+    .kla-kopf img{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     body{background:#fff;padding:0;}
     .no-print{display:none !important;}
     .sheet{border:none;border-radius:0;page-break-after:always;padding:0;}
@@ -85,6 +92,25 @@
     <p class="hint">Je Zeile: <code>BEGRIFF;Hinweistext</code> – z. B. <code>RABATT;Preisnachlass beim Verkauf</code></p>
   </div>
 
+  <div class="upload-box">
+    <h3>📄 Arbeitsblatt hochladen – Begriffe automatisch suchen</h3>
+    <input type="file" id="fileIn" accept=".pdf,.docx,.txt,.html,.htm" onchange="handleFile(this.files[0])">
+    <p class="hint">PDF, Word (.docx), HTML oder Text. Die Datei bleibt auf deinem Gerät, nichts wird hochgeladen. Die App schlägt Fachbegriffe vor (Wortspeicher, häufige Nomen) – du wählst aus. Beim Kreuzworträtsel entstehen Hinweise als Lückensätze aus dem Arbeitsblatt – bitte im Feld „Begriffe“ kurz prüfen und bei Bedarf umschreiben.</p>
+    <div id="fileStatus" class="hint"></div>
+    <div id="candBox" style="display:none">
+      <div class="cand" id="candList"></div>
+      <button type="button" class="secondary" style="margin-top:4px" onclick="applyCands()">Gewählte Begriffe übernehmen</button>
+      <button type="button" class="secondary" style="margin-top:4px" onclick="toggleCands(true)">Alle</button>
+      <button type="button" class="secondary" style="margin-top:4px" onclick="toggleCands(false)">Keine</button>
+    </div>
+    <details class="prompt">
+      <summary>Klappt nicht oder du willst bessere Begriffe? Prompt für Claude kopieren</summary>
+      <p class="hint">Kopiere den Prompt, füge ihn in Claude ein (Arbeitsblatt dazu anhängen oder Text unten einfügen lassen) und kopiere die Antwort ins Feld „Begriffe“.</p>
+      <textarea id="promptBox" readonly></textarea>
+      <button type="button" class="secondary" onclick="copyPrompt()">Prompt kopieren</button> <span id="copyMsg" class="hint"></span>
+    </details>
+  </div>
+
   <label>Begriffe</label>
   <textarea id="wordsInput" placeholder="LADENBAU
 KUNDENBERATUNG
@@ -94,15 +120,15 @@ REGAL"></textarea>
   <label>Titel über dem Rätsel (optional)</label>
   <input type="text" id="title" placeholder="z. B. Buchstabensalat">
 
-  <div class="row">
-    <label>Lernfeld</label>
-  </div>
-  <input type="text" id="lernfeld" placeholder="Lernfeld 4 – Waren präsentieren">
+  <label>Lernfeld</label>
+  <input type="text" id="lernfeld" placeholder="Lernfeld 4">
+  <label>Lernfeld-Titel</label>
+  <input type="text" id="lftitel" placeholder="Waren präsentieren">
   <label>Modul</label>
   <input type="text" id="modul" placeholder="Modul 1 – Verkaufsraum und Visual Merchandising">
 
   <div class="row" style="margin-top:12px">
-    <label><input type="checkbox" id="showHeader" checked> KLA-Kopf anzeigen (Name/Klasse/Datum, Lernfeld/Modul, Logo)</label>
+    <label><input type="checkbox" id="showHeader" checked> Arbeitsblatt-Kopf anzeigen (Name/Datum, Lernfeld/Modul, KLA-Logo)</label>
     <label><input type="checkbox" id="showWordbank" checked> Wortspeicher zur Vereinfachung anzeigen</label>
   </div>
   <p class="hint">Wortspeicher an = Begriffe stehen zum Lesen auf dem Arbeitsblatt (Vereinfachung). Wortspeicher aus = Schüler müssen die Begriffe selbst finden/ableiten (Profi-Niveau).</p>
@@ -117,6 +143,7 @@ const PALETTE=["#fde2e2","#e2f0fd","#e8f9e2","#fdf3d0","#f2e2fd","#d9f7f2","#fde
 const ALPHABET="ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ";
 
 function toggleMode(){
+  setTimeout(()=>{ if(typeof updatePrompt==='function') updatePrompt(); },0);
   const m=document.getElementById('mode').value;
   document.getElementById('wordsearch-options').style.display = m==='wordsearch'?'block':'none';
   document.getElementById('crossword-options').style.display = m==='crossword'?'block':'none';
@@ -149,6 +176,7 @@ function generate(){
   const showWordbank=document.getElementById('showWordbank').checked;
   const lernfeld=document.getElementById('lernfeld').value.trim();
   const modul=document.getElementById('modul').value.trim();
+  const lftitel=document.getElementById('lftitel').value.trim();
 
   if(mode==='wordsearch'){
     const size=parseInt(document.getElementById('gridSize').value,10);
@@ -157,7 +185,7 @@ function generate(){
     const words=raw.map(w=>({display:w,grid:normalize(w)})).filter(w=>w.grid.length>0 && w.grid.length<=size);
     const skipped=raw.length-words.length;
     const {grid,placed,failed}=buildWordSearch(words,size,allowBack,allowDiag);
-    renderWordSearch(out,title,showHeader,showWordbank,lernfeld,modul,grid,placed,failed,skipped,size);
+    renderWordSearch(out,title,showHeader,showWordbank,lernfeld,lftitel,modul,grid,placed,failed,skipped,size);
   } else {
     const entries=raw.map(l=>{
       const parts=l.split(';');
@@ -168,15 +196,17 @@ function generate(){
       return;
     }
     const placements=buildCrossword(entries);
-    renderCrossword(out,title,showHeader,showWordbank,lernfeld,modul,placements);
+    renderCrossword(out,title,showHeader,showWordbank,lernfeld,lftitel,modul,placements);
   }
 }
 
-function buildKlaKopf(lernfeld,modul){
+const KLA_LOGO="data:image/jpeg;base64,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";
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function buildKlaKopf(lernfeld,lftitel,modul){
   return `<div class="kla-kopf">
-    <div class="kopf-col kopf-name">Name: ________________<br>Klasse: _______<br>Datum: _______</div>
-    <div class="kopf-col kopf-title">${lernfeld?`<div class="lf">${lernfeld}</div>`:''}${modul?`<div class="mod">${modul}</div>`:''}</div>
-    <div class="kopf-col kopf-logo"><div class="logo-circle"><span class="big">KLA</span><span>Verkäuferinnen<br>und Verkäufer</span></div></div>
+    <div class="kopf-name">Name:<br>Datum:</div>
+    <div class="kopf-title">${lernfeld?`<div class="lf">${esc(lernfeld)}</div>`:''}${lftitel?`<div class="lftxt line">${esc(lftitel)}</div>`:''}${modul?`<div class="mod">${esc(modul)}</div>`:''}</div>
+    <div class="kopf-logo"><img src="${KLA_LOGO}" alt="KLA Verkäuferinnen und Verkäufer"></div>
   </div>`;
 }
 
@@ -219,7 +249,7 @@ function buildWordSearch(words,size,allowBack,allowDiag){
   return {grid,placed,failed};
 }
 
-function renderWordSearch(out,title,showHeader,showWordbank,lernfeld,modul,grid,placed,failed,skipped,size){
+function renderWordSearch(out,title,showHeader,showWordbank,lernfeld,lftitel,modul,grid,placed,failed,skipped,size){
   const colorFor=(r,c)=>{
     for(let i=0;i<placed.length;i++) if(placed[i].cells.some(([pr,pc])=>pr===r&&pc===c)) return PALETTE[i%PALETTE.length];
     return null;
@@ -235,7 +265,7 @@ function renderWordSearch(out,title,showHeader,showWordbank,lernfeld,modul,grid,
     }
     return html+'</table>';
   };
-  const header=showHeader?buildKlaKopf(lernfeld,modul):'';
+  const header=showHeader?buildKlaKopf(lernfeld,lftitel,modul):'';
   const wordList='<div class="wordlist">'+placed.map(w=>`<span>${w.display}</span>`).join('')+'</div>';
   const wordblock = showWordbank
     ? `<p><strong>Wortspeicher – diese Begriffe sind versteckt:</strong></p>${wordList}`
@@ -260,65 +290,69 @@ function renderWordSearch(out,title,showHeader,showWordbank,lernfeld,modul,grid,
 
 /* ---------- Kreuzworträtsel ---------- */
 function buildCrossword(entries){
-  const sorted=[...entries].sort((a,b)=>b.word.length-a.word.length);
-  const placements=[{...sorted[0],row:0,col:0,dir:'H'}];
-  const occ={};
-  const mark=(p)=>{ for(let i=0;i<p.word.length;i++){ const r=p.dir==='H'?p.row:p.row+i; const c=p.dir==='H'?p.col+i:p.col; occ[r+','+c]=p.word[i]; } };
-  mark(placements[0]);
-
-  for(let i=1;i<sorted.length;i++){
-    const w=sorted[i];
-    let best=null;
-    for(const p of placements){
-      for(let pi=0;pi<p.word.length;pi++){
-        for(let wi=0;wi<w.word.length;wi++){
-          if(p.word[wi===wi?pi:pi]!==undefined && p.word[pi]===w.word[wi]){
-            const dir = p.dir==='H' ? 'V' : 'H';
-            const row = dir==='H' ? (p.dir==='H'? p.row : p.row+pi) - wi*0 : 0;
-            let candRow, candCol;
-            if(p.dir==='H'){ candRow = p.row - wi; candCol = p.col+pi; }
-            else { candRow = p.row+pi; candCol = p.col - wi; }
-            const cand={word:w.word,clue:w.clue,row:candRow,col:candCol,dir};
-            if(fitsGrid(cand,occ)) { best=cand; break; }
-          }
-        }
-        if(best) break;
-      }
-      if(best) break;
-    }
-    if(best){ placements.push(best); mark(best); }
-    else {
-      let minRow=0,maxRow=0;
-      placements.forEach(p=>{ const r2=p.dir==='H'?p.row:p.row+p.word.length-1; minRow=Math.min(minRow,p.row); maxRow=Math.max(maxRow,r2); });
-      const cand={word:w.word,clue:w.clue,row:maxRow+2,col:0,dir:'H'};
-      placements.push(cand); mark(cand);
-    }
+  // Mehrere Versuche mit zufälliger Reihenfolge; bestes Ergebnis = meiste Wörter, dann kleinste Fläche, dann meiste Kreuzungen
+  let best=null;
+  for(let t=0;t<150;t++){
+    const order=[...entries].sort((a,b)=>b.word.length-a.word.length+(Math.random()-.5)*(t?6:0));
+    const res=tryCrossword(order);
+    const sc=res.placed.length*10000-res.area*10+res.cross;
+    if(!best||sc>best.sc) best={sc,res};
   }
-  let minRow=0,minCol=0;
+  const placements=best.res.placed;
+  let minRow=Infinity,minCol=Infinity;
   placements.forEach(p=>{ minRow=Math.min(minRow,p.row); minCol=Math.min(minCol,p.col); });
   placements.forEach(p=>{ p.row-=minRow; p.col-=minCol; });
-
-  const positions=placements.map(p=>({row:p.row,col:p.col}));
   const uniq=[];
-  positions.forEach(pos=>{ if(!uniq.some(u=>u.row===pos.row&&u.col===pos.col)) uniq.push(pos); });
+  placements.forEach(p=>{ if(!uniq.some(u=>u.row===p.row&&u.col===p.col)) uniq.push({row:p.row,col:p.col}); });
   uniq.sort((a,b)=>a.row-b.row||a.col-b.col);
-  const numMap={};
-  uniq.forEach((pos,i)=> numMap[pos.row+','+pos.col]=i+1);
+  const numMap={}; uniq.forEach((pos,i)=> numMap[pos.row+','+pos.col]=i+1);
   placements.forEach(p=> p.number=numMap[p.row+','+p.col]);
+  placements.failed=best.res.failed;
   return placements;
 }
 
-function fitsGrid(cand,occ){
-  for(let i=0;i<cand.word.length;i++){
-    const r=cand.dir==='H'?cand.row:cand.row+i;
-    const c=cand.dir==='H'?cand.col+i:cand.col;
-    const existing=occ[r+','+c];
-    if(existing!==undefined && existing!==cand.word[i]) return false;
+function tryCrossword(order){
+  const occ={}; const placed=[]; const failed=[];
+  const get=(r,c)=>occ[r+','+c];
+  const cellsOf=(w,row,col,dir)=>Array.from({length:w.length},(_,i)=>dir==='H'?[row,col+i]:[row+i,col]);
+  function check(word,row,col,dir){
+    const cs=cellsOf(word,row,col,dir); let cross=0;
+    const dr=dir==='H'?0:1, dc=dir==='H'?1:0;
+    if(get(row-dr,col-dc)!==undefined || get(row+dr*word.length,col+dc*word.length)!==undefined) return -1;
+    for(let i=0;i<cs.length;i++){
+      const [r,c]=cs[i]; const ex=get(r,c);
+      if(ex!==undefined){ if(ex!==word[i]) return -1; cross++; }
+      else{ // keine Nachbarn seitlich (sonst entstehen ungewollte Buchstabenpaare)
+        if(get(r+dc,c+dr)!==undefined || get(r-dc,c-dr)!==undefined) return -1;
+      }
+    }
+    return cross;
   }
-  return true;
+  const put=(e,row,col,dir)=>{ const p={word:e.word,clue:e.clue,row,col,dir}; cellsOf(e.word,row,col,dir).forEach(([r,c],i)=>occ[r+','+c]=e.word[i]); placed.push(p); };
+  put(order[0],0,0,'H');
+  for(let k=1;k<order.length;k++){
+    const e=order[k]; let cands=[];
+    for(const p of placed){
+      const dir=p.dir==='H'?'V':'H';
+      for(let pi=0;pi<p.word.length;pi++) for(let wi=0;wi<e.word.length;wi++){
+        if(p.word[pi]!==e.word[wi]) continue;
+        const row=p.dir==='H'?p.row-wi:p.row+pi, col=p.dir==='H'?p.col+pi:p.col-wi;
+        const cr=check(e.word,row,col,dir);
+        if(cr>=1) cands.push({row,col,dir,cr});
+      }
+    }
+    if(!cands.length){ failed.push(e); continue; }
+    cands.sort((a,b)=>b.cr-a.cr+(Math.random()-.5)*1.5);
+    const c=cands[0]; put(e,c.row,c.col,c.dir);
+  }
+  let r0=Infinity,r1=-Infinity,c0=Infinity,c1=-Infinity,cross=0;
+  placed.forEach(p=>{ const r2=p.dir==='H'?p.row:p.row+p.word.length-1, c2=p.dir==='H'?p.col+p.word.length-1:p.col;
+    r0=Math.min(r0,p.row);c0=Math.min(c0,p.col);r1=Math.max(r1,r2);c1=Math.max(c1,c2); });
+  const total=placed.reduce((s,p)=>s+p.word.length,0); cross=total-Object.keys(occ).length;
+  return {placed,failed,area:(r1-r0+1)*(c1-c0+1),cross};
 }
 
-function renderCrossword(out,title,showHeader,showWordbank,lernfeld,modul,placements){
+function renderCrossword(out,title,showHeader,showWordbank,lernfeld,lftitel,modul,placements){
   let maxRow=0,maxCol=0;
   placements.forEach(p=>{
     const r2=p.dir==='H'?p.row:p.row+p.word.length-1;
@@ -349,11 +383,12 @@ function renderCrossword(out,title,showHeader,showWordbank,lernfeld,modul,placem
   };
   const across=placements.filter(p=>p.dir==='H').sort((a,b)=>a.number-b.number);
   const down=placements.filter(p=>p.dir==='V').sort((a,b)=>a.number-b.number);
-  const header=showHeader?buildKlaKopf(lernfeld,modul):'';
+  const header=showHeader?buildKlaKopf(lernfeld,lftitel,modul):'';
   const clueHtml=`<div class="clues">
     <div><h3>Waagerecht</h3><ol>${across.map(p=>`<li value="${p.number}">${p.clue}</li>`).join('')}</ol></div>
     <div><h3>Senkrecht</h3><ol>${down.map(p=>`<li value="${p.number}">${p.clue}</li>`).join('')}</ol></div>
   </div>`;
+  const failedHtml = (placements.failed&&placements.failed.length)?`<p class="warn no-print">${placements.failed.length} Begriff(e) konnten nicht eingebaut werden (${placements.failed.map(f=>f.word).join(', ')}). Erzeuge das Rätsel noch einmal oder nimm weniger/kürzere Begriffe.</p>`:'';
   const wordbankHtml = showWordbank
     ? `<p><strong>Wortspeicher zur Vereinfachung:</strong></p><div class="wordlist">${placements.map(p=>`<span>${p.word}</span>`).join('')}</div>`
     : '';
@@ -368,6 +403,7 @@ function renderCrossword(out,title,showHeader,showWordbank,lernfeld,modul,placem
       ${buildTable(false)}
       ${wordbankHtml}
       ${clueHtml}
+      ${failedHtml}
     </div>
     <div class="sheet">
       <h2>${title||'Kreuzworträtsel'} – Lösung</h2>
@@ -375,7 +411,148 @@ function renderCrossword(out,title,showHeader,showWordbank,lernfeld,modul,placem
     </div>`;
 }
 
+
+/* ---------- Arbeitsblatt hochladen & Begriffe finden ---------- */
+let SRC_TEXT='';   // extrahierter Text des Arbeitsblatts
+let CANDS=[];      // {word, count, clue}
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('Bibliothek nicht ladbar (offline?): '+src));document.head.appendChild(s);});}
+
+async function extractText(file){
+  const name=file.name.toLowerCase();
+  if(name.endsWith('.txt')) return await file.text();
+  if(name.endsWith('.html')||name.endsWith('.htm')){
+    const doc=new DOMParser().parseFromString(await file.text(),'text/html');
+    doc.querySelectorAll('script,style').forEach(e=>e.remove());
+    return doc.body?doc.body.innerText||doc.body.textContent:'';
+  }
+  if(name.endsWith('.pdf')){
+    if(!window.pdfjsLib){
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+    let out='';
+    for(let i=1;i<=pdf.numPages;i++){
+      const tc=await (await pdf.getPage(i)).getTextContent();
+      let line='';
+      tc.items.forEach(it=>{line+=it.str; if(it.hasEOL) line+='\n'; else line+=' ';});
+      out+=line+'\n';
+    }
+    return out;
+  }
+  if(name.endsWith('.docx')){
+    if(!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    const zip=await JSZip.loadAsync(await file.arrayBuffer());
+    const xml=await zip.file('word/document.xml').async('string');
+    return xml.replace(/<\/w:p>/g,'\n').replace(/<w:tab\/>/g,' ').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'");
+  }
+  throw new Error('Dateityp nicht unterstützt.');
+}
+
+const STOP=new Set(('Aufgabe Aufgaben Nenne Nennen Erkläre Erkläre Beschreibe Begründe Ordne Kreuze Trage Lies Schreibe Warum Wie Was Wer Wo Wann Welche Welcher Welches Welchen Name Datum Modul Lernfeld Seite Seiten Punkte Punkt Lehrbuch Arbeitsheft Beispiel Beispiele Antwort Antworten Lösung Lösungen Hinweis Tipp Text Zeile Frage Fragen Heft Blatt Arbeitsblatt Wortspeicher Verkäufer Verkäuferin Kunde Kunden Kundin Mitarbeiter Mitarbeiterin Unternehmen Menschen Leute Geschäft Geschäfte Ware Waren Gründe Grund Möglichkeiten Merkmale Merkmal Vorteile Vorteil Nachteile Nachteil Schüler Lehrer Zeit Jahr Jahre Euro Prozent Stück Gruppe Partner Klasse Thema Themen Ziel Ziele Ergebnis Ergebnisse Aussage Aussagen Satz Sätze Wort Wörter Begriff Begriffe Tabelle Spalte Bild Bilder Abbildung Material Info Informationen Drei Dazu Buch Logo Element Elemente Gebäude Shop Kaffee Wenn Dann Dass Aber Oder Und Auch Nach Von Für Mit Bei Der Die Das Ein Eine Einen Einem Einer Eines Sie Wir Ihr Man Dies Diese Dieser Dieses Diesen Alle Jede Jeder Jedes Kann Können Soll Sollen Muss Müssen Darf Dürfen Wird Werden Sind Ist War Waren Hat Haben').split(/\s+/));
+
+function splitSentences(t){
+  return t.replace(/\s+/g,' ').split(/(?<=[.!?:])\s+(?=[A-ZÄÖÜ„"(])/).map(s=>s.trim()).filter(s=>s.length>15);
+}
+
+function findCandidates(text){
+  const sentences=splitSentences(text);
+  const counts={}, canon={};
+  // 1) Wörter aus einem vorhandenen Wortspeicher haben Vorrang
+  const prio=new Set();
+  const ws=text.match(/Wortspeicher[^\n]*\n?([\s\S]{0,400})/i);
+  if(ws){ (ws[1].split(/Aufgabe|\n\s*\n|Lernfeld|Modul \d/)[0].match(/[A-ZÄÖÜ][a-zäöüß]{3,}(?:-[A-ZÄÖÜa-zäöüß]+)*/g)||[]).forEach(w=>{ if(!STOP.has(w)) prio.add(w); }); }
+  // 2) großgeschriebene Wörter (Nomen) – am Satzanfang nur, wenn sie sonst auch mitten im Satz vorkommen
+  const mid={}, start={};
+  sentences.forEach(s=>{
+    const words=s.match(/[A-ZÄÖÜa-zäöüß]+(?:-[A-ZÄÖÜa-zäöüß]+)*/g)||[];
+    words.forEach((w,i)=>{
+      if(!/^[A-ZÄÖÜ]/.test(w)||w.length<5||STOP.has(w)) return;
+      (i===0?start:mid)[w]=(i===0?start:mid)[w]||0;
+      (i===0?start:mid)[w]++;
+    });
+  });
+  const all=new Set([...Object.keys(mid),...prio]);
+  all.forEach(w=>{ counts[w]=(mid[w]||0)+(start[w]||0); });
+  const list=Object.keys(counts).map(w=>({word:w,count:counts[w],prio:prio.has(w)}));
+  // Score: Wortspeicher > Häufigkeit > Länge
+  list.sort((a,b)=>(b.prio-a.prio)||(b.count-a.count)||(b.word.length-a.word.length));
+  const top=list.slice(0,30);
+  const flat=text.replace(/[☐☑•·□]/g,'|').replace(/\s+/g,' ');
+  top.forEach(c=>{
+    const re=new RegExp('(^|[^A-Za-zÄÖÜäöüß])'+c.word+'(?![A-Za-zÄÖÜäöüß])','g');
+    let m, bestClue='', bestScore=-1;
+    while((m=re.exec(flat))){
+      const at=m.index+m[1].length;
+      const before=flat.slice(Math.max(0,at-90),at).split(/[|.!?:]/).pop().trim().split(' ').filter(Boolean).slice(-7).join(' ');
+      const after=flat.slice(at+c.word.length,at+c.word.length+90).split(/[|.!?:]/)[0].trim().split(' ').filter(Boolean).slice(0,7).join(' ');
+      const clue=(before+' _____ '+after).replace(/\s+/g,' ').trim();
+      const ws=clue.split(' ');
+      let score=ws.filter(w=>/^[a-zäöüß]{3,}/.test(w)).length;   // kleingeschriebene Wörter = echter Satz
+      if(/\d\s*\/\s*\d|\bName\b|\bDS\b|Modul|Lernfeld|Wortspeicher|Seite|S\.\s*\d/.test(clue)) score-=10;
+      if(ws.length<4) score-=5;
+      if(score>bestScore){ bestScore=score; bestClue=clue; }
+    }
+    c.clue = bestScore>=3 ? bestClue : `Fachbegriff mit ${c.word.length} Buchstaben, beginnt mit ${c.word[0].toUpperCase()} (Hinweis ergänzen)`;
+  });
+  return top;
+}
+
+function prefillHeader(text){
+  const t=text.replace(/\s+/g,' ');
+  const set=(id,v)=>{const el=document.getElementById(id); if(el&&!el.value.trim()&&v) el.value=v;};
+  const lf=t.match(/Lernfeld\s*(\d+)/i); if(lf) set('lernfeld','Lernfeld '+lf[1]);
+  const lt=t.match(/Lernfeld\s*\d+\s+([A-ZÄÖÜ][^:]{3,50}?)\s+(?:Name|Datum|Modul)/); if(lt) set('lftitel',lt[1].trim());
+  const mo=t.match(/Modul\s*(\d+)\s*[–-]\s*([^.]{3,70}?)\s+(?:Modul\s*\d+:|DS\s|Das kann)/); if(mo) set('modul','Modul '+mo[1]+' – '+mo[2].trim());
+}
+
+async function handleFile(file){
+  if(!file) return;
+  const st=document.getElementById('fileStatus');
+  st.textContent='Lese '+file.name+' …';
+  document.getElementById('candBox').style.display='none';
+  try{
+    SRC_TEXT=(await extractText(file)).trim();
+    if(SRC_TEXT.length<30) throw new Error('Kein Text gefunden (gescanntes PDF?). Nutze den Prompt unten und hänge das Arbeitsblatt in Claude an.');
+    prefillHeader(SRC_TEXT);
+    CANDS=findCandidates(SRC_TEXT);
+    renderCands();
+    st.textContent='✔ '+file.name+': '+CANDS.length+' Begriffe vorgeschlagen. Häkchen setzen und übernehmen.';
+  }catch(e){
+    st.innerHTML='<span class="warn">'+esc(e.message)+' – Nutze alternativ den Prompt unten.</span>';
+  }
+  updatePrompt();
+}
+
+function renderCands(){
+  const box=document.getElementById('candBox');
+  document.getElementById('candList').innerHTML=CANDS.map((c,i)=>`<label><input type="checkbox" data-i="${i}" ${i<15?'checked':''}> ${esc(c.word)}${c.prio?' ★':''}</label>`).join('');
+  box.style.display=CANDS.length?'block':'none';
+}
+function toggleCands(v){document.querySelectorAll('#candList input').forEach(cb=>cb.checked=v);}
+function applyCands(){
+  const sel=[...document.querySelectorAll('#candList input:checked')].map(cb=>CANDS[+cb.dataset.i]);
+  const mode=document.getElementById('mode').value;
+  document.getElementById('wordsInput').value=sel.map(c=>mode==='crossword'?c.word.toUpperCase()+';'+(c.clue||'Hinweis ergänzen'):c.word.toUpperCase()).join('\n');
+}
+
+function updatePrompt(){
+  const mode=document.getElementById('mode').value;
+  const fmt = mode==='crossword'
+    ? 'Gib mir 12–15 Fachbegriffe, jeweils eine Zeile im Format BEGRIFF;Hinweistext (Hinweis = kurze Erklärung in einfachem Deutsch, ohne den Begriff selbst zu nennen). Keine Umlaute ersetzen, kein Nummerieren.'
+    : 'Gib mir 12–15 Fachbegriffe, einen Begriff pro Zeile, einzelne Wörter (keine Sätze, keine Nummerierung), maximal 15 Buchstaben.';
+  const base='Du hilfst einer Berufsschullehrerin (Verkäufer/-innen, Einzelhandel). Ich lade ein Arbeitsblatt hoch. Suche daraus die wichtigsten Fachbegriffe für ein '+(mode==='crossword'?'Kreuzworträtsel':'Buchstabensalat')+'. Die Klasse ist eher leistungsschwach, viele Schüler lernen Deutsch als Zweitsprache: bevorzuge zentrale, gut verständliche Nomen aus dem Arbeitsblatt. '+fmt+' Gib NUR die Liste zurück, damit ich sie direkt in den Rätsel-Generator kopieren kann.';
+  document.getElementById('promptBox').value = base + (SRC_TEXT?'\n\nText des Arbeitsblatts:\n'+SRC_TEXT.slice(0,6000):'\n\n[Arbeitsblatt hier anhängen oder den Text einfügen]');
+}
+function copyPrompt(){
+  const ta=document.getElementById('promptBox'); ta.select();
+  const done=()=>{document.getElementById('copyMsg').textContent='✔ Kopiert';};
+  if(navigator.clipboard) navigator.clipboard.writeText(ta.value).then(done,()=>{document.execCommand('copy');done();});
+  else {document.execCommand('copy');done();}
+}
+
 syncSizeLabel();
+updatePrompt();
 </script>
 </body>
 </html>
