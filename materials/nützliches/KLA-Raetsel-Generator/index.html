@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rätsel-Generator – Buchstabensalat & Kreuzworträtsel</title>
+<style>
+  :root{
+    --ink:#1f2937; --paper:#ffffff; --accent:#0f6e5e; --accent-soft:#e6f3f0;
+    --line:#d7dce0; --bg:#f5f6f8;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:24px;}
+  h1{font-size:1.3rem;margin:0 0 4px;}
+  .sub{color:#6b7280;margin:0 0 18px;font-size:.9rem;}
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px 20px;max-width:900px;margin:0 auto 20px;}
+  label{display:block;font-weight:600;font-size:.85rem;margin:12px 0 4px;}
+  select, textarea, input[type=text]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:.95rem;font-family:inherit;}
+  textarea{min-height:170px;resize:vertical;}
+  .row{display:flex;gap:18px;flex-wrap:wrap;align-items:center;}
+  .row label{margin:0;display:flex;align-items:center;gap:6px;font-weight:500;}
+  .hint{font-size:.8rem;color:#6b7280;margin:4px 0 0;}
+  button{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:10px 18px;font-size:.95rem;font-weight:600;cursor:pointer;margin-top:14px;margin-right:8px;}
+  button.secondary{background:#fff;color:var(--accent);border:1px solid var(--accent);}
+  button:hover{filter:brightness(1.08);}
+  #output{max-width:900px;margin:0 auto;}
+  .sheet{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:24px;margin-bottom:24px;}
+  .sheet h2{margin-top:0;}
+  .sheet-head{display:flex;justify-content:space-between;font-size:.85rem;color:#374151;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:8px;}
+  table.grid{border-collapse:collapse;margin:0 auto 18px;}
+  table.grid td{width:28px;height:28px;border:1px solid #9ca3af;text-align:center;vertical-align:middle;font-weight:700;font-size:.95rem;position:relative;}
+  table.grid td.black{background:#111827;border-color:#111827;}
+  table.grid td .num{position:absolute;top:1px;left:2px;font-size:.5rem;font-weight:400;}
+  .kla-kopf{display:flex;border:1.5px solid #111827;margin-bottom:16px;font-size:.82rem;}
+  .kla-kopf .kopf-col{padding:8px 10px;border-right:1.5px solid #111827;}
+  .kla-kopf .kopf-col:last-child{border-right:none;}
+  .kopf-name{flex:1;line-height:1.9;}
+  .kopf-title{flex:2;display:flex;flex-direction:column;justify-content:center;text-align:center;}
+  .kopf-title .lf{font-weight:700;}
+  .kopf-title .mod{font-weight:600;margin-top:2px;}
+  .kopf-logo{flex:0 0 110px;display:flex;align-items:center;justify-content:center;}
+  .logo-circle{width:88px;height:88px;border-radius:50%;border:2px solid #0f6e5e;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:.6rem;color:#0f6e5e;font-weight:700;line-height:1.15;}
+  .logo-circle .big{font-size:1.1rem;letter-spacing:.05em;}
+  .wordlist{columns:2;font-size:.9rem;}
+  .wordlist span{display:block;margin-bottom:4px;}
+  .clues{display:flex;gap:24px;flex-wrap:wrap;font-size:.88rem;}
+  .clues div{flex:1;min-width:220px;}
+  .clues h3{font-size:.95rem;margin:0 0 6px;}
+  .clues ol{margin:0;padding-left:20px;}
+  .warn{color:#b45309;font-size:.85rem;margin-top:8px;}
+  .no-print{}
+  @media print{
+    body{background:#fff;padding:0;}
+    .no-print{display:none !important;}
+    .sheet{border:none;border-radius:0;page-break-after:always;padding:0;}
+    table.grid td{width:24px;height:24px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="panel no-print">
+  <h1>Rätsel-Generator</h1>
+  <p class="sub">Buchstabensalat oder Kreuzworträtsel aus einem Begriffsmodul – druckfertig.</p>
+
+  <label>Modus</label>
+  <select id="mode" onchange="toggleMode()">
+    <option value="wordsearch">Buchstabensalat</option>
+    <option value="crossword">Kreuzworträtsel</option>
+  </select>
+
+  <div id="wordsearch-options">
+    <div class="row">
+      <label style="margin:0">Rastergröße: <span id="gridSizeLabel">15</span>×<span id="gridSizeLabel2">15</span></label>
+      <input type="range" id="gridSize" min="8" max="25" value="15" oninput="syncSizeLabel()" style="width:200px">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label><input type="checkbox" id="allowBackwards" checked> Rückwärts erlauben</label>
+      <label><input type="checkbox" id="allowDiagonal" checked> Diagonal erlauben</label>
+    </div>
+    <p class="hint">Ein Begriff pro Zeile.</p>
+  </div>
+
+  <div id="crossword-options" style="display:none">
+    <p class="hint">Je Zeile: <code>BEGRIFF;Hinweistext</code> – z. B. <code>RABATT;Preisnachlass beim Verkauf</code></p>
+  </div>
+
+  <label>Begriffe</label>
+  <textarea id="wordsInput" placeholder="LADENBAU
+KUNDENBERATUNG
+WARENPRAESENTATION
+REGAL"></textarea>
+
+  <label>Titel über dem Rätsel (optional)</label>
+  <input type="text" id="title" placeholder="z. B. Buchstabensalat">
+
+  <div class="row">
+    <label>Lernfeld</label>
+  </div>
+  <input type="text" id="lernfeld" placeholder="Lernfeld 4 – Waren präsentieren">
+  <label>Modul</label>
+  <input type="text" id="modul" placeholder="Modul 1 – Verkaufsraum und Visual Merchandising">
+
+  <div class="row" style="margin-top:12px">
+    <label><input type="checkbox" id="showHeader" checked> KLA-Kopf anzeigen (Name/Klasse/Datum, Lernfeld/Modul, Logo)</label>
+    <label><input type="checkbox" id="showWordbank" checked> Wortspeicher zur Vereinfachung anzeigen</label>
+  </div>
+  <p class="hint">Wortspeicher an = Begriffe stehen zum Lesen auf dem Arbeitsblatt (Vereinfachung). Wortspeicher aus = Schüler müssen die Begriffe selbst finden/ableiten (Profi-Niveau).</p>
+
+  <button onclick="generate()">Rätsel erzeugen</button>
+</div>
+
+<div id="output"></div>
+
+<script>
+const PALETTE=["#fde2e2","#e2f0fd","#e8f9e2","#fdf3d0","#f2e2fd","#d9f7f2","#fde2f0","#e2eefd"];
+const ALPHABET="ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ";
+
+function toggleMode(){
+  const m=document.getElementById('mode').value;
+  document.getElementById('wordsearch-options').style.display = m==='wordsearch'?'block':'none';
+  document.getElementById('crossword-options').style.display = m==='crossword'?'block':'none';
+}
+function syncSizeLabel(){
+  const v=document.getElementById('gridSize').value;
+  document.getElementById('gridSizeLabel').textContent=v;
+  document.getElementById('gridSizeLabel2').textContent=v;
+}
+
+function normalize(s){
+  return s.toUpperCase().replace(/ß/gi,'SS').replace(/[^A-ZÄÖÜ]/g,'');
+}
+
+function printPart(id){
+  document.body.classList.add('printing-'+id);
+  window.print();
+  document.body.classList.remove('printing-'+id);
+}
+
+function generate(){
+  const mode=document.getElementById('mode').value;
+  const title=document.getElementById('title').value.trim();
+  const showHeader=document.getElementById('showHeader').checked;
+  const raw=document.getElementById('wordsInput').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const out=document.getElementById('output');
+  out.innerHTML='';
+  if(raw.length===0){ out.innerHTML='<p class="warn">Bitte Begriffe eingeben.</p>'; return; }
+
+  const showWordbank=document.getElementById('showWordbank').checked;
+  const lernfeld=document.getElementById('lernfeld').value.trim();
+  const modul=document.getElementById('modul').value.trim();
+
+  if(mode==='wordsearch'){
+    const size=parseInt(document.getElementById('gridSize').value,10);
+    const allowBack=document.getElementById('allowBackwards').checked;
+    const allowDiag=document.getElementById('allowDiagonal').checked;
+    const words=raw.map(w=>({display:w,grid:normalize(w)})).filter(w=>w.grid.length>0 && w.grid.length<=size);
+    const skipped=raw.length-words.length;
+    const {grid,placed,failed}=buildWordSearch(words,size,allowBack,allowDiag);
+    renderWordSearch(out,title,showHeader,showWordbank,lernfeld,modul,grid,placed,failed,skipped,size);
+  } else {
+    const entries=raw.map(l=>{
+      const parts=l.split(';');
+      return {word:normalize(parts[0]||''),clue:(parts[1]||'').trim()};
+    }).filter(e=>e.word.length>1);
+    if(entries.some(e=>!e.clue)) {
+      out.innerHTML='<p class="warn">Für jeden Begriff bitte einen Hinweis nach einem Semikolon angeben (BEGRIFF;Hinweis).</p>';
+      return;
+    }
+    const placements=buildCrossword(entries);
+    renderCrossword(out,title,showHeader,showWordbank,lernfeld,modul,placements);
+  }
+}
+
+function buildKlaKopf(lernfeld,modul){
+  return `<div class="kla-kopf">
+    <div class="kopf-col kopf-name">Name: ________________<br>Klasse: _______<br>Datum: _______</div>
+    <div class="kopf-col kopf-title">${lernfeld?`<div class="lf">${lernfeld}</div>`:''}${modul?`<div class="mod">${modul}</div>`:''}</div>
+    <div class="kopf-col kopf-logo"><div class="logo-circle"><span class="big">KLA</span><span>Verkäuferinnen<br>und Verkäufer</span></div></div>
+  </div>`;
+}
+
+/* ---------- Buchstabensalat ---------- */
+function buildWordSearch(words,size,allowBack,allowDiag){
+  let grid=Array.from({length:size},()=>Array(size).fill(null));
+  let dirs=[[1,0],[0,1]];
+  if(allowDiag) dirs.push([1,1],[-1,1]);
+  if(allowBack){ dirs.push([-1,0],[0,-1]); if(allowDiag) dirs.push([-1,-1],[1,-1]); }
+
+  const sorted=[...words].sort((a,b)=>b.grid.length-a.grid.length);
+  const placed=[]; const failed=[];
+  for(const w of sorted){
+    let ok=false;
+    for(let t=0;t<400 && !ok;t++){
+      const [dx,dy]=dirs[Math.floor(Math.random()*dirs.length)];
+      const len=w.grid.length;
+      const maxRow = dy>=0 ? size-((dy)*(len-1)) : size- (-(dy)*(len-1));
+      const row0 = dy>=0 ? Math.floor(Math.random()*(size-(dy*(len-1)))) : Math.floor(Math.random()*(size-(-dy*(len-1))))- (dy*(len-1))*0;
+      let row = Math.floor(Math.random()*size);
+      let col = Math.floor(Math.random()*size);
+      const cells=[];
+      let fits=true;
+      for(let i=0;i<len;i++){
+        const r=row+dy*i, c=col+dx*i;
+        if(r<0||r>=size||c<0||c>=size){fits=false;break;}
+        const existing=grid[r][c];
+        if(existing!==null && existing!==w.grid[i]){fits=false;break;}
+        cells.push([r,c]);
+      }
+      if(fits){
+        cells.forEach(([r,c],i)=> grid[r][c]=w.grid[i]);
+        placed.push({...w,cells});
+        ok=true;
+      }
+    }
+    if(!ok) failed.push(w);
+  }
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++) if(grid[r][c]===null) grid[r][c]=ALPHABET[Math.floor(Math.random()*ALPHABET.length)];
+  return {grid,placed,failed};
+}
+
+function renderWordSearch(out,title,showHeader,showWordbank,lernfeld,modul,grid,placed,failed,skipped,size){
+  const colorFor=(r,c)=>{
+    for(let i=0;i<placed.length;i++) if(placed[i].cells.some(([pr,pc])=>pr===r&&pc===c)) return PALETTE[i%PALETTE.length];
+    return null;
+  };
+  const buildTable=(solution)=>{
+    let html='<table class="grid">';
+    for(let r=0;r<size;r++){ html+='<tr>';
+      for(let c=0;c<size;c++){
+        const col=solution?colorFor(r,c):null;
+        html+=`<td style="${col?`background:${col}`:''}">${grid[r][c]}</td>`;
+      }
+      html+='</tr>';
+    }
+    return html+'</table>';
+  };
+  const header=showHeader?buildKlaKopf(lernfeld,modul):'';
+  const wordList='<div class="wordlist">'+placed.map(w=>`<span>${w.display}</span>`).join('')+'</div>';
+  const wordblock = showWordbank
+    ? `<p><strong>Wortspeicher – diese Begriffe sind versteckt:</strong></p>${wordList}`
+    : `<p class="hint">Finde die versteckten Fachbegriffe zum Thema selbst (ohne Wortspeicher).</p>`;
+  const warn = (failed.length||skipped) ? `<p class="warn">${failed.length? failed.length+' Begriff(e) konnten nicht platziert werden ('+failed.map(f=>f.display).join(', ')+'). ':''}${skipped? skipped+' Begriff(e) übersprungen (länger als Rastergröße).':''}</p>` : '';
+
+  out.innerHTML = `
+    <div class="no-print" style="text-align:center">
+      <button onclick="printPart('puzzle')">Rätsel drucken</button>
+      <button class="secondary" onclick="printPart('solution')">Lösung drucken</button>
+    </div>
+    <div class="sheet" id="puzzle-sheet">
+      <h2>${title||'Buchstabensalat'}</h2>${header}
+      ${buildTable(false)}
+      ${wordblock}${warn}
+    </div>
+    <div class="sheet" id="solution-sheet">
+      <h2>${title||'Buchstabensalat'} – Lösung</h2>
+      ${buildTable(true)}
+    </div>`;
+}
+
+/* ---------- Kreuzworträtsel ---------- */
+function buildCrossword(entries){
+  const sorted=[...entries].sort((a,b)=>b.word.length-a.word.length);
+  const placements=[{...sorted[0],row:0,col:0,dir:'H'}];
+  const occ={};
+  const mark=(p)=>{ for(let i=0;i<p.word.length;i++){ const r=p.dir==='H'?p.row:p.row+i; const c=p.dir==='H'?p.col+i:p.col; occ[r+','+c]=p.word[i]; } };
+  mark(placements[0]);
+
+  for(let i=1;i<sorted.length;i++){
+    const w=sorted[i];
+    let best=null;
+    for(const p of placements){
+      for(let pi=0;pi<p.word.length;pi++){
+        for(let wi=0;wi<w.word.length;wi++){
+          if(p.word[wi===wi?pi:pi]!==undefined && p.word[pi]===w.word[wi]){
+            const dir = p.dir==='H' ? 'V' : 'H';
+            const row = dir==='H' ? (p.dir==='H'? p.row : p.row+pi) - wi*0 : 0;
+            let candRow, candCol;
+            if(p.dir==='H'){ candRow = p.row - wi; candCol = p.col+pi; }
+            else { candRow = p.row+pi; candCol = p.col - wi; }
+            const cand={word:w.word,clue:w.clue,row:candRow,col:candCol,dir};
+            if(fitsGrid(cand,occ)) { best=cand; break; }
+          }
+        }
+        if(best) break;
+      }
+      if(best) break;
+    }
+    if(best){ placements.push(best); mark(best); }
+    else {
+      let minRow=0,maxRow=0;
+      placements.forEach(p=>{ const r2=p.dir==='H'?p.row:p.row+p.word.length-1; minRow=Math.min(minRow,p.row); maxRow=Math.max(maxRow,r2); });
+      const cand={word:w.word,clue:w.clue,row:maxRow+2,col:0,dir:'H'};
+      placements.push(cand); mark(cand);
+    }
+  }
+  let minRow=0,minCol=0;
+  placements.forEach(p=>{ minRow=Math.min(minRow,p.row); minCol=Math.min(minCol,p.col); });
+  placements.forEach(p=>{ p.row-=minRow; p.col-=minCol; });
+
+  const positions=placements.map(p=>({row:p.row,col:p.col}));
+  const uniq=[];
+  positions.forEach(pos=>{ if(!uniq.some(u=>u.row===pos.row&&u.col===pos.col)) uniq.push(pos); });
+  uniq.sort((a,b)=>a.row-b.row||a.col-b.col);
+  const numMap={};
+  uniq.forEach((pos,i)=> numMap[pos.row+','+pos.col]=i+1);
+  placements.forEach(p=> p.number=numMap[p.row+','+p.col]);
+  return placements;
+}
+
+function fitsGrid(cand,occ){
+  for(let i=0;i<cand.word.length;i++){
+    const r=cand.dir==='H'?cand.row:cand.row+i;
+    const c=cand.dir==='H'?cand.col+i:cand.col;
+    const existing=occ[r+','+c];
+    if(existing!==undefined && existing!==cand.word[i]) return false;
+  }
+  return true;
+}
+
+function renderCrossword(out,title,showHeader,showWordbank,lernfeld,modul,placements){
+  let maxRow=0,maxCol=0;
+  placements.forEach(p=>{
+    const r2=p.dir==='H'?p.row:p.row+p.word.length-1;
+    const c2=p.dir==='H'?p.col+p.word.length-1:p.col;
+    maxRow=Math.max(maxRow,r2); maxCol=Math.max(maxCol,c2);
+  });
+  const grid=Array.from({length:maxRow+1},()=>Array(maxCol+1).fill(null));
+  const numAt={};
+  placements.forEach(p=>{
+    numAt[p.row+','+p.col]=p.number;
+    for(let i=0;i<p.word.length;i++){
+      const r=p.dir==='H'?p.row:p.row+i, c=p.dir==='H'?p.col+i:p.col;
+      grid[r][c]=p.word[i];
+    }
+  });
+  const buildTable=(solution)=>{
+    let html='<table class="grid">';
+    for(let r=0;r<grid.length;r++){ html+='<tr>';
+      for(let c=0;c<grid[0].length;c++){
+        const letter=grid[r][c];
+        if(letter===null){ html+='<td class="black"></td>'; continue; }
+        const num=numAt[r+','+c];
+        html+=`<td>${num?`<span class="num">${num}</span>`:''}${solution?letter:''}</td>`;
+      }
+      html+='</tr>';
+    }
+    return html+'</table>';
+  };
+  const across=placements.filter(p=>p.dir==='H').sort((a,b)=>a.number-b.number);
+  const down=placements.filter(p=>p.dir==='V').sort((a,b)=>a.number-b.number);
+  const header=showHeader?buildKlaKopf(lernfeld,modul):'';
+  const clueHtml=`<div class="clues">
+    <div><h3>Waagerecht</h3><ol>${across.map(p=>`<li value="${p.number}">${p.clue}</li>`).join('')}</ol></div>
+    <div><h3>Senkrecht</h3><ol>${down.map(p=>`<li value="${p.number}">${p.clue}</li>`).join('')}</ol></div>
+  </div>`;
+  const wordbankHtml = showWordbank
+    ? `<p><strong>Wortspeicher zur Vereinfachung:</strong></p><div class="wordlist">${placements.map(p=>`<span>${p.word}</span>`).join('')}</div>`
+    : '';
+
+  out.innerHTML = `
+    <div class="no-print" style="text-align:center">
+      <button onclick="printPart('puzzle')">Rätsel drucken</button>
+      <button class="secondary" onclick="printPart('solution')">Lösung drucken</button>
+    </div>
+    <div class="sheet">
+      <h2>${title||'Kreuzworträtsel'}</h2>${header}
+      ${buildTable(false)}
+      ${wordbankHtml}
+      ${clueHtml}
+    </div>
+    <div class="sheet">
+      <h2>${title||'Kreuzworträtsel'} – Lösung</h2>
+      ${buildTable(true)}
+    </div>`;
+}
+
+syncSizeLabel();
+</script>
+</body>
+</html>
