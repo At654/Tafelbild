@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Händler-Spiel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f1ea; --panel:#ffffff; --ink:#1c1b19; --muted:#6b6660;
+  --line:#dcd6c8; --accent:#1f6f54; --accent-ink:#ffffff;
+  --warn:#b5451b; --good:#1f6f54; --bad:#a3291f;
+  --gold:#a9792c; --silver:#6b6660; --bronze:#8a4a2a;
+  --card:#faf8f2; --shadow:0 2px 10px rgba(30,28,22,.08);
+  font-size:18px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#15140f; --panel:#201f19; --ink:#f1efe6; --muted:#a39d8f;
+    --line:#3a382e; --accent:#4cb892; --accent-ink:#0c1512;
+    --warn:#e2814f; --good:#4cb892; --bad:#e2685c;
+    --gold:#d9ae5a; --silver:#a39d8f; --bronze:#c08358;
+    --card:#1b1a14; --shadow:0 2px 14px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Atkinson Hyperlegible',sans-serif}
+h1,h2,h3,.ui{font-family:'Archivo',sans-serif}
+button{font-family:'Archivo',sans-serif;cursor:pointer;border:none;border-radius:12px;padding:.7em 1.1em;font-weight:700;font-size:1em;background:var(--accent);color:var(--accent-ink)}
+button.secondary{background:var(--panel);color:var(--ink);border:2px solid var(--line)}
+button:disabled{opacity:.45;cursor:default}
+input[type=text],input[type=number]{font-family:'Atkinson Hyperlegible',sans-serif;font-size:1.15em;padding:.6em .7em;border-radius:10px;border:2px solid var(--line);background:var(--panel);color:var(--ink);width:100%}
+.panel{background:var(--panel);border-radius:16px;box-shadow:var(--shadow);padding:1.1em 1.3em}
+.row{display:flex;gap:.6em;align-items:center}
+.wrap{display:flex;flex-wrap:wrap;gap:.6em}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:.25em .7em;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:.85em;font-weight:700}
+.badge-pro{background:var(--warn);color:#fff;border:none}
+.center{display:flex;align-items:center;justify-content:center;text-align:center}
+.grow{flex:1}
+a{color:var(--accent)}
+::selection{background:var(--accent);color:var(--accent-ink)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="uebersicht_qr.js"></script>
+<script>
+/* ================= Helpers ================= */
+function h(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function clean(s){return String(s||'').replace(/[<>&"'`]/g,'').trim().slice(0,22);}
+function rnd(n){return Math.floor(Math.random()*n);}
+function codeGen(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++)c+=A[rnd(A.length)];return c;}
+function mid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function store(key,val){try{if(val===undefined){return JSON.parse(localStorage.getItem(key));}localStorage.setItem(key,JSON.stringify(val));}catch(e){return val===undefined?null:undefined;}}
+function eur(cent){return (cent/100).toFixed(2).replace('.',',')+' €';}
+function fmtNum(n){return (Math.round(n*100)/100).toString().replace('.',',');}
+function parseAnswer(s){
+  s=String(s||'').trim().replace(',','.').replace(/\s+/g,'');
+  const v=parseFloat(s);
+  return isNaN(v)?null:v;
+}
+function near(a,b,tol){tol=tol||Math.max(0.05,Math.abs(b)*0.01);return Math.abs(a-b)<=tol;}
+
+/* ================= Fragenkatalog ================= */
+/* kat: lager | rezept | reise | vertrag | fitness | profi
+   pro:1 markiert Profi-Fragen (mehr Zeit, Bonus-Taler) */
+const RUNDEN=[
+ {kat:'lager',  titel:'Lagerhalle',   frage:'Eine Palette mit 8 Kisten wiegt 96 kg (nur die Kisten). Wie viel wiegen 5 Kisten?', einheit:'kg', antwort:60, zeit:45,
+   x:'96 kg : 8 = 12 kg pro Kiste. 12 kg · 5 = 60 kg.'},
+ {kat:'rezept', titel:'Kantinen-Küche',frage:'Ein Rezept für 4 Portionen Gulasch braucht 600 g Fleisch. Du kochst für 7 Portionen. Wie viel Gramm Fleisch brauchst du?', einheit:'g', antwort:1050, zeit:45,
+   x:'600 g : 4 = 150 g pro Portion. 150 g · 7 = 1050 g.'},
+ {kat:'reise',  titel:'Lieferfahrt',  frage:'Ein Lieferwagen verbraucht auf 100 km 6 Liter Diesel. Wie viele Liter braucht er für 350 km (gleicher Verbrauch)?', einheit:'l', antwort:21, zeit:45,
+   x:'6 l : 100 km = 0,06 l pro km. 0,06 l · 350 = 21 l.'},
+ {kat:'profi', pro:1, titel:'Profi-Frage · Lager', frage:'3 Lagerarbeiter räumen ein Regal in 8 Stunden leer. Wie viele Stunden brauchen 4 Arbeiter (gleiches Tempo)?', einheit:'h', antwort:6, zeit:75,
+   x:'Umgekehrt proportional: je mehr Arbeiter, desto weniger Zeit. 3 · 8 = 24 Arbeitsstunden insgesamt. 24 : 4 = 6 Stunden.'},
+ {kat:'vertrag',titel:'Handyvertrag A',frage:'Vertrag A: 5 GB kosten 15 €. Wie viel kostet 1 GB bei Vertrag A?', einheit:'€', antwort:3, zeit:45,
+   x:'15 € : 5 GB = 3 € pro GB.'},
+ {kat:'fitness',titel:'Spielestatistik',frage:'In einem Spiel sammelst du im gleichen Tempo in 4 Minuten 180 Punkte. Wie viele Punkte sind das in 10 Minuten?', einheit:'Punkte', antwort:450, zeit:45,
+   x:'180 : 4 = 45 Punkte pro Minute. 45 · 10 = 450 Punkte.'},
+ {kat:'lager',  titel:'Fuhrpark',     frage:'Ein Zug fährt mit gleichbleibendem Tempo 240 km in 3 Stunden. Wie weit fährt er in 5 Stunden?', einheit:'km', antwort:400, zeit:45,
+   x:'240 km : 3 h = 80 km pro Stunde. 80 km · 5 = 400 km.'},
+ {kat:'profi', pro:1, titel:'Profi-Frage · Küche', frage:'Für 6 Portionen braucht ein Rezept 900 ml Brühe. Wie viele Milliliter brauchst du für 10 Portionen?', einheit:'ml', antwort:1500, zeit:75,
+   x:'900 ml : 6 = 150 ml pro Portion. 150 ml · 10 = 1500 ml.'},
+ {kat:'fitness',titel:'Schrittzähler', frage:'Du gehst im gleichen Tempo 3500 Schritte in 25 Minuten. Wie viele Schritte sind das in 40 Minuten?', einheit:'Schritte', antwort:5600, zeit:45,
+   x:'3500 : 25 = 140 Schritte pro Minute. 140 · 40 = 5600 Schritte.'},
+ {kat:'vertrag',titel:'Handyvertrag B',frage:'Vertrag B: 8 GB kosten 20 €. Wie viel kosten 3 GB (gleicher Preis pro GB)?', einheit:'€', antwort:7.5, zeit:45,
+   x:'20 € : 8 GB = 2,50 € pro GB. 2,50 € · 3 = 7,50 €.'},
+ {kat:'profi', pro:1, titel:'Profi-Frage · Fuhrpark', frage:'Bei 80 km/h dauert eine Fahrt 3 Stunden. Wie schnell muss man fahren, damit die Fahrt nur 2 Stunden dauert?', einheit:'km/h', antwort:120, zeit:75,
+   x:'Umgekehrt proportional: 80 km/h · 3 h = 240 km Strecke insgesamt. 240 km : 2 h = 120 km/h.'},
+ {kat:'rezept', titel:'Großbestellung',frage:'Für 5 Personen braucht ein Kuchenrezept 250 g Mehl. Du backst für 12 Personen. Wie viel Gramm Mehl brauchst du?', einheit:'g', antwort:600, zeit:45,
+   x:'250 g : 5 = 50 g pro Person. 50 g · 12 = 600 g.'},
+ {kat:'lager',  titel:'Standmiete',   frage:'7 Paletten kosten 203 € Standmiete im Monat. Wie viel kosten 11 Paletten?', einheit:'€', antwort:319, zeit:45,
+   x:'203 € : 7 = 29 € pro Palette. 29 € · 11 = 319 €.'},
+ {kat:'profi', pro:1, titel:'Profi-Frage · Vertrag', frage:'Vertrag C kostet 12 € Grundgebühr pro Monat, dazu 2 € pro zusätzlichem GB. Du verbrauchst 5 GB extra. Wie viel zahlst du insgesamt in diesem Monat?', einheit:'€', antwort:22, zeit:75,
+   x:'12 € Grundgebühr + 5 · 2 € = 12 € + 10 € = 22 €. Kein reiner Dreisatz, sondern zwei Schritte: Grundgebühr plus Menge mal Preis.'},
+ {kat:'profi', pro:1, titel:'Profi-Frage · Begründen', frage:'Ein Kollege behauptet: „4 Arbeiter bauen ein Regal in 6 Stunden auf, also schaffen 8 Arbeiter das Regal in 12 Stunden.“ Das stimmt nicht. Wie viele Stunden brauchen 8 Arbeiter wirklich?', einheit:'h', antwort:3, zeit:75,
+   x:'Falsch, weil mehr Arbeiter schneller fertig sind, nicht langsamer. Richtig: 4 · 6 = 24 Arbeitsstunden. 24 : 8 = 3 Stunden.'}
+];
+
+/* ================= Transport ================= */
+const BROKERS=['wss://broker.hivemq.com:8884/mqtt','wss://broker.emqx.io:8084/mqtt'];
+function te(s){return new TextEncoder().encode(s);}
+function td(b){return new TextDecoder().decode(b);}
+function encLen(n){const out=[];do{let b=n%128;n=Math.floor(n/128);if(n>0)b|=0x80;out.push(b);}while(n>0);return out;}
+function u16(n){return [(n>>8)&255,n&255];}
+function mqttConnect(url,onConnect,onMessage,onStatus){
+  let ws,buf=new Uint8Array(0),alive=false,pingTimer=null,reconnectTimer=null,closed=false;
+  function cat(a,b){const c=new Uint8Array(a.length+b.length);c.set(a,0);c.set(b,a.length);return c;}
+  function send(bytes){try{ws.send(new Uint8Array(bytes).buffer);}catch(e){}}
+  function connectPacket(){
+    const clientId='h'+Math.random().toString(36).slice(2,10);
+    const proto=[0,4,77,81,84,84,4,2,0,60];
+    const idBytes=te(clientId);
+    const payload=[...u16(idBytes.length),...idBytes];
+    const body=[...proto,...payload];
+    return [0x10,...encLen(body.length),...body];
+  }
+  function subscribePacket(topic){
+    const t=te(topic);
+    const body=[0,1,...u16(t.length),...t,0];
+    return [0x82,...encLen(body.length),...body];
+  }
+  function publishPacket(topic,payloadStr,retain){
+    const t=te(topic),p=te(payloadStr);
+    const body=[...u16(t.length),...t,...p];
+    return [0x30|(retain?1:0),...encLen(body.length),...body];
+  }
+  function pingPacket(){return [0xC0,0x00];}
+  function handleFrame(type,flags,data){
+    if(type===3){ // PUBLISH
+      const tlen=(data[0]<<8)|data[1];
+      const topic=td(data.slice(2,2+tlen));
+      const payload=td(data.slice(2+tlen));
+      try{onMessage(topic,JSON.parse(payload));}catch(e){}
+    }
+    // CONNACK(2), SUBACK(9), PINGRESP(13) -> nothing to do
+  }
+  function pump(){
+    let offset=0;
+    while(true){
+      if(buf.length-offset<2)break;
+      const first=buf[offset];
+      const type=first>>4,flags=first&15;
+      let i=offset+1,multiplier=1,value=0,byte;
+      let ok=false;
+      for(let k=0;k<4;k++){
+        if(i>=buf.length)break;
+        byte=buf[i++];value+=(byte&127)*multiplier;multiplier*=128;
+        if(!(byte&128)){ok=true;break;}
+      }
+      if(!ok)break;
+      if(buf.length-i<value)break;
+      const data=buf.slice(i,i+value);
+      handleFrame(type,flags,data);
+      offset=i+value;
+    }
+    buf=buf.slice(offset);
+  }
+  function open(){
+    try{ws=new WebSocket(url,'mqtt');}catch(e){onStatus(false);scheduleReconnect();return;}
+    ws.binaryType='arraybuffer';
+    ws.onopen=()=>{send(connectPacket());};
+    ws.onmessage=(ev)=>{
+      const b=new Uint8Array(ev.data);
+      buf=cat(buf,b);
+      if(!alive){alive=true;onStatus(true);onConnect(subscribeAndPublish);
+        pingTimer=setInterval(()=>send(pingPacket()),20000);
+      }
+      pump();
+    };
+    ws.onclose=()=>{alive=false;onStatus(false);clearInterval(pingTimer);scheduleReconnect();};
+    ws.onerror=()=>{try{ws.close();}catch(e){}};
+  }
+  function scheduleReconnect(){
+    if(closed)return;
+    clearTimeout(reconnectTimer);
+    reconnectTimer=setTimeout(open,3000+rnd(2000));
+  }
+  function subscribeAndPublish(topic){send(subscribePacket(topic));}
+  function publish(topic,obj,retain){
+    if(!alive)return;
+    send(publishPacket(topic,JSON.stringify(obj),!!retain));
+  }
+  function subscribe(topic){if(alive)send(subscribePacket(topic));else subscribeOnOpenQueue.push(topic);}
+  const subscribeOnOpenQueue=[];
+  open();
+  return {
+    publish,
+    subscribe:(topic)=>{if(alive)send(subscribePacket(topic));else subscribeOnOpenQueue.push(topic);},
+    close:()=>{closed=true;clearInterval(pingTimer);clearTimeout(reconnectTimer);try{ws.close();}catch(e){}}
+  };
+}
+function Net(code,role,onMessage,onAnyStatus){
+  const NS='haendlerspiel/';
+  const stTopic=NS+code+'/st', inTopic=NS+code+'/in';
+  const myTopic=role==='tafel'?inTopic:stTopic;
+  const seen=new Set();
+  const links=[];
+  const statusLinks=[];
+  let anyUp=false;
+  function statusAgg(){anyUp=statusLinks.some(l=>l.up);onAnyStatus(anyUp);}
+  function dedupMsg(topic,payload){
+    const id=payload&&payload.mid;
+    if(id){if(seen.has(id))return;seen.add(id);if(seen.size>500){seen.clear();}}
+    onMessage(topic,payload);
+  }
+  BROKERS.forEach(url=>{
+    const l={up:false};
+    l.conn=mqttConnect(url,
+      (subscribe)=>{subscribe(myTopic);},
+      (topic,payload)=>{dedupMsg(topic,payload);},
+      (up)=>{l.up=up;statusAgg();}
+    );
+    links.push(l);
+    statusLinks.push(l);
+  });
+  let localChan=null;
+  if(location.search.indexOf('bc=1')>=0){
+    const lLocal={up:false};
+    localChan=new BroadcastChannel('haendlerspiel_'+code);
+    localChan.onmessage=(ev)=>{dedupMsg(ev.data.topic,ev.data.payload);};
+    statusLinks.push(lLocal);
+    setTimeout(()=>{lLocal.up=true;statusAgg();},50);
+  }
+  return {
+    publish(topic,obj,retain){
+      obj=Object.assign({mid:mid()},obj);
+      links.forEach(l=>l.conn.publish(topic,obj,retain));
+      if(localChan)localChan.postMessage({topic,payload:obj});
+    },
+    stTopic,inTopic
+  };
+}
+
+/* ================= Musik (Web Audio) ================= */
+const Music=(()=>{
+  let ctx=null,on=store('hs_music')||false,gain=null,nodes=[],playing=false,vol=0.3;
+  function ensure(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();gain=ctx.createGain();gain.gain.value=vol;gain.connect(ctx.destination);}}
+  function stopAll(){nodes.forEach(n=>{try{n.stop();}catch(e){}});nodes=[];playing=false;}
+  function pulse(freq,t,dur,g){
+    const o=ctx.createOscillator(),gg=ctx.createGain();
+    o.type='square';o.frequency.value=freq;
+    gg.gain.setValueAtTime(0,t);gg.gain.linearRampToValueAtTime(g,t+0.02);gg.gain.linearRampToValueAtTime(0,t+dur);
+    o.connect(gg);gg.connect(gain);o.start(t);o.stop(t+dur+0.02);nodes.push(o);
+  }
+  function startRound(durationSec){
+    if(!on)return; ensure(); stopAll(); playing=true;
+    const t0=ctx.currentTime;
+    const base=[220,220,247,220,196,220,247,262];
+    let step=0,stepDur=0.42;
+    function schedule(){
+      if(!playing)return;
+      const elapsed=ctx.currentTime-t0;
+      if(elapsed>durationSec+0.5)return;
+      const remain=durationSec-elapsed;
+      const sd=remain<10?0.24:stepDur;
+      pulse(base[step%base.length],ctx.currentTime+0.01,sd*0.9,0.05);
+      pulse(base[step%base.length]/2,ctx.currentTime+0.01,sd*0.9,0.04);
+      step++;
+      timeoutId=setTimeout(schedule,sd*1000);
+    }
+    let timeoutId=setTimeout(schedule,10);
+    nodes.push({stop:()=>clearTimeout(timeoutId)});
+  }
+  function tusch(){
+    if(!on)return; ensure();
+    const t=ctx.currentTime;
+    [262,330,392,523].forEach((f,i)=>pulse(f,t+i*0.09,0.5,0.08));
+  }
+  function stop(){playing=false;stopAll();}
+  function setOn(v){on=v;store('hs_music',v);if(!v)stop();}
+  function setVol(v){vol=v;if(gain)gain.gain.value=v;}
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
+  return {get on(){return on;},setOn,setVol,startRound,stop,tusch};
+})();
+
+
+/* ================= QR-Code (Beitritts-Link) ================= */
+function drawQR(canvas,url){
+  try{
+    const q=new QRLib.QRCode(-1,QRLib.ECL.M);q.addData(url);q.make();
+    const n=q.getModuleCount(),quiet=3,cell=Math.max(1,Math.floor(canvas.width/(n+quiet*2))),off=Math.floor((canvas.width-cell*n)/2);
+    const x=canvas.getContext('2d');
+    x.fillStyle='#fff';x.fillRect(0,0,canvas.width,canvas.height);x.fillStyle='#000';
+    for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(q.isDark(r,k))x.fillRect(off+k*cell,off+r*cell,cell,cell);
+    return true;
+  }catch(e){return false;}
+}
+function showQrOverlay(url){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(10,15,30,.88);display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML='<div style="background:#fff;color:#111;border-radius:16px;padding:20px 22px;text-align:center;max-width:96vw"><h2 class="ui" style="margin:0 0 8px">📱 Mit dem Handy fotografieren</h2><canvas width="400" height="400" style="width:min(70vh,80vw,560px);height:auto;aspect-ratio:1;display:block;margin:0 auto 10px;image-rendering:pixelated"></canvas><div id="qrUrl" style="font-size:13px;color:#444;word-break:break-all"></div><button style="margin-top:10px;background:#13275a;color:#fff">Schließen</button></div>';
+  ov.querySelector('#qrUrl').textContent=url;
+  document.body.appendChild(ov);
+  drawQR(ov.querySelector('canvas'),url);
+  const close=()=>ov.remove();
+  ov.onclick=e=>{if(e.target===ov)close();};
+  ov.querySelector('button').onclick=close;
+}
+
+/* ================= Zustand & Rendering ================= */
+const params=new URLSearchParams(location.search);
+const roomCode=(params.get('s')||'').toUpperCase().trim();
+const testTab=params.get('t')||'';
+
+function joinUrl(code){
+  const u=new URL(location.href);
+  u.search='?s='+code;
+  return u.toString();
+}
+
+/* ---------- TAFEL ---------- */
+function tafelApp(){
+  const KEY='hs_tafel_state';
+  let T=store(KEY) || blankState();
+  let net=null, up=false;
+  let timerHandle=null;
+
+  function blankState(){
+    return {code:codeGen(),phase:'start',idx:-1,teams:{},order:shuffled(),
+      startedAt:0,durationMs:0,locked:false,resultsShown:false,log:[]};
+  }
+  function shuffled(){return RUNDEN.map((_,i)=>i);}
+  function save(){store(KEY,T);}
+  function connect(){
+    if(net)net.close&&net.close();
+    net=Net(T.code,'tafel',onIncoming,(u2)=>{up=u2;renderStatus();});
+    pub(true);
+  }
+  function pub(retain){
+    net.publish(net.stTopic,publicState(),retain!==false);
+  }
+  function publicState(){
+    const r=currentRound();
+    return {
+      phase:T.phase, roundNo:T.idx+1, total:RUNDEN.length,
+      kat:r?r.kat:null, pro:r?!!r.pro:false, titel:r?r.titel:null, frage:r?r.frage:null, einheit:r?r.einheit:null,
+      startedAt:T.startedAt, durationMs:T.durationMs, locked:T.locked,
+      teams:Object.keys(T.teams), answered:answeredList(),
+      result: T.resultsShown && r ? {antwort:r.antwort, x:r.x, scores:lastScores()} : null,
+      bestenliste: bestenliste(),
+      code:T.code
+    };
+  }
+  function answeredList(){
+    const r=currentRound(); if(!r)return [];
+    return Object.keys(T.teams).filter(n=>T.teams[n].answers && T.teams[n].answers[T.idx]!==undefined);
+  }
+  function currentRound(){return T.idx>=0 && T.idx<RUNDEN.length ? RUNDEN[T.order[T.idx]] : null;}
+  function lastScores(){
+    const r=currentRound(); if(!r)return {};
+    const out={};
+    Object.keys(T.teams).forEach(n=>{
+      const a=T.teams[n].answers && T.teams[n].answers[T.idx];
+      if(a)out[n]={value:a.value, correct:a.correct, points:a.points};
+    });
+    return out;
+  }
+  function bestenliste(){
+    return Object.keys(T.teams).map(n=>({name:n,taler:T.teams[n].taler||0}))
+      .sort((a,b)=>b.taler-a.taler);
+  }
+  function onIncoming(topic,msg){
+    if(!msg||!msg.type)return;
+    if(msg.type==='join'){
+      const name=clean(msg.name)||'Team';
+      if(!T.teams[name])T.teams[name]={taler:0,answers:{}};
+      save();pub(true);renderMain();
+    } else if(msg.type==='answer'){
+      const name=clean(msg.name);
+      const r=currentRound();
+      if(!T.teams[name]||!r||T.phase!=='runde'||T.locked)return;
+      if(T.teams[name].answers[T.idx]!==undefined)return; // schon beantwortet
+      const val=parseAnswer(msg.value);
+      if(val===null)return;
+      const correct=near(val,r.antwort);
+      const elapsed=Date.now()-T.startedAt;
+      const frac=Math.max(0,Math.min(1,1-elapsed/T.durationMs));
+      const points=correct?Math.round(1000+500*frac):0;
+      T.teams[name].answers[T.idx]={value:val,correct,points,ts:Date.now()};
+      if(correct)T.teams[name].taler=(T.teams[name].taler||0)+points;
+      save();pub(true);renderMain();
+    }
+  }
+  function startTimer(){
+    clearInterval(timerHandle);
+    timerHandle=setInterval(()=>{
+      if(T.phase==='runde' && !T.locked){
+        const elapsed=Date.now()-T.startedAt;
+        if(elapsed>=T.durationMs){ lockRound(); }
+        else renderTimerOnly();
+      }
+    },250);
+  }
+  function lockRound(){
+    T.locked=true; T.resultsShown=true; save(); pub(true); renderMain(); Music.stop(); Music.tusch();
+  }
+  function neueSitzung(){
+    T=blankState(); save(); connect(); renderMain();
+  }
+  function kick(name){
+    if(T.phase!=='start')return;
+    delete T.teams[name]; save(); pub(true); renderMain();
+  }
+  function weiter(){
+    if(T.phase==='start'){
+      T.phase='runde'; T.idx=0; T.locked=false; T.resultsShown=false;
+      startRound();
+    } else if(T.phase==='runde' && !T.locked){
+      lockRound(); return;
+    } else if(T.phase==='runde' && T.locked){
+      if(T.idx+1<RUNDEN.length){T.idx++;T.phase='runde';T.locked=false;T.resultsShown=false;startRound();}
+      else {T.phase='ende';save();pub(true);Music.tusch();}
+    }
+    save(); pub(true); renderMain();
+  }
+  function startRound(){
+    T.startedAt=Date.now();
+    const r=currentRound();
+    T.durationMs=(r.zeit||45)*1000;
+    Music.startRound(r.zeit||45);
+    startTimer();
+  }
+  function zurueck(){
+    if(T.phase==='ende'){T.phase='runde';T.locked=true;T.resultsShown=true;}
+    else if(T.phase==='runde' && T.idx>0){T.idx--;T.phase='runde';T.locked=true;T.resultsShown=true;}
+    else if(T.phase==='runde' && T.idx===0){T.phase='start';}
+    save();pub(true);renderMain();
+  }
+
+  function renderStatus(){
+    const dot=document.getElementById('hsDot');
+    if(dot)dot.style.background=up?'var(--good)':'var(--bad)';
+  }
+  function renderTimerOnly(){
+    const bar=document.getElementById('hsBar');
+    if(!bar)return;
+    const elapsed=Date.now()-T.startedAt;
+    const pct=Math.max(0,Math.min(100,100-(elapsed/T.durationMs*100)));
+    bar.style.width=pct+'%';
+    bar.style.background=pct<20?'var(--bad)':(pct<50?'var(--warn)':'var(--good)');
+  }
+
+  function katLabel(k){
+    return {lager:'Lagerhalle',rezept:'Küche',reise:'Fuhrpark',vertrag:'Handyvertrag',fitness:'Fitness & Gaming',profi:'Profi'}[k]||k;
+  }
+
+  function renderMain(){
+    const el=document.getElementById('app');
+    const r=currentRound();
+    let body='';
+    if(T.phase==='start'){
+      body=`
+      <div class="panel center" style="flex-direction:column;gap:.6em;padding:2em">
+        <div class="muted ui" style="font-size:1.1em">QR-Code fotografieren oder Link öffnen</div>
+        <canvas id="hsQr" width="400" height="400" style="width:min(42vh,70vw,320px);height:auto;aspect-ratio:1;image-rendering:pixelated;border-radius:8px"></canvas>
+        <div class="ui" style="font-size:1.1em;word-break:break-all">${h(joinUrl(T.code))}</div>
+        <div class="ui" style="font-size:4em;font-weight:800;letter-spacing:.12em;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:.1em .4em">${h(T.code)}</div>
+        <div class="muted">Code auf dem Handy unter dem Link eingeben.</div>
+      </div>
+      <div class="panel" style="margin-top:1em">
+        <h3 class="ui" style="margin:.2em 0 .6em">Angemeldete Teams (${Object.keys(T.teams).length})</h3>
+        <div class="wrap">
+          ${Object.keys(T.teams).length? Object.keys(T.teams).map(n=>`<button class="secondary" onclick="HS.kick('${h(n).replace(/'/g,"\\'")}')" title="Antippen entfernt das Team">${h(n)}</button>`).join('') : '<span class="muted">Noch keine Teams.</span>'}
+        </div>
+      </div>`;
+    } else if(T.phase==='runde'){
+      body=`
+      <div class="panel">
+        <div class="row" style="justify-content:space-between">
+          <span class="pill ${r.pro?'badge-pro':''}">${r.pro?'PROFI':h(katLabel(r.kat))}</span>
+          <span class="pill">Runde ${T.idx+1} / ${RUNDEN.length}</span>
+        </div>
+        <h2 class="ui" style="margin:.5em 0 .2em">${h(r.titel)}</h2>
+        <div style="font-size:1.3em;margin:.5em 0 1em">${h(r.frage)}</div>
+        <div style="height:14px;border-radius:7px;background:var(--card);overflow:hidden;border:1px solid var(--line)">
+          <div id="hsBar" style="height:100%;width:100%;background:var(--good);transition:width .25s linear"></div>
+        </div>
+        <div class="muted" style="margin-top:.6em">Antwort in ${h(r.einheit)} · ${answeredList().length} / ${Object.keys(T.teams).length} Teams haben geantwortet</div>
+      </div>
+      ${T.locked ? renderResult(r) : ''}
+      `;
+    } else if(T.phase==='ende'){
+      const list=bestenliste();
+      body=`
+      <div class="panel center" style="flex-direction:column;gap:.5em;padding:2em">
+        <h2 class="ui">Marktbericht – Endstand</h2>
+        <div style="display:flex;gap:1.2em;align-items:flex-end;margin-top:1em">
+          ${podiumHtml(list)}
+        </div>
+      </div>
+      <div class="panel" style="margin-top:1em">
+        <h3 class="ui" style="margin:.2em 0 .6em">Alle Teams</h3>
+        ${tableHtml(list)}
+      </div>`;
+    }
+    el.innerHTML=`
+    <div style="max-width:900px;margin:0 auto;padding:1em">
+      <div class="row" style="justify-content:space-between;margin-bottom:.8em">
+        <div class="row"><span id="hsDot" style="width:12px;height:12px;border-radius:50%;background:var(--bad);display:inline-block"></span><span class="ui" style="font-weight:800;margin-left:.4em">Händler-Spiel</span></div>
+        <div class="row">
+          <button class="secondary" onclick="HS.qr()">QR</button>
+          <button class="secondary" onclick="HS.toggleMusic()">${Music.on?'Musik aus':'Musik an'}</button>
+          <input type="range" min="0" max="1" step="0.05" value="0.3" onchange="HS.setVol(this.value)" style="width:90px">
+          <button class="secondary" onclick="HS.zurueck()">Zurück</button>
+          <button onclick="HS.weiter()">${T.phase==='start'?'Start':(T.phase==='runde'&&!T.locked?'Auflösen':(T.phase==='ende'?'Fertig':'Weiter'))}</button>
+          <button class="secondary" onclick="if(confirm('Neue Sitzung starten? Bisheriger Stand geht verloren.'))HS.neueSitzung()">Neue Sitzung</button>
+        </div>
+      </div>
+      ${body}
+    </div>`;
+    renderStatus();
+    const qc=document.getElementById('hsQr'); if(qc)drawQR(qc,joinUrl(T.code));
+    if(T.phase==='runde' && !T.locked)renderTimerOnly();
+  }
+  function renderResult(r){
+    const scores=lastScores();
+    return `<div class="panel" style="margin-top:1em">
+      <h3 class="ui" style="margin:.2em 0">Lösung: ${h(fmtNum(r.antwort))} ${h(r.einheit)}</h3>
+      <div class="muted" style="margin-bottom:.8em">${h(r.x)}</div>
+      ${tableHtml(bestenliste(), scores)}
+    </div>`;
+  }
+  function tableHtml(list,scores){
+    if(!list.length)return '<span class="muted">Noch keine Teams.</span>';
+    return `<table style="width:100%;border-collapse:collapse">
+      ${list.map((t,i)=>`<tr style="border-top:1px solid var(--line)">
+        <td style="padding:.4em 0;width:2em">${i+1}.</td>
+        <td style="padding:.4em 0">${h(t.name)}</td>
+        ${scores?`<td style="padding:.4em 0;text-align:right" class="${scores[t.name]&&scores[t.name].correct?'':'muted'}">${scores[t.name]?(scores[t.name].correct?'richtig +'+scores[t.name].points:'falsch'):'–'}</td>`:''}
+        <td style="padding:.4em 0;text-align:right;font-weight:700">${t.taler} Taler</td>
+      </tr>`).join('')}
+    </table>`;
+  }
+  function podiumHtml(list){
+    const cols=[1,0,2].filter(i=>list[i]);
+    const heights=[120,170,90],colors=['var(--silver)','var(--gold)','var(--bronze)'];
+    return cols.map((pos,ci)=>{
+      const t=list[pos]; if(!t)return '';
+      return `<div class="center" style="flex-direction:column">
+        <div style="font-weight:800" class="ui">${h(t.name)}</div>
+        <div class="muted">${t.taler} Taler</div>
+        <div style="width:90px;height:${heights[ci]}px;background:${colors[ci]};border-radius:8px 8px 0 0;margin-top:.4em;display:flex;align-items:flex-start;justify-content:center;padding-top:.3em;color:#fff;font-weight:800">${pos+1}.</div>
+      </div>`;
+    }).join('');
+  }
+
+  window.HS={
+    weiter, zurueck, neueSitzung, kick,
+    qr(){showQrOverlay(joinUrl(T.code));},
+    toggleMusic(){Music.setOn(!Music.on);renderMain();},
+    setVol(v){Music.setVol(parseFloat(v));}
+  };
+  connect();
+  renderMain();
+}
+
+/* ---------- HANDY ---------- */
+function phoneApp(){
+  const KEY='hs_phone_name_'+roomCode+testTab;
+  let name=store(KEY);
+  let net=null, lastState=null, lastSig='', submitted={};
+  let pendingAnswer=null, sendTimer=null;
+
+  function connect(){
+    net=Net(roomCode,'phone',onIncoming,(up)=>{renderStatus(up);});
+    if(name)announceJoin();
+  }
+  function announceJoin(){
+    net.publish(net.inTopic,{type:'join',name});
+    joinPing=setInterval(()=>{ if(!joinedConfirmed())net.publish(net.inTopic,{type:'join',name}); },2500);
+  }
+  let joinPing=null;
+  function joinedConfirmed(){return lastState && lastState.teams && lastState.teams.indexOf(name)>=0;}
+  function onIncoming(topic,msg){
+    if(topic!==net.stTopic)return;
+    lastState=msg;
+    const sig=JSON.stringify({phase:msg.phase,roundNo:msg.roundNo,locked:msg.locked,mine:msg.answered&&msg.answered.indexOf(name)>=0,res:!!msg.result});
+    if(sig!==lastSig){lastSig=sig;render();}
+    else renderStatus(true);
+    if(pendingAnswer && joinedConfirmed() && !(msg.answered&&msg.answered.indexOf(name)>=0)){
+      // noch nicht angekommen -> weiter senden (passiert via sendLoop)
+    }
+  }
+  function submitName(n){
+    name=clean(n); if(!name)return;
+    store(KEY,name);
+    announceJoin();
+    render();
+  }
+  function sendAnswer(val){
+    pendingAnswer=val;
+    net.publish(net.inTopic,{type:'answer',name,value:val});
+    let tries=0;
+    clearInterval(sendTimer);
+    sendTimer=setInterval(()=>{
+      tries++;
+      if(!lastState || !(lastState.answered&&lastState.answered.indexOf(name)>=0)){
+        net.publish(net.inTopic,{type:'answer',name,value:val});
+      } else clearInterval(sendTimer);
+      if(tries>20)clearInterval(sendTimer);
+    },2000);
+    render();
+  }
+  function renderStatus(up){
+    const dot=document.getElementById('hsDot');
+    if(dot)dot.style.background=up?'var(--good)':'var(--bad)';
+  }
+  function katLabel(k){
+    return {lager:'Lagerhalle',rezept:'Küche',reise:'Fuhrpark',vertrag:'Handyvertrag',fitness:'Fitness & Gaming',profi:'Profi'}[k]||k;
+  }
+  function render(){
+    const el=document.getElementById('app');
+    if(!roomCode){
+      el.innerHTML=`<div class="panel center" style="margin:2em 1em;flex-direction:column;gap:.6em">
+        <h2 class="ui">Kein Spielcode gefunden</h2>
+        <div class="muted">Bitte den Link mit ?s=CODE von der Tafel öffnen.</div>
+      </div>`;
+      return;
+    }
+    if(!name){
+      el.innerHTML=`<div style="max-width:480px;margin:2em auto;padding:0 1em">
+        <div class="panel center" style="flex-direction:column;gap:.8em">
+          <h2 class="ui">Händler-Spiel</h2>
+          <div class="muted">Code: ${h(roomCode)}</div>
+          <input id="nameIn" type="text" placeholder="Euer Teamname" maxlength="22">
+          <button onclick="HSP.join(document.getElementById('nameIn').value)">Beitreten</button>
+        </div>
+      </div>`;
+      return;
+    }
+    const st=lastState;
+    let body='';
+    if(!st){
+      body=`<div class="panel center" style="flex-direction:column;gap:.5em"><h3 class="ui">Verbinde…</h3><div class="muted">Team: ${h(name)}</div></div>`;
+    } else if(st.phase==='start'){
+      body=`<div class="panel center" style="flex-direction:column;gap:.5em">
+        <h3 class="ui">Hallo, ${h(name)}!</h3>
+        <div class="muted">Ihr seid dabei. Wartet auf den Start …</div>
+        <div class="wrap center">${(st.teams||[]).map(t=>`<span class="pill">${h(t)}</span>`).join('')}</div>
+      </div>`;
+    } else if(st.phase==='runde'){
+      const mine=st.answered && st.answered.indexOf(name)>=0;
+      body=`<div class="panel">
+        <div class="row" style="justify-content:space-between">
+          <span class="pill ${st.pro?'badge-pro':''}">${st.pro?'PROFI':h(katLabel(st.kat))}</span>
+          <span class="pill">Runde ${st.roundNo} / ${st.total}</span>
+        </div>
+        <h3 class="ui" style="margin:.5em 0 .2em">${h(st.titel)}</h3>
+        <div style="font-size:1.15em;margin:.4em 0 1em">${h(st.frage)}</div>
+        ${ (mine||st.locked) ?
+          `<div class="panel center" style="background:var(--card);flex-direction:column;gap:.3em">
+             ${st.locked && st.result ? resultBlock(st) : `<div class="ui" style="font-weight:700">Antwort gesendet</div><div class="muted">Warte auf Auflösung …</div>`}
+           </div>`
+        : `<div class="row">
+             <input id="ansIn" type="text" inputmode="decimal" placeholder="Antwort in ${h(st.einheit)}">
+             <button onclick="HSP.submit(document.getElementById('ansIn').value)">Absenden</button>
+           </div>`
+        }
+      </div>`;
+    } else if(st.phase==='ende'){
+      const list=st.bestenliste||[];
+      const myRank=list.findIndex(t=>t.name===name)+1;
+      body=`<div class="panel center" style="flex-direction:column;gap:.5em">
+        <h2 class="ui">Marktbericht – Endstand</h2>
+        <div class="muted">Euer Platz: ${myRank||'–'} von ${list.length}</div>
+        <div class="wrap center">${list.map((t,i)=>`<span class="pill" style="${t.name===name?'border-color:var(--accent)':''}">${i+1}. ${h(t.name)} · ${t.taler}</span>`).join('')}</div>
+      </div>`;
+    }
+    el.innerHTML=`<div style="max-width:560px;margin:0 auto;padding:1em">
+      <div class="row" style="justify-content:space-between;margin-bottom:.6em">
+        <div class="row"><span id="hsDot" style="width:10px;height:10px;border-radius:50%;background:var(--bad);display:inline-block"></span><span class="ui" style="font-weight:800;margin-left:.4em">${h(name)}</span></div>
+        <span class="muted">Code ${h(roomCode)}</span>
+      </div>
+      ${body}
+    </div>`;
+  }
+  function resultBlock(st){
+    const mine=st.result.scores && st.result.scores[name];
+    return `<div class="ui" style="font-size:1.1em;font-weight:800;color:${mine&&mine.correct?'var(--good)':'var(--bad)'}">${mine?(mine.correct?'Richtig! +'+mine.points+' Taler':'Leider falsch'):'Keine Antwort abgegeben'}</div>
+      <div>Lösung: ${h(fmtNum(st.result.antwort))} ${h(st.einheit)}</div>
+      <div class="muted">${h(st.result.x)}</div>`;
+  }
+  window.HSP={
+    join(n){submitName(n);},
+    submit(v){
+      const val=parseAnswer(v);
+      if(val===null){alert('Bitte eine Zahl eingeben.');return;}
+      sendAnswer(val);
+    }
+  };
+  connect();
+  render();
+}
+
+if(roomCode)phoneApp();else tafelApp();
+</script>
+</body>
+</html>
