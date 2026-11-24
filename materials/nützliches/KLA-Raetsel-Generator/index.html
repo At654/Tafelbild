@@ -29,7 +29,8 @@
   .sheet-head{display:flex;justify-content:space-between;font-size:.85rem;color:#374151;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:8px;}
   table.grid{border-collapse:collapse;margin:0 auto 18px;}
   table.grid td{width:28px;height:28px;border:1px solid #9ca3af;text-align:center;vertical-align:middle;font-weight:700;font-size:.95rem;position:relative;}
-  table.grid td.black{background:#111827;border-color:#111827;box-shadow:0 0 0 1px #111827;}
+  table.grid.empty-white td.black{background:transparent;border:none;box-shadow:none;}
+  table.grid.empty-shade td.black{background:#eceff1;border-color:#eceff1;}
   table.grid td .num{position:absolute;top:1px;left:2px;font-size:.5rem;font-weight:400;}
   .kla-kopf{display:flex;border:1px solid #111827;margin-bottom:16px;font-family:Arial,sans-serif;color:#111827;}
 .kla-kopf .kopf-name{flex:0 0 26%;padding:8px 12px 6px;border-right:1px solid #111827;font-size:.85rem;display:flex;flex-direction:column;justify-content:flex-end;}
@@ -68,13 +69,16 @@ details.prompt textarea{min-height:200px;font-size:.8rem;margin-top:8px;}
   .clues{margin-top:14px;display:flex;gap:24px;flex-wrap:wrap;font-size:.88rem;}
   .clues div{flex:1;min-width:220px;}
   .clues h3{font-size:.95rem;margin:0 0 6px;}
-  .clues ol{margin:0;padding-left:20px;}
+  .clues ol{margin:0;padding-left:30px;}
   .warn{color:#b45309;font-size:.85rem;margin-top:8px;}
   .no-print{}
+  @page{size:A4;margin:10mm;}
   @media print{
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     body{background:#fff;padding:0;}
+    #output{max-width:none;margin:0;}
     .no-print{display:none !important;}
+    .panel{display:none !important;}
     .sheet{border:none;border-radius:0;padding:0;margin:0;page-break-after:always;break-after:page;}
     .sheet:last-of-type{page-break-after:auto;break-after:auto;}
     body.printing-puzzle .sheet.sol{display:none !important;}
@@ -85,8 +89,26 @@ details.prompt textarea{min-height:200px;font-size:.8rem;margin-top:8px;}
     table.grid.xw td{width:30px;height:30px;font-size:1rem;}
     table.grid.xw td .num{font-size:.55rem;}
     .clues{font-size:.82rem;}
+    .wbbox{break-inside:avoid;page-break-inside:avoid;}
     .sheet h2{font-size:1.05rem;}
   }
+  body.pm{width:190mm;}
+    body.pm{background:#fff;padding:0;}
+    body.pm #output{max-width:none;margin:0;}
+    body.pm .no-print{display:none !important;}
+    body.pm .panel{display:none !important;}
+    body.pm .sheet{border:none;border-radius:0;padding:0;margin:0;page-break-after:always;break-after:page;}
+    body.pm .sheet:last-of-type{page-break-after:auto;break-after:auto;}
+    body.pm.printing-puzzle .sheet.sol{display:none !important;}
+    body.pm.printing-solution .sheet.puz{display:none !important;}
+    body.pm.printing-puzzle .sheet.puz, body.pm.printing-solution .sheet.sol{page-break-after:auto;break-after:auto;}
+    body.pm table.grid{margin:0 auto 12px;}
+    body.pm table.grid td{width:24px;height:24px;font-size:.85rem;}
+    body.pm table.grid.xw td{width:30px;height:30px;font-size:1rem;}
+    body.pm table.grid.xw td .num{font-size:.55rem;}
+    body.pm .clues{font-size:.82rem;}
+    body.pm .wbbox{break-inside:avoid;page-break-inside:avoid;}
+    body.pm .sheet h2{font-size:1.05rem;}
 </style>
 </head>
 <body>
@@ -115,6 +137,8 @@ details.prompt textarea{min-height:200px;font-size:.8rem;margin-top:8px;}
 
   <div id="crossword-options" style="display:none">
     <p class="hint">Je Zeile: <code>BEGRIFF;Hinweistext</code> – z. B. <code>RABATT;Preisnachlass beim Verkauf</code></p>
+    <label style="display:flex;align-items:center;gap:8px;margin:8px 0 0;font-weight:600">Leere Felder im Raster:
+      <select id="emptyStyle" style="width:auto"><option value="white">weiß (nur Wortfelder sichtbar)</option><option value="shade">leicht schattiert (hellgrau)</option></select></label>
   </div>
 
   <div class="upload-box">
@@ -205,10 +229,25 @@ function normalize(s){
   return s.toUpperCase().replace(/ß/gi,'SS').replace(/[^A-ZÄÖÜ]/g,'');
 }
 
+function prepPrint(id){
+  const body=document.body;
+  body.classList.add('pm','printing-'+id);
+  const sheet=document.querySelector('#output .sheet.'+(id==='solution'?'sol':'puz'));
+  sheet.style.zoom='';
+  const avail=Math.floor(277/25.4*96)-6;           // A4 abzüglich 10 mm Rand (in px)
+  const hgt=sheet.getBoundingClientRect().height;
+  const z=hgt>avail?Math.max(0.5,avail/hgt):1;
+  if(z<1) sheet.style.zoom=z.toFixed(3);
+  return {sheet,id};
+}
+function endPrint(s){
+  s.sheet.style.zoom='';
+  document.body.classList.remove('pm','printing-'+s.id);
+}
 function printPart(id){
-  document.body.classList.add('printing-'+id);
+  const s=prepPrint(id);
   window.print();
-  document.body.classList.remove('printing-'+id);
+  endPrint(s);
 }
 
 function generate(){
@@ -482,7 +521,7 @@ function renderCrossword(out,title,showHeader,showWordbank,lernfeld,lftitel,modu
     }
   });
   const buildTable=(solution)=>{
-    let html='<table class="grid xw">';
+    let html='<table class="grid xw empty-'+document.getElementById('emptyStyle').value+'">';
     for(let r=0;r<grid.length;r++){ html+='<tr>';
       for(let c=0;c<grid[0].length;c++){
         const letter=grid[r][c];
