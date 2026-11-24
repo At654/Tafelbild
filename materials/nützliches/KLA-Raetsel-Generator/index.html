@@ -68,6 +68,7 @@ details.prompt textarea{min-height:200px;font-size:.8rem;margin-top:8px;}
   .wordlist>span{display:block;margin-bottom:4px;}
   .clues{margin-top:14px;display:flex;gap:24px;flex-wrap:wrap;font-size:.88rem;}
   .clues div{flex:1;min-width:220px;}
+  .clues .len{color:#6b7280;white-space:nowrap;}
   .clues h3{font-size:.95rem;margin:0 0 6px;}
   .clues ol{margin:0;padding-left:30px;}
   .warn{color:#b45309;font-size:.85rem;margin-top:8px;}
@@ -139,6 +140,11 @@ details.prompt textarea{min-height:200px;font-size:.8rem;margin-top:8px;}
     <p class="hint">Je Zeile: <code>BEGRIFF;Hinweistext</code> – z. B. <code>RABATT;Preisnachlass beim Verkauf</code></p>
     <label style="display:flex;align-items:center;gap:8px;margin:8px 0 0;font-weight:600">Leere Felder im Raster:
       <select id="emptyStyle" style="width:auto"><option value="white">weiß (nur Wortfelder sichtbar)</option><option value="shade">leicht schattiert (hellgrau)</option></select></label>
+    <div class="upload-box" style="margin-top:10px">
+      <b style="font-size:.9rem">Hinweise unklar? Verständliche Hinweise von Claude schreiben lassen</b>
+      <p class="hint">Die App kann Hinweise nur aus Sätzen des Arbeitsblatts ausschneiden. Klarer werden sie, wenn Claude sie für deine Begriffe in einfachem Deutsch formuliert: Prompt kopieren, in Claude einfügen, die Antwort ins Feld „Begriffe“ einfügen.</p>
+      <button type="button" class="secondary" style="margin-top:4px" onclick="copyClues()">Prompt für Hinweise kopieren</button> <span id="clueMsg" class="hint"></span>
+    </div>
   </div>
 
   <div class="upload-box">
@@ -537,8 +543,8 @@ function renderCrossword(out,title,showHeader,showWordbank,lernfeld,lftitel,modu
   const down=placements.filter(p=>p.dir==='V').sort((a,b)=>a.number-b.number);
   const header=showHeader?buildKlaKopf(lernfeld,lftitel,modul):'';
   const clueHtml=`<div class="clues">
-    <div><h3>Waagerecht</h3><ol>${across.map(p=>`<li value="${p.number}">${p.clue}</li>`).join('')}</ol></div>
-    <div><h3>Senkrecht</h3><ol>${down.map(p=>`<li value="${p.number}">${p.clue}</li>`).join('')}</ol></div>
+    <div><h3>Waagerecht</h3><ol>${across.map(p=>`<li value="${p.number}">${esc(p.clue)} <span class="len">(${p.word.length})</span></li>`).join('')}</ol></div>
+    <div><h3>Senkrecht</h3><ol>${down.map(p=>`<li value="${p.number}">${esc(p.clue)} <span class="len">(${p.word.length})</span></li>`).join('')}</ol></div>
   </div>`;
   const failedHtml = (placements.failed&&placements.failed.length)?`<p class="warn no-print">${placements.failed.length} Begriff(e) konnten nicht eingebaut werden (${placements.failed.map(f=>f.word).join(', ')}). Erzeuge das Rätsel noch einmal oder nimm weniger/kürzere Begriffe.</p>`:'';
   const wordbankHtml = showWordbank
@@ -630,22 +636,35 @@ function findCandidates(text){
   // Score: Wortspeicher > Häufigkeit > Länge
   list.sort((a,b)=>(b.prio-a.prio)||(b.count-a.count)||(b.word.length-a.word.length));
   const top=list.slice(0,30);
-  const flat=text.replace(/[☐☑•·□]/g,'|').replace(/\s+/g,' ');
+  const sents=text.replace(/[☐☑•·□]/g,'|').replace(/\s+/g,' ').split(/(?<=[.!?])\s+|\s*\|\s*/).map(s=>s.trim()).filter(s=>s.length>20);
+  const TASK=/\b(nenne|nennen|erkläre|erklären|beschreibe|beschreiben|begründe|begründen|erläutere|erläutern|ordne|kreuze|notiere|schreibe|trage|lies|vergleiche|vergleichen|berechne|ergänze|unterscheiden|überlege|diskutiere|bearbeite|markiere|zeichne)\b|\?\s*$|Aufgabe\s*\d|Wortspeicher|Lehrbuch|Arbeitsheft|\bDS\b|\bName\b|Modul\s*\d|Lernfeld|\d\s*\/\s*\d|\bS\.\s*\d|Punkte/i;
   top.forEach(c=>{
-    const re=new RegExp('(^|[^A-Za-zÄÖÜäöüß])'+c.word+'(?![A-Za-zÄÖÜäöüß])','g');
-    let m, bestClue='', bestScore=-1;
-    while((m=re.exec(flat))){
-      const at=m.index+m[1].length;
-      const before=flat.slice(Math.max(0,at-90),at).split(/[|.!?:]/).pop().trim().split(' ').filter(Boolean).slice(-7).join(' ');
-      const after=flat.slice(at+c.word.length,at+c.word.length+90).split(/[|.!?:]/)[0].trim().split(' ').filter(Boolean).slice(0,7).join(' ');
-      const clue=(before+' _____ '+after).replace(/\s+/g,' ').trim();
-      const ws=clue.split(' ');
-      let score=ws.filter(w=>/^[a-zäöüß]{3,}/.test(w)).length;   // kleingeschriebene Wörter = echter Satz
-      if(/\d\s*\/\s*\d|\bName\b|\bDS\b|Modul|Lernfeld|Wortspeicher|Seite|S\.\s*\d/.test(clue)) score-=10;
-      if(ws.length<4) score-=5;
-      if(score>bestScore){ bestScore=score; bestClue=clue; }
+    const re=new RegExp('(^|[^A-Za-zÄÖÜäöüß])'+c.word+'(?![A-Za-zÄÖÜäöüß])');
+    let best='', bestScore=-99;
+    sents.forEach(s=>{
+      if(!re.test(s)) return;
+      const ws=s.split(' '); let score=0;
+      const low=ws.filter(w=>/^[a-zäöüß]{3,}/.test(w)).length;
+      score+=Math.min(low,12);
+      if(ws.length<6) score-=8;
+      if(ws.length>22) score-=6;
+      if(TASK.test(s)) score-=20;                          // Arbeitsaufträge sind keine Erklärungen
+      if(/[A-ZÄÖÜ][a-zäöüß]+\s+[A-ZÄÖÜ][a-zäöüß]+\s+[A-ZÄÖÜ][a-zäöüß]+\s+[A-ZÄÖÜ][a-zäöüß]+/.test(s)) score-=8;   // Wortlisten
+      const big=ws.slice(1).filter(w=>/^[A-ZÄÖÜ][a-zäöüß]{2,}/.test(w)).length;
+      if(ws.length>3 && big/(ws.length-1)>0.4) score-=10;
+      if(score>bestScore){ bestScore=score; best=s; }
+    });
+    if(bestScore>=5){
+      let clue=best.replace(new RegExp('(^|[^A-Za-zÄÖÜäöüß])'+c.word+'(?![A-Za-zÄÖÜäöüß])','g'),'$1_____');
+      if(clue.length>150){ const k=clue.indexOf('_____'); const a=Math.max(0,k-60); let seg=clue.slice(a,a+150); if(a) seg=seg.replace(/^\S*\s/,''); seg=seg.replace(/\s\S*$/,''); clue=(a?'… ':'')+seg+' …'; }
+      clue=clue.replace(/^\s*\d{1,3}\)\s*/,'').replace(/^\s*[-–]\s*/,'')
+               .replace(/\s*\((?!\s*_____)[A-ZÄÖÜ][A-Za-zÄÖÜäöüß-]{4,}\)/g,'')   // Klammer mit Fachwort würde die Lösung verraten
+               .replace(/\(\s*_____\s*\)/g,'_____').replace(/\s+/g,' ').trim();
+      c.clue=clue;
+    } else {
+      c.clue='Fachbegriff aus dem Arbeitsblatt, beginnt mit '+c.word[0].toUpperCase()+' (Hinweis bitte ergänzen)';
+      c.weak=true;
     }
-    c.clue = bestScore>=3 ? bestClue : `Fachbegriff mit ${c.word.length} Buchstaben, beginnt mit ${c.word[0].toUpperCase()} (Hinweis ergänzen)`;
   });
   return top;
 }
@@ -719,18 +738,32 @@ function toggleCands(v){document.querySelectorAll('#candList input').forEach(cb=
 function applyCands(){
   const sel=[...document.querySelectorAll('#candList input:checked')].map(cb=>CANDS[+cb.dataset.i]);
   const mode=document.getElementById('mode').value;
+  const weak=sel.filter(c=>c.weak).length;
+  if(mode==='crossword'&&sel.length){
+    document.getElementById('fileStatus').innerHTML=weak
+      ? '<span class="warn">'+weak+' von '+sel.length+' Hinweisen konnten nicht aus dem Arbeitsblatt gebildet werden (Platzhalter). Bitte im Feld „Begriffe“ ergänzen – oder unten „Prompt für Hinweise kopieren“ nutzen, dann schreibt Claude klare Erklärungen.</span>'
+      : '✔ Alle Hinweise aus dem Arbeitsblatt gebildet – bitte kurz prüfen.';
+  }
   document.getElementById('wordsInput').value=sel.map(c=>mode==='crossword'?c.word.toUpperCase()+';'+(c.clue||'Hinweis ergänzen'):c.word.toUpperCase()).join('\n');
 }
 
 function updatePrompt(){
   const mode=document.getElementById('mode').value;
   const fmt = mode==='crossword'
-    ? 'Gib mir 12–15 Fachbegriffe, jeweils eine Zeile im Format BEGRIFF;Hinweistext (Hinweis = kurze Erklärung in einfachem Deutsch, ohne den Begriff selbst zu nennen). Keine Umlaute ersetzen, kein Nummerieren.'
+    ? 'Gib mir 12–15 Fachbegriffe, jeweils eine Zeile im Format BEGRIFF;Hinweistext (Hinweis = EIN kurzer, klarer Satz in einfachem Deutsch (A2/B1), der erklärt, was der Begriff bedeutet oder wofür er gebraucht wird, mit Beispiel aus dem Verkaufsalltag; den Begriff oder Teile davon nicht nennen; keine Fragen). Keine Umlaute ersetzen, kein Nummerieren.'
     : 'Gib mir 12–15 Fachbegriffe, einen Begriff pro Zeile, einzelne Wörter (keine Sätze, keine Nummerierung), maximal 15 Buchstaben.';
   const base='Du hilfst einer Berufsschullehrerin (Verkäufer/-innen, Einzelhandel). Ich lade ein Arbeitsblatt hoch. Suche daraus die wichtigsten Fachbegriffe für ein '+(mode==='crossword'?'Kreuzworträtsel':'Buchstabensalat')+'. Die Klasse ist eher leistungsschwach, viele Schüler lernen Deutsch als Zweitsprache: bevorzuge zentrale, gut verständliche Nomen aus dem Arbeitsblatt. '+fmt+' Gib NUR die Liste(n) ohne weitere Erklärungen zurück, damit ich sie direkt in den Rätsel-Generator kopieren kann.';
   const langs=selectedLangs();
   const tp = langs.length ? ' Übersetze danach jeden Begriff zusätzlich in: '+langs.map(l=>LANGFULL[l]+' ('+l+')').join(', ')+'. Gib die Übersetzungen als zweiten Block unter der Überschrift ÜBERSETZUNGEN zurück, eine Zeile pro Begriff im Format BEGRIFF|'+langs.map(l=>l+'=Übersetzung').join('|')+' (nur das Fachwort, einfach und alltagsnah, Begriff in Großbuchstaben, keine Nummerierung). Der Block gehört später in das Feld „Übersetzungen“, der erste Block ins Feld „Begriffe“.' : '';
   document.getElementById('promptBox').value = base + tp + (SRC_TEXT?'\n\nText des Arbeitsblatts:\n'+SRC_TEXT.slice(0,6000):'\n\n[Arbeitsblatt hier anhängen oder den Text einfügen]');
+}
+function copyClues(){
+  const words=document.getElementById('wordsInput').value.split('\n').map(l=>l.split(';')[0].trim()).filter(Boolean);
+  const msg=document.getElementById('clueMsg');
+  if(!words.length){msg.textContent='Erst Begriffe eingeben oder aus dem Arbeitsblatt übernehmen.';return;}
+  const pr='Schreibe für ein Kreuzworträtsel zu jedem dieser Begriffe einen Hinweis: '+words.join(', ')+'.\n\nRegeln: Die Schüler sind Berufsschüler (Verkäufer/-innen, Einzelhandel), eher leistungsschwach, viele lernen Deutsch als Zweitsprache. Schreibe jeden Hinweis als EINEN kurzen, klaren Satz in einfachem Deutsch (Niveau A2/B1), der erklärt, was der Begriff bedeutet oder wofür er gebraucht wird – wie eine Alltags-Erklärung, nicht wie ein Lehrbuchsatz. Nenne den Begriff oder Teile davon nicht im Hinweis. Wenn möglich, gib ein kleines Beispiel aus dem Verkaufsalltag. Keine Fragen, keine Rätsel-Anspielungen.'+(SRC_TEXT?'\n\nNutze den Zusammenhang aus diesem Arbeitsblatt:\n'+SRC_TEXT.slice(0,5000):'')+'\n\nAusgabe: nur die Liste, eine Zeile pro Begriff, genau im Format BEGRIFF;Hinweis (Begriff in Großbuchstaben, Umlaute beibehalten, keine Nummerierung).';
+  const done=()=>{msg.textContent='✔ Kopiert';};
+  if(navigator.clipboard) navigator.clipboard.writeText(pr).then(done,()=>{msg.textContent='Kopieren nicht möglich – bitte Browser-Berechtigung prüfen.';}); else msg.textContent='Kopieren nicht möglich.';
 }
 function copyPrompt(){
   const ta=document.getElementById('promptBox'); ta.select();
