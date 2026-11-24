@@ -29,17 +29,24 @@
   .sheet-head{display:flex;justify-content:space-between;font-size:.85rem;color:#374151;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:8px;}
   table.grid{border-collapse:collapse;margin:0 auto 18px;}
   table.grid td{width:28px;height:28px;border:1px solid #9ca3af;text-align:center;vertical-align:middle;font-weight:700;font-size:.95rem;position:relative;}
-  table.grid td.black{background:#111827;border-color:#111827;}
+  table.grid td.black{background:#111827;border-color:#111827;box-shadow:0 0 0 1px #111827;}
   table.grid td .num{position:absolute;top:1px;left:2px;font-size:.5rem;font-weight:400;}
   .kla-kopf{display:flex;border:1px solid #111827;margin-bottom:16px;font-family:Arial,sans-serif;color:#111827;}
-.kla-kopf .kopf-name{flex:0 0 26%;padding:10px 12px;border-right:1px solid #111827;font-size:.85rem;line-height:2.1;}
-.kla-kopf .kopf-title{flex:1;padding:10px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;}
+.kla-kopf .kopf-name{flex:0 0 26%;padding:8px 12px 6px;border-right:1px solid #111827;font-size:.85rem;display:flex;flex-direction:column;justify-content:flex-end;}
+.kopf-name .ico{font-size:1.2rem;line-height:1;margin-bottom:auto;}
+.kopf-name .nl{border-bottom:1px solid #111827;padding:12px 0 2px;margin-bottom:2px;}
+.kopf-name .nl:last-child{margin-bottom:0;}
+.kla-kopf .kopf-title{flex:1;padding:10px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;border-right:1px solid #111827;}
+.kla-kopf .kopf-title.last{border-right:none;}
 .kopf-title .lf{font-weight:700;font-size:1rem;}
 .kopf-title .lftxt{font-size:.85rem;padding-bottom:6px;margin-bottom:6px;}
 .kopf-title .mod{font-weight:700;font-size:.95rem;}
 .kopf-title .lftxt.line{border-bottom:1px solid #111827;}
 .kla-kopf .kopf-logo{flex:0 0 120px;display:flex;align-items:center;justify-content:center;padding:4px;}
 .kla-kopf .kopf-logo img{width:100px;height:auto;}
+.wbbox{border:1.2px solid #111827;border-radius:4px;padding:6px 10px 4px;margin-top:10px;font-size:.78rem;}
+.wbbox .wbh{font-weight:700;font-size:.78rem;margin:0 0 4px;}
+.wbbox .wordlist{font-size:.78rem;}
 .wb{display:block;margin-bottom:6px;break-inside:avoid;}
 .wb b{font-weight:600;}
 .wb small{display:block;font-size:.74rem;color:#374151;line-height:1.35;}
@@ -64,11 +71,20 @@ details.prompt textarea{min-height:200px;font-size:.8rem;margin-top:8px;}
   .warn{color:#b45309;font-size:.85rem;margin-top:8px;}
   .no-print{}
   @media print{
-    .kla-kopf img{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     body{background:#fff;padding:0;}
     .no-print{display:none !important;}
-    .sheet{border:none;border-radius:0;page-break-after:always;padding:0;}
-    table.grid td{width:24px;height:24px;}
+    .sheet{border:none;border-radius:0;padding:0;margin:0;page-break-after:always;break-after:page;}
+    .sheet:last-of-type{page-break-after:auto;break-after:auto;}
+    body.printing-puzzle .sheet.sol{display:none !important;}
+    body.printing-solution .sheet.puz{display:none !important;}
+    body.printing-puzzle .sheet.puz, body.printing-solution .sheet.sol{page-break-after:auto;break-after:auto;}
+    table.grid{margin:0 auto 12px;}
+    table.grid td{width:24px;height:24px;font-size:.85rem;}
+    table.grid.xw td{width:30px;height:30px;font-size:1rem;}
+    table.grid.xw td .num{font-size:.55rem;}
+    .clues{font-size:.82rem;}
+    .sheet h2{font-size:1.05rem;}
   }
 </style>
 </head>
@@ -124,9 +140,6 @@ details.prompt textarea{min-height:200px;font-size:.8rem;margin-top:8px;}
 KUNDENBERATUNG
 WARENPRAESENTATION
 REGAL"></textarea>
-
-  <label>Titel über dem Rätsel (optional)</label>
-  <input type="text" id="title" placeholder="wird beim Hochladen eines Arbeitsblatts automatisch eingetragen">
 
   <label>Lernfeld</label>
   <input type="text" id="lernfeld" placeholder="Lernfeld 4">
@@ -199,7 +212,7 @@ function printPart(id){
 
 function generate(){
   const mode=document.getElementById('mode').value;
-  const title=document.getElementById('title').value.trim();
+  const title='';
   const showHeader=document.getElementById('showHeader').checked;
   const raw=document.getElementById('wordsInput').value.split('\n').map(l=>l.trim()).filter(Boolean);
   const out=document.getElementById('output');
@@ -254,7 +267,7 @@ function wordbankBlock(words,headline){
     return `<span class="wb"><b>${esc(w)}</b>${lines.length?`<small>${lines.join(' · ')}</small>`:''}</span>`;
   }).join('');
   const up=document.getElementById('wbUpside').checked;
-  return `<div class="${up?'wb-upside':''}"><p><strong>${headline}</strong></p><div class="wordlist">${items}</div></div>`;
+  return `<div class="wbbox ${up?'wb-upside':''}"><p class="wbh">${headline}</p><div class="wordlist">${items}</div></div>`;
 }
 function selectedLangs(){return [...document.querySelectorAll('.lg:checked')].map(c=>c.value);}
 function setLangs(arr){document.querySelectorAll('.lg').forEach(c=>c.checked=arr.includes(c.value));updatePrompt();}
@@ -288,9 +301,15 @@ async function autoTranslate(){
   updatePrompt();
 }
 
+const FACH_ICON={1:'🏪',2:'💬',3:'🧾',4:'🪟',5:'📣',6:'🚚',7:'📦',8:'📒',9:'🏷️',10:'🤝'};
+function fachIcon(lf){
+  const m=(lf||'').match(/Lernfeld\s*(\d+)/i); if(m) return FACH_ICON[+m[1]]||'';
+  if(/Wirtschafts/i.test(lf)) return '⚖️'; if(/Wahlpflicht/i.test(lf)) return '🧩'; if(/Englisch/i.test(lf)) return '🌍';
+  return '';
+}
 function buildKlaKopf(lernfeld,lftitel,modul){
   return `<div class="kla-kopf">
-    <div class="kopf-name">Name:<br>Datum:</div>
+    <div class="kopf-name"><div class="ico">${fachIcon(lernfeld)}</div><div class="nl">Name:</div><div class="nl">Datum:</div></div>
     <div class="kopf-title">${lernfeld?`<div class="lf">${esc(lernfeld)}</div>`:''}${lftitel?`<div class="lftxt line">${esc(lftitel)}</div>`:''}${modul?`<div class="mod">${esc(modul)}</div>`:''}</div>
     <div class="kopf-logo"><img src="${KLA_LOGO}" alt="KLA Verkäuferinnen und Verkäufer"></div>
   </div>`;
@@ -349,7 +368,15 @@ function renderWordSearch(out,title,showHeader,showWordbank,lernfeld,lftitel,mod
       }
       html+='</tr>';
     }
-    return html+'</table>';
+    html+='</table>';
+    if(!solution) return html;
+    // Striche durch die gefundenen Wörter (Zellmitte erster -> letzter Buchstabe)
+    const LINE=["#e11d48","#2563eb","#16a34a","#d97706","#9333ea","#0d9488","#db2777","#4f46e5"];
+    const lines=placed.map((w,i)=>{
+      const a=w.cells[0], b=w.cells[w.cells.length-1];
+      return `<line x1="${a[1]+.5}" y1="${a[0]+.5}" x2="${b[1]+.5}" y2="${b[0]+.5}" stroke="${LINE[i%LINE.length]}" stroke-width=".62" stroke-linecap="round" opacity=".55"/>`;
+    }).join('');
+    return `<div style="position:relative;display:table;margin:0 auto 18px">${html}<svg viewBox="0 0 ${size} ${size}" preserveAspectRatio="none" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none">${lines}</svg></div>`;
   };
   const header=showHeader?buildKlaKopf(lernfeld,lftitel,modul):'';
   const wordblock = showWordbank
@@ -362,13 +389,13 @@ function renderWordSearch(out,title,showHeader,showWordbank,lernfeld,lftitel,mod
       <button onclick="printPart('puzzle')">Rätsel drucken</button>
       <button class="secondary" onclick="printPart('solution')">Lösung drucken</button>
     </div>
-    <div class="sheet" id="puzzle-sheet">
-      <h2>${title||'Buchstabensalat'}</h2>${header}
+    <div class="sheet puz" id="puzzle-sheet">
+      ${header}
       ${buildTable(false)}
       ${wordblock}${warn}
     </div>
-    <div class="sheet" id="solution-sheet">
-      <h2>${title||'Buchstabensalat'} – Lösung</h2>
+    <div class="sheet sol" id="solution-sheet">
+      <h2>Lösung</h2>${header}
       ${buildTable(true)}
     </div>`;
 }
@@ -454,7 +481,7 @@ function renderCrossword(out,title,showHeader,showWordbank,lernfeld,lftitel,modu
     }
   });
   const buildTable=(solution)=>{
-    let html='<table class="grid">';
+    let html='<table class="grid xw">';
     for(let r=0;r<grid.length;r++){ html+='<tr>';
       for(let c=0;c<grid[0].length;c++){
         const letter=grid[r][c];
@@ -483,15 +510,15 @@ function renderCrossword(out,title,showHeader,showWordbank,lernfeld,lftitel,modu
       <button onclick="printPart('puzzle')">Rätsel drucken</button>
       <button class="secondary" onclick="printPart('solution')">Lösung drucken</button>
     </div>
-    <div class="sheet">
-      <h2>${title||'Kreuzworträtsel'}</h2>${header}
+    <div class="sheet puz">
+      ${header}
       ${buildTable(false)}
       ${wordbankHtml}
       ${clueHtml}
       ${failedHtml}
     </div>
-    <div class="sheet">
-      <h2>${title||'Kreuzworträtsel'} – Lösung</h2>
+    <div class="sheet sol">
+      <h2>Lösung</h2>${header}
       ${buildTable(true)}
     </div>`;
 }
