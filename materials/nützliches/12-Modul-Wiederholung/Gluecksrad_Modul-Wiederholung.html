@@ -58,6 +58,7 @@ ol.ab{font-size:16px;line-height:1.45;padding-left:22px;margin:6px 0}
 .mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:2px 12px;margin-top:6px}
 .mods label{display:flex;gap:6px;align-items:center;font-size:14px;padding:2px 0;cursor:pointer}
 .mods .cnt{margin-left:auto;font-size:12px;color:var(--mut)}
+.mods .dn{font-size:12px;color:var(--mut);display:flex;gap:3px;align-items:center;white-space:nowrap;border-left:1px solid #d8dde6;padding-left:6px}
 .mini{font-size:12px;padding:4px 8px;border-radius:8px;border:1px solid #ccd;background:#fff;cursor:pointer}
 .small{font-size:13px;color:var(--mut)}
 /* Spiele */
@@ -127,7 +128,9 @@ function load(){ try{ const s = JSON.parse(localStorage.getItem(SKEY)); if(s && 
 let ST = load();
 function resDelay(){ const v=Number(ST.delay); return v>=0?v:2; }
 function save(){ try{ localStorage.setItem(SKEY, JSON.stringify(ST)); }catch(e){} }
+save(); /* Klassen sofort speichern, damit die Übersicht sie findet */
 const P = () => ST.profile[ST.cur];
+const isDone = m => (P().done||[]).includes(key(m));
 
 /* ---------- Audio ---------- */
 let AC = null, master = null;
@@ -177,10 +180,10 @@ function draw(){ segs=active(); const n=segs.length; ctx.clearRect(0,0,2*R,2*R);
   if(!n){ ctx.fillStyle="#fff"; ctx.font="bold 22px sans-serif"; ctx.textAlign="center"; ctx.fillText("Keine Module gewählt – ⚙︎ Module",0,-R*.5); ctx.restore(); return; }
   const a=2*Math.PI/n, rr=R-12;
   segs.forEach((m,i)=>{ const s=-Math.PI/2+i*a+rot; ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,rr,s,s+a); ctx.closePath();
-    ctx.fillStyle=shade(COL(m.area), i%2?0.18:0); ctx.fill(); ctx.strokeStyle="#ffffffaa"; ctx.lineWidth=n>40?1:2; ctx.stroke();
+    ctx.fillStyle=isDone(m)?shade("#4b5370", i%2?0.08:0):shade(COL(m.area), i%2?0.18:0); ctx.fill(); ctx.strokeStyle="#ffffffaa"; ctx.lineWidth=n>40?1:2; ctx.stroke();
     const mid=s+a/2, flip=Math.cos(mid)<0; ctx.save(); ctx.rotate(flip?mid+Math.PI:mid); ctx.textAlign=flip?"left":"right"; ctx.textBaseline="middle"; ctx.fillStyle="#fff"; const X=flip?-(rr-12):rr-12;
     const fs=Math.max(9, Math.min(R*.075, a*rr*.55)); ctx.font=`800 ${fs}px sans-serif`;
-    let label = `${m.kurz} ${m.lab}`;
+    let label = `${isDone(m)?"✓ ":""}${m.kurz} ${m.lab}`;
     if(ST.names!==false){ const lim=n<=18?20:14; const t=m.titel.length>lim?m.titel.slice(0,lim-1)+"…":m.titel; const f2=n<=18?fs:Math.min(fs,a*rr*.42); ctx.font=`800 ${f2}px sans-serif`; ctx.fillText(label, X, -f2*.45); ctx.font=`600 ${f2*.72}px sans-serif`; ctx.fillText(t, X, f2*.5); }
     else ctx.fillText(label, X, 0);
     ctx.restore(); });
@@ -191,10 +194,11 @@ function draw(){ segs=active(); const n=segs.length; ctx.clearRect(0,0,2*R,2*R);
   $("#hub").style.boxShadow = secret ? "0 6px 18px #0007, inset 0 -4px 8px #0003, 0 0 0 2px #f5a30066" : "";
 }
 function idxAt(r){ const n=segs.length, a=2*Math.PI/n; let th=((-r)%(2*Math.PI)+2*Math.PI)%(2*Math.PI); return Math.floor(th/a)%n; }
-function pickRandom(){ const p=P(); const n=segs.length; let w=segs.map(m=>{ const c=(p.hist[key(m)]||{}).n||0; let x=p.rare?1/Math.pow(1+c,1.6):1; if(n>1 && p.last===key(m)) x*=0.05; return x; });
+function pickRandom(){ const p=P(); const n=segs.length; let w=segs.map(m=>{ if(isDone(m)) return 0; const c=(p.hist[key(m)]||{}).n||0; let x=p.rare?1/Math.pow(1+c,1.6):1; if(n>1 && p.last===key(m)) x*=0.05; return x; });
   const sum=w.reduce((a,b)=>a+b,0); let r=Math.random()*sum; for(let i=0;i<n;i++){ r-=w[i]; if(r<=0) return i; } return n-1; }
-function spin(){ if(spinning) return; segs=active(); const n=segs.length; if(!n){ openSet(); return; } ac();
-  let t = secret ? segs.findIndex(m=>key(m)===secret) : -1; if(t<0) t=pickRandom(); secret=null;
+function spin(){ if(spinning) return; segs=active(); const n=segs.length; if(!n){ openSet(); return; }
+  if(!segs.some(m=>!isDone(m))){ $("#hint").textContent="Alle Module dieser Klasse sind schon gespielt – in der Übersicht oder unter ⚙︎ Module zurücksetzen."; return; } ac();
+  let t = secret ? segs.findIndex(m=>key(m)===secret&&!isDone(m)) : -1; if(t<0) t=pickRandom(); secret=null;
   const a=2*Math.PI/n, f=.2+Math.random()*.6; const turns=6+Math.floor(Math.random()*3);
   const cur=rot; let target=-(t+f)*a; while(target < cur + turns*2*Math.PI) target += 2*Math.PI;
   const dur=6200+Math.random()*1200, t0=performance.now(); spinning=true; let lastIdx=idxAt(rot); suspenseStart(dur/1000);
@@ -209,11 +213,11 @@ function land(m){ const p=P(); const k=key(m); const h=p.hist[k]||{n:0}; h.n++; 
 /* geheimes Ziel: Segment antippen oder Ziffern tippen (z. B. 2 0 7 = LF 2 Modul 7) */
 cv.addEventListener("pointerdown", ev=>{ if(spinning) return; const dx=ev.clientX-CX, dy=ev.clientY-CY, d=Math.hypot(dx,dy); if(d<R*.2||d>R) return;
   segs=active(); if(!segs.length) return; const n=segs.length, a=2*Math.PI/n; let th=Math.atan2(dy,dx)+Math.PI/2-rot; th=((th%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
-  const k=key(segs[Math.floor(th/a)%n]); secret = secret===k ? null : k; draw(); });
+  if(isDone(segs[Math.floor(th/a)%n])) return; const k=key(segs[Math.floor(th/a)%n]); secret = secret===k ? null : k; draw(); });
 let kb="", kbT=null;
 addEventListener("keydown", ev=>{ if($(".modal.on")) { if(ev.key==="Escape") closeAll(); return; }
   if(ev.key===" "||ev.key==="Enter"){ ev.preventDefault(); spin(); return; }
-  const kk=ev.key.toLowerCase(); if(/^[0-9wm]$/.test(kk)){ kb+=kk; clearTimeout(kbT); kbT=setTimeout(()=>{ let ar, nr; if(/^[wm]/.test(kb)){ ar=kb[0].toUpperCase(); nr=+kb.slice(1); } else { ar=kb[0]; nr=+kb.slice(1); } const k=ar+"."+nr; if(byKey[k] && P().sel.includes(k)) secret=k; kb=""; draw(); },1200); }
+  const kk=ev.key.toLowerCase(); if(/^[0-9wm]$/.test(kk)){ kb+=kk; clearTimeout(kbT); kbT=setTimeout(()=>{ let ar, nr; if(/^[wm]/.test(kb)){ ar=kb[0].toUpperCase(); nr=+kb.slice(1); } else { ar=kb[0]; nr=+kb.slice(1); } const k=ar+"."+nr; if(byKey[k] && P().sel.includes(k) && !isDone(byKey[k])) secret=k; kb=""; draw(); },1200); }
   if(ev.key==="Escape"){ secret=null; draw(); } });
 $("#hub").onclick=spin;
 
@@ -258,10 +262,10 @@ function showResult(m){ const col=COL(m.area); const ls=plangs(m); let lang=ST.l
 /* ---------- Einstellungen ---------- */
 function openSet(){ const p=P(); const sel=new Set(p.sel);
   let h=`<div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1">⚙︎ Module für „${esc(ST.cur)}“</h2><button class="btn b2" onclick="closeAll()">✕</button></div>
-  <p class="small">Haken = Modul ist im Rad. Jede Woche einfach weitere Module dazunehmen. Die Zahl rechts zeigt, wie oft das Modul schon gezogen wurde.</p>
+  <p class="small">Haken = Modul ist im Rad. Jede Woche einfach weitere Module dazunehmen. Die Zahl rechts zeigt, wie oft das Modul schon gezogen wurde. „gespielt“ = bleibt grau auf dem Rad und wird nicht mehr gezogen (auch in der Übersicht einstellbar).</p>
   <div class="btns"><button class="mini" id="pNew">+ neue Klasse</button><button class="mini" id="pRen">Klasse umbenennen</button><button class="mini" id="pDel">Klasse löschen</button>
   <label class="small" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="rare" ${p.rare?"checked":""}> oft gezogene Module seltener ziehen</label>
-  <button class="mini" id="hReset">Zähler zurücksetzen</button></div>`;
+  <button class="mini" id="hReset">Zähler zurücksetzen</button><button class="mini" id="dReset">Gespielt zurücksetzen</button></div>`;
   h+=`<div class="lfbox"><h3>⏱ Wartezeit bis das Material erscheint</h3><label class="small" style="display:flex;gap:8px;align-items:center"><input type="number" id="resDelay" min="0" max="30" step="0.5" value="${resDelay()}" style="width:70px;font-size:16px"> Sekunden nach dem Einrasten (0 = sofort)</label></div>`;
   h+=`<div class="lfbox"><h3>🏷 Beschriftung auf dem Rad</h3><label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="names" ${ST.names!==false?"checked":""}> Modulname auf den Feldern anzeigen (z. B. „LF 1 M 5 Preisbildung auf dem Markt“)</label></div>`;
   h+=`<div class="lfbox"><h3>🌍 Sprachen dieser Klasse</h3><div class="mods">${LANG.slice(1).map(([l,n])=>`<label><input type="checkbox" data-lang="${l}" ${(p.langs||[]).includes(l)?"checked":""}> ${n}</label>`).join("")}</div></div>`;
@@ -269,11 +273,11 @@ function openSet(){ const p=P(); const sel=new Set(p.sel);
     h+=`<div class="lfbox"><h3><span class="dot" style="background:${A.col}"></span>${esc(A.ordner)}
       <button class="mini" data-all="${lf}">alle</button><button class="mini" data-none="${lf}">keine</button>
       <span class="small">bis Modul</span><select class="mini" data-upto="${lf}"><option value="">–</option>${ms.map(m=>`<option value="${m.nr}">${m.lab}</option>`).join("")}</select></h3>
-      <div class="mods">${ms.map(m=>{const k=key(m),c=(p.hist[k]||{}).n||0;return `<label><input type="checkbox" data-k="${k}" ${sel.has(k)?"checked":""}> ${esc(m.lab)} ${esc(m.titel)} <span title="${esc(m.typname)}">${m.icon}</span><span class="cnt">${c?c+"×":""}</span></label>`}).join("")}</div></div>`; }
+      <div class="mods">${ms.map(m=>{const k=key(m),c=(p.hist[k]||{}).n||0;return `<label><input type="checkbox" data-k="${k}" ${sel.has(k)?"checked":""}> ${esc(m.lab)} ${esc(m.titel)} <span title="${esc(m.typname)}">${m.icon}</span><span class="cnt">${c?c+"×":""}</span><span class="dn" onclick="event.stopPropagation()"><input type="checkbox" data-d="${k}" ${(p.done||[]).includes(k)?"checked":""}> gespielt</span></label>`}).join("")}</div></div>`; }
   h+=`<div class="lfbox"><h3>🤫 Nächstes Ziel heimlich festlegen</h3><p class="small">Drei Wege – die Klasse sieht nichts davon:<br>
    1. Vor dem Drehen ein Feld auf dem Rad antippen (nochmal antippen = aufheben). Der Mittelknopf bekommt einen hauchdünnen Rand, solange ein Ziel gesetzt ist.<br>
    2. Auf der Tastatur tippen: <b>2 7</b> = LF 2 Modul 7 · <b>w 3</b> = WiSo M3 · <b>w 1 3</b> = WiSo C1 · <b>m 5</b> = WPF M5 (Esc = aufheben).<br>
-   3. Hier auswählen:</p><select id="secretSel" class="mini" style="font-size:15px"><option value="">– Zufall –</option>${active().map(m=>`<option value="${key(m)}" ${secret===key(m)?"selected":""}>${esc(m.kurz)} ${esc(m.lab)} – ${esc(m.titel)}</option>`).join("")}</select></div>
+   3. Hier auswählen:</p><select id="secretSel" class="mini" style="font-size:15px"><option value="">– Zufall –</option>${active().filter(m=>!isDone(m)).map(m=>`<option value="${key(m)}" ${secret===key(m)?"selected":""}>${esc(m.kurz)} ${esc(m.lab)} – ${esc(m.titel)}</option>`).join("")}</select></div>
    <div class="btns" style="justify-content:flex-end"><button class="btn b1" onclick="closeAll()">Fertig</button></div>`;
   $("#setBody").innerHTML=h;
   const upd=()=>{ p.sel=[...document.querySelectorAll("#setBody input[data-k]")].filter(i=>i.checked).map(i=>i.dataset.k); save(); draw(); };
@@ -281,6 +285,8 @@ function openSet(){ const p=P(); const sel=new Set(p.sel);
   document.querySelectorAll("[data-all]").forEach(b=>b.onclick=()=>{ document.querySelectorAll(`input[data-k^="${b.dataset.all}."]`).forEach(i=>i.checked=true); upd(); });
   document.querySelectorAll("[data-none]").forEach(b=>b.onclick=()=>{ document.querySelectorAll(`input[data-k^="${b.dataset.none}."]`).forEach(i=>i.checked=false); upd(); });
   document.querySelectorAll("[data-upto]").forEach(s=>s.onchange=()=>{ const lf=s.dataset.upto, v=+s.value; if(!v) return; document.querySelectorAll(`input[data-k^="${lf}."]`).forEach(i=>i.checked=(+i.dataset.k.split(".")[1])<=v); upd(); });
+  document.querySelectorAll("#setBody input[data-d]").forEach(i=>i.onchange=()=>{ const q=new Set(p.done||[]); if(i.checked) q.add(i.dataset.d); else q.delete(i.dataset.d); p.done=[...q]; save(); draw(); });
+  $("#dReset").onclick=()=>{ if(confirm("„gespielt“ für diese Klasse zurücksetzen?")){ p.done=[]; save(); openSet(); draw(); } };
   document.querySelectorAll("#setBody input[data-lang]").forEach(i=>i.onchange=()=>{ p.langs=[...document.querySelectorAll("#setBody input[data-lang]")].filter(x=>x.checked).map(x=>x.dataset.lang); save(); });
   $("#resDelay").onchange=e=>{ let v=parseFloat(String(e.target.value).replace(",",".")); if(!(v>=0)) v=2; ST.delay=Math.min(30,v); e.target.value=ST.delay; save(); };
   $("#rare").onchange=e=>{ p.rare=e.target.checked; save(); };
@@ -292,6 +298,7 @@ function openSet(){ const p=P(); const sel=new Set(p.sel);
   $("#pDel").onclick=()=>{ if(Object.keys(ST.profile).length<2){ alert("Die letzte Klasse kann nicht gelöscht werden."); return; } if(!confirm(`„${ST.cur}“ löschen?`)) return; delete ST.profile[ST.cur]; ST.cur=Object.keys(ST.profile)[0]; save(); fillProfiles(); openSet(); draw(); };
   $("#set").classList.add("on"); }
 function fillProfiles(){ $("#profil").innerHTML=Object.keys(ST.profile).map(n=>`<option ${n===ST.cur?"selected":""}>${esc(n)}</option>`).join(""); }
+addEventListener("storage", e=>{ if(e.key===SKEY && !spinning){ ST=load(); fillProfiles(); draw(); } });
 $("#profil").onchange=e=>{ ST.cur=e.target.value; secret=null; save(); draw(); };
 $("#bSet").onclick=openSet;
 $("#bMute").onclick=()=>{ ST.mute=!ST.mute; save(); $("#bMute").textContent=ST.mute?"🔇":"🔊"; };
