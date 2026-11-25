@@ -207,7 +207,7 @@ function spin(){ if(spinning) return; segs=active(); const n=segs.length; if(!n)
     const id=idxAt(rot); if(id!==lastIdx){ tick(); lastIdx=id; } draw();
     if(x<1) requestAnimationFrame(step); else { spinning=false; if(susp) susp.stop(); fanfare(); confetti(); land(segs[t]); } }
   requestAnimationFrame(step); }
-function land(m){ const p=P(); const k=key(m); const h=p.hist[k]||{n:0}; h.n++; h.t=Date.now(); p.hist[k]=h; p.last=k; save(); draw();
+function land(m){ const p=P(); const k=key(m); const h=p.hist[k]||{n:0}; h.n++; h.t=Date.now(); p.hist[k]=h; p.last=k; if(ST.auto!==false){ const q=new Set(p.done||[]); q.add(k); p.done=[...q]; } save(); draw();
   $("#hint").textContent="Leertaste oder Mitte antippen = drehen"; setTimeout(()=>showResult(m), resDelay()*1000); }
 
 /* geheimes Ziel: Segment antippen oder Ziffern tippen (z. B. 2 0 7 = LF 2 Modul 7) */
@@ -268,6 +268,7 @@ function openSet(){ const p=P(); const sel=new Set(p.sel);
   <button class="mini" id="hReset">Zähler zurücksetzen</button><button class="mini" id="dReset">Gespielt zurücksetzen</button></div>`;
   h+=`<div class="lfbox"><h3>⏱ Wartezeit bis das Material erscheint</h3><label class="small" style="display:flex;gap:8px;align-items:center"><input type="number" id="resDelay" min="0" max="30" step="0.5" value="${resDelay()}" style="width:70px;font-size:16px"> Sekunden nach dem Einrasten (0 = sofort)</label></div>`;
   h+=`<div class="lfbox"><h3>🏷 Beschriftung auf dem Rad</h3><label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="names" ${ST.names!==false?"checked":""}> Modulname auf den Feldern anzeigen (z. B. „LF 1 M 5 Preisbildung auf dem Markt“)</label></div>`;
+  h+=`<div class="lfbox"><h3>✓ Gespielt-Markierung</h3><label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="auto" ${ST.auto!==false?"checked":""}> Gezogenes Modul automatisch als „gespielt“ markieren (wird dann nicht mehr gezogen; Häkchen lässt sich jederzeit wieder entfernen)</label></div>`;
   h+=`<div class="lfbox"><h3>🌍 Sprachen dieser Klasse</h3><div class="mods">${LANG.slice(1).map(([l,n])=>`<label><input type="checkbox" data-lang="${l}" ${(p.langs||[]).includes(l)?"checked":""}> ${n}</label>`).join("")}</div></div>`;
   for(const A of DATA.areas){ const lf=A.id; const ms=MODS.filter(m=>m.area===lf);
     h+=`<div class="lfbox"><h3><span class="dot" style="background:${A.col}"></span>${esc(A.ordner)}
@@ -290,6 +291,7 @@ function openSet(){ const p=P(); const sel=new Set(p.sel);
   document.querySelectorAll("#setBody input[data-lang]").forEach(i=>i.onchange=()=>{ p.langs=[...document.querySelectorAll("#setBody input[data-lang]")].filter(x=>x.checked).map(x=>x.dataset.lang); save(); });
   $("#resDelay").onchange=e=>{ let v=parseFloat(String(e.target.value).replace(",",".")); if(!(v>=0)) v=2; ST.delay=Math.min(30,v); e.target.value=ST.delay; save(); };
   $("#rare").onchange=e=>{ p.rare=e.target.checked; save(); };
+  $("#auto").onchange=e=>{ ST.auto=e.target.checked; save(); };
   $("#names").onchange=e=>{ ST.names=e.target.checked; save(); draw(); };
   $("#hReset").onclick=()=>{ if(confirm("Zähler für diese Klasse zurücksetzen?")){ p.hist={}; p.last=null; save(); openSet(); } };
   $("#secretSel").onchange=e=>{ secret=e.target.value||null; draw(); };
