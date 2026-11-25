@@ -33,6 +33,13 @@ const COLORS = {
   teal: ['#e0f4f2', '#1f8a80'], pink: ['#fbe7f0', '#c2477f'], gray: ['#eeeeee', '#666666'],
 };
 
+/* nur leichte Tönung (mit Weiß gemischt), damit der Schwarzweiß-Druck hell und gut beschriftbar bleibt */
+function lightTint(hex) {
+  const n = parseInt(hex.slice(1), 16), k = 0.55;
+  const ch = v => Math.round(255 - (255 - v) * k).toString(16).padStart(2, '0');
+  return '#' + ch(n >> 16) + ch((n >> 8) & 255) + ch(n & 255);
+}
+
 function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 function parse(file) {
@@ -70,7 +77,7 @@ function textHtml(s) {
 }
 
 function cardHtml(c, langs, foot, col, row) {
-  const [bgc, ac] = COLORS[c.color] || COLORS.blue; const bg = '#ffffff';
+  const [bgc, ac] = COLORS[c.color] || COLORS.blue; const bg = lightTint(bgc);
   const tr = langs.map(l => `<div class="ln ${l}"><i style="background:${ac}">${LANGS[l].code}</i><p dir="${LANGS[l].dir}">${textHtml(c.t[l])}</p></div>`).join('');
   return `<div class="card" style="background:${bg};--ac:${ac};${col ? 'border-left:.3pt dashed #777;' : ''}${row ? 'border-top:.3pt dashed #777;' : ''}">
 <div class="in"><div class="em">${c.emoji}</div><div class="de">${textHtml(c.t.de)}</div><div class="tr">${tr}</div></div>
