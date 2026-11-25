@@ -12,6 +12,8 @@ const ZUSATZ = {
   LF2_M_2: { 'Gefühlskarten': 8 }, LF2_M_5: { 'Verhaltenskarten': 16, 'Motivkarten': 16 },
   LF2_M_6: { 'Themenkarten': 12 }, LF2_M_7: { 'Geheime Warenkarten': 12 }, LF2_M_8: { 'Begriffskarten': 14 },
   LF2_M_12: { 'Beschwerdekarten': 12 }, LF2_M_14: { 'Signalkarten': 12 },
+  LF5_M_6: { 'Streitkarten': 12 }, LF5_M_10: { 'Argumentkarten': 12 },
+  LF3_M_2: { 'Kundenkarten': 6 }, LF3_M_5: { 'Situationskarten': 8 }, WiSo1_M_6: { 'Aussagen': 8 },
 };
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 function sheets(id) {
@@ -30,7 +32,7 @@ async function main() {
   const browser = await chromium.launch(); const tmp = fs.mkdtempSync('/tmp/zk-');
   for (const id of ids) {
     const cfg = ZUSATZ[id]; if (!cfg) { console.error('unbekannt:', id); continue; }
-    const { out, sol } = sheets(id); const modNr = id.replace(/^LF(\d+)_M_(\d+)$/, 'LF $1 · Modul $2');
+    const { out, sol } = sheets(id); const modNr = id.replace(/^LF(\d+)_M_(\d+)$/, 'LF $1 · Modul $2').replace(/^WiSo(\d)_M_(\d+)$/, 'WiSo $1 · Modul $2');
     let body = '';
     for (const [name, from] of Object.entries(cfg)) {
       const neu = out[name].slice(from);
