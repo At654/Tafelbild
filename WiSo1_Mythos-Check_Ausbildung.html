@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mythos-Check Ausbildung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* VOICE: Ermittlungsakte für Azubis – direkt, spielerisch, klare Ansagen, kurze Sätze.
+   IDEA: eine Fallakte "Mythos-Check": jede Station ist ein Beweisstück aus der Ausbildung (Post, Vertrag, Dienstplan).
+   PICTURE: gezeichneter Ausbildungsvertrag mit Lupe und rotem Stempel "MYTHOS?".
+   COLOUR and TYPE: Petrol als Grundfarbe, Textmarker-Gelb als Fundstelle, Stempelrot für Fehler; Archivo + Source Sans 3.
+   LAYOUT: eine Lese-Spalte, klebende Stationsleiste, Stationen untereinander, Tafel-Modus unten rechts. */
+:root{color-scheme:light dark;
+ --bg:light-dark(#f3f5f4,#0d1517);--card:light-dark(#fff,#16211f);--sunk:light-dark(#e6ecea,#1f2c2a);
+ --ink:light-dark(#16201f,#e6eeec);--muted:light-dark(#566563,#9db0ad);--line:light-dark(#d3dcd9,#2b3a38);
+ --pet:light-dark(#0e5a63,#6cc3cc);--pet-ink:light-dark(#fff,#0d1517);
+ --red:light-dark(#c8102e,#ff6b7d);--red-s:light-dark(#fbe6e9,#3a1c22);
+ --hl:light-dark(#ffd84a,#e6bd45);--hl-s:light-dark(#fff6cf,#33290f);
+ --ok:light-dark(#1d7a4e,#53c892);--ok-s:light-dark(#e2f3ea,#163327);--focus:#2f6fe0;
+ --d:"Archivo","Arial Narrow",Arial,sans-serif;--b:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--b);overflow-x:clip}
+.wrap{max-width:920px;margin:0 auto;padding:18px max(16px,4vw) 90px;zoom:var(--tz,1)}
+h1,h2,h3{font-family:var(--d);line-height:1.1;text-wrap:balance;margin:0}
+h2{font-size:clamp(1.45rem,4vw,1.8rem);font-weight:800}h3{font-size:1.1rem;font-weight:700}
+p{margin:0}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.kopf{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:16px;flex-wrap:wrap}
+.kopf .t{font-weight:700;font-size:1.1rem}.kopf .k{font-size:.88rem;color:var(--muted)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tools select,.tools button{min-height:40px;border:1.5px solid var(--line);background:var(--card);border-radius:8px;padding:4px 10px;font-weight:600}
+.tools button[aria-pressed=true]{background:var(--pet);color:var(--pet-ink);border-color:var(--pet)}
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);background:var(--pet);color:#fff;border-radius:14px;overflow:hidden}
+.hero .in{padding:26px 24px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+.hero .sub{font-weight:700;color:#ffe58a;font-size:.95rem}
+.hero h1{font-size:clamp(2rem,6vw,3.1rem);font-weight:900}
+.hero p{color:#dcefee;max-width:44ch}
+.hero svg{width:100%;height:100%;min-height:230px;display:block}
+@media(max-width:640px){.hero{grid-template-columns:1fr}.hero svg{max-height:230px}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:640px){.row{grid-template-columns:1fr}}
+label{font-weight:600;display:block;margin-bottom:4px}
+input[type=text],input[type=number],input[type=date],textarea,select.in{width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;font-size:16px}
+textarea{min-height:84px;resize:vertical}
+.nav{position:sticky;top:0;z-index:20;background:var(--bg);padding:10px 0;margin:14px 0 4px;border-bottom:1px solid var(--line)}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;gap:6px;overflow-x:auto}
+.nav a{display:flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 5px;font-size:.88rem;font-weight:600}
+.nav a .n{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--sunk);font-weight:700;font-size:.78rem}
+.nav a.done .n{background:var(--ok);color:#fff}
+section.st{margin-top:44px;scroll-margin-top:66px}
+.sthead{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.stnum{flex:none;width:46px;height:46px;border-radius:10px;background:var(--pet);color:var(--pet-ink);display:grid;place-items:center;font-family:var(--d);font-weight:900;font-size:1.25rem}
+.meta{font-size:.85rem;color:var(--muted);font-weight:600}
+.lead{color:var(--muted);margin-top:4px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.task{border-left:4px solid var(--hl);background:var(--hl-s);padding:10px 14px;border-radius:0 8px 8px 0;font-weight:600}
+.tr{display:block;font-weight:400;font-size:.92rem;color:var(--muted);margin-top:3px;font-style:italic}
+.btn{border:0;border-radius:8px;padding:10px 16px;min-height:44px;font-weight:700;background:var(--pet);color:var(--pet-ink)}
+.btn.ghost{background:transparent;color:var(--pet);border:1.5px solid var(--pet)}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.fb{border-radius:8px;padding:10px 12px;font-size:.95rem}
+.fb.ok{background:var(--ok-s);border-left:4px solid var(--ok)}.fb.bad{background:var(--red-s);border-left:4px solid var(--red)}
+.pts{font-family:var(--d);font-weight:800;font-variant-numeric:tabular-nums}
+.meter{height:10px;background:var(--sunk);border-radius:99px;overflow:hidden}.meter i{display:block;height:100%;background:var(--red);width:0;transition:width .4s}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+/* Post */
+.post{max-width:470px;margin:0 auto;background:#fff;color:#111;border-radius:14px;border:1px solid #d9d9d9;overflow:hidden;font:15px/1.45 Helvetica,Arial,sans-serif}
+.post .ph{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.post .av{width:36px;height:36px;border-radius:50%;background:conic-gradient(#f9ce34,#ee2a7b,#6228d7,#f9ce34);padding:2px}
+.post .av i{display:block;width:100%;height:100%;border-radius:50%;background:#0e5a63;border:2px solid #fff}
+.post .nm{font-weight:700;font-size:14px}.post .sub2{font-size:12px;color:#777}
+.post .img{background:linear-gradient(135deg,#0e5a63,#16323a);color:#fff;padding:26px 18px;text-align:center;font-family:var(--d);font-weight:900;font-size:1.5rem;line-height:1.15}
+.post .img small{display:block;font-family:Helvetica,Arial,sans-serif;font-weight:400;font-size:.8rem;color:#ffe58a;margin-top:6px}
+.post .likes{padding:8px 12px 0;font-weight:700;font-size:14px}
+.post ul{margin:4px 0 8px;padding:0 12px 0 30px}.post li{margin:4px 0}
+.post .cm{padding:0 12px 12px;font-size:13.5px;color:#333}
+.claim{cursor:pointer;border-radius:4px;padding:0 2px;transition:background .2s}
+.claim:hover{background:rgba(255,214,0,.35)}
+.claim.found{background:rgba(255,214,0,.6);box-shadow:0 0 0 2px #c8102e}
+.claim.true{background:#dff3e8;box-shadow:0 0 0 2px #1d7a4e}
+.cluelist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.cluelist li{display:flex;gap:10px;align-items:flex-start;background:var(--sunk);border-radius:8px;padding:9px 12px;font-size:.95rem}
+.cluelist .k{flex:none;font-size:.75rem;font-weight:700;background:var(--red);color:#fff;border-radius:4px;padding:2px 6px;margin-top:3px}
+.cluelist .k.g{background:var(--ok)}
+.cluelist li.missing{color:var(--muted);font-style:italic}
+/* Sortieren */
+.deck{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px dashed var(--pet);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 12px;font-size:.95rem;font-weight:600;min-height:44px;text-align:left}
+.chip.sel{border-style:solid;background:var(--hl-s);box-shadow:0 0 0 2px var(--hl)}
+.chip.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.bins{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(max-width:640px){.bins{grid-template-columns:1fr}}
+.bin{border:2px solid var(--line);border-radius:12px;padding:10px;min-height:120px;background:var(--card);text-align:left;display:flex;flex-direction:column;gap:6px}
+.bin b{font-family:var(--d);font-size:1.05rem}.bin small{color:var(--muted)}
+.bin .placed{font-size:.88rem;background:var(--ok-s);border-radius:6px;padding:4px 8px}
+/* MC */
+.q{border-top:1px solid var(--line);padding-top:14px}.q:first-child{border-top:0;padding-top:0}
+.qn{font-size:.8rem;color:var(--muted);font-weight:700}
+.opts{display:grid;gap:6px;margin-top:8px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;min-height:44px}
+.opt .box{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--muted);margin-top:3px}
+.opt.right{border-color:var(--ok);background:var(--ok-s)}.opt.wrong{border-color:var(--red);background:var(--red-s)}
+.opt:disabled{cursor:default}
+/* Vertrag */
+.vertrag{background:#fffdf6;color:#1b1b1b;border:1px solid #d8cfb5;border-radius:6px;padding:16px;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.vertrag h3{text-align:center;font-family:Georgia,serif;letter-spacing:.04em;color:#1b1b1b;margin-bottom:10px}
+.vl{display:grid;grid-template-columns:10.5em minmax(0,1fr);gap:10px;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px dotted #c9bf9f;padding:8px 6px;color:#1b1b1b;font-size:.95rem;border-radius:4px}
+.vl b{font-weight:700}
+.vl:hover{background:rgba(255,214,0,.25)}
+.vl.mark{background:rgba(255,214,0,.55)}
+.vl.hit{background:#dff3e8;box-shadow:inset 4px 0 0 #1d7a4e}
+.vl.miss{background:#fbe6e9;box-shadow:inset 4px 0 0 #c8102e}
+.vl.falsch{background:#eee;text-decoration:line-through}
+@media(max-width:520px){.vl{grid-template-columns:1fr;gap:2px}}
+/* Fälle */
+.cases{display:grid;gap:12px}
+.case{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.case .s{font-weight:600}
+.verdict{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vbtn{border:2px solid var(--line);background:var(--card);border-radius:8px;padding:9px;min-height:44px;font-weight:800;font-family:var(--d)}
+.vbtn.sel.y{background:var(--ok);border-color:var(--ok);color:#fff}.vbtn.sel.n{background:var(--red);border-color:var(--red);color:#fff}
+.vbtn:disabled{cursor:default}
+/* Rechner */
+.calc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:center}
+@media(max-width:640px){.calc{grid-template-columns:1fr}}
+.big{font-family:var(--d);font-weight:900;font-size:clamp(1.6rem,6vw,2.4rem);line-height:1.1;font-variant-numeric:tabular-nums}
+.res{background:var(--sunk);border-radius:12px;padding:14px;text-align:center}
+.timeline{display:flex;height:14px;border-radius:99px;overflow:hidden;margin-top:10px;background:var(--line)}
+.timeline i{display:block;background:var(--hl)}
+/* Dienstplan */
+table{border-collapse:collapse;width:100%}
+.plan td,.plan th{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+.plan tr.click{cursor:pointer}.plan tr.click:hover td{background:var(--hl-s)}
+.plan tr.mark td{background:rgba(255,214,0,.4)}
+.plan tr.hit td{background:var(--ok-s)}.plan tr.miss td{background:var(--red-s)}.plan tr.falsch td{background:var(--sunk);color:var(--muted)}
+.plan td:first-child{font-weight:700;white-space:nowrap}
+.scroll{overflow-x:auto}
+/* Duell */
+.game{background:#0f2a2e;color:#e6f0ef;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.sboard{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;background:#16393e;border-radius:12px;padding:10px 14px}
+.sboard input{background:transparent;border:0;border-bottom:1px dashed #5d8a8f;color:#cfe3e1;font-size:.95rem;width:100%;padding:2px}
+.sboard b{display:block;font-family:var(--d);font-weight:900;font-size:2.2rem;color:#ffd84a;line-height:1;font-variant-numeric:tabular-nums}
+.sboard .r{text-align:right}.sboard .r input{text-align:right}
+.sboard .mid{font-size:.85rem;color:#cfe3e1;text-align:center}
+.stmt{background:#fffdf6;color:#1b1b1b;border-radius:10px;padding:18px;font-size:1.2rem;font-weight:700;text-align:center}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.players{grid-template-columns:1fr}}
+.pp{background:#16393e;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.pp .pn{font-weight:700;color:#ffd84a}
+.pp .verdict .vbtn{background:#0f2a2e;color:#fff;border-color:#2d5a60}
+.pp .verdict .vbtn.sel.y{background:#2e9e6a;border-color:#2e9e6a}.pp .verdict .vbtn.sel.n{background:#e0475b;border-color:#e0475b}
+.game .btn{background:#ffd84a;color:#0f2a2e}.game .btn.ghost{background:transparent;color:#ffd84a;border-color:#ffd84a}
+.game .fb{color:#1b1b1b}
+/* Landkarte */
+.map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:760px){.map{grid-template-columns:1fr}}
+.node{background:var(--card);border:1.5px solid var(--line);border-top:5px solid var(--pet);border-radius:12px;padding:14px}
+.node h3{font-size:1rem;margin-bottom:6px}.node ul{margin:0;padding-left:18px;font-size:.93rem}
+.center{background:var(--pet);color:var(--pet-ink);border-radius:12px;padding:16px;text-align:center;margin-bottom:12px}
+.center h3{font-size:1.35rem;font-weight:900}
+.merk{margin-top:12px;background:var(--hl-s);border:2px solid var(--hl);border-radius:12px;padding:14px 16px;font-weight:700;text-align:center}
+.gloss td,.gloss th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;font-size:.93rem}
+.gloss th{font-size:.85rem;color:var(--muted)}
+/* Kann-Liste */
+.self{display:grid;gap:8px}
+.self .r{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+@media(max-width:560px){.self .r{grid-template-columns:1fr}}
+.lv{display:flex;gap:4px}.lv button{border:1.5px solid var(--line);background:var(--card);border-radius:6px;padding:4px 10px;min-height:40px;font-size:.88rem;font-weight:600}
+.lv button.on{background:var(--pet);border-color:var(--pet);color:var(--pet-ink)}
+.status{min-height:1.4em;font-weight:600}.status.ok{color:var(--ok)}
+/* Profi */
+.profi{display:none;border:2px dashed var(--pet);border-radius:12px;padding:14px;background:var(--card)}
+html.pro .profi{display:block}
+.profi .tag{display:inline-block;background:var(--pet);color:var(--pet-ink);border-radius:6px;padding:2px 8px;font-size:.8rem;font-weight:700;margin-bottom:6px}
+.profi details{margin-top:8px}.profi summary{cursor:pointer;font-weight:700;color:var(--pet)}
+.teacher{margin-top:40px;font-size:.93rem}.teacher summary{cursor:pointer;font-weight:700;color:var(--muted)}
+.teacher td,.teacher th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+/* Tafel */
+.tafelbar{position:fixed;bottom:12px;right:10px;z-index:50;display:flex;gap:4px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.tafelbar button{border:0;background:transparent;border-radius:999px;padding:6px 14px;font-weight:700;min-height:44px}
+.tafelbar .tb-x{display:none}.tafelbar #tb-toggle{background:var(--pet);color:var(--pet-ink)}
+.tafelbar .z{font-size:.9rem;min-width:3.4em;text-align:center;font-variant-numeric:tabular-nums}
+html.tafel .tafelbar .tb-x{display:inline-flex;align-items:center}
+html.tafel .wrap{max-width:1150px}html.tafel .nur-s{display:none!important}
+@media(max-width:600px){table{font-size:14px}}
+</style>
+</head>
+<body>
+<div class="tafelbar" role="toolbar" aria-label="Tafel-Modus">
+  <button type="button" class="tb-x" id="tb-minus" aria-label="Kleiner">A−</button>
+  <span class="z tb-x" id="tb-zoom">100 %</span>
+  <button type="button" class="tb-x" id="tb-plus" aria-label="Größer">A+</button>
+  <button type="button" class="tb-x" id="tb-full">Vollbild</button>
+  <button type="button" id="tb-toggle" aria-pressed="false">Tafel-Modus</button>
+</div>
+<div class="wrap">
+  <header class="kopf">
+    <div><div class="t">WiSo · Block A: Berufliche Bildung (Module 1–6)</div><div class="k">KLA Bremerhaven · Verkäufer/innen 1. Ausbildungsjahr</div></div>
+    <div class="tools">
+      <select id="lang" aria-label="Sprache der Übersetzung"><option value="de">Nur Deutsch</option><option value="es">+ Español</option><option value="pt">+ Português</option></select>
+      <button type="button" id="pro" aria-pressed="false">Profi-Aufgaben</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="in">
+      <div class="sub">Wiederholung vor Klausur 1 und 2</div>
+      <h1>Mythos-Check Ausbildung</h1>
+      <p>Im Netz und in der Pause hört man viel über die Ausbildung. Vieles davon stimmt nicht. Werde Azubi-Detektiv: Prüfe Post, Vertrag, Fälle und Dienstplan.</p>
+    </div>
+    <svg viewBox="0 0 400 300" aria-hidden="true">
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#127380"/><stop offset="1" stop-color="#0a434a"/></linearGradient></defs>
+      <rect width="400" height="300" fill="url(#g1)"/>
+      <ellipse cx="205" cy="272" rx="150" ry="14" fill="#06353a" opacity=".6"/>
+      <g transform="rotate(-6 200 150)">
+        <rect x="95" y="38" width="200" height="236" rx="6" fill="#e9e2cc"/>
+        <rect x="88" y="30" width="200" height="236" rx="6" fill="#fffdf6"/>
+        <text x="188" y="62" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#333" letter-spacing="1">AUSBILDUNGSVERTRAG</text>
+        <g fill="#c9bf9f"><rect x="108" y="80" width="160" height="5" rx="2"/><rect x="108" y="96" width="130" height="5" rx="2"/><rect x="108" y="112" width="150" height="5" rx="2"/><rect x="108" y="128" width="110" height="5" rx="2"/><rect x="108" y="160" width="160" height="5" rx="2"/><rect x="108" y="176" width="140" height="5" rx="2"/><rect x="108" y="192" width="120" height="5" rx="2"/></g>
+        <rect x="104" y="140" width="128" height="12" rx="2" fill="#ffd84a" opacity=".85"/>
+        <rect x="108" y="143" width="118" height="5" rx="2" fill="#8a7d55"/>
+        <path d="M118 236 q14 -16 26 0 t26 0 t22 -6" stroke="#2b3a6b" stroke-width="2" fill="none"/>
+      </g>
+      <g transform="rotate(-14 300 92)">
+        <rect x="236" y="66" width="128" height="50" rx="8" fill="none" stroke="#ff5a6e" stroke-width="5"/>
+        <text x="300" y="100" text-anchor="middle" font-family="Archivo,Arial,sans-serif" font-weight="900" font-size="24" fill="#ff5a6e">MYTHOS?</text>
+      </g>
+      <g>
+        <circle cx="262" cy="190" r="44" fill="#bfe6ea" opacity=".35" stroke="#ffd84a" stroke-width="9"/>
+        <circle cx="262" cy="190" r="44" fill="none" stroke="#fff" stroke-width="2" opacity=".5"/>
+        <path d="M296 222 l46 44" stroke="#ffd84a" stroke-width="16" stroke-linecap="round"/>
+        <path d="M244 172 a24 24 0 0 1 22 -8" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity=".8"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="card nur-s" style="margin-top:14px">
+    <div class="row">
+      <div><label for="f-name">Name</label><input type="text" id="f-name" data-bind="name" autocomplete="name"></div>
+      <div><label for="f-klasse">Klasse</label><input type="text" id="f-klasse" data-bind="klasse"></div>
+      <div><label for="f-datum">Datum</label><input type="text" id="f-datum" data-bind="datum"></div>
+    </div>
+  </div>
+
+  <nav class="nav" aria-label="Stationen"><ol id="navlist"></ol></nav>
+
+  <!-- 0 Einstieg -->
+  <section class="st" id="s-post" data-name="Einstieg">
+    <div class="sthead"><div class="stnum">0</div><div><div class="meta">Einstieg · Einzelarbeit · ca. 10 Min.</div><h2>Mythos oder Recht?</h2><p class="lead">Dieser Post geht unter Azubis herum: 31.000 Likes. Klingt cool – aber stimmt er?</p></div></div>
+    <div class="two">
+      <div class="post">
+        <div class="ph"><div class="av"><i></i></div><div><div class="nm">azubi.insider.bhv</div><div class="sub2">vor 2 Std. · Bremerhaven</div></div></div>
+        <div class="img">7 Azubi-Wahrheiten,<br>die dir keiner sagt<small>Teilen, bevor es gelöscht wird!</small></div>
+        <div class="likes">♥ 31.284 Likes · 4.112 Mal geteilt</div>
+        <ul id="postlist"></ul>
+        <div class="cm"><b>lina_vk</b> krass, wusste ich nicht 😳<br><b>deniz.bhv</b> bei mir im Laden ist das genau so</div>
+      </div>
+      <div class="stack">
+        <div class="task" data-tr="t_post">Tippe auf alle Behauptungen im Post, die falsch sind. Vorsicht: Zwei Sätze stimmen!</div>
+        <div><div class="meta" id="post-count">0 von 5 Mythen gefunden</div><div class="meter"><i id="post-meter"></i></div></div>
+        <ul class="cluelist" id="post-clues"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1 Duales System -->
+  <section class="st" id="s-m1" data-name="Duales System">
+    <div class="sthead"><div class="stnum">1</div><div><div class="meta">Modul 1 · Buch S. 14–15</div><h2>Das duale System: Wer macht was?</h2><p class="lead">Du lernst an zwei Orten. Dazu kommt die IHK als zuständige Stelle.</p></div></div>
+    <div class="stack">
+      <div class="task" data-tr="t_m1">Tippe zuerst auf eine Karte, dann auf den richtigen Ort.</div>
+      <div class="deck" id="m1-deck"></div>
+      <div class="bins" id="m1-bins"></div>
+      <div class="fb" id="m1-fb" hidden></div>
+      <div class="card stack"><div class="task" data-tr="t_m1b">Wer ist wer? Wähle die richtige Antwort.</div><div class="stack" id="m1-mc"></div></div>
+      <div class="profi"><span class="tag">Profi</span><p><b>Begründe:</b> Warum müssen Ausbildungsrahmenplan und Rahmenlehrplan aufeinander abgestimmt werden?</p><textarea data-bind="p1" aria-label="Antwort Profi 1"></textarea><details><summary>Lösung zeigen</summary><p>Der Bund regelt die Ausbildung im Betrieb (BBiG, Ausbildungsordnung mit Ausbildungsrahmenplan). Die Länder regeln die Berufsschule (Rahmenlehrplan der KMK in Lernfeldern). Weil zwei verschiedene Stellen zuständig sind, wird abgestimmt – sonst lernt man im Betrieb und in der Schule nicht zur passenden Zeit das Passende.</p></details></div>
+    </div>
+  </section>
+
+  <!-- 2 Vertrag -->
+  <section class="st" id="s-m2" data-name="Vertrag">
+    <div class="sthead"><div class="stnum">2</div><div><div class="meta">Modul 2 · Buch S. 16–17 · Broschüre Kap. II</div><h2>Vertrags-Detektiv</h2><p class="lead">Emre Yilmaz, geboren am 12.03.2010, beginnt am 01.08.2026 als Verkäufer. Sein Vertrag hat Haken.</p></div></div>
+    <div class="stack">
+      <div class="task" data-tr="t_m2">Im Vertrag stecken 7 Fehler. Tippe auf die falschen Zeilen und dann auf „Prüfen“.</div>
+      <div class="vertrag"><h3>Berufsausbildungsvertrag (Auszug)</h3><div id="m2-lines"></div></div>
+      <div class="btns"><button type="button" class="btn" id="m2-check">Prüfen</button><button type="button" class="btn ghost" id="m2-reset">Neu versuchen</button></div>
+      <div id="m2-out" class="stack"></div>
+      <div class="profi"><span class="tag">Profi</span><p><b>Begründe:</b> Warum ist die Pflicht, nach der Ausbildung zwei Jahre zu bleiben, nichtig – und wann wäre so eine Vereinbarung erlaubt?</p><textarea data-bind="p2" aria-label="Antwort Profi 2"></textarea><details><summary>Lösung zeigen</summary><p>Nach § 12 Abs. 1 BBiG sind Vereinbarungen nichtig, die den Azubi in der Berufsausübung nach der Ausbildung beschränken. Er soll frei wählen dürfen, wo er arbeitet. Erlaubt ist nur: In den letzten sechs Monaten der Ausbildung verpflichtet er sich freiwillig, danach im Betrieb zu arbeiten.</p></details></div>
+    </div>
+  </section>
+
+  <!-- 3 Rechte und Pflichten -->
+  <section class="st" id="s-m3" data-name="Rechte & Pflichten">
+    <div class="sthead"><div class="stnum">3</div><div><div class="meta">Modul 3 · Buch S. 18 · §§ 13–19 BBiG</div><h2>Darf der Betrieb das?</h2><p class="lead">Was für die eine Seite eine Pflicht ist, ist für die andere ein Recht.</p></div></div>
+    <div class="stack">
+      <div class="task" data-tr="t_m3">Entscheide bei jedem Fall: erlaubt oder verboten?</div>
+      <div class="cases" id="m3-cases"></div>
+      <div class="profi"><span class="tag">Profi</span><p><b>Löse im Vier-Schritte-Schema:</b> Die Berufsschule von Kai (17) beginnt um 8:00 Uhr. Sein Chef sagt: „Komm vorher von 6:30 bis 7:30 Uhr zum Ware-Annehmen.“ Muss Kai das?</p><textarea data-bind="p3" aria-label="Antwort Profi 3"></textarea><details><summary>Lösung zeigen</summary><p><b>1 Problem:</b> Darf Kai vor der Schule beschäftigt werden? <b>2 Regel:</b> Nach § 15 BBiG (und § 9 JArbSchG) darf der Betrieb Azubis nicht vor einem Unterricht beschäftigen, der vor 9 Uhr beginnt. <b>3 Anwenden:</b> Der Unterricht beginnt um 8 Uhr, also vor 9 Uhr. <b>4 Ergebnis:</b> Kai muss nicht kommen.</p></details></div>
+    </div>
+  </section>
+
+  <!-- 4 Probezeit, Kündigung -->
+  <section class="st" id="s-m4" data-name="Probezeit & Kündigung">
+    <div class="sthead"><div class="stnum">4</div><div><div class="meta">Modul 4 · Buch S. 18–20 · §§ 20–22 BBiG</div><h2>Probezeit, Ende, Kündigung</h2><p class="lead">Probezeit: mindestens 1, höchstens 4 Monate. Danach wird es schwer, zu kündigen.</p></div></div>
+    <div class="stack">
+      <div class="task" data-tr="t_m4a">Gib den Beginn der Ausbildung und die Probezeit ein. Der Rechner zeigt das Ende.</div>
+      <div class="card calc">
+        <div class="stack">
+          <div><label for="m4-start">Beginn der Ausbildung</label><input type="date" id="m4-start" value="2026-08-01"></div>
+          <div><label for="m4-mon">Probezeit laut Vertrag</label><select class="in" id="m4-mon"><option value="1">1 Monat</option><option value="2">2 Monate</option><option value="3">3 Monate</option><option value="4" selected>4 Monate</option><option value="6">6 Monate</option></select></div>
+        </div>
+        <div class="res"><div class="meta">Die Probezeit endet mit Ablauf des</div><div class="big" id="m4-end">–</div><div class="timeline"><i id="m4-bar"></i></div><p class="meta" id="m4-hint" style="margin-top:8px"></p></div>
+      </div>
+      <div class="task" data-tr="t_m4b">Ist die Kündigung wirksam? Entscheide.</div>
+      <div class="cases" id="m4-cases"></div>
+      <div class="profi"><span class="tag">Profi</span><p><b>Rechne und begründe:</b> Ali beginnt am 01.08.2026, Probezeit vier Monate. Er ist in der Probezeit sechs Wochen krank. Im Vertrag steht die Verlängerungsklausel. Wann endet seine Probezeit?</p><textarea data-bind="p4" aria-label="Antwort Profi 4"></textarea><details><summary>Lösung zeigen</summary><p>Ohne Krankheit: Ende mit Ablauf des 30.11.2026. Ein Drittel von vier Monaten sind etwa 40 Tage. Sechs Wochen (42 Tage) sind mehr als ein Drittel. Weil die Klausel im Vertrag steht, verlängert sich die Probezeit um die 42 Tage: Ende mit Ablauf des 11.01.2027.</p></details></div>
+    </div>
+  </section>
+
+  <!-- 5 Prüfung -->
+  <section class="st" id="s-m5" data-name="Prüfung & Weiterbildung">
+    <div class="sthead"><div class="stnum">5</div><div><div class="meta">Modul 5 · Broschüre Kap. III.1, V, VI</div><h2>Prüfung, Verkürzung, Weiterbildung</h2><p class="lead">Zwischenprüfung September 2027, schriftliche Abschlussprüfung April 2028, Fachgespräch Juni 2028.</p></div></div>
+    <div class="stack">
+      <div class="task" data-tr="t_m5">Beantworte die Quizfragen. Dann rechne mit dem Punkte-Rechner.</div>
+      <div class="card stack" id="m5-mc"></div>
+      <div class="card calc">
+        <div class="stack">
+          <div><label for="p-vw">Verkauf und Werbemaßnahmen (25 %)</label><input type="number" id="p-vw" min="0" max="100" value="58" inputmode="numeric"></div>
+          <div><label for="p-wk">Warenwirtschaft und Kalkulation (15 %)</label><input type="number" id="p-wk" min="0" max="100" value="45" inputmode="numeric"></div>
+          <div><label for="p-ws">Wirtschafts- und Sozialkunde (10 %)</label><input type="number" id="p-ws" min="0" max="100" value="72" inputmode="numeric"></div>
+          <div><label for="p-fg">Fallbezogenes Fachgespräch (50 %)</label><input type="number" id="p-fg" min="0" max="100" value="80" inputmode="numeric"></div>
+        </div>
+        <div class="res"><div class="meta">Gesamtergebnis</div><div class="big"><span id="p-sum">–</span> Punkte</div><p class="meta" id="p-calc" style="margin-top:8px"></p></div>
+      </div>
+      <div class="profi"><span class="tag">Profi</span><p><b>Erkläre:</b> Warum lohnt es sich besonders, für das Fachgespräch zu üben? Rechne ein Beispiel: Was bringen 10 Punkte mehr im Fachgespräch – und was 10 Punkte mehr in WiSo?</p><textarea data-bind="p5" aria-label="Antwort Profi 5"></textarea><details><summary>Lösung zeigen</summary><p>Das Fachgespräch zählt 50 % – so viel wie alle drei schriftlichen Bereiche zusammen. 10 Punkte mehr im Fachgespräch bringen 10 × 0,5 = 5 Punkte im Gesamtergebnis, 10 Punkte mehr in WiSo nur 10 × 0,1 = 1 Punkt.</p></details></div>
+    </div>
+  </section>
+
+  <!-- 6 Jugendarbeitsschutz -->
+  <section class="st" id="s-m6" data-name="Jugendarbeitsschutz">
+    <div class="sthead"><div class="stnum">6</div><div><div class="meta">Modul 6 · Buch S. 22–23 · JArbSchG</div><h2>Der Dienstplan von Mira (16)</h2><p class="lead">Mira ist 16 und Azubi im Einzelhandel. Ihr Filialleiter hat diese Woche geplant. Donnerstag hat sie frei.</p></div></div>
+    <div class="stack">
+      <div class="task" data-tr="t_m6">Tippe auf jeden Tag, an dem ein Verstoß gegen das Jugendarbeitsschutzgesetz steckt. Dann „Prüfen“.</div>
+      <div class="card scroll"><table class="plan"><thead><tr><th>Tag</th><th>Einsatz</th></tr></thead><tbody id="m6-rows"></tbody></table></div>
+      <div class="btns"><button type="button" class="btn" id="m6-check">Prüfen</button><button type="button" class="btn ghost" id="m6-reset">Neu versuchen</button></div>
+      <div id="m6-out" class="stack"></div>
+      <div class="profi"><span class="tag">Profi</span><p><b>Berechne und begründe:</b> Sophie ist am 02.01.2011 geboren. Wie viel Urlaub hat sie 2027?</p><textarea data-bind="p6" aria-label="Antwort Profi 6"></textarea><details><summary>Lösung zeigen</summary><p>Entscheidend ist das Alter am 1. Januar (§ 19 JArbSchG). Am 01.01.2027 ist Sophie noch 15 – sie wird erst am 2. Januar 16. Also gilt „noch nicht 16“: 30 Werktage Urlaub.</p></details></div>
+    </div>
+  </section>
+
+  <!-- 7 Duell -->
+  <section class="st" id="s-duell" data-name="Mythos-Duell">
+    <div class="sthead"><div class="stnum">7</div><div><div class="meta">Tafel-Spiel · zwei Teams · ca. 15 Min.</div><h2>Mythos-Duell</h2><p class="lead">Gemischte Fragen aus allen sechs Modulen. Das Team mit den meisten Punkten gewinnt.</p></div></div>
+    <div class="game">
+      <div class="task" data-tr="t_duell" style="color:#1b1b1b">Lest die Behauptung. Jedes Team wählt: stimmt oder stimmt nicht. Dann auflösen.</div>
+      <div class="sboard"><div><input id="d-na" value="Team A" aria-label="Name Team A"><b id="d-sa">0</b></div><div class="mid" id="d-round">Runde 1 von 12</div><div class="r"><input id="d-nb" value="Team B" aria-label="Name Team B"><b id="d-sb">0</b></div></div>
+      <div class="stmt" id="d-stmt"></div>
+      <div class="players">
+        <div class="pp"><div class="pn" id="d-la">Team A</div><div class="verdict"><button type="button" class="vbtn y" data-t="a" data-v="1">stimmt</button><button type="button" class="vbtn n" data-t="a" data-v="0">stimmt nicht</button></div></div>
+        <div class="pp"><div class="pn" id="d-lb">Team B</div><div class="verdict"><button type="button" class="vbtn y" data-t="b" data-v="1">stimmt</button><button type="button" class="vbtn n" data-t="b" data-v="0">stimmt nicht</button></div></div>
+      </div>
+      <div class="fb" id="d-fb" hidden></div>
+      <div class="btns"><button type="button" class="btn" id="d-show">Auflösen</button><button type="button" class="btn ghost" id="d-next">Nächste Behauptung</button><button type="button" class="btn ghost" id="d-new">Neues Spiel</button></div>
+    </div>
+  </section>
+
+  <!-- 8 Landkarte -->
+  <section class="st" id="s-map" data-name="Lernlandkarte">
+    <div class="sthead"><div class="stnum">8</div><div><div class="meta">Zusammenfassung · für Klausur 1 und 2</div><h2>Lernlandkarte Block A</h2><p class="lead">Alles Wichtige auf einen Blick. Mit Wörterliste in deiner Sprache.</p></div></div>
+    <div class="center"><h3>Deine Ausbildung</h3><p>Regeln: Berufsbildungsgesetz (BBiG) und Jugendarbeitsschutzgesetz (JArbSchG)</p></div>
+    <div class="map" id="map"></div>
+    <div class="merk">Merke: Was im Vertrag gegen das Gesetz verstößt, gilt nicht – auch wenn du unterschrieben hast.</div>
+    <div class="card scroll" style="margin-top:12px"><table class="gloss"><thead><tr><th>Deutsch</th><th>Español</th><th>Português</th></tr></thead><tbody id="gloss"></tbody></table></div>
+  </section>
+
+  <!-- 9 Kann-Liste -->
+  <section class="st nur-s" id="s-kann" data-name="Kann-Liste">
+    <div class="sthead"><div class="stnum">9</div><div><div class="meta">Selbsteinschätzung · Abgabe</div><h2>Das kann ich jetzt</h2><p class="lead">Deine Punkte: <span class="pts" id="total">0</span> von <span class="pts" id="max">0</span></p></div></div>
+    <div class="stack">
+      <div class="task" data-tr="t_kann">Schätze dich ehrlich ein. Dann kopiere dein Ergebnis und gib es auf itslearning ab.</div>
+      <div class="self" id="self"></div>
+      <div class="btns"><button type="button" class="btn" id="copy">Ergebnis kopieren</button><button type="button" class="btn ghost" id="reset">Alles zurücksetzen</button></div>
+      <p class="status" id="copy-st" role="status"></p>
+      <textarea id="copy-box" hidden aria-label="Ergebnis zum Kopieren" readonly style="min-height:180px"></textarea>
+    </div>
+  </section>
+
+  <details class="teacher">
+    <summary>Für die Lehrkraft: Lösungen und Einsatz</summary>
+    <div class="scroll"><table>
+      <tr><th>Station</th><th>Lösung</th></tr>
+      <tr><td>Einstieg</td><td>Mythen: Probezeit 6 Monate, Nachweis zu Hause, Geld für Material, Kündigung per WhatsApp, Sonntag mit 16. Stimmt: Prüfung kostenlos, Abschluss bundesweit.</td></tr>
+      <tr><td>Modul 1</td><td>Betrieb: Ware annehmen, Ausbildungsplan, Kasse üben. Berufsschule: WiSo, Rahmenlehrplan, Zeugnis über Theorie. IHK: Verzeichnis, Prüfung, Eignung prüfen, Ausbildungsberater.</td></tr>
+      <tr><td>Modul 2</td><td>Dauer 36 statt 24 Monate, Probezeit 6 Monate, Vergütung „nach Leistung“, 20 statt 30 Werktage Urlaub, Ausbildungsgebühr, Bleibepflicht, Zustimmung der Eltern fehlt.</td></tr>
+      <tr><td>Modul 3</td><td>Verboten: Nachweis zu Hause, Privatwagen, vor 8-Uhr-Schule arbeiten, Zahlung am 15. des Folgemonats, Vergütung bei Krankheit streichen, Prüfungsgebühr verlangen. Erlaubt: Regal nach Planogramm, Weisung Kassenschluss.</td></tr>
+      <tr><td>Modul 4</td><td>Wirksam: Probezeit ohne Grund, Azubi wechselt den Beruf mit 4 Wochen Frist. Unwirksam: ordentlich wegen Umsatz, WhatsApp, nach 3 Wochen, ohne Eltern.</td></tr>
+      <tr><td>Modul 6</td><td>Verstöße: Mo (Laden nach 6 Std. Schule), Di (nur 30 Min. Pause), Mi (bis 21 Uhr), Sa (11 Std. Ruhezeit), So (Sonntagsarbeit, 6. Tag). Fr in Ordnung.</td></tr>
+    </table></div>
+    <p style="margin-top:8px">Einsatz: Station 0–4 vor Klausur 1 (17.12.2026), Station 5–6 vor Klausur 2 (28.01.2027), Duell im Tafel-Modus als Wiederholung zu Stundenbeginn. Fakten nach BBiG, JArbSchG und Broschüre „Ausbildung &amp; Beruf“ 2025; Mindestvergütung 2026: 724 €.</p>
+  </details>
+</div>
+
+<script>
+{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const KEY='wiso-blockA-mythos';
+let S={};try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){S={}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const set=(k,v)=>{S[k]=v;save();score()};
+
+/* ---------- Übersetzungen ---------- */
+const TR={
+ t_post:{es:'Toca todas las afirmaciones del post que son falsas. ¡Cuidado: dos frases son correctas!',pt:'Toque em todas as afirmações do post que são falsas. Atenção: duas frases estão certas!'},
+ t_m1:{es:'Primero toca una tarjeta y después el lugar correcto.',pt:'Primeiro toque num cartão, depois no lugar correto.'},
+ t_m1b:{es:'¿Quién es quién? Elige la respuesta correcta.',pt:'Quem é quem? Escolha a resposta certa.'},
+ t_m2:{es:'En el contrato hay 7 errores. Toca las líneas incorrectas y después «Prüfen» (comprobar).',pt:'No contrato há 7 erros. Toque nas linhas erradas e depois em «Prüfen» (verificar).'},
+ t_m3:{es:'Decide en cada caso: ¿permitido (erlaubt) o prohibido (verboten)?',pt:'Decida em cada caso: permitido (erlaubt) ou proibido (verboten)?'},
+ t_m4a:{es:'Escribe el inicio de la formación y el periodo de prueba. La calculadora muestra el final.',pt:'Introduza o início da formação e o período experimental. A calculadora mostra o fim.'},
+ t_m4b:{es:'¿Es válida la rescisión (wirksam) o no (unwirksam)? Decide.',pt:'A rescisão é válida (wirksam) ou não (unwirksam)? Decida.'},
+ t_m5:{es:'Responde a las preguntas del quiz. Después calcula con la calculadora de puntos.',pt:'Responda às perguntas do quiz. Depois calcule com a calculadora de pontos.'},
+ t_m6:{es:'Toca cada día en el que hay una infracción de la ley de protección laboral de menores. Después «Prüfen».',pt:'Toque em cada dia em que há uma infração à lei de proteção laboral de menores. Depois «Prüfen».'},
+ t_duell:{es:'Leed la afirmación. Cada equipo elige: verdadero (stimmt) o falso (stimmt nicht). Después resolved.',pt:'Leiam a afirmação. Cada equipa escolhe: verdadeiro (stimmt) ou falso (stimmt nicht). Depois resolvam.'},
+ t_kann:{es:'Evalúate con sinceridad. Después copia tu resultado y entrégalo en itslearning.',pt:'Avalie-se com sinceridade. Depois copie o seu resultado e entregue-o no itslearning.'}
+};
+const GLOSS=[
+ ['das duale System','el sistema dual','o sistema dual'],
+ ['der Betrieb','la empresa','a empresa'],
+ ['die Berufsschule','la escuela profesional','a escola profissional'],
+ ['die IHK (zuständige Stelle)','la Cámara de Comercio (IHK)','a Câmara de Comércio (IHK)'],
+ ['der Ausbildungsvertrag','el contrato de formación','o contrato de formação'],
+ ['nichtig','nulo, sin validez','nulo, sem validade'],
+ ['die Probezeit','el periodo de prueba','o período experimental'],
+ ['die Kündigung','la rescisión del contrato','a rescisão do contrato'],
+ ['die Vergütung','la remuneración','a remuneração'],
+ ['der Ausbildungsnachweis','el informe de formación','o relatório de formação'],
+ ['die Pflicht','la obligación','a obrigação'],
+ ['die Abschlussprüfung','el examen final','o exame final'],
+ ['die Verkürzung','la reducción de la formación','a redução da formação'],
+ ['die Weiterbildung','la formación continua','a formação contínua'],
+ ['der Jugendarbeitsschutz','la protección laboral de menores','a proteção laboral de menores'],
+ ['die Ruhepause','la pausa de descanso','a pausa de descanso'],
+ ['der Urlaub','las vacaciones','as férias']
+];
+$('#gloss').innerHTML=GLOSS.map(g=>`<tr><td><b>${esc(g[0])}</b></td><td>${esc(g[1])}</td><td>${esc(g[2])}</td></tr>`).join('');
+function lang(){const l=S.lang||'de';$('#lang').value=l;$$('[data-tr]').forEach(el=>{let t=el.querySelector('.tr');if(l==='de'){if(t)t.remove();return}if(!t){t=document.createElement('span');t.className='tr';el.appendChild(t)}t.textContent=(TR[el.dataset.tr]||{})[l]||''})}
+$('#lang').addEventListener('change',e=>{S.lang=e.target.value;save();lang()});
+function pro(){const on=!!S.pro;document.documentElement.classList.toggle('pro',on);$('#pro').setAttribute('aria-pressed',on)}
+$('#pro').addEventListener('click',()=>{S.pro=!S.pro;save();pro()});
+
+/* ---------- Felder ---------- */
+$$('[data-bind]').forEach(el=>{el.value=S['f_'+el.dataset.bind]||'';el.addEventListener('input',()=>{S['f_'+el.dataset.bind]=el.value;save()})});
+
+/* ---------- 0 Post ---------- */
+const CLAIMS=[
+ {t:'Probezeit? Dauert bei allen 6 Monate.',f:1,fix:'Die Probezeit dauert mindestens 1 und höchstens 4 Monate (§ 20 BBiG).',m:'Modul 2/4'},
+ {t:'Den Ausbildungsnachweis schreibst du natürlich nach Feierabend zu Hause.',f:1,fix:'Der Betrieb muss dir Zeit geben, ihn im Betrieb zu schreiben (§ 14 Abs. 2 BBiG).',m:'Modul 3'},
+ {t:'Deine Abschlussprüfung kostet dich keinen Cent.',f:0,fix:'Stimmt: Die Prüfung ist für Azubis kostenlos.',m:'Modul 5'},
+ {t:'Für Schulungsmaterial darf der Chef dir Geld vom Lohn abziehen.',f:1,fix:'Ausbildungsmittel stellt der Betrieb kostenlos (§ 14 BBiG). Eine Ausbildungsgebühr ist nichtig (§ 12 BBiG).',m:'Modul 2/3'},
+ {t:'Keinen Bock mehr? Kündige einfach per WhatsApp.',f:1,fix:'Eine Kündigung muss schriftlich sein, auf Papier mit Unterschrift (§ 22 BBiG).',m:'Modul 4'},
+ {t:'Dein IHK-Abschluss gilt in ganz Deutschland.',f:0,fix:'Stimmt: Der Abschluss ist bundesweit anerkannt.',m:'Modul 1'},
+ {t:'Mit 16 musst du am verkaufsoffenen Sonntag ran.',f:1,fix:'Jugendliche dürfen im Einzelhandel sonntags nicht arbeiten – auch nicht am verkaufsoffenen Sonntag (§ 17 JArbSchG).',m:'Modul 6'}
+];
+const NF=CLAIMS.filter(c=>c.f).length;
+function renderPost(){const fd=S.post||[];
+ $('#postlist').innerHTML=CLAIMS.map((c,i)=>`<li><span class="claim ${fd.includes(i)?(c.f?'found':'true'):''}" role="button" tabindex="0" data-i="${i}">${esc(c.t)}</span></li>`).join('');
+ const nf=fd.filter(i=>CLAIMS[i].f).length;
+ $('#post-count').textContent=`${nf} von ${NF} Mythen gefunden`;$('#post-meter').style.width=(nf/NF*100)+'%';
+ const items=fd.map(i=>{const c=CLAIMS[i];return `<li><span class="k ${c.f?'':'g'}">${c.f?'Mythos':'stimmt'}</span><span><b>${esc(c.m)}:</b> ${esc(c.fix)}</span></li>`});
+ for(let k=nf;k<NF;k++)items.push('<li class="missing">… noch nicht gefunden</li>');
+ $('#post-clues').innerHTML=items.join('')}
+$('#postlist').addEventListener('click',e=>{const el=e.target.closest('.claim');if(!el)return;const i=+el.dataset.i;const fd=S.post||[];if(!fd.includes(i)){fd.push(i);set('post',fd)}renderPost()});
+$('#postlist').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('.claim')){e.preventDefault();e.target.click()}});
+
+/* ---------- 1 Duales System ---------- */
+const BINS=[['b','Betrieb','Praxis, ca. zwei Drittel der Zeit'],['s','Berufsschule','Theorie und Allgemeinbildung'],['i','IHK','zuständige Stelle']];
+const CARDS=[['Ware annehmen und auspacken','b'],['Unterricht in WiSo','s'],['Ausbildungsvertrag ins Verzeichnis eintragen','i'],['Abschlussprüfung abnehmen','i'],['Unterricht nach dem Rahmenlehrplan in Lernfeldern','s'],['den Ausbildungsplan umsetzen','b'],['Ausbildungsberater zur Beratung schicken','i'],['Kassieren und Kundengespräche üben','b'],['Zeugnis über die Theorie ausstellen','s'],['prüfen, ob ein Betrieb ausbilden darf','i']];
+let m1sel=null;
+function renderM1(){const pl=S.m1||{};
+ $('#m1-deck').innerHTML=CARDS.map((c,i)=>pl[i]?'':`<button type="button" class="chip ${m1sel===i?'sel':''}" data-i="${i}">${esc(c[0])}</button>`).join('')||'<p class="meta">Alle Karten liegen richtig.</p>';
+ $('#m1-bins').innerHTML=BINS.map(b=>`<button type="button" class="bin" data-b="${b[0]}"><b>${b[1]}</b><small>${b[2]}</small>${CARDS.map((c,i)=>pl[i]&&c[1]===b[0]?`<span class="placed">${esc(c[0])}</span>`:'').join('')}</button>`).join('')}
+$('#m1-deck').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;m1sel=+c.dataset.i;renderM1()});
+$('#m1-bins').addEventListener('click',e=>{const b=e.target.closest('.bin');if(!b||m1sel===null)return;const fb=$('#m1-fb');fb.hidden=false;
+ if(CARDS[m1sel][1]===b.dataset.b){const pl=S.m1||{};pl[m1sel]=1;m1sel=null;set('m1',pl);fb.className='fb ok';fb.textContent='Richtig!'}
+ else{S.m1err=(S.m1err||0)+1;save();fb.className='fb bad';fb.textContent='Noch nicht. Frag dich: Passiert das im Laden, im Klassenraum oder bei der Kammer?';const ch=$(`.chip[data-i="${m1sel}"]`);if(ch){ch.classList.remove('shake');void ch.offsetWidth;ch.classList.add('shake')}return}
+ renderM1()});
+
+/* ---------- MC ---------- */
+function mc(box,key,Q){const st=S[key]||{};box.innerHTML=Q.map((q,i)=>`<div class="q"><div class="qn">Frage ${i+1}</div><p><b>${esc(q.q)}</b></p><div class="opts">${q.o.map((o,j)=>{const a=st[i];let c='';if(a!==undefined){if(j===q.a)c='right';else if(j===a)c='wrong'}return `<button type="button" class="opt ${c}" data-q="${i}" data-o="${j}" ${a!==undefined?'disabled':''}><span class="box"></span><span>${esc(o)}</span></button>`}).join('')}</div>${st[i]!==undefined?`<p class="fb ${st[i]===q.a?'ok':'bad'}" style="margin-top:6px">${esc(q.e)}</p>`:''}</div>`).join('');
+ box.onclick=e=>{const b=e.target.closest('.opt');if(!b||b.disabled)return;const s=S[key]||{};s[b.dataset.q]=+b.dataset.o;set(key,s);mc(box,key,Q)}}
+const M1Q=[
+ {q:'Lena (17) wird von der Nordstadt-Kauf GmbH eingestellt. Wer ist der Ausbildende?',o:['Lena','die Nordstadt-Kauf GmbH','Abteilungsleiterin Sevgi Demir'],a:1,e:'Ausbildender ist der Betrieb, der den Vertrag schließt.'},
+ {q:'Frau Demir zeigt Lena, wie man Ware annimmt. Sie hat die Ausbildereignungsprüfung. Sie ist …',o:['die Ausbilderin','die Ausbildende','die Ausbildungsberaterin der IHK'],a:0,e:'Ausbilder/in ist die Person, die der Betrieb mit der Ausbildung beauftragt.'},
+ {q:'Wer regelt den Unterricht in der Berufsschule?',o:['der Bund mit dem BBiG','die Länder mit dem Rahmenlehrplan','der Betrieb mit dem Ausbildungsplan'],a:1,e:'Merke: Der Bund regelt den Betrieb, die Länder regeln die Berufsschule.'}
+];
+
+/* ---------- 2 Vertrag ---------- */
+const LINES=[
+ ['Ausbildender','Nordstadt-Kauf GmbH, Bürgermeister-Smidt-Str. 10, Bremerhaven',0],
+ ['Auszubildender','Emre Yilmaz, geboren am 12.03.2010',0],
+ ['Beruf','Verkäufer nach der Ausbildungsordnung im Einzelhandel',0],
+ ['Dauer','Beginn 01.08.2026, Dauer 36 Monate','Die Ausbildung zum Verkäufer dauert 24 Monate (Ausbildungsordnung, § 5 BBiG).'],
+ ['Probezeit','6 Monate','Höchstens 4 Monate, mindestens 1 Monat (§ 20 BBiG).'],
+ ['Ausbildungszeit','8 Stunden täglich, höchstens 5 Tage pro Woche',0],
+ ['Vergütung','wird nach Leistung festgelegt','Die Höhe muss fest im Vertrag stehen: mindestens 724 € im 1. Jahr oder der Tariflohn (§§ 11, 17 BBiG).'],
+ ['Urlaub','20 Werktage im Jahr','Emre war am 01.01.2026 noch nicht 16: mindestens 30 Werktage (§ 19 JArbSchG).'],
+ ['Ausbildungsnachweis','elektronisch',0],
+ ['Tarifvertrag','Es gelten die Tarifverträge für den Einzelhandel im Land Bremen.',0],
+ ['Sonstiges 1','Emre zahlt für Schulungsmaterial 30 € im Monat.','Nichtig: Ausbildungsmittel sind kostenlos, eine Gebühr darf nicht verlangt werden (§§ 12, 14 BBiG).'],
+ ['Sonstiges 2','Emre bleibt nach der Ausbildung mindestens zwei Jahre im Betrieb.','Nichtig: nur in den letzten 6 Monaten der Ausbildung darf man sich zum Bleiben verpflichten (§ 12 BBiG).'],
+ ['Unterschriften','K. Ahlers (für die GmbH) · E. Yilmaz · Gesetzliche Vertreter: –','Emre ist minderjährig: Seine Eltern müssen zustimmen (§ 11 BBiG, §§ 107, 108 BGB).']
+];
+const NERR=LINES.filter(l=>l[2]).length;
+function renderM2(){const mk=S.m2mark||[],chk=S.m2chk;
+ $('#m2-lines').innerHTML=LINES.map((l,i)=>{let c='';const on=mk.includes(i);if(chk){if(l[2]&&on)c='hit';else if(l[2])c='miss';else if(on)c='falsch'}else if(on)c='mark';return `<button type="button" class="vl ${c}" data-i="${i}" ${chk?'disabled':''}><b>${esc(l[0])}</b><span>${esc(l[1])}</span></button>`}).join('');
+ const out=$('#m2-out');if(!chk){out.innerHTML='';return}
+ const hit=LINES.filter((l,i)=>l[2]&&mk.includes(i)).length,wrong=mk.filter(i=>!LINES[i][2]).length;
+ out.innerHTML=`<p class="fb ${hit===NERR&&!wrong?'ok':'bad'}"><b>${hit} von ${NERR} Fehlern gefunden.</b>${wrong?` ${wrong} Zeile(n) waren in Ordnung (grau).`:''} Grün = gefunden, rot = übersehen.</p><ul class="cluelist">${LINES.filter(l=>l[2]).map(l=>`<li><span class="k">${esc(l[0])}</span><span>${esc(l[2])}</span></li>`).join('')}</ul>`}
+$('#m2-lines').addEventListener('click',e=>{const b=e.target.closest('.vl');if(!b||S.m2chk)return;const i=+b.dataset.i;let mk=S.m2mark||[];mk=mk.includes(i)?mk.filter(x=>x!==i):[...mk,i];set('m2mark',mk);renderM2()});
+$('#m2-check').addEventListener('click',()=>{set('m2chk',1);renderM2()});
+$('#m2-reset').addEventListener('click',()=>{S.m2mark=[];set('m2chk',0);renderM2()});
+
+/* ---------- Fälle (3 und 4) ---------- */
+function cases(box,key,C,lab){const st=S[key]||{};box.innerHTML=C.map((c,i)=>{const a=st[i];return `<div class="case"><p class="s">${esc(c.s)}</p><div class="verdict"><button type="button" class="vbtn y ${a===1?'sel':''}" data-i="${i}" data-v="1" ${a!==undefined?'disabled':''}>${lab[0]}</button><button type="button" class="vbtn n ${a===0?'sel':''}" data-i="${i}" data-v="0" ${a!==undefined?'disabled':''}>${lab[1]}</button></div>${a!==undefined?`<p class="fb ${a===c.a?'ok':'bad'}"><b>${a===c.a?'Richtig':'Leider falsch'} – ${c.a?lab[0]:lab[1]}.</b> ${esc(c.e)}</p>`:''}</div>`}).join('');
+ box.onclick=e=>{const b=e.target.closest('.vbtn');if(!b||b.disabled)return;const s=S[key]||{};s[b.dataset.i]=+b.dataset.v;set(key,s);cases(box,key,C,lab)}}
+const M3C=[
+ {s:'Die Chefin von Mia (17): „Den Ausbildungsnachweis schreibst du zu Hause. Im Laden ist keine Zeit.“',a:0,e:'Der Betrieb muss Gelegenheit geben, den Nachweis am Arbeitsplatz zu führen (§ 14 Abs. 2 BBiG).'},
+ {s:'Die Ausbilderin weist Jonas an, das Getränkeregal nach dem Planogramm einzuräumen.',a:1,e:'Das dient der Ausbildung. Azubis müssen Weisungen befolgen (§ 13 BBiG).'},
+ {s:'Der Filialleiter: „Wasch jeden Morgen meinen Privatwagen auf dem Parkplatz.“',a:0,e:'Nur Aufgaben, die dem Ausbildungszweck dienen (§ 14 Abs. 3 BBiG).'},
+ {s:'Die Berufsschule beginnt um 8:00 Uhr. Der Chef will, dass Kai vorher von 6:30 bis 7:30 Uhr im Lager hilft.',a:0,e:'Vor einem Unterricht, der vor 9 Uhr beginnt, darf der Betrieb nicht beschäftigen (§ 15 BBiG).'},
+ {s:'Der Betrieb zahlt die Vergütung für Oktober erst am 15. November.',a:0,e:'Fällig spätestens am letzten Arbeitstag des Monats (§ 18 BBiG).'},
+ {s:'Lea ist drei Wochen krank. Der Betrieb zahlt für diese Zeit keine Vergütung.',a:0,e:'Bei Krankheit läuft die Vergütung bis zu sechs Wochen weiter (§ 19 BBiG).'},
+ {s:'Die Ausbilderin sagt Tim, dass er heute die Kasse abrechnet – mit ihr zusammen.',a:1,e:'Das gehört zur Ausbildung im Einzelhandel. Weisung befolgen.'},
+ {s:'Der Betrieb verlangt von Aylin 80 € für die Prüfungsgebühr der IHK.',a:0,e:'Die Prüfung ist für Azubis kostenlos. Ausbildungsmittel – auch für Prüfungen – stellt der Betrieb (§ 14 BBiG).'}
+];
+const M4C=[
+ {s:'Zwei Monate nach Beginn, noch in der Probezeit: Der Betrieb kündigt Lara schriftlich, ohne Grund.',a:1,e:'In der Probezeit dürfen beide Seiten jederzeit ohne Frist und ohne Grund kündigen – schriftlich.'},
+ {s:'Nach der Probezeit: Der Betrieb kündigt Emre mit vier Wochen Frist, weil der Umsatz schlecht ist.',a:0,e:'Nach der Probezeit kann der Betrieb nur aus wichtigem Grund fristlos kündigen. Schlechter Umsatz ist kein wichtiger Grund.'},
+ {s:'Nach der Probezeit: Noah (19) will Friseur werden. Er kündigt schriftlich mit vier Wochen Frist und nennt den Grund.',a:1,e:'Der Azubi darf mit vier Wochen Frist kündigen, wenn er einen anderen Beruf lernen will (§ 22 Abs. 2 BBiG).'},
+ {s:'Jana (19) schickt ihrer Chefin eine WhatsApp: „Ich kündige ab sofort.“',a:0,e:'Kündigungen müssen schriftlich sein: Papier mit Unterschrift.'},
+ {s:'Am 1. März erfährt der Chef, dass ein Azubi gestohlen hat. Er kündigt fristlos am 25. März.',a:0,e:'Fristlos nur innerhalb von zwei Wochen, nachdem der Grund bekannt wurde.'},
+ {s:'Selin (17) kündigt in der Probezeit schriftlich. Ihre Eltern wissen nichts davon.',a:0,e:'Bei Minderjährigen kündigen die Eltern oder müssen zustimmen.'}
+];
+
+/* ---------- 4 Rechner ---------- */
+function endProbe(d,n){const y=d.getFullYear(),m=d.getMonth(),day=d.getDate();const t=new Date(y,m+n,day);if(t.getDate()!==day)return new Date(y,m+n+1,0);t.setDate(t.getDate()-1);return t}
+function calcM4(){const v=$('#m4-start').value,n=+$('#m4-mon').value;if(!v){$('#m4-end').textContent='–';return}
+ const [y,mo,da]=v.split('-').map(Number);const e=endProbe(new Date(y,mo-1,da),n);
+ $('#m4-end').textContent=e.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+ $('#m4-bar').style.width=Math.min(n,24)/24*100+'%';
+ $('#m4-hint').textContent=n>4?'Achtung: Mehr als 4 Monate sind nicht erlaubt (§ 20 BBiG). Diese Klausel gilt so nicht.':'Danach gilt: Kündigung nur noch aus wichtigem Grund (Betrieb) oder bei Berufswechsel/Aufgabe (Azubi).'}
+$('#m4-start').addEventListener('input',calcM4);$('#m4-mon').addEventListener('change',calcM4);
+
+/* ---------- 5 Quiz + Punkte ---------- */
+const M5Q=[
+ {q:'Welcher Teil der Abschlussprüfung zählt am meisten?',o:['Wirtschafts- und Sozialkunde','Verkauf und Werbemaßnahmen','das fallbezogene Fachgespräch'],a:2,e:'Das Fachgespräch zählt 50 % – so viel wie die drei schriftlichen Bereiche zusammen.'},
+ {q:'Was stimmt über die Zwischenprüfung?',o:['Sie zählt zur Note.','Sie zählt nicht zur Note, ist aber Pflicht für die Zulassung.','Man kann sie auslassen.'],a:1,e:'Teilnahme ist Pflicht für die Zulassung zur Abschlussprüfung.'},
+ {q:'Wer stellt den Antrag auf Verkürzung der Ausbildung?',o:['der Azubi allein bei der Schule','Betrieb und Azubi gemeinsam bei der IHK','die Berufsschule bei der IHK'],a:1,e:'§ 8 BBiG: gemeinsamer Antrag bei der IHK, z. B. wegen Abitur.'},
+ {q:'Tom macht nach der Ausbildung den Handelsfachwirt bei der IHK. Das ist eine …',o:['Anpassungsfortbildung','Aufstiegsfortbildung','Umschulung'],a:1,e:'Aufstiegsfortbildung: eine IHK-Prüfung, die eine Stufe höher bringt.'},
+ {q:'Sara lernt in einem Kurs das neue Kassensystem kennen. Das ist eine …',o:['Anpassungsfortbildung','Aufstiegsfortbildung','Umschulung'],a:0,e:'Anpassungsfortbildung: auf dem neuesten Stand bleiben.'},
+ {q:'Wie oft darf man die Abschlussprüfung wiederholen?',o:['einmal','zweimal','gar nicht'],a:1,e:'Wer nicht besteht, darf zweimal wiederholen.'}
+];
+const W=[['p-vw',.25],['p-wk',.15],['p-ws',.1],['p-fg',.5]];
+function calcP(){let sum=0,parts=[];for(const [id,w] of W){let v=Math.max(0,Math.min(100,+$('#'+id).value||0));sum+=v*w;parts.push(`${v} × ${String(w).replace('.',',')}`)}
+ $('#p-sum').textContent=sum.toLocaleString('de-DE',{maximumFractionDigits:1});$('#p-calc').textContent=parts.join(' + ')}
+W.forEach(([id])=>$('#'+id).addEventListener('input',calcP));
+
+/* ---------- 6 Dienstplan ---------- */
+const PLAN=[
+ ['Montag','Berufsschule 8:00–13:15 Uhr (6 Unterrichtsstunden), danach Laden 14:00–18:00 Uhr','Nach einem Schultag mit mehr als 5 Unterrichtsstunden darf Mira nicht mehr beschäftigt werden (§ 9 JArbSchG).'],
+ ['Dienstag','Laden 9:00–17:30 Uhr, Pause 12:30–13:00 Uhr','Bei mehr als 6 Stunden Arbeit braucht Mira 60 Minuten Pause, nicht 30 (§ 11).'],
+ ['Mittwoch','Laden 13:00–21:00 Uhr, Pause 16:00–17:00 Uhr','Jugendliche dürfen nur zwischen 6 und 20 Uhr arbeiten (§ 14).'],
+ ['Donnerstag','frei',0],
+ ['Freitag','Laden 11:30–20:00 Uhr, Pause 15:00–16:00 Uhr',0],
+ ['Samstag','Laden 7:00–12:00 Uhr, Pause 9:30–10:00 Uhr','Freitag bis 20 Uhr, Samstag ab 7 Uhr: nur 11 Stunden frei. Nach Feierabend müssen 12 Stunden frei sein (§ 13).'],
+ ['Sonntag','verkaufsoffener Sonntag: Laden 13:00–18:00 Uhr','Sonntagsarbeit ist für Jugendliche im Einzelhandel verboten (§ 17) – und es wäre der sechste Arbeitstag (§ 15).']
+];
+const NV=PLAN.filter(p=>p[2]).length;
+function renderM6(){const mk=S.m6mark||[],chk=S.m6chk;
+ $('#m6-rows').innerHTML=PLAN.map((p,i)=>{let c='';const on=mk.includes(i);if(chk){if(p[2]&&on)c='hit';else if(p[2])c='miss';else if(on)c='falsch'}else if(on)c='mark';return `<tr class="${chk?'':'click'} ${c}" data-i="${i}" ${chk?'':'tabindex="0" role="button"'}><td>${p[0]}</td><td>${esc(p[1])}</td></tr>`}).join('');
+ const out=$('#m6-out');if(!chk){out.innerHTML='';return}
+ const hit=PLAN.filter((p,i)=>p[2]&&mk.includes(i)).length,wrong=mk.filter(i=>!PLAN[i][2]).length;
+ out.innerHTML=`<p class="fb ${hit===NV&&!wrong?'ok':'bad'}"><b>${hit} von ${NV} Verstößen gefunden.</b>${wrong?` ${wrong} Tag(e) waren in Ordnung.`:''} Freitag ist erlaubt: Arbeit bis 20 Uhr, 7,5 Std. Arbeit, 60 Min. Pause.</p><ul class="cluelist">${PLAN.filter(p=>p[2]).map(p=>`<li><span class="k">${p[0]}</span><span>${esc(p[2])}</span></li>`).join('')}</ul>`}
+$('#m6-rows').addEventListener('click',e=>{const r=e.target.closest('tr');if(!r||S.m6chk)return;const i=+r.dataset.i;let mk=S.m6mark||[];mk=mk.includes(i)?mk.filter(x=>x!==i):[...mk,i];set('m6mark',mk);renderM6()});
+$('#m6-rows').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.target.closest('tr')?.click()}});
+$('#m6-check').addEventListener('click',()=>{set('m6chk',1);renderM6()});
+$('#m6-reset').addEventListener('click',()=>{S.m6mark=[];set('m6chk',0);renderM6()});
+
+/* ---------- 7 Duell ---------- */
+const POOL=[
+ ['Die Ausbildung zum Verkäufer dauert zwei Jahre.',1,'Laut Ausbildungsordnung 24 Monate.'],
+ ['Ausbilder ist der Betrieb, der dich einstellt.',0,'Das ist der Ausbildende. Ausbilder ist die Person, die dich ausbildet.'],
+ ['Die IHK trägt deinen Ausbildungsvertrag in ein Verzeichnis ein.',1,'Ohne Eintragung keine Zulassung zur Prüfung.'],
+ ['Seit 2024 darf der Ausbildungsvertrag auch per E-Mail kommen.',1,'Seit 01.08.2024 genügt die Textform.'],
+ ['Eine Probezeit von 5 Monaten ist erlaubt.',0,'Höchstens 4 Monate (§ 20 BBiG).'],
+ ['Der Betrieb darf dich dein privates Auto waschen lassen.',0,'Nur Aufgaben, die der Ausbildung dienen.'],
+ ['Bei Krankheit bekommst du bis zu sechs Wochen deine Vergütung.',1,'§ 19 BBiG.'],
+ ['Nach der Probezeit darf der Betrieb nur aus wichtigem Grund kündigen.',1,'Fristlos, spätestens zwei Wochen nach Bekanntwerden.'],
+ ['Bestehst du die Prüfung vor Vertragsende, endet die Ausbildung mit der Bekanntgabe des Ergebnisses.',1,'§ 21 BBiG.'],
+ ['Die Zwischenprüfung zählt zur Abschlussnote.',0,'Sie zählt nicht, ist aber Pflicht.'],
+ ['WiSo zählt in der Abschlussprüfung 10 %.',1,'60 Min., Ankreuzaufgaben.'],
+ ['Ein 16-jähriger Azubi darf bis 21 Uhr im Laden arbeiten.',0,'Nur zwischen 6 und 20 Uhr (§ 14 JArbSchG).'],
+ ['Wer am 1. Januar 17 ist, hat 25 Werktage Urlaub.',1,'Noch nicht 18 → 25 Werktage (§ 19 JArbSchG).'],
+ ['Jugendliche dürfen am 24. Dezember bis 16 Uhr arbeiten.',0,'Am 24. und 31.12. ab 14 Uhr frei (§ 18).'],
+ ['Eine Kündigung per WhatsApp ist wirksam.',0,'Nur schriftlich mit Unterschrift.'],
+ ['Die Länder regeln mit dem Rahmenlehrplan den Unterricht in der Berufsschule.',1,'Der Bund regelt den Betrieb.']
+];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function newGame(){S.d={o:shuffle(POOL.map((p,i)=>i)).slice(0,12),r:0,a:0,b:0,pa:null,pb:null,shown:0};save();renderD()}
+function renderD(){const d=S.d;if(!d){newGame();return}const p=POOL[d.o[d.r]];
+ $('#d-sa').textContent=d.a;$('#d-sb').textContent=d.b;$('#d-la').textContent=$('#d-na').value;$('#d-lb').textContent=$('#d-nb').value;
+ const end=d.r>=d.o.length;$('#d-round').textContent=end?'Spiel vorbei':`Runde ${d.r+1} von ${d.o.length}`;
+ $('#d-stmt').textContent=end?(d.a===d.b?'Unentschieden!':`${d.a>d.b?$('#d-na').value:$('#d-nb').value} gewinnt!`):p[0];
+ $$('.pp .vbtn').forEach(b=>{const t=b.dataset.t,v=+b.dataset.v;b.classList.toggle('sel',d['p'+t]===v);b.disabled=end||!!d.shown});
+ const fb=$('#d-fb');if(d.shown&&!end){fb.hidden=false;fb.className='fb '+(p[1]?'ok':'bad');fb.innerHTML=`<b>${p[1]?'Stimmt.':'Stimmt nicht.'}</b> ${esc(p[2])}`}else fb.hidden=true;
+ $('#d-show').disabled=end||!!d.shown;$('#d-next').disabled=end||!d.shown}
+$('.players').addEventListener('click',e=>{const b=e.target.closest('.vbtn');if(!b||b.disabled)return;S.d['p'+b.dataset.t]=+b.dataset.v;save();renderD()});
+$('#d-show').addEventListener('click',()=>{const d=S.d,p=POOL[d.o[d.r]];if(d.pa===p[1])d.a++;if(d.pb===p[1])d.b++;d.shown=1;save();renderD()});
+$('#d-next').addEventListener('click',()=>{const d=S.d;d.r++;d.pa=d.pb=null;d.shown=0;save();renderD()});
+$('#d-new').addEventListener('click',newGame);
+['#d-na','#d-nb'].forEach(id=>{$(id).value=S[id]||$(id).value;$(id).addEventListener('input',e=>{S[id]=e.target.value;save();renderD()})});
+
+/* ---------- 8 Landkarte ---------- */
+const MAP=[
+ ['1 · Duales System',['Betrieb (Praxis) + Berufsschule (Theorie)','IHK: Verzeichnis, Beratung, Prüfung','Bund → Betrieb, Länder → Schule']],
+ ['2 · Ausbildungsvertrag',['vor Beginn, in Textform','Mindestangaben: Dauer, Probezeit, Vergütung, Urlaub …','nichtig: Gebühr, Vertragsstrafe, Bleibepflicht']],
+ ['3 · Rechte und Pflichten',['Azubi: lernen, Weisungen, Schweigepflicht, Nachweis','Betrieb: ausbilden, freistellen, Mittel kostenlos','Vergütung 2026: mind. 724 €, 6 Wochen bei Krankheit']],
+ ['4 · Probezeit, Kündigung',['Probezeit 1–4 Monate','danach: Betrieb nur aus wichtigem Grund','immer schriftlich; Zeugnis am Ende']],
+ ['5 · Prüfung, Weiterbildung',['Fachgespräch 50 %, WiSo 10 %','Verkürzung: Antrag bei der IHK','Anpassungs-, Aufstiegsfortbildung, Umschulung']],
+ ['6 · Jugendarbeitsschutz',['unter 18: max. 8 Std./Tag, 40 Std./Woche','6–20 Uhr, 12 Std. frei, kein Sonntag','Urlaub 30/27/25 Werktage']]
+];
+$('#map').innerHTML=MAP.map(m=>`<div class="node"><h3>${m[0]}</h3><ul>${m[1].map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('');
+
+/* ---------- 9 Kann-Liste ---------- */
+const KANN=['die zwei Lernorte nennen und Ausbildenden, Ausbilder und Azubi unterscheiden','die Aufgaben der IHK nennen','Mindestangaben und nichtige Vereinbarungen im Vertrag erkennen','Pflichten von Azubi und Betrieb nennen und einen Fall im Vier-Schritte-Schema lösen','das Ende der Probezeit berechnen und prüfen, ob eine Kündigung wirksam ist','den Aufbau der Abschlussprüfung erklären und Wege der Weiterbildung nennen','einen Dienstplan nach dem Jugendarbeitsschutzgesetz prüfen'];
+const LV=['noch nicht','teilweise','sicher'];
+function renderKann(){const k=S.kann||{};$('#self').innerHTML=KANN.map((t,i)=>`<div class="r"><span>Ich kann ${esc(t)}.</span><div class="lv">${LV.map((l,j)=>`<button type="button" class="${k[i]===j?'on':''}" data-i="${i}" data-j="${j}">${l}</button>`).join('')}</div></div>`).join('')}
+$('#self').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=S.kann||{};k[b.dataset.i]=+b.dataset.j;set('kann',k);renderKann()});
+
+/* ---------- Punkte ---------- */
+function parts(){const cnt=(st,Q)=>Object.entries(st||{}).filter(([i,a])=>Q[i]&&Q[i].a===a).length;
+ const m2=S.m2chk?LINES.filter((l,i)=>l[2]&&(S.m2mark||[]).includes(i)).length:0;
+ const m6=S.m6chk?PLAN.filter((p,i)=>p[2]&&(S.m6mark||[]).includes(i)).length:0;
+ return {post:[(S.post||[]).filter(i=>CLAIMS[i].f).length,NF,(S.post||[]).filter(i=>CLAIMS[i].f).length===NF],
+  m1:[Object.keys(S.m1||{}).length+cnt(S.m1mc,M1Q),CARDS.length+M1Q.length,Object.keys(S.m1||{}).length===CARDS.length&&Object.keys(S.m1mc||{}).length===M1Q.length],
+  m2:[m2,NERR,!!S.m2chk],m3:[cnt(S.m3,M3C),M3C.length,Object.keys(S.m3||{}).length===M3C.length],
+  m4:[cnt(S.m4,M4C),M4C.length,Object.keys(S.m4||{}).length===M4C.length],m5:[cnt(S.m5mc,M5Q),M5Q.length,Object.keys(S.m5mc||{}).length===M5Q.length],
+  m6:[m6,NV,!!S.m6chk]}}
+function score(){const p=parts();let t=0,mx=0;for(const k in p){t+=p[k][0];mx+=p[k][1]}$('#total').textContent=t;$('#max').textContent=mx;
+ $$('#navlist a').forEach(a=>{const k=a.dataset.k;a.classList.toggle('done',!!(p[k]&&p[k][2]))})}
+const NAVK={'s-post':'post','s-m1':'m1','s-m2':'m2','s-m3':'m3','s-m4':'m4','s-m5':'m5','s-m6':'m6'};
+$('#navlist').innerHTML=$$('section.st').map((s,i)=>`<li${s.classList.contains('nur-s')?' class="nur-s"':''}><a href="#${s.id}" data-k="${NAVK[s.id]||''}"><span class="n">${i}</span>${s.dataset.name}</a></li>`).join('');
+
+/* ---------- Export ---------- */
+$('#copy').addEventListener('click',()=>{const p=parts(),k=S.kann||{};const names={post:'Einstieg',m1:'Modul 1',m2:'Modul 2',m3:'Modul 3',m4:'Modul 4',m5:'Modul 5',m6:'Modul 6'};
+ let t=`WiSo Mythos-Check Block A\nName: ${S.f_name||''}\nKlasse: ${S.f_klasse||''}\nDatum: ${S.f_datum||''}\n\n`;
+ for(const x in p)t+=`${names[x]}: ${p[x][0]} von ${p[x][1]} Punkten\n`;
+ t+=`Gesamt: ${$('#total').textContent} von ${$('#max').textContent}\n\nKann-Liste:\n`+KANN.map((s,i)=>`- ${s}: ${k[i]!==undefined?LV[k[i]]:'–'}`).join('\n');
+ for(let i=1;i<=6;i++)if(S['f_p'+i])t+=`\n\nProfi ${i}: ${S['f_p'+i]}`;
+ const box=$('#copy-box'),st=$('#copy-st');
+ navigator.clipboard.writeText(t).then(()=>{st.className='status ok';st.textContent='Kopiert! Füge es auf itslearning ein.';box.hidden=true}).catch(()=>{box.hidden=false;box.value=t;box.select();st.className='status';st.textContent='Markiere den Text unten und kopiere ihn.'})});
+$('#reset').addEventListener('click',e=>{if(e.target.dataset.c!=='1'){e.target.dataset.c='1';e.target.textContent='Wirklich alles löschen?';return}const keep={lang:S.lang,pro:S.pro};S=keep;save();location.reload()});
+
+/* ---------- Tafel ---------- */
+let z=1;const setZ=()=>{document.querySelector('.wrap').style.setProperty('--tz',z);$('#tb-zoom').textContent=Math.round(z*100)+' %'};
+$('#tb-plus').addEventListener('click',()=>{z=Math.min(1.8,+(z+.1).toFixed(2));setZ()});
+$('#tb-minus').addEventListener('click',()=>{z=Math.max(.7,+(z-.1).toFixed(2));setZ()});
+$('#tb-full').addEventListener('click',()=>{try{const r=document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();if(r&&r.catch)r.catch(()=>{})}catch(e){}});
+$('#tb-toggle').addEventListener('click',e=>{const on=document.documentElement.classList.toggle('tafel');e.target.setAttribute('aria-pressed',on);e.target.textContent=on?'Tafel aus':'Tafel-Modus';z=on?1.25:1;setZ()});
+
+/* ---------- Start ---------- */
+renderPost();renderM1();mc($('#m1-mc'),'m1mc',M1Q);renderM2();cases($('#m3-cases'),'m3',M3C,['erlaubt','verboten']);calcM4();cases($('#m4-cases'),'m4',M4C,['wirksam','unwirksam']);
+mc($('#m5-mc'),'m5mc',M5Q);calcP();renderM6();renderD();renderKann();lang();pro();score();
+}
+</script>
+</body>
+</html>
