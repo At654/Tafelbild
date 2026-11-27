@@ -68,6 +68,7 @@ function build(g) {
   let eng = SRC.slice(181).join('\n');
   eng = eng.replace(/const LSKEY="[^"]*";/, `const LSKEY="${g.lskey}";`)
     .replace(/U\.naechster=NXT;U\.nichtdran=NDR;const UX=\{.*\};\nfor\(const k in UX\)\{[^\n]*\}\n/, '')
+    .replace('return s?`<span class="tl"', 'return s&&s!==a[0]?`<span class="tl"')
     .replace('<div>${L(it.w)}</div></div>`;\n    h+=S.r.k', '${it.w?`<div>${L(it.w)}</div>`:""}</div>`;\n    h+=S.r.k');
   if (/UX=/.test(eng)) throw new Error('Engine-Umbau (UX) fehlgeschlagen');
   if (!/it\.w\?/.test(eng)) throw new Error('Engine-Umbau (w optional) fehlgeschlagen');
