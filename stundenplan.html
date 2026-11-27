@@ -578,6 +578,8 @@ function pdfLink(u){
  return a&&(!MAT_FILES||MAT_FILES.has(a))?a:'';
 }
 const matLink=o=>pdfLink(o.unit);
+/* Lernsituationen: in der Schüleransicht mit ?mode=schueler öffnen (dann nur Deutsch, keine Lehrer-Übersetzung, kein QR-Code) */
+const stuHref=u=>{u=(u||'').trim();return STUDENT&&/Lernsituation/i.test(u)&&!/^https?:/i.test(u)?u+(u.includes('?')?'&':'?')+'mode=schueler':u;};
 const isLink=s=>{s=(s||'').trim();return /^(https?:\/\/|materials\/)/i.test(s)||/^[^<>"'\\]+\.(pdf|html?|docx?|pptx?|xlsx?|png|jpe?g)([?#]\S*)?$/i.test(s);};
 const digLinks=u=>matOf(u.key).links.filter(x=>isLink(x.u)&&!(STUDENT&&/lehrerhandreichung|l[öo]e?sung/i.test(x.l||'')));
 const periodLabel=p=>state.settings.periods[p]||('DS '+(p+1));
@@ -694,7 +696,7 @@ function matCls(l){
 function matButtons(u,lim,id){
  const pl=pdfLink(u),all=digLinks(u),isL=x=>/lehrerhandreichung/i.test(x.l||''),lh=all.filter(isL),dl=all.filter(x=>!isL(x)),sh=(lim?dl.slice(0,lim):dl).concat(lh);
  return (pl?`<a class="btn sm c-gr" href="${esc(pl)}" target="_blank" rel="noopener" title="Arbeitsblatt (PDF)">${kt('material')}</a>`:'')+
-  sh.map(x=>`<a class="btn sm ${matCls(x.l)}" href="${esc(x.u.trim())}" target="_blank" rel="noopener">${esc(x.l||'Link')}</a>`).join('')+
+  sh.map(x=>`<a class="btn sm ${matCls(x.l)}" href="${esc(stuHref(x.u))}" target="_blank" rel="noopener">${esc(x.l||'Link')}</a>`).join('')+
   (lim&&dl.length>lim?`<button class="btn sm ghost" data-act="entry" data-id="${esc(id)}" title="Weitere Materialien im Eintrag">+${dl.length-lim} mehr</button>`:'');
 }
 /* ================= KLAUSURVORBEREITUNG · ÜBUNGEN · SPRACHE ================= */
@@ -1115,7 +1117,7 @@ function renderModal(){
  o.segs.forEach(g=>{
   if(g.ins){mat+=`<p class="small" style="margin:4px 0"><b>${esc(g.ins.name)}</b> · eingeplant · ${g.n===1?'1 Stunde':'Doppelstunde'}</p>`;return;}
   const u=g.unit,pm=matOf(u.part.id).links.filter(x=>isLink(x.u)&&!(STUDENT&&/lehrerhandreichung|l[öo]e?sung/i.test(x.l||'')));
-  const btns=matButtons(u)+pm.map(x=>`<a class="btn sm ${matCls(x.l)}" href="${esc(x.u.trim())}" target="_blank" rel="noopener">${esc(x.l||'Link')} (${esc(u.part.tag)})</a>`).join('');
+  const btns=matButtons(u)+pm.map(x=>`<a class="btn sm ${matCls(x.l)}" href="${esc(stuHref(x.u))}" target="_blank" rel="noopener">${esc(x.l||'Link')} (${esc(u.part.tag)})</a>`).join('');
   mat+=`<p class="small" style="margin:4px 0"><b>${esc(unitTag(u))}</b>${u.item.lab?': '+esc(u.item.name):''} · Doppelstunde ${u.dsNo}/${u.total}${o.segs.length>1?' · '+g.n*45+' min':''}</p>${btns?`<div class="acts" style="margin:0 0 8px">${btns}</div>`:''}`;
  });
  const txt=entryText(o);
