@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Duales-System-Check – WiSo Modul 1</title>
+<style>
+:root{--bg:#f3efe4;--ink:#1d1d1f;--navy:#13275a;--gold:#b8901c;--paper:#fbf9f3;--line:#d8d1bf;--ok:#2d6b3a;--bad:#a32626}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.app{max-width:680px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--paper);box-shadow:0 0 0 1px var(--line)}
+.top{background:var(--navy);color:#fff;padding:10px 14px 8px}
+.top h1{font-family:Georgia,serif;font-size:24px;margin:0;line-height:1.1}
+.top .sub{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.top .sub .tl{color:#c9d4f0}
+.langs{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.langs button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:14px;padding:3px 10px;font:inherit;font-size:13px;cursor:pointer}
+.langs button.on{background:#fff;color:var(--navy)}
+.tl{display:block;font-size:.86em;color:#4b5a86;font-weight:400;margin-top:2px}
+.main{flex:1;padding:16px}
+.btn{border:0;border-radius:10px;background:var(--navy);color:#fff;font:inherit;font-weight:700;font-size:17px;padding:12px 20px;cursor:pointer;width:100%;box-shadow:0 3px 0 #0b1838}
+.btn.gold{background:var(--gold);box-shadow:0 3px 0 #8a6a10}
+.btn:disabled{opacity:.45;cursor:default}
+.btn .tl{color:#fff;opacity:.85}
+h2{font-family:Georgia,serif;font-size:26px;margin:0 0 8px}
+input.nm{width:100%;font:inherit;font-size:18px;padding:10px 12px;border:1px solid #bdb5a2;border-radius:8px;margin:6px 0 14px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 16px}
+.seg button{border:2px solid #b9b19d;background:#fff;border-radius:10px;padding:10px;font:inherit;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.seg button.on .tl{color:#dfe6fb}
+.opt{display:block;width:100%;text-align:left;border:2px solid #c9c1ad;background:#fff;border-radius:12px;padding:9px 12px;margin:6px 0;font:inherit;cursor:pointer;color:var(--ink)}
+.opt:hover:not(:disabled){border-color:var(--navy)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:#dcefdf}
+.opt.wrong{border-color:var(--bad);background:#f6dada}
+.note{margin:10px 0;font-size:15px;padding:10px 12px;border-radius:10px}
+.note.good{background:#dcefdf;border-left:5px solid var(--ok)}
+.note.bad{background:#f6dada;border-left:5px solid var(--bad)}
+.stars{color:var(--gold);letter-spacing:3px}
+.end{text-align:center}
+.end h2{font-size:30px}
+.end table{width:100%;border-collapse:collapse;margin:12px 0;text-align:left}
+.end td{padding:6px 4px;border-bottom:1px solid #e3ddcd;vertical-align:top}
+.merke{background:#fdf0cc;border-radius:10px;padding:10px 12px;text-align:left;margin:12px 0}
+.prog{height:8px;background:#e5e0d2;border-radius:4px;overflow:hidden;margin:4px 0 12px}
+.prog i{display:block;height:100%;background:var(--gold);transition:width .4s}
+.meta{display:flex;justify-content:space-between;font-size:14px;color:#555}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:60;display:none}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}}
+.pop{animation:pop .3s ease-out}
+.tl[dir=rtl]{text-align:right}
+.task{display:flex;gap:12px;align-items:flex-start;background:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.12);margin-bottom:10px}
+.tem{font-size:36px;line-height:1}
+.small{font-size:14px;color:#555;margin:4px 0 8px}
+.scard{background:#fff;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.15);padding:18px;text-align:center;margin:8px 0 12px}
+.scard .em{font-size:56px;line-height:1}
+.scard .txt{font-size:20px;font-weight:700;font-family:Georgia,serif;margin-top:8px}
+.bins{display:grid;gap:8px}
+.bin{border:2px solid #b9b19d;background:#fff;border-radius:12px;padding:10px 6px;font:inherit;font-weight:600;cursor:pointer;text-align:center}
+.bin .ic{display:block;font-size:28px}
+.bin.right{border-color:var(--ok);background:#dcefdf}.bin.wrong{border-color:var(--bad);background:#f6dada}
+.bin:disabled{cursor:default;color:var(--ink)}
+.bin{overflow-wrap:anywhere}
+.svgw{border-radius:12px;overflow:hidden;border:2px solid var(--navy);background:#fff;margin-bottom:10px}
+.pic{display:block;width:100%;height:auto;touch-action:manipulation}
+.hs{fill:transparent;cursor:pointer}
+.hs.fd{fill:rgba(45,107,58,.18);stroke:#2d6b3a;stroke-width:4}
+.hs.pulse{stroke:#b8901c;stroke-width:5;stroke-dasharray:8 6;animation:pl 1s infinite}
+@keyframes pl{50%{stroke-opacity:.2}}
+.lbl{font-size:22px;font-weight:700;fill:#2d6b3a}
+.slot{fill:rgba(255,255,255,.12);stroke:#13275a;stroke-width:2;stroke-dasharray:6 5;cursor:pointer}
+.slot.act{fill:rgba(255,207,107,.28);stroke:#b8901c;stroke-width:3}
+.sll{font-size:14px;font-weight:700;fill:#13275a}
+.tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
+.titem,.pk{border:2px solid #c9c1ad;background:#fff;border-radius:12px;padding:8px;font:inherit;font-size:14px;cursor:pointer;text-align:center;line-height:1.25}
+.titem .ic,.pk .ic{display:block;font-size:28px}
+.titem.on{border-color:var(--gold);background:#fdf0cc;box-shadow:0 0 0 2px var(--gold) inset}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:10px}
+.pk.on{border-color:var(--navy);background:#e4e9f5}
+.pk.right{border-color:var(--ok);background:#dcefdf}.pk.wrong{border-color:var(--bad);background:#f6dada}
+.pk:disabled{cursor:default}
+.btn.light{background:#fff;color:var(--navy);border:2px solid var(--navy);box-shadow:none;margin:6px 0}
+.found{background:#fff;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:14px}
+.found div{margin:3px 0}
+.calc{display:flex;gap:8px;align-items:center;margin:10px 0}
+.calc input{flex:1;font:inherit;font-size:22px;padding:10px 12px;border:2px solid #bdb5a2;border-radius:10px}
+.unit{font-size:20px;font-weight:700}
+.ladder{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.ladder span{flex:1;text-align:center;font-size:12px;padding:3px 0;border-radius:6px;background:#e5e0d2;color:#666;min-width:34px}
+.ladder span.ok{background:#2d6b3a;color:#fff}.ladder span.cur{background:var(--gold);color:#fff;font-weight:700}
+.opt .tl{margin-top:2px}
+
+</style>
+</head>
+<body>
+<canvas id="cf"></canvas>
+<div class="app">
+ <div class="top"><h1>Duales-System-Check</h1><div class="sub" id="sub"></div><div class="langs" id="langs"></div></div>
+ <div class="main" id="main"></div>
+</div>
+<script>
+const LANGSET=[["de","Deutsch"],["es","Español"]];
+const U={"name":["Dein Name (oder eure Namen)","Tu nombre (o vuestros nombres)"],"stufe":["Stufe","Nivel"],"basis":["Basis","Básico"],"profi":["Profi – mit Zusatzaufgaben","Profi – con tareas extra"],"los":["Los geht’s","¡Vamos!"],"teil":["Teil","Parte"],"von":["von","de"],"punkte":["Punkte","puntos"],"richtig":["Richtig!","¡Correcto!"],"falsch":["Leider falsch.","Lo siento, incorrecto."],"richtigist":["Richtig ist:","Lo correcto es:"],"weiter":["Weiter ➜","Seguir ➜"],"pruefen":["Prüfen","Comprobar"],"tipp":["💡 Tipp (−50)","💡 Pista (−50)"],"gefunden":["gefunden","encontrado"],"tippe":["Tippe ins Bild.","Toca en la imagen."],"waehleware":["1. Tippe unten auf eine Karte. 2. Tippe dann auf den passenden Platz im Bild.","1. Toca una tarjeta abajo. 2. Después toca el lugar correcto en la imagen."],"passtnicht":["Passt hier nicht.","No encaja aquí."],"alleaus":["Wähle alle passenden aus.","Elige todos los correctos."],"eingabe":["Deine Antwort","Tu respuesta"],"hinweis":["Noch nicht. Hinweis:","Todavía no. Pista:"],"loesung":["Lösung:","Solución:"],"geschafft":["Geschafft!","¡Lo lograste!"],"merke":["Merke","Recuerda"],"neustart":["Nochmal spielen","Jugar otra vez"],"t3":["Profi 🏆","Experto 🏆"],"t2":["Gut gemacht 👍","Bien hecho 👍"],"t1":["Weiter üben 💪","Sigue practicando 💪"],"joker":["50:50-Joker","Comodín 50:50"],"frage":["Frage","Pregunta"],"naechster":["Tippe immer den nächsten Schritt an.","Toca siempre el siguiente paso."],"nichtdran":["Das ist noch nicht dran.","Todavía no toca este."]};
+const GAME={"icon":"🏫","h1":"Duales-System-Check","title":"Duales-System-Check – WiSo Modul 1","file":"WiSo1_M_1_Duales-System-Check.html","lskey":"wiso1m1_lang","txt":{"sub":["Duales-System-Check · WiSo Modul 1 · KLA Bremerhaven"],"head":["Betrieb und Berufsschule: Wer macht was?","Empresa y escuela profesional: ¿quién hace qué?"],"intro":["Löse die Aufgaben allein oder zu zweit am Handy. Für richtige Antworten gibt es Punkte. Wähle Basis oder Profi.","Resuelve las tareas solo o en pareja en el móvil. Las respuestas correctas dan puntos. Elige Básico o Profi."],"merktext":["Duale Ausbildung heißt: zwei Lernorte. Im Betrieb lernst du die Praxis (Grundlage: Ausbildungsordnung und Ausbildungsplan), in der Berufsschule die Theorie (Grundlage: Rahmenlehrplan). Die IHK ist die zuständige Stelle: Sie überwacht die Ausbildung und nimmt die Prüfungen ab.","Formación dual significa: dos lugares de aprendizaje. En la empresa aprendes la práctica (base: reglamento y plan de formación), en la escuela profesional la teoría (base: plan marco). La IHK es el organismo competente: supervisa la formación y realiza los exámenes."]},"stages":[{"type":"sort","task":["Wo findet das statt?","¿Dónde ocurre esto?"],"bins":[{"e":"🏪","n":["Betrieb","Empresa"]},{"e":"🏫","n":["Berufsschule","Escuela profesional"]}],"items":[{"e":"🛒","b":0,"t":["Du berätst echte Kunden im Laden.","Asesoras a clientes reales en la tienda."]},{"e":"📘","b":1,"t":["Du lernst Wirtschafts- und Sozialkunde.","Aprendes economía y ciencias sociales."]},{"e":"📦","b":0,"t":["Du räumst Ware ins Regal.","Colocas mercancía en la estantería."]},{"e":"🗣️","b":1,"t":["Du übst Englisch im Verkauf.","Practicas inglés de ventas."]},{"e":"🧾","b":0,"t":["Du bedienst die Kasse.","Atiendes la caja."]},{"e":"📝","b":1,"t":["Du schreibst eine Klassenarbeit.","Haces un examen en clase."]}]},{"type":"mc","e":"🏛️","q":["Welche Stelle überwacht die Ausbildung und nimmt die Prüfungen ab?","¿Qué organismo supervisa la formación y realiza los exámenes?"],"o":[["Die IHK (zuständige Stelle)","La IHK (organismo competente)"],["Der Betriebsrat","El comité de empresa"],["Die Schulleitung allein","La dirección escolar sola"]],"r":0,"w":["Die zuständige Stelle ist bei Kaufleuten und Verkäufern die Industrie- und Handelskammer.","El organismo competente para comerciantes y vendedores es la Cámara de Industria y Comercio."]},{"type":"mc","e":"📜","q":["Welche Regel legt fest, was du im Betrieb lernen sollst?","¿Qué norma establece lo que debes aprender en la empresa?"],"o":[["Die Ausbildungsordnung mit Ausbildungsrahmenplan","El reglamento de formación con el plan marco de formación"],["Der Stundenplan der Schule","El horario de la escuela"],["Das Berichtsheft","El cuaderno de informes"]],"r":0,"w":["Die Ausbildungsordnung gilt bundesweit für den Betrieb; der Rahmenlehrplan für die Schule.","El reglamento rige en todo el país para la empresa; el plan marco, para la escuela."]},{"type":"pick","task":["Was ist Aufgabe des Ausbildungsbetriebs?","¿Qué corresponde a la empresa formadora?"],"w":["Der Betrieb vermittelt die Praxis, stellt Ausbildungsmittel und gibt dir für die Berufsschule frei.","La empresa enseña la práctica, aporta los medios de formación y te libera para la escuela profesional."],"items":[{"e":"🛠️","ok":1,"t":["Praktische Fähigkeiten vermitteln","Enseñar habilidades prácticas"]},{"e":"🎒","ok":1,"t":["Ausbildungsmittel kostenlos stellen","Facilitar gratis los medios de formación"]},{"e":"🏫","ok":1,"t":["Für die Berufsschule freistellen","Liberar para la escuela profesional"]},{"e":"🚫","ok":0,"t":["Nur Hilfsarbeiten ohne Lernziel","Solo trabajos auxiliares sin objetivo de aprendizaje"]}]},{"type":"mc","e":"🔗","q":["Profi: Warum nennt man die Ausbildung „dual“?","Profi: ¿Por qué se llama «dual» a la formación?"],"o":[["Weil sie an zwei Lernorten stattfindet","Porque se desarrolla en dos lugares de aprendizaje"],["Weil man zwei Berufe lernt","Porque se aprenden dos profesiones"],["Weil es zwei Chefs gibt","Porque hay dos jefes"]],"r":0,"w":["Dual = zwei: Betrieb und Berufsschule.","Dual = dos: empresa y escuela profesional."],"p":1}]};
+const LSKEY="wiso1m1_lang";
+
+const LANGS=(typeof LANGSET!=="undefined")?LANGSET:[["de","Deutsch"],["es","Español"],["pt","Português"],["ru","Русский"],["ti","ትግርኛ"]];
+const LI={};LANGS.slice(1).forEach((l,i)=>LI[l[0]]=i);
+let lang="de";
+try{const s=localStorage.getItem(LSKEY);if(s&&LANGS.some(l=>l[0]===s))lang=s;}catch(e){}
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const tl=a=>{if(lang==="de"||!a)return "";const s=a[LI[lang]+1];return s&&s!==a[0]?`<span class="tl" lang="${lang}" dir="${lang==="ar"?"rtl":"ltr"}">${esc(s)}</span>`:"";};
+const L=a=>esc(a[0])+tl(a);
+const T=k=>L(U[k]);
+const D=k=>U[k][0];
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function head(){
+  $("sub").innerHTML=T("sub");
+  $("langs").innerHTML=LANGS.map(([c,n])=>`<button class="${c===lang?"on":""}" data-l="${c}">${n}</button>`).join("");
+  $("langs").querySelectorAll("button").forEach(b=>b.onclick=()=>{lang=b.dataset.l;try{localStorage.setItem(LSKEY,lang);}catch(e){}render();});
+}
+function startScreen(S,onGo,extra){
+  return `<div class="pop"><h2>${D("head")}</h2>${tl(U.head)}<p>${T("intro")}</p>${extra||""}
+  <label><b>${D("name")}</b>${tl(U.name)}</label><input class="nm" id="nm" maxlength="30" value="${esc(S.name)}" autocomplete="off">
+  <b>${D("stufe")}</b>${tl(U.stufe)}<div class="seg"><button id="b0" class="${S.profi?"":"on"}">${T("basis")}</button><button id="b1" class="${S.profi?"on":""}">${T("profi")}</button></div>
+  <button class="btn gold" id="go">${T("los")}</button></div>`;
+}
+function bindStart(S,onGo){
+  $("nm").oninput=e=>S.name=e.target.value;
+  $("b0").onclick=()=>{S.profi=false;render();};
+  $("b1").onclick=()=>{S.profi=true;render();};
+  $("go").onclick=()=>{S.name=$("nm").value.trim();onGo();};
+}
+let cfStop=false;
+function confetti(){
+  cfStop=false;const c=$("cf");c.style.display="block";const x=c.getContext("2d");
+  let W=c.width=innerWidth,H=c.height=innerHeight;
+  const cols=["#b8901c","#13275a","#a32626","#2d6b3a","#e7c35a","#22508f","#f28c28","#d94f8c","#3fb6a8"];
+  const P=[];for(let i=0;i<320;i++)P.push({x:Math.random()*W,y:-Math.random()*H*1.3,w:6+Math.random()*8,h:9+Math.random()*10,vy:2.2+Math.random()*3.8,vx:-1.5+Math.random()*3,r:Math.random()*6.28,vr:-.22+Math.random()*.44,c:cols[i%cols.length],s:Math.random()*6.28,round:Math.random()<.25});
+  const t0=performance.now();
+  function f(t){
+    if(cfStop){x.clearRect(0,0,W,H);c.style.display="none";return;}
+    x.clearRect(0,0,W,H);let alive=false;
+    for(const p of P){p.y+=p.vy;p.x+=p.vx+Math.sin(t/380+p.s)*1.3;p.r+=p.vr;
+      if(t-t0<5000&&p.y>H+20){p.y=-20;p.x=Math.random()*W;}
+      if(p.y<H+20)alive=true;
+      x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;
+      if(p.round){x.beginPath();x.arc(0,0,p.w/2,0,6.28);x.fill();}else x.fillRect(-p.w/2,-p.h/2,p.w,p.h*Math.max(.15,Math.abs(Math.cos(p.r*1.3))));
+      x.restore();}
+    if(alive)requestAnimationFrame(f);else c.style.display="none";
+  }
+  requestAnimationFrame(f);
+}
+
+Object.assign(U,GAME.txt);
+let S={screen:"start",name:"",profi:false,st:[],si:0,pts:0,max:0,r:{}};
+const stage=()=>S.st[S.si];
+
+function startGame(){
+  S.st=GAME.stages.filter(s=>!s.p||S.profi).map(s=>Object.assign({},s));
+  S.si=0;S.pts=0;S.max=0;S.joker=false;S.screen="game";initStage();render();
+}
+function initStage(){
+  const s=stage();S.r={done:false,note:null};
+  if(s.type==="sort"){S.r.order=shuffle(s.items.map((_,i)=>i));S.r.k=0;S.r.ans=null;S.max+=100*s.items.length;}
+  if(s.type==="spot"){S.r.found=[];S.r.miss=0;S.max+=100*s.spots.filter(x=>x.ok).length;}
+  if(s.type==="place"){S.r.placed={};S.r.sel=null;S.r.fails={};S.r.order=shuffle(s.items.map((_,i)=>i));S.max+=100*s.items.length;}
+  if(s.type==="pick"){S.r.sel=new Set();S.r.order=shuffle(s.items.map((_,i)=>i));S.max+=25*s.items.filter(x=>x.ok).length;}
+  if(s.type==="mc"){S.r.order=shuffle(s.o.map((_,i)=>i));S.r.ans=null;S.r.hidden=[];S.max+=100;}
+  if(s.type==="order"){S.r.k=0;S.r.fails={};S.r.order=shuffle(s.items.map((_,i)=>i));S.max+=25*s.items.length;}
+  if(s.type==="calc"){S.r.tries=0;S.r.val="";S.max+=100;}
+}
+function hdr(){
+  return `<div class="meta"><span>${D("teil")} ${S.si+1} ${D("von")} ${S.st.length}</span><span>${S.pts} ${D("punkte")}</span></div><div class="prog"><i style="width:${S.si/S.st.length*100}%"></i></div>`;
+}
+function taskBox(t,ico){return `<div class="task"><div class="tem">${ico||GAME.icon}</div><div><b>${esc(t[0])}</b>${tl(t)}</div></div>`;}
+function nextBtn(){const last=S.si===S.st.length-1;return `<button class="btn ${last?"gold":""}" id="nx">${T("weiter")}</button>`;}
+
+/* ---------- Sortieren ---------- */
+function rSort(s){
+  const it=s.items[S.r.order[S.r.k]];
+  let h=taskBox(s.task)+`<div class="small">${S.r.k+1} / ${s.items.length}</div>`;
+  h+=`<div class="scard pop"><div class="em">${it.e}</div><div class="txt">${esc(it.t[0])}</div>${tl(it.t)}</div><div class="bins" style="grid-template-columns:repeat(${s.bins.length>3?2:s.bins.length},minmax(0,1fr))">`;
+  s.bins.forEach((b,i)=>{let c="bin";if(S.r.ans!==null){if(i===it.b)c+=" right";else if(i===S.r.ans)c+=" wrong";}
+    h+=`<button class="${c}" data-b="${i}" ${S.r.ans!==null?"disabled":""}><span class="ic">${b.e}</span>${esc(b.n[0])}${tl(b.n)}</button>`;});
+  h+=`</div>`;
+  if(S.r.ans!==null){const ok=S.r.ans===it.b;
+    h+=`<div class="note ${ok?"good":"bad"}"><b>${ok?"✔ "+D("richtig"):"✘ "+D("falsch")}</b> ${ok?"":D("richtigist")+" <b>"+esc(s.bins[it.b].n[0])+"</b>"}${it.w?`<div>${L(it.w)}</div>`:""}</div>`;
+    h+=S.r.k<s.items.length-1?`<button class="btn" id="nk">${T("weiter")}</button>`:nextBtn();}
+  return h;
+}
+/* ---------- Suchbild ---------- */
+function rSpot(s){
+  const need=s.spots.filter(x=>x.ok).length,f=S.r.found;
+  let h=taskBox(s.task)+`<div class="small">${D("tippe")}${tl(U.tippe)} · <b>${f.length} / ${need} ${D("gefunden")}</b></div>`;
+  h+=`<div class="svgw"><svg viewBox="0 0 ${s.vb||"600 400"}" class="pic">${s.svg}`;
+  s.spots.forEach((x,i)=>{const fd=f.includes(i);
+    h+=`<circle class="hs ${fd?"fd":""} ${S.r.hint===i?"pulse":""}" data-s="${i}" cx="${x.x}" cy="${x.y}" r="${x.r||32}"/>`;
+    if(fd)h+=`<text x="${x.x}" y="${x.y-(x.r||32)-4}" class="lbl" text-anchor="middle">✔</text>`;});
+  h+=`</svg></div>`;
+  if(S.r.note)h+=`<div class="note ${S.r.note.ok?"good":"bad"}"><b>${S.r.note.ok?"✔ ":"✘ "}${esc(S.r.note.n[0])}</b>${tl(S.r.note.n)}<div>${L(S.r.note.w)}</div></div>`;
+  if(f.length<need)h+=`<button class="btn light" id="hint">${T("tipp")}</button>`;
+  else {h+=`<div class="found">${s.spots.filter(x=>x.ok).map(x=>`<div>✔ <b>${esc(x.n[0])}</b>${tl(x.n)}</div>`).join("")}</div>`+nextBtn();}
+  return h;
+}
+/* ---------- Platzieren ---------- */
+function rPlace(s){
+  let h=taskBox(s.task)+`<div class="small">${D("waehleware")}${tl(U.waehleware)}</div>`;
+  h+=`<div class="svgw"><svg viewBox="0 0 ${s.vb||"600 400"}" class="pic">${s.svg}`;
+  s.slots.forEach(sl=>{
+    const here=Object.keys(S.r.placed).filter(k=>S.r.placed[k]===sl.id).map(k=>s.items[k].e).join("");
+    h+=`<rect class="slot ${S.r.sel!==null?"act":""}" data-sl="${sl.id}" x="${sl.x}" y="${sl.y}" width="${sl.w}" height="${sl.h}" rx="8"/>`;
+    if(sl.n)h+=`<text x="${sl.x+6}" y="${sl.y+16}" class="sll">${esc(sl.n)}</text>`;
+    if(here)h+=`<text x="${sl.x+sl.w/2}" y="${sl.y+sl.h/2+12}" text-anchor="middle" font-size="30">${here}</text>`;
+  });
+  h+=`</svg></div><div class="tray">`;
+  for(const i of S.r.order){if(S.r.placed[i]!==undefined)continue;const it=s.items[i];
+    h+=`<button class="titem ${S.r.sel===i?"on":""}" data-it="${i}"><span class="ic">${it.e}</span>${esc(it.t[0])}${tl(it.t)}</button>`;}
+  h+=`</div>`;
+  if(S.r.note)h+=`<div class="note ${S.r.note.ok?"good":"bad"}"><b>${S.r.note.ok?"✔ "+D("richtig"):"✘ "+D("passtnicht")}</b> ${S.r.note.e} ${esc(S.r.note.t[0])}<div>${L(S.r.note.w)}</div></div>`;
+  if(Object.keys(S.r.placed).length===s.items.length)h+=nextBtn();
+  return h;
+}
+/* ---------- Auswählen ---------- */
+function rPick(s){
+  let h=taskBox(s.task)+`<div class="small">${D("alleaus")}${tl(U.alleaus)}</div><div class="pgrid">`;
+  for(const i of S.r.order){const it=s.items[i];let c="pk";if(S.r.sel.has(i))c+=" on";
+    if(S.r.done){if(it.ok)c+=" right";else if(S.r.sel.has(i))c+=" wrong";}
+    h+=`<button class="${c}" data-pk="${i}" ${S.r.done?"disabled":""}><span class="ic">${it.e}</span>${esc(it.t[0])}${tl(it.t)}</button>`;}
+  h+=`</div>`;
+  if(!S.r.done)h+=`<button class="btn gold" id="chk">${T("pruefen")}</button>`;
+  else h+=`<div class="note ${S.r.gain===S.r.maxg?"good":"bad"}"><b>+${S.r.gain} ${D("punkte")}</b><div>${L(s.w)}</div></div>`+nextBtn();
+  return h;
+}
+/* ---------- Reihenfolge ---------- */
+function rOrder(s){
+  let h=taskBox(s.task)+`<div class="small">${D("naechster")}${tl(U.naechster)}</div>`;
+  if(S.r.k>0){h+=`<div class="found">`;for(let i=0;i<S.r.k;i++){const it=s.items[i];h+=`<div>✔ <b>${i+1}.</b> ${it.e} ${esc(it.t[0])}${tl(it.t)}</div>`;}h+=`</div>`;}
+  if(S.r.k<s.items.length){h+=`<div class="tray">`;
+    for(const i of S.r.order){if(i<S.r.k)continue;const it=s.items[i];h+=`<button class="titem" data-o="${i}"><span class="ic">${it.e}</span>${esc(it.t[0])}${tl(it.t)}</button>`;}
+    h+=`</div>`;
+    if(S.r.note)h+=`<div class="note bad"><b>✘ ${D("nichtdran")}</b>${tl(U.nichtdran)}<div>${L(s.h)}</div></div>`;
+  } else h+=`<div class="note good"><b>✔ ${D("richtig")}</b>${tl(U.richtig)}</div>`+nextBtn();
+  return h;
+}
+/* ---------- Quiz ---------- */
+function rMc(s){
+  let h="";
+  if(s.ladder)h+=`<div class="ladder">${S.st.filter(x=>x.ladder).map((x,i)=>`<span class="${S.st.indexOf(x)<S.si?"ok":S.st.indexOf(x)===S.si?"cur":""}">${(i+1)*100}</span>`).join("")}</div>`;
+  h+=taskBox(s.q,s.e||"❓")+`<div>`;
+  for(const i of S.r.order){let c="opt";if(S.r.hidden.includes(i))continue;
+    if(S.r.ans!==null){if(i===s.r)c+=" right";else if(i===S.r.ans)c+=" wrong";}
+    h+=`<button class="${c}" data-mc="${i}" ${S.r.ans!==null?"disabled":""}>${L(s.o[i])}</button>`;}
+  h+=`</div>`;
+  if(s.ladder&&S.r.ans===null&&!S.joker)h+=`<button class="btn light" id="jk">${T("joker")}</button>`;
+  if(S.r.ans!==null){const ok=S.r.ans===s.r;h+=`<div class="note ${ok?"good":"bad"}"><b>${ok?"✔ "+D("richtig"):"✘ "+D("falsch")}</b><div>${L(s.w)}</div></div>`+nextBtn();}
+  return h;
+}
+/* ---------- Rechnen ---------- */
+function rCalc(s){
+  let h=taskBox(s.q,s.e||"🧮");
+  if(!S.r.done)h+=`<div class="calc"><input id="cv" inputmode="decimal" placeholder="${D("eingabe")}" value="${esc(S.r.val)}" autocomplete="off"><span class="unit">${s.unit}</span></div><button class="btn gold" id="cc">${T("pruefen")}</button>`;
+  if(S.r.note)h+=`<div class="note ${S.r.note==="ok"?"good":"bad"}">${S.r.note==="ok"?`<b>✔ ${D("richtig")}</b> ${fmt(s.a)} ${s.unit}<div>${L(s.sol)}</div>`:S.r.note==="hint"?`<b>${D("hinweis")}</b><div>${L(s.hint)}</div>`:`<b>✘ ${D("loesung")}</b> ${fmt(s.a)} ${s.unit}<div>${L(s.sol)}</div>`}</div>`;
+  if(S.r.done)h+=nextBtn();
+  return h;
+}
+const fmt=n=>n.toFixed(2).replace(".",",");
+
+function renderGame(){
+  const s=stage();
+  let h=hdr();
+  h+=({sort:rSort,spot:rSpot,place:rPlace,pick:rPick,mc:rMc,calc:rCalc,order:rOrder})[s.type](s);
+  $("main").innerHTML=`<div class="pop">${h}</div>`;
+  bindGame(s);
+}
+function bindGame(s){
+  const q=(sel,fn)=>$("main").querySelectorAll(sel).forEach(b=>b.onclick=()=>fn(b));
+  q("[data-b]",b=>{S.r.ans=+b.dataset.b;const it=s.items[S.r.order[S.r.k]];if(S.r.ans===it.b)S.pts+=100;renderGame();});
+  if($("nk"))$("nk").onclick=()=>{S.r.k++;S.r.ans=null;renderGame();};
+  q("[data-s]",b=>{const i=+b.dataset.s,x=s.spots[i];if(S.r.found.includes(i))return;
+    if(x.ok){S.r.found.push(i);S.pts+=100;if(S.r.hint===i)S.r.hint=null;}else S.r.miss++;
+    S.r.note={ok:x.ok,n:x.n,w:x.w};renderGame();});
+  if($("hint"))$("hint").onclick=()=>{const i=s.spots.findIndex((x,k)=>x.ok&&!S.r.found.includes(k));S.r.hint=i;S.pts=Math.max(0,S.pts-50);renderGame();};
+  q("[data-it]",b=>{S.r.sel=+b.dataset.it;S.r.note=null;renderGame();});
+  q("[data-sl]",b=>{if(S.r.sel===null)return;const i=S.r.sel,it=s.items[i],id=b.dataset.sl;
+    if(it.s.includes(id)){S.r.placed[i]=id;if(!S.r.fails[i])S.pts+=100;S.r.note={ok:1,e:it.e,t:it.t,w:it.w};S.r.sel=null;}
+    else{S.r.fails[i]=1;S.r.note={ok:0,e:it.e,t:it.t,w:it.h||it.w};}
+    renderGame();});
+  q("[data-o]",b=>{const i=+b.dataset.o;if(i===S.r.k){if(!S.r.fails[i])S.pts+=25;S.r.note=null;S.r.k++;}else{S.r.fails[S.r.k]=1;S.r.note=1;}renderGame();});
+  q("[data-pk]",b=>{const i=+b.dataset.pk;S.r.sel.has(i)?S.r.sel.delete(i):S.r.sel.add(i);renderGame();});
+  if($("chk"))$("chk").onclick=()=>{let g=0;s.items.forEach((it,i)=>{if(S.r.sel.has(i))g+=it.ok?25:-25;});
+    S.r.maxg=25*s.items.filter(x=>x.ok).length;S.r.gain=Math.max(0,g);S.pts+=S.r.gain;S.r.done=true;renderGame();};
+  q("[data-mc]",b=>{S.r.ans=+b.dataset.mc;if(S.r.ans===s.r)S.pts+=100;renderGame();});
+  if($("jk"))$("jk").onclick=()=>{S.joker=true;S.r.hidden=shuffle(s.o.map((_,i)=>i).filter(i=>i!==s.r)).slice(0,s.o.length-2);renderGame();};
+  if($("cv")){$("cv").oninput=e=>S.r.val=e.target.value;$("cv").onkeydown=e=>{if(e.key==="Enter")$("cc").click();};}
+  if($("cc"))$("cc").onclick=()=>{const v=parseFloat(String(S.r.val).replace(/−/g,"-").replace(/[^\d,.\-]/g,"").replace(",","."));
+    S.r.tries++;
+    if(Math.abs(v-s.a)<=(s.tol||0.011)){S.pts+=S.r.tries===1?100:50;S.r.note="ok";S.r.done=true;}
+    else if(S.r.tries===1)S.r.note="hint";
+    else{S.r.note="sol";S.r.done=true;}
+    renderGame();};
+  if($("nx"))$("nx").onclick=()=>{if(S.si<S.st.length-1){S.si++;initStage();renderGame();window.scrollTo(0,0);}else{S.screen="end";render();confetti();}};
+}
+function renderEnd(){
+  const pc=S.max?S.pts/S.max:0,tk=pc>=.85?"t3":pc>=.6?"t2":"t1",st=pc>=.85?3:pc>=.6?2:1;
+  let h=`<div class="end pop"><div style="font-size:60px">${GAME.icon}🏆</div><h2>${D("geschafft")}</h2>${tl(U.geschafft)}`;
+  if(S.name)h+=`<div style="font-size:20px;font-weight:700">${esc(S.name)}</div>`;
+  h+=`<div class="stars" style="font-size:34px">${"★".repeat(st)}${"☆".repeat(3-st)}</div><div style="font-size:20px;font-weight:700">${S.pts} / ${S.max} ${D("punkte")}</div><div style="font-size:22px;margin-top:6px"><b>${D(tk)}</b>${tl(U[tk])}</div>`;
+  h+=`<div class="merke"><b>💡 ${D("merke")}</b>${tl(U.merke)}<div>${esc(U.merktext[0])}</div>${tl(U.merktext)}</div><button class="btn gold" id="again">${T("neustart")}</button></div>`;
+  $("main").innerHTML=h;window.scrollTo(0,0);
+  $("again").onclick=()=>{cfStop=true;S.screen="start";render();};
+}
+function render(){
+  head();
+  if(S.screen==="start"){$("main").innerHTML=startScreen(S);bindStart(S,startGame);}
+  else if(S.screen==="game")renderGame();
+  else renderEnd();
+}
+render();
+
+</script>
+<script src="qr_button.js"></script>
+</body>
+</html>
