@@ -35,6 +35,11 @@ klp.split('<section class="lf"').slice(1).forEach(sec=>{
   cat[key]={t:title,q:lq[key]||'',n:pts.length};n++;
  }
 });
+/* Zusätzliche Key Learning Points (Englisch, Mathe): tools/tagesplan/klp_zusatz.json */
+{const Z=JSON.parse(rd('tools/tagesplan/klp_zusatz.json'));
+ Object.keys(Z.mods).forEach(key=>{const m=Z.mods[key],i=key.indexOf('.'),pid=key.slice(0,i),code=key.slice(i+1);
+  const pts=m.p.map(a=>{const d={};Z.langs.forEach((l,j)=>{if(a[j])d[l]=a[j];});return d;});
+  (parts[pid]=parts[pid]||{})[code]={t:m.t,tt:{},p:pts};cat[key]={t:m.t,q:m.q||'',n:pts.length};n++;});}
 fs.mkdirSync(path.join(root,'tagesplan_daten'),{recursive:true});
 Object.keys(parts).forEach(pid=>{
  fs.writeFileSync(path.join(root,'tagesplan_daten',pid+'.js'),'/* Key Learning Points '+pid+' (erzeugt mit tools/tagesplan/build.js – nicht von Hand ändern). Übersetzungen maschinell erstellt. */\nwindow.TPD&&TPD.add('+JSON.stringify(pid)+','+JSON.stringify(parts[pid])+');\n');
