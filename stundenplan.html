@@ -910,11 +910,18 @@ function lessonCard(o){
  return `<div class="les st-${o.status}${cls}">${head}${body}${wsel}</div>`;
 }
 
+/* Überblicks-Präsentationen Lernfeld 4 je Klasse: Lehrer sieht beide, Schüler die der gewählten Klasse (ohne Auswahl: beide) */
+const UEB4=[['V26/1','LF4_Ueberblick_V26-1.html'],['V26/2','LF4_Ueberblick_V26-2.html']];
+function ueb4Html(){
+ const L=UEB4.filter(x=>!STUDENT||!ui.filterKlasse||x[0]===ui.filterKlasse);
+ if(!L.length)return '';
+ return `<div class="bar" style="flex-wrap:wrap">${L.map(x=>`<a class="btn sm c-gr" href="${x[1]}" target="_blank" rel="noopener">🛍️ Überblick Lernfeld 4 · ${x[0]}</a>`).join('')}</div>`;
+}
 function renderWoche(){
  const m=ui.week,ab=abOf(m),days=[0,1,2,3,4].map(i=>addDays(m,i)),td=todayStr(),P=state.settings.periods.slice(0,4);
  let h='';
  if(!Object.keys(state.slots).length)h+=`<div class="warn">${STUDENT?'Es sind noch keine Stundenplandaten geladen.':'Noch kein Stundenplan eingetragen. Unter <b>Admin → Stundenplan-Raster</b> legst du fest, welche Klasse in welcher Woche (A/B), an welchem Tag und in welcher Doppelstunde unterrichtet wird. Prüfe außerdem unter <b>Admin → Einstellungen</b>, welche Woche eine A-Woche ist.'}</div>`;
- h+=kvBanner();
+ h+=kvBanner();h+=ueb4Html();
  h+=`<div class="bar"><button data-act="wprev">◀</button><div class="wk"><span class="abbadge ab-${ab}">${kvWoche(ab)}</span> KW ${isoWeek(m)} · ${deShort(m)} – ${de(addDays(m,4))}</div><button data-act="wnext">▶</button>
  <button data-act="wtoday">${kt('heute')}</button><button data-act="wnextA">${kt('nextA')}</button><button data-act="wnextB">${kt('nextB')}</button>
  <input type="date" data-ui="weekDate" value="${m}" aria-label="Woche wählen">${klasseSelect('data-ui="filterKlasse"',ui.filterKlasse,kt('alle'))}</div>`;
@@ -1175,7 +1182,7 @@ function fillAdminForms(){
 /* ================= LERNSTOFF-ÜBERSICHT (Reiter) ================= */
 function renderLernstoff(){
  const lg=STUDENT?(KV_LANG==='ru'?'ru':KV_LANG):'de';
- const src='uebersicht.html?embed=1'+(STUDENT?'&stu=1':'')+'&lang='+encodeURIComponent(lg);
+ const src='uebersicht.html?embed=1'+(STUDENT?'&stu=1':'')+(ui.filterKlasse?'&klasse='+encodeURIComponent(ui.filterKlasse):'')+'&lang='+encodeURIComponent(lg);
  return `<div class="card" style="padding:0;overflow:hidden"><iframe title="Lernstoff" src="${src}" style="width:100%;height:calc(100vh - 170px);min-height:560px;border:0;display:block;background:transparent" loading="lazy"></iframe></div><p class="small" style="text-align:center"><a href="uebersicht.html${STUDENT?'?stu=1':''}" target="_blank" rel="noopener">↗ ${STUDENT?'':'In eigenem Tab öffnen / '}uebersicht.html</a></p>`;
 }
 function renderFach(){
