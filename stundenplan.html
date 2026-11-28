@@ -253,7 +253,7 @@ function defaultChain(klasse,fach){
 }
 function defaultState(){
  const chains={};KLASSEN.forEach(k=>FAECHER[k.typ].forEach(f=>chains[k.id+'|'+f]=defaultChain(k.id,f)));
- return {version:6,settings:{refA:'2026-10-26',skipHolidayWeeks:false,planStart:'2026-08-17',stichtag:'',periods:PERIODS,klassenEnde:{'V25/1':'2027-05-28','V25/3':'2027-05-28'},hoverLangs:{'V26/1':['uk','ti','pt','es','ru'],'V26/2':['ar','vi','ru']}},slots:presetSlots(),wechsel:{},chains,mat:{},customDays:[],absences:[],exams:[],exkursionen:[],inserts:[],texts:{},trainer:kvNorm(null,KV_DEFAULT)};
+ return {version:7,settings:{refA:'2026-10-26',skipHolidayWeeks:false,planStart:'2026-08-17',stichtag:'',periods:PERIODS,klassenEnde:{'V25/1':'2027-05-28','V25/3':'2027-05-28'},hoverLangs:{'V26/1':['uk','ti','pt','es','ru','tr'],'V26/2':['ar','vi','ru','tr']}},slots:presetSlots(),wechsel:{},chains,mat:{},customDays:[],absences:[],exams:[],exkursionen:[],inserts:[],texts:{},trainer:kvNorm(null,KV_DEFAULT)};
 }
 function repairChain(c){
  if(!c||typeof c!=='object')return;
@@ -287,7 +287,8 @@ function normalize(j){
   Object.keys(o.chains).forEach(k=>{const ch=o.chains[k];(ch&&ch.parts||[]).forEach(pt=>{if(pt&&pt.pid==='LF2'&&pt.mods&&pt.mods.X1&&parseFloat(pt.mods.X1.ds)===1)pt.mods.X1.ds=0.5;});});
  }
  if(ver<6){['V26/1','V26/2'].forEach(k=>{const l=o.settings.hoverLangs[k];if(Array.isArray(l)&&!l.includes('ru'))l.push('ru');});}
- o.version=6;o.trainer=kvNorm(o.trainer,KV_DEFAULT);
+ if(ver<7){['V26/1','V26/2'].forEach(k=>{const l=o.settings.hoverLangs[k];if(Array.isArray(l)&&!l.includes('tr'))l.push('tr');});}
+ o.version=7;o.trainer=kvNorm(o.trainer,KV_DEFAULT);
  Object.keys(o.chains).forEach(k=>repairChain(o.chains[k]));
  if(!o.seed2){ /* Dateien aus dem Ordner materials/ einmalig eintragen (vorhandene Eingaben bleiben erhalten) */
   o.seed2=true;
@@ -615,12 +616,20 @@ function renderTabs(){
 /* ================= HOVER-ÜBERSETZUNG (Schüleransicht) =================
    Die Übersetzungen stehen in stundenplan_uebersetzungen.js (neben der index.html). Welche Sprachen eine Klasse sieht,
    steht unter Admin → Einstellungen (V26/1: uk, ti, pt, es · V26/2: ar, vi). */
-const TRLANGS=['uk','ti','pt','es','ar','vi','ru'];
-const TR_INFO={uk:['🇺🇦','Українська'],ti:['🌐','ትግርኛ'],pt:['🇵🇹','Português'],es:['🇪🇸','Español'],ar:['🌐','العربية'],vi:['🇻🇳','Tiếng Việt'],ru:['🇷🇺','Русский']};
+const TRLANGS=['uk','ti','pt','es','ar','vi','ru','tr'];
+const TR_INFO={uk:['🇺🇦','Українська'],ti:['🌐','ትግርኛ'],pt:['🇵🇹','Português'],es:['🇪🇸','Español'],ar:['🌐','العربية'],vi:['🇻🇳','Tiếng Việt'],ru:['🇷🇺','Русский'],tr:['🇹🇷','Türkçe']};
 let TRD=null;
 const hoverLangs=k=>{const l=((state&&state.settings.hoverLangs)||{})[k];return STUDENT&&TRD&&Array.isArray(l)?l.filter(x=>TRLANGS.includes(x)&&TRD.l.includes(x)):[];};
-const ktx=(key,l)=>{const a=KVT[key];if(!a)return key;if(l==='ru')return KVT_RU[key]||a[0];return a[KV_LANGS.indexOf(l)]||a[0];};
+const ktx=(key,l)=>{const a=KVT[key];if(!a)return key;if(l==='ru')return KVT_RU[key]||a[0];if(l==='tr')return KVT_TR[key]||a[0];return a[KV_LANGS.indexOf(l)]||a[0];};
 const ktl=(key,i)=>ktx(key,TRD.l[i]);
+/* Türkisch (separate Datei) an die Übersetzungsdaten anhängen */
+function trMerge(D,X){
+ if(!D||!X||D.l.includes('tr'))return;
+ const i=D.l.length;D.l.push('tr');
+ Object.keys(D.s).forEach(k=>{if(X.s&&X.s[k])D.s[k][i]=X.s[k];});
+ if(X.w)Object.keys(D.w).forEach(k=>{if(X.w[k])D.w[k][i]=X.w[k];});
+ if(X.p)Object.keys(D.p).forEach(k=>{if(X.p[k])D.p[k][i]=X.p[k];});
+}
 function trSpan(str,k){
  if(!str)return '';
  if(!hoverLangs(k).length||!TRD.s[str])return esc(str);
@@ -708,11 +717,12 @@ const KV_META={LF2:{tag:'LF 2',title:'Klausurtrainer LF 2 – Verkaufsgespräche
 const KV_DEFAULT={LF2:{on:true,days:7,exakt:false,url:'LF2_Klausurtrainer.html',fmt:{karten:true,quiz:true,luecke:true,reihe:true},off:{}},
  LF1:{on:true,days:7,exakt:false,url:'LF1_Klausurtrainer_M5-12.html',fmt:{karten:true,quiz:true,luecke:true,reihe:true,profi:true},off:{}},
  WISO1:{on:true,days:7,exakt:false,url:'WiSo1_Klausurtrainer.html',fmt:{karten:true,quiz:true,luecke:true,profi:true},off:{}}};
-const KV_LANGKEY='ds_lang',KV_LANGS=['de','vi','ar','uk','ti','pt','es','ru'];
+const KV_LANGKEY='ds_lang',KV_LANGS=['de','vi','ar','uk','ti','pt','es','ru','tr'];
 let KV_LANG='de',KV_EV=[];
 try{const l=localStorage.getItem(KV_LANGKEY);if(KV_LANGS.includes(l))KV_LANG=l;}catch(e){}
 function kvNorm(cur,def){const o={};Object.keys(def).forEach(p=>{const c=(cur&&cur[p])||{},d=def[p];o[p]=Object.assign({},d,c,{fmt:Object.assign({},d.fmt,c.fmt||{}),off:Object.assign({},c.off||{})});o[p].days=Math.max(1,parseInt(o[p].days)||7);if(p==='LF1'&&/^LF1_Klausurtrainer\.html$/.test(o[p].url||''))o[p].url=d.url;});return o;} /* alter LF-1-Gesamttrainer → Trainer Modul 5–12 */
 /* Oberflächentexte der Schüleransicht: [Deutsch, Vietnamesisch, Arabisch] */
+const KVT_TR={"title": "Ders programı – öğrenci görünümü", "hinfo": "Öğrenci görünümü – ders programı, konular ve kopyalanacak kayıtlar", "lernstoff": "Öğrenme içeriği", "woche": "Haftalık plan", "verlauf": "Süreç ve kayıtlar", "heute": "Bugün", "nextA": "Sonraki A haftası", "nextB": "Sonraki B haftası", "alle": "Tüm sınıflar", "material": "Materyal", "kopieren": "Kopyala", "eintrag": "Kayıt", "klausur": "Sınav", "keinStoff": "Yeni konu yok – konu zinciri kayıyor", "entfaellt": "Ders yok", "rutscht": "Konu bir sonraki derse kayıyor", "puffer": "Konu planı tamamlandı", "wdh": "Tampon / tekrar", "frei": "Ders yok (tatil)", "ferien": "Tatil", "feiertag": "Resmî tatil", "schulfrei": "Okul tatili", "datum": "Tarih", "std": "Ders saati", "status": "Durum", "unterricht": "Ders", "thema": "Konu / sınıf defteri kaydı (kopyalamak için)", "alleKopieren": "Şimdiye kadarki tüm kayıtları kopyala", "klausurKein": "Sınav – yeni konu yok", "kvAktiv": "Sınav hazırlığı aktif!", "kvHeute": "Sınav bugün – bir kez daha çalış!", "kvMorgen": "Sınav yarın – şimdi çalış!", "kvIn": "Sınava {n} gün kaldı – şimdi çalış!", "kvProg": "Sınav antrenmanı %{p} öğrenildi", "kvBanner": "📝 Sınav: {d} ({k})", "exkursion": "Gezi", "ziel": "Hedef", "grund": "Neden", "kvStart": "Şimdi çalış"};
 const KVT_RU={"lernstoff": "Учебный материал", "title": "Расписание — для учеников", "hinfo": "Для учеников — расписание, темы и записи для копирования", "woche": "Недельный план", "verlauf": "Ход занятий и записи", "heute": "Сегодня", "nextA": "Следующая неделя A", "nextB": "Следующая неделя B", "alle": "Все классы", "material": "Материал", "kopieren": "Копировать", "eintrag": "Запись", "klausur": "Контрольная работа", "keinStoff": "Нового материала нет — цепочка тем сдвигается дальше", "entfaellt": "Урока нет", "rutscht": "Материал переносится на следующий урок", "puffer": "План материала завершён", "wdh": "Резерв / повторение", "frei": "Занятий нет", "ferien": "Каникулы", "feiertag": "Праздничный день", "schulfrei": "Выходной в школе", "datum": "Дата", "std": "Урок", "status": "Статус", "unterricht": "Урок", "thema": "Тема / запись в классный журнал (для копирования)", "alleKopieren": "Копировать все записи", "klausurKein": "Контрольная работа — нового материала нет", "kvAktiv": "Подготовка к контрольной активна!", "kvHeute": "Сегодня контрольная — потренируйся ещё раз!", "kvMorgen": "Контрольная завтра — тренируйся сейчас!", "kvIn": "Контрольная через {n} дн. — тренируйся сейчас!", "kvProg": "Подготовка к контрольной: выучено {p} %", "kvBanner": "📝 Контрольная {d} ({k})", "exkursion": "Экскурсия", "ziel": "Место", "grund": "Причина", "kvStart": "Тренироваться"};
 const KVT={
  title:['Stundenplan – Schüleransicht','Thời khóa biểu – dành cho học sinh','الجدول الدراسي – عرض الطلاب','Розклад — вигляд для учнів','ሰሌዳ ሰዓታት – ርእይቶ ተማሃሮ','Horário – vista do aluno','Horario – vista del alumnado'],
@@ -739,9 +749,9 @@ const KVT={
  kvStart:['Jetzt üben','Luyện tập ngay','تدرّب الآن','Тренуватися','ሕጂ ተለማመድ','Praticar agora','Practicar ahora']
 };
 const kt=(k,v)=>{const a=KVT[k];if(!a)return k;let s=STUDENT?ktx(k,KV_LANG):a[0];if(v)Object.keys(v).forEach(x=>{s=s.split('{'+x+'}').join(v[x]);});return s;};
-const KV_DAYS={ru:['Пн','Вт','Ср','Чт','Пт'],vi:['T2','T3','T4','T5','T6'],ar:['الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'],uk:['Пн','Вт','Ср','Чт','Пт'],ti:['ሰኑይ','ሰሉስ','ረቡዕ','ሓሙስ','ዓርቢ'],pt:['Seg','Ter','Qua','Qui','Sex'],es:['Lun','Mar','Mié','Jue','Vie']};
+const KV_DAYS={tr:['Pzt','Sal','Çar','Per','Cum'],ru:['Пн','Вт','Ср','Чт','Пт'],vi:['T2','T3','T4','T5','T6'],ar:['الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'],uk:['Пн','Вт','Ср','Чт','Пт'],ti:['ሰኑይ','ሰሉስ','ረቡዕ','ሓሙስ','ዓርቢ'],pt:['Seg','Ter','Qua','Qui','Sex'],es:['Lun','Mar','Mié','Jue','Vie']};
 const kvDay=i=>STUDENT&&KV_LANG!=='de'?KV_DAYS[KV_LANG][i]:TAGE[i];
-const KV_WK={ru:'Неделя ',vi:'Tuần ',ar:'أسبوع ',uk:'Тиждень ',ti:'ሰሙን ',pt:'Semana ',es:'Semana '};
+const KV_WK={tr:'Hafta ',ru:'Неделя ',vi:'Tuần ',ar:'أسبوع ',uk:'Тиждень ',ti:'ሰሙን ',pt:'Semana ',es:'Semana '};
 const kvWoche=ab=>STUDENT&&KV_WK[KV_LANG]?KV_WK[KV_LANG]+ab:ab+'-Woche';
 const kvStat=st=>STUDENT&&KVT[st==='frei'?'schulfrei':st]?kt(st==='frei'?'schulfrei':st):STAT[st];
 const kvDaysBetween=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
@@ -801,7 +811,7 @@ function kvFor(o){
  return best;
 }
 function kvProg(k,pid){try{const j=JSON.parse(localStorage.getItem((KV_META[pid]||{}).ls||'lf2_trainer_v1')||'null');const s=j&&j.sum&&j.sum[k];return s?{a:s.pa||0,p:s.po||0}:{a:0,p:0};}catch(e){return {a:0,p:0};}}
-const kvSub=d=>d===0?kt('kvHeute'):d===1?kt('kvMorgen'):d===2&&STUDENT&&KV_LANG==='ar'?'الامتحان بعد يومين – تدرّب الآن!':d===2&&STUDENT&&KV_LANG==='ru'?'Контрольная через 2 дня — тренируйся сейчас!':kt('kvIn',{n:d});
+const kvSub=d=>d===0?kt('kvHeute'):d===1?kt('kvMorgen'):d===2&&STUDENT&&KV_LANG==='ar'?'الامتحان بعد يومين – تدرّب الآن!':d===2&&STUDENT&&KV_LANG==='tr'?'Sınava 2 gün kaldı – şimdi çalış!':d===2&&STUDENT&&KV_LANG==='ru'?'Контрольная через 2 дня — тренируйся сейчас!':kt('kvIn',{n:d});
 function kvBox(o){
  const h=kvFor(o);if(!h)return '';const pr=kvProg(h.e.k,h.e.pid),p=pr.p;
  return `<div class="kv-box"><a class="kv-btn" href="${esc(kvUrl(h.cfg,h.e.k))}"><span>🚨 ${esc(kt('kvAktiv'))}</span><small>${esc(kvSub(h.d))}</small></a><div class="kv-prog" role="progressbar" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><i class="att" style="width:${pr.a}%"></i><i style="width:${p}%"></i></div><div class="kv-ptxt">${esc(kt('kvProg',{p}))}</div></div>`;
@@ -819,7 +829,7 @@ function kvBanner(){
 function kvLangFab(){
  const el=document.getElementById('langfab');if(!el)return;
  if(!STUDENT){el.innerHTML='';return;}
- const N={de:['🇩🇪','Deutsch','DE'],vi:['🇻🇳','Tiếng Việt','VI'],ar:['🌐','العربية','ع'],uk:['🇺🇦','Українська','UK'],ti:['🌐','ትግርኛ','TI'],pt:['🇵🇹','Português','PT'],es:['🇪🇸','Español','ES'],ru:['🇷🇺','Русский','RU']};
+ const N={de:['🇩🇪','Deutsch','DE'],vi:['🇻🇳','Tiếng Việt','VI'],ar:['🌐','العربية','ع'],uk:['🇺🇦','Українська','UK'],ti:['🌐','ትግርኛ','TI'],pt:['🇵🇹','Português','PT'],es:['🇪🇸','Español','ES'],ru:['🇷🇺','Русский','RU'],tr:['🇹🇷','Türkçe','TR']};
  document.documentElement.lang=KV_LANG;document.documentElement.dir=KV_LANG==='ar'?'rtl':'ltr';
  el.innerHTML=`<div class="menu ${ui.kvMenu?'on':''}" role="menu">${KV_LANGS.map(l=>`<button role="menuitem" data-act="kvLang" data-v="${l}" class="${KV_LANG===l?'on':''}"><span style="font-size:20px">${N[l][0]}</span> ${N[l][1]}</button>`).join('')}</div><button data-act="kvMenu" aria-haspopup="true" aria-expanded="${!!ui.kvMenu}" aria-label="Sprache / Мова / ቋንቋ / Idioma">${N[KV_LANG][0]} ${N[KV_LANG][2]} ▾</button>`;
 }
@@ -1364,6 +1374,7 @@ async function init(){
  if(STUDENT){
   try{state=await fetchJson();}catch(e){state=defaultState();LOAD_ERR=true;}
   await new Promise(res=>{const sc=document.createElement('script');sc.src='stundenplan_uebersetzungen.js';sc.charset='utf-8';sc.onload=()=>{TRD=window.TR||null;res();};sc.onerror=()=>res();document.head.appendChild(sc);});
+  if(TRD)await new Promise(res=>{const sc=document.createElement('script');sc.src='stundenplan_uebersetzungen_tr.js';sc.charset='utf-8';sc.onload=()=>{try{trMerge(TRD,window.TR_TR);}catch(e){}res();};sc.onerror=()=>res();document.head.appendChild(sc);});
   ui.filterKlasse=KLASSEN.some(k=>k.id===q.get('klasse'))?q.get('klasse'):'';
   document.getElementById('title').textContent='Stundenplan – Schüleransicht';
  }else{
