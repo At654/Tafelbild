@@ -66,9 +66,28 @@ function cands(){
  const f=(ED.filter||'').toLowerCase().trim();
  if(f)L=L.filter(x=>(x.l+' '+x.u).toLowerCase().includes(f));
  const seen=new Set();L=L.filter(x=>!seen.has(x.u)&&seen.add(x.u));
- return L;
+ return sortRank(L);
 }
 const norm=u=>(u||'').trim();
+/* Standard-Reihenfolge: Einstieg, Einstiegsmaterial, Arbeitsblatt, Arbeitsblatt online, Lösung, Digitales Arbeitsblatt, Bastelbögen, Online-Spiele, Sonstiges, ganz zuletzt Selbsttest.
+   Gilt beim Anhaken und über „Automatisch sortieren“; mit ↑ ↓ kannst du danach selbst umsortieren. */
+const RANKS=[
+ [/selbsttest/i,9],[/l[öo]e?sung|musterl/i,4.1],[/lehrerhandreichung/i,4.2],[/einstiegsmaterial|einstiegs-material/i,1],
+ [/einstieg|live-app|gta auftakt|auftakt/i,0],[/bastel|leporello|k[äa]e?rtchen/i,6],[/digitales arbeitsblatt|interaktives arbeitsblatt|digitale arbeitsbl/i,5],
+ [/spiel|escape|adventure|abenteuer|story|trainer|quiz|arena|imperium|phantom|countdown|ladenmacher|rettet|wett-/i,7],[/online/i,3],[/arbeitsblatt/i,2]
+];
+function rank(x){
+ for(const src of [x.l||'',(x.u||'').split('/').pop().replace(/[_-]+/g,' ')]){
+  for(const r of RANKS)if(r[0].test(src))return r[1];
+ }
+ return 8;
+}
+const sortRank=a=>a.map((x,i)=>[x,i]).sort((p,q)=>rank(p[0])-rank(q[0])||p[1]-q[1]).map(p=>p[0]);
+function addItem(x){ /* an der Stelle der Standard-Reihenfolge einfügen, ohne deine übrige Reihenfolge zu ändern */
+ if(ED.items.some(y=>norm(y.u)===norm(x.u)))return;
+ const r=rank(x),i=ED.items.findIndex(y=>rank(y)>r);
+ if(i<0)ED.items.push({l:x.l,u:x.u});else ED.items.splice(i,0,{l:x.l,u:x.u});
+}
 const stuU=u=>{u=norm(u);return /Lernsituation/i.test(u)&&!/^https?:/i.test(u)?u+(u.includes('?')?'&':'?')+'mode=schueler':u;};
 const encU=u=>{u=stuU(u);if(/^https?:/i.test(u))return u;try{return encodeURI(decodeURI(u));}catch(e){return encodeURI(u);}};
 
@@ -132,6 +151,7 @@ function renderAll(){
  <div class="row"><button class="btn sm" data-tp="allStu">Alle für Schüler anhaken</button><button class="btn sm ghost" data-tp="noneSrc">Alle abwählen</button><span class="small" id="tpCount"></span></div>
  <div class="list" id="tpCands"></div>
  <h3>4 · Reihenfolge und Bezeichnung</h3>
+ <div class="row"><button class="btn sm" data-tp="autoSort">↕ Automatisch sortieren</button><span class="small">Einstieg → Einstiegsmaterial → Arbeitsblatt → Arbeitsblatt online → Lösung → Digitales Arbeitsblatt → Bastelbögen → Online-Spiele → … → Selbsttest. Mit ↑ ↓ änderst du selbst.</span></div>
  <div id="tpItems"></div>
  <div class="row"><input type="text" id="tpOwnL" style="flex:2;min-width:180px" placeholder="Eigener Auftrag (Text)"><input type="text" id="tpOwnU" style="flex:2;min-width:180px" placeholder="Link (optional, https://… oder Datei)"><button class="btn" data-tp="addOwn">+ Auftrag</button></div>
  <h3>5 · Eigener Text (optional)</h3>
@@ -172,7 +192,7 @@ function onChange(ev){
  else if(t.id==='tpAddMod'&&t.value){if(!ED.mods.includes(t.value))ED.mods.push(t.value);t.value='';modsChanged();}
  else if(t.dataset&&t.dataset.tp==='cand'){
   const u=t.dataset.u,l=t.dataset.l,i=ED.items.findIndex(x=>norm(x.u)===norm(u));
-  if(t.checked&&i<0)ED.items.push({l,u});else if(!t.checked&&i>=0)ED.items.splice(i,1);
+  if(t.checked&&i<0)addItem({l,u});else if(!t.checked&&i>=0)ED.items.splice(i,1);
   persist();renderItems();
  }
 }
@@ -184,8 +204,9 @@ function onClick(ev){
   case 'close':close();break;
   case 'delMod':ED.mods.splice(i,1);modsChanged();break;
   case 'sugQ':ED.q=suggestQ(b.dataset.k);ED.qAuto=false;$('tpQ').value=ED.q;persist();break;
-  case 'allStu':{cands().filter(x=>!TEACHER.test(x.l+' '+x.u)).forEach(x=>{if(!ED.items.some(y=>norm(y.u)===norm(x.u)))ED.items.push({l:x.l,u:x.u});});persist();renderCands();renderItems();break;}
+  case 'allStu':{cands().filter(x=>!TEACHER.test(x.l+' '+x.u)).forEach(x=>{addItem(x);});persist();renderCands();renderItems();break;}
   case 'noneSrc':{const us=new Set(cands().map(x=>norm(x.u)));ED.items=ED.items.filter(x=>!us.has(norm(x.u)));persist();renderCands();renderItems();break;}
+  case 'autoSort':ED.items=sortRank(ED.items);persist();renderItems();toast('Sortiert: Einstieg … Selbsttest');break;
   case 'up':if(i>0){[ED.items[i-1],ED.items[i]]=[ED.items[i],ED.items[i-1]];persist();renderItems();}break;
   case 'down':if(i<ED.items.length-1){[ED.items[i+1],ED.items[i]]=[ED.items[i],ED.items[i+1]];persist();renderItems();}break;
   case 'del':ED.items.splice(i,1);persist();renderItems();renderCands();break;
