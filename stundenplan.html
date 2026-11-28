@@ -893,7 +893,7 @@ function lessonCard(o){
   if(o.segs.some(g=>g.unit&&isLeistung(g.unit)))cls=' lk';
   body=o.segs.map(g=>segHtml(g,o,multi)).join('')+kvBox(o)+
   `<div class="acts">${o.segs.filter(g=>g.unit).map(g=>matButtons(g.unit,multi?2:3,o.id)).join('')}
-  ${cp}${ent}</div>`;
+  ${STUDENT?'':`<button class="btn sm c-bl" data-act="tplan" data-id="${esc(o.id)}" title="Tagesplan für das Smartboard: Material anklicken, Leitfrage, QR-Codes, Key Learning Points, Link zum Verschicken">🖥️ Tagesplan</button>`}${cp}${ent}</div>`;
  }else if(o.status==='klausur'){
   body=`<div class="topic">${kt('klausur')}</div><div class="sub">${kt('keinStoff')}</div>${kvBox(o)}<div class="acts">${cp}${ent}</div>`;
  }else if(o.status==='exkursion'){
@@ -1164,7 +1164,7 @@ function renderModal(){
  ${txt?`<textarea id="entryTxt" style="min-height:130px" ${STUDENT?'readonly':''}>${esc(txt)}</textarea>${STUDENT?trBlock(o):''}
  <div class="acts" style="margin-top:10px"><button class="btn pri" data-act="mCopy">${ICON_COPY} In Zwischenablage kopieren</button><button class="btn" data-act="mCopyDate">Mit Datum kopieren</button>
  ${STUDENT?'':'<button class="btn" data-act="mSave">Eigenen Text speichern</button><button class="btn ghost" data-act="mReset">Vorschlag wiederherstellen</button>'}`:`<div class="acts" style="margin-top:10px">`}
- <button class="btn ghost" data-act="mClose">Schließen</button></div>${STUDENT?'':`<div style="margin-top:12px">${plan}</div>`}</div>`;
+ ${STUDENT||o.status!=='unterricht'?'':`<button class="btn c-bl" data-act="tplan" data-id="${esc(o.id)}">🖥️ Tagesplan</button>`}<button class="btn ghost" data-act="mClose">Schließen</button></div>${STUDENT?'':`<div style="margin-top:12px">${plan}</div>`}</div>`;
 }
 function renderFoot(){
  document.getElementById('foot').innerHTML=STUDENT?'':`<div class="card"><button class="btn pri" data-act="export">Planungsdaten exportieren</button><button class="btn pri" data-act="import">Planungsdaten importieren</button><button class="btn danger" data-act="reset">Alles zurücksetzen</button><label style="display:inline-flex;gap:6px;align-items:center;margin-left:auto;font-size:14px;cursor:pointer"><input type="checkbox" id="tzSwitch" onchange="try{localStorage.setItem('tafelleiste:aus',this.checked?'0':'1')}catch(e){}" ${(()=>{try{return localStorage.getItem('tafelleiste:aus')==='1'?'':'checked'}catch(e){return 'checked'}})()}> Tafel-Leiste (Größe/Tafel-Modus) in Apps anzeigen</label>
@@ -1226,6 +1226,7 @@ document.addEventListener('click',e=>{
   case 'wnextB':gotoNext('B');break;
   case 'copy':{const o=C.occById[id];if(o)copyText(entryText(o));break;}
   case 'copyAll':{const c=C.chains[ui.chainKey],td=state.settings.stichtag||todayStr();const lines=c.occ.filter(o=>hasEntry(o)&&o.date<td).map(o=>`${de(o.date)}: ${entryText(o)}`);if(!lines.length)toast('Noch keine gehaltenen Stunden',true);else copyText(lines.join('\n\n'));break;}
+  case 'tplan':{const o=C.occById[id];if(o&&window.TPE)TPE.open(o.klasse,o.date);else toast('Tagesplan-Editor nicht geladen (tagesplan_editor.js)',true);break;}
   case 'entry':ui.modal=id;renderModal();break;
   case 'mClose':ui.modal=null;renderModal();break;
   case 'mCopy':copyText(val('entryTxt'));break;
@@ -1395,6 +1396,7 @@ async function init(){
 }
 init();
 </script>
+<script src="tagesplan_editor.js"></script>
 <script src="qr_button.js"></script>
 </body>
 </html>
